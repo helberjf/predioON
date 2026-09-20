@@ -6,3 +6,6 @@ dist/
 .DS_Store
 *.tsbuildinfo
 predio-on-platform-v4.zip
+
+# segredos de produção
+infrastructure/.env.prod

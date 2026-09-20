@@ -1,6 +1,87 @@
 # Deploy — Prédio ON
 
-## Estado atual
+## Caminho principal: uma VPS
+
+A plataforma inteira sobe em um `docker compose`: banco, broker, API, ingestão e os três
+painéis atrás de um Caddy com TLS automático.
+
+### 1. Pré-requisitos na VPS
+
+- Docker e o plugin Compose instalados
+- portas **80**, **443** e **8883** liberadas no firewall
+- quatro registros A apontando para o IP da máquina:
+  `api`, `admin`, `sindico` e `morador` do seu domínio
+
+Mínimo confortável: 2 vCPU e 4 GB de RAM. O TimescaleDB é quem pede memória.
+
+### 2. Subir
+
+```bash
+git clone SEU_REPO predioon && cd predioon
+```
+
+```bash
+cp infrastructure/.env.prod.example infrastructure/.env.prod
+```
+
+Preencha o domínio e gere as senhas:
+
+```bash
+openssl rand -base64 32
+```
+
+```bash
+./infrastructure/setup-prod.sh --seed
+```
+
+O script sobe o banco, cria as tabelas, aplica TimescaleDB + RLS + a role `predioon_app`
+com a senha que você definiu, semeia os dados de demonstração e sobe o resto.
+Sem `--seed` o banco fica vazio, pronto para o cadastro real.
+
+O Caddy pede os certificados Let's Encrypt sozinho na primeira subida. Se os registros DNS
+ainda não propagaram, ele tenta de novo automaticamente.
+
+### 3. Conferir
+
+```bash
+curl https://api.SEUDOMINIO/health/ready
+```
+
+Deve responder `{"ok":true,"database":"up"}`. Depois entre em `https://sindico.SEUDOMINIO`.
+
+### 4. Atualizar depois de um push
+
+```bash
+git pull && docker compose -f infrastructure/docker-compose.prod.yml --env-file infrastructure/.env.prod up -d --build
+```
+
+Se o schema mudou, rode `./infrastructure/setup-prod.sh` de novo — ele é idempotente.
+
+### O que cada serviço faz
+
+| Serviço | Exposto | Papel |
+|---|---|---|
+| `web` (Caddy) | 80, 443 | TLS, serve os três painéis e faz proxy da API |
+| `api` | interno | Express: autenticação, cadastros, consultas, SSE |
+| `ingest` | interno | MQTT: valida, grava, avalia regras, varre offline |
+| `emqx` | 8883 | Broker onde os gateways publicam |
+| `db` | interno | PostgreSQL + TimescaleDB |
+
+Banco e API **não** têm porta publicada — só o Caddy e o broker falam com a internet.
+
+### Ajustes de produção que valem a pena
+
+- **Backup**: `docker compose ... exec -T db pg_dump -U predioon predioon | gzip > backup.sql.gz`, num cron diário.
+- **Retenção e compressão**: as políticas estão comentadas no fim de
+  `infrastructure/001-timescale-rls.sql`. Ligue quando o volume crescer.
+- **TLS no broker**: o EMQX já expõe 8883; configure o certificado do seu domínio no dashboard.
+- **Trocar a senha do dashboard do EMQX** na primeira entrada.
+
+---
+
+## Alternativa: painéis na Vercel
+
+### Estado atual
 
 Os três painéis estão publicados na conta Vercel `catarinasoaresjf-9232`:
 
@@ -26,9 +107,9 @@ pnpm --filter @predioon/building-web build && cd apps/building-web/dist && npx v
 Para ligar a publicação automática a cada push, conecte o repositório no painel da Vercel e
 defina o **Root Directory** de cada projeto conforme a seção 3.
 
-## O que vai onde, e por quê
+### Por que a Vercel não serve para tudo
 
-A Vercel hospeda os três painéis. Ela **não** serve para a API nem para a ingestão, e o motivo é concreto:
+A Vercel hospeda bem os três painéis, mas **não** a API nem a ingestão:
 
 | Peça | Onde | Por quê |
 |---|---|---|

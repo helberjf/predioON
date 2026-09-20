@@ -1,0 +1,35 @@
+# Constrói os três painéis e entrega um Caddy que os serve com TLS automático.
+FROM node:22-slim AS build
+
+ARG VITE_API_URL
+ENV VITE_API_URL=${VITE_API_URL}
+ENV PNPM_HOME=/pnpm
+ENV PATH="${PNPM_HOME}:${PATH}"
+RUN corepack enable
+
+WORKDIR /app
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/shared/package.json packages/shared/
+COPY packages/db/package.json packages/db/
+COPY packages/ui/package.json packages/ui/
+COPY apps/admin-web/package.json apps/admin-web/
+COPY apps/building-web/package.json apps/building-web/
+COPY apps/resident-web/package.json apps/resident-web/
+
+RUN pnpm install --frozen-lockfile
+
+COPY packages ./packages
+COPY apps ./apps
+
+# VITE_API_URL é lido em tempo de build: trocar o domínio da API exige reconstruir esta imagem.
+RUN pnpm --filter @predioon/admin-web build \
+ && pnpm --filter @predioon/building-web build \
+ && pnpm --filter @predioon/resident-web build
+
+FROM caddy:2-alpine
+
+COPY infrastructure/Caddyfile /etc/caddy/Caddyfile
+COPY --from=build /app/apps/admin-web/dist     /srv/admin
+COPY --from=build /app/apps/building-web/dist  /srv/sindico
+COPY --from=build /app/apps/resident-web/dist  /srv/morador

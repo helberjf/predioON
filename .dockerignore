@@ -1,0 +1,18 @@
+# Os node_modules do pnpm são symlinks para o store do host: dentro do container
+# eles apontam para caminhos que não existem e quebram o build.
+node_modules
+**/node_modules
+
+# Artefatos locais
+**/dist
+**/.vercel
+**/*.tsbuildinfo
+.git
+.github
+
+# Segredos e coisas que não pertencem à imagem
+.env
+.env.local
+infrastructure/.env.prod
+*.zip
+*.log

@@ -1,0 +1,30 @@
+# Imagem comum da API e do serviço de ingestão.
+# Escolha o serviço com --build-arg SERVICE=api|ingest.
+FROM node:22-slim AS base
+
+ARG SERVICE=api
+ENV SERVICE=${SERVICE}
+ENV PNPM_HOME=/pnpm
+ENV PATH="${PNPM_HOME}:${PATH}"
+RUN corepack enable
+
+WORKDIR /app
+
+# Os manifestos vêm primeiro para aproveitar o cache de camadas do Docker:
+# mudar código-fonte não reinstala dependências.
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/shared/package.json packages/shared/
+COPY packages/db/package.json packages/db/
+COPY packages/ui/package.json packages/ui/
+COPY apps/api/package.json apps/api/
+COPY services/ingest/package.json services/ingest/
+
+RUN pnpm install --frozen-lockfile --filter @predioon/api --filter @predioon/ingest --filter @predioon/db --filter @predioon/shared
+
+COPY packages ./packages
+COPY apps/api ./apps/api
+COPY services/ingest ./services/ingest
+
+# tsx executa o TypeScript direto: sem etapa de build, sem risco de o artefato
+# publicado divergir do código. O custo é alguns segundos a mais no start.
+CMD ["sh", "-c", "if [ \"$SERVICE\" = \"ingest\" ]; then pnpm --filter @predioon/ingest exec tsx src/index.ts; else pnpm --filter @predioon/api exec tsx src/server.ts; fi"]

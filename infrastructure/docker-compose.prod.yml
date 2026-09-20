@@ -1,0 +1,106 @@
+# Prédio ON em produção, numa VPS.
+#
+#   cp infrastructure/.env.prod.example infrastructure/.env.prod
+#   # edite as senhas e o domínio
+#   docker compose -f infrastructure/docker-compose.prod.yml --env-file infrastructure/.env.prod up -d --build
+#
+# Só o Caddy expõe porta para a internet (80/443), mais a 8883 do broker para os gateways.
+# Banco e API ficam apenas na rede interna do compose.
+
+name: predioon
+
+services:
+  db:
+    image: timescale/timescaledb:latest-pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: predioon
+      POSTGRES_USER: predioon
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U predioon -d predioon"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      # Os scripts NÃO entram no initdb: eles dependem das tabelas que o Drizzle cria.
+      # Quem os aplica, na ordem certa, é infrastructure/setup-prod.sh.
+
+  emqx:
+    image: emqx/emqx:latest
+    restart: unless-stopped
+    ports:
+      - "8883:8883"
+    environment:
+      EMQX_NAME: predioon
+      EMQX_DASHBOARD__DEFAULT_USERNAME: admin
+      EMQX_DASHBOARD__DEFAULT_PASSWORD: ${EMQX_DASHBOARD_PASSWORD:?defina EMQX_DASHBOARD_PASSWORD}
+      EMQX_AUTHORIZATION__NO_MATCH: deny
+    volumes:
+      - ./emqx/acl.conf:/opt/emqx/etc/acl.conf:ro
+      - emqx_data:/opt/emqx/data
+
+  api:
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile.node
+      args:
+        SERVICE: api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      API_PORT: 3000
+      DATABASE_URL: postgres://predioon:${POSTGRES_PASSWORD}@db:5432/predioon
+      DATABASE_URL_APP: postgres://predioon_app:${APP_DB_PASSWORD:?defina APP_DB_PASSWORD}@db:5432/predioon
+      JWT_SECRET: ${JWT_SECRET:?defina JWT_SECRET com 32+ caracteres}
+      JWT_ACCESS_TTL_MINUTES: 15
+      JWT_REFRESH_TTL_DAYS: 30
+      CORS_ORIGINS: https://admin.${DOMAIN},https://sindico.${DOMAIN},https://morador.${DOMAIN}
+
+  ingest:
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile.node
+      args:
+        SERVICE: ingest
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://predioon:${POSTGRES_PASSWORD}@db:5432/predioon
+      MQTT_URL: mqtt://emqx:1883
+      MQTT_USERNAME: ${MQTT_INGEST_USERNAME:-predioon_ingest}
+      MQTT_PASSWORD: ${MQTT_INGEST_PASSWORD:?defina MQTT_INGEST_PASSWORD}
+      MQTT_CLIENT_ID: predioon-ingest
+      GATEWAY_OFFLINE_TIMEOUT_SECONDS: 180
+      DEVICE_OFFLINE_TIMEOUT_SECONDS: 600
+      ALERT_WEBHOOK_URL: ${ALERT_WEBHOOK_URL:-}
+
+  web:
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile.web
+      args:
+        VITE_API_URL: https://api.${DOMAIN}
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:?defina DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL:?defina ACME_EMAIL}
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  pg_data:
+  emqx_data:
+  caddy_data:
+  caddy_config:

@@ -1,0 +1,67 @@
+# Prédio ON — reverse proxy e TLS automático.
+#
+# O Caddy pede e renova certificados Let's Encrypt sozinho, desde que os quatro
+# subdomínios apontem (registro A) para o IP da VPS e as portas 80 e 443 estejam abertas.
+#
+# Para testar sem domínio, troque cada bloco por :8080, :8081, :8082 e :8083 — aí não há TLS.
+
+{
+	email {$ACME_EMAIL}
+}
+
+# ---------------------------------------------------------------- API
+api.{$DOMAIN} {
+	reverse_proxy api:3000
+
+	# SSE precisa passar sem buffer, senão o painel só recebe os eventos em lote.
+	@sse path /events/*
+	reverse_proxy @sse api:3000 {
+		flush_interval -1
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		-Server
+	}
+}
+
+# ---------------------------------------------------------------- painéis
+admin.{$DOMAIN} {
+	root * /srv/admin
+	encode gzip zstd
+	try_files {path} /index.html
+	file_server
+	header /assets/* Cache-Control "public, max-age=31536000, immutable"
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		-Server
+	}
+}
+
+sindico.{$DOMAIN} {
+	root * /srv/sindico
+	encode gzip zstd
+	try_files {path} /index.html
+	file_server
+	header /assets/* Cache-Control "public, max-age=31536000, immutable"
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		-Server
+	}
+}
+
+morador.{$DOMAIN} {
+	root * /srv/morador
+	encode gzip zstd
+	try_files {path} /index.html
+	file_server
+	header /assets/* Cache-Control "public, max-age=31536000, immutable"
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		-Server
+	}
+}

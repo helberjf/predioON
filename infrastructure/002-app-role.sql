@@ -9,13 +9,18 @@
 --   predioon      (owner)     -> migrations, ingest service, seed
 --   predioon_app  (non-owner) -> API, always inside a transaction that sets app.user_id/app.role
 
-DO $$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'predioon_app') THEN
-    CREATE ROLE predioon_app LOGIN PASSWORD 'predioon_app';
-  END IF;
-END
-$$;
+-- A senha vem de fora: psql -v app_password="..."; sem isso, usa o valor de desenvolvimento.
+\if :{?app_password}
+\else
+\set app_password 'predioon_app'
+\endif
+
+SELECT format('CREATE ROLE predioon_app LOGIN PASSWORD %L', :'app_password')
+ WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'predioon_app')
+\gexec
+
+SELECT format('ALTER ROLE predioon_app PASSWORD %L', :'app_password')
+\gexec
 
 GRANT CONNECT ON DATABASE predioon TO predioon_app;
 GRANT USAGE ON SCHEMA public TO predioon_app;
