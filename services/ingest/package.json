@@ -1,0 +1,23 @@
+{
+  "name": "@predioon/ingest",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "simulator": "tsx src/hardware-simulator.ts"
+  },
+  "dependencies": {
+    "@predioon/db": "workspace:*",
+    "@predioon/shared": "workspace:*",
+    "drizzle-orm": "^0.44.0",
+    "mqtt": "^5.0.0",
+    "dotenv": "^16.4.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0",
+    "@types/node": "^22.0.0"
+  }
+}

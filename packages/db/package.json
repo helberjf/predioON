@@ -1,0 +1,24 @@
+{
+  "name": "@predioon/db",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "scripts": {
+    "db:push": "drizzle-kit push",
+    "db:seed": "tsx src/seed.ts",
+    "typecheck": "tsc --noEmit",
+    "db:wait": "tsx src/wait-db.ts",
+    "db:infra": "tsx src/apply-infrastructure.ts"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.44.0",
+    "postgres": "^3.4.0",
+    "dotenv": "^16.4.0"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0",
+    "@types/node": "^22.0.0"
+  }
+}

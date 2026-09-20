@@ -1,0 +1,9 @@
+{
+  "name": "@predioon/shared",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "scripts": {"typecheck": "tsc --noEmit"},
+  "dependencies": {"zod": "^4.0.0"},
+  "devDependencies": {"typescript": "^5.0.0"}
+}

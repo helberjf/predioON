@@ -1,0 +1,19 @@
+{
+  "name": "predio-on-platform",
+  "private": true,
+  "packageManager": "pnpm@10.17.1",
+  "scripts": {
+    "infra:up": "docker compose -f infrastructure/docker-compose.yml up -d",
+    "infra:down": "docker compose -f infrastructure/docker-compose.yml down",
+    "infra:reset": "docker compose -f infrastructure/docker-compose.yml down -v",
+    "db:wait": "pnpm --filter @predioon/db db:wait",
+    "db:push": "pnpm --filter @predioon/db db:push",
+    "db:infra": "pnpm --filter @predioon/db db:infra",
+    "db:seed": "pnpm --filter @predioon/db db:seed",
+    "setup:local": "pnpm infra:up && pnpm db:wait && pnpm db:push && pnpm db:infra && pnpm db:seed",
+    "dev": "pnpm -r --parallel dev",
+    "simulate:hardware": "pnpm --filter @predioon/ingest simulator",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck"
+  }
+}
