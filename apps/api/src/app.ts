@@ -1,22 +1,45 @@
 import express from "express";
 import cors from "cors";
-import { devAuth } from "./middleware/devAuth.js";
-import { healthRouter } from "./routes/health.js";
-import { devicesRouter } from "./routes/devices.js";
-import { alertsRouter } from "./routes/alerts.js";
-import { adminRouter } from "./routes/admin.js";
+import { config } from "./config.js";
+import { authenticate } from "./auth/middleware.js";
+import { authRouter } from "./auth/routes.js";
+import { errorHandler, notFoundHandler } from "./http/error-handler.js";
+import { healthRouter } from "./modules/health.js";
+import { organizationsRouter } from "./modules/organizations/routes.js";
+import { buildingsRouter } from "./modules/buildings/routes.js";
+import { usersRouter } from "./modules/users/routes.js";
+import { gatewaysRouter } from "./modules/gateways/routes.js";
+import { devicesRouter } from "./modules/devices/routes.js";
+import { alertRulesRouter } from "./modules/alert-rules/routes.js";
+import { alertsRouter } from "./modules/alerts/routes.js";
+import { telemetryRouter } from "./modules/telemetry/routes.js";
+import { overviewRouter } from "./modules/overview/routes.js";
+import { auditRouter } from "./modules/audit/routes.js";
+import { eventsRouter } from "./modules/events/routes.js";
 
 export const app = express();
-app.use(cors());
-app.use(express.json());
-app.get("/", (_req, res) => res.json({ name: "Prédio ON API" }));
-app.use("/health", healthRouter);
-app.use(devAuth);
-app.use("/devices", devicesRouter);
-app.use("/alerts", alertsRouter);
-app.use("/admin", adminRouter);
 
-app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error(err);
-  res.status(400).json({ error: err instanceof Error ? err.message : "Unexpected error" });
-});
+app.use(cors({ origin: config.corsOrigins, credentials: true }));
+app.use(express.json({ limit: "1mb" }));
+
+app.get("/", (_req, res) => res.json({ name: "Prédio ON API", version: 1 }));
+app.use("/health", healthRouter);
+app.use("/auth", authRouter);
+
+// SSE authenticates itself, because EventSource cannot send headers.
+app.use("/events", eventsRouter);
+
+app.use(authenticate);
+app.use("/organizations", organizationsRouter);
+app.use("/buildings", buildingsRouter);
+app.use("/users", usersRouter);
+app.use("/gateways", gatewaysRouter);
+app.use("/devices", devicesRouter);
+app.use("/alert-rules", alertRulesRouter);
+app.use("/alerts", alertsRouter);
+app.use("/telemetry", telemetryRouter);
+app.use("/overview", overviewRouter);
+app.use("/audit", auditRouter);
+
+app.use(notFoundHandler);
+app.use(errorHandler);

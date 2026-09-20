@@ -1,4 +1,9 @@
-import "./env.js";
+import { config } from "./config.js";
 import { app } from "./app.js";
-const port = Number(process.env.API_PORT ?? 3000);
-app.listen(port, () => console.log(`Prédio ON API: http://localhost:${port}`));
+import { startRealtimeBus } from "./modules/events/bus.js";
+
+await startRealtimeBus();
+
+app.listen(config.API_PORT, () => {
+  console.log(`Prédio ON API: http://localhost:${config.API_PORT}`);
+});

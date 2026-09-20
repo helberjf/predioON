@@ -417,3 +417,67 @@ export const occurrenceEvents = pgTable(
   },
   (table) => [index("occurrence_events_occurrence_idx").on(table.occurrenceId, table.createdAt)],
 );
+
+/** Bookable common areas: party room, barbecue, gourmet space, sports court. */
+export const commonAreas = pgTable(
+  "common_areas",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    buildingId: text("building_id")
+      .notNull()
+      .references(() => buildings.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    description: text("description"),
+    capacity: integer("capacity"),
+    rules: text("rules"),
+    opensAt: text("opens_at").notNull().default("08:00"),
+    closesAt: text("closes_at").notNull().default("22:00"),
+    requiresApproval: boolean("requires_approval").notNull().default(true),
+    maxHoursPerBooking: integer("max_hours_per_booking").notNull().default(6),
+    active: boolean("active").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("common_areas_building_idx").on(table.buildingId)],
+);
+
+export const reservationStatusEnum = pgEnum("reservation_status", [
+  "PENDING",
+  "CONFIRMED",
+  "REJECTED",
+  "CANCELLED",
+]);
+
+/**
+ * Double booking is prevented by an exclusion constraint created in
+ * infrastructure/003-reservations.sql — application-level checks lose the race.
+ */
+export const reservations = pgTable(
+  "reservations",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    buildingId: text("building_id")
+      .notNull()
+      .references(() => buildings.id, { onDelete: "cascade" }),
+    areaId: uuid("area_id")
+      .notNull()
+      .references(() => commonAreas.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    unit: text("unit"),
+    startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+    endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+    status: reservationStatusEnum("status").notNull().default("PENDING"),
+    notes: text("notes"),
+    decidedBy: text("decided_by").references(() => users.id, { onDelete: "set null" }),
+    decidedAt: timestamp("decided_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("reservations_area_start_idx").on(table.areaId, table.startsAt),
+    index("reservations_user_idx").on(table.userId),
+    index("reservations_building_start_idx").on(table.buildingId, table.startsAt),
+  ],
+);
