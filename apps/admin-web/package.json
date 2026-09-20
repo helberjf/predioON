@@ -3,7 +3,30 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "scripts": {"dev":"vite --port 5173","build":"tsc -b && vite build","typecheck":"tsc --noEmit"},
-  "dependencies": {"@vitejs/plugin-react":"^5.0.0","clsx":"^2.1.0","lucide-react":"^0.468.0","react":"^19.0.0","react-dom":"^19.0.0","tailwind-merge":"^2.5.0"},
-  "devDependencies": {"@types/react":"^19.0.0","@types/react-dom":"^19.0.0","autoprefixer":"^10.4.0","postcss":"^8.4.0","tailwindcss":"^3.4.0","typescript":"^5.0.0","vite":"^7.0.0"}
+  "scripts": {
+    "dev": "vite --port 5173",
+    "build": "tsc -b && vite build",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^5.0.0",
+    "clsx": "^2.1.0",
+    "lucide-react": "^0.468.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwind-merge": "^2.5.0",
+    "@predioon/ui": "workspace:*",
+    "@predioon/shared": "workspace:*",
+    "react-router-dom": "^7.1.1",
+    "recharts": "^2.15.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.4.0",
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5.0.0",
+    "vite": "^7.0.0"
+  }
 }
