@@ -6,7 +6,8 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
-    "simulator": "tsx src/hardware-simulator.ts"
+    "simulator": "tsx src/hardware-simulator.ts",
+    "test": "node --import tsx --test test/*.test.ts"
   },
   "dependencies": {
     "@predioon/db": "workspace:*",

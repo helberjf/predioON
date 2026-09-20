@@ -1,0 +1,13 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "buildCommand": "cd ../.. && pnpm install --frozen-lockfile && pnpm --filter @predioon/resident-web build",
+  "outputDirectory": "dist",
+  "installCommand": "echo 'instala\u00e7\u00e3o feita no buildCommand, a partir da raiz do monorepo'",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

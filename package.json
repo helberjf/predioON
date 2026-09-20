@@ -14,6 +14,7 @@
     "dev": "pnpm -r --parallel dev",
     "simulate:hardware": "pnpm --filter @predioon/ingest simulator",
     "build": "pnpm -r build",
-    "typecheck": "pnpm -r typecheck"
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r --filter @predioon/api --filter @predioon/ingest test"
   }
 }

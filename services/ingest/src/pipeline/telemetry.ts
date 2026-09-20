@@ -29,6 +29,22 @@ export async function handleTelemetry(topic: string, raw: Buffer): Promise<void>
   const time = new Date(data.timestamp);
 
   const alerts = await db.transaction(async (tx) => {
+    // The device must already be registered in THIS building. Without this check a gateway
+    // could publish under another building's topic and have the reading accepted.
+    const [device] = await tx
+      .select({ id: devices.id })
+      .from(devices)
+      .where(and(eq(devices.id, data.deviceId), eq(devices.buildingId, data.buildingId)))
+      .limit(1);
+
+    if (!device) {
+      console.warn("Telemetria descartada: dispositivo não pertence ao prédio", {
+        deviceId: data.deviceId,
+        buildingId: data.buildingId,
+      });
+      return [];
+    }
+
     // MQTT QoS 1 is at-least-once. Claiming eventId first makes ingestion idempotent.
     const [claimed] = await tx
       .insert(ingestEvents)

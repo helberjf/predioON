@@ -27,6 +27,40 @@ Starter executável da plataforma Prédio ON, com API, ingestão MQTT, banco Pos
 
 > Não abra `index.html` com duplo clique. Os painéis usam Vite e precisam ser iniciados com `pnpm dev`.
 
+## Contas de demonstração
+
+Criadas por `pnpm db:seed`, todas com a senha `predioon123`:
+
+| E-mail | Perfil | Painel |
+|---|---|---|
+| `admin@predioon.local` | Administrador da plataforma | http://localhost:5173 |
+| `sindico@predioon.local` | Administrador do prédio | http://localhost:5174 |
+| `morador@predioon.local` | Morador | http://localhost:5175 |
+
+## Ver o sistema funcionando sem hardware
+
+```bash
+pnpm simulate:hardware
+```
+
+O simulador publica telemetria real no broker. Os cenários de falha ficam atrás de um argumento:
+
+```bash
+pnpm simulate:hardware --scenario=low-water
+```
+
+Cenários disponíveis: `normal`, `low-water`, `power-loss`, `leak`, `stuck-sensor`, `gateway-drop`.
+
+## Testes
+
+```bash
+pnpm test
+```
+
+Cobrem isolamento entre prédios (RBAC + RLS), rotação de refresh token, idempotência da
+ingestão por `eventId`, motor de regras e conflito de reserva. Precisam da infraestrutura
+local no ar (`pnpm infra:up && pnpm db:seed`).
+
 ---
 
 # Como abrir no Windows — passo a passo
@@ -274,9 +308,9 @@ pnpm build
 
 Abra/instale o Docker Desktop e reinicie o PowerShell.
 
-### Porta `5433` já está em uso
+### Porta `5434` já está em uso
 
-O projeto usa a porta externa `5433` para não conflitar com um PostgreSQL local. Se ela também estiver ocupada, altere a porta externa em `infrastructure/docker-compose.yml` e ajuste `DATABASE_URL` no `.env`.
+O projeto usa a porta externa `5434` para não conflitar com um PostgreSQL local. Se ela também estiver ocupada, altere a porta externa em `infrastructure/docker-compose.yml` e ajuste `DATABASE_URL` no `.env`.
 
 ### Porta `5173`, `5174`, `5175` ou `3000` está ocupada
 

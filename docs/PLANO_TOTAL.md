@@ -30,6 +30,9 @@ Centralizar monitoramento de infraestrutura predial, histórico de telemetria, a
 
 ## 3. Arquitetura
 
+Estado atual: tudo abaixo está implementado e rodando localmente. O que falta para produção
+está em `docs/NEXT_STEPS.md`; o roteiro de publicação está em `docs/DEPLOY.md`.
+
 ```text
 Sensores
   ↓ RS485 / Modbus RTU / entradas digitais
@@ -95,29 +98,26 @@ A IA entra para detecção de anomalias e tendências, não para substituir regr
 
 ## 9. Entidades principais
 
-- users
-- organizations
-- buildings
-- memberships
-- gateways
-- devices
-- device_metrics
-- ingest_events
-- telemetry
-- alert_rules
-- alerts
-- audit_logs
+**Identidade e acesso:** `users`, `refresh_tokens`, `organizations`, `buildings`, `memberships`
+**Campo:** `gateways`, `devices`, `device_metrics`
+**Telemetria:** `ingest_events` (idempotência), `telemetry` (hypertable)
+**Operação:** `alert_rules`, `alerts`, `audit_logs`
+**Convivência:** `notices`, `occurrences`, `occurrence_events`, `common_areas`, `reservations`
 
 ## 10. Fases
 
-### Fase 1 — piloto
-Gateway + sensores de nível, fase, vazamento e temperatura; dashboard e alertas.
+### Fase 1 — piloto ✅ concluída
+Sensores de nível, fase, bomba, vazamento e temperatura; dashboard, alertas e histórico.
+Validada de ponta a ponta com o simulador de campo, sem hardware.
 
-### Fase 2 — operação
-Autenticação real, CRUD administrativo, notificações, relatórios e observabilidade.
+### Fase 2 — operação ✅ concluída
+Autenticação real (JWT + argon2 + refresh rotativo), RLS efetiva com role não-dona,
+CRUD administrativo completo, auditoria, tempo real por SSE, detecção de offline,
+chamados, avisos e reservas de áreas comuns.
 
-### Fase 3 — escala
-Provisionamento automático de gateways, certificados, retenção/compressão TimescaleDB e alta disponibilidade.
+### Fase 3 — escala ⏳ em aberto
+MQTTS com certificado por gateway, autorizador HTTP do EMQX, provisionamento automático,
+retenção/compressão no TimescaleDB e alta disponibilidade.
 
-### Fase 4 — inteligência
-Detecção de anomalias e manutenção preditiva.
+### Fase 4 — inteligência ⏳ em aberto
+Detecção de anomalias e manutenção preditiva, depois de acumular histórico.
