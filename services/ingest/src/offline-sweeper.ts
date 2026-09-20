@@ -36,7 +36,7 @@ export async function sweepOffline(): Promise<void> {
     await raiseCommunicationAlert({
       buildingId: gateway.buildingId,
       gatewayId: gateway.id,
-      message: `Gateway ${gateway.name} sem comunicação`,
+      message: `${gateway.name} sem comunicação`,
     });
   }
 
@@ -63,7 +63,7 @@ export async function sweepOffline(): Promise<void> {
     await raiseCommunicationAlert({
       buildingId: device.buildingId,
       deviceId: device.id,
-      message: `Sensor ${device.name} sem comunicação`,
+      message: `${device.name} sem comunicação`,
     });
   }
 
