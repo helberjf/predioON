@@ -65,9 +65,18 @@ async function refreshSession(): Promise<boolean> {
   return true;
 }
 
+/** A network failure has no status, so it needs its own readable message. */
+async function send(path: string, init: RequestInit): Promise<Response> {
+  try {
+    return await fetch(`${BASE_URL}${path}`, init);
+  } catch {
+    throw new ApiError(0, `Não foi possível falar com a API em ${BASE_URL}. Verifique se ela está no ar.`);
+  }
+}
+
 async function request<T>(path: string, init: RequestInit = {}, retry = true): Promise<T> {
   const access = tokens.access();
-  const response = await fetch(`${BASE_URL}${path}`, {
+  const response = await send(path, {
     ...init,
     headers: {
       "Content-Type": "application/json",
@@ -93,7 +102,7 @@ export const api = {
   delete: <T>(path: string) => request<T>(path, { method: "DELETE" }),
 
   async login(email: string, password: string): Promise<Session> {
-    const response = await fetch(`${BASE_URL}/auth/login`, {
+    const response = await send("/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),

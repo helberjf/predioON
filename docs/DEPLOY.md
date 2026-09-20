@@ -1,5 +1,31 @@
 # Deploy — Prédio ON
 
+## Estado atual
+
+Os três painéis estão publicados na conta Vercel `catarinasoaresjf-9232`:
+
+| Painel | URL |
+|---|---|
+| Administrador da plataforma | https://predio-on-admin.vercel.app |
+| Operação do condomínio | https://predio-on-sindico.vercel.app |
+| Portal do morador | https://predio-on-morador.vercel.app |
+
+Eles abrem na tela de login e **ainda não autenticam**, porque a API não está publicada.
+Enquanto isso, a tela mostra a mensagem `Não foi possível falar com a API`. Falta o passo 1
+(banco) e o passo 2 (API) desta página; feito isso, basta reconstruir os painéis com
+`VITE_API_URL` apontando para a API e publicar de novo.
+
+### Republicar um painel
+
+Os projetos foram criados a partir da saída de build, sem integração com git. Para atualizar:
+
+```bash
+pnpm --filter @predioon/building-web build && cd apps/building-web/dist && npx vercel deploy --prod --yes
+```
+
+Para ligar a publicação automática a cada push, conecte o repositório no painel da Vercel e
+defina o **Root Directory** de cada projeto conforme a seção 3.
+
 ## O que vai onde, e por quê
 
 A Vercel hospeda os três painéis. Ela **não** serve para a API nem para a ingestão, e o motivo é concreto:
