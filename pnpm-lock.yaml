@@ -185,6 +185,9 @@ importers:
 
   packages/db:
     dependencies:
+      '@node-rs/argon2':
+        specifier: ^2.0.2
+        version: 2.2.1
       dotenv:
         specifier: ^16.4.0
         version: 16.6.1
@@ -235,6 +238,9 @@ importers:
       mqtt:
         specifier: ^5.0.0
         version: 5.16.0
+      zod:
+        specifier: ^4.0.0
+        version: 4.6.5
     devDependencies:
       '@types/node':
         specifier: ^22.0.0

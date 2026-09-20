@@ -47,6 +47,7 @@ WITH CHECK (user_id = app_current_user_id());
 
 ALTER TABLE notices ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS notices_scope_policy ON notices;
+DROP POLICY IF EXISTS notices_read_policy ON notices;
 CREATE POLICY notices_read_policy ON notices
 FOR SELECT
 USING (app_can_access_building(building_id));

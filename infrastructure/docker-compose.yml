@@ -6,7 +6,13 @@ services:
       POSTGRES_USER: predioon
       POSTGRES_PASSWORD: predioon
     ports:
-      - "5433:5432"
+      # 5434 no host: 5432 e 5433 costumam já estar ocupadas por outros projetos.
+      - "5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U predioon -d predioon"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
     volumes:
       - predioon_pg:/var/lib/postgresql/data
 

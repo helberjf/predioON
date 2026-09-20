@@ -8,7 +8,7 @@ import * as schema from "./schema.js";
  * actually applies to it (the owner would bypass every policy).
  */
 const appClient = postgres(
-  process.env.DATABASE_URL_APP ?? "postgres://predioon_app:predioon_app@localhost:5433/predioon",
+  process.env.DATABASE_URL_APP ?? "postgres://predioon_app:predioon_app@localhost:5434/predioon",
   { max: 10 },
 );
 

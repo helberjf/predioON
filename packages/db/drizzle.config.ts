@@ -9,6 +9,6 @@ export default defineConfig({
   out: "./drizzle",
   dialect: "postgresql",
   dbCredentials: {
-    url: process.env.DATABASE_URL ?? "postgres://predioon:predioon@localhost:5432/predioon",
+    url: process.env.DATABASE_URL ?? "postgres://predioon:predioon@localhost:5434/predioon",
   },
 });

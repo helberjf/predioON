@@ -262,9 +262,9 @@ export const alerts = pgTable(
     buildingId: text("building_id")
       .notNull()
       .references(() => buildings.id, { onDelete: "cascade" }),
-    deviceId: text("device_id")
-      .notNull()
-      .references(() => devices.id, { onDelete: "cascade" }),
+    // Nullable: a "gateway offline" alert belongs to the gateway, not to a sensor.
+    deviceId: text("device_id").references(() => devices.id, { onDelete: "cascade" }),
+    gatewayId: text("gateway_id").references(() => gateways.id, { onDelete: "cascade" }),
     ruleId: uuid("rule_id").references(() => alertRules.id, { onDelete: "set null" }),
     severity: alertSeverityEnum("severity").notNull(),
     type: text("type").notNull(),

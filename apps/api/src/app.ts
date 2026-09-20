@@ -15,6 +15,10 @@ import { alertsRouter } from "./modules/alerts/routes.js";
 import { telemetryRouter } from "./modules/telemetry/routes.js";
 import { overviewRouter } from "./modules/overview/routes.js";
 import { auditRouter } from "./modules/audit/routes.js";
+import { noticesRouter } from "./modules/notices/routes.js";
+import { occurrencesRouter } from "./modules/occurrences/routes.js";
+import { commonAreasRouter } from "./modules/common-areas/routes.js";
+import { reservationsRouter } from "./modules/reservations/routes.js";
 import { eventsRouter } from "./modules/events/routes.js";
 
 export const app = express();
@@ -40,6 +44,10 @@ app.use("/alerts", alertsRouter);
 app.use("/telemetry", telemetryRouter);
 app.use("/overview", overviewRouter);
 app.use("/audit", auditRouter);
+app.use("/notices", noticesRouter);
+app.use("/occurrences", occurrencesRouter);
+app.use("/common-areas", commonAreasRouter);
+app.use("/reservations", reservationsRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

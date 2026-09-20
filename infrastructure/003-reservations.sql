@@ -32,6 +32,7 @@ WITH CHECK (app_is_building_admin(building_id));
 
 ALTER TABLE reservations ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS reservations_scope_policy ON reservations;
+DROP POLICY IF EXISTS reservations_read_policy ON reservations;
 -- Residents see the building's calendar (to know what is taken) but may only touch their own bookings.
 CREATE POLICY reservations_read_policy ON reservations
 FOR SELECT
