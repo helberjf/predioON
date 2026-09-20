@@ -61,6 +61,8 @@ export function nextState(state: FieldState, tick: number, scenario: Scenario): 
   else if (next.waterLevelPercent <= PUMP_ON_BELOW) next.pumpRunning = true;
   else if (next.waterLevelPercent >= PUMP_OFF_ABOVE) next.pumpRunning = false;
 
+  // Arredonda como um gateway real faria: ninguém publica 41.19999999999987%.
+  next.waterLevelPercent = Math.round(next.waterLevelPercent * 10) / 10;
   next.waterVolumeLiters = Math.round((next.waterLevelPercent / 100) * TANK_CAPACITY_LITERS);
 
   const base = scenario === "power-loss" ? 172 : 220;

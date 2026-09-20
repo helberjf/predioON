@@ -34,6 +34,16 @@ export const tokens = {
   },
 };
 
+/**
+ * Called when the session cannot be renewed. Without it the panel would keep rendering
+ * with empty cards after the refresh token expires, instead of asking for a new login.
+ */
+let onAuthLost: (() => void) | null = null;
+
+export function setAuthLostHandler(handler: (() => void) | null): void {
+  onAuthLost = handler;
+}
+
 async function parseError(response: Response): Promise<never> {
   let message = `Erro ${response.status}`;
   try {
@@ -48,7 +58,10 @@ async function parseError(response: Response): Promise<never> {
 /** Refreshes once on a 401 and replays the request; a second failure logs the user out. */
 async function refreshSession(): Promise<boolean> {
   const refreshToken = tokens.refresh();
-  if (!refreshToken) return false;
+  if (!refreshToken) {
+    onAuthLost?.();
+    return false;
+  }
 
   const response = await fetch(`${BASE_URL}/auth/refresh`, {
     method: "POST",
@@ -58,6 +71,7 @@ async function refreshSession(): Promise<boolean> {
 
   if (!response.ok) {
     tokens.clear();
+    onAuthLost?.();
     return false;
   }
 

@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { db, devices, ingestEvents, telemetry } from "@predioon/db";
+import { db, devices, gateways, ingestEvents, telemetry } from "@predioon/db";
 import { TelemetrySchema, parseTelemetryTopic } from "@predioon/shared";
 import { notifyAlert } from "../notify/index.js";
 import { publishRealtime } from "../realtime.js";
@@ -32,7 +32,7 @@ export async function handleTelemetry(topic: string, raw: Buffer): Promise<void>
     // The device must already be registered in THIS building. Without this check a gateway
     // could publish under another building's topic and have the reading accepted.
     const [device] = await tx
-      .select({ id: devices.id })
+      .select({ id: devices.id, gatewayId: devices.gatewayId })
       .from(devices)
       .where(and(eq(devices.id, data.deviceId), eq(devices.buildingId, data.buildingId)))
       .limit(1);
@@ -65,10 +65,21 @@ export async function handleTelemetry(topic: string, raw: Buffer): Promise<void>
       time,
     });
 
+    const now = new Date();
     await tx
       .update(devices)
-      .set({ status: "ONLINE", lastSeenAt: new Date(), updatedAt: new Date() })
+      .set({ status: "ONLINE", lastSeenAt: now, updatedAt: now })
       .where(and(eq(devices.id, data.deviceId), eq(devices.buildingId, data.buildingId)));
+
+    // Telemetry arriving through a gateway is proof that it is alive. Without this the
+    // offline sweeper would mark a perfectly healthy gateway as OFFLINE, because only the
+    // status topic touches last_seen_at and that one is published rarely.
+    if (device.gatewayId) {
+      await tx
+        .update(gateways)
+        .set({ status: "ONLINE", lastSeenAt: now, updatedAt: now })
+        .where(and(eq(gateways.id, device.gatewayId), eq(gateways.buildingId, data.buildingId)));
+    }
 
     if (typeof data.value !== "number") return [];
     return evaluateRules(tx, {

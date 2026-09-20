@@ -84,7 +84,13 @@ export function Dashboard({ buildingId }: { buildingId: string }) {
                 <div key={`${reading.device_id}:${reading.metric}`} className="rounded-xl border border-slate-100 p-3">
                   <p className="text-xs text-slate-500">{reading.metric}</p>
                   <p className="mt-1 text-xl font-bold text-slate-900">
-                    {typeof reading.value === "boolean" ? (reading.value ? "SIM" : "NÃO") : String(reading.value)}
+                    {typeof reading.value === "boolean"
+                      ? reading.value
+                        ? "SIM"
+                        : "NÃO"
+                      : typeof reading.value === "number"
+                        ? formatNumber(reading.value, Number.isInteger(reading.value) ? 0 : 1)
+                        : String(reading.value)}
                     <span className="ml-1 text-sm font-normal text-slate-400">{reading.unit ?? ""}</span>
                   </p>
                   <p className="mt-1 text-[11px] text-slate-400">{formatRelative(reading.time)}</p>

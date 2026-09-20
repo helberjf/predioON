@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { api, tokens, type Session } from "./api.js";
+import { api, setAuthLostHandler, tokens, type Session } from "./api.js";
 
 type AuthUser = Session["user"];
 
@@ -29,6 +29,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .then(setUser)
       .catch(() => tokens.clear())
       .finally(() => setLoading(false));
+  }, []);
+
+  // Any request that fails to renew the session sends the user back to the login screen.
+  useEffect(() => {
+    setAuthLostHandler(() => setUser(null));
+    return () => setAuthLostHandler(null);
   }, []);
 
   const signIn = useCallback(async (email: string, password: string) => {
