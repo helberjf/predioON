@@ -1,20 +1,28 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Droplets, Megaphone, Wrench } from "lucide-react";
-import { Badge, Card, EmptyState, formatNumber, formatRelative, useResource } from "@predioon/ui";
+import { CalendarDays, Droplets, Megaphone, Wrench } from "lucide-react";
+import { Badge, Card, ResourceFeedback, formatNumber, formatRelative, numericReading, readingStatus, useResource } from "@predioon/ui";
 import type { LatestReading, Notice, Occurrence, Paged } from "@predioon/ui";
 
 export function Home({ buildingId }: { buildingId: string }) {
   const notices = useResource<Paged<Notice>>(`/notices?buildingId=${buildingId}`);
   const readings = useResource<Paged<LatestReading>>(`/telemetry/latest?buildingId=${buildingId}`);
   const mine = useResource<Paged<Occurrence>>(`/occurrences?buildingId=${buildingId}&limit=5`);
+  useEffect(() => {
+    const interval = setInterval(readings.reload, 10_000);
+    return () => clearInterval(interval);
+  }, [readings.reload]);
 
   const level = readings.data?.items.find((reading) => reading.metric === "water_level_percent");
-  const percent = Number(level?.numeric_value ?? 0);
+  const percent = numericReading(level);
 
   return (
     <>
+      <div className="grid grid-cols-3 gap-2">
+        {[{ to: "/reservas", label: "Reservar espaço", icon: CalendarDays }, { to: "/chamados", label: "Nova ocorrência", icon: Wrench }, { to: "/avisos", label: "Ver avisos", icon: Megaphone }].map(({to,label,icon:Icon}) => <Link key={to} to={to} className="flex flex-col items-center gap-3 rounded-2xl border border-slate-200 bg-white px-2 py-5 text-center text-xs font-semibold text-slate-700"><Icon size={24} className="text-emerald-600"/>{label}</Link>)}
+      </div>
       <Card title="Caixa d'água">
-        {level ? (
+        {level && percent !== null ? (
           <>
             <div className="flex items-end justify-between">
               <p className="text-3xl font-bold text-slate-900">{formatNumber(percent, 0)}%</p>
@@ -26,10 +34,10 @@ export function Home({ buildingId }: { buildingId: string }) {
                 style={{ width: `${Math.min(100, Math.max(0, percent))}%` }}
               />
             </div>
-            <p className="mt-2 text-xs text-slate-400">Atualizado {formatRelative(level.time)}</p>
+            <p className="mt-2 text-xs text-slate-500">{readingStatus(level)} · {formatRelative(level.time)}</p>
           </>
         ) : (
-          <EmptyState text="Sem leitura no momento." />
+          <ResourceFeedback resource={readings} emptyText="Sem leitura validada no momento." />
         )}
       </Card>
 
@@ -56,7 +64,7 @@ export function Home({ buildingId }: { buildingId: string }) {
             ))}
           </ul>
         ) : (
-          <EmptyState text="Nenhum aviso publicado." />
+          <ResourceFeedback resource={notices} emptyText="Nenhum aviso publicado." />
         )}
       </Card>
 
@@ -86,7 +94,7 @@ export function Home({ buildingId }: { buildingId: string }) {
             ))}
           </ul>
         ) : (
-          <EmptyState text="Você ainda não abriu chamados." />
+          <ResourceFeedback resource={mine} emptyText="Você ainda não abriu chamados." />
         )}
       </Card>
     </>

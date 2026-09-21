@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
 import mqtt from "mqtt";
-import { gatewayStatusTopic, telemetryTopic, type GatewayStatus, type Telemetry } from "@predioon/shared";
+import { gatewayStatusTopic, telemetryTopic, waterTelemetryTopic, type GatewayStatus, type Telemetry } from "@predioon/shared";
 import { config } from "./config.js";
 import { initialState, nextState, type FieldState, type Scenario } from "./simulator/state.js";
 
@@ -14,9 +15,11 @@ const gatewayId = process.env.SIM_GATEWAY_ID ?? "gw_001";
 const intervalMs = Number(process.env.SIM_INTERVAL_MS ?? 5000);
 
 const client = mqtt.connect(config.MQTT_URL, {
-  username: config.MQTT_USERNAME,
-  password: config.MQTT_PASSWORD,
-  clientId: `predioon-simulator-${process.pid}`,
+  username: process.env.SIM_MQTT_USERNAME ?? config.MQTT_USERNAME,
+  password: process.env.SIM_MQTT_PASSWORD ?? config.MQTT_PASSWORD,
+  clientId: process.env.SIM_MQTT_CLIENT_ID ?? gatewayId,
+  rejectUnauthorized: true,
+  ...(config.MQTT_CA_FILE ? { ca: readFileSync(config.MQTT_CA_FILE) } : {}),
   // Last will: if this process dies, the broker publishes OFFLINE for us.
   will: {
     topic: gatewayStatusTopic(buildingId, gatewayId),
@@ -62,8 +65,13 @@ function publishGatewayState(state: "ONLINE" | "OFFLINE"): void {
 function publishCycle(state: FieldState): void {
   if (!state.gatewayOnline) return; // gateway-drop: nothing reaches the platform
 
-  publishTelemetry("water_01", "water_level_percent", state.waterLevelPercent, "%");
-  publishTelemetry("water_01", "volume_liters", state.waterVolumeLiters, "L");
+  client.publish(waterTelemetryTopic(buildingId, "water_01"), JSON.stringify({
+    device_id: "water_01", type: "nivel_caixa_agua", nivel_percentual: state.waterLevelPercent,
+    volume_litros: state.waterVolumeLiters,
+    // Synthetic 2 m tank, only for the demonstration; never a hardware register mapping.
+    distancia_mm: Math.round((1 - state.waterLevelPercent / 100) * 2000),
+    timestamp: new Date().toISOString(),
+  }), { qos: 1 });
   publishTelemetry("pump_01", "pump_running", state.pumpRunning);
   publishTelemetry("phase_01", "voltage_l1", state.voltageL1, "V");
   publishTelemetry("phase_01", "voltage_l2", state.voltageL2, "V");
@@ -74,12 +82,14 @@ function publishCycle(state: FieldState): void {
 
 let state = initialState();
 let tick = 0;
+let interval: NodeJS.Timeout | undefined;
 
 client.on("connect", () => {
   console.log(`[simulador] cenário "${scenario}" · prédio ${buildingId} · a cada ${intervalMs}ms`);
   publishGatewayState(state.gatewayOnline ? "ONLINE" : "OFFLINE");
 
-  setInterval(() => {
+  if (interval) clearInterval(interval);
+  interval = setInterval(() => {
     tick += 1;
     const previous = state;
     state = nextState(state, tick, scenario);

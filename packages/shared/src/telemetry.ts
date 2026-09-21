@@ -23,6 +23,17 @@ export const TelemetrySchema = z.object({
 });
 export type Telemetry = z.infer<typeof TelemetrySchema>;
 
+/** Gateway contract for all tank measurements in one message. */
+export const WaterTelemetrySchema = z.object({
+  device_id: z.string().min(1).max(64),
+  type: z.literal("nivel_caixa_agua"),
+  nivel_percentual: z.number().min(0).max(100),
+  distancia_mm: z.number().nonnegative().optional(),
+  volume_litros: z.number().nonnegative().optional(),
+  timestamp: z.string().datetime({ offset: true }),
+});
+export type WaterTelemetry = z.infer<typeof WaterTelemetrySchema>;
+
 /** Gateway liveness, published retained and also used as the MQTT last will. */
 export const GatewayStatusSchema = z.object({
   schemaVersion: z.literal(1),

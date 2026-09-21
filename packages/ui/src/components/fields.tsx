@@ -19,7 +19,7 @@ const CONTROL =
 type InputProps = {
   value: string;
   onChange: (value: string) => void;
-  type?: "text" | "email" | "password" | "number" | "datetime-local" | "date";
+  type?: "text" | "email" | "password" | "number" | "datetime-local" | "date" | "time";
   placeholder?: string;
   required?: boolean;
 };

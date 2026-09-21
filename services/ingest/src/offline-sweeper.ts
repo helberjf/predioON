@@ -21,6 +21,7 @@ export async function sweepOffline(): Promise<void> {
       and(
         ne(gateways.status, "OFFLINE"),
         ne(gateways.status, "DISABLED"),
+        eq(gateways.enabled, true),
         lt(gateways.lastSeenAt, cutoff(config.GATEWAY_OFFLINE_TIMEOUT_SECONDS)),
       ),
     )

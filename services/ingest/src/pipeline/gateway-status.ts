@@ -31,7 +31,7 @@ export async function handleGatewayStatus(topic: string, raw: Buffer): Promise<v
       firmwareVersion: data.firmwareVersion ?? undefined,
       updatedAt: new Date(),
     })
-    .where(and(eq(gateways.id, data.gatewayId), eq(gateways.buildingId, data.buildingId)))
+    .where(and(eq(gateways.id, data.gatewayId), eq(gateways.buildingId, data.buildingId), eq(gateways.enabled, true)))
     .returning({ id: gateways.id });
 
   if (!updated.length) {

@@ -1,5 +1,7 @@
 # Integração hardware → software — Prédio ON
 
+Contrato vigente da caixa d'água e entrega local: [ENTREGA_HELBER.md](ENTREGA_HELBER.md).
+
 ## 1. Escopo
 
 A plataforma é de **monitoramento, telemetria e alertas**. Não existe acionamento remoto de
@@ -38,6 +40,7 @@ Requisitos do gateway em produção:
 ## 4. Tópicos
 
 ```text
+predio/{buildingId}/caixa_agua/{deviceId}/telemetria
 predio/{buildingId}/device/{deviceId}/telemetry
 predio/{buildingId}/gateway/{gatewayId}/status
 ```
@@ -47,7 +50,9 @@ para que o broker anuncie a queda do gateway sem esperar o timeout.
 
 ## 5. Payloads
 
-Telemetria:
+O primeiro tópico recebe o JSON compacto (`device_id`, `type`, `nivel_percentual`,
+`distancia_mm`, `volume_litros`, `timestamp`) descrito na entrega. Os dois campos de
+distância e volume são opcionais. O segundo tópico mantém o formato genérico abaixo:
 
 ```json
 {
@@ -107,7 +112,8 @@ Ele fica em `devices.metadata` (JSONB), por dispositivo:
 { "slaveId": 1, "register": 0, "scale": 0.001, "capacityLiters": 10000 }
 ```
 
-Trocar de modelo de sensor é alteração de cadastro, não de código.
+Esses valores são apenas ilustrativos. O firmware do gateway precisa ler esse mapeamento;
+o cadastro na plataforma, sozinho, não configura nem programa o equipamento.
 
 ## 9. Checklist de campo
 
@@ -140,7 +146,7 @@ Os testes 4 a 8 podem ser ensaiados **sem hardware** com `pnpm simulate:hardware
 
 - MQTT sobre TLS na porta 8883 em produção; nunca exponha 1883 na internet;
 - credencial exclusiva por gateway, evoluindo para certificado por dispositivo;
-- ACL do broker em `infrastructure/emqx/acl.conf`;
+- autenticação e autorização HTTP do EMQX configuradas no Compose de produção; o arquivo `acl.conf` é uma negação de segurança, não uma lista de permissões por gateway;
 - validação Zod antes de persistir;
-- `eventId` para idempotência com QoS 1;
+- `eventId` no formato genérico ou sensor/métrica/timestamp no compacto para idempotência com QoS 1;
 - RLS no PostgreSQL isolando os dados por prédio.

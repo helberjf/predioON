@@ -13,13 +13,23 @@ import { param } from "../../http/params.js";
 
 export const gatewaysRouter = Router();
 
+function publicGateway(row: typeof gateways.$inferSelect) {
+  const { mqttPasswordHash: _password, mqttUsername: _username, ...metadata } = row.metadata;
+  return { ...row, metadata };
+}
+
+const MetadataSchema = z.record(z.string(), z.unknown()).refine(
+  (value) => !("mqttUsername" in value) && !("mqttPasswordHash" in value),
+  "Credenciais MQTT são alteradas apenas pela emissão de credencial",
+);
+
 const CreateSchema = z.object({
   buildingId: z.string().min(1),
   name: z.string().min(2).max(120),
   serialNumber: z.string().min(3).max(80),
   model: z.string().max(120).optional(),
   firmwareVersion: z.string().max(60).optional(),
-  metadata: z.record(z.string(), z.unknown()).optional(),
+  metadata: MetadataSchema.optional(),
 });
 const UpdateSchema = CreateSchema.partial().omit({ buildingId: true }).extend({ enabled: z.boolean().optional() });
 
@@ -30,7 +40,7 @@ gatewaysRouter.get("/", async (req, res) => {
     return scope ? base.where(inArray(gateways.buildingId, scope.length ? scope : [""])).orderBy(asc(gateways.name))
                  : base.orderBy(asc(gateways.name));
   });
-  res.json({ items: rows });
+  res.json({ items: rows.map(publicGateway) });
 });
 
 gatewaysRouter.post("/", requireRole("PLATFORM_ADMIN"), validateBody(CreateSchema), async (req, res) => {
@@ -52,7 +62,7 @@ gatewaysRouter.post("/", requireRole("PLATFORM_ADMIN"), validateBody(CreateSchem
     return created!;
   });
 
-  res.status(201).json(row);
+  res.status(201).json(publicGateway(row));
 });
 
 gatewaysRouter.patch("/:gatewayId", validateBody(UpdateSchema), async (req, res) => {
@@ -66,7 +76,7 @@ gatewaysRouter.patch("/:gatewayId", validateBody(UpdateSchema), async (req, res)
 
     const [updated] = await tx
       .update(gateways)
-      .set({ ...input, updatedAt: new Date() })
+      .set({ ...input, ...(input.metadata ? { metadata: { ...current.metadata, ...input.metadata } } : {}), updatedAt: new Date() })
       .where(eq(gateways.id, current.id))
       .returning();
     await recordAudit(tx, req, {
@@ -80,13 +90,13 @@ gatewaysRouter.patch("/:gatewayId", validateBody(UpdateSchema), async (req, res)
     return updated!;
   });
 
-  res.json(row);
+  res.json(publicGateway(row));
 });
 
 /**
  * Provisioning: issues the MQTT credential the installer configures in the field.
  * The password is shown ONCE and stored only as a hash — the platform cannot recover it later.
- * Registering the credential in the broker (EMQX) is a separate, deliberate step.
+ * EMQX validates this credential through the internal authentication endpoint.
  */
 gatewaysRouter.post("/:gatewayId/credentials", requireRole("PLATFORM_ADMIN"), async (req, res) => {
   const auth = currentAuth(req);
@@ -119,7 +129,11 @@ gatewaysRouter.post("/:gatewayId/credentials", requireRole("PLATFORM_ADMIN"), as
       buildingId: gateway.buildingId,
       mqttUsername: username,
       mqttPassword: password,
+      mqttClientId: gateway.id,
+      mqttPort: 8883,
+      mqttTls: true,
       telemetryTopic: `predio/${gateway.buildingId}/device/{deviceId}/telemetry`,
+      waterTelemetryTopic: `predio/${gateway.buildingId}/caixa_agua/{deviceId}/telemetria`,
       statusTopic: `predio/${gateway.buildingId}/gateway/${gateway.id}/status`,
     };
   });

@@ -1,5 +1,6 @@
 import mqtt from "mqtt";
-import { GATEWAY_STATUS_TOPIC, TELEMETRY_TOPIC } from "@predioon/shared";
+import { readFileSync } from "node:fs";
+import { GATEWAY_STATUS_TOPIC, TELEMETRY_TOPIC, WATER_TELEMETRY_TOPIC } from "@predioon/shared";
 import { config } from "./config.js";
 
 export type MessageHandler = (topic: string, payload: Buffer) => Promise<void>;
@@ -11,11 +12,15 @@ export function connectIngest(onMessage: MessageHandler): mqtt.MqttClient {
     clientId: config.MQTT_CLIENT_ID,
     clean: false, // durable session: messages published while ingest is down are redelivered
     reconnectPeriod: 2000,
+    rejectUnauthorized: true,
+    ...(config.MQTT_CA_FILE ? { ca: readFileSync(config.MQTT_CA_FILE) } : {}),
+    ...(config.MQTT_CERT_FILE ? { cert: readFileSync(config.MQTT_CERT_FILE) } : {}),
+    ...(config.MQTT_KEY_FILE ? { key: readFileSync(config.MQTT_KEY_FILE) } : {}),
   });
 
   client.on("connect", () => {
     console.log(`MQTT conectado em ${config.MQTT_URL}`);
-    client.subscribe([TELEMETRY_TOPIC, GATEWAY_STATUS_TOPIC], { qos: 1 }, (error) => {
+    client.subscribe([TELEMETRY_TOPIC, WATER_TELEMETRY_TOPIC, GATEWAY_STATUS_TOPIC], { qos: 1 }, (error) => {
       if (error) console.error("Falha ao assinar tópicos:", error);
       else console.log(`Assinando ${TELEMETRY_TOPIC} e ${GATEWAY_STATUS_TOPIC}`);
     });

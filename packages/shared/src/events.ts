@@ -12,6 +12,7 @@ export const RealtimeEventSchema = z.discriminatedUnion("kind", [
     metric: z.string(),
     value: z.union([z.number(), z.boolean(), z.string()]),
     unit: z.string().nullable().optional(),
+    quality: z.enum(["GOOD", "UNCERTAIN", "BAD"]).optional(),
     time: z.string(),
   }),
   z.object({

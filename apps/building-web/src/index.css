@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-html { background: #f1f5f9; }
-body { @apply m-0 bg-slate-100 text-slate-900 antialiased; }
+html { background: #f5f7fa; color-scheme: light; }
+body { margin: 0; color: #172438; font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif; -webkit-font-smoothing: antialiased; }
 button, a { -webkit-tap-highlight-color: transparent; }
+button, a, input, select, textarea { touch-action: manipulation; }
+a:focus-visible, button:focus-visible { outline: 3px solid #10b981; outline-offset: 3px; }
+::selection { background: #d1fae5; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }

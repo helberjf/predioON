@@ -1,5 +1,5 @@
 import { AlertTriangle, Building2, Cpu, RadioTower, ShieldCheck, Users } from "lucide-react";
-import { Badge, Card, EmptyState, StatTile, useResource } from "@predioon/ui";
+import { Badge, Card, ErrorBanner, PageHeading, ResourceFeedback, StatTile, useResource } from "@predioon/ui";
 
 type PlatformOverview = {
   counts: Record<string, string>;
@@ -21,7 +21,8 @@ export function Overview() {
 
   return (
     <>
-      <h1 className="text-2xl font-bold text-slate-900">Visão geral da plataforma</h1>
+      <PageHeading title="Visão geral dos condomínios" description="Acompanhe sua carteira, a comunicação dos equipamentos e os alertas." />
+      {overview.error && <ErrorBanner message={overview.error} />}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <StatTile label="Clientes" value={counts.organizations ?? "0"} icon={ShieldCheck} />
@@ -80,7 +81,7 @@ export function Overview() {
             </table>
           </div>
         ) : (
-          <EmptyState text={overview.error ?? "Nenhum prédio cadastrado."} />
+          <ResourceFeedback resource={overview} emptyText="Nenhum prédio cadastrado." />
         )}
       </Card>
 

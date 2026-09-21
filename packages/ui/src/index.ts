@@ -4,6 +4,8 @@ export * from "./sse.js";
 export * from "./format.js";
 export * from "./types.js";
 export * from "./use-resource.js";
+export * from "./telemetry.js";
 export * from "./components/primitives.js";
 export * from "./components/fields.js";
 export * from "./components/login.js";
+export * from "./components/water-tank.js";

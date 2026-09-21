@@ -1,26 +1,32 @@
-# Próximos passos — Prédio ON
+# Estado da entrega — Prédio ON
 
-## Concluído
+## Implementado e validado localmente
 
-1. ~~CRUD de organizações, prédios, gateways, dispositivos e métricas~~ — feito.
-2. ~~Gráficos históricos por dispositivo/métrica com TimescaleDB~~ — `time_bucket` em `/telemetry/series`.
-3. ~~Tela de configuração de regras de alerta~~ — painel do prédio, aba Regras.
-4. ~~Atualização em tempo real~~ — `LISTEN/NOTIFY` do PostgreSQL relegado a SSE em `/events/stream`.
-5. ~~Heartbeat e detecção de gateway/dispositivo offline~~ — `services/ingest/src/offline-sweeper.ts`.
-6. ~~Autenticação real substituindo `devAuth.ts`~~ — JWT + argon2 + refresh rotativo.
-7. ~~Testes de isolamento, idempotência e RLS~~ — `pnpm test`.
+- Cadastros de clientes, prédios, gateways, dispositivos, métricas e usuários.
+- Autenticação JWT, Argon2, refresh rotativo e isolamento por prédio com RLS.
+- MQTT genérico e contrato compacto de caixa d'água; validação, gravação atômica,
+  histórico, deduplicação, regras e alertas.
+- Credenciais por gateway, autenticador e autorizador HTTP do EMQX, configuração
+  TLS de produção e teste integrado com EMQX 6.3.1.
+- Painéis de administrador, síndico e morador adaptados ao celular; água, energia,
+  avisos, ocorrências e reservas. Nenhum botão para abrir portão.
+- Atualizações SSE no painel inicial do síndico e consulta periódica de recuperação.
+- Detecção de gateway/dispositivo offline e auditoria de alterações.
 
-## Em aberto
+## Configuração para instalar no condomínio
 
-1. **MQTTS em produção (8883)** com certificado por gateway. Hoje o broker local roda em 1883 sem TLS.
-2. **Autorizador HTTP do EMQX** para amarrar cada gateway ao próprio prédio já no broker
-   (hoje a amarração é feita na ingestão). Ver `infrastructure/emqx/acl.conf`.
-3. **Notificações por e-mail e WhatsApp.** O canal de webhook já existe
-   (`ALERT_WEBHOOK_URL`); falta ligar num provedor.
-4. **App nativo do morador** em Expo, reaproveitando `@predioon/ui` e a mesma API.
-5. **Anexo de foto nos chamados** — precisa de armazenamento de objetos (S3/R2).
-6. **Observabilidade**: logs estruturados, métricas e tracing.
-7. **Detecção de anomalias** depois de acumular histórico: consumo noturno fora do padrão,
-   bomba com mais partidas que a média, queda de nível anormalmente rápida.
-8. **Retenção e compressão no TimescaleDB** — as políticas estão comentadas em
-   `infrastructure/001-timescale-rls.sql`, prontas para ligar quando o volume justificar.
+- Manual do sensor, mapa Modbus e firmware do gateway que faça a leitura RS485.
+- Domínio, servidor, certificados e segredos exclusivos. Consulte [DEPLOY.md](DEPLOY.md).
+- Cadastro real dos equipamentos e usuários, limites de alerta e comissionamento físico.
+- Provedor de WhatsApp/e-mail conectado ao webhook, caso esses canais sejam contratados.
+- Backup, restauração, monitoramento e política de retenção do histórico.
+
+## Evoluções fora da entrega atual
+
+- Aplicativos nativos, fluxo dedicado de técnico e anexos de fotos.
+- Integração com CFTV, financeiro e documentos com armazenamento de arquivos.
+- Detecção preditiva por IA após reunir histórico representativo e validar os resultados.
+- Certificados individuais por dispositivo (mTLS).
+
+As imagens fornecidas são referência para a interface e para essas possíveis evoluções.
+O escopo executável e as evidências de validação estão em [ENTREGA_HELBER.md](ENTREGA_HELBER.md).

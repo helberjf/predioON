@@ -1,62 +1,37 @@
-import { useState } from "react";
-import { Card, EmptyState, formatNumber, formatRelative, Select, StatTile, useResource } from "@predioon/ui";
-import type { LatestReading, Paged, SeriesPoint } from "@predioon/ui";
-import { Zap } from "lucide-react";
-import { MetricChart } from "../components/MetricChart.js";
+import { useEffect, useState } from "react";
+import { RefreshCw, Zap } from "lucide-react";
+import { Button, Card, ErrorBanner, findReading, formatNumber, formatRelative, numericReading, PageHeading, readingStatus, Select, sensorChoices, StatTile, useResource } from "@predioon/ui";
+import type { Device, LatestReading, Paged } from "@predioon/ui";
+import { HistoryCard } from "../components/HistoryCard.js";
+import { SensorPicker } from "../components/SensorPicker.js";
 
 const PHASES = ["voltage_l1", "voltage_l2", "voltage_l3"] as const;
 const LABELS: Record<string, string> = { voltage_l1: "Fase L1", voltage_l2: "Fase L2", voltage_l3: "Fase L3" };
 
-/** Below this the platform treats the phase as missing, matching the seeded alert rule. */
-const PHASE_LOSS_VOLTS = 100;
-
 export function Energy({ buildingId }: { buildingId: string }) {
   const [metric, setMetric] = useState<(typeof PHASES)[number]>("voltage_l1");
-  const latest = useResource<Paged<LatestReading>>(`/telemetry/latest?buildingId=${buildingId}`);
-  const from = new Date(Date.now() - 6 * 3_600_000).toISOString();
-  const series = useResource<{ items: SeriesPoint[] }>(
-    `/telemetry/series?deviceId=phase_01&metric=${metric}&bucket=5m&from=${from}`,
-  );
+  const [selected, setSelected] = useState("");
+  const latest = useResource<Paged<LatestReading>>(`/telemetry/latest?buildingId=${encodeURIComponent(buildingId)}`);
+  const devices = useResource<Paged<Device>>(`/devices?buildingId=${encodeURIComponent(buildingId)}`);
+  useEffect(() => {
+    const timer = setInterval(latest.reload, 10_000);
+    return () => clearInterval(timer);
+  }, [latest.reload]);
+  const readings = latest.data?.items ?? [];
+  const sensors = sensorChoices(readings, PHASES, devices.data?.items, ["PHASE_MONITOR"]);
+  const deviceId = sensors.some((sensor) => sensor.value === selected) ? selected : sensors[0]?.value ?? "";
 
-  const readings = PHASES.map((phase) => latest.data?.items.find((r) => r.metric === phase));
-
-  return (
-    <>
-      <h1 className="text-2xl font-bold text-slate-900">Energia</h1>
-
-      <div className="grid gap-4 sm:grid-cols-3">
-        {readings.map((reading, index) => {
-          const phase = PHASES[index]!;
-          const volts = Number(reading?.numeric_value ?? 0);
-          const missing = !reading || volts < PHASE_LOSS_VOLTS;
-          return (
-            <StatTile
-              key={phase}
-              label={LABELS[phase]!}
-              value={reading ? `${formatNumber(volts, 1)} V` : "—"}
-              detail={reading ? (missing ? "possível falta de fase" : `leitura ${formatRelative(reading.time)}`) : "sem leitura"}
-              icon={Zap}
-              tone={missing ? "danger" : volts < 190 || volts > 240 ? "warning" : "success"}
-            />
-          );
-        })}
-      </div>
-
-      <Card
-        title="Histórico de tensão"
-        subtitle="Últimas 6 horas"
-        action={
-          <div className="w-40">
-            <Select
-              value={metric}
-              onChange={setMetric}
-              options={PHASES.map((phase) => ({ value: phase, label: LABELS[phase]! }))}
-            />
-          </div>
-        }
-      >
-        {latest.error ? <EmptyState text={latest.error} /> : <MetricChart points={series.data?.items ?? []} unit="V" color="#d97706" />}
-      </Card>
-    </>
-  );
+  return <>
+    <PageHeading title="Monitoramento de energia" description="Tensão medida nas três fases do condomínio." action={<Button variant="secondary" onClick={() => { latest.reload(); devices.reload(); }} disabled={latest.loading}><RefreshCw size={16} />Atualizar leituras</Button>} />
+    {latest.error && <ErrorBanner message={latest.error} />}{devices.error && <ErrorBanner message={devices.error} />}
+    <Card><div className="grid gap-4 sm:grid-cols-2"><SensorPicker label="Monitor de energia" value={deviceId} options={sensors} onChange={setSelected} /><label className="block"><span className="mb-1.5 block text-sm font-medium text-slate-700">Fase exibida no histórico</span><Select value={metric} onChange={setMetric} options={PHASES.map((phase) => ({ value: phase, label: LABELS[phase]! }))} /></label></div></Card>
+    <div className="grid gap-4 sm:grid-cols-3">{PHASES.map((phase) => {
+      const reading = findReading(readings, deviceId, phase);
+      const volts = numericReading(reading);
+      const fresh = readingStatus(reading) === "Leitura recente";
+      return <StatTile key={phase} label={LABELS[phase]!} value={volts === null ? "—" : `${formatNumber(volts, 1)} V`} detail={reading ? `${readingStatus(reading)} · ${formatRelative(reading.time)}${fresh && volts !== null && volts < 100 ? " · possível falta de fase" : ""}` : latest.loading ? "Carregando…" : "Sem leitura recebida"} icon={Zap} tone={volts === null || !fresh ? "neutral" : volts < 100 ? "danger" : "warning"} />;
+    })}</div>
+    <HistoryCard deviceId={deviceId} metric={metric} title={`Histórico de tensão · ${LABELS[metric]}`} unit="V" color="#e2a325" initialBucket="5m" />
+    <p className="text-xs leading-5 text-slate-400">Os alertas seguem as regras configuradas para cada sensor. Leituras antigas ou ausentes não confirmam o estado atual da rede.</p>
+  </>;
 }

@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: predioon
     ports:
       # 5434 no host: 5432 e 5433 costumam já estar ocupadas por outros projetos.
-      - "5434:5432"
+      - "127.0.0.1:5434:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U predioon -d predioon"]
       interval: 5s
@@ -19,9 +19,9 @@ services:
   emqx:
     image: emqx/emqx:latest
     ports:
-      - "1883:1883"
-      - "8883:8883"
-      - "18083:18083"
+      - "127.0.0.1:1883:1883"
+      - "127.0.0.1:8883:8883"
+      - "127.0.0.1:18083:18083"
     environment:
       EMQX_NAME: predioon
       EMQX_DASHBOARD__DEFAULT_USERNAME: admin

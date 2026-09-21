@@ -28,7 +28,7 @@ services:
       # Quem os aplica, na ordem certa, é infrastructure/setup-prod.sh.
 
   emqx:
-    image: emqx/emqx:latest
+    image: emqx/emqx:6.3.1
     restart: unless-stopped
     ports:
       - "8883:8883"
@@ -37,9 +37,25 @@ services:
       EMQX_DASHBOARD__DEFAULT_USERNAME: admin
       EMQX_DASHBOARD__DEFAULT_PASSWORD: ${EMQX_DASHBOARD_PASSWORD:?defina EMQX_DASHBOARD_PASSWORD}
       EMQX_AUTHORIZATION__NO_MATCH: deny
+      EMQX_AUTHORIZATION__CACHE__ENABLE: "false"
+      EMQX_AUTHENTICATION: >-
+        [{mechanism = password_based, backend = http, method = post,
+        url = "http://api:3000/internal/mqtt/authn",
+        headers = {"content-type" = "application/json", "x-mqtt-secret" = "${MQTT_AUTH_SECRET:?defina MQTT_AUTH_SECRET}"},
+        body = {username = "$${username}", password = "$${password}", clientid = "$${clientid}"}}]
+      EMQX_AUTHORIZATION__SOURCES: >-
+        [{type = http, method = post, url = "http://api:3000/internal/mqtt/authz",
+        headers = {"content-type" = "application/json", "x-mqtt-secret" = "${MQTT_AUTH_SECRET}"},
+        body = {username = "$${username}", clientid = "$${clientid}", action = "$${action}", topic = "$${topic}"}}]
+      EMQX_LISTENERS__SSL__DEFAULT__SSL_OPTIONS__CERTFILE: /opt/emqx/etc/certs/site/fullchain.pem
+      EMQX_LISTENERS__SSL__DEFAULT__SSL_OPTIONS__KEYFILE: /opt/emqx/etc/certs/site/privkey.pem
+      EMQX_LISTENERS__SSL__DEFAULT__SSL_OPTIONS__VERSIONS: '["tlsv1.3", "tlsv1.2"]'
+      EMQX_LISTENERS__WS__DEFAULT__ENABLE: "false"
+      EMQX_LISTENERS__WSS__DEFAULT__ENABLE: "false"
     volumes:
       - ./emqx/acl.conf:/opt/emqx/etc/acl.conf:ro
       - emqx_data:/opt/emqx/data
+      - ${MQTT_CERTS_DIR:?defina MQTT_CERTS_DIR}:/opt/emqx/etc/certs/site:ro
 
   api:
     build:
@@ -58,6 +74,9 @@ services:
       JWT_SECRET: ${JWT_SECRET:?defina JWT_SECRET com 32+ caracteres}
       JWT_ACCESS_TTL_MINUTES: 15
       JWT_REFRESH_TTL_DAYS: 30
+      MQTT_AUTH_SECRET: ${MQTT_AUTH_SECRET}
+      MQTT_INGEST_USERNAME: ${MQTT_INGEST_USERNAME:-predioon_ingest}
+      MQTT_INGEST_PASSWORD: ${MQTT_INGEST_PASSWORD}
       CORS_ORIGINS: https://admin.${DOMAIN},https://sindico.${DOMAIN},https://morador.${DOMAIN}
 
   ingest:

@@ -4,7 +4,7 @@ import { connectIngest } from "./mqtt.js";
 import { startOfflineSweeper } from "./offline-sweeper.js";
 
 const client = connectIngest(async (topic, payload) => {
-  if (topic.endsWith("/telemetry")) return handleTelemetry(topic, payload);
+  if (topic.endsWith("/telemetry") || topic.endsWith("/telemetria")) return handleTelemetry(topic, payload);
   if (topic.endsWith("/status")) return handleGatewayStatus(topic, payload);
 });
 

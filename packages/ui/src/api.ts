@@ -16,8 +16,10 @@ export type Session = {
 };
 
 export class ApiError extends Error {
-  constructor(readonly status: number, message: string) {
+  readonly status: number;
+  constructor(status: number, message: string) {
     super(message);
+    this.status = status;
   }
 }
 
@@ -56,7 +58,14 @@ async function parseError(response: Response): Promise<never> {
 }
 
 /** Refreshes once on a 401 and replays the request; a second failure logs the user out. */
-async function refreshSession(): Promise<boolean> {
+let refreshInFlight: Promise<boolean> | null = null;
+function refreshSession(): Promise<boolean> {
+  // Refresh tokens are single-use. Parallel dashboard queries must share one rotation.
+  if (!refreshInFlight) refreshInFlight = renewSession().finally(() => { refreshInFlight = null; });
+  return refreshInFlight;
+}
+
+async function renewSession(): Promise<boolean> {
   const refreshToken = tokens.refresh();
   if (!refreshToken) {
     onAuthLost?.();
@@ -99,8 +108,12 @@ async function request<T>(path: string, init: RequestInit = {}, retry = true): P
     },
   });
 
-  if (response.status === 401 && retry && (await refreshSession())) {
-    return request<T>(path, init, false);
+  if (response.status === 401 && retry) {
+    // A slower request can return 401 after another request has already renewed.
+    const currentAccess = tokens.access();
+    if ((currentAccess && currentAccess !== access) || await refreshSession()) {
+      return request<T>(path, init, false);
+    }
   }
 
   if (!response.ok) await parseError(response);

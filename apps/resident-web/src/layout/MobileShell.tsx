@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 import { CalendarDays, Home, Megaphone, User, Wrench } from "lucide-react";
-import { cls, useAuth } from "@predioon/ui";
+import { Brand, cls, useAuth } from "@predioon/ui";
 
 const TABS = [
   { to: "/", label: "Início", icon: Home },
@@ -16,10 +16,10 @@ export function MobileShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-20">
-      <header className="sticky top-0 z-10 bg-gradient-to-br from-emerald-600 to-emerald-700 px-5 pb-6 pt-7 text-white">
-        <p className="text-xs uppercase tracking-[0.2em] text-emerald-100">Prédio ON</p>
-        <h1 className="mt-1 text-xl font-bold">Olá, {user?.name.split(" ")[0]}</h1>
-        <p className="mt-0.5 text-sm text-emerald-100">Seu condomínio mais fácil</p>
+      <header className="bg-[#111c2e] px-5 pb-8 pt-7 text-white">
+        <Brand dark />
+        <h1 className="mt-7 text-2xl font-bold">Olá, {user?.name.split(" ")[0]}!</h1>
+        <p className="mt-2 text-sm text-slate-300">Seu condomínio mais fácil, todos os dias.</p>
       </header>
 
       <main className="space-y-4 p-4">{children}</main>

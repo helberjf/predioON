@@ -1,6 +1,8 @@
 # Prédio ON — plataforma full-stack + IoT
 
-Starter executável da plataforma Prédio ON, com API, ingestão MQTT, banco PostgreSQL/TimescaleDB e três interfaces: **administrador global**, **administrador do prédio** e **morador**.
+Plataforma Prédio ON, com API, ingestão MQTT, banco PostgreSQL/TimescaleDB e três interfaces: **administrador global**, **administrador do prédio** e **morador**.
+
+Entrega local de 21/09/2026: veja [o contrato MQTT e as instruções para Helber](docs/ENTREGA_HELBER.md). As imagens fornecidas orientam a identidade visual; o escopo executável está descrito nesse documento.
 
 > **Escopo atual:** monitoramento, telemetria, alertas e histórico. A funcionalidade de abertura/acionamento remoto de portão foi removida desta versão.
 
@@ -57,9 +59,10 @@ Cenários disponíveis: `normal`, `low-water`, `power-loss`, `leak`, `stuck-sens
 pnpm test
 ```
 
-Cobrem isolamento entre prédios (RBAC + RLS), rotação de refresh token, idempotência da
-ingestão por `eventId`, motor de regras e conflito de reserva. Precisam da infraestrutura
-local no ar (`pnpm infra:up && pnpm db:seed`).
+Cobrem isolamento entre prédios (RBAC + RLS), rotação de refresh token, autorização MQTT,
+credencial por gateway, o contrato compacto da caixa d'água, idempotência, regras de alerta,
+conflito de reserva e tratamento de leituras na interface. Prepare o banco local com
+`pnpm setup:local`. Confira também `pnpm typecheck` e `pnpm build`.
 
 ---
 
@@ -204,13 +207,14 @@ pnpm simulate:hardware
 O simulador publica apenas telemetria MQTT, representando sensores reais:
 
 ```text
-water_01     nível e volume da caixa d'água
-phase_01     tensão da fase L1
+water_01     nível, distância e volume da caixa d'água
+phase_01     tensão das fases L1, L2 e L3
+pump_01      estado da bomba
 leak_01      sensor de vazamento
 temp_01      temperatura
 ```
 
-A cada aproximadamente 5 segundos ele envia dados. Em alguns ciclos gera propositalmente nível baixo ou subtensão para demonstrar os alertas.
+A cada aproximadamente 5 segundos ele envia dados sintéticos. O cenário padrão é normal; falhas só são geradas quando selecionadas com `--scenario`. A caixa d'água usa o tópico `predio/bld_001/caixa_agua/water_01/telemetria` e o contrato compacto solicitado. O simulador não lê uma porta RS485.
 
 ```text
 Simulador
@@ -358,7 +362,9 @@ vazamento:        leak_01
 temperatura:      temp_01
 ```
 
-O middleware `devAuth.ts` simula perfis apenas em desenvolvimento. Antes de produção, substitua por autenticação real (OIDC/Cognito/Auth0/Keycloak) e use uma role PostgreSQL não proprietária para que o RLS funcione como barreira efetiva.
+A autenticação usa JWT, senha com Argon2 e refresh token rotativo. A API usa a role
+`predioon_app`, sem propriedade das tabelas, com RLS por prédio. Para produção, configure
+segredos exclusivos, certificado MQTT válido e os demais valores de [DEPLOY.md](docs/DEPLOY.md).
 
 ---
 

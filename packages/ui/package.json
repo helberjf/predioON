@@ -5,7 +5,7 @@
   "type": "module",
   "main": "./src/index.ts",
   "exports": { ".": "./src/index.ts" },
-  "scripts": { "typecheck": "tsc --noEmit" },
+  "scripts": { "typecheck": "tsc --noEmit", "test": "node --experimental-strip-types --test test/*.test.ts" },
   "dependencies": {
     "@predioon/shared": "workspace:*",
     "lucide-react": "^0.468.0"

@@ -11,6 +11,8 @@
 
 # ---------------------------------------------------------------- API
 api.{$DOMAIN} {
+    @internal path /internal/*
+    respond @internal 404
 	reverse_proxy api:3000
 
 	# SSE precisa passar sem buffer, senão o painel só recebe os eventos em lote.

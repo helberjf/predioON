@@ -20,6 +20,7 @@ import { occurrencesRouter } from "./modules/occurrences/routes.js";
 import { commonAreasRouter } from "./modules/common-areas/routes.js";
 import { reservationsRouter } from "./modules/reservations/routes.js";
 import { eventsRouter } from "./modules/events/routes.js";
+import { mqttRouter } from "./modules/mqtt/routes.js";
 
 export const app = express();
 
@@ -29,6 +30,7 @@ app.use(express.json({ limit: "1mb" }));
 app.get("/", (_req, res) => res.json({ name: "Prédio ON API", version: 1 }));
 app.use("/health", healthRouter);
 app.use("/auth", authRouter);
+app.use("/internal/mqtt", mqttRouter);
 
 // SSE authenticates itself, because EventSource cannot send headers.
 app.use("/events", eventsRouter);

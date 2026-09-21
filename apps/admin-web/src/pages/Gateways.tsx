@@ -18,6 +18,9 @@ type Credentials = {
   buildingId: string;
   mqttUsername: string;
   mqttPassword: string;
+  mqttClientId: string;
+  mqttPort: number;
+  waterTelemetryTopic: string;
   telemetryTopic: string;
   statusTopic: string;
 };
@@ -53,7 +56,7 @@ export function Gateways() {
       {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
 
       {issued && (
-        <Card title="Credencial gerada" subtitle="A senha aparece uma única vez — anote agora e cadastre no broker">
+        <Card title="Credencial gerada" subtitle="A senha aparece uma única vez. Configure estes dados no gateway e use o host MQTT da sua instalação.">
           <dl className="grid gap-3 text-sm md:grid-cols-2">
             <div>
               <dt className="text-xs text-slate-400">Usuário MQTT</dt>
@@ -61,15 +64,27 @@ export function Gateways() {
             </div>
             <div>
               <dt className="text-xs text-slate-400">Senha MQTT</dt>
-              <dd className="font-mono text-slate-800">{issued.mqttPassword}</dd>
+              <dd className="break-all font-mono text-slate-800">{issued.mqttPassword}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-slate-400">Identificador da conexão (clientId)</dt>
+              <dd className="break-all font-mono text-slate-800">{issued.mqttClientId}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-slate-400">Conexão de produção</dt>
+              <dd className="text-slate-800">TLS · porta {issued.mqttPort}</dd>
+            </div>
+            <div className="md:col-span-2">
+              <dt className="text-xs text-slate-400">Tópico da caixa d'água — substitua o sensor pelo ID cadastrado</dt>
+              <dd className="break-all font-mono text-xs text-slate-800">{issued.waterTelemetryTopic}</dd>
             </div>
             <div className="md:col-span-2">
               <dt className="text-xs text-slate-400">Tópico de telemetria</dt>
-              <dd className="font-mono text-xs text-slate-800">{issued.telemetryTopic}</dd>
+              <dd className="break-all font-mono text-xs text-slate-800">{issued.telemetryTopic}</dd>
             </div>
             <div className="md:col-span-2">
               <dt className="text-xs text-slate-400">Tópico de status</dt>
-              <dd className="font-mono text-xs text-slate-800">{issued.statusTopic}</dd>
+              <dd className="break-all font-mono text-xs text-slate-800">{issued.statusTopic}</dd>
             </div>
           </dl>
           <div className="mt-4">

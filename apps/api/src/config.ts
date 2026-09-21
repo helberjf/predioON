@@ -9,6 +9,9 @@ const EnvSchema = z.object({
   JWT_ACCESS_TTL_MINUTES: z.coerce.number().int().positive().default(15),
   JWT_REFRESH_TTL_DAYS: z.coerce.number().int().positive().default(30),
   CORS_ORIGINS: z.string().default("http://localhost:5173,http://localhost:5174,http://localhost:5175"),
+  MQTT_AUTH_SECRET: z.string().min(32).optional(),
+  MQTT_INGEST_USERNAME: z.string().default("predioon_ingest"),
+  MQTT_INGEST_PASSWORD: z.string().min(1).optional(),
 });
 
 const parsed = EnvSchema.safeParse(process.env);

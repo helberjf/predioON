@@ -1,95 +1,52 @@
-import { useState } from "react";
-import { Card, EmptyState, formatNumber, formatRelative, Select, useResource } from "@predioon/ui";
-import type { LatestReading, Paged, SeriesPoint } from "@predioon/ui";
-import { MetricChart } from "../components/MetricChart.js";
-
-const BUCKETS = [
-  { value: "5m" as const, label: "Últimas horas (5 min)" },
-  { value: "1h" as const, label: "24 horas (1 hora)" },
-  { value: "1d" as const, label: "30 dias (1 dia)" },
-];
-
-const RANGE_HOURS = { "5m": 6, "1h": 24, "1d": 720 };
+import { useEffect, useState } from "react";
+import { Activity, Droplets, RefreshCw, Ruler } from "lucide-react";
+import { Badge, booleanReading, Button, Card, ErrorBanner, findReading, formatNumber, formatRelative, numericReading, PageHeading, readingStatus, sensorChoices, StatTile, useResource, WaterTank } from "@predioon/ui";
+import type { Device, LatestReading, Paged } from "@predioon/ui";
+import { HistoryCard } from "../components/HistoryCard.js";
+import { SensorPicker } from "../components/SensorPicker.js";
 
 export function Water({ buildingId }: { buildingId: string }) {
-  const [bucket, setBucket] = useState<"5m" | "1h" | "1d">("5m");
-  const latest = useResource<Paged<LatestReading>>(`/telemetry/latest?buildingId=${buildingId}`);
-  const from = new Date(Date.now() - RANGE_HOURS[bucket] * 3_600_000).toISOString();
-  const series = useResource<{ items: SeriesPoint[] }>(
-    `/telemetry/series?deviceId=water_01&metric=water_level_percent&bucket=${bucket}&from=${from}`,
-  );
+  const latest = useResource<Paged<LatestReading>>(`/telemetry/latest?buildingId=${encodeURIComponent(buildingId)}`);
+  const devices = useResource<Paged<Device>>(`/devices?buildingId=${encodeURIComponent(buildingId)}`);
+  useEffect(() => {
+    const timer = setInterval(latest.reload, 10_000);
+    return () => clearInterval(timer);
+  }, [latest.reload]);
+  const [selected, setSelected] = useState("");
+  const [selectedPump, setSelectedPump] = useState("");
+  const readings = latest.data?.items ?? [];
+  const sensors = sensorChoices(readings, ["water_level_percent", "distance_mm", "volume_liters"], devices.data?.items, ["WATER_LEVEL_SENSOR"]);
+  const pumps = sensorChoices(readings, ["pump_running"], devices.data?.items, ["PUMP_MONITOR"]);
+  const deviceId = sensors.some((sensor) => sensor.value === selected) ? selected : sensors[0]?.value ?? "";
+  const pumpId = pumps.some((pump) => pump.value === selectedPump) ? selectedPump : pumps[0]?.value ?? "";
+  const level = findReading(readings, deviceId, "water_level_percent");
+  const volume = findReading(readings, deviceId, "volume_liters");
+  const distance = findReading(readings, deviceId, "distance_mm");
+  const pump = findReading(readings, pumpId, "pump_running");
+  const percent = numericReading(level);
+  const running = booleanReading(pump);
+  const fresh = readingStatus(level) === "Leitura recente";
+  const detail = (reading?: LatestReading) => reading ? `${readingStatus(reading)} · ${formatRelative(reading.time)}` : latest.loading ? "Carregando…" : "Sem leitura recebida";
 
-  const level = latest.data?.items.find((r) => r.metric === "water_level_percent");
-  const volume = latest.data?.items.find((r) => r.metric === "volume_liters");
-  const pump = latest.data?.items.find((r) => r.metric === "pump_running");
-  const percent = Number(level?.numeric_value ?? 0);
-
-  // Rough drain estimate from the first and last samples of the window.
-  const points = series.data?.items ?? [];
-  const first = points[0]?.avg_value;
-  const last = points[points.length - 1]?.avg_value;
-  const hours = RANGE_HOURS[bucket];
-  const dropPerHour = first !== null && first !== undefined && last !== null && last !== undefined && points.length > 1
-    ? (Number(first) - Number(last)) / hours
-    : 0;
-  const hoursToEmpty = dropPerHour > 0.05 ? percent / dropPerHour : null;
-
-  return (
-    <>
-      <h1 className="text-2xl font-bold text-slate-900">Caixa d&apos;água</h1>
-
-      <div className="grid gap-5 lg:grid-cols-3">
-        <Card title="Nível atual">
-          {level ? (
-            <>
-              <p className="text-4xl font-bold text-slate-900">{formatNumber(percent, 0)}%</p>
-              <div className="mt-4 h-3 w-full overflow-hidden rounded-full bg-slate-100">
-                <div
-                  className={`h-full rounded-full ${percent < 20 ? "bg-rose-500" : percent < 40 ? "bg-amber-500" : "bg-emerald-500"}`}
-                  style={{ width: `${Math.min(100, Math.max(0, percent))}%` }}
-                />
-              </div>
-              <p className="mt-3 text-sm text-slate-600">{formatNumber(volume?.numeric_value, 0)} litros</p>
-              <p className="mt-1 text-xs text-slate-400">Leitura {formatRelative(level.time)}</p>
-            </>
-          ) : (
-            <EmptyState text="Sem leitura de nível." />
-          )}
-        </Card>
-
-        <Card title="Bomba de recalque">
-          {pump ? (
-            <>
-              <p className="text-4xl font-bold text-slate-900">{pump.value ? "LIGADA" : "DESLIGADA"}</p>
-              <p className="mt-3 text-xs text-slate-400">Leitura {formatRelative(pump.time)}</p>
-            </>
-          ) : (
-            <EmptyState text="Sem leitura da bomba." />
-          )}
-        </Card>
-
-        <Card title="Estimativa de esvaziamento" subtitle="Projeção pelo consumo do período">
-          {hoursToEmpty ? (
-            <>
-              <p className="text-4xl font-bold text-slate-900">{formatNumber(hoursToEmpty, 1)} h</p>
-              <p className="mt-3 text-xs text-slate-500">
-                Queda média de {formatNumber(dropPerHour, 1)}% por hora no período selecionado.
-              </p>
-            </>
-          ) : (
-            <p className="py-6 text-sm text-slate-500">
-              Sem queda consistente no período — a caixa está estável ou enchendo.
-            </p>
-          )}
+  return <>
+    <PageHeading title="Água e reservatórios" description="Acompanhe nível, volume e funcionamento da bomba." action={<Button variant="secondary" onClick={() => { latest.reload(); devices.reload(); }} disabled={latest.loading}><RefreshCw size={16} />Atualizar leituras</Button>} />
+    {latest.error && <ErrorBanner message={latest.error} />}{devices.error && <ErrorBanner message={devices.error} />}
+    <div className="grid gap-5 xl:grid-cols-[1.15fr_1fr]">
+      <Card title="Reservatório" subtitle="Dados do sensor selecionado" action={<Badge tone={fresh ? "info" : "neutral"}>{latest.loading && !level ? "Carregando" : readingStatus(level)}</Badge>}>
+        <SensorPicker label="Sensor de nível" value={deviceId} options={sensors} onChange={setSelected} />
+        <WaterTank level={percent} />
+        <div className="flex flex-wrap justify-between gap-2 border-t border-slate-100 pt-4 text-xs text-slate-500"><span>{level ? `Última leitura ${formatRelative(level.time)}` : "Aguardando leitura do sensor"}</span><span>{percent !== null && fresh && percent < 20 ? "Nível abaixo de 20%" : "Nível informado pelo sensor"}</span></div>
+      </Card>
+      <div className="grid gap-5 sm:grid-cols-2">
+        <StatTile label="Volume informado" value={volume && numericReading(volume) !== null ? `${formatNumber(numericReading(volume))} L` : "—"} detail={detail(volume)} icon={Droplets} tone="info" />
+        <StatTile label="Distância medida" value={distance && numericReading(distance) !== null ? `${formatNumber(numericReading(distance))} mm` : "—"} detail={detail(distance)} icon={Ruler} />
+        <Card title="Bomba de recalque" className="sm:col-span-2" action={<Activity size={18} className="text-emerald-600" />}>
+          <SensorPicker label="Monitor da bomba" value={pumpId} options={pumps} onChange={setSelectedPump} />
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-3"><p className="text-2xl font-bold text-slate-900">{running === null ? "Sem informação" : running ? "Ligada" : "Desligada"}</p><Badge tone="neutral">{readingStatus(pump)}</Badge></div><p className="mt-2 text-xs text-slate-500">{detail(pump)}</p>
         </Card>
       </div>
-
-      <Card
-        title="Histórico do nível"
-        action={<div className="w-56"><Select value={bucket} onChange={setBucket} options={BUCKETS} /></div>}
-      >
-        <MetricChart points={points} unit="%" color="#0284c7" />
-      </Card>
-    </>
-  );
+    </div>
+    <HistoryCard deviceId={deviceId} metric="water_level_percent" title="Histórico do nível de água" unit="%" color="#0ea5e9" />
+    <p className="text-xs leading-5 text-slate-400">Leituras com mais de 15 minutos são identificadas como antigas. Volume e distância aparecem apenas quando enviados pelo sensor.</p>
+  </>;
 }
