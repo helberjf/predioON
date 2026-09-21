@@ -25,7 +25,7 @@ export function toneFor(value: string): Tone {
 export function Badge({ children, tone }: { children: ReactNode; tone?: Tone }) {
   const resolved = tone ?? toneFor(String(children));
   return (
-    <span className={cls("inline-flex rounded-full border px-2.5 py-0.5 text-xs font-semibold", TONE_CLASSES[resolved])}>
+    <span className={cls("inline-flex shrink-0 rounded-md border px-2 py-1 text-[11px] font-medium leading-none", TONE_CLASSES[resolved])}>
       {typeof children === "string" ? STATUS_LABELS[children] ?? children : children}
     </span>
   );
@@ -42,10 +42,10 @@ const STATUS_LABELS: Record<string, string> = {
 
 export function Brand({ dark = false, compact = false }: { dark?: boolean; compact?: boolean }) {
   return <div className="flex items-center gap-2.5">
-    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-500"><Building2 size={25} strokeWidth={2} /></span>
-    <span className={cls("text-xl font-bold tracking-tight", dark ? "text-white" : "text-slate-900")}>
+    <span className="flex h-12 w-11 shrink-0 items-center justify-center text-emerald-400"><Building2 size={45} strokeWidth={1.5} /></span>
+    <span className={cls("whitespace-nowrap text-[26px] font-bold leading-none tracking-tight", dark ? "text-white" : "text-[#183450]")}>
       Prédio <span className="text-emerald-500">ON</span>
-      {!compact && <span className={cls("mt-0.5 block text-[9px] font-medium uppercase tracking-[0.18em]", dark ? "text-slate-400" : "text-slate-500")}>Seu condomínio conectado</span>}
+      {!compact && <span className={cls("mt-1.5 block text-[9px] font-normal tracking-normal", dark ? "text-slate-200" : "text-slate-500")}>Seu prédio, sempre conectado</span>}
     </span>
   </div>;
 }
@@ -73,7 +73,7 @@ export function Button({ children, onClick, variant = "primary", type = "button"
       onClick={onClick}
       disabled={disabled}
       className={cls(
-        "inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition",
+        "inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition",
         "disabled:cursor-not-allowed disabled:opacity-60",
         BUTTON_VARIANTS[variant],
         full && "w-full",
@@ -98,17 +98,17 @@ export function Card({
   className?: string;
 }) {
   return (
-    <section className={cls("min-w-0 rounded-2xl border border-slate-200/80 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.025)]", className)}>
+    <section className={cls("min-w-0 rounded-[10px] border border-[#e6eef3] bg-white shadow-[0_1px_4px_rgba(15,23,42,0.015)]", className)}>
       {(title || action) && (
-        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+        <header className="flex flex-wrap items-center justify-between gap-2 px-4 pb-0 pt-4">
           <div>
-            {title && <h2 className="font-semibold text-slate-900">{title}</h2>}
+            {title && <h2 className="text-sm font-bold tracking-tight text-[#142f50]">{title}</h2>}
             {subtitle && <p className="mt-0.5 text-xs text-slate-500">{subtitle}</p>}
           </div>
           {action}
         </header>
       )}
-      <div className="p-5">{children}</div>
+      <div className="p-4">{children}</div>
     </section>
   );
 }

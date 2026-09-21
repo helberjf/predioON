@@ -1,120 +1,50 @@
 import { useState } from "react";
-import {
-  api,
-  Badge,
-  Button,
-  Card,
-  EmptyState,
-  ErrorBanner,
-  Field,
-  formatDateTime,
-  Input,
-  Select,
-  useResource,
-} from "@predioon/ui";
+import { useSearchParams } from "react-router-dom";
+import { CalendarDays, CheckCircle2, ChevronRight, Flame, PartyPopper, Trees, Users } from "lucide-react";
+import { api, Badge, Button, Card, cls, ErrorBanner, Field, formatDateTime, Input, ResourceFeedback, useResource } from "@predioon/ui";
 import type { CommonArea, Paged, Reservation } from "@predioon/ui";
 
-export function Reservations({ buildingId }: { buildingId: string }) {
+export function Reservations({ buildingId }: { buildingId:string }) {
   const areas = useResource<Paged<CommonArea>>(`/common-areas?buildingId=${buildingId}`);
   const mine = useResource<Paged<Reservation>>(`/reservations?buildingId=${buildingId}&mine=true`);
-  const [error, setError] = useState<string | null>(null);
-  const [form, setForm] = useState({ areaId: "", date: "", start: "19:00", hours: "4", unit: "" });
-
-  const area = areas.data?.items.find((item) => item.id === form.areaId);
-  const areaName = (areaId: string) => areas.data?.items.find((item) => item.id === areaId)?.name ?? "Área";
-
+  const [search,setSearch] = useSearchParams();
+  const tab = search.get("tab") === "minhas" ? "minhas" : "nova";
+  const [error,setError] = useState<string|null>(null);
+  const [success,setSuccess] = useState("");
+  const [pending,setPending] = useState(false);
+  const [form,setForm] = useState({areaId:"",date:"",start:"19:00",hours:"4",unit:""});
+  const area = areas.data?.items.find(item=>item.id===form.areaId);
+  const areaName = (id:string)=>areas.data?.items.find(item=>item.id===id)?.name ?? "Área comum";
   async function book() {
+    setPending(true); setError(null); setSuccess("");
     try {
       const startsAt = new Date(`${form.date}T${form.start}:00`);
-      const endsAt = new Date(startsAt.getTime() + Number(form.hours) * 3_600_000);
-      await api.post("/reservations", {
-        areaId: form.areaId,
-        startsAt: startsAt.toISOString(),
-        endsAt: endsAt.toISOString(),
-        unit: form.unit || undefined,
-      });
-      setError(null);
-      mine.reload();
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Falha ao reservar");
-    }
+      const hours = Number(form.hours);
+      if (!Number.isFinite(startsAt.getTime()) || !Number.isFinite(hours) || hours <= 0) throw new Error("Informe uma data, horário e duração válidos.");
+      await api.post("/reservations",{areaId:form.areaId,startsAt:startsAt.toISOString(),endsAt:new Date(startsAt.getTime()+hours*3600000).toISOString(),unit:form.unit||undefined});
+      setSuccess(area?.requiresApproval ? "Reserva enviada para aprovação da administração." : "Reserva confirmada com sucesso.");
+      mine.reload(); setSearch({tab:"minhas"}); setForm({...form,date:""});
+    } catch(cause) {setError(cause instanceof Error ? cause.message : "Falha ao reservar");}
+    finally {setPending(false);}
   }
-
-  async function cancel(id: string) {
-    await api.delete(`/reservations/${id}`);
-    mine.reload();
+  async function cancel(id:string) {
+    setPending(true); setError(null); setSuccess("");
+    try {await api.delete(`/reservations/${id}`);mine.reload();setSuccess("Reserva cancelada.");}
+    catch(cause) {setError(cause instanceof Error ? cause.message : "Não foi possível cancelar a reserva.");}
+    finally {setPending(false);}
   }
-
-  return (
-    <>
-      {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
-
-      <Card title="Nova reserva">
-        <div className="space-y-3">
-          <Field label="Área comum">
-            <Select
-              value={form.areaId}
-              onChange={(areaId) => setForm({ ...form, areaId })}
-              options={[
-                { value: "", label: "Escolha uma área" },
-                ...(areas.data?.items ?? []).map((item) => ({ value: item.id, label: item.name })),
-              ]}
-            />
-          </Field>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Data">
-              <Input type="date" value={form.date} onChange={(date) => setForm({ ...form, date })} />
-            </Field>
-            <Field label="Início">
-              <Input value={form.start} onChange={(start) => setForm({ ...form, start })} placeholder="19:00" />
-            </Field>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Duração (h)" hint={area ? `máx. ${area.maxHoursPerBooking}h` : undefined}>
-              <Input type="number" value={form.hours} onChange={(hours) => setForm({ ...form, hours })} />
-            </Field>
-            <Field label="Unidade">
-              <Input value={form.unit} onChange={(unit) => setForm({ ...form, unit })} placeholder="101" />
-            </Field>
-          </div>
-          {area?.requiresApproval && (
-            <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
-              Esta área precisa da aprovação da administração.
-            </p>
-          )}
-          <Button full onClick={() => void book()} disabled={!form.areaId || !form.date}>
-            Reservar
-          </Button>
-        </div>
-      </Card>
-
-      <Card title="Minhas reservas">
-        {mine.data?.items.length ? (
-          <ul className="space-y-3">
-            {mine.data.items.map((reservation) => (
-              <li
-                key={reservation.id}
-                className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 p-3"
-              >
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-slate-800">{areaName(reservation.areaId)}</p>
-                  <p className="text-xs text-slate-500">{formatDateTime(reservation.startsAt)}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge>{reservation.status}</Badge>
-                  {reservation.status !== "CANCELLED" && (
-                    <Button variant="ghost" onClick={() => void cancel(reservation.id)}>
-                      Cancelar
-                    </Button>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <EmptyState text="Você não tem reservas." />
-        )}
-      </Card>
-    </>
-  );
+  return <>
+    <div className="grid grid-cols-2 rounded-lg bg-slate-200/60 p-1" aria-label="Opções de reserva">{[{key:"nova",label:"Nova reserva"},{key:"minhas",label:"Minhas reservas"}].map(item=><button key={item.key} aria-pressed={tab===item.key} onClick={()=>{setSearch(item.key==="minhas" ? {tab:"minhas"} : {});setError(null);setSuccess("");}} className={cls("rounded-md px-2 py-2.5 text-sm font-medium",tab===item.key ? "bg-emerald-600 text-white shadow-sm" : "text-slate-600")}>{item.label}</button>)}</div>
+    {error && <ErrorBanner message={error} onDismiss={()=>setError(null)}/>}
+    {success && <p role="status" className="flex items-start gap-2 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700"><CheckCircle2 size={18} className="mt-0.5 shrink-0"/>{success}</p>}
+    {tab==="nova" ? <>
+      {areas.data?.items.length ? <div className="space-y-3">{areas.data.items.map(item=>{
+        const Icon = /churras/i.test(item.name) ? Flame : /salão|festa|gourmet/i.test(item.name) ? PartyPopper : Trees;
+        return <div key={item.id} className={cls("overflow-hidden rounded-xl border bg-white",area?.id===item.id ? "border-emerald-300" : "border-slate-100")}><button aria-expanded={area?.id===item.id} onClick={()=>{setForm({...form,areaId:area?.id===item.id ? "" : item.id,hours:String(Math.min(4,item.maxHoursPerBooking))});setError(null);}} className="flex w-full items-center gap-4 p-3 text-left"><span className="relative flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-[#d6ece4] to-[#ebf2f7] text-[#398878]"><span className="absolute -bottom-5 -right-5 h-20 w-20 rounded-full border-[12px] border-white/35"/><Icon size={39} strokeWidth={1.5}/></span><div className="min-w-0 flex-1"><h2 className="text-sm font-bold text-[#152d4b]">{item.name}</h2><p className="mt-1.5 flex items-center gap-1 text-[11px] text-slate-500"><Users size={13}/>{item.capacity ? `Capacidade: ${item.capacity} pessoas` : "Uso por horário"}</p><span className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700"><CalendarDays size={15}/>{area?.id===item.id ? "Selecionado" : "Reservar"}</span></div><ChevronRight size={17} className="shrink-0 text-slate-400"/></button>
+          {area?.id===item.id && <form onSubmit={event=>{event.preventDefault();void book();}} className="space-y-3 border-t border-emerald-100 p-4"><p className="text-xs text-slate-500">Funcionamento: {item.opensAt.slice(0,5)} às {item.closesAt.slice(0,5)}</p><div className="grid grid-cols-2 gap-3"><Field label="Data"><Input type="date" required value={form.date} onChange={date=>setForm({...form,date})}/></Field><Field label="Início"><Input type="time" required value={form.start} onChange={start=>setForm({...form,start})}/></Field></div><div className="grid grid-cols-2 gap-3"><Field label="Duração (h)" hint={`máx. ${item.maxHoursPerBooking}h`}><Input type="number" required value={form.hours} onChange={hours=>setForm({...form,hours})}/></Field><Field label="Unidade"><Input value={form.unit} onChange={unit=>setForm({...form,unit})} placeholder="101"/></Field></div>{item.requiresApproval && <p className="rounded-lg bg-amber-50 p-3 text-xs text-amber-700">A reserva será enviada para aprovação da administração.</p>}<Button type="submit" full disabled={pending||!form.date}>{pending ? "Enviando…" : "Confirmar reserva"}</Button></form>}
+        </div>;
+      })}</div> : <Card><ResourceFeedback resource={areas} emptyText="Nenhuma área comum disponível para reserva."/></Card>}
+      <p className="px-1 text-xs leading-5 text-slate-500">Escolha o espaço e informe a data e o horário. Você pode acompanhar a situação em Minhas reservas.</p>
+    </> : <Card title="Próximas reservas">{mine.data?.items.length ? <ul className="divide-y divide-slate-100">{mine.data.items.map(reservation=><li key={reservation.id} className="py-4 first:pt-0"><div className="flex items-start justify-between gap-3"><div className="flex gap-3"><span className="h-fit rounded-lg bg-emerald-50 p-2 text-emerald-600"><CalendarDays size={22}/></span><div><p className="text-sm font-semibold text-[#152d4b]">{areaName(reservation.areaId)}</p><p className="mt-1 text-xs leading-5 text-slate-500">{formatDateTime(reservation.startsAt)}</p></div></div><Badge>{reservation.status}</Badge></div>{["PENDING","CONFIRMED"].includes(reservation.status) && <div className="mt-2 text-right"><Button variant="ghost" disabled={pending} onClick={()=>void cancel(reservation.id)}>Cancelar reserva</Button></div>}</li>)}</ul> : <ResourceFeedback resource={mine} emptyText="Você não tem reservas futuras."/>}</Card>}
+  </>;
 }

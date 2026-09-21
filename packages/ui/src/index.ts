@@ -9,3 +9,5 @@ export * from "./components/primitives.js";
 export * from "./components/fields.js";
 export * from "./components/login.js";
 export * from "./components/water-tank.js";
+export * from "./assets.js";
+export * from "./components/dashboard-frame.js";

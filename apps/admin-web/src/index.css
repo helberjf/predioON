@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-html { background: #f5f7fa; color-scheme: light; }
+html { background: #eef5f9; color-scheme: light; }
 body { margin: 0; color: #172438; font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif; -webkit-font-smoothing: antialiased; }
 button, a { -webkit-tap-highlight-color: transparent; }
 button, a, input, select, textarea { touch-action: manipulation; }
