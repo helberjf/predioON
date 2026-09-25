@@ -1,3 +1,4 @@
+import { assertSensorFeatures, buildingFeatures, observationIsCurrent, sensorFeatureKeys } from "../../auth/features.js";
 import { Router } from "express";
 import { eq } from "drizzle-orm";
 import { sql } from "drizzle-orm";
@@ -45,6 +46,7 @@ telemetryRouter.get("/latest", validateQuery(LatestQuerySchema), async (req, res
   assertBuildingAccess(currentAuth(req), buildingId);
 
   const rows = await inTenantContext(req, async (tx) => {
+    const features = await buildingFeatures(tx, buildingId);
     const result = await tx.execute(sql`
       SELECT DISTINCT ON (t.device_id, t.metric)
              t.device_id, d.name AS device_name, t.metric, t.value,
@@ -55,7 +57,12 @@ telemetryRouter.get("/latest", validateQuery(LatestQuerySchema), async (req, res
         AND t.time > now() - interval '7 days'
       ORDER BY t.device_id, t.metric, t.time DESC
     `);
-    return result as unknown as LatestRow[];
+    const visible: LatestRow[] = [];
+    for (const row of result as unknown as LatestRow[]) {
+      const keys = await sensorFeatureKeys(tx, { buildingId, deviceId: row.device_id, metric: row.metric });
+      if (observationIsCurrent(features, keys, row.time)) visible.push(row);
+    }
+    return visible;
   });
 
   res.json({ items: rows });
@@ -72,6 +79,7 @@ telemetryRouter.get("/series", validateQuery(SeriesQuerySchema), async (req, res
     const [device] = await tx.select().from(devices).where(eq(devices.id, deviceId)).limit(1);
     if (!device) throw notFound("Dispositivo não encontrado");
     assertBuildingAccess(auth, device.buildingId);
+    await assertSensorFeatures(tx, { buildingId: device.buildingId, deviceId, metric });
 
     const result = await tx.execute(sql`
       SELECT time_bucket(${interval}::interval, time) AS bucket,

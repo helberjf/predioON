@@ -1,3 +1,4 @@
+import { assertFeature } from "../../auth/features.js";
 import { Router } from "express";
 import { and, asc, eq, gte } from "drizzle-orm";
 import { z } from "zod";
@@ -38,8 +39,9 @@ reservationsRouter.get("/", validateQuery(ListQuerySchema), async (req, res) => 
   const { buildingId, from, mine } = query<z.infer<typeof ListQuerySchema>>(req);
   assertBuildingAccess(auth, buildingId);
 
-  const rows = await inTenantContext(req, (tx) =>
-    tx
+  const rows = await inTenantContext(req, async (tx) => {
+    await assertFeature(tx, buildingId, "RESERVATIONS");
+    return tx
       .select()
       .from(reservations)
       .where(
@@ -49,8 +51,8 @@ reservationsRouter.get("/", validateQuery(ListQuerySchema), async (req, res) => 
           mine ? eq(reservations.userId, auth.userId) : undefined,
         ),
       )
-      .orderBy(asc(reservations.startsAt)),
-  );
+      .orderBy(asc(reservations.startsAt));
+  });
 
   res.json({ items: rows });
 });
@@ -67,6 +69,7 @@ reservationsRouter.post("/", validateBody(CreateSchema), async (req, res) => {
       const [area] = await tx.select().from(commonAreas).where(eq(commonAreas.id, input.areaId)).limit(1);
       if (!area || !area.active) throw notFound("Área comum não encontrada");
       assertBuildingAccess(auth, area.buildingId);
+      await assertFeature(tx, area.buildingId, "RESERVATIONS");
 
       const hours = (input.endsAt.getTime() - input.startsAt.getTime()) / 3_600_000;
       if (hours > area.maxHoursPerBooking) {
@@ -107,6 +110,7 @@ reservationsRouter.post("/:reservationId/decision", validateBody(DecisionSchema)
     const [current] = await tx.select().from(reservations).where(eq(reservations.id, param(req, "reservationId"))).limit(1);
     if (!current) throw notFound("Reserva não encontrada");
     assertBuildingAccess(auth, current.buildingId, "BUILDING_ADMIN");
+    await assertFeature(tx, current.buildingId, "RESERVATIONS", true);
 
     const [updated] = await tx
       .update(reservations)
@@ -135,7 +139,9 @@ reservationsRouter.delete("/:reservationId", async (req, res) => {
     const [current] = await tx.select().from(reservations).where(eq(reservations.id, param(req, "reservationId"))).limit(1);
     if (!current) throw notFound("Reserva não encontrada");
 
-    const isAdmin = buildingRole(auth, current.buildingId) !== "RESIDENT";
+    const role = buildingRole(auth, current.buildingId);
+    const isAdmin = role === "BUILDING_ADMIN" || role === "PLATFORM_ADMIN";
+    await assertFeature(tx, current.buildingId, "RESERVATIONS", isAdmin);
     if (!isAdmin && current.userId !== auth.userId) throw forbidden("Você só pode cancelar as suas reservas");
 
     await tx

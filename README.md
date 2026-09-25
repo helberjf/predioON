@@ -2,9 +2,27 @@
 
 Plataforma Prédio ON, com API, ingestão MQTT, banco PostgreSQL/TimescaleDB e três interfaces: **administrador global**, **administrador do prédio** e **morador**.
 
-Entrega local de 21/09/2026: veja [o contrato MQTT e as instruções para Helber](docs/ENTREGA_HELBER.md). As imagens fornecidas orientam a identidade visual; o escopo executável está descrito nesse documento.
+Entrega ampliada e validada localmente em 24/09/2026: veja [a matriz de funcionalidades](docs/REVISAO_FUNCIONALIDADES.md) e [o contrato MQTT e as instruções para Helber](docs/ENTREGA_HELBER.md). As imagens fornecidas orientam a identidade visual.
 
-> **Escopo atual:** monitoramento, telemetria, alertas e histórico. A funcionalidade de abertura/acionamento remoto de portão foi removida desta versão.
+> **Escopo atual:** monitoramento, consumo/custo estimado, análise histórica, sensores, acessos remotos, vagas e agenda de avisos. A integração física depende dos equipamentos instalados. Disjuntor/extintor ficou fora desta entrega.
+
+## Funcionalidades e marketing
+
+Para implantar em um condomínio real, comece pelo [manual de implantação e operação](docs/IMPLANTACAO_CONDOMINIO.md), com resumo para WhatsApp, etapas detalhadas e testes de aceitação. O Markdown é a referência atualizada (versão 3); a [versão inicial em Word](docs/Manual_de_implantacao_Predio_ON.docx) preserva a versão 1 e não inclui os complementos posteriores.
+
+A central [Funcionalidades](docs/FUNCIONALIDADES.md), no painel administrativo, permite ao administrador ativo da plataforma controlar 23 recursos globalmente e por condomínio, com justificativa e auditoria. A pausa bloqueia operações, análises e alertas do recurso e descarta novas leituras correspondentes, preservando o histórico. A comunicação dos gateways permanece ativa.
+
+A integração de [suporte remoto com AnyDesk](docs/SUPORTE_REMOTO.md) oferece cadastro por condomínio, preparação do acesso e histórico de atendimentos no painel administrativo. O [plano de primeira instalação e heartbeat](docs/superpowers/plans/2026-09-23-suporte-remoto-e-heartbeat.md) descreve os complementos de comunicação e diagnóstico; o acesso ao computador real depende da instalação e configuração do AnyDesk no local.
+
+Os portais do síndico e do morador incluem [transparência e prestação de contas](docs/GESTAO_TRANSPARENTE.md), chamados com três níveis de gravidade, histórico de respostas e agrupamento de problemas repetidos. A análise estatística de água e energia continua disponível em Consumo e análise.
+
+Conferência da lista de funcionalidades em 22/09/2026:
+
+- [Funcionalidades implementadas e estado da validação](docs/REVISAO_FUNCIONALIDADES.md), incluindo vagas disponíveis para carros e motos.
+- [Apresentação comercial da versão atual](docs/marketing/APRESENTACAO_COMERCIAL.md).
+- [Exemplos de uso](docs/marketing/CASOS_DE_USO_E_EVOLUCOES.md): consumo de energia/água fora do padrão, custo diário, tempo de bomba e vagas.
+
+Configuração: [consumo e análise](docs/CONSUMO_E_ANALISE.md), [sensores](docs/SENSORES.md), [acessos](docs/ACESSOS.md) e [vagas/avisos](docs/VAGAS_AVISOS.md). Os painéis exibem informações de medição e uma referência estatística aprendida; alertas não diagnosticam sozinhos a causa do desvio.
 
 ## Stack
 
@@ -51,7 +69,7 @@ O simulador publica telemetria real no broker. Os cenários de falha ficam atrá
 pnpm simulate:hardware --scenario=low-water
 ```
 
-Cenários disponíveis: `normal`, `low-water`, `power-loss`, `leak`, `stuck-sensor`, `gateway-drop`.
+Cenários disponíveis: `normal`, `low-water`, `power-loss`, `leak`, `sewage-leak`, `gas`, `smoke`, `high-energy`, `high-water-consumption`, `pump-overrun`, `stuck-sensor`, `gateway-drop`. O simulador isolado de portões tem instruções próprias em [Acessos](docs/ACESSOS.md).
 
 ## Testes
 

@@ -1,4 +1,5 @@
 import { hash } from "@node-rs/argon2";
+import { seedFeatures } from "./seed-features.js";
 import {
   alertRules,
   buildings,
@@ -162,7 +163,8 @@ await db
   ])
   .onConflictDoNothing();
 
-console.log(`Seed concluído. Usuários de demonstração com a senha "${DEMO_PASSWORD}":`);
+await seedFeatures();
+console.log("Seed concluído. Usuários de demonstração (senha definida por SEED_PASSWORD ou padrão local):");
 console.log("  admin@predioon.local    (administrador da plataforma)");
 console.log("  sindico@predioon.local  (administrador do prédio)");
 console.log("  morador@predioon.local  (morador)");

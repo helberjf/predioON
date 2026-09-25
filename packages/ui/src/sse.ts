@@ -29,7 +29,7 @@ export function useRealtime(onEvent: (event: RealtimeEvent) => void, { enabled =
       }
     };
 
-    for (const kind of ["telemetry", "alert", "device-status", "gateway-status"]) {
+    for (const kind of ["telemetry", "alert", "device-status", "gateway-status", "features-changed"]) {
       source.addEventListener(kind, forward as EventListener);
     }
 

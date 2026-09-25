@@ -73,6 +73,8 @@ export type AlertRule = {
 
 export type Occurrence = {
   id: string;
+  groupId: string | null;
+  updatedAt: string;
   protocol: string;
   category: string;
   title: string;

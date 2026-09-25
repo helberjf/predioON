@@ -224,6 +224,9 @@ importers:
       '@node-rs/argon2':
         specifier: ^2.0.2
         version: 2.2.1
+      '@predioon/shared':
+        specifier: workspace:*
+        version: link:../shared
       dotenv:
         specifier: ^16.4.0
         version: 16.6.1

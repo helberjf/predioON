@@ -1,5 +1,5 @@
 import type { Request, RequestHandler } from "express";
-import { withUserContext, type AppTransaction } from "@predioon/db";
+import { lockFeatures, withUserContext, type AppTransaction } from "@predioon/db";
 import { hasAtLeast, type Role } from "@predioon/shared";
 import { forbidden, unauthorized } from "../http/errors.js";
 import { verifyAccessToken, type AccessTokenClaims } from "./tokens.js";
@@ -68,7 +68,10 @@ export function scopedBuildingIds(auth: Auth): string[] | null {
 }
 
 /** Every authenticated query runs here, so PostgreSQL RLS sees who is asking. */
-export function inTenantContext<T>(req: Request, fn: (tx: AppTransaction) => Promise<T>): Promise<T> {
+export function inTenantContext<T>(req: Request, fn: (tx: AppTransaction) => Promise<T>, options?: { featureWrite?: boolean }): Promise<T> {
   const auth = currentAuth(req);
-  return withUserContext({ userId: auth.userId, role: auth.role }, fn);
+  return withUserContext({ userId: auth.userId, role: auth.role }, async tx => {
+    if (!options?.featureWrite) await lockFeatures(tx);
+    return fn(tx);
+  });
 }

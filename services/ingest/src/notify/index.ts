@@ -1,4 +1,6 @@
 import { config } from "../config.js";
+import { db, lockFeatures } from "@predioon/db";
+import { permitsAlert } from "../features.js";
 
 export type AlertNotification = {
   alertId: string;
@@ -30,6 +32,10 @@ async function sendWebhook(alert: AlertNotification): Promise<void> {
 }
 
 export async function notifyAlert(alert: AlertNotification): Promise<void> {
-  console.log(`[alerta:${alert.severity}] ${alert.buildingId} · ${alert.deviceId} · ${alert.message}`);
-  if (alert.severity === "HIGH" || alert.severity === "CRITICAL") await sendWebhook(alert);
+  await db.transaction(async tx => {
+    await lockFeatures(tx);
+    if (!await permitsAlert(tx, alert.buildingId, alert.alertId)) return;
+    console.log(`[alerta:${alert.severity}] ${alert.buildingId} · ${alert.deviceId} · ${alert.message}`);
+    if (alert.severity === "HIGH" || alert.severity === "CRITICAL") await sendWebhook(alert);
+  });
 }

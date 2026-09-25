@@ -1,5 +1,7 @@
 # Instalação — Prédio ON
 
+O roteiro completo, com resumo inicial, instalação de campo, primeira conta administrativa, operação e aceite, está no [manual de implantação em condomínio](IMPLANTACAO_CONDOMINIO.md). Este arquivo detalha a infraestrutura.
+
 Configuração preparada para uma VPS com Docker Compose. A entrega de 21/09/2026 foi
 validada localmente; não foi publicada uma nova versão externa. O contrato de campo está
 em [ENTREGA_HELBER.md](ENTREGA_HELBER.md).
@@ -54,7 +56,7 @@ protegidos por `MQTT_AUTH_SECRET`. O Caddy bloqueia esse prefixo na internet.
 - O painel emite usuário/senha por gateway e guarda somente o hash da senha.
 - O gateway usa `clientId` igual ao próprio ID e publica apenas nos sensores vinculados.
 - A ingestão autentica com `MQTT_INGEST_USERNAME` e `MQTT_INGEST_PASSWORD` e só pode assinar
-  os três filtros de telemetria/status.
+  os filtros autorizados de telemetria/status e confirmações de acessos; também publica comandos somente para acessos habilitados.
 - Autorização sem correspondência resulta em negação; o cache de autorização é desativado
   para a desativação do cadastro valer nas novas publicações.
 - `infrastructure/emqx/acl.conf` nega tudo como proteção. Não substituir o autorizador
@@ -86,6 +88,16 @@ todos precisam estar vinculados ao gateway de teste. Ele não deve representar u
 físico em uso. `MQTT_CA_FILE` é opcional para uma CA privada confiável.
 
 ## Operação
+
+### Atualização com controle de funcionalidades
+
+1. Fazer backup e registrar a versão atual antes de atualizar. Usar o procedimento de migrações do projeto (`pnpm db:infra`) para aplicar também `012-features.sql`. A migração é aditiva: cria configurações globais/locais e estado de pausa/retomada, além de identificar dias de consumo incompletos. Não executar reset ou seed de demonstração em produção.
+2. Coordenar a atualização da API e da ingestão: pausar os processos antigos, aplicar migrações, iniciar ambos com a mesma versão e conferir os logs. Não disponibilizar a central administrativa enquanto uma ingestão antiga ainda puder ignorar os controles. Gateways podem manter seu buffer durante a atualização conforme o contrato de telemetria.
+3. Publicar os três painéis após API e ingestão estarem atualizadas. Todos os recursos atuais começam habilitados/herdados; os controles existentes de equipamentos e portões continuam valendo.
+4. Entrar como administrador da plataforma, abrir **Funcionalidades** e conferir a configuração global e de um condomínio de homologação. Testar desativação/retomada, descarte seletivo de leituras, heartbeat, bloqueio de ações, auditoria e preservação de histórico antes da liberação.
+5. Em reversão de versão, impedir alterações na central e não iniciar serviços antigos enquanto houver recursos pausados: uma versão sem esses controles pode voltar a aceitar leituras ou comandos. Preservar as novas tabelas e o histórico; preparar uma versão compatível para a recuperação.
+
+Procedimento operacional e efeitos de cada controle: [FUNCIONALIDADES.md](FUNCIONALIDADES.md).
 
 Configurar backup com teste de restauração, monitoramento de disponibilidade e renovação
 de certificados. Retenção/compressão podem ser ativadas nas políticas comentadas em

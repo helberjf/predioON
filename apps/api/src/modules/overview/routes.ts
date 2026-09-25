@@ -1,8 +1,11 @@
 import { Router } from "express";
-import { sql } from "drizzle-orm";
+import { and, desc, eq, ne, sql } from "drizzle-orm";
+import { alerts } from "@predioon/db";
 import { z } from "zod";
 import { assertBuildingAccess, currentAuth, inTenantContext, requireRole } from "../../auth/middleware.js";
 import { query, validateQuery } from "../../http/validate.js";
+import { buildingFeatures, filterSensorRows } from "../../auth/features.js";
+import { forbidden } from "../../http/errors.js";
 
 export const overviewRouter = Router();
 
@@ -11,6 +14,8 @@ const BuildingQuerySchema = z.object({ buildingId: z.string().min(1) });
 /** Platform-wide counters. RLS keeps the numbers honest even if the role check ever changes. */
 overviewRouter.get("/platform", requireRole("PLATFORM_ADMIN"), async (req, res) => {
   const payload = await inTenantContext(req, async (tx) => {
+    const [admin] = await tx.execute(sql`select app_support_admin() as allowed`);
+    if (!admin?.allowed) throw forbidden();
     const [counts] = (await tx.execute(sql`
       SELECT
         (SELECT count(*) FROM organizations WHERE active)                    AS organizations,
@@ -40,7 +45,9 @@ overviewRouter.get("/platform", requireRole("PLATFORM_ADMIN"), async (req, res) 
       ORDER BY open_alerts DESC, b.name
     `);
 
-    return { counts: counts ?? {}, buildings };
+    const visibleAlerts = await filterSensorRows(tx, await tx.select().from(alerts).where(ne(alerts.status, "RESOLVED")));
+    return { counts: { ...counts, open_alerts: visibleAlerts.length, critical_alerts: visibleAlerts.filter(alert => ["HIGH", "CRITICAL"].includes(alert.severity)).length },
+      buildings: buildings.map(building => ({ ...building, open_alerts: visibleAlerts.filter(alert => alert.buildingId === building.id).length })) };
   });
 
   res.json(payload);
@@ -52,6 +59,7 @@ overviewRouter.get("/building", validateQuery(BuildingQuerySchema), async (req, 
   assertBuildingAccess(currentAuth(req), buildingId);
 
   const payload = await inTenantContext(req, async (tx) => {
+    const features = await buildingFeatures(tx, buildingId);
     const [counts] = (await tx.execute(sql`
       SELECT
         (SELECT count(*) FROM devices  WHERE building_id = ${buildingId})                      AS devices,
@@ -66,13 +74,8 @@ overviewRouter.get("/building", validateQuery(BuildingQuerySchema), async (req, 
            AND status NOT IN ('DONE','CANCELLED'))                                             AS open_occurrences
     `)) as unknown as Array<Record<string, number>>;
 
-    const latestAlerts = await tx.execute(sql`
-      SELECT id, device_id, severity, type, status, message, triggered_at
-      FROM alerts
-      WHERE building_id = ${buildingId} AND status <> 'RESOLVED'
-      ORDER BY triggered_at DESC
-      LIMIT 10
-    `);
+    const visibleAlerts = await filterSensorRows(tx, await tx.select().from(alerts).where(and(eq(alerts.buildingId, buildingId), ne(alerts.status, "RESOLVED"))).orderBy(desc(alerts.triggeredAt)));
+    const latestAlerts = visibleAlerts.slice(0, 10).map(alert => ({ id: alert.id, device_id: alert.deviceId, severity: alert.severity, type: alert.type, status: alert.status, message: alert.message, triggered_at: alert.triggeredAt }));
 
     const gateways = await tx.execute(sql`
       SELECT id, name, status, last_seen_at
@@ -81,7 +84,7 @@ overviewRouter.get("/building", validateQuery(BuildingQuerySchema), async (req, 
       ORDER BY name
     `);
 
-    return { buildingId, counts: counts ?? {}, latestAlerts, gateways };
+    return { buildingId, counts: { ...counts, open_alerts: visibleAlerts.length, open_occurrences: features.TICKETS.enabled ? counts?.open_occurrences ?? 0 : 0 }, latestAlerts, gateways };
   });
 
   res.json(payload);

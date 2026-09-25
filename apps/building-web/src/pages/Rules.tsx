@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { api, Badge, Button, Card, EmptyState, ErrorBanner, Field, Input, Select, useResource } from "@predioon/ui";
+import { api, Badge, Button, Card, EmptyState, ErrorBanner, Field, Input, Select, useResource, useFeatures } from "@predioon/ui";
+import { deviceFeatures, metricFeature } from "@predioon/shared";
 import type { AlertRule, Device, Paged } from "@predioon/ui";
 
 const OPERATORS = [
@@ -13,6 +14,7 @@ const OPERATORS = [
 const SEVERITIES = ["INFO", "LOW", "MEDIUM", "HIGH", "CRITICAL"] as const;
 
 export function Rules({ buildingId }: { buildingId: string }) {
+  const flags = useFeatures();
   const rules = useResource<Paged<AlertRule>>(`/alert-rules?buildingId=${buildingId}`);
   const devices = useResource<Paged<Device>>(`/devices?buildingId=${buildingId}`);
   const [error, setError] = useState<string | null>(null);
@@ -25,6 +27,9 @@ export function Rules({ buildingId }: { buildingId: string }) {
     severity: "HIGH" as (typeof SEVERITIES)[number],
     cooldownSeconds: "900",
   });
+
+  const selectedFeature = metricFeature(form.metric);
+  const metricAvailable = !selectedFeature || flags.enabled(selectedFeature);
 
   async function create() {
     try {
@@ -67,7 +72,7 @@ export function Rules({ buildingId }: { buildingId: string }) {
               <Select
                 value={form.deviceId}
                 onChange={(deviceId) => setForm({ ...form, deviceId })}
-                options={[{ value: "", label: "Todos do prédio" }, ...(devices.data?.items ?? []).map((d) => ({ value: d.id, label: d.name }))]}
+                options={[{ value: "", label: "Todos do prédio" }, ...(devices.data?.items ?? []).filter(d => { const keys = deviceFeatures(d.type); return !keys.length || keys.some(flags.enabled); }).map((d) => ({ value: d.id, label: d.name }))]}
               />
             </Field>
             <Field label="Métrica" hint="mesma chave publicada pelo gateway">
@@ -93,7 +98,8 @@ export function Rules({ buildingId }: { buildingId: string }) {
                 <Input type="number" value={form.cooldownSeconds} onChange={(cooldownSeconds) => setForm({ ...form, cooldownSeconds })} />
               </Field>
             </div>
-            <Button full onClick={() => void create()} disabled={!form.name || !form.metric}>
+            {!metricAvailable && <p role="status" className="text-sm text-slate-500">O monitoramento desta métrica está desativado para este condomínio.</p>}
+            <Button full onClick={() => void create()} disabled={!form.name || !form.metric || !metricAvailable}>
               Criar regra
             </Button>
           </div>

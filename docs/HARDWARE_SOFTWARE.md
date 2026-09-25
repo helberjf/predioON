@@ -4,10 +4,10 @@ Contrato vigente da caixa d'água e entrega local: [ENTREGA_HELBER.md](ENTREGA_H
 
 ## 1. Escopo
 
-A plataforma é de **monitoramento, telemetria e alertas**. Não existe acionamento remoto de
-nenhum equipamento: não há comando de saída, não há relé controlado pela nuvem, não há
-abertura de portão. Um portão só pode aparecer aqui como **sensor de estado** (leitura), nunca
-como atuador.
+A plataforma oferece **monitoramento, consumo, alertas e acessos autorizados**. Os contratos
+de sensores estão em [SENSORES.md](SENSORES.md); o fluxo de solicitação de abertura de garagem
+e pedestres está em [ACESSOS.md](ACESSOS.md). O software não instala nem valida o relé físico:
+o controlador precisa cumprir o protocolo e ser comissionado no local.
 
 ```text
 Sensores → RS485/Modbus RTU ou entrada digital → Gateway → MQTTS → EMQX
@@ -24,12 +24,17 @@ Sensores → RS485/Modbus RTU ou entrada digital → Gateway → MQTTS → EMQX
 | Estado da bomba | Entrada digital + TC | Contato auxiliar diz "comandada", corrente diz "bombeando" |
 | Temperatura de sala técnica | RS485 Modbus | SHT20 ou equivalente |
 | Fumaça / incêndio | Entrada digital | ⚠️ Ver seção 7 |
-| Estado de disjuntor | Entrada digital | Bloco de contato auxiliar |
+| Gás | Entrada digital / medidor compatível | Detecção e ppm quando disponíveis |
+| Consumo de água e energia | Medidor acumulado | m³ e kWh; independente do nível da caixa |
+| Vagas | Sensor/contador compatível | Ocupação inteira separada para carro e moto |
+
+Disjuntores e extintores não fazem parte do escopo solicitado para esta entrega.
 
 ## 3. Gateway
 
-O gateway lê os dispositivos de campo, normaliza e publica MQTT. Ele **não** expõe os sensores
-à internet e **não** recebe comandos da plataforma.
+O gateway lê os dispositivos de campo, normaliza e publica MQTT. Ele não expõe os sensores
+diretamente à internet. Controladores de acesso podem receber exclusivamente os comandos
+autorizados de seus portões, com expiração, confirmação e deduplicação conforme [ACESSOS.md](ACESSOS.md).
 
 Requisitos do gateway em produção:
 

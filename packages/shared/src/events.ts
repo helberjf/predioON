@@ -5,6 +5,7 @@ import { z } from "zod";
  * so no extra broker is needed between the two processes.
  */
 export const RealtimeEventSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("features-changed"), buildingId: z.string() }),
   z.object({
     kind: z.literal("telemetry"),
     buildingId: z.string(),

@@ -2,6 +2,7 @@ import { Router } from "express";
 import { asc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { buildings } from "@predioon/db";
+import { CreatePropertySchema, UpdatePropertySchema } from "@predioon/shared";
 import { assertBuildingAccess, currentAuth, inTenantContext, requireRole, scopedBuildingIds } from "../../auth/middleware.js";
 import { notFound } from "../../http/errors.js";
 import { generateId } from "../../http/ids.js";
@@ -11,14 +12,8 @@ import { param } from "../../http/params.js";
 
 export const buildingsRouter = Router();
 
-const CreateSchema = z.object({
-  organizationId: z.string().min(1),
-  name: z.string().min(2).max(120),
-  code: z.string().min(2).max(30),
-  timezone: z.string().max(60).default("America/Sao_Paulo"),
-  address: z.record(z.string(), z.unknown()).optional(),
-});
-const UpdateSchema = CreateSchema.partial().omit({ organizationId: true }).extend({ active: z.boolean().optional() });
+const CreateSchema = CreatePropertySchema;
+const UpdateSchema = UpdatePropertySchema;
 
 /** Residents and building admins see only their own buildings; RLS enforces the same rule. */
 buildingsRouter.get("/", async (req, res) => {

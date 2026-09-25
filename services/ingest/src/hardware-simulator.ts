@@ -3,16 +3,18 @@ import { readFileSync } from "node:fs";
 import mqtt from "mqtt";
 import { gatewayStatusTopic, telemetryTopic, waterTelemetryTopic, type GatewayStatus, type Telemetry } from "@predioon/shared";
 import { config } from "./config.js";
-import { initialState, nextState, type FieldState, type Scenario } from "./simulator/state.js";
-
-const SCENARIOS: Scenario[] = ["normal", "low-water", "power-loss", "leak", "stuck-sensor", "gateway-drop"];
+import { initialState, nextState, SCENARIOS, type FieldState, type Scenario } from "./simulator/state.js";
 
 const arg = process.argv.find((value) => value.startsWith("--scenario="))?.split("=")[1] ?? "normal";
-const scenario = (SCENARIOS as string[]).includes(arg) ? (arg as Scenario) : "normal";
+if (!(SCENARIOS as readonly string[]).includes(arg)) throw new Error(`Cenário desconhecido: ${arg}. Opções: ${SCENARIOS.join(", ")}`);
+const scenario = arg as Scenario;
 
 const buildingId = process.env.SIM_BUILDING_ID ?? "bld_001";
 const gatewayId = process.env.SIM_GATEWAY_ID ?? "gw_001";
 const intervalMs = Number(process.env.SIM_INTERVAL_MS ?? 5000);
+const timeScale = Number(process.env.SIM_TIME_SCALE ?? 1);
+if (!Number.isFinite(intervalMs) || intervalMs < 500 || intervalMs > 300_000) throw new Error("SIM_INTERVAL_MS deve estar entre 500 e 300000");
+if (!Number.isFinite(timeScale) || timeScale < 1 || timeScale > 3600) throw new Error("SIM_TIME_SCALE deve estar entre 1 e 3600");
 
 const client = mqtt.connect(config.MQTT_URL, {
   username: process.env.SIM_MQTT_USERNAME ?? config.MQTT_USERNAME,
@@ -56,7 +58,7 @@ function publishGatewayState(state: "ONLINE" | "OFFLINE"): void {
     buildingId,
     gatewayId,
     state,
-    firmwareVersion: "sim-1.0.0",
+    firmwareVersion: "sim-2.0.0",
     timestamp: new Date().toISOString(),
   };
   client.publish(gatewayStatusTopic(buildingId, gatewayId), JSON.stringify(payload), { qos: 1, retain: true });
@@ -76,7 +78,17 @@ function publishCycle(state: FieldState): void {
   publishTelemetry("phase_01", "voltage_l1", state.voltageL1, "V");
   publishTelemetry("phase_01", "voltage_l2", state.voltageL2, "V");
   publishTelemetry("phase_01", "voltage_l3", state.voltageL3, "V");
-  publishTelemetry("leak_01", "leak_detected", state.leakDetected);
+  publishTelemetry("phase_01", "current_l1", state.currentL1, "A");
+  publishTelemetry("phase_01", "current_l2", state.currentL2, "A");
+  publishTelemetry("phase_01", "current_l3", state.currentL3, "A");
+  publishTelemetry("phase_01", "frequency_hz", state.frequencyHz, "Hz");
+  publishTelemetry("energy_01", "energy_total_kwh", Math.round(state.energyTotalKwh * 1e6) / 1e6, "kWh");
+  publishTelemetry("water_meter_01", "water_total_m3", Math.round(state.waterTotalM3 * 1e6) / 1e6, "m³");
+  publishTelemetry("leak_01", "water_leak_detected", state.leakDetected);
+  publishTelemetry("sewage_01", "sewage_leak_detected", state.sewageLeakDetected);
+  publishTelemetry("gas_01", "gas_detected", state.gasDetected);
+  publishTelemetry("gas_01", "gas_ppm", state.gasPpm, "ppm");
+  publishTelemetry("smoke_01", "smoke_detected", state.smokeDetected);
   publishTelemetry("temp_01", "temperature_c", state.temperatureC, "°C");
 }
 
@@ -85,14 +97,15 @@ let tick = 0;
 let interval: NodeJS.Timeout | undefined;
 
 client.on("connect", () => {
-  console.log(`[simulador] cenário "${scenario}" · prédio ${buildingId} · a cada ${intervalMs}ms`);
+  console.log(`[SIMULAÇÃO] cenário "${scenario}" · prédio ${buildingId} · a cada ${intervalMs}ms · avanço físico ${timeScale}x`);
+  if (timeScale !== 1) console.log("[SIMULAÇÃO] acumuladores acelerados; horários reais. Taxas calculadas também serão amplificadas. Duração de bomba e cooldowns usam tempo real.");
   publishGatewayState(state.gatewayOnline ? "ONLINE" : "OFFLINE");
 
   if (interval) clearInterval(interval);
   interval = setInterval(() => {
     tick += 1;
     const previous = state;
-    state = nextState(state, tick, scenario);
+    state = nextState(state, tick, scenario, intervalMs / 1000 * timeScale);
 
     if (previous.gatewayOnline !== state.gatewayOnline) {
       publishGatewayState(state.gatewayOnline ? "ONLINE" : "OFFLINE");
@@ -102,7 +115,8 @@ client.on("connect", () => {
     console.log(
       `[simulador] água=${state.waterLevelPercent.toFixed(1)}% (${state.waterVolumeLiters} L) ` +
         `bomba=${state.pumpRunning ? "ON" : "OFF"} L1=${state.voltageL1}V L3=${state.voltageL3}V ` +
-        `vazamento=${state.leakDetected} temp=${state.temperatureC}°C`,
+        `água=${state.waterTotalM3.toFixed(3)}m³ energia=${state.energyTotalKwh.toFixed(3)}kWh ` +
+        `vazamento=${state.leakDetected} esgoto=${state.sewageLeakDetected} gás=${state.gasDetected} fumaça=${state.smokeDetected} temp=${state.temperatureC}°C`,
     );
   }, intervalMs);
 });

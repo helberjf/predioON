@@ -62,6 +62,7 @@ export const buildings = pgTable(
     name: text("name").notNull(),
     code: text("code").notNull(),
     timezone: text("timezone").notNull().default("America/Sao_Paulo"),
+    propertyType: text("property_type").notNull().default("CONDOMINIUM"),
     address: jsonb("address").$type<Record<string, unknown>>().notNull().default({}),
     active: boolean("active").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -336,6 +337,7 @@ export const noticeCategoryEnum = pgEnum("notice_category", [
   "MAINTENANCE",
   "EVENT",
   "WASTE_COLLECTION",
+  "GESTAO",
 ]);
 
 /** Building announcements shown to residents (Módulo 04 do portfólio). */
@@ -377,6 +379,7 @@ export const occurrences = pgTable(
       .notNull()
       .references(() => buildings.id, { onDelete: "cascade" }),
     protocol: text("protocol").notNull(),
+    groupId: uuid("group_id"),
     category: text("category").notNull(),
     title: text("title").notNull(),
     description: text("description").notNull(),
@@ -481,3 +484,11 @@ export const reservations = pgTable(
     index("reservations_building_start_idx").on(table.buildingId, table.startsAt),
   ],
 );
+
+export * from './schema-monitoring.js';
+export * from './schema-access.js';
+export * from './schema-parking.js';
+export * from './schema-notice-schedules.js';
+export * from './schema-support.js';
+export * from './schema-finance.js';
+export * from './schema-features.js';

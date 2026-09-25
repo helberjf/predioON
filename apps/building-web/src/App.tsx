@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import { LoginScreen, useAuth } from "@predioon/ui";
+import { AccessPanel, FeatureProvider, FeatureContent, LoginScreen, MonitoringPanel, ParkingPanel, TransparencyPanel, useAuth } from "@predioon/ui";
 import { Shell } from "./layout/Shell.js";
 import { Dashboard } from "./pages/Dashboard.js";
 import { Water } from "./pages/Water.js";
@@ -10,6 +10,7 @@ import { Rules } from "./pages/Rules.js";
 import { Occurrences } from "./pages/Occurrences.js";
 import { Notices } from "./pages/Notices.js";
 import { Areas } from "./pages/Areas.js";
+import { Safety } from "./pages/Safety.js";
 
 export function App() {
   const { user, loading, buildingId } = useAuth();
@@ -34,19 +35,24 @@ export function App() {
   }
 
   return (
-    <Shell>
+    <FeatureProvider buildingId={buildingId}><Shell>
       <Routes>
-        <Route path="/" element={<Dashboard buildingId={buildingId} />} />
-        <Route path="/agua" element={<Water buildingId={buildingId} />} />
-        <Route path="/energia" element={<Energy buildingId={buildingId} />} />
+        <Route path="/" element={<FeatureContent path="/"><Dashboard buildingId={buildingId} /></FeatureContent>} />
+        <Route path="/agua" element={<FeatureContent path="/agua"><Water buildingId={buildingId} /></FeatureContent>} />
+        <Route path="/energia" element={<FeatureContent path="/energia"><Energy buildingId={buildingId} /></FeatureContent>} />
+        <Route path="/consumo" element={<FeatureContent path="/consumo"><MonitoringPanel buildingId={buildingId} canManage /></FeatureContent>} />
+        <Route path="/sensores" element={<FeatureContent path="/sensores"><Safety buildingId={buildingId} /></FeatureContent>} />
+        <Route path="/acessos" element={<FeatureContent path="/acessos"><AccessPanel buildingId={buildingId} canManage /></FeatureContent>} />
+        <Route path="/vagas" element={<FeatureContent path="/vagas"><ParkingPanel buildingId={buildingId} canManage /></FeatureContent>} />
         <Route path="/dispositivos" element={<Devices buildingId={buildingId} />} />
-        <Route path="/alertas" element={<Alerts buildingId={buildingId} />} />
-        <Route path="/regras" element={<Rules buildingId={buildingId} />} />
-        <Route path="/chamados" element={<Occurrences buildingId={buildingId} />} />
-        <Route path="/avisos" element={<Notices buildingId={buildingId} />} />
-        <Route path="/areas" element={<Areas buildingId={buildingId} />} />
+        <Route path="/alertas" element={<FeatureContent><Alerts buildingId={buildingId} /></FeatureContent>} />
+        <Route path="/regras" element={<FeatureContent><Rules buildingId={buildingId} /></FeatureContent>} />
+        <Route path="/chamados" element={<FeatureContent path="/chamados"><Occurrences buildingId={buildingId} /></FeatureContent>} />
+        <Route path="/transparencia" element={<FeatureContent path="/transparencia"><TransparencyPanel buildingId={buildingId} canManage /></FeatureContent>} />
+        <Route path="/avisos" element={<FeatureContent path="/avisos"><Notices buildingId={buildingId} /></FeatureContent>} />
+        <Route path="/areas" element={<FeatureContent path="/areas"><Areas buildingId={buildingId} /></FeatureContent>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </Shell>
+    </Shell></FeatureProvider>
   );
 }

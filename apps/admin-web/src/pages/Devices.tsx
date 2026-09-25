@@ -1,19 +1,12 @@
 import { useState } from "react";
 import { api, Badge, Button, Card, EmptyState, ErrorBanner, Field, formatRelative, Input, Select, useResource } from "@predioon/ui";
 import type { Device, Paged } from "@predioon/ui";
+import { SENSOR_DEVICE_TYPES } from "@predioon/shared";
 
 type Building = { id: string; name: string };
 type Gateway = { id: string; name: string; buildingId: string };
 
-const TYPES = [
-  { value: "WATER_LEVEL_SENSOR", label: "Nível de caixa d\u0027água" },
-  { value: "PUMP_MONITOR", label: "Monitor de bomba" },
-  { value: "PHASE_MONITOR", label: "Monitor de fases" },
-  { value: "LEAK_SENSOR", label: "Sensor de vazamento" },
-  { value: "TEMPERATURE_SENSOR", label: "Sensor de temperatura" },
-  { value: "SMOKE_PANEL_RELAY", label: "Relé da central de incêndio" },
-  { value: "BREAKER_MONITOR", label: "Monitor de disjuntor" },
-];
+const TYPES = [...SENSOR_DEVICE_TYPES, { value: "GATE_CONTROLLER", label: "Controlador de portão" }];
 
 export function Devices() {
   const [buildingId, setBuildingId] = useState("");
@@ -101,7 +94,7 @@ export function Devices() {
                   <div>
                     <p className="font-medium text-slate-800">{device.name}</p>
                     <p className="text-xs text-slate-400">
-                      {device.id} · {device.type} · {device.gatewayId ?? "sem gateway"}
+                      {device.id} · {TYPES.find((type) => type.value === device.type)?.label ?? device.type} · {device.gatewayId ?? "sem gateway"}
                     </p>
                     <p className="text-xs text-slate-400">Última leitura {formatRelative(device.lastSeenAt)}</p>
                   </div>
