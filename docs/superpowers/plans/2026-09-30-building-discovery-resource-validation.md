@@ -56,9 +56,9 @@ Pertencimento não significa recurso habilitado ou operacional: equipamento desa
 
 ## Tarefa 1 — RED com fixtures válidas e inconsistentes
 
-- [ ] Criar dois tenants, IDs e fixtures únicos; pessoa com binding limitado a recurso e suporte com PLATFORM_SUPPORT vigente, sem memberships inteiros que mascarem a falha.
-- [ ] Inserir concessão declarada no A e gateway/dispositivo real do B pelo owner. No comportamento de 016, demonstrar descoberta indevida do A por SQL e HTTP. Inserir também ID de recurso inexistente.
-- [ ] Verificar GET /buildings, GET /buildings/:id, GET /features/buildings/:id e SELECT sem filtro das três tabelas buildings/building_feature_settings/feature_runtime.
+- [x] Criar dois tenants, IDs e fixtures únicos; pessoa com binding limitado a recurso e suporte com PLATFORM_SUPPORT vigente, sem memberships inteiros que mascarem a falha.
+- [x] Inserir concessão declarada no A e gateway/dispositivo real do B pelo owner. No comportamento de 016, demonstrar descoberta indevida do A por SQL e HTTP. Inserir também ID de recurso inexistente.
+- [x] Verificar GET /buildings, GET /buildings/:id, GET /features/buildings/:id e SELECT sem filtro das três tabelas buildings/building_feature_settings/feature_runtime.
 
 ```ts
 assert.equal((await request(user, `/buildings/${a}`)).status, 403);
@@ -70,22 +70,22 @@ assert.equal(await featureRowsAs(user, a), 0);
 
 GET individual de buildings e features usa assertBuildingDiscovery e retorna 403 para escopo ausente; preservar esse contrato. A lista e SQL não podem expor dados do A. A conta desativada é recusada pela sessão antes do domínio e recebe 401.
 
-- [ ] Corrigir a fixture sensor-a antiga para recurso real sem enfraquecer asserções. O RED novo deve falhar por descoberta indevida, não por setup.
+- [x] Corrigir a fixture sensor-a antiga para recurso real sem enfraquecer asserções. O RED novo deve falhar por descoberta indevida, não por setup.
 
 ## Tarefa 2 — GREEN da migration
 
-- [ ] Implementar CASE fixo de pertencimento com casts UUID seguros; consultas por PK. Helper owner administrativo, STABLE SECURITY DEFINER, search_path public,pg_temp, EXECUTE somente do owner.
-- [ ] Substituir app_can_discover_building preservando assinatura/owner/grant app: aplicar pertencimento dentro dos ramos existentes de binding de recurso e suporte. Concessão de suporte inteira com null/null preserva comportamento.
-- [ ] Aplicar 019 via docker cp e psql -v ON_ERROR_STOP=1 --single-transaction, sem BEGIN/COMMIT no arquivo; reaplicar e confirmar idempotência. Não reaplicar 016.
-- [ ] Verificar chamadas autorizadas de descoberta passam; chamada direta do helper interno pela credencial app/identity/broker falha 42501. app.role forjado não deve autorizar descoberta.
+- [x] Implementar CASE fixo de pertencimento com casts UUID seguros; consultas por PK. Helper owner administrativo, STABLE SECURITY DEFINER, search_path public,pg_temp, EXECUTE somente do owner.
+- [x] Substituir app_can_discover_building preservando assinatura/owner/grant app: aplicar pertencimento dentro dos ramos existentes de binding de recurso e suporte. Concessão de suporte inteira com null/null preserva comportamento.
+- [x] Aplicar 019 via docker cp e psql -v ON_ERROR_STOP=1 --single-transaction, sem BEGIN/COMMIT no arquivo; reaplicar e confirmar idempotência. Não reaplicar 016.
+- [x] Verificar chamadas autorizadas de descoberta passam; chamada direta do helper interno pela credencial app/identity/broker falha 42501. app.role forjado não deve autorizar descoberta.
 
 ## Tarefa 3 — acesso atual e preservação
 
-- [ ] Testar os mapeamentos existentes com recurso do A, mesmo tipo do B, ausência e UUID inválido; tipos futuros/telemetry negados. Testes de helper puro com owner não substituem provas HTTP/RLS com credencial restrita.
-- [ ] Acesso positivo por pessoa, equipe e suporte em recurso real, tenant inteiro e membership legado vigente. Pessoa com duas concessões inválidas mais uma válida descobre somente o tenant válido.
-- [ ] Mesmo JWT perde descoberta após exclusão do recurso, revogação/expiração do binding, equipe desativada/integrante revogado, concessão de suporte revogada/expirada ou papel global de suporte revogado.
-- [ ] Global com buildings:read continua listando tenant inativo; local com organização/condomínio/conta inativos não descobre. Preservar restrição operacional: recurso válido não concede devices:read/telemetry:read/alerts:read no tenant inteiro, nem alteração de cadastro/funcionalidades.
-- [ ] Comparar policies/grants de identidade/broker e catálogo para comprovar ausência de alterações laterais. Alertas e telemetria mantêm acesso ao estado de funcionalidades pelas policies 017/018 mesmo sem descoberta básica.
+- [x] Testar os mapeamentos existentes com recurso do A, mesmo tipo do B, ausência e UUID inválido; tipos futuros/telemetry negados. Testes de helper puro com owner não substituem provas HTTP/RLS com credencial restrita.
+- [x] Acesso positivo por pessoa, equipe e suporte em recurso real, tenant inteiro e membership legado vigente. Pessoa com duas concessões inválidas mais uma válida descobre somente o tenant válido.
+- [x] Mesmo JWT perde descoberta após exclusão do recurso, revogação/expiração do binding, equipe desativada/integrante revogado, concessão de suporte revogada/expirada ou papel global de suporte revogado.
+- [x] Global com buildings:read continua listando tenant inativo; local com organização/condomínio/conta inativos não descobre. Preservar restrição operacional: recurso válido não concede devices:read/telemetry:read/alerts:read no tenant inteiro, nem alteração de cadastro/funcionalidades.
+- [x] Comparar policies/grants de identidade/broker e catálogo para comprovar ausência de alterações laterais. Alertas e telemetria mantêm acesso ao estado de funcionalidades pelas policies 017/018 mesmo sem descoberta básica.
 
 ```powershell
 pnpm --filter @predioon/api exec node --import tsx --test --test-concurrency=1 test/building-discovery-resources.test.ts test/building-feature-capabilities.test.ts test/alert-capabilities.test.ts test/telemetry-capabilities.test.ts
@@ -98,8 +98,8 @@ Configurar as quatro DSNs de teste com papéis predioon, predioon_app, predioon_
 
 ## Tarefa 4 — aceite e integração
 
-- [ ] Revisão de conformidade read-only; corrigir e rever achados.
-- [ ] Revisão de qualidade após conformidade aprovada; corrigir e rever achados.
-- [ ] Agente principal executa regressão completa com fonte estável e banco livre, registra contagens reais sem skips/cancelamentos, atualiza autorização/tracker e integra por commit/push na branch existente.
+- [x] Revisão de conformidade read-only; corrigir e rever achados.
+- [x] Revisão de qualidade após conformidade aprovada; corrigir e rever achados.
+- [x] Agente principal executa regressão completa com fonte estável e banco livre, registra contagens reais sem skips/cancelamentos, atualiza autorização/tracker e integra por commit/push na branch existente.
 
-Estado: planejado para corrigir o achado de descoberta básica identificado durante a revisão de alertas. Não encerra 2B.3 nem concede escopos operacionais novos.
+Estado: concluído e aprovado nas revisões de conformidade e qualidade. 019 aplicada/reaplicada atomicamente; directed 73/73 (18 novos + 55 existentes), API integral pelo agente principal 266/266, 31 suites, sem falhas/skips/cancelamentos. Tipos da API e fronteiras passaram. Policies, grants de tabelas, catálogo e demais helpers tiveram hashes idênticos antes/depois; fixtures limpas e helper owner-only. Evidências .local/slice019/{red-all-surfaces,directed-green-final,migration-apply,migration-reapply,catalog-comparison,cleanup-final}.log e .local/api-discovery-full.log. A execução inicial corrigiu duas expectativas novas: acesso independente de funcionalidades por 017/018 e Result vazio do driver; não alterou autorização. O recorte seguinte é equipamentos/gateways conforme plano próprio. Não encerra 2B.3 nem concede escopos operacionais novos.

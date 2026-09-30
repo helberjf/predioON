@@ -5,7 +5,7 @@ Detalhamento da arquitetura aprovada e do [tracker de execução](2026-09-27-pro
 ## Sequência
 
 1. **Condomínios e funcionalidades:** seleção de escopo a partir das concessões atuais; cadastro e edição com capacidades explícitas; acesso de manutenção e suporte às informações básicas e ao estado das funcionalidades do escopo autorizado.
-2. **Leitura operacional:** equipamentos, gateways, telemetria, alertas, monitoramento e dashboards com autorização por recurso. Moradores recebem somente as projeções autorizadas, sem herdar leitura técnica completa.
+2. **Leitura operacional:** [equipamentos e gateways](2026-09-30-equipment-capabilities.md), telemetria, alertas, monitoramento e dashboards com autorização por recurso. Moradores recebem somente as projeções autorizadas, sem herdar leitura técnica completa.
 3. **Comunicação e atendimento:** avisos publicados, próprios chamados, agrupamento e administração; reservas e áreas comuns; financeiro publicado e gestão separados por capacidade.
 4. **Configuração e atuação:** regras, provisionamento, estacionamento e comandos. Preservar concessões específicas, revalidação no despacho e a proibição de replay de comandos físicos.
 5. **Administração e eventos:** usuários/vínculos legados, organizações, auditoria, suporte e SSE. Eventos consultam as capacidades vigentes do recurso antes de entregar cada mensagem. Encerrar os bypasses e comparações ordinais somente após migrar seus consumidores.
@@ -14,7 +14,7 @@ Cada subentrega recebe migration aditiva, testes negativos de HTTP e RLS, revis�
 
 Na migração dos dashboards e dos consumidores web, distinguir contador sem concessão de contador zero. O painel administrativo atual deriva alertas de consultas sujeitas à RLS e exibe zero como ausência de problemas; isso precisa ser adaptado junto de uma projeção global explícita de saúde, antes do aceite integrado. Uma projeção global de saúde não pode liberar mensagens, leituras ou configurações privadas dos condomínios.
 
-Antes de encerrar 2B.3, validar também a relação real dos recursos na descoberta básica de condomínio. A função de 016 consulta a capacidade do escopo declarado de suporte; uma concessão inconsistente criada pelo owner com condomínio A e recurso de B ainda pode revelar cadastro/estado básico de A. Telemetria e alertas validam os relacionamentos antes de ler dados privados, mas a descoberta básica precisa de seu próprio [recorte corretivo e testes](2026-09-30-building-discovery-resource-validation.md). Preservar as políticas de identidade/broker e não promover recursos a permissões operacionais do condomínio inteiro.
+O [recorte corretivo de descoberta básica](2026-09-30-building-discovery-resource-validation.md) foi concluído com 019. A versão inicial de 016 consultava somente o escopo declarado; agora recursos inexistentes ou estrangeiros não permitem descobrir cadastro/estado básico. As policies de identidade/broker e capacidades operacionais foram preservadas. Recursos sem entidade concreta permanecem negados até suas migrations definirem o pertencimento.
 
 ## Primeiro recorte: condomínios e funcionalidades
 
@@ -41,4 +41,4 @@ Antes de encerrar 2B.3, validar também a relação real dos recursos na descobe
 
 2B.2 e o primeiro recorte 2B.3 concluídos em 30/09/2026, com revisões de conformidade/qualidade aprovadas e API 176/176, sem testes ignorados. Telemetria HTTP/RLS e seus eventos SSE também concluídos: regressão API 210/210 e duas revisões por subentrega. Detalhes nos planos de [telemetria](2026-09-30-telemetry-capabilities.md) e [eventos](2026-09-30-telemetry-events-capabilities.md).
 
-Os recortes [alertas HTTP/RLS](2026-09-30-alert-capabilities.md) e [eventos SSE de alertas](2026-09-30-alert-events-capabilities.md) estão concluídos e aprovados nas duas revisões. Regressão conjunta API 248/248, 30 suites, sem skips/cancelamentos; dez typechecks e fronteiras passaram. A correção de descoberta básica por pertencimento real do recurso é o próximo recorte. Os demais domínios e tipos de eventos continuam pendentes; 2B.3 permanece aberta.
+Os recortes [alertas HTTP/RLS](2026-09-30-alert-capabilities.md) e [eventos SSE de alertas](2026-09-30-alert-events-capabilities.md) estão concluídos e aprovados nas duas revisões. Regressão conjunta API 248/248, 30 suites, sem skips/cancelamentos; dez typechecks e fronteiras passaram. A correção de descoberta básica 019 também foi aprovada nas duas revisões; API integral 266/266, 31 suites, tipos da API e fronteiras passaram. O próximo recorte migra equipamentos/gateways. Os demais domínios e tipos de eventos continuam pendentes; 2B.3 permanece aberta.

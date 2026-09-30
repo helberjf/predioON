@@ -25,18 +25,19 @@ describe("capacidades de seleção de condomínios e funcionalidades", () => {
     }
   }
   async function create() {
-    const suffix = randomUUID(), org = `cap-org-${suffix}`, a = `cap-a-${suffix}`, b = `cap-b-${suffix}`;
+    const suffix = randomUUID(), org = `cap-org-${suffix}`, a = `cap-a-${suffix}`, b = `cap-b-${suffix}`, deviceA = `cap-device-${suffix}`;
     const worker = `worker-${suffix}`, scoped = `scoped-${suffix}`, manager = `manager-${suffix}`;
     const support = `support-${suffix}`, platform = `platform-${suffix}`, legacy = `legacy-${suffix}`, outsider = `outsider-${suffix}`;
     const ids = [worker, scoped, manager, support, platform, legacy, outsider];
     await sqlClient`insert into organizations(id,name,slug) values(${org},'Capability test',${org})`;
     await sqlClient`insert into buildings(id,organization_id,name,code) values(${a},${org},'A','A'),(${b},${org},'B','B')`;
+    await sqlClient`insert into devices(id,building_id,name,type) values(${deviceA},${a},'Diagnostic sensor','WATER_LEVEL_SENSOR')`;
     for (const id of ids) await sqlClient`insert into users(id,email,name,password_hash,is_platform_admin) values(${id},${id + '@caps.test'},${id},${passwordHash},${id === legacy})`;
     const team = randomUUID(), binding = randomUUID(), resourceBinding = randomUUID(), managerBinding = randomUUID(), platformBinding = randomUUID(), supportBinding = randomUUID();
     await sqlClient`insert into teams(id,building_id,name) values(${team},${a},'Maintenance')`;
     await sqlClient`insert into team_members(team_id,building_id,user_id) values(${team},${a},${worker})`;
     await sqlClient`insert into role_bindings(id,team_id,building_id,role_key) values(${binding},${team},${a},'MAINTENANCE')`;
-    await sqlClient`insert into role_bindings(id,user_id,building_id,role_key,resource_type,resource_id) values(${resourceBinding},${scoped},${a},'MAINTENANCE','device','sensor-a')`;
+    await sqlClient`insert into role_bindings(id,user_id,building_id,role_key,resource_type,resource_id) values(${resourceBinding},${scoped},${a},'MAINTENANCE','device',${deviceA})`;
     await sqlClient`insert into role_bindings(id,user_id,building_id,role_key) values(${managerBinding},${manager},${a},'BUILDING_ADMIN')`;
     await sqlClient`insert into memberships(user_id,building_id,role) values(${manager},${b},'RESIDENT')`;
     await sqlClient`insert into role_bindings(id,user_id,role_key) values(${platformBinding},${platform},'PLATFORM_ADMIN'),(${supportBinding},${support},'PLATFORM_SUPPORT')`;
@@ -45,7 +46,7 @@ describe("capacidades de seleção de condomínios e funcionalidades", () => {
     const tokens = new Map<string, string>();
     for (const id of ids) tokens.set(id, (await login(server.url, id + '@caps.test')).accessToken);
     const request = (user: string, path: string, method = "GET", body?: unknown) => call(server.url, path, { token: tokens.get(user), method, body });
-    return { org,a,b,worker,scoped,manager,support,platform,legacy,outsider,ids,team,binding,resourceBinding,managerBinding,platformBinding,supportBinding,request };
+    return { org,a,b,deviceA,worker,scoped,manager,support,platform,legacy,outsider,ids,team,binding,resourceBinding,managerBinding,platformBinding,supportBinding,request };
   }
   const as = <T>(userId: string, fn: Parameters<typeof withUserContext<T>>[1]) => withUserContext({ userId, role: "PLATFORM_ADMIN" }, fn);
   async function writeAs<T>(userId: string, fn: Parameters<typeof withUserContext<T>>[1], role: "PLATFORM_ADMIN" | "RESIDENT" = "PLATFORM_ADMIN"): Promise<T> {
@@ -106,7 +107,7 @@ describe("capacidades de seleção de condomínios e funcionalidades", () => {
   it("suporte descobre somente condomínio concedido com grant válido e papel vigente", async () => fixture(async f => {
     assert.equal((await f.request(f.support,`/features/buildings/${f.a}`)).status,403);
     const grant = randomUUID();
-    await sqlClient`insert into support_grants(id,building_id,support_user_id,capability,resource_type,resource_id,reason,expires_at,granted_by) values(${grant},${f.a},${f.support},'devices:read','device','sensor-a','Diagnóstico autorizado',now()+interval '1 hour',${f.legacy})`;
+    await sqlClient`insert into support_grants(id,building_id,support_user_id,capability,resource_type,resource_id,reason,expires_at,granted_by) values(${grant},${f.a},${f.support},'devices:read','device',${f.deviceA},'Diagnóstico autorizado',now()+interval '1 hour',${f.legacy})`;
     assert.deepEqual((await (await f.request(f.support,"/buildings")).json()).items.map((r: any) => r.id),[f.a]);
     assert.equal((await f.request(f.support,`/features/buildings/${f.a}`)).status,200);
     assert.equal((await f.request(f.support,`/buildings/${f.a}`,"PATCH",{name:"Forbidden"})).status,403);
