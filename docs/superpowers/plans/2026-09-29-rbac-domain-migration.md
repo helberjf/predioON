@@ -14,6 +14,8 @@ Cada subentrega recebe migration aditiva, testes negativos de HTTP e RLS, revis�
 
 Na migração dos dashboards e dos consumidores web, distinguir contador sem concessão de contador zero. O painel administrativo atual deriva alertas de consultas sujeitas à RLS e exibe zero como ausência de problemas; isso precisa ser adaptado junto de uma projeção global explícita de saúde, antes do aceite integrado. Uma projeção global de saúde não pode liberar mensagens, leituras ou configurações privadas dos condomínios.
 
+Antes de encerrar 2B.3, validar também a relação real dos recursos na descoberta básica de condomínio. A função de 016 consulta a capacidade do escopo declarado de suporte; uma concessão inconsistente criada pelo owner com condomínio A e recurso de B ainda pode revelar cadastro/estado básico de A. Telemetria e alertas validam os relacionamentos antes de ler dados privados, mas a descoberta básica precisa de seu próprio [recorte corretivo e testes](2026-09-30-building-discovery-resource-validation.md). Preservar as políticas de identidade/broker e não promover recursos a permissões operacionais do condomínio inteiro.
+
 ## Primeiro recorte: condomínios e funcionalidades
 
 - Preservar caminhos e formatos das rotas `/buildings` e `/features`; retirar desses handlers a decisão baseada no maior papel legado do usuário.
@@ -39,4 +41,4 @@ Na migração dos dashboards e dos consumidores web, distinguir contador sem con
 
 2B.2 e o primeiro recorte 2B.3 concluídos em 30/09/2026, com revisões de conformidade/qualidade aprovadas e API 176/176, sem testes ignorados. Telemetria HTTP/RLS e seus eventos SSE também concluídos: regressão API 210/210 e duas revisões por subentrega. Detalhes nos planos de [telemetria](2026-09-30-telemetry-capabilities.md) e [eventos](2026-09-30-telemetry-events-capabilities.md).
 
-O recorte [alertas HTTP/RLS](2026-09-30-alert-capabilities.md) foi iniciado e interrompido pelo limite de uso antes de aplicação da migration ou aceite. Os demais domínios e tipos de eventos continuam pendentes; 2B.3 permanece aberta.
+Os recortes [alertas HTTP/RLS](2026-09-30-alert-capabilities.md) e [eventos SSE de alertas](2026-09-30-alert-events-capabilities.md) estão concluídos e aprovados nas duas revisões. Regressão conjunta API 248/248, 30 suites, sem skips/cancelamentos; dez typechecks e fronteiras passaram. A correção de descoberta básica por pertencimento real do recurso é o próximo recorte. Os demais domínios e tipos de eventos continuam pendentes; 2B.3 permanece aberta.

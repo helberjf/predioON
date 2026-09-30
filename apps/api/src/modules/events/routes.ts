@@ -1,14 +1,13 @@
 import { Router } from "express";
 import { decodeJwt } from "jose";
 import { buildingRole, currentAuth, inTenantContext } from "../../auth/middleware.js";
-import { and, eq } from "drizzle-orm";
-import { alerts } from "@predioon/db/runtime";
-import { buildingFeatures, filterSensorRows, sensorFeatureKeys } from "../../auth/features.js";
+import { buildingFeatures, sensorFeatureKeys } from "../../auth/features.js";
 import { verifyAccessToken } from "../../auth/tokens.js";
 import { resolveIdentity } from "../../auth/service.js";
 import { unauthorized } from "../../http/errors.js";
 import { subscribe } from "./bus.js";
 import { projectTelemetryEvent } from "./telemetry.js";
+import { projectAlertEvent } from "./alerts.js";
 
 export const eventsRouter = Router();
 
@@ -50,15 +49,19 @@ eventsRouter.get("/stream", async (req, res) => {
         });
         return;
       }
+      if (event.kind === "alert") {
+        await inTenantContext(req, async tx => {
+          const projected = await projectAlertEvent(tx, event);
+          if (projected && !closed && !res.writableEnded) res.write(`event: alert\ndata: ${JSON.stringify(projected)}\n\n`);
+        });
+        return;
+      }
       const auth = currentAuth(req);
       if (!globalChange && !buildingRole(auth, event.buildingId)) return;
       await inTenantContext(req, async tx => {
         if (!globalChange) {
           const features = await buildingFeatures(tx, event.buildingId);
-          if (event.kind === "alert") {
-            const rows = await tx.select().from(alerts).where(and(eq(alerts.id, event.alertId), eq(alerts.buildingId, event.buildingId))).limit(1);
-            if (!(await filterSensorRows(tx, rows)).length) return;
-          } else if (event.kind === "device-status") {
+          if (event.kind === "device-status") {
             const keys = await sensorFeatureKeys(tx, event);
             if (keys.length && !keys.some(key => features[key].enabled)) return;
           }

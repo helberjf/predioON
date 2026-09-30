@@ -4,7 +4,7 @@ import { z } from "zod";
 export const CAPABILITIES = [
   "buildings:read", "buildings:manage", "buildings:provision", "features:manage",
   "notices:read", "notices:manage", "occurrences:create-own", "occurrences:read-own", "occurrences:manage",
-  "telemetry:read", "telemetry:read-published", "alerts:read", "alerts:acknowledge", "work-orders:read-assigned", "work-orders:assign",
+  "telemetry:read", "telemetry:read-published", "alerts:read", "alerts:acknowledge", "alerts:resolve", "work-orders:read-assigned", "work-orders:assign",
   "work-orders:update-assigned", "devices:read", "devices:configure", "commands:request", "automations:read",
   "automations:manage", "finance:read", "memberships:read", "memberships:manage", "units:read", "units:manage",
   "teams:read", "teams:manage", "support:read", "support:grant", "plans:read", "plans:manage", "rbac:manage",
@@ -24,8 +24,8 @@ export const RbacRoleSchema = z.enum(RBAC_ROLES);
 export const ROLE_CAPABILITIES: Readonly<Record<RbacRole, readonly Capability[]>> = {
   PLATFORM_ADMIN: ["buildings:read", "buildings:manage", "buildings:provision", "features:manage", "plans:read", "plans:manage", "rbac:manage", "support:grant"],
   PLATFORM_SUPPORT: [],
-  BUILDING_ADMIN: ["buildings:read", "buildings:manage", "notices:read", "notices:manage", "occurrences:create-own", "occurrences:read-own", "occurrences:manage", "telemetry:read", "telemetry:read-published", "alerts:read", "alerts:acknowledge", "work-orders:read-assigned", "work-orders:assign", "work-orders:update-assigned", "devices:read", "devices:configure", "commands:request", "automations:read", "automations:manage", "finance:read", "memberships:read", "memberships:manage", "units:read", "units:manage", "teams:read", "teams:manage", "support:read"],
-  MAINTENANCE_MANAGER: ["buildings:read", "notices:read", "occurrences:create-own", "occurrences:read-own", "occurrences:manage", "telemetry:read", "telemetry:read-published", "alerts:read", "alerts:acknowledge", "work-orders:read-assigned", "work-orders:assign", "work-orders:update-assigned", "devices:read", "automations:read", "teams:read", "units:read"],
+  BUILDING_ADMIN: ["buildings:read", "buildings:manage", "notices:read", "notices:manage", "occurrences:create-own", "occurrences:read-own", "occurrences:manage", "telemetry:read", "telemetry:read-published", "alerts:read", "alerts:acknowledge", "alerts:resolve", "work-orders:read-assigned", "work-orders:assign", "work-orders:update-assigned", "devices:read", "devices:configure", "commands:request", "automations:read", "automations:manage", "finance:read", "memberships:read", "memberships:manage", "units:read", "units:manage", "teams:read", "teams:manage", "support:read"],
+  MAINTENANCE_MANAGER: ["buildings:read", "notices:read", "occurrences:create-own", "occurrences:read-own", "occurrences:manage", "telemetry:read", "telemetry:read-published", "alerts:read", "alerts:acknowledge", "alerts:resolve", "work-orders:read-assigned", "work-orders:assign", "work-orders:update-assigned", "devices:read", "automations:read", "teams:read", "units:read"],
   MAINTENANCE: ["buildings:read", "notices:read", "occurrences:create-own", "occurrences:read-own", "telemetry:read", "telemetry:read-published", "alerts:read", "alerts:acknowledge", "work-orders:read-assigned", "work-orders:update-assigned", "devices:read", "automations:read", "units:read"],
   RESIDENT: ["buildings:read", "notices:read", "occurrences:create-own", "occurrences:read-own", "telemetry:read-published", "units:read"],
 };

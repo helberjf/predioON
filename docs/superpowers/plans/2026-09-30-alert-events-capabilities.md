@@ -33,9 +33,9 @@ async function projectAlertEvent(tx: AppTransaction, event: AlertEvent): Promise
 
 ## Tarefa 1 — RED
 
-- [ ] Fixtures únicas com pessoa direta, equipe, equipamento/alerta/gateway específico, suporte apenas alerts:read, morador legado e plataforma global. Sem memberships legados para novos papéis.
-- [ ] Abrir stream real e aguardar retry inicial antes de emitir NOTIFY. Marcador global features-changed delimita negativa; timeout e cleanup abort/cancel em finally.
-- [ ] Demonstrar manutenção atual sem evento pelo guard legado; demonstrar campos falsificados no envelope sendo entregues pelo código antigo para um usuário legado autorizado.
+- [x] Fixtures únicas com pessoa direta, equipe, equipamento/alerta/gateway específico, suporte apenas alerts:read, morador legado e plataforma global. Sem memberships legados para novos papéis.
+- [x] Abrir stream real e aguardar retry inicial antes de emitir NOTIFY. Marcador global features-changed delimita negativa; timeout e cleanup abort/cancel em finally.
+- [x] Demonstrar manutenção atual sem evento pelo guard legado; demonstrar campos falsificados no envelope sendo entregues pelo código antigo para um usuário legado autorizado.
 
 ```ts
 assert.equal(frames.filter(f => f.event === "alert").length, 1);
@@ -46,12 +46,12 @@ assert.ok(!frames.some(f => f.event === "alert" && f.alertId === neighborAlert))
 
 ## Tarefa 2 — GREEN e integração
 
-- [ ] Implementar projectAlertEvent e integrá-lo antes de buildingRole.
-- [ ] Testar leitura direta/equipe/recurso/suporte, morador e global sem concessão privados negados, vizinho/outro tenant, IDs inexistentes e envelope divergente.
-- [ ] Mesmo stream/token: revogar binding/equipe/concessão/papel global do suporte e verificar ausência da próxima entrega; conta e sessão revogadas encerram stream.
-- [ ] Pausa/retomada: alerta antigo não chega após retomada; novo triggeredAt posterior ao horário PostgreSQL chega. Retirada independente de buildings:read não faz estado pausado desaparecer.
-- [ ] Concessões combinadas entregam um único frame; outros eventos e marcador mantêm comportamento.
-- [ ] Confirmar projeção deriva severidade/tipo/mensagem/estado/IDs do banco e não do evento recebido.
+- [x] Implementar projectAlertEvent e integrá-lo antes de buildingRole.
+- [x] Testar leitura direta/equipe/recurso/suporte, morador e global sem concessão privados negados, vizinho/outro tenant, IDs inexistentes e envelope divergente.
+- [x] Mesmo stream/token: revogar binding/equipe/concessão/papel global do suporte e verificar ausência da próxima entrega; conta e sessão revogadas encerram stream.
+- [x] Pausa/retomada: alerta antigo não chega após retomada; novo triggeredAt posterior ao horário PostgreSQL chega. Retirada independente de buildings:read não faz estado pausado desaparecer.
+- [x] Concessões combinadas entregam um único frame; outros eventos e marcador mantêm comportamento.
+- [x] Confirmar projeção deriva severidade/tipo/mensagem/estado/IDs do banco e não do evento recebido.
 
 ```powershell
 pnpm --filter @predioon/api exec node --import tsx --test --test-concurrency=1 test/alert-events-capabilities.test.ts test/telemetry-events-capabilities.test.ts test/session-lifecycle.test.ts test/feature-enforcement.test.ts
@@ -61,8 +61,8 @@ pnpm check:boundaries
 
 ## Tarefa 3 — aceite
 
-- [ ] Revisão de conformidade, correções e nova revisão.
-- [ ] Revisão de qualidade após conformidade aprovada, correções e nova revisão.
-- [ ] Regressão completa pelo agente principal com fonte estável e banco livre; registrar resultado sem skips/cancelamentos.
+- [x] Revisão de conformidade, correções e nova revisão.
+- [x] Revisão de qualidade após conformidade aprovada, correções e nova revisão.
+- [x] Regressão completa pelo agente principal com fonte estável e banco livre; registrar resultado sem skips/cancelamentos.
 
-Estado: pendente; depende do [recorte HTTP/RLS de alertas](2026-09-30-alert-capabilities.md) em execução. Não encerra 2B.3.
+Estado: concluído, com revisões de conformidade e qualidade aprovadas. RED inicial reproduziu as duas falhas previstas; RED expandido teve 14 falhas e três comportamentos já corretos. GREEN 17/17 e dirigido 46/46, sem skips/cancelamentos. O agente principal verificou o conjunto estável HTTP/SSE: API 248/248, 30 suites, sem falhas/skips/cancelamentos, dez typechecks e fronteiras passaram. Fixtures limpas e buildings:read restaurada. Evidências .local/alert-events-{red,expanded-red,green,targeted,typecheck,boundaries,cleanup}.log e .local/api-alerts-combined-full.log. Não encerra 2B.3.
