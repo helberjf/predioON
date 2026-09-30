@@ -249,6 +249,8 @@ describe("telemetry capabilities and published water", () => {
     for (const invalid of ['bucket=1s','from=invalid']) assert.equal((await f.request(f.scoped,`/telemetry/series?deviceId=${f.d1}&metric=water_level_percent&${invalid}`)).status,400);
   }));
   it("uses safe gate and parking classifications without SELECT access to device configuration", async () => fixture(async f => {
+    await sqlClient`insert into support_grants(building_id,support_user_id,capability,reason,expires_at,granted_by)
+      values(${f.a},${f.support},'telemetry:read','Telemetry-only diagnosis',now()+interval '1 hour',${f.platform})`;
     const gateway = `tel-gateway-${randomUUID()}`;
     await sqlClient`insert into gateways(id,building_id,name,serial_number) values(${gateway},${f.a},'Gateway',${gateway})`;
     await sqlClient`update devices set type='GATE_CONTROLLER',gateway_id=${gateway} where id=${f.d1}`;
@@ -258,16 +260,15 @@ describe("telemetry capabilities and published water", () => {
     await sqlClient`delete from telemetry where building_id=${f.a}`;
     await sqlClient`insert into telemetry(time,event_id,building_id,device_id,metric,value,numeric_value) values(now(),${randomUUID()},${f.a},${f.d1},'state','true',null),(now(),${randomUUID()},${f.a},${f.d2},'parking_occupied','2',2)`;
     await sqlClient`insert into building_feature_settings(building_id,feature_key,enabled) values(${f.a},'PEDESTRIAN_ACCESS',false),(${f.a},'CAR_PARKING',false)`;
-    // New local roles resolve to the legacy RESIDENT context; configuration's
-    // legacy app.role policy remains outside this telemetry migration.
-    assert.equal((await withUserContext({userId:f.worker,role:'RESIDENT'},tx=>tx.execute(sql`select id from devices`))).length,0);
-    assert.equal((await items(await f.latest(f.worker))).length,2);
+    // Diagnostic telemetry authorization does not grant private configuration.
+    assert.equal((await withUserContext({userId:f.support,role:'RESIDENT'},tx=>tx.execute(sql`select id from devices`))).length,0);
+    assert.equal((await items(await f.latest(f.support))).length,2);
     await sqlClient`insert into building_feature_settings(building_id,feature_key,enabled) values(${f.a},'GARAGE_ACCESS',false)`;
-    assert.deepEqual((await items(await f.latest(f.worker))).map(r=>r.device_id),[f.d2]);
-    assert.equal((await f.series(f.worker,f.d1,'state')).status,403);
+    assert.deepEqual((await items(await f.latest(f.support))).map(r=>r.device_id),[f.d2]);
+    assert.equal((await f.series(f.support,f.d1,'state')).status,403);
     await sqlClient`insert into building_feature_settings(building_id,feature_key,enabled) values(${f.a},'MOTORCYCLE_PARKING',false)`;
-    assert.deepEqual(await items(await f.latest(f.worker)),[]);
-    assert.equal((await f.series(f.worker,f.d2,'parking_occupied')).status,403);
+    assert.deepEqual(await items(await f.latest(f.support)),[]);
+    assert.equal((await f.series(f.support,f.d2,'parking_occupied')).status,403);
   }));
   it("exposes only minimal device projection and restricts helpers and app writes", async () => fixture(async f => {
     const rows = await as(f.scoped,tx=>tx.execute(sql`select * from app_telemetry_authorized_devices(null)`));

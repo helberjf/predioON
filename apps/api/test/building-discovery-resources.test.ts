@@ -282,7 +282,9 @@ describe("building discovery validates existing tenant resources", () => {
       assert.deepEqual({ ...caps }, { devices: false, telemetry: false, alerts: false, buildings: false });
       assert.equal((await f.request(f.person, `/buildings/${f.a}`, "PATCH", { name: "Forbidden" })).status, 403);
       assert.equal((await f.request(f.person, `/features/buildings/${f.a}/GAS`, "PUT", { enabled: false, version: 1, reason: "Forbidden scope" })).status, 403);
-      assert.equal((await f.request(f.person, `/devices?buildingId=${f.a}`)).status, 403);
+      const inventory = await f.request(f.person, `/devices?buildingId=${f.a}`);
+      assert.equal(inventory.status, type === "building" ? 403 : 200);
+      if (type === "device") assert.deepEqual((await inventory.json()).items.map((row: {id:string})=>row.id),[f.deviceA]);
       assert.deepEqual([...await as(f.person, tx => tx.execute(sql`update buildings set name='Forbidden' where id=${f.a} returning id`))], []);
       await assert.rejects(as(f.person, tx => tx.execute(sql`insert into building_feature_settings(building_id,feature_key,enabled) values(${f.a},'SMOKE',false)`)));
     }

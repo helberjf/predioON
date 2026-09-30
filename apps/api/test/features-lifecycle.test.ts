@@ -15,6 +15,7 @@ import { call, login, startTestServer } from "./helpers.js";
 describe("pause and resume through the real API, database and ingestion", () => {
   const suffix = randomUUID().slice(0, 8), org = `life_org_${suffix}`, buildingId = `life_${suffix}`, gatewayId = `gw_${suffix}`;
   const meterId = `meter_${suffix}`, controllerId = `gate_${suffix}`, parkingId = `park_${suffix}`;
+  const localEquipmentGrant = randomUUID();
   let server: Awaited<ReturnType<typeof startTestServer>>, token: string, profileId: string, gateId: string, lotId: string;
   const request = (path: string, method = "GET", body?: unknown) => call(server.url, path, { token, method, body });
   async function ok(path: string, method = "GET", body?: unknown, status = 200) {
@@ -39,6 +40,8 @@ describe("pause and resume through the real API, database and ingestion", () => 
     await db.insert(buildings).values({ id: buildingId, organizationId: org, name: "Lifecycle test", code: buildingId });
     await db.insert(gateways).values({ id: gatewayId, buildingId, name: "Test gateway", serialNumber: gatewayId, status: "ONLINE", lastSeenAt: new Date() });
     await db.insert(devices).values([{ id: meterId, buildingId, gatewayId, name: "Mixed meter", type: "ENERGY_METER" }, { id: controllerId, buildingId, gatewayId, name: "Test gate", type: "GATE_CONTROLLER", status: "ONLINE", lastSeenAt: new Date() }, { id: parkingId, buildingId, gatewayId, name: "Test parking", type: "PARKING_SENSOR" }]);
+    await sqlClient`insert into role_bindings(id,user_id,building_id,role_key)
+      select ${localEquipmentGrant},id,${buildingId},'BUILDING_ADMIN' from users where email='admin@predioon.local'`;
     server = await startTestServer(); token = (await login(server.url, "admin@predioon.local")).accessToken;
     profileId = (await ok("/monitoring", "POST", { buildingId, deviceId: meterId, kind: "ENERGY", tariff: 1 }, 201)).id;
     gateId = (await ok("/access", "POST", { buildingId, gatewayId, deviceId: controllerId, kind: "GARAGE", name: "Test garage", enabled: true, allowResidents: false }, 201)).id;
@@ -46,6 +49,7 @@ describe("pause and resume through the real API, database and ingestion", () => 
   });
   after(async () => {
     await server?.close();
+    await sqlClient`delete from role_bindings where id=${localEquipmentGrant}`;
     await db.delete(gateCommands).where(eq(gateCommands.buildingId, buildingId));
     await db.delete(gates).where(eq(gates.buildingId, buildingId));
     await db.delete(auditLogs).where(eq(auditLogs.buildingId, buildingId));

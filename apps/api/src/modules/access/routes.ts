@@ -30,6 +30,19 @@ async function hardware(tx: AppTransaction, input: { buildingId: string; gateway
   const [device] = await tx.select().from(devices).where(and(eq(devices.id, input.deviceId), eq(devices.buildingId, input.buildingId), eq(devices.gatewayId, input.gatewayId))).limit(1);
   return { gateway, device };
 }
+/** Gate-bound status projection preserves physical access without inventory access. */
+async function accessHardware(tx: AppTransaction, gate: { buildingId: string; id: string }) {
+  const [row] = await tx.execute(sql`select * from app_access_hardware_state(${gate.buildingId},${gate.id}::uuid)`);
+  if (!row) return { gateway: null, device: null };
+  const state = row as unknown as {
+    gateway_enabled: boolean; gateway_status: string; gateway_last_seen_at: Date | string | null;
+    device_enabled: boolean; device_status: string; device_last_seen_at: Date | string | null;
+  };
+  return {
+    gateway: { enabled: state.gateway_enabled, status: state.gateway_status, lastSeenAt: state.gateway_last_seen_at ? new Date(state.gateway_last_seen_at) : null },
+    device: { enabled: state.device_enabled, status: state.device_status, lastSeenAt: state.device_last_seen_at ? new Date(state.device_last_seen_at) : null },
+  };
+}
 function commandView(command: typeof gateCommands.$inferSelect) {
   const expired = ["PENDING", "SENT"].includes(command.status) && command.expiresAt <= new Date();
   return { ...command, status: expired ? "EXPIRED" : command.status, failureReason: expired ? "Prazo de confirmação encerrado" : command.failureReason };
@@ -46,7 +59,7 @@ accessRouter.get("/", validateQuery(ListQuery), async (req, res) => {
     const rows = await tx.select().from(gates).where(eq(gates.buildingId, buildingId)).orderBy(gates.name);
     const commands = await tx.select().from(gateCommands).where(eq(gateCommands.buildingId, buildingId)).orderBy(desc(gateCommands.createdAt)).limit(200);
     const items = await Promise.all(rows.filter(gate => features[gateFeature(gate.kind)].enabled).map(async gate => {
-      const { gateway, device } = await hardware(tx, gate);
+      const { gateway, device } = await accessHardware(tx, gate);
       const reason = accessAvailability(gate, gateway, device, role);
       const latest = commands.find(command => command.gateId === gate.id);
       return { ...gate, available: !reason, unavailableReason: reason, latestCommand: latest ? commandView(latest) : null };
@@ -132,7 +145,7 @@ accessRouter.post("/:gateId/open", async (req, res) => {
         await audit(req, tx, gate.buildingId, gate.id, "ACCESS_REQUEST_REPEATED", { commandId: existing.id, requestId });
         return { command: commandView(existing), repeated: true };
       }
-      const { gateway, device } = await hardware(tx, gate);
+      const { gateway, device } = await accessHardware(tx, gate);
       const reason = accessAvailability(gate, gateway, device, role);
       if (reason) throw conflict(reason);
       // Security-definer boolean includes other residents' requests without exposing them.

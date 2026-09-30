@@ -19,6 +19,11 @@ Todas estas rotas exigem a sessão central. Usam a conexão `predioon_app`, auto
 | `GET /v1/alerts` | Listar alertas no escopo atual, com filtro de condomínio/status e paginação por offset | `alerts:read` no alerta, dispositivo/gateway explicitamente relacionado ou condomínio inteiro |
 | `POST /v1/alerts/:alertId/acknowledge` | Reconhecer alerta | `alerts:read` e `alerts:acknowledge`; sem acesso ao alerta recebe 404 |
 | `POST /v1/alerts/:alertId/resolve` | Resolver alerta | `alerts:read` e `alerts:resolve`; padrão do síndico e responsável pela manutenção |
+| `GET /v1/devices` e `GET /v1/devices/:deviceId/metrics` | Inventário e métricas configuradas | `devices:read` no dispositivo; métricas usam o condomínio do dispositivo real |
+| `GET /v1/gateways` | Inventário de gateways | `devices:read` no gateway; sem username/hash MQTT |
+| `POST /v1/devices` e `POST /v1/gateways` | Cadastrar equipamento | `devices:read` e `devices:configure` inteiras no condomínio |
+| `PATCH /v1/devices/:deviceId`, `PATCH /v1/gateways/:gatewayId` e `POST /v1/devices/:deviceId/metrics` | Configurar recurso existente | Leitura e configuração no recurso; ausente/inacessível recebe 404, visível sem ação recebe 403 |
+| `POST /v1/gateways/:gatewayId/credentials` | Emitir/rotacionar credencial MQTT | Leitura e configuração no gateway; senha retornada uma vez, somente hash armazenado |
 | `GET/POST /v1/tenancy/blocks` | Consultar/criar blocos | `units:read` / `units:manage` |
 | `GET/POST /v1/tenancy/units` | Consultar/criar unidades | `units:read` / `units:manage`; RLS limita moradores às próprias unidades |
 | `GET/POST /v1/tenancy/teams` | Consultar/criar equipes | `teams:read` / `teams:manage` |
@@ -29,7 +34,7 @@ Todas estas rotas exigem a sessão central. Usam a conexão `predioon_app`, auto
 
 Consultas de listagem recebem `buildingId`, `limit` (1–100, padrão 50) e `after` (UUID retornado como `nextCursor`). Retornam `{ items, nextCursor }`. As alterações usam `buildingId` no corpo e os contratos de `@predioon/contracts/tenancy`. Todas as respostas novas têm `Cache-Control: no-store`.
 
-O vínculo de papel tem uma pessoa **ou** uma equipe, motivo e vigência opcional. Nesta superfície HTTP inicial, os papéis são concedidos ao condomínio inteiro. Não há endpoint público para alterar o catálogo, conceder papéis globais nem produzir credenciais de equipamento. Concessões específicas de recurso no banco exigem sua autorização própria; a criação desses fluxos será integrada aos respectivos domínios.
+O vínculo de papel tem uma pessoa **ou** uma equipe, motivo e vigência opcional. Nesta superfície HTTP inicial de tenancy, os papéis são concedidos ao condomínio inteiro. Não há endpoint público para alterar o catálogo ou conceder papéis globais. Concessões específicas de recurso no banco exigem sua autorização própria; a criação desses fluxos será integrada aos respectivos domínios. A emissão de credenciais de equipamento usa o endpoint autorizado do gateway.
 
 Blocos, unidades, equipes e seus vínculos são relacionados por chaves compostas que incluem o condomínio. Inserir um vínculo com entidade de outro condomínio falha mesmo se uma consulta da aplicação esquecer o filtro. Respostas de erro não revelam os dados da entidade estrangeira. Alterações bem-sucedidas e sua auditoria são confirmadas na mesma transação.
 
@@ -53,6 +58,14 @@ O processo HTTP não pode inserir, atualizar ou excluir diretamente alertas. A f
 
 Os eventos SSE de alertas foram migrados e aprovados nas duas revisões. Cada entrega consulta a concessão atual e o alerta persistido; os nove campos do envelope entregue vêm do banco, incluindo estado e referências. IDs inválidos ou fora do escopo são ignorados sem encerrar a conexão. Pausa e retomada usam o horário persistido do alerta: o histórico HTTP permanece disponível, mas alertas anteriores à retomada não reaparecem como novos eventos. As 17 novas provas incluem revogação no stream aberto e campos falsificados no NOTIFY.
 
-A etapa 2B ainda está em execução. Equipamentos, gateways, monitoramento, dashboards, financeiro, acessos e outros cadastros continuam com suas políticas anteriores; ainda não se deve tratar o novo catálogo como autorização completa desses módulos. Os demais tipos de eventos SSE aguardam migração. O painel atual continua usando os três papéis legados enquanto cada módulo migra com testes de API e RLS. A ausência de uma capacidade nova não altera automaticamente as regras antigas.
+A migration `020-equipment-capabilities.sql` migra inventário, configuração e credenciais HTTP de dispositivos/gateways. Manutenção lê; síndico configura; suporte apenas lê o recurso concedido. Concessão em dispositivo não se propaga ao gateway nem vice-versa. Relações dispositivo/gateway e métrica/dispositivo precisam pertencer ao mesmo condomínio. Recursos desativados continuam disponíveis para diagnóstico/configuração; pausa de uma funcionalidade não concede nem retira configuração.
+
+Alterações existentes autorizam antes do row lock e consultam novamente leitura/configuração após a espera. Alteração, emissão e criação de métrica confirmam junto da auditoria. O processo HTTP só atualiza colunas de configuração, sem escrever status/last_seen ou excluir equipamentos/métricas. A senha MQTT não aparece em inventário, edição, auditoria ou logs; PATCH preserva as credenciais existentes e rejeita alteração de suas chaves. Rotacionar invalida a senha anterior; os privilégios do broker permanecem separados.
+
+A disponibilidade e solicitação de abertura de um portão existente usam uma projeção limitada ao seu hardware real: habilitado, status e last_seen do gateway/dispositivo. Essa consulta verifica tenant, referências e acesso físico atual sem conceder inventário privado ao morador. A policy de inserção do comando usa a mesma projeção e conserva ator, estado inicial, tempo, referências, permissão residencial e hardware recente; TTL, dispatcher e proibição de replay permanecem iguais. As regras físicas legadas ainda aguardam sua própria migração por capacidade.
+
+Um probe confirmou que as janelas de 014 ainda usam o horário inicial da transação. A correção após esperas está descrita no [plano 021](superpowers/plans/2026-09-30-authorization-time-windows.md); ainda não se deve atribuir a 020 a garantia de expiração durante uma transação bloqueada. Revogação de concessões após espera é reconsultada em 020.
+
+A etapa 2B ainda está em execução. Monitoramento, dashboards, financeiro, acessos e outros cadastros continuam com suas políticas anteriores; ainda não se deve tratar o novo catálogo como autorização completa desses módulos. Eventos SSE de status de equipamentos/gateways e demais tipos aguardam migração. O painel atual continua usando os três papéis legados enquanto cada módulo migra com testes de API e RLS. A ausência de uma capacidade nova não altera automaticamente as regras antigas.
 
 A API separa as conexões de negócio, identidade e autorização MQTT conforme [credenciais de banco](CREDENCIAIS_BANCO.md). A retirada da credencial proprietária da ingestão ainda está pendente. Também faltam a interface web de gestão destes cadastros, o fluxo de concessão temporária de suporte, MFA para ações privilegiadas, cookies/CSRF e os consumidores móveis. O tracker de execução distingue essas pendências da fundação já verificada.
