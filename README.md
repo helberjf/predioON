@@ -4,6 +4,8 @@ Plataforma para monitoramento e operação de condomínios, casas e imóveis com
 
 Para uma instalação real, comece pelo [manual de implantação e operação](docs/IMPLANTACAO_CONDOMINIO.md). Para executar a demonstração local, siga a seção [Instalação local](#instalação-local).
 
+O escopo do produto está no [PRD](docs/PRD.md) e o desenho técnico no [TDD](docs/TDD.md). A [arquitetura de produto aprovada em 27/09/2026](docs/superpowers/specs/2026-09-27-arquitetura-produto-design.md) define a evolução para quatro produtos — aplicativos **Morador** e **Operação** em React Native sem Expo, painel web do síndico e painel web administrativo — sobre a mesma plataforma modular e banco central. O andamento por etapa fica no [tracker de execução](docs/superpowers/plans/2026-09-27-product-execution.md). Este README descreve o que já está commitado nesta linha de código; ver [Evolução em andamento](#evolução-em-andamento).
+
 ## Funcionalidades
 
 | Área | Recursos implementados |
@@ -64,7 +66,7 @@ Sensores / gateway / simulador
 
 Para abertura de portões, a API registra o pedido, a ingestão publica o comando e o controlador devolve uma confirmação (ACK). O fluxo completo está em [Acessos](docs/ACESSOS.md).
 
-O portal do morador é uma aplicação web adaptada a celular. O aplicativo nativo com Expo permanece como evolução futura.
+O portal do morador é uma aplicação web adaptada a celular e permanece disponível por compatibilidade. Os aplicativos **Morador** e **Operação (síndico e manutenção)**, em React Native **sem Expo**, são a evolução definida na [arquitetura de produto](docs/superpowers/specs/2026-09-27-arquitetura-produto-design.md) e ainda não estão implementados. Não há aplicativo móvel administrativo da plataforma.
 
 ## Instalação local
 
@@ -274,6 +276,21 @@ scripts/           Inicialização local no Windows
 docs/              Implantação, integração, operação e materiais comerciais
 ```
 
+## Evolução em andamento
+
+A execução da [arquitetura de produto](docs/superpowers/specs/2026-09-27-arquitetura-produto-design.md) acontece na linha `codex/product-platform`, **ainda não mesclada** nesta. O que estiver nas etapas abaixo não está disponível nos comandos deste README.
+
+| Etapa | Conteúdo | Estado |
+|---|---|---|
+| 1 | Contratos (`@predioon/contracts`) e cliente HTTP portátil (`@predioon/api-client`) | Concluída |
+| 2A | Sessões com rotação atômica, famílias de refresh e JWT Ed25519 com `kid`; migração `013-sessions.sql` | Concluída |
+| 2B.1 | Fundação de RBAC e tenancy: catálogo de permissões, concessões, unidades, equipes e suporte temporário; migração `014-rbac-tenancy.sql`; rotas `/v1/tenancy` e `/v1/authorization` | Concluída |
+| 2B.2 | Credenciais restritas da API, separando identidade e autorização do broker; migração `015-api-runtime-roles.sql` | Em execução |
+| 2B.3 | Migração dos módulos existentes de papel ordenado para capacidades, conforme o [plano de 29/09/2026](docs/superpowers/plans/2026-09-29-rbac-domain-migration.md) | Planejada |
+| 2C–6 | MFA e cookies, processamento durável (inbox/outbox/workers), ativos e ordens de serviço, automações, planos/assinaturas, aplicativos móveis e operação revisada | Planejadas |
+
+Evidências e números de teste por etapa ficam no [tracker de execução](docs/superpowers/plans/2026-09-27-product-execution.md). Os débitos técnicos conhecidos, incluindo a fronteira entre confirmação MQTT e commit, estão em [TDD, seção 18](docs/TDD.md#18-débitos-técnicos-e-riscos-de-implementação).
+
 ## Implantação e limites da versão
 
 O [manual de implantação](docs/IMPLANTACAO_CONDOMINIO.md) em Markdown é a referência atualizada, na versão 3. A [versão inicial em Word](docs/Manual_de_implantacao_Predio_ON.docx) preserva a versão 1 e não inclui os complementos posteriores.
@@ -290,6 +307,8 @@ Para produção, siga [DEPLOY](docs/DEPLOY.md): segredos exclusivos, conexão re
 
 | Assunto | Referência |
 |---|---|
+| Produto e design técnico | [PRD](docs/PRD.md) · [TDD](docs/TDD.md) |
+| Arquitetura de produto e execução | [Arquitetura (27/09/2026)](docs/superpowers/specs/2026-09-27-arquitetura-produto-design.md) · [Tracker de execução](docs/superpowers/plans/2026-09-27-product-execution.md) · [Capacidades por domínio (29/09/2026)](docs/superpowers/plans/2026-09-29-rbac-domain-migration.md) |
 | Implantação e operação | [Manual do condomínio](docs/IMPLANTACAO_CONDOMINIO.md) · [Deploy](docs/DEPLOY.md) |
 | Escopo e validação | [Revisão de funcionalidades](docs/REVISAO_FUNCIONALIDADES.md) · [Controle de funcionalidades](docs/FUNCIONALIDADES.md) |
 | Monitoramento | [Consumo e análise](docs/CONSUMO_E_ANALISE.md) · [Sensores](docs/SENSORES.md) |
