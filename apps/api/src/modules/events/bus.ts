@@ -1,4 +1,4 @@
-import { sqlClient } from "@predioon/db";
+import { appSqlClient } from "@predioon/db/runtime";
 import { REALTIME_CHANNEL, RealtimeEventSchema, type RealtimeEvent } from "@predioon/shared";
 
 type Listener = (event: RealtimeEvent) => void;
@@ -14,7 +14,7 @@ export async function startRealtimeBus(): Promise<void> {
   if (started) return;
   started = true;
 
-  await sqlClient.listen(REALTIME_CHANNEL, (payload) => {
+  await appSqlClient.listen(REALTIME_CHANNEL, (payload) => {
     let parsed: unknown;
     try {
       parsed = JSON.parse(payload);

@@ -1,5 +1,9 @@
 # Instalação — Prédio ON
 
+> Este roteiro corresponde aos serviços e scripts existentes. A [arquitetura de produto revisada](superpowers/specs/2026-09-27-arquitetura-produto-design.md) define workers por carga, imagens fixadas e migrations versionadas. A separação de credenciais da API está integrada ao Compose; ingestão, workers e o fluxo definitivo de migrations continuam pendentes. Uma VPS única não oferece alta disponibilidade contra perda do host.
+
+O roteiro completo, com resumo inicial, instalação de campo, primeira conta administrativa, operação e aceite, está no [manual de implantação em condomínio](IMPLANTACAO_CONDOMINIO.md). Este arquivo detalha a infraestrutura.
+
 Configuração preparada para uma VPS com Docker Compose. A entrega de 21/09/2026 foi
 validada localmente; não foi publicada uma nova versão externa. O contrato de campo está
 em [ENTREGA_HELBER.md](ENTREGA_HELBER.md).
@@ -16,6 +20,10 @@ em [ENTREGA_HELBER.md](ENTREGA_HELBER.md).
 ```bash
 node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
 ```
+
+Configure `APP_DB_PASSWORD`, `IDENTITY_DB_PASSWORD` e `BROKER_AUTH_DB_PASSWORD` com senhas distintas. A senha proprietária `POSTGRES_PASSWORD` é usada no provisionamento e, durante a transição, na ingestão; ela não entra no ambiente do container da API.
+
+A API em produção exige `JWT_ACTIVE_KID`, `JWT_PRIVATE_KEY` Ed25519 e `JWT_PUBLIC_KEYS`, um objeto JSON que associa cada `kid` ao PEM público. Use um par persistente guardado no gerenciador de segredos; o par efêmero de desenvolvimento é recusado em produção. PEMs podem usar a sequência literal `\n`. O access token tem duração de cinco minutos e a sessão é consultada a cada requisição. A configuração anterior `JWT_SECRET` não é mais usada; a transição exige novo login. Consulte [autenticação](AUTENTICACAO.md).
 
 O Caddy obtém TLS dos quatro serviços web. Para MQTT, obter separadamente um certificado
 válido para `mqtt.SEUDOMINIO` e colocar `fullchain.pem` e `privkey.pem` no diretório absoluto
@@ -37,14 +45,17 @@ docker compose -f infrastructure/docker-compose.prod.yml --env-file infrastructu
 ```
 
 O script aplica as tabelas e todos os arquivos `infrastructure/0*.sql` em ordem, incluindo
-`005-audit-insert.sql` e `006-telemetry-read-policy.sql`. A API usa a role restrita `predioon_app`; a ingestão usa a conexão
-administrativa interna. O banco vazio exige provisionar o primeiro administrador.
+`013-sessions.sql`, `014-rbac-tenancy.sql` e `015-api-runtime-roles.sql`, e provisiona as senhas das roles restritas em uma operação administrativa separada. A API usa `predioon_app` nas consultas com contexto do usuário, `predioon_identity` para autenticação e sessões e `predioon_broker_auth` para autorização do broker. As duas últimas roles são criadas sem login pela migração; `pnpm db:provision-runtime` habilita o login com as senhas configuradas. O processo HTTP não precisa de `DATABASE_URL`.
+
+A ingestão ainda usa a conexão administrativa interna. O banco vazio exige provisionar o primeiro administrador.
 Para um **piloto com dados demonstrativos**, preencher `SEED_PASSWORD` com senha exclusiva
 e usar `./infrastructure/setup-prod.sh --seed`. Isso cria as três contas listadas no README
 e os sensores de demonstração; não representa um cadastro real do condomínio.
 
 Para atualizar uma instalação existente, fazer backup do banco e executar novamente o
 script após atualizar o código. Não usar `infra:reset` em banco com dados reais.
+
+O bootstrap atual executa `drizzle-kit push --force`: revisar as alterações de schema e ensaiar a atualização/restauração antes de reaplicá-lo a uma instalação com dados reais. O executor de migrations com lock/checksum já possui testes, mas sua integração ao bootstrap ainda está pendente.
 
 ## MQTT de produção
 
@@ -54,7 +65,7 @@ protegidos por `MQTT_AUTH_SECRET`. O Caddy bloqueia esse prefixo na internet.
 - O painel emite usuário/senha por gateway e guarda somente o hash da senha.
 - O gateway usa `clientId` igual ao próprio ID e publica apenas nos sensores vinculados.
 - A ingestão autentica com `MQTT_INGEST_USERNAME` e `MQTT_INGEST_PASSWORD` e só pode assinar
-  os três filtros de telemetria/status.
+  os filtros autorizados de telemetria/status e confirmações de acessos; também publica comandos somente para acessos habilitados.
 - Autorização sem correspondência resulta em negação; o cache de autorização é desativado
   para a desativação do cadastro valer nas novas publicações.
 - `infrastructure/emqx/acl.conf` nega tudo como proteção. Não substituir o autorizador
@@ -86,6 +97,16 @@ todos precisam estar vinculados ao gateway de teste. Ele não deve representar u
 físico em uso. `MQTT_CA_FILE` é opcional para uma CA privada confiável.
 
 ## Operação
+
+### Atualização com controle de funcionalidades
+
+1. Fazer backup e registrar a versão atual antes de atualizar. Usar o procedimento de migrações do projeto (`pnpm db:infra`) para aplicar também `012-features.sql`. A migração é aditiva: cria configurações globais/locais e estado de pausa/retomada, além de identificar dias de consumo incompletos. Não executar reset ou seed de demonstração em produção.
+2. Coordenar a atualização da API e da ingestão: pausar os processos antigos, aplicar migrações, iniciar ambos com a mesma versão e conferir os logs. Não disponibilizar a central administrativa enquanto uma ingestão antiga ainda puder ignorar os controles. Gateways podem manter seu buffer durante a atualização conforme o contrato de telemetria.
+3. Publicar os três painéis após API e ingestão estarem atualizadas. Todos os recursos atuais começam habilitados/herdados; os controles existentes de equipamentos e portões continuam valendo.
+4. Entrar como administrador da plataforma, abrir **Funcionalidades** e conferir a configuração global e de um condomínio de homologação. Testar desativação/retomada, descarte seletivo de leituras, heartbeat, bloqueio de ações, auditoria e preservação de histórico antes da liberação.
+5. Em reversão de versão, impedir alterações na central e não iniciar serviços antigos enquanto houver recursos pausados: uma versão sem esses controles pode voltar a aceitar leituras ou comandos. Preservar as novas tabelas e o histórico; preparar uma versão compatível para a recuperação.
+
+Procedimento operacional e efeitos de cada controle: [FUNCIONALIDADES.md](FUNCIONALIDADES.md).
 
 Configurar backup com teste de restauração, monitoramento de disponibilidade e renovação
 de certificados. Retenção/compressão podem ser ativadas nas políticas comentadas em

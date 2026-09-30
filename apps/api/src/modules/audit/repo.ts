@@ -1,4 +1,4 @@
-import { auditLogs, type AppTransaction } from "@predioon/db";
+import { auditLogs, type AppTransaction } from "@predioon/db/runtime";
 import type { Request } from "express";
 
 type AuditInput = {

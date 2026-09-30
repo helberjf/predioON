@@ -2,8 +2,9 @@ import { timingSafeEqual } from "node:crypto";
 import { Router } from "express";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { db, devices, gateways, buildings } from "@predioon/db";
-import { TELEMETRY_TOPIC, WATER_TELEMETRY_TOPIC, GATEWAY_STATUS_TOPIC, parseTelemetryTopic, parseWaterTelemetryTopic, parseGatewayStatusTopic } from "@predioon/shared";
+import { devices, gateways, buildings, gates } from "@predioon/db/runtime";
+import { brokerAuthDb as db } from "@predioon/db/broker-auth";
+import { ACCESS_ACK_TOPIC, parseAccessTopic, TELEMETRY_TOPIC, WATER_TELEMETRY_TOPIC, GATEWAY_STATUS_TOPIC, parseTelemetryTopic, parseWaterTelemetryTopic, parseGatewayStatusTopic } from "@predioon/shared";
 import { verifyPassword } from "../../auth/passwords.js";
 import { config } from "../../config.js";
 
@@ -25,11 +26,23 @@ const Identity = z.object({ username: z.string().min(1).max(128), clientid: z.st
 const Authn = Identity.extend({ password: z.string().min(1).max(256) });
 const Authz = Identity.extend({ action: z.enum(["publish", "subscribe"]), topic: z.string().min(1).max(512) });
 
+async function authorizedAccessTopic(topic: string) {
+  const parts = parseAccessTopic(topic);
+  if (!parts) return null;
+  const [gate] = await db.select({ id: gates.id }).from(gates)
+    .innerJoin(gateways, and(eq(gateways.id, gates.gatewayId), eq(gateways.buildingId, gates.buildingId)))
+    .innerJoin(devices, and(eq(devices.id, gates.deviceId), eq(devices.buildingId, gates.buildingId), eq(devices.gatewayId, gates.gatewayId)))
+    .innerJoin(buildings, eq(buildings.id, gates.buildingId))
+    .where(and(eq(gates.id, parts.gateId), eq(gates.gatewayId, parts.gatewayId), eq(gates.buildingId, parts.buildingId),
+      eq(gates.enabled, true), eq(gateways.enabled, true), eq(devices.enabled, true), eq(buildings.active, true))).limit(1);
+  return gate ? parts : null;
+}
+
 async function findGateway(username: string, clientid: string) {
   if (!username.startsWith("gw_")) return null;
   const id = username.slice(3);
   if (clientid !== id) return null;
-  const [row] = await db.select({ gateway: gateways }).from(gateways)
+  const [row] = await db.select({ gateway: { id: gateways.id, buildingId: gateways.buildingId, enabled: gateways.enabled, metadata: gateways.metadata } }).from(gateways)
     .innerJoin(buildings, eq(buildings.id, gateways.buildingId))
     .where(and(eq(gateways.id, id), eq(gateways.enabled, true), eq(buildings.active, true))).limit(1);
   return row?.gateway.metadata.mqttUsername === username ? row.gateway : null;
@@ -58,10 +71,18 @@ mqttRouter.post("/authz", async (req, res) => {
     if (!parsed.success) return void res.json({ result: "deny" });
     const { username, clientid, action, topic } = parsed.data;
     if (username === config.MQTT_INGEST_USERNAME) {
-      return void res.json({ result: action === "subscribe" && [TELEMETRY_TOPIC, WATER_TELEMETRY_TOPIC, GATEWAY_STATUS_TOPIC].includes(topic) ? "allow" : "deny" });
+      if (action === "subscribe") return void res.json({ result: [TELEMETRY_TOPIC, WATER_TELEMETRY_TOPIC, GATEWAY_STATUS_TOPIC, ACCESS_ACK_TOPIC].includes(topic) ? "allow" : "deny" });
+      const access = await authorizedAccessTopic(topic);
+      return void res.json({ result: access?.kind === "command" ? "allow" : "deny" });
     }
     const gateway = await findGateway(username, clientid);
-    if (!gateway || action !== "publish") return void res.json({ result: "deny" });
+    if (!gateway) return void res.json({ result: "deny" });
+    if (parseAccessTopic(topic)) {
+      const access = await authorizedAccessTopic(topic);
+      const own = access?.buildingId === gateway.buildingId && access?.gatewayId === gateway.id;
+      return void res.json({ result: own && ((action === "subscribe" && access?.kind === "command") || (action === "publish" && access?.kind === "ack")) ? "allow" : "deny" });
+    }
+    if (action !== "publish") return void res.json({ result: "deny" });
     const status = parseGatewayStatusTopic(topic);
     if (status) return void res.json({ result: status.buildingId === gateway.buildingId && status.gatewayId === gateway.id ? "allow" : "deny" });
     const reading = parseTelemetryTopic(topic) ?? parseWaterTelemetryTopic(topic);

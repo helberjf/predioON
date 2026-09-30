@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-import { organizations } from "@predioon/db";
+import { organizations } from "@predioon/db/runtime";
 import { currentAuth, inTenantContext, requireRole } from "../../auth/middleware.js";
 import { notFound } from "../../http/errors.js";
 import { generateId } from "../../http/ids.js";

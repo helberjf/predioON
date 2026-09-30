@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { sensorMetricDefinition } from "./sensors.js";
 
 export const TelemetryValueSchema = z.union([z.number(), z.boolean(), z.string().max(500)]);
 export type TelemetryValue = z.infer<typeof TelemetryValueSchema>;
@@ -20,6 +21,19 @@ export const TelemetrySchema = z.object({
   unit: z.string().min(1).max(16).optional(),
   quality: TelemetryQualitySchema.default("GOOD"),
   timestamp: z.string().datetime(),
+}).superRefine((reading, context) => {
+  const definition = sensorMetricDefinition(reading.metric);
+  if (!definition) return; // Preserve vendor-specific metrics.
+  if (typeof reading.value !== definition.dataType) {
+    context.addIssue({ code: "custom", path: ["value"], message: `${definition.label}: esperado ${definition.dataType}` });
+  } else if (typeof reading.value === "number" && (!Number.isFinite(reading.value)
+    || (definition.min !== undefined && reading.value < definition.min)
+    || (definition.max !== undefined && reading.value > definition.max))) {
+    context.addIssue({ code: "custom", path: ["value"], message: `${definition.label}: valor fora do intervalo do contrato` });
+  }
+  if (reading.unit !== undefined && reading.unit !== definition.unit) {
+    context.addIssue({ code: "custom", path: ["unit"], message: `${definition.label}: unidade esperada ${definition.unit ?? "sem unidade"}` });
+  }
 });
 export type Telemetry = z.infer<typeof TelemetrySchema>;
 

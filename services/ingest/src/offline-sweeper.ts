@@ -1,5 +1,6 @@
 import { and, eq, lt, ne } from "drizzle-orm";
-import { alerts, db, devices, gateways } from "@predioon/db";
+import { alerts, db, devices, gateways, lockFeatures, readFeatures } from "@predioon/db";
+import { permitsDeviceAlert } from "./features.js";
 import { config } from "./config.js";
 import { notifyAlert } from "./notify/index.js";
 import { publishRealtime } from "./realtime.js";
@@ -42,25 +43,26 @@ export async function sweepOffline(): Promise<void> {
   }
 
   const staleDevices = await db
-    .update(devices)
-    .set({ status: "OFFLINE", updatedAt: new Date() })
+    .select()
+    .from(devices)
     .where(
       and(
-        ne(devices.status, "OFFLINE"),
         ne(devices.status, "DISABLED"),
         eq(devices.enabled, true),
         lt(devices.lastSeenAt, cutoff(config.DEVICE_OFFLINE_TIMEOUT_SECONDS)),
       ),
-    )
-    .returning({ id: devices.id, buildingId: devices.buildingId, name: devices.name });
+    );
 
   for (const device of staleDevices) {
+    if (device.status !== "OFFLINE") {
+    await db.update(devices).set({ status: "OFFLINE", updatedAt: new Date() }).where(and(eq(devices.id, device.id), lt(devices.lastSeenAt, cutoff(config.DEVICE_OFFLINE_TIMEOUT_SECONDS))));
     await publishRealtime({
       kind: "device-status",
       buildingId: device.buildingId,
       deviceId: device.id,
       status: "OFFLINE",
     });
+    }
     await raiseCommunicationAlert({
       buildingId: device.buildingId,
       deviceId: device.id,
@@ -76,8 +78,16 @@ export async function sweepOffline(): Promise<void> {
 /** Communication alerts have no rule behind them: they are produced by the platform itself. */
 type CommunicationAlert = { buildingId: string; message: string; deviceId?: string; gatewayId?: string };
 
-async function raiseCommunicationAlert(input: CommunicationAlert): Promise<void> {
-  const [created] = await db
+export async function raiseCommunicationAlert(input: CommunicationAlert): Promise<void> {
+  const created = await db.transaction(async tx => {
+    await lockFeatures(tx);
+    if (input.deviceId) {
+      const [device] = await tx.select().from(devices).where(and(eq(devices.id, input.deviceId), eq(devices.buildingId, input.buildingId))).limit(1).for("update");
+      if (!device?.enabled || (device.lastSeenAt && device.lastSeenAt >= cutoff(config.DEVICE_OFFLINE_TIMEOUT_SECONDS)) || !await permitsDeviceAlert(tx, await readFeatures(tx, input.buildingId), input.buildingId, device)) return null;
+      const [open] = await tx.select({ id: alerts.id }).from(alerts).where(and(eq(alerts.deviceId, input.deviceId), eq(alerts.type, "COMMUNICATION_LOST"), ne(alerts.status, "RESOLVED"))).limit(1);
+      if (open) return null;
+    }
+    const [row] = await tx
     .insert(alerts)
     .values({
       buildingId: input.buildingId,
@@ -89,6 +99,8 @@ async function raiseCommunicationAlert(input: CommunicationAlert): Promise<void>
       triggeredAt: new Date(),
     })
     .returning({ id: alerts.id });
+    return row;
+  });
 
   if (!created) return;
 

@@ -14,6 +14,8 @@ WORKDIR /app
 # mudar código-fonte não reinstala dependências.
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/shared/package.json packages/shared/
+COPY packages/contracts/package.json packages/contracts/
+COPY packages/api-client/package.json packages/api-client/
 COPY packages/db/package.json packages/db/
 COPY packages/ui/package.json packages/ui/
 COPY apps/api/package.json apps/api/

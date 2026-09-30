@@ -1,5 +1,12 @@
 import type { Server } from "node:http";
+import { after } from "node:test";
+import { closeIdentityDb } from "@predioon/db/identity";
+import { closeBrokerAuthDb } from "@predioon/db/broker-auth";
 import { app } from "../src/app.js";
+
+// Some files host multiple suites: close shared authentication pools only after
+// every suite has finished, never when an individual HTTP test server closes.
+after(async () => { await Promise.all([closeIdentityDb(), closeBrokerAuthDb()]); });
 
 export type TestServer = { url: string; close: () => Promise<void> };
 

@@ -2,7 +2,7 @@ import { randomBytes } from "node:crypto";
 import { Router } from "express";
 import { asc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
-import { gateways } from "@predioon/db";
+import { gateways } from "@predioon/db/runtime";
 import { assertBuildingAccess, currentAuth, inTenantContext, requireRole, scopedBuildingIds } from "../../auth/middleware.js";
 import { notFound } from "../../http/errors.js";
 import { generateId } from "../../http/ids.js";

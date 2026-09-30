@@ -1,8 +1,10 @@
 # Plano total da plataforma Prédio ON
 
+> Direção de produto atualizada em 27/09/2026: a [arquitetura de produto e escala](superpowers/specs/2026-09-27-arquitetura-produto-design.md) é a referência para a evolução. Ela define App Morador, App Operação (síndico/manutenção), web do síndico e web da plataforma, com backend central modular, RBAC por capacidade e workers por carga. Este arquivo registra a arquitetura e as etapas da implementação existente; não comprova a implementação da nova proposta.
+
 ## 1. Objetivo
 
-Centralizar monitoramento de infraestrutura predial, histórico de telemetria, alertas e análise de anomalias. Nesta versão não existe acionamento remoto de portões.
+Centralizar monitoramento de infraestrutura, histórico, consumo, alertas e rotina do imóvel. A análise histórica usa referência estatística aprendida de consumo e tempo de bomba. O módulo de acessos solicita abertura remota de portões autorizados e exige confirmação do controlador.
 
 ## 2. Perfis
 
@@ -26,12 +28,16 @@ Centralizar monitoramento de infraestrutura predial, histórico de telemetria, a
 ### Morador
 - visualizar apenas informações autorizadas do condomínio;
 - acompanhar avisos e alertas liberados;
-- sem comandos físicos sobre equipamentos.
+- solicitar abertura dos acessos liberados pela administração;
+- consultar consumo, vagas, avisos, reservas e chamados.
 
 ## 3. Arquitetura
 
-Estado atual: tudo abaixo está implementado e rodando localmente. O que falta para produção
-está em `docs/NEXT_STEPS.md`; o roteiro de publicação está em `docs/DEPLOY.md`.
+Estado atual: os serviços e painéis foram validados localmente com telemetria simulada.
+O firmware, a leitura dos sensores físicos e o comissionamento dependem da instalação.
+O que falta para produção está em [NEXT_STEPS.md](NEXT_STEPS.md); o roteiro de publicação
+está em [DEPLOY.md](DEPLOY.md). A cobertura da lista solicitada está em
+[REVISAO_FUNCIONALIDADES.md](REVISAO_FUNCIONALIDADES.md).
 
 ```text
 Sensores
@@ -72,14 +78,15 @@ React/Vite: Admin | Prédio | Morador
 
 ## 6. Regras de alerta
 
-Exemplos:
+O motor atual compara cada leitura com um limite fixo. Exemplos presentes no cadastro de demonstração:
 
 - nível da caixa < 20%;
 - tensão abaixo do limite;
-- temperatura acima do limite;
-- vazamento detectado;
-- fumaça detectada;
-- bomba ligada por tempo anormal.
+- temperatura acima do limite.
+
+O seed complementar inclui regras de vazamentos de água/esgoto, gás e relé da central de incêndio, além de limites nas três fases. Os contratos e cenários de simulação estão em [SENSORES.md](SENSORES.md). A integração física depende do equipamento e do comissionamento.
+
+O módulo de consumo calcula diferenças dos medidores acumulados, custo estimado por tarifa e tempo de bomba. Limites diários e contínuos e a referência histórica podem gerar alertas. Lacunas e resets ficam sem cálculo; a cobertura é exibida. Veja [CONSUMO_E_ANALISE.md](CONSUMO_E_ANALISE.md).
 
 ## 7. Segurança
 
@@ -92,9 +99,9 @@ Exemplos:
 - validação de payload;
 - nenhum acesso direto do navegador ao broker ou aos dispositivos de campo.
 
-## 8. IA futura
+## 8. Análise histórica e evolução preditiva
 
-A IA entra para detecção de anomalias e tendências, não para substituir regras determinísticas simples. Exemplos: queda de nível anormalmente rápida, consumo fora do padrão, bomba operando por tempo incomum ou combinação de sinais elétricos fora do comportamento histórico.
+O modelo atual aprende mediana e variação robusta com até 28 dias válidos e sinaliza aumentos de consumo ou duração de bomba. Sem histórico suficiente, informa aprendizado. Previsão de falhas, correlação de múltiplos sensores e diagnóstico de causa permanecem evoluções futuras.
 
 ## 9. Entidades principais
 
@@ -116,8 +123,10 @@ CRUD administrativo completo, auditoria, tempo real por SSE, detecção de offli
 chamados, avisos e reservas de áreas comuns.
 
 ### Fase 3 — escala ⏳ em aberto
-MQTTS com certificado por gateway, autorizador HTTP do EMQX, provisionamento automático,
+MQTTS com certificado individual por gateway, provisionamento ampliado,
 retenção/compressão no TimescaleDB e alta disponibilidade.
 
-### Fase 4 — inteligência ⏳ em aberto
-Detecção de anomalias e manutenção preditiva, depois de acumular histórico.
+A sequência revisada está na [arquitetura de produto](superpowers/specs/2026-09-27-arquitetura-produto-design.md): contratos, identidade/RBAC, processamento durável e separação de cargas, módulos de manutenção/automações/planos, aplicativos e operação verificada. O autorizador HTTP já existe na configuração atual; provisionamento ampliado, validação de certificados individuais, escalabilidade e alta disponibilidade precisam ser tratados conforme o estado real de cada instalação.
+
+### Fase 4 — análise histórica implementada e validada localmente
+Detecção estatística de desvios de consumo e bomba implementada. A validação integrada dos novos módulos, concluída em 23/09/2026, está descrita em [REVISAO_FUNCIONALIDADES.md](REVISAO_FUNCIONALIDADES.md). Instalação e comissionamento dos equipamentos físicos continuam necessários; manutenção preditiva permanece futura.

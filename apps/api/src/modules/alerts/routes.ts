@@ -1,13 +1,14 @@
 import { Router, type RequestHandler } from "express";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
-import { alerts } from "@predioon/db";
+import { alerts } from "@predioon/db/runtime";
 import { assertBuildingAccess, currentAuth, inTenantContext, requireRole, scopedBuildingIds } from "../../auth/middleware.js";
 import { notFound } from "../../http/errors.js";
 import { PaginationSchema } from "../../http/pagination.js";
 import { query, validateQuery } from "../../http/validate.js";
 import { recordAudit } from "../audit/repo.js";
 import { param } from "../../http/params.js";
+import { assertSensorFeatures, buildingFeatures, filterSensorRows } from "../../auth/features.js";
 
 export const alertsRouter = Router();
 
@@ -22,19 +23,21 @@ alertsRouter.get("/", validateQuery(ListQuerySchema), async (req, res) => {
   if (buildingId) assertBuildingAccess(auth, buildingId);
   const scope = scopedBuildingIds(auth);
 
-  const rows = await inTenantContext(req, (tx) => {
+  const rows = await inTenantContext(req, async (tx) => {
+    if (buildingId) await buildingFeatures(tx, buildingId);
     const filters = [
       buildingId ? eq(alerts.buildingId, buildingId) : undefined,
       scope && !buildingId ? inArray(alerts.buildingId, scope.length ? scope : [""]) : undefined,
       status ? eq(alerts.status, status) : undefined,
     ].filter(Boolean);
-    return tx
+    const candidates = await tx
       .select()
       .from(alerts)
       .where(filters.length ? and(...filters) : undefined)
       .orderBy(desc(alerts.createdAt))
       .limit(limit)
       .offset(offset);
+    return filterSensorRows(tx, candidates);
   });
 
   res.json({ items: rows, limit, offset });
@@ -52,6 +55,7 @@ function transitionHandler({ status, action }: Transition): RequestHandler {
       const [alert] = await tx.select().from(alerts).where(eq(alerts.id, param(req, "alertId"))).limit(1);
       if (!alert) throw notFound("Alerta não encontrado");
       assertBuildingAccess(auth, alert.buildingId, "BUILDING_ADMIN");
+      await assertSensorFeatures(tx, alert, true);
 
       const [updated] = await tx
         .update(alerts)

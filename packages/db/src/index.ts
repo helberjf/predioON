@@ -16,4 +16,5 @@ export const sqlClient = client;
 export type DbTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 export * from "./schema.js";
-export * from "./context.js";
+export type { AppTransaction, UserContext } from "./context.js";
+export * from "./features.js";

@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import { LoginScreen, useAuth } from "@predioon/ui";
+import { AccessPanel, FeatureProvider, FeatureContent, LoginScreen, MonitoringPanel, ParkingPanel, TransparencyPanel, useAuth } from "@predioon/ui";
 import { MobileShell } from "./layout/MobileShell.js";
 import { Home } from "./pages/Home.js";
 import { Notices } from "./pages/Notices.js";
@@ -22,15 +22,19 @@ export function App() {
   }
 
   return (
-    <MobileShell>
+    <FeatureProvider buildingId={buildingId}><MobileShell>
       <Routes>
-        <Route path="/" element={<Home buildingId={buildingId} />} />
-        <Route path="/avisos" element={<Notices buildingId={buildingId} />} />
-        <Route path="/chamados" element={<Occurrences buildingId={buildingId} />} />
-        <Route path="/reservas" element={<Reservations buildingId={buildingId} />} />
+        <Route path="/" element={<FeatureContent path="/"><Home buildingId={buildingId} /></FeatureContent>} />
+        <Route path="/avisos" element={<FeatureContent path="/avisos"><Notices buildingId={buildingId} /></FeatureContent>} />
+        <Route path="/acessos" element={<FeatureContent path="/acessos"><AccessPanel buildingId={buildingId} /></FeatureContent>} />
+        <Route path="/consumo" element={<FeatureContent path="/consumo"><MonitoringPanel buildingId={buildingId} /></FeatureContent>} />
+        <Route path="/vagas" element={<FeatureContent path="/vagas"><ParkingPanel buildingId={buildingId} /></FeatureContent>} />
+        <Route path="/chamados" element={<FeatureContent path="/chamados"><Occurrences buildingId={buildingId} /></FeatureContent>} />
+        <Route path="/transparencia" element={<FeatureContent path="/transparencia"><TransparencyPanel buildingId={buildingId} /></FeatureContent>} />
+        <Route path="/reservas" element={<FeatureContent path="/reservas"><Reservations buildingId={buildingId} /></FeatureContent>} />
         <Route path="/perfil" element={<Profile />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </MobileShell>
+    </MobileShell></FeatureProvider>
   );
 }

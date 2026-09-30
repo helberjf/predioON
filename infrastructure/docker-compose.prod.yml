@@ -69,10 +69,14 @@ services:
         condition: service_healthy
     environment:
       API_PORT: 3000
-      DATABASE_URL: postgres://predioon:${POSTGRES_PASSWORD}@db:5432/predioon
+      NODE_ENV: production
       DATABASE_URL_APP: postgres://predioon_app:${APP_DB_PASSWORD:?defina APP_DB_PASSWORD}@db:5432/predioon
-      JWT_SECRET: ${JWT_SECRET:?defina JWT_SECRET com 32+ caracteres}
-      JWT_ACCESS_TTL_MINUTES: 15
+      DATABASE_URL_IDENTITY: postgres://predioon_identity:${IDENTITY_DB_PASSWORD:?defina IDENTITY_DB_PASSWORD}@db:5432/predioon
+      DATABASE_URL_BROKER_AUTH: postgres://predioon_broker_auth:${BROKER_AUTH_DB_PASSWORD:?defina BROKER_AUTH_DB_PASSWORD}@db:5432/predioon
+      JWT_ACTIVE_KID: ${JWT_ACTIVE_KID:?defina JWT_ACTIVE_KID}
+      JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY:?defina JWT_PRIVATE_KEY}
+      JWT_PUBLIC_KEYS: ${JWT_PUBLIC_KEYS:?defina JWT_PUBLIC_KEYS}
+      JWT_ACCESS_TTL_MINUTES: 5
       JWT_REFRESH_TTL_DAYS: 30
       MQTT_AUTH_SECRET: ${MQTT_AUTH_SECRET}
       MQTT_INGEST_USERNAME: ${MQTT_INGEST_USERNAME:-predioon_ingest}

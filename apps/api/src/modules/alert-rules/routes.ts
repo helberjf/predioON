@@ -1,12 +1,13 @@
 import { Router } from "express";
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
-import { alertRules } from "@predioon/db";
+import { alertRules } from "@predioon/db/runtime";
 import { assertBuildingAccess, currentAuth, inTenantContext, requireRole, scopedBuildingIds } from "../../auth/middleware.js";
 import { notFound } from "../../http/errors.js";
 import { query, validateBody, validateQuery } from "../../http/validate.js";
 import { recordAudit } from "../audit/repo.js";
 import { param } from "../../http/params.js";
+import { assertSensorFeatures, buildingFeatures, filterSensorRows } from "../../auth/features.js";
 
 export const alertRulesRouter = Router();
 
@@ -35,12 +36,13 @@ alertRulesRouter.get("/", validateQuery(ListQuerySchema), async (req, res) => {
   if (buildingId) assertBuildingAccess(auth, buildingId, "BUILDING_ADMIN");
   const scope = scopedBuildingIds(auth);
 
-  const rows = await inTenantContext(req, (tx) => {
+  const rows = await inTenantContext(req, async (tx) => {
+    if (buildingId) await buildingFeatures(tx, buildingId, true);
     const filters = [
       buildingId ? eq(alertRules.buildingId, buildingId) : undefined,
       scope && !buildingId ? inArray(alertRules.buildingId, scope.length ? scope : [""]) : undefined,
     ].filter(Boolean);
-    return tx.select().from(alertRules).where(filters.length ? and(...filters) : undefined).orderBy(asc(alertRules.name));
+    return filterSensorRows(tx, await tx.select().from(alertRules).where(filters.length ? and(...filters) : undefined).orderBy(asc(alertRules.name)), true);
   });
 
   res.json({ items: rows });
@@ -52,6 +54,7 @@ alertRulesRouter.post("/", validateBody(CreateSchema), async (req, res) => {
   assertBuildingAccess(auth, input.buildingId, "BUILDING_ADMIN");
 
   const row = await inTenantContext(req, async (tx) => {
+    await assertSensorFeatures(tx, input, true);
     const [created] = await tx.insert(alertRules).values({ ...input, createdBy: auth.userId }).returning();
     await recordAudit(tx, req, {
       buildingId: input.buildingId,
@@ -75,6 +78,8 @@ alertRulesRouter.patch("/:ruleId", validateBody(UpdateSchema), async (req, res) 
     const [current] = await tx.select().from(alertRules).where(eq(alertRules.id, param(req, "ruleId"))).limit(1);
     if (!current) throw notFound("Regra não encontrada");
     assertBuildingAccess(auth, current.buildingId, "BUILDING_ADMIN");
+    await assertSensorFeatures(tx, current, true);
+    await assertSensorFeatures(tx, { ...current, ...input }, true);
 
     const [updated] = await tx
       .update(alertRules)
@@ -102,6 +107,7 @@ alertRulesRouter.delete("/:ruleId", async (req, res) => {
     const [current] = await tx.select().from(alertRules).where(eq(alertRules.id, param(req, "ruleId"))).limit(1);
     if (!current) throw notFound("Regra não encontrada");
     assertBuildingAccess(auth, current.buildingId, "BUILDING_ADMIN");
+    await assertSensorFeatures(tx, current, true);
 
     await tx.delete(alertRules).where(eq(alertRules.id, current.id));
     await recordAudit(tx, req, {

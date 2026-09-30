@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
-import { closeAppDb, sqlClient, withUserContext } from "@predioon/db";
+import { sqlClient } from "@predioon/db";
+import { closeAppDb, withUserContext } from "@predioon/db/runtime";
 import { sql } from "drizzle-orm";
 import { call, json, login, startTestServer, unique, type Session, type TestServer } from "./helpers.js";
 
@@ -17,16 +18,24 @@ describe("segurança da plataforma", () => {
   let testOrganizationId: string | undefined;
   const testReservationIds: string[] = [];
   let testAreaId: string | undefined;
+  const visibleDeviceId = unique("security-visible");
 
   before(async () => {
     server = await startTestServer();
     admin = await login(server.url, "admin@predioon.local");
     sindico = await login(server.url, "sindico@predioon.local");
     morador = await login(server.url, "morador@predioon.local");
+    // Own the positive RLS fixture: a fresh seed has no sensor readings.
+    await sqlClient`insert into devices (id, building_id, name, type)
+      values (${visibleDeviceId}, 'bld_001', 'Sensor de teste RLS', 'WATER_LEVEL_SENSOR')`;
+    await sqlClient`insert into telemetry (event_id, building_id, device_id, metric, value, numeric_value, time)
+      values (${unique("visible-rls")}, 'bld_001', ${visibleDeviceId}, 'water_level_percent', '50'::jsonb, 50, now())`;
   });
 
   after(async () => {
     await server.close();
+    await sqlClient`delete from telemetry where device_id = ${visibleDeviceId}`;
+    await sqlClient`delete from devices where id = ${visibleDeviceId}`;
     for (const id of testReservationIds) await sqlClient`delete from reservations where id = ${id}`;
     if (testAreaId) await sqlClient`delete from common_areas where id = ${testAreaId}`;
     if (testOrganizationId) {
@@ -110,7 +119,9 @@ describe("segurança da plataforma", () => {
       assert.ok(!visible.some(row => row.building_id === otherBuildingId));
       const adminVisible = await withUserContext({ userId: "platform_admin", role: "PLATFORM_ADMIN" },
         tx => tx.execute(sql`select building_id from telemetry where building_id = ${otherBuildingId}`));
-      assert.equal(adminVisible.length, 1, "a amostra de outro prédio existe e é visível só ao administrador global");
+      assert.equal(adminVisible.length, 0, "administração global não concede leitura técnica privada");
+      const ownerVisible = await sqlClient`select building_id from telemetry where building_id = ${otherBuildingId}`;
+      assert.equal(ownerVisible.length, 1, "a amostra privada existe, verificada pelo dono da fixture");
     });
 
     it("não lista prédios de terceiros para o síndico", async () => {

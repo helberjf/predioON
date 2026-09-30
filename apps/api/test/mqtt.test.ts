@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { before, after, describe, it } from "node:test";
 import { eq } from "drizzle-orm";
-import { db, sqlClient, closeAppDb, devices, gateways } from "@predioon/db";
+import { db, sqlClient, devices, gateways } from "@predioon/db";
+import { closeAppDb } from "@predioon/db/runtime";
 import { hashPassword } from "../src/auth/passwords.js";
 
 process.env.MQTT_AUTH_SECRET = "test-broker-secret-with-at-least-32-chars";

@@ -2,7 +2,7 @@
 
 ## Versão local de 21/09/2026
 
-A plataforma conserva os três acessos: administrador, síndico e morador. Os painéis oferecem cadastros, monitoramento, histórico, regras, alertas, avisos, ocorrências e reservas. Não existe abertura remota de portões.
+A plataforma conserva os três acessos: administrador, síndico e morador. Além de cadastros, monitoramento, histórico, regras, alertas, avisos, ocorrências e reservas, a atualização de 22/09 inclui consumo, análise histórica, sensores adicionais, vagas, agenda e solicitações de abertura de portões. Consulte o [estado da validação](REVISAO_FUNCIONALIDADES.md) e o [contrato de acessos](ACESSOS.md). Os resultados registrados abaixo pertencem à entrega original de 21/09 e não validam automaticamente os novos módulos.
 
 Fluxo implementado:
 
@@ -49,7 +49,7 @@ A regra de nível abaixo de 20% cria um alerta para uma leitura de 18%. Limites 
 4. Publicar QoS 1 nos tópicos informados. Publicar status retido e registrar o status OFFLINE como Last Will.
 5. Testar perda de conexão, retransmissão, leitura de 18% e retorno de leitura normal. Alertas abertos devem ser tratados no painel.
 
-O broker de produção valida autenticação e autorização pela API interna. Cada gateway só publica nos sensores vinculados a ele e no próprio tópico de status; não pode assinar tópicos ou enviar comandos. O serviço de ingestão só assina os filtros autorizados. Desativar o gateway bloqueia novas autenticações e publicações; rotação de senha exige desconectar a sessão antiga no broker quando for necessária revogação imediata.
+O broker de produção valida autenticação e autorização pela API interna. Cada gateway publica nos sensores vinculados a ele e no próprio tópico de status. Na extensão de acessos, pode assinar somente o tópico exato de comando de seus portões habilitados e publicar os respectivos ACKs. A ingestão assina os filtros autorizados e publica comandos de acessos habilitados. Veja [ACESSOS.md](ACESSOS.md). Desativar o gateway bloqueia novas autenticações e publicações; rotação de senha exige desconectar a sessão antiga no broker quando for necessária revogação imediata.
 
 ## Execução local
 

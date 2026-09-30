@@ -1,6 +1,5 @@
 import { Router } from "express";
-import { sql } from "drizzle-orm";
-import { db } from "@predioon/db";
+import { assertApiDatabaseRoles } from "../database.js";
 
 export const healthRouter = Router();
 
@@ -11,9 +10,9 @@ healthRouter.get("/", (_req, res) => {
 /** Readiness: only healthy when the database actually answers. */
 healthRouter.get("/ready", async (_req, res) => {
   try {
-    await db.execute(sql`select 1`);
+    await assertApiDatabaseRoles();
     res.json({ ok: true, database: "up" });
-  } catch (error) {
-    res.status(503).json({ ok: false, database: "down", error: String(error) });
+  } catch {
+    res.status(503).json({ ok: false, database: "down" });
   }
 });

@@ -219,11 +219,34 @@ importers:
         specifier: ^7.0.0
         version: 7.3.6(@types/node@22.20.4)(jiti@1.21.7)(tsx@4.23.13)
 
+  packages/api-client:
+    dependencies:
+      '@predioon/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+    devDependencies:
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
+
+  packages/contracts:
+    dependencies:
+      '@predioon/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
+
   packages/db:
     dependencies:
       '@node-rs/argon2':
         specifier: ^2.0.2
         version: 2.2.1
+      '@predioon/shared':
+        specifier: workspace:*
+        version: link:../shared
       dotenv:
         specifier: ^16.4.0
         version: 16.6.1
@@ -259,6 +282,12 @@ importers:
 
   packages/ui:
     dependencies:
+      '@predioon/api-client':
+        specifier: workspace:*
+        version: link:../api-client
+      '@predioon/contracts':
+        specifier: workspace:*
+        version: link:../contracts
       '@predioon/shared':
         specifier: workspace:*
         version: link:../shared

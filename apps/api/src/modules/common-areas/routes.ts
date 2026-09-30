@@ -1,7 +1,8 @@
+import { assertFeature } from "../../auth/features.js";
 import { Router } from "express";
 import { and, asc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { commonAreas } from "@predioon/db";
+import { commonAreas } from "@predioon/db/runtime";
 import { assertBuildingAccess, currentAuth, inTenantContext } from "../../auth/middleware.js";
 import { notFound } from "../../http/errors.js";
 import { param } from "../../http/params.js";
@@ -31,13 +32,14 @@ commonAreasRouter.get("/", validateQuery(ListQuerySchema), async (req, res) => {
   const { buildingId } = query<z.infer<typeof ListQuerySchema>>(req);
   assertBuildingAccess(currentAuth(req), buildingId);
 
-  const rows = await inTenantContext(req, (tx) =>
-    tx
+  const rows = await inTenantContext(req, async (tx) => {
+    await assertFeature(tx, buildingId, "RESERVATIONS");
+    return tx
       .select()
       .from(commonAreas)
       .where(and(eq(commonAreas.buildingId, buildingId), eq(commonAreas.active, true)))
-      .orderBy(asc(commonAreas.name)),
-  );
+      .orderBy(asc(commonAreas.name));
+  });
 
   res.json({ items: rows });
 });
@@ -48,6 +50,7 @@ commonAreasRouter.post("/", validateBody(CreateSchema), async (req, res) => {
   assertBuildingAccess(auth, input.buildingId, "BUILDING_ADMIN");
 
   const row = await inTenantContext(req, async (tx) => {
+    await assertFeature(tx, input.buildingId, "RESERVATIONS", true);
     const [created] = await tx.insert(commonAreas).values(input).returning();
     await recordAudit(tx, req, {
       buildingId: input.buildingId,
@@ -70,6 +73,7 @@ commonAreasRouter.patch("/:areaId", validateBody(UpdateSchema), async (req, res)
     const [current] = await tx.select().from(commonAreas).where(eq(commonAreas.id, param(req, "areaId"))).limit(1);
     if (!current) throw notFound("Área não encontrada");
     assertBuildingAccess(auth, current.buildingId, "BUILDING_ADMIN");
+    await assertFeature(tx, current.buildingId, "RESERVATIONS", true);
 
     const [updated] = await tx
       .update(commonAreas)

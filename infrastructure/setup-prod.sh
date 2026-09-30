@@ -40,11 +40,23 @@ echo "→ criando as tabelas"
 echo "→ aplicando TimescaleDB, RLS e a role da aplicação"
 for script in infrastructure/0*.sql; do
   echo "   $script"
+  psql_transaction=()
+  migration_number="${script##*/}"
+  migration_number="${migration_number%%-*}"
+  if (( 10#${migration_number} >= 15 )); then
+    psql_transaction=(--single-transaction)
+  fi
   "${COMPOSE[@]}" exec -T db psql -U predioon -d predioon \
     -v ON_ERROR_STOP=1 \
     -v app_password="${APP_DB_PASSWORD}" \
+    "${psql_transaction[@]}" \
     -f - < "$script"
 done
+
+echo "→ provisionando credenciais restritas da API"
+"${COMPOSE[@]}" run --rm \
+  -e DATABASE_URL="postgres://predioon:${POSTGRES_PASSWORD}@db:5432/predioon" \
+  api pnpm --filter @predioon/db db:provision-runtime
 
 if [ "${1:-}" = "--seed" ]; then
   echo "→ semeando dados de demonstração"
