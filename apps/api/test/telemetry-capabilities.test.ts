@@ -293,7 +293,17 @@ describe("telemetry capabilities and published water", () => {
     await assert.rejects(as(f.direct,tx=>tx.execute(sql`insert into telemetry(time,event_id,building_id,device_id,metric,value) values(now(),${randomUUID()},${f.a},${f.d1},'water_level_percent','99')`)));
   }));
   it("evaluates authorized device scope once per query across about a thousand samples", async () => fixture(async f => {
-    await sqlClient`insert into telemetry(time,event_id,building_id,device_id,metric,value,numeric_value) select now()-n*interval '1 second',gen_random_uuid()::text,${f.a},${f.d1},'temperature_c','20'::jsonb,20 from generate_series(1,1000) n`;
+    // Anchor to this fixture's baseline samples and derive the preceding
+    // interval from database metadata. Ordinary inserts also work when a fresh
+    // database has not yet created that preceding chunk.
+    const [anchor] = await sqlClient`with sample as (select max(time) as time from telemetry where building_id=${f.a} and device_id=${f.d1})
+      select c.range_start,c.range_end from timescaledb_information.chunks c cross join sample
+      where c.hypertable_schema='public' and c.hypertable_name='telemetry' and sample.time>=c.range_start and sample.time<c.range_end`;
+    assert.ok(anchor,'the fixture baseline belongs to an existing telemetry chunk');
+    for(const offset of [0,1]) await sqlClient`insert into telemetry(time,event_id,building_id,device_id,metric,value,numeric_value)
+      select ${anchor.range_start}::timestamptz+(${anchor.range_end}::timestamptz-${anchor.range_start}::timestamptz)*(0.25+n::double precision/10000-${offset}::double precision),gen_random_uuid()::text,${f.a},${f.d1},'temperature_c','20'::jsonb,20 from generate_series(1,500) n`;
+    const [partitions] = await sqlClient`select count(distinct tableoid)::int as count from telemetry where building_id=${f.a} and device_id=${f.d1}`;
+    assert.equal(partitions.count,2);
     const result = await as(f.scoped,tx=>tx.execute(sql`explain (analyze,format json) select device_id from telemetry`));
     const plan = (result[0]['QUERY PLAN'] as any)[0].Plan;
     const helpers: any[] = [];
