@@ -18,13 +18,13 @@
 
 ## Decisões
 
-Criar `platform:read-health` no catálogo e no conjunto global de PLATFORM_ADMIN. Esta capacidade permite contadores e distribuição agregada de status dos condomínios ativos; não entra nas capacidades locais nem no conjunto de suporte temporário. `buildings:read` global continua responsável pelos nomes/códigos do diretório: sem ela, o resumo pode retornar totais agregados, mas não a lista identificada de condomínios. A compatibilidade da flag administrativa segue limitada às capacidades globais enquanto sua migração final estiver pendente.
+Criar `platform:read-health` no catálogo e no conjunto global de PLATFORM_ADMIN. Esta capacidade permite contadores e distribuição agregada de status dos condomínios ativos; não entra nas capacidades locais nem no conjunto de suporte temporário. `buildings:read` global continua responsável pelos nomes/códigos do diretório: sem ela, o resumo pode retornar totais agregados, mas não a lista identificada de condomínios. Explicitar a indisponibilidade do diretório no DTO e no painel; não exibir ausência de condomínios ou convite para cadastrar como consequência de perder a leitura. A compatibilidade da flag administrativa segue limitada às capacidades globais enquanto sua migração final estiver pendente.
 
 O resumo da plataforma não devolve IDs de dispositivos/gateways/alertas, mensagens, valores de sensores, configuração, metadata ou credenciais. A interface deve usar sua distribuição agregada para os quadros por categoria e condomínio. Conteúdo privado detalhado continua exigindo concessão local; retirar a leitura técnica local não pode transformar alertas existentes em zero no resumo global.
 
 No resumo local, cada domínio informa cobertura `whole`, `partial` ou `none`. Contadores sem leitura têm valor null; zero significa um conjunto autorizado realmente vazio. Uma concessão de dispositivo não revela contadores de gateways nem de outro dispositivo. A cobertura parcial nunca representa a situação completa do condomínio. Dados antigos ou inexistentes, pausa e falha de consulta não autorizam a mensagem “Tudo em dia”.
 
-Ocorrências ainda não migradas não serão lidas por um novo bypass compartilhado. Neste recorte, seu contador fica indisponível e o painel mantém acesso ao módulo existente. A migração de comunicação/atendimento restaurará o contador pela autorização própria. Contadores de equipamento representam o inventário/status persistido, preservando a independência de pausa de 020; não equivalem a uma leitura recente do sensor.
+Ocorrências ainda não migradas não serão lidas por um novo bypass compartilhado. Neste recorte, seu contador fica indisponível e o painel mantém acesso ao módulo existente. Depois de migrar comunicação/atendimento, um recorte de integração restaurará o contador pela autorização própria, distinguindo chamados próprios de cobertura administrativa completa. Contadores de equipamento representam o inventário/status persistido, preservando a independência de pausa de 020; não equivalem a uma leitura recente do sensor.
 
 ## Tarefa 1 — RED e contratos
 
@@ -57,7 +57,7 @@ Exemplos de asserções de comportamento, sem substituir as fixtures reais:
 assert.equal(local.counts.gateways, null); // concessão somente no dispositivo
 assert.equal(local.coverage.devices, "partial");
 assert.equal(global.counts.open_alerts, "2"); // sem concessão local: agregado permitido
-assert.equal((await privateAlerts(platformActor)).status, 403);
+assert.equal((await privateAlerts(platformActor, buildingA)).status, 403); // consulta com tenant explícito
 ```
 
 Registrar RED com `pnpm --filter @predioon/api exec node --import tsx --test --test-concurrency=1 test/overview-capabilities.test.ts` e com `pnpm --filter @predioon/ui test` antes da implementação. Valores agregados seguem a serialização pública definida no DTO; não afrouxar a comparação para esconder diferenças de tipo.
