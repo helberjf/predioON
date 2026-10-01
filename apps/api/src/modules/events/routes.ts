@@ -1,13 +1,14 @@
 import { Router } from "express";
 import { decodeJwt } from "jose";
-import { buildingRole, currentAuth, inTenantContext } from "../../auth/middleware.js";
-import { buildingFeatures, sensorFeatureKeys } from "../../auth/features.js";
+import { inTenantContext } from "../../auth/middleware.js";
 import { verifyAccessToken } from "../../auth/tokens.js";
 import { resolveIdentity } from "../../auth/service.js";
 import { unauthorized } from "../../http/errors.js";
 import { subscribe } from "./bus.js";
 import { projectTelemetryEvent } from "./telemetry.js";
 import { projectAlertEvent } from "./alerts.js";
+import { projectDeviceStatusEvent, projectGatewayStatusEvent } from "./equipment.js";
+import { projectFeatureEvent } from "./features.js";
 
 export const eventsRouter = Router();
 
@@ -35,7 +36,6 @@ eventsRouter.get("/stream", async (req, res) => {
 
   let closed = false, queued = 0, delivery: Promise<void> = Promise.resolve();
   const unsubscribe = subscribe((event) => {
-    const globalChange = event.kind === "features-changed" && event.buildingId === "*";
     if (closed) return;
     // Serialize authorization and delivery per subscriber. A slow client reconnects instead of retaining an unbounded queue.
     if (++queued > 100) { res.end(); return; }
@@ -56,18 +56,26 @@ eventsRouter.get("/stream", async (req, res) => {
         });
         return;
       }
-      const auth = currentAuth(req);
-      if (!globalChange && !buildingRole(auth, event.buildingId)) return;
-      await inTenantContext(req, async tx => {
-        if (!globalChange) {
-          const features = await buildingFeatures(tx, event.buildingId);
-          if (event.kind === "device-status") {
-            const keys = await sensorFeatureKeys(tx, event);
-            if (keys.length && !keys.some(key => features[key].enabled)) return;
-          }
-        }
-        if (!closed && !res.writableEnded) res.write(`event: ${event.kind}\ndata: ${JSON.stringify(event)}\n\n`);
-      });
+      if (event.kind === "device-status") {
+        await inTenantContext(req, async tx => {
+          const projected = await projectDeviceStatusEvent(tx, event);
+          if (projected && !closed && !res.writableEnded) res.write(`event: device-status\ndata: ${JSON.stringify(projected)}\n\n`);
+        });
+        return;
+      }
+      if (event.kind === "gateway-status") {
+        await inTenantContext(req, async tx => {
+          const projected = await projectGatewayStatusEvent(tx, event);
+          if (projected && !closed && !res.writableEnded) res.write(`event: gateway-status\ndata: ${JSON.stringify(projected)}\n\n`);
+        });
+        return;
+      }
+      if (event.kind === "features-changed") {
+        await inTenantContext(req, async tx => {
+          const projected = await projectFeatureEvent(tx, event);
+          if (projected && !closed && !res.writableEnded) res.write(`event: features-changed\ndata: ${JSON.stringify(projected)}\n\n`);
+        });
+      }
     }).catch(() => { res.end(); }).finally(() => { queued--; });
   });
 

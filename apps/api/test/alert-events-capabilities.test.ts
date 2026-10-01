@@ -229,14 +229,16 @@ describe("live alert SSE capabilities", () => {
       });
     } finally { await sqlClient`update permissions set active=${permission.active} where key='buildings:read'`; }
   }));
-  it("keeps other event kinds on their existing legacy delivery path", async () => fixture(async f => {
+  it("delivers equipment status and feature changes using current capabilities", async () => fixture(async f => {
     const events = [
       {kind:'device-status',buildingId:f.a,deviceId:f.d1,status:'ONLINE'},
       {kind:'gateway-status',buildingId:f.a,gatewayId:f.gateway,status:'ONLINE'},
       {kind:'features-changed',buildingId:f.a},
     ];
-    await stream(f,f.admin,async s => assert.deepEqual(await s.batch(events),events));
-    await stream(f,f.direct,async s => assert.deepEqual(await s.batch(events),[]));
+    const [device] = await sqlClient`select status from devices where id=${f.d1}`;
+    const [gateway] = await sqlClient`select status from gateways where id=${f.gateway}`;
+    const expected = [{...events[0],status:device.status},{...events[1],status:gateway.status},events[2]];
+    for (const user of [f.admin,f.direct]) await stream(f,user,async s => assert.deepEqual(await s.batch(events),expected));
   }));
   it("ends the same stream when its session is revoked", async () => fixture(async f => stream(f,f.direct,async s => {
     await sqlClient`update sessions set revoked_at=now() where id=${decodeJwt(f.tokens.get(f.direct)!).sid as string}`;
