@@ -68,6 +68,9 @@ importers:
       '@node-rs/argon2':
         specifier: ^2.0.2
         version: 2.2.1
+      '@predioon/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@predioon/db':
         specifier: workspace:*
         version: link:../../packages/db

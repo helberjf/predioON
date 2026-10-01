@@ -45,6 +45,9 @@ describe("RBAC explícito por capacidade, condomínio e recurso", () => {
     }
   });
   it("mantém um catálogo finito e explicitamente associado aos papéis", () => {
+    assert.ok(CAPABILITIES.includes("platform:read-health"));
+    for (const role of ["PLATFORM_SUPPORT", "BUILDING_ADMIN", "MAINTENANCE_MANAGER", "MAINTENANCE", "RESIDENT"] as const) assert.equal(roleGrants(role, "platform:read-health"), false);
+    assert.equal(roleGrants("PLATFORM_ADMIN", "platform:read-health"), true);
     assert.ok(CAPABILITIES.includes("commands:request"));
     assert.ok(ROLE_CAPABILITIES.MAINTENANCE.includes("telemetry:read"));
     assert.ok(!ROLE_CAPABILITIES.MAINTENANCE.includes("finance:read"));

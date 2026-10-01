@@ -20,7 +20,7 @@ Preservar `counts.open_occurrences`, nullable. Acrescentar cobertura de occurren
 - [ ] Registrar RED com `pnpm --filter @predioon/api exec node --import tsx --test --test-concurrency=1 test/overview-occurrences.test.ts` e `pnpm --filter @predioon/ui test` antes da implementação. Exemplos:
 
 ```ts
-assert.equal(resident.counts.open_occurrences, '1');
+assert.equal(resident.counts.open_occurrences, 1);
 assert.equal(resident.occurrenceVisibility, 'own');
 assert.equal(resident.coverage.occurrences, 'partial');
 assert.equal(support.counts.open_occurrences, null);

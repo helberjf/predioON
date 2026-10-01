@@ -6,3 +6,4 @@ export type {
   MeResponse, RefreshRequest, Session, SessionMembership, SessionTokens,
 } from "./auth.js";
 export type * from "./tenancy.js";
+export type * from "./overview.js";

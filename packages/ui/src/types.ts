@@ -43,20 +43,7 @@ export type SeriesPoint = {
   samples: string;
 };
 
-export type BuildingOverview = {
-  buildingId: string;
-  counts: Record<string, string | number>;
-  latestAlerts: Array<{
-    id: string;
-    device_id: string | null;
-    severity: string;
-    type: string;
-    status: string;
-    message: string;
-    triggered_at: string;
-  }>;
-  gateways: Gateway[];
-};
+export type { BuildingOverview, PlatformOverview } from "@predioon/contracts";
 
 export type AlertRule = {
   id: string;
