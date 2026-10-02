@@ -60,6 +60,7 @@ export type AlertRule = {
 
 export type Occurrence = {
   id: string;
+  buildingId: string;
   groupId: string | null;
   updatedAt: string;
   protocol: string;

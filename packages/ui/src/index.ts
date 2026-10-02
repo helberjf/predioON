@@ -5,6 +5,8 @@ export * from "./sse.js";
 export * from "./format.js";
 export * from "./types.js";
 export * from "./use-resource.js";
+export * from "./use-current-authorization.js";
+export * from "./resource-permissions.js";
 export * from "./telemetry.js";
 export * from "./support-state.js";
 export * from "./overview-state.js";
