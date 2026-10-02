@@ -1,8 +1,8 @@
-name: Platform verification
+name: Browser workflows
 
 on:
   push:
-    branches: [main, codex/product-platform]
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
@@ -10,13 +10,13 @@ permissions:
   contents: read
 
 concurrency:
-  group: platform-${{ github.ref }}
+  group: browser-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  platform:
+  browser:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 20
     services:
       postgres:
         image: timescale/timescaledb:2.17.2-pg16
@@ -34,9 +34,6 @@ jobs:
       DATABASE_URL_APP: postgres://predioon_app:predioon_app@localhost:5436/predioon
       DATABASE_URL_IDENTITY: postgres://predioon_identity:predioon_identity@localhost:5436/predioon
       DATABASE_URL_BROKER_AUTH: postgres://predioon_broker_auth:predioon_broker_auth@localhost:5436/predioon
-      TEST_MIGRATIONS_DATABASE_URL: postgres://predioon:predioon@localhost:5436/predioon
-      RUN_ACCESS_DB_TESTS: '1'
-      RUN_RBAC_DB_TESTS: '1'
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -45,30 +42,31 @@ jobs:
           node-version: '24'
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Check types and package boundaries
-        run: |
-          pnpm typecheck
-          pnpm check:boundaries
-      - name: Bootstrap isolated disposable database
+      - name: Prepare disposable database for real browser workflows
         env:
           PG_CONTAINER: ${{ job.services.postgres.id }}
         run: |
           pnpm db:bootstrap
-          pnpm db:bootstrap
           for script in infrastructure/[0-9]*.sql; do
-            echo "Applying $script"
-            docker exec -i "$PG_CONTAINER" psql -U predioon -d predioon -v ON_ERROR_STOP=1 -f - < "$script"
+            transaction=()
+            number="${script##*/}"
+            if (( 10#${number%%-*} >= 15 )); then transaction=(--single-transaction); fi
+            docker exec -i "$PG_CONTAINER" psql -U predioon -d predioon -v ON_ERROR_STOP=1 "${transaction[@]}" -f - < "$script"
           done
           pnpm db:provision-runtime
           pnpm db:seed
-          pnpm db:bootstrap
-      - name: Database migration and privilege tests
-        run: pnpm --filter @predioon/db exec node --import tsx --test --test-concurrency=1 test/*.test.ts
-      - name: Full platform regression
-        run: pnpm test
-      - name: Build services and websites
-        run: pnpm build
-      - name: Validate production container builds
-        run: |
-          docker build -f infrastructure/Dockerfile.node --build-arg SERVICE=api -t predioon-api:test .
-          docker build -f infrastructure/Dockerfile.web --build-arg VITE_API_URL=https://api.example.invalid -t predioon-web:test .
+      - name: Install browser and operating system dependencies
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Exercise all three portals against the real API
+        run: pnpm test:e2e
+      - name: Preserve report and failure evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-evidence
+          path: |
+            .local/playwright-results/
+            .local/playwright-report/
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 3
