@@ -16,5 +16,5 @@ function BuildingOperations({ buildingId }: { buildingId: string }) {
   const options = [{ value: "consumo", label: "Consumo, bomba e análise" }, { value: "acessos", label: "Portões e acessos" }, { value: "vagas", label: "Vagas de carros e motos" }].filter(option => flags.routeAllowed(`/${option.value}`));
   const [selected, setSelected] = useState("");
   const view = options.some(option => option.value === selected) ? selected : options[0]?.value;
-  return <><Card><Field label="Módulo"><Select value={view ?? ""} onChange={setSelected} options={options} /></Field></Card><div key={view}>{view === "consumo" ? <MonitoringPanel buildingId={buildingId} canManage /> : view === "acessos" ? <AccessPanel buildingId={buildingId} canManage /> : view === "vagas" ? <ParkingPanel buildingId={buildingId} /> : null}</div></>;
+  return <><Card><Field label="Módulo"><Select value={view ?? ""} onChange={setSelected} options={options} /></Field></Card><div key={view}>{view === "consumo" ? <MonitoringPanel buildingId={buildingId} canManage /> : view === "acessos" ? <AccessPanel buildingId={buildingId} /> : view === "vagas" ? <ParkingPanel buildingId={buildingId} /> : null}</div></>;
 }

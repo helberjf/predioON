@@ -6,6 +6,8 @@ type Options = {
   onUserChange(user: AuthUser | null): void;
   onLoadingChange(loading: boolean): void;
   onErrorChange(error: string | null): void;
+  /** Invalidate memory owned by an identity before asynchronous work can finish. */
+  onSessionReset?(): void;
 };
 
 /** Keep React identity updates in the same order as explicit authentication actions. */
@@ -14,6 +16,7 @@ export function createAuthActions(options: Options) {
 
   function clearIdentity() {
     generation++;
+    options.onSessionReset?.();
     options.onUserChange(null);
     options.onLoadingChange(false);
   }
@@ -33,6 +36,7 @@ export function createAuthActions(options: Options) {
   return {
     async restore(): Promise<void> {
       const expected = ++generation;
+      options.onSessionReset?.();
       options.onLoadingChange(true);
       options.onErrorChange(null);
       try {
@@ -70,6 +74,6 @@ export function createAuthActions(options: Options) {
     },
 
     authLost: clearIdentity,
-    cancel(): void { generation++; },
+    cancel(): void { generation++; options.onSessionReset?.(); },
   };
 }

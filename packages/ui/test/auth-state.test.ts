@@ -21,14 +21,28 @@ function harness() {
   let loading = true;
   let clears = 0;
   let error: string | null = null;
+  let sessionResets = 0;
   const actions = createAuthActions({
     api: { restore: async () => restore.promise, login: async () => login.promise, logout: async () => logout.promise, clearMemory: () => { clears++; } },
     onUserChange: next => { currentUser = next; },
     onLoadingChange: next => { loading = next; },
     onErrorChange: next => { error = next; },
+    onSessionReset: () => { sessionResets++; },
   });
-  return { actions, restore, login, logout, state: () => ({ user: currentUser, loading, clears }), error: () => error };
+  return { actions, restore, login, logout, state: () => ({ user: currentUser, loading, clears }), error: () => error, sessionResets: () => sessionResets };
 }
+
+it("invalidates session-owned physical intents before login, restore, logout, auth loss or provider cancellation can finish", async () => {
+  const context = harness();
+  const restoring = context.actions.restore(); assert.equal(context.sessionResets(),1);
+  const signingIn = context.actions.signIn("new@example.com","secret"); assert.equal(context.sessionResets(),2);
+  context.actions.authLost(); assert.equal(context.sessionResets(),3);
+  context.actions.cancel(); assert.equal(context.sessionResets(),4);
+  const signingOut = context.actions.signOut(); assert.equal(context.sessionResets(),5);
+  context.login.resolve(session("new")); context.restore.resolve(session("old")); context.logout.resolve();
+  await Promise.all([restoring,signingIn,signingOut]);
+  assert.equal(context.state().user,null); assert.equal(context.sessionResets(),5);
+});
 
 it("does not let a failed bootstrap clear a newer login", async () => {
   const context = harness();

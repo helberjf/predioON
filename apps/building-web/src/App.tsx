@@ -41,7 +41,7 @@ function BuildingApp() {
         <Route path="/energia" element={<FeatureContent path="/energia"><Energy buildingId={buildingId} /></FeatureContent>} />
         <Route path="/consumo" element={<FeatureContent path="/consumo"><MonitoringPanel buildingId={buildingId} canManage={can("devices:configure")} /></FeatureContent>} />
         <Route path="/sensores" element={<FeatureContent path="/sensores"><Safety buildingId={buildingId} /></FeatureContent>} />
-        <Route path="/acessos" element={<FeatureContent path="/acessos"><AccessPanel buildingId={buildingId} canManage={can("buildings:manage")} /></FeatureContent>} />
+        <Route path="/acessos" element={<FeatureContent path="/acessos"><AccessPanel buildingId={buildingId} /></FeatureContent>} />
         <Route path="/vagas" element={<FeatureContent path="/vagas"><ParkingPanel buildingId={buildingId} /></FeatureContent>} />
         <Route path="/dispositivos" element={<Devices buildingId={buildingId} />} />
         <Route path="/alertas" element={<FeatureContent><Alerts buildingId={buildingId} /></FeatureContent>} />
