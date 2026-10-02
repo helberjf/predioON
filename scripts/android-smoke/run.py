@@ -90,7 +90,7 @@ class Device:
     def adb(self, *args, binary=False, required=True, timeout=30):
         result = subprocess.run(["adb", "-s", self.serial, *args], capture_output=True, timeout=timeout)
         if required and result.returncode:
-            raise RuntimeError(f"adb {' '.join(args[:4])} failed: {result.stderr.decode(errors='replace')}")
+            raise RuntimeError(f"adb {' '.join(args[:3])} failed: {result.stderr.decode(errors='replace')}")
         return result.stdout if binary else result.stdout.decode("utf-8", errors="replace")
 
     def hierarchy(self):

@@ -1,7 +1,7 @@
 import unittest
 import xml.etree.ElementTree as ET
 
-from prepare import configure_source, validate_badging, SMOKE_ORIGIN
+from prepare import configure_source, validate_badging, AUTH_ORIGIN, SMOKE_ORIGIN
 from run import APPS, EMAIL, PASSWORD, center, crash_evidence, inspect_login, run_smoke
 
 
@@ -100,6 +100,13 @@ class PreparationAssertions(unittest.TestCase):
         for invalid in [source.replace(package, "com.other"), source.replace("x86_64", "arm64-v8a"), source + "application-debuggable"]:
             with self.assertRaises(ValueError):
                 validate_badging(invalid, package)
+
+    def test_authentication_uses_only_the_fixed_isolated_https_origin(self):
+        source = 'const PRODUCTION_API_URL = "";'
+        self.assertIn(AUTH_ORIGIN, configure_source(source, AUTH_ORIGIN))
+        for origin in ["http://10.0.2.2:3443", "https://production.example.com", "https://10.0.2.2:3443/other"]:
+            with self.assertRaises(ValueError):
+                configure_source(source, origin)
 
 
 if __name__ == "__main__":

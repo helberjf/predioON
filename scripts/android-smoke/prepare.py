@@ -11,13 +11,17 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[2]
 APPS = {"resident-mobile": "com.predioon.resident", "operations-mobile": "com.predioon.operations"}
 SMOKE_ORIGIN = "https://smoke-api.invalid"
+AUTH_ORIGIN = "https://10.0.2.2:3443"
+ORIGINS = {"startup": SMOKE_ORIGIN, "auth": AUTH_ORIGIN}
 
 
-def configure_source(source):
+def configure_source(source, origin=SMOKE_ORIGIN):
+    if origin not in ORIGINS.values():
+        raise ValueError("Only the fixed verification origins are supported")
     pattern = r'const PRODUCTION_API_URL = "[^"\r\n]*";'
     if len(re.findall(pattern, source)) != 1:
         raise ValueError("Expected exactly one literal PRODUCTION_API_URL; review the smoke adapter")
-    return re.sub(pattern, f'const PRODUCTION_API_URL = "{SMOKE_ORIGIN}";', source)
+    return re.sub(pattern, f'const PRODUCTION_API_URL = "{origin}";', source)
 
 
 def validate_badging(badging, package):
@@ -33,6 +37,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("action", choices=["configure", "sign"])
     parser.add_argument("--app", choices=APPS, required=True)
+    parser.add_argument("--scenario", choices=ORIGINS, default="startup")
     parser.add_argument("--apk", type=Path)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
@@ -40,8 +45,8 @@ def main():
         if os.environ.get("CI") != "true":
             raise SystemExit("Configuration adapter is restricted to the disposable CI checkout")
         config = ROOT / "apps" / args.app / "config.ts"
-        config.write_text(configure_source(config.read_text(encoding="utf-8")), encoding="utf-8")
-        print(f"Smoke checkout configured for {args.app}; reserved HTTPS origin, no login submitted")
+        config.write_text(configure_source(config.read_text(encoding="utf-8"), ORIGINS[args.scenario]), encoding="utf-8")
+        print(f"Smoke checkout configured for {args.app}; scenario {args.scenario}")
         return
     if not args.apk or not args.output:
         parser.error("sign requires --apk and --output")
@@ -62,7 +67,7 @@ def main():
     badging = subprocess.check_output([str(build_tools / "aapt2"), "dump", "badging", str(args.output)], text=True)
     validate_badging(badging, APPS[args.app])
     metadata = {"app": args.app, "package": APPS[args.app], "gitSha": os.environ.get("GITHUB_SHA"),
-                "architecture": "x86_64", "mode": "release", "apiOrigin": SMOKE_ORIGIN,
+                "architecture": "x86_64", "mode": "release", "apiOrigin": ORIGINS[args.scenario],
                 "sha256": hashlib.sha256(args.output.read_bytes()).hexdigest(),
                 "signing": "ephemeral one-day CI key; not a store signing identity",
                 "signatureVerification": signature}
