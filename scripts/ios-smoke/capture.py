@@ -1,6 +1,6 @@
 """Capture the unsigned CI build on a new, disposable iPhone simulator.
 
-This proves launch/process survival, not authenticated workflows or UI semantics.
+This proves launch/process survival and form text, not authenticated workflows.
 Each screenshot still requires visual review before being presented as evidence.
 """
 import argparse
@@ -15,19 +15,25 @@ import time
 import uuid
 
 
-def command(*arguments: str, timeout: int = 60) -> str:
+def command(*arguments: str, timeout: int = 60, output: Path | None = None) -> str:
     result = subprocess.run(arguments, text=True, capture_output=True, timeout=timeout)
+    if output is not None:
+        output.write_text(result.stdout, encoding="utf-8")
     if result.returncode:
         raise RuntimeError(f"{arguments[0]} failed ({result.returncode}): {result.stderr[-2000:]}")
     return result.stdout.strip()
 
 
-def iphone_target(inventory: dict) -> tuple[str, str]:
+def iphone_target(inventory: dict, sdk_version: str) -> tuple[str, str]:
     """Use a device/runtime combination that the installed Xcode already lists."""
+    def version(value):
+        parts = tuple(int(part) for part in value.split("."))
+        return parts + (0,) * (3 - len(parts))
     runtimes = sorted(
         (item for item in inventory["runtimes"]
-         if item.get("isAvailable") and item["identifier"].startswith("com.apple.CoreSimulator.SimRuntime.iOS-")),
-        key=lambda item: tuple(int(part) for part in item["version"].split(".")),
+         if item.get("isAvailable") and item["identifier"].startswith("com.apple.CoreSimulator.SimRuntime.iOS-")
+         and version(item["version"]) <= version(sdk_version)),
+        key=lambda item: version(item["version"]),
         reverse=True,
     )
     types = {item["name"]: item["identifier"] for item in inventory["devicetypes"]}
@@ -37,7 +43,7 @@ def iphone_target(inventory: dict) -> tuple[str, str]:
                 device_type = device.get("deviceTypeIdentifier") or types.get(device["name"])
                 if device_type:
                     return runtime["identifier"], device_type
-    raise RuntimeError("No available iPhone/iOS runtime in this Xcode installation")
+    raise RuntimeError("No available iPhone/iOS runtime compatible with the selected Xcode SDK")
 
 
 def capture(application: Path, destination: Path) -> None:
@@ -58,13 +64,16 @@ def capture(application: Path, destination: Path) -> None:
     evidence = {
         "commit": os.environ.get("GITHUB_SHA"), "bundleId": bundle,
         "binarySha256": hashlib.sha256(binary.read_bytes()).hexdigest(),
-        "passed": False, "scope": "launch, process survival, relaunch and screenshots; no login",
+        "passed": False, "scope": "launch, process survival, relaunch and login-form OCR; no authenticated requests",
         "phases": [], "screenshots": [],
     }
     device_id = None
     try:
-        runtime, device_type = iphone_target(json.loads(command("xcrun", "simctl", "list", "--json")))
-        evidence.update(runtime=runtime, deviceType=device_type, xcode=command("xcodebuild", "-version"))
+        sdk_version = command("xcrun", "--sdk", "iphonesimulator", "--show-sdk-version")
+        inventory = json.loads(command("xcrun", "simctl", "list", "--json"))
+        runtime, device_type = iphone_target(inventory, sdk_version)
+        evidence.update(runtime=runtime, deviceType=device_type, sdkVersion=sdk_version,
+                        xcode=command("xcodebuild", "-version"), apiOrigin="https://smoke-api.invalid")
         created = command("xcrun", "simctl", "create", f"PredioON-capture-{uuid.uuid4()}", device_type, runtime)
         device_id = str(uuid.UUID(created))
         command("xcrun", "simctl", "bootstatus", device_id, "-b", timeout=180)
@@ -91,6 +100,8 @@ def capture(application: Path, destination: Path) -> None:
             contents = screenshot.read_bytes()
             if not contents.startswith(b"\x89PNG\r\n\x1a\n") or len(contents) < 1024:
                 raise RuntimeError("Simulator did not produce a PNG screenshot")
+            command("swift", str(Path(__file__).with_name("inspect.swift")), str(screenshot), bundle,
+                    timeout=120, output=destination / f"{phase}.ocr.json")
             evidence["screenshots"].append({"file": screenshot.name,
                                            "sha256": hashlib.sha256(contents).hexdigest()})
             evidence["phases"].append(phase)

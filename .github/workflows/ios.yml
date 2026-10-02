@@ -11,6 +11,7 @@ on:
       - 'pnpm-lock.yaml'
       - '.github/workflows/ios.yml'
       - 'scripts/ios-smoke/**'
+      - 'scripts/android-smoke/prepare.py'
   workflow_dispatch:
 
 permissions:
@@ -34,6 +35,8 @@ jobs:
             scheme: PredioONOperacao
     steps:
       - uses: actions/checkout@v4
+      - name: Verify simulator selection guards
+        run: python3 -m unittest discover -s scripts/ios-smoke -p 'test_*.py' -v
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
@@ -48,6 +51,8 @@ jobs:
       - name: Install native dependencies
         working-directory: apps/${{ matrix.app }}/ios
         run: bundle exec pod install
+      - name: Configure reserved startup origin in disposable checkout
+        run: python3 scripts/android-smoke/prepare.py configure --app ${{ matrix.app }}
       - name: Compile unsigned simulator application
         working-directory: apps/${{ matrix.app }}/ios
         run: >-
