@@ -1,6 +1,6 @@
 # Melhorias e novas implementações — Prédio ON
 
-Revisão: 01/10/2026. Documento vivo de priorização; não é uma declaração de conclusão nem substitui o [PRD](PRD.md), o [TDD](TDD.md) e o [plano de execução](superpowers/plans/2026-09-27-product-execution.md).
+Revisão: 02/10/2026. Documento vivo de priorização; não é uma declaração de conclusão nem substitui o [PRD](PRD.md), o [TDD](TDD.md) e o [plano de execução](superpowers/plans/2026-09-27-product-execution.md).
 
 ## 1. Como usar este documento
 
@@ -39,6 +39,8 @@ Revisar contraste, foco, tamanho de toque, leitor de tela, ampliação de texto 
 ### 3.2 Calendário de disponibilidade — P2
 
 Mostrar os intervalos ocupados das áreas comuns sem nome, unidade, identificador da reserva ou observações de terceiros. A seleção de horário deve indicar fuso do condomínio e duração permitida. Aceite: dois moradores não conseguem inferir dados privados e uma disputa pelo mesmo horário continua decidida pela restrição do banco.
+
+Progresso em 02/10: calendário privado entregue no portal Morador em `da6c7ca`, com testes reais de conflito, cancelamento e privacidade nos três navegadores. A interface explicita o fuso do aparelho, usado também pelo formulário existente. Ainda falta unificar seleção, disponibilidade e apresentação no fuso configurado do condomínio, inclusive quando o usuário está em outro fuso; essa parte não está marcada como concluída.
 
 ### 3.3 Atualizações de chamado sem perda de rascunho — P1
 
