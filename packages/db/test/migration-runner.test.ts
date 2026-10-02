@@ -10,6 +10,51 @@ it("uses a portable checksum while detecting edited SQL", () => {
   assert.notEqual(migrationChecksum("select 1;\n"), migrationChecksum("select 2;\n"));
 });
 
+it("rolls back the entire first adoption batch, including earlier scripts", { skip: !process.env.TEST_MIGRATIONS_DATABASE_URL }, async () => {
+  const client = postgres(process.env.TEST_MIGRATIONS_DATABASE_URL!, { max: 2, onnotice: () => {} });
+  const schema = `migration_test_${randomUUID().replaceAll("-", "")}`;
+  try {
+    await client.unsafe(`create schema "${schema}"`);
+    await assert.rejects(runMigrations(client, [
+      { id: "001-initial", source: `create table "${schema}".effects (value text)` },
+      { id: "002-broken", source: "select nonexistent_column" },
+    ], { ledgerSchema: schema, atomicInitialBatch: true }), /002-broken/);
+    assert.equal((await client`select to_regclass(${`${schema}.effects`}) as name`)[0]?.name, null);
+    assert.equal((await client.unsafe(`select * from "${schema}".schema_migrations`)).length, 0);
+  } finally {
+    await client.unsafe(`drop schema if exists "${schema}" cascade`);
+    await client.end();
+  }
+});
+
+it("never exposes an intermediate legacy state while adopting an existing database", { skip: !process.env.TEST_MIGRATIONS_DATABASE_URL }, async () => {
+  const client = postgres(process.env.TEST_MIGRATIONS_DATABASE_URL!, { max: 2, onnotice: () => {} });
+  const schema = `migration_test_${randomUUID().replaceAll("-", "")}`;
+  let signalReached!: () => void;
+  let release!: () => void;
+  const reached = new Promise<void>(resolve => { signalReached = resolve; });
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  let running: Promise<string[]> | undefined;
+  try {
+    await client.unsafe(`create schema "${schema}"; create table "${schema}".state (value text); insert into "${schema}".state values ('current')`);
+    running = runMigrations(client, [
+      { id: "001-legacy", source: `update "${schema}".state set value='legacy'` },
+      { id: "002-current", source: "reviewed adapter v1", execute: async tx => {
+        signalReached(); await gate;
+        await tx.unsafe(`update "${schema}".state set value='current'`);
+      } },
+    ], { ledgerSchema: schema, atomicInitialBatch: true });
+    await Promise.race([reached, running.then(() => { throw new Error("Runner did not reach adapter"); })]);
+    assert.equal((await client.unsafe(`select value from "${schema}".state`))[0]?.value, "current");
+    release();
+    assert.deepEqual(await running, ["001-legacy", "002-current"]);
+  } finally {
+    release(); await running?.catch(() => {});
+    await client.unsafe(`drop schema if exists "${schema}" cascade`);
+    await client.end();
+  }
+});
+
 it("rejects duplicate ids and unsafe schema names before connecting", async () => {
   const unavailable = postgres("postgres://unused:unused@127.0.0.1:1/unused", { connect_timeout: 1 });
   try {

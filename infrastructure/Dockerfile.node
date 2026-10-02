@@ -26,6 +26,7 @@ RUN pnpm install --frozen-lockfile --filter @predioon/api --filter @predioon/ing
 COPY packages ./packages
 COPY apps/api ./apps/api
 COPY services/ingest ./services/ingest
+COPY infrastructure/*.sql ./infrastructure/
 
 # tsx executa o TypeScript direto: sem etapa de build, sem risco de o artefato
 # publicado divergir do código. O custo é alguns segundos a mais no start.

@@ -50,15 +50,11 @@ jobs:
           pnpm typecheck
           pnpm check:boundaries
       - name: Bootstrap isolated disposable database
-        env:
-          PG_CONTAINER: ${{ job.services.postgres.id }}
         run: |
           pnpm db:bootstrap
           pnpm db:bootstrap
-          for script in infrastructure/[0-9]*.sql; do
-            echo "Applying $script"
-            docker exec -i "$PG_CONTAINER" psql -U predioon -d predioon -v ON_ERROR_STOP=1 -f - < "$script"
-          done
+          pnpm db:infra
+          pnpm db:infra
           pnpm db:provision-runtime
           pnpm db:seed
           pnpm db:bootstrap

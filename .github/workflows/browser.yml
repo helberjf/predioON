@@ -43,20 +43,14 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Prepare disposable database for real browser workflows
-        env:
-          PG_CONTAINER: ${{ job.services.postgres.id }}
         run: |
           pnpm db:bootstrap
-          for script in infrastructure/[0-9]*.sql; do
-            transaction=()
-            number="${script##*/}"
-            if (( 10#${number%%-*} >= 15 )); then transaction=(--single-transaction); fi
-            docker exec -i "$PG_CONTAINER" psql -U predioon -d predioon -v ON_ERROR_STOP=1 "${transaction[@]}" -f - < "$script"
-          done
+          pnpm db:infra
+          pnpm db:infra
           pnpm db:provision-runtime
           pnpm db:seed
       - name: Install browser and operating system dependencies
-        run: pnpm exec playwright install --with-deps chromium
+        run: pnpm exec playwright install --with-deps chromium firefox webkit
       - name: Exercise all three portals against the real API
         run: pnpm test:e2e
       - name: Preserve report and failure evidence

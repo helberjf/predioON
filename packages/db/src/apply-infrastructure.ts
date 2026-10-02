@@ -1,39 +1,35 @@
-/**
- * Applies every infrastructure/*.sql file in name order, inside the database container.
- * All scripts are idempotent, so this can be re-run after adding tables.
- */
-import { readFile, readdir } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
-import { spawnSync } from "node:child_process";
+import "./env.js";
+import postgres from "postgres";
+import { applyInfrastructure, checkInfrastructure, loadInfrastructureMigrations } from "./infrastructure-migrations.js";
 
-const rootDir = fileURLToPath(new URL("../../../", import.meta.url));
-const composeFile = fileURLToPath(new URL("../../../infrastructure/docker-compose.yml", import.meta.url));
-const infraDir = fileURLToPath(new URL("../../../infrastructure/", import.meta.url));
-
-function runSql(script: string, label: string): void {
-  // New migrations are atomic. Keep the older bootstrap scripts' execution
-  // semantics until the controlled migration runner replaces that flow.
-  const transactionArgs = Number.parseInt(label, 10) >= 15 ? ["--single-transaction"] : [];
-  const result = spawnSync(
-    "docker",
-    ["compose", "-f", composeFile, "exec", "-T", "db",
-     "psql", "-U", "predioon", "-d", "predioon", "-v", "ON_ERROR_STOP=1", ...transactionArgs, "-f", "-"],
-    { cwd: rootDir, input: script, encoding: "utf8" },
-  );
-
-  if (result.stdout) process.stdout.write(result.stdout);
-  if (result.stderr) process.stderr.write(result.stderr);
-  if (result.error) throw result.error;
-  if (result.status !== 0) {
-    throw new Error(`Falha ao aplicar ${label}. docker compose retornou ${result.status}.`);
-  }
+/** Administrative CLI. Every script and its ledger entry share one connection. */
+async function main(): Promise<void> {
+  const args = process.argv.slice(2);
+  if (args.some(arg => arg !== "--check") || args.length > 1) throw new Error("Uso: db:infra [--check]. --check consulta o histórico sem aplicar alterações.");
+  if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL administrativa é obrigatória");
+  // Validate the full release before connecting or modifying the ledger.
+  const migrations = await loadInfrastructureMigrations();
+  const client = postgres(process.env.DATABASE_URL, { max: 1, onnotice: () => {} });
+  try {
+    if (args.includes("--check")) {
+      const pending = await checkInfrastructure(client, migrations);
+      if (pending.length) {
+        console.error(`Migrations pendentes: ${pending.join(", ")}. Revise e execute pnpm db:infra (ou scripts/start-local.ps1 -Setup) antes de iniciar os serviços. Nenhuma alteração aplicada.`);
+        process.exitCode = 2;
+      } else console.log("Histórico verificado; nenhuma migration pendente. Nenhuma alteração aplicada.");
+      return;
+    }
+    const applied = await applyInfrastructure(client, migrations);
+    if (applied.length) console.log(`Infraestrutura confirmada: ${applied.join(", ")}.`);
+    else console.log("Infraestrutura atualizada; checksums verificados, nenhuma migration reaplicada.");
+  } finally { await client.end(); }
 }
 
-const files = (await readdir(infraDir)).filter((name) => name.endsWith(".sql")).sort();
-
-for (const name of files) {
-  console.log(`Aplicando ${name}...`);
-  runSql(await readFile(new URL(name, `file://${infraDir}`), "utf8"), name);
+try { await main(); }
+catch (error) {
+  // Only controlled messages, never raw driver diagnostics or connection URLs.
+  const message = error instanceof Error ? error.message : "";
+  const safe = /^(Uso: |Migration |Migrations |Histórico |Sequência |002-app-role|Metacomando |Nome de migration |Nenhuma migration |Estrutura inicial |Banco legado |DATABASE_URL )/.test(message);
+  console.error(safe ? message : "Falha ao aplicar infraestrutura; consulte o histórico e verifique conectividade/permissões sem alterar migrations já confirmadas.");
+  process.exitCode = 1;
 }
-
-console.log(`Infraestrutura aplicada (${files.length} script(s)): TimescaleDB, RLS e role da aplicação.`);
