@@ -98,6 +98,9 @@ try {
   $calls = Run-StartupCase "falha de infraestrutura interrompe a retomada" @{} @{ InfraFailure = $true } $true
   Assert-StartupTest (-not $calls.Contains("pnpm db:wait") -and -not $calls.Contains("pnpm dev")) "falha Docker nao deve continuar"
   Write-Host "7 cenarios passaram; nenhum servico real executado."
+  # Expected command failures above are asserted. Do not leave the simulated
+  # final exit code for a caller such as GitHub Actions to treat as test failure.
+  $global:LASTEXITCODE = 0
 } finally {
   Remove-Item -LiteralPath Function:\pnpm, Function:\docker, Function:\node -ErrorAction SilentlyContinue
   Remove-Variable -Name PredioOnStartupTestState -Scope Global -ErrorAction SilentlyContinue
