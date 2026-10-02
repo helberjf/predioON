@@ -12,10 +12,11 @@ Prioridades: **P0** bloqueia uma entrega confiável; **P1** completa a operaçã
 
 Estes itens já pertencem à evolução prevista. Não devem ser apresentados como ideias opcionais para encobrir trabalho pendente.
 
+Estado consolidado em [CONTINUIDADE.md](CONTINUIDADE.md). Cookies web/CSRF, coordenação entre abas e gestão das próprias sessões já foram implementados e testados. O executor de migrations com checksum/lock/no-op e a restauração local real até 035 também estão entregues; implantação e recuperação do ambiente de produção continuam pendentes. Esses itens saíram da lista de implementações a iniciar e devem permanecer na regressão.
+
 | Prioridade | Trabalho | Resultado esperado | Critério de aceite |
 |---|---|---|---|
 | P0 | Concluir autorização por capacidade nos domínios restantes | Acesso depende da concessão atual ao condomínio e ao recurso | HTTP e SQL negativos; revogação, expiração, equipe inativa e troca de condomínio sem vazamentos; nenhum privilégio global implícito sobre dados privados |
-| P0 | Cookies de sessão web e proteção CSRF | Refresh token fora do armazenamento acessível ao JavaScript do navegador | Cookie HttpOnly/Secure conforme ambiente; validação de origem e CSRF; renovação concorrente, logout e migração da sessão antiga testados |
 | P0 | MFA e verificação adicional para ações privilegiadas | Proteção adicional da administração e de operações sensíveis | Cadastro, desafio, recuperação e revogação; limites de tentativas; proteção contra reutilização; testes sem segredos reais |
 | P1 | Convites e recuperação de senha | Entrada e recuperação sem distribuição manual de senhas | Tokens de uso único, expiração, revogação e respostas sem enumeração de contas; provedor de envio configurável |
 | P0 | Inbox, outbox e workers duráveis | Trabalho obrigatório sobrevive à queda de processo | Ensaios de interrupção antes/depois do commit, deduplicação, reserva com prazo e recuperação; filas não repetem comandos físicos indiscriminadamente |
@@ -26,7 +27,6 @@ Estes itens já pertencem à evolução prevista. Não devem ser apresentados co
 | P1 | Push contextual nos dois aplicativos | Aviso útil direcionado à conta e ao condomínio corretos | Registro/revogação da instalação, preferências, deduplicação, link para recurso autorizado e ausência de conteúdo privado na tela bloqueada |
 | P0 | Homologação nativa Android/iOS | Instalação e uso comprovados em aparelhos | Sessão segura, retomada do app, permissões do sistema, conectividade ruim, notificações e acessibilidade em aparelhos representativos |
 | P0 | Implantação, backup e restauração | Recuperação comprovada da plataforma | Banco restaurado em ambiente separado, integridade verificada, tempo medido e procedimento reproduzível |
-| P0 | Migrations registradas e adoção de bancos antigos | Atualização com histórico verificável | Checksum, exclusão mútua, rollback e no-op; histórico desconhecido é recusado até uma adoção validada, sem carimbar checksums manualmente |
 | P1 | Observabilidade por serviço | Falhas identificadas sem registrar conteúdo privado | Saúde, métricas de fila, latência, falhas por categoria e alertas operacionais com instruções de atendimento |
 | P0 | Documentação final coerente | Instalação e operação reproduzíveis por outra pessoa | Comandos executados, variáveis descritas, matriz de permissões, fluxos por produto, limitações e evidências do commit final |
 
@@ -41,6 +41,8 @@ Revisar contraste, foco, tamanho de toque, leitor de tela, ampliação de texto 
 Mostrar os intervalos ocupados das áreas comuns sem nome, unidade, identificador da reserva ou observações de terceiros. A seleção de horário deve indicar fuso do condomínio e duração permitida. Aceite: dois moradores não conseguem inferir dados privados e uma disputa pelo mesmo horário continua decidida pela restrição do banco.
 
 Progresso em 02/10: calendário privado entregue no portal Morador em `da6c7ca`, com testes reais de conflito, cancelamento e privacidade nos três navegadores. A interface explicita o fuso do aparelho, usado também pelo formulário existente. Ainda falta unificar seleção, disponibilidade e apresentação no fuso configurado do condomínio, inclusive quando o usuário está em outro fuso; essa parte não está marcada como concluída.
+
+A jornada Android de reservas em `42f2130` passou em 23 fases contra API/banco reais, incluindo criação, cancelamento, pedido pendente e perda de autorização do calendário. Isso amplia a evidência móvel, sem encerrar a pendência de fuso nem homologar todas as telas nativas.
 
 ### 3.3 Atualizações de chamado sem perda de rascunho — P1
 
@@ -80,7 +82,7 @@ Oferecer prévia, erros por linha e confirmação do lote antes de aplicar. Usar
 
 | Prioridade | Sugestão | Evidência necessária antes da entrega |
 |---|---|---|
-| P1 | Matriz de testes Chromium, Firefox e WebKit | Mesmos fluxos reais de autenticação, isolamento e mutação passando em cada engine |
+| P1 | Consolidar a matriz de testes já existente em Chromium, Firefox e WebKit | Preservar os 153 cenários locais aprovados e os 21 dirigidos de acesso; resolver falhas WebKit do CI e aprovar a integral ampliada |
 | P1 | Testes de componente e acessibilidade nativa | Controles, estados de erro e nomes acessíveis verificados; complementar testes em aparelho |
 | P1 | Ensaio de atualização e retorno de versão | Backup anterior restaurável, migrations compatíveis e procedimento de recuperação exercitado |
 | P2 | Dividir o JavaScript do painel por rota | Medição antes/depois de download e abertura inicial; sem regressão de navegação ou autorização |
