@@ -52,6 +52,16 @@ describe("RBAC explícito por capacidade, condomínio e recurso", () => {
     assert.ok(ROLE_CAPABILITIES.MAINTENANCE.includes("telemetry:read"));
     assert.ok(!ROLE_CAPABILITIES.MAINTENANCE.includes("finance:read"));
   });
+  it("mantém regras de alerta separadas do inventário e limitadas ao recurso concedido", () => {
+    for (const role of ["PLATFORM_ADMIN", "PLATFORM_SUPPORT", "BUILDING_ADMIN", "MAINTENANCE_MANAGER", "MAINTENANCE", "RESIDENT"] as const) {
+      for (const capability of ["alert-rules:read", "alert-rules:manage"] as const) assert.equal(roleGrants(role, capability), role === "BUILDING_ADMIN");
+    }
+    const exact = subject([{ role: "BUILDING_ADMIN", buildingId: building, resourceType: "alert_rule", resourceId: "rule-1", active: true }]);
+    assert.equal(allowsCapability(exact, "alert-rules:manage", { buildingId: building, resourceType: "alert_rule", resourceId: "rule-1" }), true);
+    assert.equal(allowsCapability(exact, "alert-rules:manage", { buildingId: building, resourceType: "alert_rule", resourceId: "rule-2" }), false);
+    assert.equal(allowsCapability(exact, "alert-rules:manage", { buildingId: building, resourceType: "device", resourceId: "rule-1" }), false);
+    assert.equal(allowsCapability(exact, "alert-rules:manage", { buildingId: building }), false);
+  });
   it("separa contas publicadas, leitura administrativa e gestão financeira", () => {
     for (const role of ["BUILDING_ADMIN", "MAINTENANCE_MANAGER", "MAINTENANCE", "RESIDENT"] as const) {
       assert.equal(roleGrants(role, "finance:read-published"), true);

@@ -1,6 +1,6 @@
 # Regras de alerta por capacidades — 032
 
-**Objetivo:** migrar `/alert-rules` para leitura e gestão explícitas, mantendo regras, thresholds, mensagens, operadores, cooldown e classificação de funcionalidades existentes. Este documento é planejamento; não autoriza afirmar implementação ou testes de 032 concluídos.
+**Objetivo:** migrar `/alert-rules` para leitura e gestão explícitas, mantendo regras, thresholds, mensagens, operadores, cooldown e classificação de funcionalidades existentes. A evidência de execução está registrada ao final; a regressão integral posterior a 032 ainda depende do checkpoint do agente principal.
 
 **Execução:** TDD com PostgreSQL real em banco isolado, revisão de conformidade antes de qualidade. O agente principal mantém Git e regressão integral; congelar fonte de produção durante essa regressão. Aplicar depois de 030/031. Nenhuma alteração no processamento MQTT, comando físico, notificações ou algoritmo de disparo pertence a este recorte.
 
@@ -68,4 +68,19 @@ Dirigidos seriais: novo arquivo, feature-enforcement/lifecycle, alert-capabiliti
 
 Depois de revisões de conformidade/qualidade, congelar produção, executar API integral e Playwright pertinente e registrar contagens reais e limitações. O agente principal faz commit/push do recorte validado. Não declarar concluída a migração geral de RBAC: acessos físicos, demais módulos legados, configurações de clientes e requisitos operacionais continuam separados no tracker.
 
-Estado em 02/10/2026: somente revisão de fonte e prova local do default PATCH; SQL032, helpers, testes e alteração de rotas ainda não implementados.
+## Evidência de execução local — 02/10/2026
+
+SQL032, helpers, handlers, catálogo e testes implementados no recorte previsto. PostgreSQL/Timescale real, container isolado `predioon-test-backend`, porta 5437; nenhum teste deste recorte modifica os bancos dos outros agentes.
+
+RED anterior à implementação: três falhas comportamentais confirmadas — gestor RBAC recebia 403, flag global recebia 200 indevidamente e PATCH de nome apagava a gravidade escolhida. O primeiro GREEN também revelou o builder INSERT incluindo timestamps omitidos como DEFAULT; o handler passou a inserir apenas colunas autorizadas, sem ampliar ACL.
+
+A revisão independente identificou um ciclo real de bloqueios entre retarget e ingestão. O teste coordenado observou o PATCH esperando o dispositivo e então inseriu o alerta com FK para a regra: resposta 409 por deadlock antes da correção. `FOR NO KEY UPDATE` inicial sozinho também falhou, pois alterar `device_id` afeta o índice UNIQUE da regra e o UPDATE efetivo promove o bloqueio. A solução bloqueia o dispositivo de destino antes da regra, na mesma ordem da ingestão, por helper SECDEF booleano com validação antes/depois da espera. Nenhum SELECT de inventário foi concedido e nenhum retry foi adicionado. DELETE mantém seu bloqueio exclusivo. Concessão exata pode preservar seu pai inalterado, mas não escolher outro destino.
+
+Validação registrada:
+
+- 222/222 testes, 14 suites, sem skips/falhas na regressão dirigida de alertas/SSE/equipamentos/monitoramento/features/vigência/RBAC/tenancy, antes do ajuste final de ordem dos locks.
+- Após a correção, 23/23 testes do domínio e 13/13 do catálogo passaram juntos. Dois testes adicionais passaram em execução dirigida: revogação da regra de origem e do equipamento proposto durante a espera pelo dispositivo. O arquivo final contém 25 casos do domínio.
+- Reaplicação atômica dupla preserva policies e branches alheias, permissões/vínculos inativos, owner/search_path e ACLs; UUID malformado, helper privado e acesso de identity/broker são negados. EXPLAIN do corpo persistido confirma consulta pontual por PK e escopo sem varrer histórico.
+- Tipos API/shared, fronteiras de dependência e diff-check passaram. Cleanup confirmado: zero organizações, usuários e papéis com prefixos das fixtures.
+
+Pendências de integração deste checkpoint: revisão final do novo helper de bloqueio, commit/push pelo agente principal, aplicação032 nos demais bancos, regressão integral e navegador pertinente. A UI deve usar capacidades de regras, sem inferir gestão de `devices:configure`. Este recorte não conclui os outros domínios legados nem equivale a validação em hardware físico.

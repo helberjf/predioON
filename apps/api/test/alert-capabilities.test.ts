@@ -285,7 +285,7 @@ describe("alert capabilities, RLS and controlled transitions", () => {
     await sqlClient`insert into building_feature_settings(building_id,feature_key,enabled) values(${f.a},'WATER_TANK',false)`;
     // Isolate the additive alerts policy; existing independent feature-state
     // permissions intentionally remain ORed in the production policies.
-    const isolatedKeys=['buildings:read','telemetry:read','telemetry:read-published','features:manage','notices:read','common-areas:read','occurrences:read-own','occurrences:manage','reservations:read-own','reservations:manage','reservations:read-calendar','finance:read','finance:read-published'];
+    const isolatedKeys=['buildings:read','telemetry:read','telemetry:read-published','features:manage','notices:read','common-areas:read','occurrences:read-own','occurrences:manage','reservations:read-own','reservations:manage','reservations:read-calendar','finance:read','finance:read-published','alert-rules:read'];
     const permissions=await sqlClient`select key,active from permissions where key in ${sqlClient(isolatedKeys)}`;
     const state=(user:string)=>as(user,async tx=>{
       const [allowed]=await tx.execute(sql`select app_alert_can_read_feature_state(${f.a}) as allowed`);
