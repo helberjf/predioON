@@ -53,7 +53,26 @@ Esses resultados locais não substituem a execução autenticada no emulador. N�
 
 Na primeira [execução nativa 36961694246](https://github.com/helberjf/predioON/actions/runs/36961694246), commit `7319b3e20892b4b8e8c857acc347ffd7a4712221`, os dois APKs compilaram e o Morador exibiu a entrada vazia. A execução foi interrompida antes do primeiro envio de login: uma leitura obrigatória de `adb logcat` retornou código 1, sem stderr. O artefato `11208231474` preserva `passed: false`, formulário observado, buffer de crash vazio e logs da API/proxy contendo somente health. A causa exata desse erro de diagnóstico não foi comprovada; não houve aprovação do fluxo autenticado.
 
-O harness passou a exigir duas observações do launcher HOME e leitura bem-sucedida de diagnósticos antes da instalação. Um diálogo de sistema bloqueante é reportado como falha de ambiente, sem ser fechado automaticamente. Erros ADB registram código e stdout/stderr sanitizados; nenhuma falha de diagnóstico durante o teste é dispensada. As três regressões dessa preparação elevam a suíte comum para 13 testes; os oito testes autenticados foram repetidos com sucesso em Linux. A nova execução nativa ainda precisa confirmar o percurso completo.
+O harness passou a exigir duas observações do launcher HOME e leitura bem-sucedida de diagnósticos antes da instalação. Um diálogo de sistema bloqueante é reportado como falha de ambiente, sem ser fechado automaticamente. Erros ADB registram código e stdout/stderr sanitizados; nenhuma falha de diagnóstico durante o teste é dispensada. As três regressões dessa preparação elevam a suíte comum para 13 testes; os oito testes autenticados foram repetidos com sucesso em Linux. A execução dessa instrumentação específica, commit `2235d98`, continua sendo uma validação separada.
+
+### Primeira aprovação nativa autenticada — 02/10/2026
+
+A [execução 36962198025](https://github.com/helberjf/predioON/actions/runs/36962198025), job `110698819690`, aprovou o fluxo completo para o commit **`eec6174cef8b0d5ceda8ea2e06668e9d9f2746e3`**. O artefato `11208377530`, `android-auth-sessions-36962198025`, foi baixado e inspecionado: `result.json` contém `passed: true`, 19 fases de Morador e 21 fases de Operação. As fases adicionais de Operação verificam ausência de sessão antes de seu login e permanência de sua sessão após o logout do Morador.
+
+Foram conferidos visualmente os dois arquivos `04-restored.png`: após encerrar e reabrir o processo, cada aplicativo apresenta seu produto, usuário fictício e apenas seu próprio condomínio. Os snapshots confirmam:
+
+- depois de restaurar ambos: uma família ativa, dois refresh tokens históricos, exatamente uma rotação e um token ativo por usuário;
+- depois do primeiro logout: Morador sem sessão ou refresh ativo e com um logout; Operação ainda com sua família e refresh ativos;
+- depois de novo login e logout final: duas famílias históricas, três refresh tokens históricos, uma rotação e dois logouts por usuário, sem família ou refresh token ativo.
+
+Os buffers `crash.txt` estão vazios. Os históricos de saída contêm somente os encerramentos deliberados pelo harness (`USER REQUESTED` / `FORCE STOP`), sem crash ou ANR do app. A lista de 108 arquivos do artefato não contém APK, chave, certificado privado ou fixture de credenciais. Ambos os `build.json` registram release x86_64, origem `https://10.0.2.2:3443`, o mesmo SHA de fonte e assinatura efêmera com verificação v2/v3. Os hashes dos APKs são:
+
+| App | SHA-256 do APK verificado |
+| --- | --- |
+| Morador | `6a490660a87e057b6cba5720453795bbf6b3f43f2a893cd8b6488787dc5d01cd` |
+| Operação | `4f6291bfce719674bf68f96a0400975cc888b61235e7c4a33722b1ffbea9032c` |
+
+Esta é evidência de autenticação e persistência nativa com backend e banco reais em emulador Android. Não aprova telas de domínio, fonte posterior, iOS, aparelho físico ou publicação. A falha da primeira execução permanece documentada acima; a aprovação não foi obtida ignorando suas asserções.
 
 ## Limites e continuidade
 
