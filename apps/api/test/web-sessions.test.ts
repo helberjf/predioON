@@ -7,6 +7,7 @@ import { closeAppDb } from '@predioon/db/runtime';
 import { config } from '../src/config.js';
 import { hashPassword } from '../src/auth/passwords.js';
 import { startTestServer, call, type TestServer } from './helpers.js';
+import { admittedFixtureLogin } from './fixture-login.js';
 
 describe('web cookies against real session storage', () => {
   let server: TestServer;
@@ -33,7 +34,7 @@ describe('web cookies against real session storage', () => {
     return values[0]!.split(';')[0]!;
   }
   async function signedIn(extra:Record<string,string>={}){
-    const response=await request('login',{email,password},extra);assert.equal(response.status,200);
+    const response=await admittedFixtureLogin(()=>request('login',{email,password},extra),email);assert.equal(response.status,200);
     const body=await response.json() as {accessToken:string;user:{id:string};refreshToken?:string};
     assert.deepEqual(Object.keys(body).sort(),['accessToken','user']);
     return {response,body,cookie:cookie(response)};

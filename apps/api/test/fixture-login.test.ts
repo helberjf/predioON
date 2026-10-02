@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import { test } from "node:test";
-import { login } from "./fixture-login.js";
+import { admittedFixtureLogin, login } from "./fixture-login.js";
 
 async function fixture(replies: { status: number; retry?: string }[], run: (url: string, attempts: number[]) => Promise<void>) {
   const attempts: number[] = [];
@@ -11,7 +11,8 @@ async function fixture(replies: { status: number; retry?: string }[], run: (url:
     attempts.push(Date.now());
     const reply = replies[Math.min(attempts.length - 1, replies.length - 1)]!;
     req.resume();
-    res.writeHead(reply.status, { "content-type": "application/json", ...(reply.retry ? { "retry-after": reply.retry } : {}) });
+    res.writeHead(reply.status, { "content-type": "application/json", ...(reply.retry ? { "retry-after": reply.retry } : {}),
+      ...(reply.status === 200 ? { "set-cookie": "fixture-session=opaque; HttpOnly; SameSite=Strict" } : {}) });
     res.end(JSON.stringify(reply.status === 200 ? { accessToken: "fixture-access" } : { error: "fixture rejection" }));
   });
   await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -44,5 +45,16 @@ test("fixture login stops after four rejected attempts instead of masking a pers
   await fixture([{ status: 429, retry: "1" }], async (url, attempts) => {
     await assert.rejects(login(url, "test@example.invalid"), /429/);
     assert.equal(attempts.length, 4);
+  });
+});
+
+test("web fixture admission preserves the successful cookie headers and unconsumed response body", async () => {
+  await fixture([{ status: 429, retry: "1" }, { status: 200 }], async (url, attempts) => {
+    const response = await admittedFixtureLogin(() => fetch(`${url}/auth/login`, { method: "POST" }), "web fixture");
+    assert.equal(response.status, 200);
+    assert.deepEqual(response.headers.getSetCookie(), ["fixture-session=opaque; HttpOnly; SameSite=Strict"]);
+    assert.equal((await response.json() as { accessToken: string }).accessToken, "fixture-access");
+    assert.equal(attempts.length, 2);
+    assert.ok(attempts[1]! - attempts[0]! >= 1000);
   });
 });
