@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { AppState } from "react-native";
 import type { ApiClient } from "@predioon/api-client";
+import { createResourcePoller } from "./resource-poller.ts";
 
 export type Resource<T> = {
   data: T | null;
@@ -18,69 +19,51 @@ export function useResource<T>(
     Omit<Resource<T>, "reload"> & { path: string | null }
   >({ path, data: null, error: null, loading: true, updatedAt: null });
   useEffect(() => {
-    let live = true;
-    let pending = false;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    let active = AppState.currentState === "active";
-    async function load() {
-      if (!live || !active || pending || !path) return;
-      pending = true;
-      setState((previous) => ({
-        ...previous,
-        path,
-        data: previous.path === path ? previous.data : null,
-        loading: true,
-      }));
-      try {
-        const data = await api.get<T>(path);
-        if (live && active)
-          setState({
-            path,
-            data,
-            error: null,
-            loading: false,
-            updatedAt: Date.now(),
-          });
-      } catch (error) {
-        if (live && active)
-          setState((previous) => ({
-            ...previous,
-            data: null,
-            error:
-              error instanceof Error ? error.message : "Falha ao carregar.",
-            loading: false,
-          }));
-      } finally {
-        pending = false;
-        if (live && active) timer = setTimeout(() => void load(), 15_000);
-      }
+    if (!path) {
+      setState({ path, data: null, error: null, loading: false, updatedAt: null });
+      return;
     }
-    if (!path)
-      setState({
-        path,
-        data: null,
-        error: null,
-        loading: false,
-        updatedAt: null,
-      });
-    else void load();
-    const listener = AppState.addEventListener("change", (next) => {
-      active = next === "active";
-      clearTimeout(timer);
-      // Clear cached screen data on backgrounding; this is not an OS screenshot guarantee.
-      if (!active)
+    const poller = createResourcePoller({
+      active: AppState.currentState === "active",
+      read: () => api.get<T>(path),
+      loading: () =>
+        setState((previous) => ({
+          ...previous,
+          path,
+          data: previous.path === path ? previous.data : null,
+          loading: true,
+        })),
+      loaded: (data) =>
+        setState({
+          path,
+          data,
+          error: null,
+          loading: false,
+          updatedAt: Date.now(),
+        }),
+      failed: (error) =>
+        setState((previous) => ({
+          ...previous,
+          data: null,
+          error: error instanceof Error ? error.message : "Falha ao carregar.",
+          loading: false,
+        })),
+      // This clears screen data; it is not an OS screenshot guarantee.
+      inactive: () =>
         setState({
           path,
           data: null,
           error: null,
           loading: false,
           updatedAt: null,
-        });
-      else void load();
+        }),
+    });
+    poller.start();
+    const listener = AppState.addEventListener("change", (next) => {
+      poller.setActive(next === "active");
     });
     return () => {
-      live = false;
-      clearTimeout(timer);
+      poller.dispose();
       listener.remove();
     };
   }, [api, path, revision]);
