@@ -60,7 +60,7 @@ export default defineConfig({
       ["building-web", BUILDING_URL],
       ["resident-web", RESIDENT_URL],
     ] as const).map(([workspace, url]) => ({
-      command: `pnpm --filter @predioon/${workspace} exec vite --host 127.0.0.1 --port ${new URL(url).port} --strictPort`,
+      command: `pnpm --filter @predioon/${workspace} build && pnpm --filter @predioon/${workspace} exec vite preview --host 127.0.0.1 --port ${new URL(url).port} --strictPort`,
       url,
       env: { VITE_API_URL: API_URL },
       timeout: 90_000,
