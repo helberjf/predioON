@@ -22,6 +22,7 @@ const resident: Scope = {
     "reservations:create-own",
     "reservations:cancel-own",
     "telemetry:read-published",
+    "finance:read-published",
   ],
   features: ["NOTICES", "TICKETS", "RESERVATIONS"].map((key) => ({
     key,
@@ -139,8 +140,21 @@ test("a notices-only reader sees GESTAO transparency without issuing a financial
   });
   assert.deepEqual(
     transparencySections({ ...scope, capabilities: ["buildings:read"] }),
-    { notices: false, finance: true },
+    { notices: false, finance: false },
   );
+});
+test("financial readers need their own current permission and enabled feature, without building discovery", () => {
+  const scope: Scope = { buildingId: "one", capabilities: [], features: [{ key: "FINANCE", enabled: true }] };
+  for (const capability of ["finance:read-published", "finance:read"] as const) {
+    const reader = { ...scope, capabilities: [capability] };
+    assert.deepEqual(transparencySections(reader), { notices: false, finance: true });
+    assert.deepEqual(screensFor("resident", reader), ["transparency"]);
+    assert.deepEqual(transparencySections({ ...reader, features: [] }), { notices: false, finance: false });
+    assert.deepEqual(transparencySections({ ...reader, features: [{ key: "FINANCE", enabled: false }] }), { notices: false, finance: false });
+  }
+  for (const capabilities of [[], ["finance:manage"], ["buildings:read"], ["buildings:manage"]] as const) {
+    assert.deepEqual(screensFor("resident", { ...scope, capabilities }), []);
+  }
 });
 test("resident product filters third-party tickets even when user has management scope", () => {
   const items = [

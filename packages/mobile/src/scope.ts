@@ -25,7 +25,8 @@ export function transparencySections(scope: Scope) {
     notices:
       scope.capabilities.includes("notices:read") && enabled("TRANSPARENCY"),
     finance:
-      scope.capabilities.includes("buildings:read") && enabled("FINANCE"),
+      (scope.capabilities.includes("finance:read-published") ||
+        scope.capabilities.includes("finance:read")) && enabled("FINANCE"),
   };
 }
 
