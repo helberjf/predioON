@@ -41,6 +41,7 @@ export async function authenticatedApi(request: APIRequestContext, email: string
   return {
     get: (path: string) => request.get(`${API_URL}${path}`, { headers }),
     post: (path: string, data: object) => request.post(`${API_URL}${path}`, { headers, data }),
+    patch: (path: string, data: object) => request.patch(`${API_URL}${path}`, { headers, data }),
     async create<T>(path: string, data: object): Promise<T> {
       const response = await request.post(`${API_URL}${path}`, { headers, data });
       expect(response.status(), `Fixture POST ${path}`).toBe(201);

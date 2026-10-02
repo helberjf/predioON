@@ -1,4 +1,4 @@
-import { defineConfig, devices } from "@playwright/test";
+import { defineConfig } from "@playwright/test";
 import { ADMIN_URL, API_URL, BUILDING_URL, RESIDENT_URL } from "./e2e/environment";
 
 const databaseRoles = ["APP", "IDENTITY", "BROKER_AUTH"] as const;
@@ -25,7 +25,6 @@ export default defineConfig({
   outputDir: ".local/playwright-results",
   reporter: [["list"], ["html", { outputFolder: ".local/playwright-report", open: "never" }]],
   use: {
-    ...devices["Desktop Chrome"],
     baseURL: BUILDING_URL,
     viewport: { width: 1440, height: 1000 },
     locale: "pt-BR",
@@ -35,7 +34,11 @@ export default defineConfig({
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },
-  projects: [{ name: "chromium", use: { browserName: "chromium" } }],
+  projects: [
+    { name: "chromium", use: { browserName: "chromium" } },
+    { name: "firefox", use: { browserName: "firefox" } },
+    { name: "webkit", use: { browserName: "webkit" } },
+  ],
   webServer: [
     {
       command: "pnpm --filter @predioon/api exec tsx src/server.ts",
