@@ -1,13 +1,23 @@
-import type { InputHTMLAttributes, ReactNode } from "react";
+import { createContext, useContext, useId, type InputHTMLAttributes, type ReactNode } from "react";
+
+const FieldContext = createContext<{ labelId: string; hintId?: string } | null>(null);
+
+function useFieldAttributes() {
+  const field = useContext(FieldContext);
+  return { "aria-labelledby": field?.labelId, "aria-describedby": field?.hintId };
+}
 
 type FieldProps = { label: string; hint?: string; children: ReactNode };
 
 export function Field({ label, hint, children }: FieldProps) {
+  const id = useId();
+  const labelId = `${id}-label`;
+  const hintId = hint ? `${id}-hint` : undefined;
   return (
     <label className="block">
-      <span className="mb-1.5 block text-sm font-medium text-slate-700">{label}</span>
-      {children}
-      {hint && <span className="mt-1 block text-xs text-slate-400">{hint}</span>}
+      <span id={labelId} className="mb-1.5 block text-sm font-medium text-slate-700">{label}</span>
+      <FieldContext.Provider value={{ labelId, hintId }}>{children}</FieldContext.Provider>
+      {hint && <span id={hintId} className="mt-1 block text-xs text-slate-400">{hint}</span>}
     </label>
   );
 }
@@ -27,6 +37,7 @@ type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, "value" | "onChang
 export function Input({ value, onChange, type = "text", placeholder, required, ...attributes }: InputProps) {
   return (
     <input
+      {...useFieldAttributes()}
       {...attributes}
       className={CONTROL}
       type={type}
@@ -51,6 +62,7 @@ export function TextArea({
 }) {
   return (
     <textarea
+      {...useFieldAttributes()}
       className={CONTROL}
       rows={rows}
       value={value}
@@ -74,7 +86,7 @@ export function Select<T extends string>({
   required?: boolean;
 }) {
   return (
-    <select className={CONTROL} value={value} disabled={disabled} required={required} onChange={(event) => onChange(event.target.value as T)}>
+    <select {...useFieldAttributes()} className={CONTROL} value={value} disabled={disabled} required={required} onChange={(event) => onChange(event.target.value as T)}>
       {options.map((option) => (
         <option key={option.value} value={option.value}>
           {option.label}

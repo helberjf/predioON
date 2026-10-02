@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TicketCreateSchema, TICKET_PRIORITIES, TICKET_STATUSES } from "@predioon/shared";
 import { useFeatures } from "../features.js";
 import { ticketFeatureInput } from "../feature-state.js";
@@ -43,10 +43,13 @@ function TicketDetail({ row, canManage, reload }: { row: Occurrence; canManage: 
   const [status, setStatus] = useState(row.status), [priority, setPriority] = useState(row.priority === "URGENT" ? "HIGH" : row.priority);
   const [reason, setReason] = useState(""), [message, setMessage] = useState(""), [group, setGroup] = useState(false);
   const [busy, setBusy] = useState(false), [error, setError] = useState("");
+  // A refreshed status must not remount the conversation and discard a reply draft.
+  useEffect(() => { setStatus(row.status); }, [row.status]);
+  useEffect(() => { setPriority(row.priority === "URGENT" ? "HIGH" : row.priority); }, [row.priority]);
   async function act(kind: "save" | "comment" | "cancel") {
     setBusy(true); setError("");
     try {
-      if (kind === "comment") { await api.post(`/occurrences/${row.id}/comments`, ticketFeatureInput({ message, applyToGroup: canManage && group }, flags.items)); setMessage(""); }
+      if (kind === "comment") { await api.post(`/occurrences/${row.id}/comments`, ticketFeatureInput({ message, applyToGroup: canManage && group }, flags.items)); setMessage(current => current === message ? "" : current); }
       else await api.patch(`/occurrences/${row.id}`, kind === "cancel" ? { status: "CANCELLED" } : ticketFeatureInput({ status, ...(priority !== row.priority ? { priority, priorityReason: reason } : {}), applyToGroup: group }, flags.items));
       detail.reload(); reload();
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Falha ao atualizar chamado"); } finally { setBusy(false); }
@@ -96,7 +99,7 @@ function Workspace({ buildingId, canManage }: { buildingId: string; canManage: b
         <div className="flex flex-wrap items-center gap-2"><span className="font-mono text-xs text-slate-500">#{row.protocol}</span><Badge>{statusLabel(row.status)}</Badge>{flags.enabled("TICKET_PRIORITY") && <Badge tone={row.priority === "HIGH" || row.priority === "URGENT" ? "danger" : "neutral"}>Gravidade {priorityLabel(row.priority).toLowerCase()}</Badge>}{flags.enabled("TICKET_GROUPING") && row.groupId && <Badge>Atendimento conjunto</Badge>}</div>
         <h2 className="mt-3 font-semibold text-slate-900">{row.title}</h2><p className="mt-1 whitespace-pre-wrap break-words text-sm text-slate-600">{row.description}</p><p className="mt-2 text-xs text-slate-500">{row.location || "Sem local"} · {formatDateTime(row.createdAt)}</p>
         <div className="mt-3 flex flex-wrap items-center gap-4">{canManage && flags.enabled("TICKET_GROUPING") && !row.groupId && active(row) && <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={selected.includes(row.id)} disabled={!selected.includes(row.id) && selected.length >= 50} onChange={e => setSelected(e.target.checked ? [...selected, row.id] : selected.filter(id => id !== row.id))} />Selecionar #{row.protocol} para agrupar</label>}<Button variant="secondary" onClick={() => setExpanded(expanded === row.id ? null : row.id)}>{expanded === row.id ? "Fechar histórico" : "Ver histórico e responder"}</Button></div>
-        {expanded === row.id && <TicketDetail key={`${row.id}:${row.updatedAt}`} row={row} canManage={canManage} reload={reload} />}
+        {expanded === row.id && <TicketDetail key={row.id} row={row} canManage={canManage} reload={reload} />}
       </li>)}</ul> : <ResourceFeedback resource={list} emptyText="Nenhum chamado nesta visão." />}
       <div className="mt-4 flex items-center gap-3"><Button variant="secondary" disabled={offset === 0 || list.loading} onClick={() => { setOffset(offset - 50); setSelected([]); }}>Anterior</Button><span className="text-xs text-slate-500">Página {offset / 50 + 1}</span><Button variant="secondary" disabled={list.loading || (list.data?.items.length ?? 0) < 50} onClick={() => { setOffset(offset + 50); setSelected([]); }}>Próxima</Button></div>
     </Card>
