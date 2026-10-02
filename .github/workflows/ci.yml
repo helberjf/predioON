@@ -1,0 +1,68 @@
+name: Platform verification
+
+on:
+  push:
+    branches: [main, codex/product-platform]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: platform-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  platform:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: timescale/timescaledb:2.17.2-pg16
+        env:
+          POSTGRES_USER: predioon
+          POSTGRES_PASSWORD: predioon
+          POSTGRES_DB: predioon_test
+          TIMESCALEDB_TELEMETRY: 'off'
+        ports: ['5436:5432']
+        options: >-
+          --health-cmd "pg_isready -U predioon -d predioon_test"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      DATABASE_URL: postgres://predioon:predioon@localhost:5436/predioon_test
+      DATABASE_URL_APP: postgres://predioon_app:predioon_app@localhost:5436/predioon_test
+      DATABASE_URL_IDENTITY: postgres://predioon_identity:predioon_identity@localhost:5436/predioon_test
+      DATABASE_URL_BROKER_AUTH: postgres://predioon_broker_auth:predioon_broker_auth@localhost:5436/predioon_test
+      TEST_MIGRATIONS_DATABASE_URL: postgres://predioon:predioon@localhost:5436/predioon_test
+      RUN_ACCESS_DB_TESTS: '1'
+      RUN_RBAC_DB_TESTS: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Check types and package boundaries
+        run: |
+          pnpm typecheck
+          pnpm check:boundaries
+      - name: Bootstrap isolated disposable database
+        env:
+          PG_CONTAINER: ${{ job.services.postgres.id }}
+        run: |
+          pnpm --filter @predioon/db exec drizzle-kit push --force
+          for script in infrastructure/[0-9]*.sql; do
+            echo "Applying $script"
+            docker exec -i "$PG_CONTAINER" psql -U predioon -d predioon_test -v ON_ERROR_STOP=1 -f - < "$script"
+          done
+          pnpm db:provision-runtime
+          pnpm db:seed
+      - name: Database migration and privilege tests
+        run: pnpm --filter @predioon/db exec node --import tsx --test --test-concurrency=1 test/*.test.ts
+      - name: Full platform regression
+        run: pnpm test
+      - name: Build services and websites
+        run: pnpm build
