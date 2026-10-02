@@ -1,0 +1,27 @@
+{
+  "name": "@predioon/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test test/*.test.ts"
+  },
+  "dependencies": {
+    "@predioon/api-client": "workspace:*",
+    "@predioon/contracts": "workspace:*",
+    "react": "19.2.3",
+    "react-native": "0.87.1",
+    "react-native-keychain": "10.0.0",
+    "react-native-safe-area-context": "5.6.2"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.0",
+    "typescript": "^5.9.2",
+    "@types/node": "^24.0.0"
+  }
+}

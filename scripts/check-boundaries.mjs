@@ -5,6 +5,8 @@ import { fileURLToPath } from "node:url";
 
 const ignoredDirectories = new Set(["node_modules", "dist", "build", "coverage", ".git", ".next", ".expo", "test", "tests", "__tests__"]);
 const sourceExtension = /\.[cm]?[jt]sx?$/;
+// Metro/Babel execute under Node; they are not part of the application bundle.
+const nodeBuildConfigs = new Set(["metro.config.js", "babel.config.js", "react-native.config.js"]);
 const packageName = specifier => specifier.startsWith("@") ? specifier.split("/").slice(0, 2).join("/") : specifier.split("/")[0];
 const publicPackages = new Set(["@predioon/ui", "@predioon/api-client", "@predioon/contracts", "@predioon/shared"]);
 const serverPackages = new Set(["@predioon/db", "@predioon/domain", "@predioon/runtime", "@predioon/api", "@predioon/ingest"]);
@@ -84,7 +86,11 @@ export async function checkBoundaries(root) {
     for (const name of Object.keys(pkg.manifest.devDependencies ?? {})) if (packages.has(name)) dependencies[name] = pkg.manifest.devDependencies[name];
     for (const name of Object.keys(dependencies)) pkg.edges.set(name, `${relative(root, pkg.directory)}/package.json`);
     for (const file of await sourceFiles(pkg.directory)) {
+      if (nodeBuildConfigs.has(relative(pkg.directory, file))) continue;
       for (const specifier of imports(await readFile(file, "utf8"))) {
+        if (pkg.client && specifier.startsWith(".") && nodeBuildConfigs.has(relative(pkg.directory, resolve(dirname(file), specifier)))) {
+          violations.add(`Client build configuration imported at runtime: ${specifier} (${relative(root, file)})`);
+        }
         const target = specifier.startsWith(".") || specifier.startsWith("/") ? owner(resolve(dirname(file), specifier))?.name : specifier;
         if (pkg.name === "@predioon/api" && target && packageName(target) === "@predioon/db" && !apiDatabaseEntrypoints.has(specifier)) {
           violations.add(`API owner boundary: ${specifier} (${relative(root, file)}); use a restricted database entrypoint`);

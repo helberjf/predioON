@@ -1,0 +1,5 @@
+{
+  "extends": "../../packages/mobile/tsconfig.json",
+  "compilerOptions": { "types": ["react", "react-native"] },
+  "include": ["App.tsx", "config.ts"]
+}

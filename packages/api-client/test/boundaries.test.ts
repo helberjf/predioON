@@ -5,6 +5,15 @@ import { join } from "node:path";
 import { it } from "node:test";
 import { checkBoundaries } from "../../../scripts/check-boundaries.mjs";
 
+it("allows root Metro tooling but rejects importing that tooling into the mobile runtime", async () => {
+  await fixture({ "apps/resident-mobile": { name: "@predioon/resident-mobile" } }, async root => {
+    await writeFile(join(root, "apps/resident-mobile/metro.config.js"), "const path = require('node:path');");
+    assert.deepEqual(await checkBoundaries(root), []);
+    await writeFile(join(root, "apps/resident-mobile/src/index.ts"), "import '../metro.config.js';");
+    assert.ok((await checkBoundaries(root)).some(message => /configuration imported at runtime/.test(message)));
+  });
+});
+
 async function fixture(packages: Record<string, { name: string; dependencies?: Record<string, string>; source?: string }>, run: (root: string) => Promise<void>) {
   const root = await mkdtemp(join(tmpdir(), "predioon-boundaries-"));
   try {

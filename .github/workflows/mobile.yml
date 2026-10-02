@@ -1,0 +1,51 @@
+name: Native Android verification
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/*-mobile/**'
+      - 'packages/mobile/**'
+      - 'packages/api-client/**'
+      - 'packages/contracts/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/mobile.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mobile-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [resident-mobile, operations-mobile]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - run: pnpm install --frozen-lockfile
+      - name: Compile Android application and bundled JavaScript
+        working-directory: apps/${{ matrix.app }}/android
+        run: bash gradlew --no-daemon :app:assembleRelease -PreactNativeArchitectures=arm64-v8a
+      - name: Preserve unsigned verification build
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.app }}-unsigned-android
+          path: apps/${{ matrix.app }}/android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
