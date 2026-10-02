@@ -19,6 +19,8 @@ export type Scope = {
   features: readonly Feature[];
   /** Current server projection for operation navigation, never action grants. */
   overview?: BuildingOverview | null;
+  /** Current authorized gate collection; never an action or inventory grant. */
+  access?: { buildingId: string; readable: boolean } | null;
 };
 
 export function transparencySections(scope: Scope) {
@@ -69,7 +71,9 @@ export function screensFor(product: Product, scope: Scope): Screen[] {
       ...(transparency.notices || transparency.finance
         ? ["transparency" as const]
         : []),
-      ...(has("buildings:read") &&
+      ...(("access" in scope
+        ? scope.access?.buildingId === scope.buildingId && scope.access.readable
+        : has("gates:read")) &&
       (feature("GARAGE_ACCESS") || feature("PEDESTRIAN_ACCESS"))
         ? ["access" as const]
         : []),

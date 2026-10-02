@@ -1,5 +1,5 @@
 import { ApiError, type ApiClient } from "@predioon/api-client";
-import type { BuildingOverview } from "@predioon/contracts";
+import type { AccessList, BuildingOverview } from "@predioon/contracts";
 import type { AuthorizationResponse } from "@predioon/contracts/tenancy";
 
 type Reader = Pick<ApiClient, "get">;
@@ -9,6 +9,39 @@ export type OperationsAccess = {
   capabilities: AuthorizationResponse["capabilities"];
   overview: BuildingOverview | null;
 };
+export type ResidentAccess = {
+  buildingId: string;
+  capabilities: AuthorizationResponse["capabilities"];
+  /** Navigation evidence only; every action remains authorized by its API. */
+  access: { buildingId: string; readable: boolean };
+};
+
+export async function readResidentAccess(
+  api: Reader,
+  buildingId: string,
+): Promise<ResidentAccess> {
+  const authorization = await readResourceAuthorization(api, { buildingId });
+  let readable = authorization.capabilities.includes("gates:read");
+  if (!readable) {
+    try {
+      // The collection endpoint applies current gate/device/gateway grants.
+      // A resource grant must never be promoted into whole-building capabilities.
+      const gates = await api.get<AccessList>(
+        `/access?buildingId=${encodeURIComponent(buildingId)}`,
+      );
+      if (gates.items.some((gate) => gate.buildingId !== buildingId))
+        throw new Error("Os acessos não correspondem ao escopo solicitado.");
+      readable = true;
+    } catch (error) {
+      if (!(error instanceof ApiError && error.status === 403)) throw error;
+    }
+  }
+  return {
+    buildingId,
+    capabilities: authorization.capabilities,
+    access: { buildingId, readable },
+  };
+}
 
 /** Denial is empty authorization; a network/server/session error is not denial. */
 export async function readResourceAuthorization(

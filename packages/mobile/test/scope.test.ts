@@ -46,6 +46,7 @@ const resident: Scope = {
     "reservations:cancel-own",
     "telemetry:read-published",
     "finance:read-published",
+    "gates:read",
   ],
   features: ["NOTICES", "TICKETS", "RESERVATIONS"].map((key) => ({
     key,
@@ -252,6 +253,57 @@ test("resident finance and access navigation follows tenant features without inv
     }),
     ["transparency"],
   );
+});
+test("resident access navigation requires current gate authority and never borrows a building or neighbor grant", () => {
+  const scope = {
+    buildingId: "one",
+    capabilities: [],
+    features: [{ key: "GARAGE_ACCESS", enabled: true }],
+  };
+  assert.deepEqual(
+    screensFor("resident", { ...scope, capabilities: ["buildings:read"] }),
+    [],
+  );
+  assert.deepEqual(
+    screensFor("resident", { ...scope, capabilities: ["commands:request"] }),
+    [],
+  );
+  assert.deepEqual(
+    screensFor("resident", { ...scope, capabilities: ["gates:read"] }),
+    ["access"],
+  );
+  const authorized = {
+    ...scope,
+    access: { buildingId: "one", readable: true },
+  };
+  assert.deepEqual(screensFor("resident", authorized), ["access"]);
+  assert.deepEqual(
+    screensFor("resident", { ...authorized, buildingId: "other" }),
+    [],
+  );
+  assert.deepEqual(
+    screensFor("resident", {
+      ...authorized,
+      access: { buildingId: "one", readable: false },
+    }),
+    [],
+  );
+  assert.deepEqual(
+    screensFor("resident", {
+      ...authorized,
+      capabilities: ["gates:read"],
+      access: null,
+    }),
+    [],
+  );
+  assert.deepEqual(
+    screensFor("resident", {
+      ...authorized,
+      features: [{ key: "GARAGE_ACCESS", enabled: false }],
+    }),
+    [],
+  );
+  assert.deepEqual(screensFor("operations", authorized), []);
 });
 test("a notices-only reader sees GESTAO transparency without issuing a financial query", () => {
   const scope: Scope = {

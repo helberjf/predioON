@@ -6,6 +6,7 @@ import {
   alertActionScope,
   occurrenceSummary,
   readOperationsAccess,
+  readResidentAccess,
   readResourceAuthorization,
 } from "../src/authorization.ts";
 
@@ -37,6 +38,82 @@ function api(read: (path: string) => unknown): Pick<ApiClient, "get"> {
     },
   };
 }
+test("resident discovery keeps exact gate access separate from broad capabilities and fails closed on revocation", async () => {
+  const paths: string[] = [];
+  const reader = api((path) => {
+    paths.push(path);
+    if (path.startsWith("/v1/authorization"))
+      throw new ApiError(403, "Denied broad scope");
+    assert.equal(path, "/access?buildingId=one");
+    return {
+      items: [{ buildingId: "one" }],
+      canManage: false,
+      gateways: [],
+      devices: [],
+    };
+  });
+  assert.deepEqual(await readResidentAccess(reader, "one"), {
+    buildingId: "one",
+    capabilities: [],
+    access: { buildingId: "one", readable: true },
+  });
+  assert.deepEqual(paths, [
+    "/v1/authorization?buildingId=one",
+    "/access?buildingId=one",
+  ]);
+  assert.deepEqual(
+    await readResidentAccess(
+      api(() => {
+        throw new ApiError(403, "Revoked");
+      }),
+      "one",
+    ),
+    {
+      buildingId: "one",
+      capabilities: [],
+      access: { buildingId: "one", readable: false },
+    },
+  );
+  for (const status of [401, 500, 0]) {
+    await assert.rejects(
+      readResidentAccess(
+        api((path) => {
+          if (path.startsWith("/v1"))
+            return { buildingId: "one", capabilities: [] };
+          throw new ApiError(status, "failure");
+        }),
+        "one",
+      ),
+    );
+  }
+  await assert.rejects(
+    readResidentAccess(
+      api((path) =>
+        path.startsWith("/v1")
+          ? { buildingId: "one", capabilities: [] }
+          : { items: [{ buildingId: "other" }] },
+      ),
+      "one",
+    ),
+    /escopo/,
+  );
+  const broadPaths: string[] = [];
+  assert.deepEqual(
+    await readResidentAccess(
+      api((path) => {
+        broadPaths.push(path);
+        return { buildingId: "one", capabilities: ["gates:read"] };
+      }),
+      "one",
+    ),
+    {
+      buildingId: "one",
+      capabilities: ["gates:read"],
+      access: { buildingId: "one", readable: true },
+    },
+  );
+  assert.deepEqual(broadPaths, ["/v1/authorization?buildingId=one"]);
+});
 test("operation discovery tolerates only denied broad scope and keeps current domain coverage separate", async () => {
   const reader = api((path) => {
     if (path.startsWith("/v1/authorization")) throw new ApiError(403, "Denied");

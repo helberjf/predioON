@@ -21,7 +21,6 @@ import {
   type ApiClient,
 } from "@predioon/api-client";
 import type { AuthUser } from "@predioon/contracts/auth";
-import type { AuthorizationResponse } from "@predioon/contracts/tenancy";
 import { nativeTokenStorage } from "./keychain.ts";
 import { createBoundedFetch } from "./bounded-fetch.ts";
 import { createSessionActionScope } from "./session-actions.ts";
@@ -34,7 +33,7 @@ import {
 } from "./scope.ts";
 import type { Building, List } from "./models.ts";
 import { useReadResource, useResource } from "./resource.ts";
-import { readOperationsAccess } from "./authorization.ts";
+import { readOperationsAccess, readResidentAccess } from "./authorization.ts";
 import { Alerts, Overview, Readings } from "./operations.tsx";
 import { Notices, Reservations, Tickets, Transparency } from "./resident.tsx";
 import { Access } from "./access.tsx";
@@ -417,11 +416,13 @@ function BuildingApp({
   chooseBuilding(): void;
   accessIntents: AccessIntentStore;
 }) {
-  const authorization = useResource<AuthorizationResponse>(
-    api,
-    product === "resident"
-      ? `/v1/authorization?buildingId=${encodeURIComponent(building.id)}`
-      : null,
+  const readResident = useCallback(
+    () => readResidentAccess(api, building.id),
+    [api, building.id],
+  );
+  const authorization = useReadResource(
+    product === "resident" ? `resident:${building.id}` : null,
+    readResident,
   );
   const readAccess = useCallback(
     () => readOperationsAccess(api, building.id),
@@ -444,7 +445,7 @@ function BuildingApp({
     features: features.data?.items ?? [],
     ...(product === "operations"
       ? { overview: operationsAccess.data?.overview ?? null }
-      : {}),
+      : { access: authorization.data?.access ?? null }),
   };
   const screens = screensFor(product, scope);
   const ready = Boolean(
@@ -487,7 +488,7 @@ function BuildingApp({
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.page}
       >
-        <Feedback
+        <Feedback<unknown>
           resource={product === "operations" ? operationsAccess : authorization}
         />
         <Feedback resource={features} />
