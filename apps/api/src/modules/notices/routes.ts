@@ -1,14 +1,15 @@
-import { assertFeature, buildingFeatures } from "../../auth/features.js";
-import { Router } from "express";
-import { and, desc, eq, gt, isNull, lte, or, sql } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
+import { Router, type Request } from "express";
+import { and, desc, eq, isNull, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { notices, noticeSchedules, type AppTransaction } from "@predioon/db/runtime";
 import { nextNoticeOccurrence, NoticeScheduleSchema, type NoticeSchedule } from "@predioon/shared";
-import { assertBuildingAccess, currentAuth, inTenantContext } from "../../auth/middleware.js";
-import { badRequest, conflict, notFound } from "../../http/errors.js";
+import { currentAuth, inTenantContext } from "../../auth/middleware.js";
+import { badRequest, conflict, forbidden, HttpError, notFound, pgErrorCode } from "../../http/errors.js";
 import { param } from "../../http/params.js";
 import { query, validateBody, validateQuery } from "../../http/validate.js";
 import { recordAudit } from "../audit/repo.js";
+import { assertNoticeCreation, assertNoticeFeature, assertNoticeManagement, assertNoticeScope, noticeFeatures } from "./authorization.js";
 
 export const noticesRouter = Router();
 const BooleanQuery = z.enum(["true", "false"]).default("false").transform(value => value === "true");
@@ -31,21 +32,52 @@ function checkDates(publishedAt: Date, expiresAt: Date | null): void {
   if (expiresAt && expiresAt <= publishedAt) throw badRequest("O encerramento deve ser posterior à publicação");
 }
 async function databaseNow(tx: AppTransaction) {
-  const [row] = await tx.execute(sql`select now() as time`);
+  const [row] = await tx.execute(sql`select statement_timestamp() as time`);
   return new Date(row!.time as string);
 }
 
+/** Prevent driver errors from logging SQL parameters containing private bodies. */
+async function inNotices<T>(req: Request, run: (tx: AppTransaction) => Promise<T>): Promise<T> {
+  try { return await inTenantContext(req, run); }
+  catch (error) {
+    const code = pgErrorCode(error);
+    if (code === "42501") throw forbidden("Sem a capacidade necessária para avisos");
+    if (["23503", "23514", "22007", "22008", "22023"].includes(code ?? "")) throw badRequest("Dados de aviso ou agendamento inválidos");
+    if (["23505", "40001", "40P01"].includes(code ?? "")) throw conflict("O aviso foi alterado. Recarregue antes de tentar novamente.");
+    if (code) throw new HttpError(500, "Não foi possível salvar ou consultar os avisos");
+    throw error;
+  }
+}
+
+/** Reject unauthorized callers before locking; re-read/re-authorize after waiting. */
+async function lockedNotice(tx: AppTransaction, noticeId: string) {
+  const [visible] = await tx.select({ id: notices.id, buildingId: notices.buildingId }).from(notices).where(eq(notices.id, noticeId)).limit(1);
+  if (!visible) throw notFound("Aviso não encontrado");
+  await assertNoticeManagement(tx, visible.buildingId, visible.id);
+  await tx.select({ id: notices.id }).from(notices).where(eq(notices.id, noticeId)).for("update");
+  // Each following statement acquires a fresh snapshot and statement clock.
+  const [current] = await tx.select().from(notices).where(eq(notices.id, noticeId)).limit(1);
+  if (!current) throw notFound("Aviso não encontrado");
+  await assertNoticeManagement(tx, current.buildingId, current.id);
+  return current;
+}
+
+noticesRouter.use((_req, res, next) => { res.setHeader("Cache-Control", "no-store"); next(); });
+
 noticesRouter.get("/", validateQuery(ListQuerySchema), async (req, res) => {
   const { buildingId, category, includeExpired, includeUnpublished } = query<z.infer<typeof ListQuerySchema>>(req);
-  const auth = currentAuth(req);
-  assertBuildingAccess(auth, buildingId, includeExpired || includeUnpublished ? "BUILDING_ADMIN" : "RESIDENT");
-  const items = await inTenantContext(req, async tx => {
-    const features = await buildingFeatures(tx, buildingId, includeExpired || includeUnpublished);
-    if (category) await assertFeature(tx, buildingId, category === "GESTAO" ? "TRANSPARENCY" : "NOTICES", includeExpired || includeUnpublished);
+  const manage = includeExpired || includeUnpublished;
+  const items = await inNotices(req, async tx => {
+    await assertNoticeScope(tx, buildingId, manage);
+    const features = await noticeFeatures(tx, buildingId);
+    if (category) assertNoticeFeature(features, category);
     const now = await databaseNow(tx);
     const rows = await tx.select({ notice: notices, schedule: noticeSchedules }).from(notices)
-    .leftJoin(noticeSchedules, eq(noticeSchedules.noticeId, notices.id))
-    .where(and(eq(notices.buildingId, buildingId), category ? eq(notices.category, category) : undefined, includeUnpublished ? undefined : lte(notices.publishedAt, now), includeExpired ? undefined : or(isNull(notices.expiresAt), gt(notices.expiresAt, now))))
+    .leftJoin(noticeSchedules, and(eq(noticeSchedules.noticeId, notices.id), eq(noticeSchedules.buildingId, notices.buildingId)))
+    .where(and(eq(notices.buildingId, buildingId), category ? eq(notices.category, category) : undefined,
+      manage ? sql`app_notice_has_capability(${notices.buildingId},${notices.id}::text,'notices:manage')` : undefined,
+      includeUnpublished ? undefined : sql`${notices.publishedAt} <= statement_timestamp()`,
+      includeExpired ? undefined : or(isNull(notices.expiresAt), sql`${notices.expiresAt} > statement_timestamp()`)))
     .orderBy(desc(notices.pinned), desc(notices.publishedAt));
     return rows.filter(row => features[row.notice.category === "GESTAO" ? "TRANSPARENCY" : "NOTICES"].enabled).map(row => view(row.notice, row.schedule, now));
   });
@@ -55,17 +87,22 @@ noticesRouter.get("/", validateQuery(ListQuerySchema), async (req, res) => {
 noticesRouter.post("/", validateBody(CreateSchema), async (req, res) => {
   const { schedule, ...input } = req.body as z.infer<typeof CreateSchema>;
   const auth = currentAuth(req);
-  assertBuildingAccess(auth, input.buildingId, "BUILDING_ADMIN");
-  const row = await inTenantContext(req, async tx => {
-    await assertFeature(tx, input.buildingId, input.category === "GESTAO" ? "TRANSPARENCY" : "NOTICES", true);
+  const row = await inNotices(req, async tx => {
+    await assertNoticeCreation(tx, input.buildingId);
+    assertNoticeFeature(await noticeFeatures(tx, input.buildingId), input.category ?? "COMMUNICATION");
     // Match the clock used by the publication RLS policy, even when the API host differs.
     const now = await databaseNow(tx);
     const publishedAt = input.publishedAt ?? now;
     checkDates(publishedAt, input.expiresAt ?? null);
-    const [created] = await tx.insert(notices).values({ ...input, publishedAt, createdBy: auth.userId }).returning();
-    if (schedule) await tx.insert(noticeSchedules).values({ noticeId: created!.id, buildingId: input.buildingId, ...schedule, startsAt: new Date(schedule.startsAt) });
-    await recordAudit(tx, req, { buildingId: input.buildingId, userId: auth.userId, action: publishedAt > now ? "NOTICE_SCHEDULED" : "NOTICE_PUBLISHED", resourceType: "notice", resourceId: created!.id, metadata: { publishedAt: publishedAt.toISOString(), schedule: schedule ?? null } });
-    return view(created!, schedule ?? null, now);
+    const id = randomUUID();
+    await tx.insert(notices).values({ ...input, id, publishedAt, createdBy: auth.userId });
+    // STABLE RLS helpers see the inserted parent in the next statement, not
+    // in INSERT RETURNING. Parent/schedule/audit still share one transaction.
+    const [created] = await tx.select().from(notices).where(eq(notices.id, id)).limit(1);
+    if (!created) throw notFound("Aviso não encontrado");
+    if (schedule) await tx.insert(noticeSchedules).values({ noticeId: id, buildingId: input.buildingId, ...schedule, startsAt: new Date(schedule.startsAt) });
+    await recordAudit(tx, req, { buildingId: input.buildingId, userId: auth.userId, action: publishedAt > now ? "NOTICE_SCHEDULED" : "NOTICE_PUBLISHED", resourceType: "notice", resourceId: id, metadata: { publishedAt: publishedAt.toISOString(), schedule: schedule ?? null } });
+    return view(created, schedule ?? null, now);
   });
   res.status(201).json(row);
 });
@@ -73,33 +110,36 @@ noticesRouter.post("/", validateBody(CreateSchema), async (req, res) => {
 noticesRouter.patch("/:noticeId", validateBody(EditSchema), async (req, res) => {
   const { schedule, expectedUpdatedAt, ...input } = req.body as z.infer<typeof EditSchema>;
   const auth = currentAuth(req);
-  const result = await inTenantContext(req, async tx => {
-    const [current] = await tx.select().from(notices).where(eq(notices.id, param(req, "noticeId"))).limit(1).for("update");
-    if (!current) throw notFound("Aviso não encontrado");
-    assertBuildingAccess(auth, current.buildingId, "BUILDING_ADMIN");
-    await assertFeature(tx, current.buildingId, current.category === "GESTAO" ? "TRANSPARENCY" : "NOTICES", true);
-    if (input.category) await assertFeature(tx, current.buildingId, input.category === "GESTAO" ? "TRANSPARENCY" : "NOTICES", true);
+  const id = param(req, "noticeId");
+  if (!z.uuid().safeParse(id).success) throw notFound("Aviso não encontrado");
+  const result = await inNotices(req, async tx => {
+    const current = await lockedNotice(tx, id);
+    const features = await noticeFeatures(tx, current.buildingId);
+    assertNoticeFeature(features, current.category);
+    if (input.category) assertNoticeFeature(features, input.category);
     if (expectedUpdatedAt && new Date(expectedUpdatedAt).getTime() !== current.updatedAt.getTime()) throw conflict("O aviso foi alterado. Recarregue antes de salvar.");
     checkDates(input.publishedAt ?? current.publishedAt, input.expiresAt === undefined ? current.expiresAt : input.expiresAt);
     const [updated] = await tx.update(notices).set({ ...input, updatedAt: sql`clock_timestamp()` }).where(eq(notices.id, current.id)).returning();
-    if (schedule === null) await tx.delete(noticeSchedules).where(eq(noticeSchedules.noticeId, current.id));
+    if (!updated) throw notFound("Aviso não encontrado");
+    if (schedule === null) await tx.delete(noticeSchedules).where(and(eq(noticeSchedules.noticeId, current.id), eq(noticeSchedules.buildingId, current.buildingId)));
     else if (schedule) await tx.insert(noticeSchedules).values({ noticeId: current.id, buildingId: current.buildingId, ...schedule, startsAt: new Date(schedule.startsAt) }).onConflictDoUpdate({ target: noticeSchedules.noticeId, set: { ...schedule, startsAt: new Date(schedule.startsAt) } });
-    const [savedSchedule] = await tx.select().from(noticeSchedules).where(eq(noticeSchedules.noticeId, current.id)).limit(1);
+    const [savedSchedule] = await tx.select().from(noticeSchedules).where(and(eq(noticeSchedules.noticeId, current.id), eq(noticeSchedules.buildingId, current.buildingId))).limit(1);
     await recordAudit(tx, req, { buildingId: current.buildingId, userId: auth.userId, action: "NOTICE_UPDATED", resourceType: "notice", resourceId: current.id, metadata: { fields: Object.keys(req.body) } });
-    return view(updated!, savedSchedule ?? null, await databaseNow(tx));
+    return view(updated, savedSchedule ?? null, await databaseNow(tx));
   });
   res.json(result);
 });
 
 noticesRouter.delete("/:noticeId", async (req, res) => {
   const auth = currentAuth(req);
-  await inTenantContext(req, async tx => {
-    const [current] = await tx.select().from(notices).where(eq(notices.id, param(req, "noticeId"))).limit(1).for("update");
-    if (!current) throw notFound("Aviso não encontrado");
-    assertBuildingAccess(auth, current.buildingId, "BUILDING_ADMIN");
-    await assertFeature(tx, current.buildingId, current.category === "GESTAO" ? "TRANSPARENCY" : "NOTICES", true);
-    await tx.delete(notices).where(eq(notices.id, current.id));
+  const id = param(req, "noticeId");
+  if (!z.uuid().safeParse(id).success) throw notFound("Aviso não encontrado");
+  await inNotices(req, async tx => {
+    const current = await lockedNotice(tx, id);
+    assertNoticeFeature(await noticeFeatures(tx, current.buildingId), current.category);
     await recordAudit(tx, req, { buildingId: current.buildingId, userId: auth.userId, action: "NOTICE_DELETED", resourceType: "notice", resourceId: current.id });
+    const deleted = await tx.delete(notices).where(eq(notices.id, current.id)).returning({ id: notices.id });
+    if (!deleted.length) throw notFound("Aviso não encontrado");
   });
   res.status(204).end();
 });
