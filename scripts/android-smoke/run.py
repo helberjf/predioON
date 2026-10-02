@@ -15,6 +15,15 @@ EMAIL = "smoke@example.invalid"
 PASSWORD = "EmulatorOnly123"
 
 
+def fixture_text_batches(value):
+    # ADB translates %s into a space. Keep that escape indivisible, reject shell
+    # syntax, and generate a fresh KeyCharacterMap timestamp for each small batch.
+    if not re.fullmatch(r"(?:[A-Za-z0-9@._:-]|%s)+", value):
+        raise ValueError("Expected safe ASCII fixture text with encoded spaces")
+    characters = re.findall(r"%s|.", value)
+    return ["".join(characters[start:start + 8]) for start in range(0, len(characters), 8)]
+
+
 def parse_nodes(source, package):
     root = ET.fromstring(source)
     blocking = next((node.get("text") for node in root.iter("node") if node.get("package") == "android" and node.get("resource-id") == "android:id/alertTitle"), None)
@@ -94,14 +103,25 @@ class Device:
         self.environment_attempts = []
 
     def adb(self, *args, binary=False, required=True, timeout=30, record_hierarchy=False):
-        result = subprocess.run(["adb", "-s", self.serial, *args], capture_output=True, timeout=timeout)
+        sensitive_input = args[:3] == ("shell", "input", "text")
+        try:
+            result = subprocess.run(["adb", "-s", self.serial, *args], capture_output=True, timeout=timeout)
+        except subprocess.TimeoutExpired:
+            if not sensitive_input:
+                raise
+            # TimeoutExpired embeds command arguments. Never export a password
+            # fragment, even when only part of the fixture has been entered.
+            self.last_adb_failure = {"command": list(args[:3]), "exitCode": None, "timeoutSeconds": timeout,
+                                     "stdout": "[fixture input omitted]", "stderr": "[fixture input omitted]"}
+            raise RuntimeError("adb shell input text timed out") from None
         if record_hierarchy:
             self.last_hierarchy_output = {"exitCode": result.returncode, "stdout": result.stdout.decode(errors="replace"),
                                           "stderr": result.stderr.decode(errors="replace")}
         if required and result.returncode:
             self.last_adb_failure = {"command": list(args[:3]), "exitCode": result.returncode,
-                                     "stdout": result.stdout.decode(errors="replace"), "stderr": result.stderr.decode(errors="replace")}
-            raise RuntimeError(f"adb {' '.join(args[:3])} failed (exit {result.returncode}, stdout {len(result.stdout)} bytes): {result.stderr.decode(errors='replace')}")
+                                     "stdout": "[fixture input omitted]" if sensitive_input else result.stdout.decode(errors="replace"),
+                                     "stderr": "[fixture input omitted]" if sensitive_input else result.stderr.decode(errors="replace")}
+            raise RuntimeError(f"adb {' '.join(args[:3])} failed (exit {result.returncode}, stdout {len(result.stdout)} bytes): {self.last_adb_failure['stderr']}")
         return result.stdout if binary else result.stdout.decode("utf-8", errors="replace")
 
     def hierarchy(self):
@@ -192,10 +212,13 @@ class Device:
         raise AssertionError("Disposable emulator HOME did not become ready before app installation")
 
     def edit(self, node, value):
+        batches = fixture_text_batches(value)
         self.adb("shell", "input", "tap", *center(node))
         time.sleep(0.5)
-        # Values are fixed alphanumeric/email fixtures; no user input enters shell.
-        self.adb("shell", "input", "text", value)
+        # Android gives all events from one input-text invocation the same event
+        # time and drops stale events. Bound batches; never retry or repair input.
+        for batch in batches:
+            self.adb("shell", "input", "text", batch)
         time.sleep(0.5)
         self.adb("shell", "input", "keyevent", "KEYCODE_BACK")
 

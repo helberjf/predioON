@@ -76,6 +76,8 @@ python3 scripts/android-domain-smoke/run_domains.py --fixture .local/android-dom
 
 ## Continuidade e limites
 
+A reexecução [36968150387](https://github.com/helberjf/predioON/actions/runs/36968150387), commit `ee7922a`, job `110716279815`, reprovou antes de enviar o primeiro login. O artefato `11210504463` contém apenas a fase de entrada vazia do Morador aprovada; Operação não iniciou seu percurso. O XML final mostra e-mail truncado, e o logcat registra descarte de eventos antigos durante a digitação por ADB. A causa e o ajuste testável em lotes estão no [diagnóstico comum](../android-smoke/README.md#digitação-longa-por-adb--02102026). Essa execução não chegou ao campo de comentário que motivou o ajuste de rolagem anterior; sua aprovação nativa permanece pendente.
+
 Reservas com conflito/aprovação/cancelamento será o próximo roteiro; não foi adicionado ao custo de estabilizar este conjunto. Também ficam pendentes mensagens/arquivos anexos, gestão de equipamentos, notificações, fonte/tela/orientação, modo offline, iOS e aparelhos físicos. O cenário não inclui comandos físicos nem entrega assinatura de loja.
 
 Vídeos completos por app continuam previstos no [roteiro de gravação](../android-auth-smoke/README.md#gravações-completas-ao-concluir-o-plano). Este workflow ainda não grava vídeo; screenshots não serão apresentadas como uma gravação. A publicação do resultado deverá citar commit, execução, artefato e quais fases realmente passaram, mantendo eventuais falhas anteriores.

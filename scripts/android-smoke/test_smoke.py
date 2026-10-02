@@ -1,4 +1,5 @@
 import unittest
+import subprocess
 from pathlib import Path
 from unittest.mock import patch
 import xml.etree.ElementTree as ET
@@ -20,6 +21,48 @@ def hierarchy(app="resident-mobile", email="", password="", enabled="false", sec
 
 
 class UiAssertions(unittest.TestCase):
+    def test_long_fixture_input_uses_fresh_bounded_batches_without_replaying_characters(self):
+        device = Device("emulator-test", "resident-mobile", Path("unused"))
+        node = ET.Element("node", {"bounds": "[10,20][110,80]"})
+        for value in ["resident-12345678-1234-1234-1234-123456789abc@android.example.invalid", "1234567%smessage%swith%sspaces", "AbCdEfGhIjKlMnOpQrStUvWx"]:
+            with self.subTest(value=value), patch.object(device, "adb") as command, patch("run.time.sleep"):
+                device.edit(node, value)
+                texts = [call.args[3] for call in command.call_args_list if call.args[:3] == ("shell", "input", "text")]
+                self.assertGreater(len(texts), 1)
+                self.assertEqual("".join(texts), value)
+                self.assertTrue(all(len(text.replace("%s", " ")) <= 8 and not text.endswith("%") for text in texts))
+                self.assertEqual(command.call_args_list[0].args, ("shell", "input", "tap", "60", "50"))
+                self.assertEqual(command.call_args_list[-1].args, ("shell", "input", "keyevent", "KEYCODE_BACK"))
+                self.assertEqual(len(command.call_args_list), len(texts) + 2)
+
+    def test_fixture_text_failure_never_resends_a_batch_or_continues_input(self):
+        device = Device("emulator-test", "resident-mobile", Path("unused"))
+        node = ET.Element("node", {"bounds": "[10,20][110,80]"})
+        with patch.object(device, "adb", side_effect=["", "", RuntimeError("transport failed")]) as command, patch("run.time.sleep"):
+            with self.assertRaisesRegex(RuntimeError, "transport failed"):
+                device.edit(node, "12345678abcdefghTAIL")
+            self.assertEqual([call.args for call in command.call_args_list], [("shell", "input", "tap", "60", "50"), ("shell", "input", "text", "12345678"), ("shell", "input", "text", "abcdefgh")])
+
+    def test_invalid_fixture_text_is_refused_before_a_gesture(self):
+        device = Device("emulator-test", "resident-mobile", Path("unused"))
+        for value in ["", "has raw spaces", "a;echo", "$(echo)", "trailing%", "not%escaped", "quote'", "new\nline"]:
+            with self.subTest(value=value), patch.object(device, "adb") as command:
+                with self.assertRaisesRegex(ValueError, "fixture"):
+                    device.edit(ET.Element("node", {"bounds": "[10,20][110,80]"}), value)
+                command.assert_not_called()
+
+    def test_sensitive_input_errors_never_export_password_fragments(self):
+        device = Device("emulator-test", "resident-mobile", Path("unused"))
+        secret = "AbCdEfGh"
+        failures = [type("Result", (), {"returncode": 1, "stdout": secret.encode(), "stderr": secret.encode()})(), subprocess.TimeoutExpired(["adb", "shell", "input", "text", secret], 30, output=secret.encode(), stderr=secret.encode())]
+        for failure in failures:
+            with self.subTest(kind=type(failure).__name__), patch("run.subprocess.run", side_effect=failure if isinstance(failure, Exception) else None, return_value=failure):
+                with self.assertRaises(RuntimeError) as caught:
+                    device.adb("shell", "input", "text", secret)
+                self.assertNotIn(secret, str(caught.exception))
+                self.assertNotIn(secret, str(device.last_adb_failure))
+                self.assertEqual(device.last_adb_failure["command"], ["shell", "input", "text"])
+
     def test_product_specific_login_and_field_state_for_both_apps(self):
         for app in APPS:
             inspect_login(hierarchy(app), app)
