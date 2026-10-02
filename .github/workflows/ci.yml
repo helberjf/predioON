@@ -64,6 +64,14 @@ jobs:
         run: pnpm --filter @predioon/db exec node --import tsx --test --test-concurrency=1 test/*.test.ts
       - name: Full platform regression
         run: pnpm test
+      - name: Native reservation calendar contract against the real API
+        env:
+          NODE_ENV: test
+          RUN_MOBILE_DB_TESTS: '1'
+          TZ: America/Sao_Paulo
+        run: |
+          pnpm --filter @predioon/mobile exec tsc --project test/tsconfig.integration.json
+          pnpm --filter @predioon/api exec tsx --test ../../packages/mobile/test/reservation-calendar.integration.mts
       - name: Build services and websites
         run: pnpm build
       - name: Validate production container builds

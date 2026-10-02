@@ -20,6 +20,7 @@ import type {
 import { useReadResource, useResource } from "./resource.ts";
 import { readResourceAuthorization } from "./authorization.ts";
 import { useMutation } from "./mutation.ts";
+import { ReservationCalendarPanel } from "./reservation-calendar-panel.tsx";
 import {
   money,
   publishedReports,
@@ -544,6 +545,7 @@ export function Reservations({
   scope,
 }: Props & { scope: Scope }) {
   const actions = reservationActions(scope);
+  const [calendarRevision, setCalendarRevision] = useState(0);
   const areas = useResource<List<CommonArea>>(
     api,
     actions.areas
@@ -616,6 +618,15 @@ export function Reservations({
             keyboardType="numbers-and-punctuation"
             onChangeText={(date) => setForm({ ...form, date })}
           />
+          <ReservationCalendarPanel
+            key={`${buildingId}:${selected.id}`}
+            api={api}
+            buildingId={buildingId}
+            areaId={selected.id}
+            date={form.date}
+            enabled={actions.create}
+            revision={calendarRevision}
+          />
           <Field
             label="Início (HH:MM, horário deste aparelho)"
             value={form.time}
@@ -647,14 +658,19 @@ export function Reservations({
                     form.hours.replace(",", "."),
                     selected.maxHoursPerBooking,
                   );
-                  const created = await api.post<Reservation>("/reservations", {
-                    areaId: selected.id,
-                    ...window,
-                    unit: form.unit.trim() || undefined,
-                  });
-                  setForm({ ...form, areaId: "", date: "" });
-                  mine.reload();
-                  return created;
+                  try {
+                    const created = await api.post<Reservation>("/reservations", {
+                      areaId: selected.id,
+                      ...window,
+                      unit: form.unit.trim() || undefined,
+                    });
+                    setForm({ ...form, areaId: "", date: "" });
+                    mine.reload();
+                    return created;
+                  } finally {
+                    // Refresh occupancy after conflict/uncertain response, never replay the POST.
+                    setCalendarRevision((value) => value + 1);
+                  }
                 },
                 (created) => reservationResultMessage(created.status),
               )
@@ -696,10 +712,14 @@ export function Reservations({
                         style: "destructive",
                         onPress: () =>
                           void mutation.run(async () => {
-                            await api.delete(
-                              `/reservations/${encodeURIComponent(reservation.id)}`,
-                            );
-                            mine.reload();
+                            try {
+                              await api.delete(
+                                `/reservations/${encodeURIComponent(reservation.id)}`,
+                              );
+                              mine.reload();
+                            } finally {
+                              setCalendarRevision((value) => value + 1);
+                            }
                           }, "Reserva cancelada."),
                       },
                     ],
