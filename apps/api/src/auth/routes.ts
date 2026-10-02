@@ -6,6 +6,7 @@ import { listSessions, login, refreshSession, revokeAllSessions, revokeSession, 
 import type { SessionTokens } from "./service.js";
 
 export const authRouter = Router();
+authRouter.use((_req, res, next) => { res.setHeader("Cache-Control", "no-store"); next(); });
 
 const LoginSchema = z.object({
   email: z.string().email(),

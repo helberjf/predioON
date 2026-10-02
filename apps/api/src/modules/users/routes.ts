@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { memberships, users } from "@predioon/db/runtime";
 import { assertBuildingAccess, currentAuth, inTenantContext, requireRole, scopedBuildingIds } from "../../auth/middleware.js";
@@ -106,7 +106,14 @@ usersRouter.post("/memberships", validateBody(MembershipSchema), async (req, res
       .values(input)
       .onConflictDoUpdate({
         target: [memberships.userId, memberships.buildingId],
-        set: { role: input.role, unit: input.unit ?? null, active: true, updatedAt: new Date() },
+        set: {
+          role: input.role, unit: input.unit ?? null, active: true,
+          // Readmission must not retain the revoked grant's end date. An edit
+          // to a still-valid or future grant must preserve its access window.
+          startsAt: sql`case when not ${memberships.active} or ${memberships.endsAt} <= statement_timestamp() then null else ${memberships.startsAt} end`,
+          endsAt: sql`case when not ${memberships.active} or ${memberships.endsAt} <= statement_timestamp() then null else ${memberships.endsAt} end`,
+          updatedAt: sql`clock_timestamp()`,
+        },
       })
       .returning();
 
