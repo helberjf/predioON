@@ -12,6 +12,7 @@ const LINKS = [
   { to: "/suporte-remoto", label: "Suporte remoto", icon: Monitor },
   { to: "/alertas", label: "Alertas", icon: AlertTriangle },
   { to: "/usuarios", label: "Usuários", icon: Users },
+  { to: "/unidades-equipes", label: "Unidades e equipes", icon: Building2 },
   { to: "/funcionalidades", label: "Funcionalidades", icon: ShieldCheck },
   { to: "/auditoria", label: "Histórico de atividades", icon: ScrollText },
 ];

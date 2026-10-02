@@ -1,7 +1,8 @@
-import { Button, Card, useAuth } from "@predioon/ui";
+import { Button, Card, useAuth, useBuildingScope } from "@predioon/ui";
 
 export function Profile() {
   const { user, signOut } = useAuth();
+  const { buildings } = useBuildingScope();
 
   return (
     <Card title="Meu perfil">
@@ -15,8 +16,8 @@ export function Profile() {
           <dd className="font-medium text-slate-800">{user?.email}</dd>
         </div>
         <div>
-          <dt className="text-xs text-slate-400">Unidades vinculadas</dt>
-          <dd className="font-medium text-slate-800">{user?.memberships.length ?? 0}</dd>
+          <dt className="text-xs text-slate-400">Condomínios disponíveis</dt>
+          <dd className="font-medium text-slate-800">{buildings.length}</dd>
         </div>
       </dl>
 

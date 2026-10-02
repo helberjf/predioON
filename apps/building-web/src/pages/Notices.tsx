@@ -13,9 +13,9 @@ type ManagedNotice = Notice & ScheduledNotice & { expiresAt: string | null; upda
 const emptyForm = () => ({ title: "", body: "", category: "COMMUNICATION", pinned: false, eventAt: "", recurrence: "NONE" as "NONE" | "WEEKLY", timeZone: "America/Sao_Paulo", publishAt: "", expiresAt: "" });
 const dateInZone = (value: string | Date, timeZone: string) => new Intl.DateTimeFormat("pt-BR", { timeZone, dateStyle: "short", timeStyle: "short" }).format(new Date(value));
 
-export function Notices({ buildingId }: { buildingId: string }) {
+export function Notices({ buildingId, canManage = false, canManageParking = false }: { buildingId: string; canManage?: boolean; canManageParking?: boolean }) {
   const flags = useFeatures();
-  const notices = useResource<Paged<ManagedNotice>>(`/notices?buildingId=${encodeURIComponent(buildingId)}&includeUnpublished=true&includeExpired=true`);
+  const notices = useResource<Paged<ManagedNotice>>(`/notices?buildingId=${encodeURIComponent(buildingId)}${canManage ? "&includeUnpublished=true&includeExpired=true" : ""}`);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [editing, setEditing] = useState<ManagedNotice | null>(null);
@@ -63,9 +63,9 @@ export function Notices({ buildingId }: { buildingId: string }) {
     <h1 className="text-2xl font-bold text-slate-900">Avisos e agenda</h1>
     {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
     {message && <p role="status" className="rounded-xl bg-emerald-50 p-3 text-sm text-emerald-700">{message}</p>}
-    <ParkingPanel buildingId={buildingId} canManage />
+    <ParkingPanel buildingId={buildingId} canManage={canManageParking} />
     <div className="grid items-start gap-5 xl:grid-cols-3">
-      <Card title={editing ? "Editar aviso" : "Novo aviso"}>
+      {canManage && <Card title={editing ? "Editar aviso" : "Novo aviso"}>
         <div className="space-y-3">
           {!editing && <div className="flex flex-wrap gap-1"><Button variant="ghost" onClick={() => template("trash")}>Dia do lixo</Button><Button variant="ghost" onClick={() => template("meeting")}>Reunião</Button><Button variant="ghost" onClick={() => template("hall")}>Limpeza do hall</Button></div>}
           <Field label="Categoria"><Select value={form.category} onChange={category => setForm({ ...form, category })} options={CATEGORIES.filter(category => category.value !== "GESTAO" || flags.enabled("TRANSPARENCY"))} /></Field>
@@ -80,8 +80,8 @@ export function Notices({ buildingId }: { buildingId: string }) {
           <Button full onClick={() => void save()} disabled={busy || form.title.trim().length < 3 || form.body.trim().length < 3}>{busy ? "Salvando…" : editing ? "Salvar alterações" : form.publishAt ? "Salvar publicação" : "Publicar para os moradores"}</Button>
           {editing && <Button full variant="ghost" disabled={busy} onClick={() => { setEditing(null); setForm(emptyForm()); }}>Cancelar edição</Button>}
         </div>
-      </Card>
-      <Card title="Publicados, agendados e encerrados" className="xl:col-span-2" action={<Button variant="ghost" onClick={notices.reload}>Atualizar</Button>}>
+      </Card>}
+      <Card title={canManage ? "Publicados, agendados e encerrados" : "Avisos publicados"} className={canManage ? "xl:col-span-2" : "xl:col-span-3"} action={<Button variant="ghost" onClick={notices.reload}>Atualizar</Button>}>
         {notices.error && notices.data && <ErrorBanner message={notices.error} />}
         {notices.data?.items.length ? <ul className="space-y-3">{notices.data.items.map(notice => {
           const zone = notice.schedule?.timeZone ?? "America/Sao_Paulo";
@@ -92,7 +92,7 @@ export function Notices({ buildingId }: { buildingId: string }) {
             <p className="mt-2 font-medium text-slate-800">{notice.title}</p><p className="mt-1 whitespace-pre-wrap text-sm text-slate-600">{notice.body}</p>
             {notice.schedule && <div className="mt-3 rounded-lg bg-sky-50 px-3 py-2 text-sm text-sky-900"><p>{notice.nextOccurrenceAt ? `Próxima data: ${dateInZone(notice.nextOccurrenceAt, zone)}` : `Data do evento: ${dateInZone(notice.schedule.startsAt, zone)}`}</p><p className="mt-1 text-xs">{notice.schedule.recurrence === "WEEKLY" ? "Semanal" : "Evento único"} · {zone}</p></div>}
             <p className="mt-2 text-xs text-slate-500">Publicação: {dateInZone(notice.publishedAt, zone)} · {zone}{notice.expiresAt ? ` • Encerramento: ${dateInZone(notice.expiresAt, zone)}` : ""}</p>
-            <div className="mt-3 flex gap-2"><Button variant="secondary" disabled={busy} onClick={() => edit(notice)}>Editar</Button><Button variant="ghost" disabled={busy} onClick={() => void remove(notice.id)}>Remover</Button></div>
+            {canManage && <div className="mt-3 flex gap-2"><Button variant="secondary" disabled={busy} onClick={() => edit(notice)}>Editar</Button><Button variant="ghost" disabled={busy} onClick={() => void remove(notice.id)}>Remover</Button></div>}
           </li>;
         })}</ul> : <ResourceFeedback resource={notices} emptyText="Nenhum aviso cadastrado." />}
       </Card>

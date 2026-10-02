@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import { AccessPanel, FeatureProvider, FeatureContent, LoginScreen, MonitoringPanel, ParkingPanel, TransparencyPanel, useAuth } from "@predioon/ui";
+import { AccessPanel, BuildingScopeProvider, BuildingScopeFeedback, FeatureProvider, FeatureContent, LoginScreen, MonitoringPanel, ParkingPanel, TransparencyPanel, useAuth, useBuildingScope } from "@predioon/ui";
 import { MobileShell } from "./layout/MobileShell.js";
 import { Home } from "./pages/Home.js";
 import { Notices } from "./pages/Notices.js";
@@ -8,21 +8,20 @@ import { Reservations } from "./pages/Reservations.js";
 import { Profile } from "./pages/Profile.js";
 
 export function App() {
-  const { user, loading, buildingId } = useAuth();
+  const { user, loading } = useAuth();
 
   if (loading) return <p className="p-8 text-slate-500">Carregando...</p>;
   if (!user) return <LoginScreen subtitle="Portal do morador" />;
 
-  if (!buildingId) {
-    return (
-      <main className="flex min-h-screen items-center justify-center p-8 text-center text-slate-600">
-        Sua conta ainda não está vinculada a um condomínio. Procure a administração.
-      </main>
-    );
-  }
+  return <BuildingScopeProvider key={user.id}><ResidentApp /></BuildingScopeProvider>;
+}
+
+function ResidentApp() {
+  const { buildingId } = useBuildingScope();
+  if (!buildingId) return <BuildingScopeFeedback />;
 
   return (
-    <FeatureProvider buildingId={buildingId}><MobileShell>
+    <FeatureProvider key={buildingId} buildingId={buildingId}><MobileShell>
       <Routes>
         <Route path="/" element={<FeatureContent path="/"><Home buildingId={buildingId} /></FeatureContent>} />
         <Route path="/avisos" element={<FeatureContent path="/avisos"><Notices buildingId={buildingId} /></FeatureContent>} />

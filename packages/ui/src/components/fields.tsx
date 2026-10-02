@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { InputHTMLAttributes, ReactNode } from "react";
 
 type FieldProps = { label: string; hint?: string; children: ReactNode };
 
@@ -16,7 +16,7 @@ const CONTROL =
   "w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 " +
   "outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100";
 
-type InputProps = {
+type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, "value" | "onChange"> & {
   value: string;
   onChange: (value: string) => void;
   type?: "text" | "email" | "password" | "number" | "datetime-local" | "date" | "time";
@@ -24,9 +24,10 @@ type InputProps = {
   required?: boolean;
 };
 
-export function Input({ value, onChange, type = "text", placeholder, required }: InputProps) {
+export function Input({ value, onChange, type = "text", placeholder, required, ...attributes }: InputProps) {
   return (
     <input
+      {...attributes}
       className={CONTROL}
       type={type}
       value={value}
@@ -63,13 +64,17 @@ export function Select<T extends string>({
   value,
   onChange,
   options,
+  disabled,
+  required,
 }: {
   value: T;
   onChange: (value: T) => void;
   options: Array<{ value: T; label: string }>;
+  disabled?: boolean;
+  required?: boolean;
 }) {
   return (
-    <select className={CONTROL} value={value} onChange={(event) => onChange(event.target.value as T)}>
+    <select className={CONTROL} value={value} disabled={disabled} required={required} onChange={(event) => onChange(event.target.value as T)}>
       {options.map((option) => (
         <option key={option.value} value={option.value}>
           {option.label}

@@ -13,6 +13,8 @@ const buildingId = z.string().trim().min(1).max(128);
 const id = z.string().uuid();
 const name = z.string().trim().min(1).max(120);
 const ListSchema = z.object({ buildingId, after: id.optional(), limit: z.coerce.number().int().min(1).max(100).default(50) });
+// Users have text IDs; the UUID cursor used by units/teams is not interchangeable.
+const PeopleListSchema = ListSchema.extend({ after: z.string().min(1).max(128).optional() });
 type ListQuery = z.infer<typeof ListSchema>;
 const CreateBlock = z.object({ buildingId, code: z.string().trim().min(1).max(40), name }).strict();
 const CreateUnit = z.object({ buildingId, blockId: id.nullable().optional(), code: z.string().trim().min(1).max(40), floor: z.number().int().min(-10).max(300).nullable().optional() }).strict();
@@ -45,6 +47,17 @@ async function inTenancy<T>(req: Request, run: (tx: AppTransaction) => Promise<T
 }
 
 tenancyRouter.use((_req, res, next) => { res.setHeader("Cache-Control", "no-store"); next(); });
+
+tenancyRouter.get("/people", validateQuery(PeopleListSchema), async (req, res) => {
+  const q = query<z.infer<typeof PeopleListSchema>>(req);
+  const result = await inTenancy(req, async tx => {
+    // The narrow helper authorizes memberships:manage OR teams:manage and
+    // returns only current tenant-linked people. It never grants raw users access.
+    const rows = await tx.execute(sql`select id, name, email from app_tenancy_people(${q.buildingId}, ${q.after ?? null}, ${q.limit})`);
+    return page(rows as unknown as Array<{ id: string; name: string; email: string }>, q.limit);
+  });
+  res.json(result);
+});
 
 tenancyRouter.get("/blocks", validateQuery(ListSchema), async (req, res) => {
   const q = query<ListQuery>(req);

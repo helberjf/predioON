@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { api, Badge, Button, Card, EmptyState, ErrorBanner, Field, Input, Select, useResource, useFeatures } from "@predioon/ui";
+import { api, Badge, Button, Card, ErrorBanner, Field, Input, ResourceFeedback, Select, useResource, useFeatures } from "@predioon/ui";
 import { deviceFeatures, metricFeature } from "@predioon/shared";
 import type { AlertRule, Device, Paged } from "@predioon/ui";
 
@@ -13,7 +13,7 @@ const OPERATORS = [
 
 const SEVERITIES = ["INFO", "LOW", "MEDIUM", "HIGH", "CRITICAL"] as const;
 
-export function Rules({ buildingId }: { buildingId: string }) {
+export function Rules({ buildingId, canManage = false }: { buildingId: string; canManage?: boolean }) {
   const flags = useFeatures();
   const rules = useResource<Paged<AlertRule>>(`/alert-rules?buildingId=${buildingId}`);
   const devices = useResource<Paged<Device>>(`/devices?buildingId=${buildingId}`);
@@ -53,8 +53,10 @@ export function Rules({ buildingId }: { buildingId: string }) {
   }
 
   async function toggle(rule: AlertRule) {
-    await api.patch(`/alert-rules/${rule.id}`, { enabled: !rule.enabled });
-    rules.reload();
+    try {
+      await api.patch(`/alert-rules/${rule.id}`, { enabled: !rule.enabled });
+      rules.reload();
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "Falha ao atualizar regra"); }
   }
 
   return (
@@ -63,7 +65,7 @@ export function Rules({ buildingId }: { buildingId: string }) {
       {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
 
       <div className="grid gap-5 xl:grid-cols-3">
-        <Card title="Nova regra" className="xl:col-span-1">
+        {canManage && <Card title="Nova regra" className="xl:col-span-1">
           <div className="space-y-3">
             <Field label="Nome">
               <Input value={form.name} onChange={(name) => setForm({ ...form, name })} placeholder="Nível baixo da caixa" />
@@ -103,9 +105,9 @@ export function Rules({ buildingId }: { buildingId: string }) {
               Criar regra
             </Button>
           </div>
-        </Card>
+        </Card>}
 
-        <Card title="Regras ativas" className="xl:col-span-2">
+        <Card title="Regras cadastradas" className={canManage ? "xl:col-span-2" : "xl:col-span-3"}>
           {rules.data?.items.length ? (
             <ul className="space-y-3">
               {rules.data.items.map((rule) => (
@@ -119,15 +121,15 @@ export function Rules({ buildingId }: { buildingId: string }) {
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge>{rule.severity}</Badge>
-                    <Button variant="secondary" onClick={() => void toggle(rule)}>
+                    {canManage && <Button variant="secondary" onClick={() => void toggle(rule)}>
                       {rule.enabled ? "Desativar" : "Ativar"}
-                    </Button>
+                    </Button>}
                   </div>
                 </li>
               ))}
             </ul>
           ) : (
-            <EmptyState text="Nenhuma regra cadastrada." />
+            <ResourceFeedback resource={rules} emptyText="Nenhuma regra cadastrada." />
           )}
         </Card>
       </div>

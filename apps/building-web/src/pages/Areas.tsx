@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { api, Badge, Button, Card, EmptyState, ErrorBanner, formatDateTime, useResource } from "@predioon/ui";
+import { api, Badge, Button, Card, ErrorBanner, ResourceFeedback, formatDateTime, useResource } from "@predioon/ui";
 import type { CommonArea, Paged, Reservation } from "@predioon/ui";
 
-export function Areas({ buildingId }: { buildingId: string }) {
+export function Areas({ buildingId, canManage = false }: { buildingId: string; canManage?: boolean }) {
   const areas = useResource<Paged<CommonArea>>(`/common-areas?buildingId=${buildingId}`);
   const reservations = useResource<Paged<Reservation>>(`/reservations?buildingId=${buildingId}`);
   const [error, setError] = useState<string | null>(null);
@@ -41,17 +41,17 @@ export function Areas({ buildingId }: { buildingId: string }) {
                     {reservation.notes ? ` · ${reservation.notes}` : ""}
                   </p>
                 </div>
-                <div className="flex gap-2">
+                {canManage && <div className="flex gap-2">
                   <Button variant="secondary" onClick={() => void decide(reservation.id, "REJECTED")}>
                     Recusar
                   </Button>
                   <Button onClick={() => void decide(reservation.id, "CONFIRMED")}>Aprovar</Button>
-                </div>
+                </div>}
               </li>
             ))}
           </ul>
         ) : (
-          <EmptyState text="Nenhuma reserva aguardando aprovação." />
+          <ResourceFeedback resource={reservations} emptyText="Nenhuma reserva aguardando aprovação." />
         )}
       </Card>
 
@@ -70,7 +70,7 @@ export function Areas({ buildingId }: { buildingId: string }) {
               ))}
             </ul>
           ) : (
-            <EmptyState text="Sem reservas confirmadas." />
+            <ResourceFeedback resource={reservations} emptyText="Sem reservas confirmadas." />
           )}
         </Card>
 
@@ -89,7 +89,7 @@ export function Areas({ buildingId }: { buildingId: string }) {
               ))}
             </ul>
           ) : (
-            <EmptyState text="Nenhuma área cadastrada." />
+            <ResourceFeedback resource={areas} emptyText="Nenhuma área cadastrada." />
           )}
         </Card>
       </div>

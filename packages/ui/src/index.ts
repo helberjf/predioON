@@ -1,5 +1,6 @@
 export * from "./api.js";
 export * from "./auth.js";
+export * from "./building-scope.js";
 export * from "./sse.js";
 export * from "./format.js";
 export * from "./types.js";
@@ -18,5 +19,6 @@ export * from "./components/access-panel.js";
 export * from "./components/parking-panel.js";
 export * from "./components/occurrences-panel.js";
 export * from "./components/transparency-panel.js";
+export * from "./components/tenancy-panel.js";
 export * from "./feature-state.js";
 export * from "./features.js";

@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { api, Badge, Button, Card, EmptyState, ErrorBanner, formatDateTime, useRealtime, useResource } from "@predioon/ui";
+import { api, Badge, Button, Card, ErrorBanner, ResourceFeedback, formatDateTime, useRealtime, useResource } from "@predioon/ui";
 import type { Alert, Paged } from "@predioon/ui";
 
-export function Alerts({ buildingId }: { buildingId: string }) {
+export function Alerts({ buildingId, canAcknowledge = false, canResolve = false }: { buildingId: string; canAcknowledge?: boolean; canResolve?: boolean }) {
   const alerts = useResource<Paged<Alert>>(`/alerts?buildingId=${buildingId}&limit=100`);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,7 +24,7 @@ export function Alerts({ buildingId }: { buildingId: string }) {
       <h1 className="text-2xl font-bold text-slate-900">Alertas</h1>
       {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
 
-      <Card title="Ocorrências de monitoramento" subtitle="Reconheça para sinalizar que está sendo tratado">
+      <Card title="Ocorrências de monitoramento" subtitle={canAcknowledge ? "Reconheça para sinalizar que está sendo tratado" : "Alertas disponíveis conforme suas permissões"}>
         {alerts.data?.items.length ? (
           <ul className="space-y-3">
             {alerts.data.items.map((alert) => (
@@ -42,19 +42,19 @@ export function Alerts({ buildingId }: { buildingId: string }) {
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    {alert.status === "OPEN" && (
+                    {canAcknowledge && alert.status === "OPEN" && (
                       <Button variant="secondary" onClick={() => void act(alert.id, "acknowledge")}>
                         Reconhecer
                       </Button>
                     )}
-                    {alert.status !== "RESOLVED" && <Button onClick={() => void act(alert.id, "resolve")}>Resolver</Button>}
+                    {canResolve && alert.status !== "RESOLVED" && <Button onClick={() => void act(alert.id, "resolve")}>Resolver</Button>}
                   </div>
                 </div>
               </li>
             ))}
           </ul>
         ) : (
-          <EmptyState text="Nenhum alerta registrado." />
+          <ResourceFeedback resource={alerts} emptyText="Nenhum alerta registrado." />
         )}
       </Card>
     </>
