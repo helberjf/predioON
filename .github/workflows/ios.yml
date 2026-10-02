@@ -1,0 +1,64 @@
+name: Native iOS verification
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/*-mobile/**'
+      - 'packages/mobile/**'
+      - 'packages/api-client/**'
+      - 'packages/contracts/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/ios.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  ios:
+    runs-on: macos-15
+    timeout-minutes: 50
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: resident-mobile
+            scheme: PredioONMorador
+          - app: operations-mobile
+            scheme: PredioONOperacao
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+          working-directory: apps/${{ matrix.app }}
+      - run: pnpm install --frozen-lockfile
+      - name: Install native dependencies
+        working-directory: apps/${{ matrix.app }}/ios
+        run: bundle exec pod install
+      - name: Compile unsigned simulator application
+        working-directory: apps/${{ matrix.app }}/ios
+        run: >-
+          xcodebuild -workspace ${{ matrix.scheme }}.xcworkspace
+          -scheme ${{ matrix.scheme }} -configuration Release
+          -sdk iphonesimulator -destination 'generic/platform=iOS Simulator'
+          -derivedDataPath build CODE_SIGNING_ALLOWED=NO
+          build
+      - name: Preserve simulator build
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.app }}-ios-simulator
+          path: apps/${{ matrix.app }}/ios/build/Build/Products/Release-iphonesimulator/*.app
+          if-no-files-found: error
+          retention-days: 3
