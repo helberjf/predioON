@@ -28,38 +28,45 @@ describe("tenant people directory without broadening users RLS", () => {
     const teamId = randomUUID(), unitId = randomUUID(), managerBinding = randomUUID();
     const teamRole = `PEOPLE_TEAM_MANAGER_${suffix}`;
     const tokens = new Map<string, string>();
-    await sqlClient`insert into organizations(id,name,slug) values(${org},'Directory test',${org})`;
-    for (const id of [building, other]) await sqlClient`insert into buildings(id,organization_id,name,code) values(${id},${org},${id},${id})`;
-    for (const [key, id] of Object.entries(ids)) await sqlClient`insert into users(id,name,email,password_hash,active,is_platform_admin) values(${id},${key},${`${id}@directory.test`},${passwordHash},${key !== "inactive"},${key === "platform"})`;
-    await sqlClient`insert into roles(key,scope,label) values(${teamRole},'BUILDING','Team directory manager')`;
-    await sqlClient`insert into role_permissions(role_key,permission_key) values(${teamRole},'teams:manage')`;
-    await sqlClient`insert into teams(id,building_id,name) values(${teamId},${building},'Directory team')`;
-    await sqlClient`insert into units(id,building_id,code) values(${unitId},${building},'101')`;
-    await sqlClient`insert into role_bindings(id,user_id,building_id,role_key) values(${managerBinding},${ids.manager},${building},'BUILDING_ADMIN')`;
-    await sqlClient`insert into role_bindings(user_id,building_id,role_key) values(${ids.personal},${building},'MAINTENANCE'),(${ids.teamManager},${building},${teamRole})`;
-    await sqlClient`insert into role_bindings(user_id,building_id,role_key,resource_type,resource_id) values(${ids.restricted},${building},'BUILDING_ADMIN','unit',${unitId})`;
-    await sqlClient`insert into memberships(user_id,building_id,role) values(${ids.legacy},${building},'RESIDENT'),(${ids.foreign},${other},'RESIDENT'),(${ids.inactive},${building},'RESIDENT')`;
-    await sqlClient`insert into memberships(user_id,building_id,role,ends_at) values(${ids.expired},${building},'RESIDENT',now()-interval '1 minute')`;
-    await sqlClient`insert into memberships(user_id,building_id,role,starts_at) values(${ids.future},${building},'RESIDENT',now()+interval '1 day')`;
-    await sqlClient`insert into memberships(user_id,building_id,role,active) values(${ids.revoked},${building},'RESIDENT',false)`;
-    await sqlClient`insert into team_members(team_id,building_id,user_id) values(${teamId},${building},${ids.team})`;
-    await sqlClient`insert into role_bindings(team_id,building_id,role_key) values(${teamId},${building},'MAINTENANCE')`;
-    await sqlClient`insert into unit_memberships(unit_id,building_id,user_id) values(${unitId},${building},${ids.unit})`;
-    for (const id of [ids.manager, ids.legacy, ids.platform, ids.restricted, ids.teamManager, ids.unlinked]) tokens.set(id, (await login(server.url, `${id}@directory.test`)).accessToken);
-    const request = (user = ids.manager, query = `buildingId=${building}`) => call(server.url, `/v1/tenancy/people?${query}`, { token: tokens.get(user) });
-    const expected = [ids.manager, ids.legacy, ids.personal, ids.team, ids.unit, ids.restricted, ids.teamManager].sort();
-    return { org, building, other, ids, teamId, unitId, managerBinding, teamRole, request, expected };
+    const email = (id: string) => `${id.toLowerCase()}@directory.test`;
+    const cleanup = async () => {
+      await sqlClient`delete from buildings where organization_id=${org}`;
+      await sqlClient`delete from organizations where id=${org}`;
+      await sqlClient`delete from users where id in ${sqlClient(Object.values(ids))}`;
+      await sqlClient`delete from roles where key=${teamRole}`;
+    };
+    try {
+      await sqlClient`insert into organizations(id,name,slug) values(${org},'Directory test',${org})`;
+      for (const id of [building, other]) await sqlClient`insert into buildings(id,organization_id,name,code) values(${id},${org},${id},${id})`;
+      for (const [key, id] of Object.entries(ids)) await sqlClient`insert into users(id,name,email,password_hash,active,is_platform_admin) values(${id},${key},${email(id)},${passwordHash},${key !== "inactive"},${key === "platform"})`;
+      await sqlClient`insert into roles(key,scope,label) values(${teamRole},'BUILDING','Team directory manager')`;
+      await sqlClient`insert into role_permissions(role_key,permission_key) values(${teamRole},'teams:manage')`;
+      await sqlClient`insert into teams(id,building_id,name) values(${teamId},${building},'Directory team')`;
+      await sqlClient`insert into units(id,building_id,code) values(${unitId},${building},'101')`;
+      await sqlClient`insert into role_bindings(id,user_id,building_id,role_key) values(${managerBinding},${ids.manager},${building},'BUILDING_ADMIN')`;
+      await sqlClient`insert into role_bindings(user_id,building_id,role_key) values(${ids.personal},${building},'MAINTENANCE'),(${ids.teamManager},${building},${teamRole})`;
+      await sqlClient`insert into role_bindings(user_id,building_id,role_key,resource_type,resource_id) values(${ids.restricted},${building},'BUILDING_ADMIN','unit',${unitId})`;
+      await sqlClient`insert into memberships(user_id,building_id,role) values(${ids.legacy},${building},'RESIDENT'),(${ids.foreign},${other},'RESIDENT'),(${ids.inactive},${building},'RESIDENT')`;
+      await sqlClient`insert into memberships(user_id,building_id,role,ends_at) values(${ids.expired},${building},'RESIDENT',now()-interval '1 minute')`;
+      await sqlClient`insert into memberships(user_id,building_id,role,starts_at) values(${ids.future},${building},'RESIDENT',now()+interval '1 day')`;
+      await sqlClient`insert into memberships(user_id,building_id,role,active) values(${ids.revoked},${building},'RESIDENT',false)`;
+      await sqlClient`insert into team_members(team_id,building_id,user_id) values(${teamId},${building},${ids.team})`;
+      await sqlClient`insert into role_bindings(team_id,building_id,role_key) values(${teamId},${building},'MAINTENANCE')`;
+      await sqlClient`insert into unit_memberships(unit_id,building_id,user_id) values(${unitId},${building},${ids.unit})`;
+      for (const id of [ids.manager, ids.legacy, ids.platform, ids.restricted, ids.teamManager, ids.unlinked]) tokens.set(id, (await login(server.url, email(id))).accessToken);
+      const request = (user = ids.manager, query = `buildingId=${building}`) => call(server.url, `/v1/tenancy/people?${query}`, { token: tokens.get(user) });
+      const expected = [ids.manager, ids.legacy, ids.personal, ids.team, ids.unit, ids.restricted, ids.teamManager].sort();
+      return { org, building, other, ids, teamId, unitId, managerBinding, teamRole, request, expected, cleanup };
+    } catch (error) {
+      await cleanup();
+      throw error;
+    }
   }
   type Fixture = Awaited<ReturnType<typeof create>>;
   async function fixture(run: (f: Fixture) => Promise<void>) {
     const f = await create();
     try { await run(f); }
-    finally {
-      await sqlClient`delete from buildings where organization_id=${f.org}`;
-      await sqlClient`delete from organizations where id=${f.org}`;
-      await sqlClient`delete from users where id in ${sqlClient(Object.values(f.ids))}`;
-      await sqlClient`delete from roles where key=${f.teamRole}`;
-    }
+    finally { await f.cleanup(); }
   }
   async function ok(f: Fixture, user = f.ids.manager, query?: string) {
     const response = await f.request(user, query);
