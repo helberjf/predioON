@@ -1,6 +1,6 @@
 # Execução da arquitetura de produto — Prédio ON
 
-Base aprovada: [arquitetura](../specs/2026-09-27-arquitetura-produto-design.md). Execução em `codex/product-platform`, preservando o estado local anterior em cópia de trabalho isolada. Esta lista registra progresso real, sem considerar código não verificado como entregue.
+Base aprovada: [arquitetura](../specs/2026-09-27-arquitetura-produto-design.md). A execução iniciada em `codex/product-platform` continua agora na `main`, conforme autorização do proprietário. Esta lista registra progresso real, sem considerar código não verificado como entregue. O ponto de retomada atualizado, inclusive em outra máquina, está em [CONTINUIDADE.md](../../CONTINUIDADE.md).
 
 ## Sequência e aceite
 
@@ -166,3 +166,14 @@ As gravações não substituem testes automatizados nem comprovam integrações 
 - `c106a78`: roteiro Android de domínios publicado com sete testes Python, oito de autenticação/TLS e um contrato HTTP/PostgreSQL aprovados. Sua primeira execução nativa parou antes de instalar os apps, por resolução transitória do HOME. `f13f89c` corrige essa transição no harness, preserva ANR/erroADB como falha e ajusta CPU/RAM do emulador de CI; a execução real dessa configuração ainda está pendente. Não há aprovação visual dos domínios nesse checkpoint.
 - `aea040d`: conclusão de revogação de sessão vinculada à geração da identidade, com **11 testes dirigidos** aprovados. A interface de gestão de sessões está em desenvolvimento e terá sua própria validação no navegador.
 - O [inventário preparatório das cinco apresentações](2026-10-02-presentation-coverage.md) mapeia todas as rotas/telas atuais e mantém os novos domínios/gravações como pendências explícitas. Nenhum vídeo final foi produzido. O computador não foi reiniciado.
+
+## Checkpoint portátil — 02/10/2026
+
+O estado consolidado, as falhas atuais e o procedimento para continuar em outro computador estão em [CONTINUIDADE.md](../../CONTINUIDADE.md). Esse documento deve ser atualizado após cada incremento verificado; as entradas anteriores deste tracker conservam seu contexto histórico.
+
+- Publicados na `main`: acesso físico 034 (`1c80551`), limite persistente de login 035 (`727264e`), descoberta móvel de portões por recurso (`42f2130`) e preparação de testes que respeita `Retry-After` (`3e9c648`). O último ajuste passou em 3 testes próprios e 60 dirigidos Linux, sem skips. As migrations publicadas terminam em 035.
+- A última regressão integral local 035 terminou em **602/615**. Correções dirigidas posteriores não constituem uma nova integral verde. Permanecem duas expectativas de equipamentos a revisar; o Playwright publicado também tem falhas de preparação por limite de login da conta admin compartilhada.
+- O [Android de reservas em 42f2130](https://github.com/helberjf/predioON/actions/runs/36975943695) passou nas **23 fases**. Foram conferidos capturas reais, criação/cancelamento/estado pendente, revogação de calendário, registros do banco e buffer de crash vazio. Android de domínios ainda falha; iOS tem build aprovado, mas execução e imagens ainda não comprovadas.
+- Auditoria 036, AccessPanel web, ensaio de snapshot AVD e plano de senha 037 estão preservados como **24 arquivos de rascunho** em patch inerte e manifesto SHA-256 versionados. A aplicação sobre uma cópia limpa da base `3e9c648` e os hashes dos 24 arquivos foram verificados. Recuperar esse patch não significa aprovar ou implantar os rascunhos.
+- Auditoria 036 tem 98 testes dirigidos aprovados no snapshot integrado, mas precisa corrigir a reaplicação de grants, completar a interface e passar pela regressão. O AccessPanel precisa repetir os cenários de ciclo de vida contra API/schema/SQL compatíveis. A senha 037 tem somente plano, sem endpoint ou migration.
+- Identidade complementar, processamento durável, novos domínios, homologação móvel/operacional, documentação final e cinco vídeos continuam abertos. Nenhum reboot do computador foi executado.

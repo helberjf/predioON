@@ -1,0 +1,3112 @@
+diff --git a/apps/admin-web/src/pages/Operations.tsx b/apps/admin-web/src/pages/Operations.tsx
+index 808f062..c69605a 100644
+--- a/apps/admin-web/src/pages/Operations.tsx
++++ b/apps/admin-web/src/pages/Operations.tsx
+@@ -16,5 +16,5 @@ function BuildingOperations({ buildingId }: { buildingId: string }) {
+   const options = [{ value: "consumo", label: "Consumo, bomba e análise" }, { value: "acessos", label: "Portões e acessos" }, { value: "vagas", label: "Vagas de carros e motos" }].filter(option => flags.routeAllowed(`/${option.value}`));
+   const [selected, setSelected] = useState("");
+   const view = options.some(option => option.value === selected) ? selected : options[0]?.value;
+-  return <><Card><Field label="Módulo"><Select value={view ?? ""} onChange={setSelected} options={options} /></Field></Card><div key={view}>{view === "consumo" ? <MonitoringPanel buildingId={buildingId} canManage /> : view === "acessos" ? <AccessPanel buildingId={buildingId} canManage /> : view === "vagas" ? <ParkingPanel buildingId={buildingId} /> : null}</div></>;
++  return <><Card><Field label="Módulo"><Select value={view ?? ""} onChange={setSelected} options={options} /></Field></Card><div key={view}>{view === "consumo" ? <MonitoringPanel buildingId={buildingId} canManage /> : view === "acessos" ? <AccessPanel buildingId={buildingId} /> : view === "vagas" ? <ParkingPanel buildingId={buildingId} /> : null}</div></>;
+ }
+diff --git a/apps/api/src/modules/audit/routes.ts b/apps/api/src/modules/audit/routes.ts
+index 100f9f8..1b60901 100644
+--- a/apps/api/src/modules/audit/routes.ts
++++ b/apps/api/src/modules/audit/routes.ts
+@@ -1,35 +1,28 @@
+ import { Router } from "express";
+-import { and, desc, eq, inArray } from "drizzle-orm";
+-import { auditLogs } from "@predioon/db/runtime";
++import { sql } from "drizzle-orm";
+ import { z } from "zod";
+-import { currentAuth, inTenantContext, requireRole } from "../../auth/middleware.js";
++import { inTenantContext } from "../../auth/middleware.js";
++import { forbidden } from "../../http/errors.js";
+ import { PaginationSchema } from "../../http/pagination.js";
+ import { query, validateQuery } from "../../http/validate.js";
+ 
+ export const auditRouter = Router();
+-
+-const AuditQuerySchema = PaginationSchema.extend({ buildingId: z.string().optional() });
+-
+-auditRouter.get("/", requireRole("BUILDING_ADMIN"), validateQuery(AuditQuerySchema), async (req, res) => {
+-  const auth = currentAuth(req);
++const AuditQuerySchema = PaginationSchema.extend({ buildingId: z.string().min(1).max(128).optional() });
++auditRouter.get("/", validateQuery(AuditQuerySchema), async (req, res) => {
+   const { limit, offset, buildingId } = query<z.infer<typeof AuditQuerySchema>>(req);
+-
+-  // RLS already restricts the rows; the filters below are for convenience, not for security.
+-  const rows = await inTenantContext(req, (tx) =>
+-    tx
+-      .select()
+-      .from(auditLogs)
+-      .where(
+-        buildingId
+-          ? eq(auditLogs.buildingId, buildingId)
+-          : auth.role === "PLATFORM_ADMIN"
+-            ? undefined
+-            : and(inArray(auditLogs.buildingId, auth.memberships.map((m) => m.buildingId))),
+-      )
+-      .orderBy(desc(auditLogs.createdAt))
+-      .limit(limit)
+-      .offset(offset),
+-  );
+-
++  const rows = await inTenantContext(req, async tx => {
++    const [scope] = await tx.execute(sql`select platform,buildings from app_audit_query_scope(${buildingId ?? null})`);
++    const buildings = Array.isArray(scope?.buildings) ? scope.buildings as string[] : [];
++    if (!scope?.platform && !buildings.length) throw forbidden("Sem permissão para consultar esta auditoria");
++    // Keep global queries off private history. Candidate local tenants come
++    // from live grants; RLS retains the final resource-level privacy decision.
++    const local = buildings.length ? sql`scope_building_id in (${sql.join(buildings.map(id => sql`${id}`), sql`,`)})` : sql`false`;
++    const candidates = scope.platform ? sql`(scope_kind='PLATFORM' or ${local})` : local;
++    return tx.execute(sql`select id,scope_building_id as "buildingId",scope_kind as "scopeKind",
++      user_id as "userId",actor_type as "actorType",action,resource_type as "resourceType",resource_id as "resourceId",created_at as "createdAt"
++      from audit_logs where ${candidates} and (${buildingId ?? null}::text is null or scope_building_id=${buildingId ?? null})
++      order by created_at desc,id desc limit ${limit} offset ${offset}`);
++  });
++  res.setHeader("Cache-Control", "no-store");
+   res.json({ items: rows, limit, offset });
+ });
+diff --git a/apps/api/src/modules/users/routes.ts b/apps/api/src/modules/users/routes.ts
+index 639c18e..bebebad 100644
+--- a/apps/api/src/modules/users/routes.ts
++++ b/apps/api/src/modules/users/routes.ts
+@@ -139,11 +139,8 @@ usersRouter.delete("/memberships/:membershipId", async (req, res) => {
+     if (!current) throw notFound("Vínculo não encontrado");
+     assertBuildingAccess(auth, current.buildingId, "BUILDING_ADMIN");
+ 
+-    await tx
+-      .update(memberships)
+-      .set({ active: false, endsAt: new Date(), updatedAt: new Date() })
+-      .where(and(eq(memberships.id, current.id)));
+-
++    // Record while the actor still has authority, including self-revocation.
++    // Both the audit and the mutation roll back if either operation fails.
+     await recordAudit(tx, req, {
+       buildingId: current.buildingId,
+       userId: auth.userId,
+@@ -151,6 +148,10 @@ usersRouter.delete("/memberships/:membershipId", async (req, res) => {
+       resourceType: "membership",
+       resourceId: current.id,
+     });
++    await tx
++      .update(memberships)
++      .set({ active: false, endsAt: new Date(), updatedAt: new Date() })
++      .where(and(eq(memberships.id, current.id)));
+   });
+ 
+   res.status(204).end();
+diff --git a/apps/api/test/support.test.ts b/apps/api/test/support.test.ts
+index 4e0dff7..1d080bf 100644
+--- a/apps/api/test/support.test.ts
++++ b/apps/api/test/support.test.ts
+@@ -132,7 +132,7 @@ describe("suporte remoto HTTP e RLS", () => {
+       assert.equal(requests.length, 0);
+       const changed = await withUserContext({ userId, role: "PLATFORM_ADMIN" }, tx => tx.execute(sql`update support_hosts set enabled = false where building_id = ${building} returning building_id`));
+       assert.equal(changed.length, 0);
+-      const hiddenAudit = await withUserContext({ userId, role: userId === managerId ? "BUILDING_ADMIN" : "RESIDENT" }, tx => tx.execute(sql`select * from audit_logs where resource_type = 'remote_support'`));
++      const hiddenAudit = await withUserContext({ userId, role: userId === managerId ? "BUILDING_ADMIN" : "RESIDENT" }, tx => tx.execute(sql`select id from audit_logs where resource_type = 'remote_support'`));
+       assert.equal(hiddenAudit.length, 0, "histórico técnico não vaza pela auditoria geral");
+       await assert.rejects(withUserContext({ userId, role: "PLATFORM_ADMIN" }, tx => tx.execute(sql`insert into support_hosts (building_id,display_name,anydesk_id) values (${other},'Malicioso','999999999')`)));
+     }
+diff --git a/apps/building-web/src/App.tsx b/apps/building-web/src/App.tsx
+index 5de3334..a62ee3a 100644
+--- a/apps/building-web/src/App.tsx
++++ b/apps/building-web/src/App.tsx
+@@ -41,7 +41,7 @@ function BuildingApp() {
+         <Route path="/energia" element={<FeatureContent path="/energia"><Energy buildingId={buildingId} /></FeatureContent>} />
+         <Route path="/consumo" element={<FeatureContent path="/consumo"><MonitoringPanel buildingId={buildingId} canManage={can("devices:configure")} /></FeatureContent>} />
+         <Route path="/sensores" element={<FeatureContent path="/sensores"><Safety buildingId={buildingId} /></FeatureContent>} />
+-        <Route path="/acessos" element={<FeatureContent path="/acessos"><AccessPanel buildingId={buildingId} canManage={can("buildings:manage")} /></FeatureContent>} />
++        <Route path="/acessos" element={<FeatureContent path="/acessos"><AccessPanel buildingId={buildingId} /></FeatureContent>} />
+         <Route path="/vagas" element={<FeatureContent path="/vagas"><ParkingPanel buildingId={buildingId} /></FeatureContent>} />
+         <Route path="/dispositivos" element={<Devices buildingId={buildingId} />} />
+         <Route path="/alertas" element={<FeatureContent><Alerts buildingId={buildingId} /></FeatureContent>} />
+diff --git a/packages/contracts/src/index.ts b/packages/contracts/src/index.ts
+index 6108a02..dd3cc9b 100644
+--- a/packages/contracts/src/index.ts
++++ b/packages/contracts/src/index.ts
+@@ -8,3 +8,4 @@ export type {
+ export type * from "./tenancy.js";
+ export type * from "./overview.js";
+ export type * from "./reservations.js";
++export type * from "./audit.js";
+diff --git a/packages/db/src/schema.ts b/packages/db/src/schema.ts
+index 6477d44..e4c75e1 100644
+--- a/packages/db/src/schema.ts
++++ b/packages/db/src/schema.ts
+@@ -293,6 +293,9 @@ export const auditLogs = pgTable(
+     buildingId: text("building_id").references(() => buildings.id, { onDelete: "set null" }),
+     userId: text("user_id").references(() => users.id, { onDelete: "set null" }),
+     actorType: actorTypeEnum("actor_type").notNull().default("USER"),
++    // Captured by the database trigger; deliberately no FK on the tenant snapshot.
++    scopeKind: text("scope_kind").$type<"PLATFORM" | "BUILDING" | "LEGACY_UNKNOWN">().notNull().default("LEGACY_UNKNOWN"),
++    scopeBuildingId: text("scope_building_id"),
+     action: text("action").notNull(),
+     resourceType: text("resource_type").notNull(),
+     resourceId: text("resource_id"),
+diff --git a/packages/shared/src/rbac.ts b/packages/shared/src/rbac.ts
+index 9233cf5..bd4edb2 100644
+--- a/packages/shared/src/rbac.ts
++++ b/packages/shared/src/rbac.ts
+@@ -3,6 +3,7 @@ import { z } from "zod";
+ /** Capabilities are atomic grants evaluated with tenant/resource scope. */
+ export const CAPABILITIES = [
+   "platform:read-health",
++  "audit:read", "audit:read-platform",
+   "buildings:read", "buildings:manage", "buildings:provision", "features:manage",
+   "gates:read", "gates:manage", "commands:read-own", "commands:read",
+   "parking:read", "parking:manage", "alert-rules:read", "alert-rules:manage", "notices:read", "notices:manage", "occurrences:create-own", "occurrences:read-own", "occurrences:manage",
+@@ -26,9 +27,9 @@ export const RbacRoleSchema = z.enum(RBAC_ROLES);
+ 
+ /** Complete initial role catalogue. Adding a role requires an explicit set. */
+ export const ROLE_CAPABILITIES: Readonly<Record<RbacRole, readonly Capability[]>> = {
+-  PLATFORM_ADMIN: ["platform:read-health", "buildings:read", "buildings:manage", "buildings:provision", "features:manage", "plans:read", "plans:manage", "rbac:manage", "support:grant"],
++  PLATFORM_ADMIN: ["audit:read-platform", "platform:read-health", "buildings:read", "buildings:manage", "buildings:provision", "features:manage", "plans:read", "plans:manage", "rbac:manage", "support:grant"],
+   PLATFORM_SUPPORT: [],
+-  BUILDING_ADMIN: ["gates:read", "gates:manage", "commands:read-own", "commands:read", "reservations:create-own", "reservations:read-own", "reservations:cancel-own", "reservations:read-calendar", "reservations:manage", "common-areas:read", "common-areas:manage", "buildings:read", "buildings:manage", "parking:read", "parking:manage", "alert-rules:read", "alert-rules:manage", "notices:read", "notices:manage", "occurrences:create-own", "occurrences:read-own", "occurrences:manage", "telemetry:read", "telemetry:read-published", "alerts:read", "alerts:acknowledge", "alerts:resolve", "work-orders:read-assigned", "work-orders:assign", "work-orders:update-assigned", "devices:read", "devices:configure", "commands:request", "automations:read", "automations:manage", "finance:read", "finance:read-published", "finance:manage", "memberships:read", "memberships:manage", "units:read", "units:manage", "teams:read", "teams:manage", "support:read"],
++  BUILDING_ADMIN: ["audit:read", "gates:read", "gates:manage", "commands:read-own", "commands:read", "reservations:create-own", "reservations:read-own", "reservations:cancel-own", "reservations:read-calendar", "reservations:manage", "common-areas:read", "common-areas:manage", "buildings:read", "buildings:manage", "parking:read", "parking:manage", "alert-rules:read", "alert-rules:manage", "notices:read", "notices:manage", "occurrences:create-own", "occurrences:read-own", "occurrences:manage", "telemetry:read", "telemetry:read-published", "alerts:read", "alerts:acknowledge", "alerts:resolve", "work-orders:read-assigned", "work-orders:assign", "work-orders:update-assigned", "devices:read", "devices:configure", "commands:request", "automations:read", "automations:manage", "finance:read", "finance:read-published", "finance:manage", "memberships:read", "memberships:manage", "units:read", "units:manage", "teams:read", "teams:manage", "support:read"],
+   MAINTENANCE_MANAGER: ["parking:read", "finance:read-published", "reservations:create-own", "reservations:read-own", "reservations:cancel-own", "reservations:read-calendar", "common-areas:read", "buildings:read", "notices:read", "occurrences:create-own", "occurrences:read-own", "occurrences:manage", "telemetry:read", "telemetry:read-published", "alerts:read", "alerts:acknowledge", "alerts:resolve", "work-orders:read-assigned", "work-orders:assign", "work-orders:update-assigned", "devices:read", "automations:read", "teams:read", "units:read"],
+   MAINTENANCE: ["parking:read", "finance:read-published", "reservations:create-own", "reservations:read-own", "reservations:cancel-own", "reservations:read-calendar", "common-areas:read", "buildings:read", "notices:read", "occurrences:create-own", "occurrences:read-own", "telemetry:read", "telemetry:read-published", "alerts:read", "alerts:acknowledge", "work-orders:read-assigned", "work-orders:update-assigned", "devices:read", "automations:read", "units:read"],
+   RESIDENT: ["gates:read", "commands:request", "commands:read-own", "parking:read", "finance:read-published", "reservations:create-own", "reservations:read-own", "reservations:cancel-own", "reservations:read-calendar", "buildings:read", "notices:read", "occurrences:create-own", "occurrences:read-own", "telemetry:read-published", "units:read", "common-areas:read"],
+diff --git a/packages/ui/src/auth-state.ts b/packages/ui/src/auth-state.ts
+index 784a2eb..bfe6007 100644
+--- a/packages/ui/src/auth-state.ts
++++ b/packages/ui/src/auth-state.ts
+@@ -6,6 +6,8 @@ type Options = {
+   onUserChange(user: AuthUser | null): void;
+   onLoadingChange(loading: boolean): void;
+   onErrorChange(error: string | null): void;
++  /** Invalidate memory owned by an identity before asynchronous work can finish. */
++  onSessionReset?(): void;
+ };
+ 
+ /** Keep React identity updates in the same order as explicit authentication actions. */
+@@ -14,6 +16,7 @@ export function createAuthActions(options: Options) {
+ 
+   function clearIdentity() {
+     generation++;
++    options.onSessionReset?.();
+     options.onUserChange(null);
+     options.onLoadingChange(false);
+   }
+@@ -33,6 +36,7 @@ export function createAuthActions(options: Options) {
+   return {
+     async restore(): Promise<void> {
+       const expected = ++generation;
++      options.onSessionReset?.();
+       options.onLoadingChange(true);
+       options.onErrorChange(null);
+       try {
+@@ -70,6 +74,6 @@ export function createAuthActions(options: Options) {
+     },
+ 
+     authLost: clearIdentity,
+-    cancel(): void { generation++; },
++    cancel(): void { generation++; options.onSessionReset?.(); },
+   };
+ }
+diff --git a/packages/ui/src/auth.tsx b/packages/ui/src/auth.tsx
+index 10eb4e1..c5d53c6 100644
+--- a/packages/ui/src/auth.tsx
++++ b/packages/ui/src/auth.tsx
+@@ -1,6 +1,23 @@
+-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+-import { api, setAuthLostHandler, setSessionAvailableHandler, type Session } from "./api.js";
++import {
++  createContext,
++  useContext,
++  useEffect,
++  useMemo,
++  useRef,
++  useState,
++  type ReactNode,
++} from "react";
++import {
++  api,
++  setAuthLostHandler,
++  setSessionAvailableHandler,
++  type Session,
++} from "./api.js";
+ import { createAuthActions } from "./auth-state.js";
++import {
++  createAccessIntentStore,
++  type AccessIntentStore,
++} from "./access-intents.js";
+ 
+ type AuthUser = Session["user"];
+ 
+@@ -12,6 +29,7 @@ type AuthState = {
+   signIn: (email: string, password: string) => Promise<void>;
+   signOut: () => Promise<void>;
+   signOutAfter: (operation: () => Promise<void>) => Promise<void>;
++  accessIntents: AccessIntentStore;
+   /** First building the user administers or lives in. Panels are single-building by nature. */
+   buildingId: string | null;
+ };
+@@ -22,11 +40,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
+   const [user, setUser] = useState<AuthUser | null>(null);
+   const [loading, setLoading] = useState(true);
+   const [error, setError] = useState<string | null>(null);
+-  const actions = useMemo(() => createAuthActions({ api, onUserChange: setUser, onLoadingChange: setLoading, onErrorChange: setError }), []);
++  const [accessIntents, setAccessIntents] = useState(() =>
++    createAccessIntentStore(() => crypto.randomUUID()),
++  );
++  const intentsRef = useRef(accessIntents);
++  const actions = useMemo(
++    () =>
++      createAuthActions({
++        api,
++        onUserChange: setUser,
++        onLoadingChange: setLoading,
++        onErrorChange: setError,
++        onSessionReset: () => {
++          // Invalidate synchronously: an awaited preflight may resume before React
++          // commits the next identity. A normal token refresh does not reset this.
++          intentsRef.current.invalidate();
++          const next = createAccessIntentStore(() => crypto.randomUUID());
++          intentsRef.current = next;
++          setAccessIntents(next);
++        },
++      }),
++    [],
++  );
+ 
+   useEffect(() => {
+     setAuthLostHandler(actions.authLost);
+-    setSessionAvailableHandler(() => { void actions.restore(); });
++    setSessionAvailableHandler(() => {
++      void actions.restore();
++    });
+     void actions.restore();
+     return () => {
+       actions.cancel();
+@@ -44,9 +85,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
+       signIn: actions.signIn,
+       signOut: actions.signOut,
+       signOutAfter: actions.signOutAfter,
++      accessIntents,
+       buildingId: user?.memberships[0]?.buildingId ?? null,
+     }),
+-    [user, loading, error, actions],
++    [user, loading, error, actions, accessIntents],
+   );
+ 
+   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+@@ -54,6 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
+ 
+ export function useAuth(): AuthState {
+   const context = useContext(AuthContext);
+-  if (!context) throw new Error("useAuth precisa estar dentro de <AuthProvider>");
++  if (!context)
++    throw new Error("useAuth precisa estar dentro de <AuthProvider>");
+   return context;
+ }
+diff --git a/packages/ui/src/components/access-panel.tsx b/packages/ui/src/components/access-panel.tsx
+index 97a32c3..91eb2e6 100644
+--- a/packages/ui/src/components/access-panel.tsx
++++ b/packages/ui/src/components/access-panel.tsx
+@@ -1,155 +1,624 @@
+-import { useEffect, useRef, useState } from "react";
++import {
++  useEffect,
++  useMemo,
++  useRef,
++  useState,
++  useSyncExternalStore,
++} from "react";
+ import { DoorOpen, LockKeyhole, Settings2 } from "lucide-react";
+-import type { AccessCommandView, AccessGateView, AccessList } from "@predioon/shared";
++import type {
++  AccessCommandView,
++  AccessGateView,
++  AccessList,
++} from "@predioon/shared";
+ import { useFeatures } from "../features.js";
+ import { ACCESS_FEATURES } from "../feature-state.js";
+-import { api } from "../api.js";
+-import { isAccessRequestSettled, reconcileAccessCommand } from "../access-state.js";
++import { api, ApiError } from "../api.js";
++import { useAuth } from "../auth.js";
++import {
++  commandMessage,
++  commandSettled,
++  createAccessInteractionGuard,
++} from "../access-intents.js";
+ import { useResource } from "../use-resource.js";
+-import { Badge, Button, Card, EmptyState, ErrorBanner, LoadingState, PageHeading } from "./primitives.js";
++import {
++  Badge,
++  Button,
++  Card,
++  EmptyState,
++  ErrorBanner,
++  LoadingState,
++  PageHeading,
++} from "./primitives.js";
+ import { Field, Input, Select } from "./fields.js";
+ 
+ const labels: Record<AccessCommandView["status"], string> = {
+-  PENDING: "Aguardando envio", SENT: "Enviado · aguardando confirmação",
+-  ACKNOWLEDGED: "Abertura confirmada pelo controlador", FAILED: "Abertura não confirmada", EXPIRED: "Prazo encerrado · sem confirmação",
++  PENDING: "Aguardando envio",
++  SENT: "Enviado · aguardando confirmação",
++  ACKNOWLEDGED: "Execução reconhecida pelo controlador",
++  FAILED: "Abertura não confirmada",
++  EXPIRED: "Prazo encerrado · sem confirmação",
+ };
+-const waiting = (command: AccessCommandView | null | undefined) => command && ["PENDING", "SENT"].includes(command.status);
++const pathFor = (buildingId: string) =>
++  `/access?buildingId=${encodeURIComponent(buildingId)}`;
++const controllerTypes = ["GARAGE_GATE", "PEDESTRIAN_GATE", "GATE_CONTROLLER"];
++const waiting = (command: AccessCommandView | null | undefined) =>
++  Boolean(command && !commandSettled(command));
++const canCreate = (data: AccessList | null) =>
++  Boolean(
++    data?.canManage &&
++      data.devices.some(
++        (device) =>
++          controllerTypes.includes(device.type) &&
++          data.gateways.some((gateway) => gateway.id === device.gatewayId),
++      ),
++  );
+ 
+-export function AccessPanel({ buildingId, canManage = false }: { buildingId: string; canManage?: boolean }) {
++export function AccessPanel({ buildingId }: { buildingId: string }) {
++  const { accessIntents } = useAuth();
++  // Tenant navigation resets the view, while the provider retains uncertain IDs.
++  return (
++    <AccessWorkspace
++      key={buildingId}
++      buildingId={buildingId}
++      store={accessIntents}
++    />
++  );
++}
++
++function AccessWorkspace({
++  buildingId,
++  store,
++}: {
++  buildingId: string;
++  store: ReturnType<typeof useAuth>["accessIntents"];
++}) {
+   const flags = useFeatures();
+-  const resource = useResource<AccessList>(buildingId ? `/access?buildingId=${encodeURIComponent(buildingId)}` : null);
++  const resource = useResource<AccessList>(
++    buildingId ? pathFor(buildingId) : null,
++  );
++  const intents = useSyncExternalStore(
++    store.subscribe,
++    store.getSnapshot,
++    store.getSnapshot,
++  );
++  const guard = useMemo(createAccessInteractionGuard, [store]);
++  const [editing, setEditing] = useState<string | "new" | null>(null);
++  const [confirmation, setConfirmation] = useState<{
++    gate: AccessGateView;
++    generation: number;
++  } | null>(null);
+   const [error, setError] = useState<string | null>(null);
+-  const [busy, setBusy] = useState<string | null>(null);
+-  const [commands, setCommands] = useState<Record<string, AccessCommandView>>({});
+-  const [editing, setEditing] = useState<AccessGateView | "new" | null>(null);
+-  const requests = useRef<Record<string, string>>({});
+-  const currentBuilding = useRef(buildingId);
+-  currentBuilding.current = buildingId;
+-  useEffect(() => { setError(null); setBusy(null); setCommands({}); setEditing(null); requests.current = {}; }, [buildingId]);
++
+   useEffect(() => {
+-    const timer = setInterval(resource.reload, 3000);
+-    return () => clearInterval(timer);
+-  }, [resource.reload]);
++    const invalidate = () => {
++      guard.invalidate();
++      setConfirmation(null);
++    };
++    const visibility = () => {
++      if (document.visibilityState !== "visible") invalidate();
++      else resource.reload();
++    };
++    const refresh = () => resource.reload();
++    const timer = setInterval(refresh, 3000);
++    document.addEventListener("visibilitychange", visibility);
++    window.addEventListener("pagehide", invalidate);
++    window.addEventListener("focus", refresh);
++    return () => {
++      guard.invalidate();
++      clearInterval(timer);
++      document.removeEventListener("visibilitychange", visibility);
++      window.removeEventListener("pagehide", invalidate);
++      window.removeEventListener("focus", refresh);
++    };
++  }, [guard, resource.reload]);
++
+   useEffect(() => {
+-    if (!resource.data) return;
+-    for (const gate of resource.data.items) {
+-      if (isAccessRequestSettled(requests.current[gate.id], gate.latestCommand)) delete requests.current[gate.id];
++    for (const gate of resource.data?.items ?? []) {
++      if (gate.buildingId === buildingId && gate.latestCommand)
++        store.observe(buildingId, gate.id, gate.latestCommand);
+     }
+-    setCommands(previous => {
+-      const next = { ...previous };
+-      for (const gate of resource.data!.items) {
+-        const command = reconcileAccessCommand(previous[gate.id], gate.latestCommand);
+-        if (command) next[gate.id] = command;
+-      }
+-      return next;
+-    });
+-  }, [resource.data]);
++  }, [resource.data, store, buildingId]);
++
++  const gates =
++    resource.data?.items.filter(
++      (gate) =>
++        gate.buildingId === buildingId &&
++        flags.enabled(ACCESS_FEATURES[gate.kind]!),
++    ) ?? [];
++  const selected = gates.find((gate) => gate.id === editing);
++  const creating = canCreate(resource.data);
++  // A successful poll that removes permission also removes the draft. A draft
++  // is not silently resurrected if the permission is granted again later.
+   useEffect(() => {
+-    const pending = Object.values(commands).filter(waiting);
+-    if (!pending.length) return;
+-    let active = true;
+-    const timer = setTimeout(() => {
+-      void Promise.all(pending.map(async command => {
+-        try {
+-          const next = await api.get<AccessCommandView>(`/access/commands/${command.id}`);
+-          if (active) {
+-            setCommands(previous => ({ ...previous, [next.gateId]: reconcileAccessCommand(previous[next.gateId], next)! }));
+-            if (isAccessRequestSettled(requests.current[next.gateId], next)) delete requests.current[next.gateId];
+-          }
+-        } catch (cause) {
+-          if (active) {
+-            setError(cause instanceof Error ? cause.message : "Falha ao consultar a confirmação");
+-            // A network error cannot tell us whether the controller already acknowledged.
+-            // Keep consulting the authoritative result, including after the local deadline.
+-            setCommands(previous => ({ ...previous }));
+-          }
+-        }
+-      }));
+-    }, 1000);
+-    return () => { active = false; clearTimeout(timer); };
+-  }, [commands]);
++    if (resource.loading || !editing) return;
++    if (editing === "new" ? !creating : !selected?.canManage) setEditing(null);
++  }, [resource.loading, editing, creating, selected?.canManage]);
++  useEffect(() => {
++    if (resource.loading || !confirmation) return;
++    if (
++      !gates.some((gate) => gate.id === confirmation.gate.id && gate.available)
++    )
++      setConfirmation(null);
++  }, [resource.loading, resource.data, confirmation]);
+ 
+-  async function open(gate: AccessGateView) {
+-    setError(null); setBusy(gate.id);
+-    const requestId = requests.current[gate.id] ?? crypto.randomUUID();
+-    requests.current[gate.id] = requestId;
+-    try {
+-      const command = await api.post<AccessCommandView>(`/access/${gate.id}/open`, { requestId });
+-      if (currentBuilding.current !== gate.buildingId) return;
+-      setCommands(previous => ({ ...previous, [gate.id]: reconcileAccessCommand(previous[gate.id], command)! }));
+-      if (isAccessRequestSettled(requests.current[gate.id], command)) delete requests.current[gate.id];
+-      resource.reload();
+-    } catch (cause) {
+-      if (currentBuilding.current === gate.buildingId) setError(cause instanceof Error ? cause.message : "Não foi possível solicitar a abertura");
+-    } finally { if (currentBuilding.current === gate.buildingId) setBusy(null); }
++  async function confirmOpen() {
++    const captured = confirmation;
++    if (!captured) return;
++    setConfirmation(null);
++    setError(null);
++    const current = () =>
++      store.isValid() &&
++      guard.isCurrent(captured.generation) &&
++      document.visibilityState === "visible";
++    if (!current()) return;
++    await store.submit(buildingId, captured.gate.id, async (requestId) => {
++      const fresh = await api.get<AccessList>(pathFor(buildingId));
++      const gate = fresh.items.find(
++        (item) =>
++          item.buildingId === buildingId && item.id === captured.gate.id,
++      );
++      if (!current())
++        throw new Error(
++          "A confirmação foi cancelada ao sair da tela ou da sessão. Nenhum pedido foi enviado nesta tentativa.",
++        );
++      if (!gate?.available)
++        throw new Error(
++          gate?.unavailableReason ??
++            "Este acesso não está mais disponível para sua sessão.",
++        );
++      return api.post<AccessCommandView>(`/access/${gate.id}/open`, {
++        requestId,
++      });
++    });
++    if (current()) resource.reload();
+   }
+ 
+-  const manage = canManage && resource.data?.canManage;
+-  return <div className="space-y-5">
+-    <PageHeading title="Acessos" description="Solicite a abertura da garagem ou da entrada de pedestres e acompanhe a confirmação."
+-      action={manage ? <Button onClick={() => setEditing("new")}>Cadastrar acesso</Button> : undefined} />
+-    {(error || resource.error) && <ErrorBanner message={error ?? resource.error!} onDismiss={() => setError(null)} />}
+-    {resource.loading && !resource.data && <LoadingState />}
+-    {!buildingId && <EmptyState text="Selecione um prédio para consultar seus acessos." />}
+-    {resource.data?.items.length === 0 && <EmptyState text={manage ? "Nenhum acesso cadastrado. Associe um controlador e habilite o acesso quando estiver configurado." : "Nenhum acesso disponível neste prédio."} />}
+-    <div className="grid gap-4 lg:grid-cols-2">{resource.data?.items.filter(gate => flags.enabled(ACCESS_FEATURES[gate.kind]!)).map(gate => {
+-      const command = reconcileAccessCommand(commands[gate.id], gate.latestCommand);
+-      const isWaiting = waiting(command);
+-      return <Card key={gate.id} title={gate.name} subtitle={gate.kind === "GARAGE" ? "Garagem" : "Entrada de pedestres"}
+-        action={<Badge tone={gate.available ? "success" : "neutral"}>{gate.available ? "Disponível" : "Indisponível"}</Badge>}>
+-        <div className="space-y-4">
+-          <div className="flex items-center gap-3 text-sm text-slate-600"><LockKeyhole size={24} className="shrink-0 text-emerald-600" />
+-            <p>{gate.unavailableReason ?? "A abertura será confirmada após a resposta do controlador."}</p>
+-          </div>
+-          {command && <div role="status" className="rounded-lg bg-slate-50 p-3 text-sm">
+-            <p className={command.status === "ACKNOWLEDGED" ? "font-semibold text-emerald-700" : "font-medium text-slate-700"}>{labels[command.status]}</p>
+-            <p className="mt-1 text-xs text-slate-500">Solicitação de {new Date(command.createdAt).toLocaleString("pt-BR")}</p>
+-            {command.failureReason && <p className="mt-1 text-xs text-rose-700">{command.failureReason}</p>}
+-          </div>}
+-          <div className="flex flex-wrap gap-2">
+-            <Button onClick={() => void open(gate)} disabled={!gate.available || busy !== null || Boolean(isWaiting)}><DoorOpen size={16} />{busy === gate.id || isWaiting ? "Aguardando confirmação…" : gate.kind === "GARAGE" ? "Abrir garagem" : "Abrir entrada"}</Button>
+-            {manage && <Button variant="secondary" onClick={() => setEditing(gate)}><Settings2 size={16} />Configurar</Button>}
+-          </div>
++  return (
++    <div className="space-y-5">
++      <PageHeading
++        title="Acessos"
++        description="Solicite a abertura da garagem ou da entrada de pedestres e acompanhe a resposta do controlador."
++        action={
++          creating ? (
++            <Button
++              onClick={() => setEditing("new")}
++              disabled={resource.loading}
++            >
++              Cadastrar acesso
++            </Button>
++          ) : undefined
++        }
++      />
++      {(error || resource.error) && (
++        <div className="space-y-2">
++          <ErrorBanner
++            message={error ?? resource.error!}
++            onDismiss={() => setError(null)}
++          />
++          <Button variant="secondary" onClick={resource.reload}>
++            Atualizar acessos
++          </Button>
+         </div>
+-      </Card>;
+-    })}</div>
+-    {manage && editing && resource.data && <GateEditor key={editing === "new" ? `new-${buildingId}` : editing.id} buildingId={buildingId} gate={editing === "new" ? null : editing} data={resource.data} onCancel={() => setEditing(null)} onSaved={() => { setEditing(null); resource.reload(); }} />}
+-  </div>;
++      )}
++      {resource.loading && !resource.data && <LoadingState />}
++      {!buildingId && (
++        <EmptyState text="Selecione um prédio para consultar seus acessos." />
++      )}
++      {resource.data && !gates.length && (
++        <EmptyState text="Nenhum acesso disponível neste prédio." />
++      )}
++      <div className="grid gap-4 lg:grid-cols-2">
++        {gates.map((gate) => {
++          const intent = intents[store.key(buildingId, gate.id)];
++          // Other history can be shown only when there is no local intent. It can
++          // never settle an uncertain POST or replace its request identity.
++          const command = intent ? intent.command : gate.latestCommand;
++          const uncertain = Boolean(
++            intent && !intent.pending && !intent.command,
++          );
++          const busy = Boolean(intent?.pending || waiting(command));
++          return (
++            <Card
++              key={gate.id}
++              title={gate.name}
++              subtitle={
++                gate.kind === "GARAGE" ? "Garagem" : "Entrada de pedestres"
++              }
++              action={
++                <Badge tone={gate.available ? "success" : "neutral"}>
++                  {gate.available ? "Disponível" : "Indisponível"}
++                </Badge>
++              }
++            >
++              <div className="space-y-4">
++                <div className="flex items-center gap-3 text-sm text-slate-600">
++                  <LockKeyhole
++                    size={24}
++                    className="shrink-0 text-emerald-600"
++                  />
++                  <p>
++                    {gate.unavailableReason ??
++                      "Confira o local antes de confirmar uma abertura."}
++                  </p>
++                </div>
++                {command && (
++                  <div
++                    role="status"
++                    className="rounded-lg bg-slate-50 p-3 text-sm"
++                  >
++                    <p className="font-medium text-slate-700">
++                      {labels[command.status]}
++                    </p>
++                    <p className="mt-1 text-sm text-slate-600">
++                      {commandMessage(command)}
++                    </p>
++                    <p className="mt-1 text-xs text-slate-500">
++                      Solicitação de{" "}
++                      {new Date(command.createdAt).toLocaleString("pt-BR")}
++                    </p>
++                    {command.failureReason && (
++                      <p className="mt-1 text-xs text-rose-700">
++                        {command.failureReason}
++                      </p>
++                    )}
++                  </div>
++                )}
++                {intent?.error && <ErrorBanner message={intent.error} />}
++                {uncertain && (
++                  <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
++                    Não há uma resposta confirmada para esta tentativa. Se você
++                    reenviar, usaremos a mesma identificação, sem criar outra
++                    intenção. A consulta de uma solicitação anterior exige
++                    permissão atual de histórico.
++                  </p>
++                )}
++                <div className="flex flex-wrap gap-2">
++                  <Button
++                    onClick={() =>
++                      setConfirmation({ gate, generation: guard.capture() })
++                    }
++                    disabled={!gate.available || resource.loading || busy}
++                  >
++                    <DoorOpen size={16} />
++                    {busy
++                      ? "Aguardando confirmação…"
++                      : uncertain
++                        ? "Reenviar mesma solicitação"
++                        : gate.kind === "GARAGE"
++                          ? "Abrir garagem"
++                          : "Abrir entrada"}
++                  </Button>
++                  {gate.canManage && (
++                    <Button
++                      variant="secondary"
++                      onClick={() => setEditing(gate.id)}
++                      disabled={resource.loading}
++                    >
++                      <Settings2 size={16} />
++                      Configurar
++                    </Button>
++                  )}
++                </div>
++              </div>
++            </Card>
++          );
++        })}
++      </div>
++      {editing &&
++        resource.data &&
++        ((editing === "new" && creating) || selected?.canManage) && (
++          <GateEditor
++            key={`${buildingId}:${editing}`}
++            buildingId={buildingId}
++            gate={editing === "new" ? null : selected!}
++            data={resource.data}
++            refreshing={resource.loading}
++            onRefresh={resource.reload}
++            onCancel={() => setEditing(null)}
++            onSaved={() => {
++              setEditing(null);
++              resource.reload();
++            }}
++          />
++        )}
++      {confirmation && (
++        <OpenConfirmation
++          gate={confirmation.gate}
++          repeat={Boolean(
++            intents[store.key(buildingId, confirmation.gate.id)] &&
++              !intents[store.key(buildingId, confirmation.gate.id)]!.command,
++          )}
++          onCancel={() => setConfirmation(null)}
++          onConfirm={() => void confirmOpen()}
++        />
++      )}
++    </div>
++  );
+ }
+ 
+-function GateEditor({ buildingId, gate, data, onCancel, onSaved }: { buildingId: string; gate: AccessGateView | null; data: AccessList; onCancel: () => void; onSaved: () => void }) {
++function OpenConfirmation({
++  gate,
++  repeat,
++  onCancel,
++  onConfirm,
++}: {
++  gate: AccessGateView;
++  repeat: boolean;
++  onCancel: () => void;
++  onConfirm: () => void;
++}) {
++  const dialog = useRef<HTMLDialogElement>(null);
++  useEffect(() => {
++    dialog.current?.showModal();
++    return () => {
++      dialog.current?.close();
++    };
++  }, []);
++  return (
++    <dialog
++      ref={dialog}
++      aria-label={`Solicitar abertura de ${gate.name}?`}
++      className="w-full max-w-md rounded-xl border border-slate-200 p-6 shadow-xl backdrop:bg-slate-900/40"
++      onCancel={(event) => {
++        event.preventDefault();
++        onCancel();
++      }}
++    >
++      <h2 className="text-lg font-semibold">
++        Solicitar abertura de {gate.name}?
++      </h2>
++      <p className="my-4 text-sm text-slate-600">
++        {repeat
++          ? "A resposta anterior é incerta. Confirmar reenvia a mesma solicitação; nenhuma nova identificação será criada."
++          : "Confirme que deseja abrir este acesso agora. Vamos verificar novamente a disponibilidade antes de enviar o pedido."}
++      </p>
++      <div className="flex flex-wrap gap-2">
++        <Button variant="secondary" onClick={onCancel}>
++          Cancelar
++        </Button>
++        <Button onClick={onConfirm}>
++          {repeat ? "Confirmar reenvio" : "Confirmar abertura"}
++        </Button>
++      </div>
++    </dialog>
++  );
++}
++
++function GateEditor({
++  buildingId,
++  gate,
++  data,
++  refreshing,
++  onRefresh,
++  onCancel,
++  onSaved,
++}: {
++  buildingId: string;
++  gate: AccessGateView | null;
++  data: AccessList;
++  refreshing: boolean;
++  onRefresh: () => void;
++  onCancel: () => void;
++  onSaved: () => void;
++}) {
+   const flags = useFeatures();
++  const { accessIntents: store } = useAuth();
++  const guard = useMemo(createAccessInteractionGuard, [store]);
++  const inFlight = useRef(false);
++  const mutationStarted = useRef(false);
+   const [name, setName] = useState(gate?.name ?? "");
+-  const [kind, setKind] = useState<"GARAGE" | "PEDESTRIAN">(gate?.kind ?? (flags.enabled("GARAGE_ACCESS") ? "GARAGE" : "PEDESTRIAN"));
++  const [kind, setKind] = useState<"GARAGE" | "PEDESTRIAN">(
++    gate?.kind ?? (flags.enabled("GARAGE_ACCESS") ? "GARAGE" : "PEDESTRIAN"),
++  );
+   const [gatewayId, setGatewayId] = useState(gate?.gatewayId ?? "");
+   const [deviceId, setDeviceId] = useState(gate?.deviceId ?? "");
+   const [enabled, setEnabled] = useState(gate?.enabled ?? false);
+-  const [allowResidents, setAllowResidents] = useState(gate?.allowResidents ?? false);
++  const [allowResidents, setAllowResidents] = useState(
++    gate?.allowResidents ?? false,
++  );
+   const [saving, setSaving] = useState(false);
+   const [error, setError] = useState<string | null>(null);
++  useEffect(() => {
++    const invalidate = () => {
++      guard.invalidate();
++      if (inFlight.current) {
++        setSaving(false);
++        setError(mutationStarted.current
++          ? "A resposta do salvamento ficou pendente ao sair da tela. Atualize os acessos para conferir o resultado."
++          : "A configuração foi cancelada ao sair da tela. Confirme novamente para salvar.");
++      }
++    };
++    const visibility = () => {
++      if (document.visibilityState !== "visible") invalidate();
++    };
++    document.addEventListener("visibilitychange", visibility);
++    window.addEventListener("pagehide", invalidate);
++    return () => {
++      guard.invalidate();
++      document.removeEventListener("visibilitychange", visibility);
++      window.removeEventListener("pagehide", invalidate);
++    };
++  }, [guard]);
+   async function save() {
+-    setSaving(true); setError(null);
++    if (inFlight.current || refreshing) return;
++    inFlight.current = true;
++    mutationStarted.current = false;
++    setSaving(true);
++    setError(null);
++    const generation = guard.capture();
++    const current = () =>
++      store.isValid() &&
++      guard.isCurrent(generation) &&
++      document.visibilityState === "visible";
+     try {
+-      const input = { name, kind, gatewayId, deviceId, enabled, allowResidents };
++      const fresh = await api.get<AccessList>(pathFor(buildingId));
++      if (!current()) return;
++      const authorized = gate
++        ? fresh.items.some(
++            (item) =>
++              item.buildingId === buildingId &&
++              item.id === gate.id &&
++              item.canManage,
++          )
++        : canCreate(fresh);
++      if (!authorized)
++        throw new Error(
++          "Sua permissão para configurar este acesso mudou. Atualize a lista.",
++        );
++      const input = {
++        name,
++        kind,
++        gatewayId,
++        deviceId,
++        enabled,
++        allowResidents,
++      };
++      mutationStarted.current = true;
+       if (gate) await api.patch(`/access/${gate.id}`, input);
+       else await api.post("/access", { ...input, buildingId });
+-      onSaved();
+-    } catch (cause) { setError(cause instanceof Error ? cause.message : "Não foi possível salvar o acesso"); }
+-    finally { setSaving(false); }
++      if (current()) onSaved();
++    } catch (cause) {
++      if (current()) {
++        setError(
++          cause instanceof Error
++            ? cause.message
++            : "Não foi possível salvar o acesso",
++        );
++        if (cause instanceof ApiError && [403, 404].includes(cause.status))
++          onRefresh();
++      }
++    } finally {
++      inFlight.current = false;
++      if (current()) setSaving(false);
++    }
+   }
+-  const controllers = data.devices.filter(device => device.gatewayId === gatewayId && ["GARAGE_GATE", "PEDESTRIAN_GATE", "GATE_CONTROLLER"].includes(device.type));
+-  return <Card title={gate ? `Configurar ${gate.name}` : "Novo acesso"} subtitle="Associe um controlador instalado neste prédio. Novos acessos começam desativados.">
+-    <form className="space-y-4" onSubmit={event => { event.preventDefault(); void save(); }}>
+-      {error && <ErrorBanner message={error} />}
+-      <div className="grid gap-4 md:grid-cols-2">
+-        <Field label="Nome"><Input value={name} onChange={setName} required /></Field>
+-        <Field label="Tipo de acesso"><Select value={kind} onChange={setKind} options={([{ value: "GARAGE", label: "Garagem" }, { value: "PEDESTRIAN", label: "Entrada de pedestres" }] as const).filter(option => flags.enabled(ACCESS_FEATURES[option.value]!))} /></Field>
+-        <Field label="Gateway"><Select value={gatewayId} onChange={value => { setGatewayId(value); setDeviceId(""); }} options={[{ value: "", label: "Selecione um gateway" }, ...data.gateways.map(g => ({ value: g.id, label: g.name }))]} /></Field>
+-        <Field label="Controlador de portão" hint={!controllers.length ? "Cadastre um dispositivo do tipo Controlador de portão vinculado ao gateway selecionado." : undefined}><Select value={deviceId} onChange={setDeviceId} options={[{ value: "", label: "Selecione um controlador" }, ...controllers.map(d => ({ value: d.id, label: d.name }))]} /></Field>
+-      </div>
+-      <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={enabled} onChange={event => setEnabled(event.target.checked)} />Habilitar abertura remota</label>
+-      <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={allowResidents} onChange={event => setAllowResidents(event.target.checked)} />Permitir abertura por moradores com vínculo ativo</label>
+-      <div className="flex gap-2"><Button type="submit" disabled={saving || !name.trim() || !gatewayId || !deviceId}>{saving ? "Salvando…" : "Salvar acesso"}</Button><Button variant="secondary" onClick={onCancel} disabled={saving}>Cancelar</Button></div>
+-    </form>
+-  </Card>;
++  const gateways = [...data.gateways];
++  if (gate && !gateways.some((item) => item.id === gate.gatewayId))
++    gateways.push({ id: gate.gatewayId, name: "Gateway atualmente vinculado" });
++  const controllers = data.devices
++    .filter(
++      (device) =>
++        device.gatewayId === gatewayId && controllerTypes.includes(device.type),
++    )
++    .map((device) => ({ id: device.id, name: device.name }));
++  if (
++    gate &&
++    gatewayId === gate.gatewayId &&
++    !controllers.some((item) => item.id === gate.deviceId)
++  )
++    controllers.push({
++      id: gate.deviceId,
++      name: "Controlador atualmente vinculado",
++    });
++  return (
++    <Card
++      title={gate ? `Configurar ${gate.name}` : "Novo acesso"}
++      subtitle="Mantenha o controlador vinculado ou selecione um destino disponível para sua sessão."
++    >
++      <form
++        className="space-y-4"
++        onSubmit={(event) => {
++          event.preventDefault();
++          void save();
++        }}
++      >
++        {error && <ErrorBanner message={error} />}
++        <div className="grid gap-4 md:grid-cols-2">
++          <Field label="Nome">
++            <Input
++              value={name}
++              onChange={setName}
++              required
++              minLength={2}
++              maxLength={120}
++            />
++          </Field>
++          <Field label="Tipo de acesso">
++            <Select
++              value={kind}
++              onChange={setKind}
++              options={(
++                [
++                  { value: "GARAGE", label: "Garagem" },
++                  { value: "PEDESTRIAN", label: "Entrada de pedestres" },
++                ] as const
++              ).filter((option) =>
++                flags.enabled(ACCESS_FEATURES[option.value]!),
++              )}
++            />
++          </Field>
++          <Field label="Gateway">
++            <Select
++              value={gatewayId}
++              onChange={(value) => {
++                setGatewayId(value);
++                setDeviceId("");
++              }}
++              options={[
++                { value: "", label: "Selecione um gateway" },
++                ...gateways.map((item) => ({
++                  value: item.id,
++                  label: item.name,
++                })),
++              ]}
++            />
++          </Field>
++          <Field
++            label="Controlador de portão"
++            hint={
++              !controllers.length
++                ? "Nenhum controlador disponível para seleção neste gateway."
++                : undefined
++            }
++          >
++            <Select
++              value={deviceId}
++              onChange={setDeviceId}
++              options={[
++                { value: "", label: "Selecione um controlador" },
++                ...controllers.map((item) => ({
++                  value: item.id,
++                  label: item.name,
++                })),
++              ]}
++            />
++          </Field>
++        </div>
++        <label className="flex items-center gap-2 text-sm">
++          <input
++            type="checkbox"
++            checked={enabled}
++            onChange={(event) => setEnabled(event.target.checked)}
++          />
++          Habilitar abertura remota
++        </label>
++        <label className="flex items-center gap-2 text-sm">
++          <input
++            type="checkbox"
++            checked={allowResidents}
++            onChange={(event) => setAllowResidents(event.target.checked)}
++          />
++          Permitir abertura por pessoas com autorização de uso deste acesso
++        </label>
++        <div className="flex gap-2">
++          <Button
++            type="submit"
++            disabled={
++              saving ||
++              refreshing ||
++              name.trim().length < 2 ||
++              !gatewayId ||
++              !deviceId
++            }
++          >
++            {saving ? "Salvando…" : "Salvar acesso"}
++          </Button>
++          <Button variant="secondary" onClick={onCancel}>
++            Cancelar
++          </Button>
++        </div>
++      </form>
++    </Card>
++  );
+ }
+diff --git a/packages/ui/test/auth-state.test.ts b/packages/ui/test/auth-state.test.ts
+index 8264adb..a3967d9 100644
+--- a/packages/ui/test/auth-state.test.ts
++++ b/packages/ui/test/auth-state.test.ts
+@@ -21,15 +21,29 @@ function harness() {
+   let loading = true;
+   let clears = 0;
+   let error: string | null = null;
++  let sessionResets = 0;
+   const actions = createAuthActions({
+     api: { restore: async () => restore.promise, login: async () => login.promise, logout: async () => logout.promise, clearMemory: () => { clears++; } },
+     onUserChange: next => { currentUser = next; },
+     onLoadingChange: next => { loading = next; },
+     onErrorChange: next => { error = next; },
++    onSessionReset: () => { sessionResets++; },
+   });
+-  return { actions, restore, login, logout, state: () => ({ user: currentUser, loading, clears }), error: () => error };
++  return { actions, restore, login, logout, state: () => ({ user: currentUser, loading, clears }), error: () => error, sessionResets: () => sessionResets };
+ }
+ 
++it("invalidates session-owned physical intents before login, restore, logout, auth loss or provider cancellation can finish", async () => {
++  const context = harness();
++  const restoring = context.actions.restore(); assert.equal(context.sessionResets(),1);
++  const signingIn = context.actions.signIn("new@example.com","secret"); assert.equal(context.sessionResets(),2);
++  context.actions.authLost(); assert.equal(context.sessionResets(),3);
++  context.actions.cancel(); assert.equal(context.sessionResets(),4);
++  const signingOut = context.actions.signOut(); assert.equal(context.sessionResets(),5);
++  context.login.resolve(session("new")); context.restore.resolve(session("old")); context.logout.resolve();
++  await Promise.all([restoring,signingIn,signingOut]);
++  assert.equal(context.state().user,null); assert.equal(context.sessionResets(),5);
++});
++
+ it("does not let a failed bootstrap clear a newer login", async () => {
+   const context = harness();
+   const restoring = context.actions.restore();
+diff --git a/.github/workflows/android-avd.yml b/.github/workflows/android-avd.yml
+new file mode 100644
+index 0000000..38063da
+--- /dev/null
++++ b/.github/workflows/android-avd.yml
+@@ -0,0 +1,165 @@
++name: Android clean snapshot verification
++
++on:
++  push:
++    branches: [main]
++    paths:
++      - "scripts/android-smoke/**"
++      - ".github/workflows/android-avd.yml"
++  workflow_dispatch:
++
++permissions:
++  contents: read
++
++concurrency:
++  group: android-clean-avd-${{ github.ref }}
++  cancel-in-progress: false
++
++# No repository dependencies, database, app build, fixture or credential is
++# created in either job. Cache save exists only in the clean preparation job.
++jobs:
++  prepare:
++    runs-on: ubuntu-latest
++    timeout-minutes: 40
++    outputs:
++      cache-key: ${{ steps.metadata.outputs.key }}
++    steps:
++      - uses: actions/checkout@v4
++      - uses: actions/setup-java@v4
++        with:
++          distribution: temurin
++          java-version: "17"
++      - uses: android-actions/setup-android@v3
++        with:
++          packages: "platform-tools emulator system-images;android-35;google_apis;x86_64"
++          log-accepted-android-sdk-licenses: false
++      - name: Test preparation contracts
++        run: python3 -m unittest discover -s scripts/android-smoke -p 'test_*.py' -v
++      - name: Fingerprint installed SDK and this runner
++        id: metadata
++        run: |
++          mkdir -p .local/android-avd "$HOME/.android/avd"
++          key=$(python3 scripts/android-smoke/clean_avd.py metadata --sdk "$ANDROID_HOME" --metadata .local/android-avd/current.json)
++          echo "key=$key" >> "$GITHUB_OUTPUT"
++      - name: Restore only this exact clean AVD
++        id: cache
++        uses: actions/cache/restore@v4
++        with:
++          path: |
++            ~/.android/avd/predioon-clean.avd
++            ~/.android/avd/predioon-clean.ini
++            ~/.android/avd/predioon-clean-manifest.json
++          key: ${{ steps.metadata.outputs.key }}
++      - name: Enable KVM on the disposable runner
++        if: steps.cache.outputs.cache-hit != 'true'
++        run: |
++          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
++          sudo udevadm control --reload-rules
++          sudo udevadm trigger --name-match=kvm
++      - name: Create and validate clean HOME before saving any snapshot
++        if: steps.cache.outputs.cache-hit != 'true'
++        uses: reactivecircus/android-emulator-runner@v2
++        with:
++          api-level: 35
++          target: google_apis
++          arch: x86_64
++          profile: pixel_6
++          avd-name: predioon-clean
++          cores: 4
++          ram-size: 4096M
++          force-avd-creation: true
++          disable-animations: true
++          emulator-boot-timeout: 600
++          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot-load -noaudio -no-boot-anim -camera-back none -camera-front none -timezone Etc/UTC
++          pre-emulator-launch-script: python3 scripts/android-smoke/avd_snapshot.py configure --sdk "$ANDROID_HOME" --metadata .local/android-avd/current.json --avd-home "$HOME/.android/avd" --manifest "$HOME/.android/avd/predioon-clean-manifest.json" --evidence .local/android-avd/preparation
++          script: python3 scripts/android-smoke/avd_snapshot.py boot --sdk "$ANDROID_HOME" --metadata .local/android-avd/current.json --avd-home "$HOME/.android/avd" --manifest "$HOME/.android/avd/predioon-clean-manifest.json" --evidence .local/android-avd/preparation
++      - name: Seal stopped snapshot bytes after healthy preparation
++        if: steps.cache.outputs.cache-hit != 'true'
++        run: python3 scripts/android-smoke/avd_snapshot.py seal --sdk "$ANDROID_HOME" --metadata .local/android-avd/current.json --avd-home "$HOME/.android/avd" --manifest "$HOME/.android/avd/predioon-clean-manifest.json" --evidence .local/android-avd/preparation
++      - name: Save clean AVD immediately, with no post-job recache
++        if: steps.cache.outputs.cache-hit != 'true'
++        uses: actions/cache/save@v4
++        with:
++          path: |
++            ~/.android/avd/predioon-clean.avd
++            ~/.android/avd/predioon-clean.ini
++            ~/.android/avd/predioon-clean-manifest.json
++          key: ${{ steps.metadata.outputs.key }}
++      - name: Verify prepared or previously sealed clean contents
++        run: |
++          python3 scripts/android-smoke/avd_snapshot.py verify --sdk "$ANDROID_HOME" --metadata .local/android-avd/current.json --avd-home "$HOME/.android/avd" --manifest "$HOME/.android/avd/predioon-clean-manifest.json" --evidence .local/android-avd/preparation
++          cp "$HOME/.android/avd/predioon-clean-manifest.json" .local/android-avd/manifest.json
++      - name: Preserve preparation evidence without AVD disks or ADB keys
++        if: always()
++        uses: actions/upload-artifact@v4
++        with:
++          name: android-avd-preparation-${{ github.run_id }}
++          path: .local/android-avd/
++          include-hidden-files: true
++          if-no-files-found: warn
++          retention-days: 7
++
++  restore:
++    needs: prepare
++    runs-on: ubuntu-latest
++    timeout-minutes: 30
++    steps:
++      - uses: actions/checkout@v4
++      - uses: actions/setup-java@v4
++        with:
++          distribution: temurin
++          java-version: "17"
++      - uses: android-actions/setup-android@v3
++        with:
++          packages: "platform-tools emulator system-images;android-35;google_apis;x86_64"
++          log-accepted-android-sdk-licenses: false
++      - name: Require compatible SDK and independent runner before restoring
++        env:
++          PREPARED_KEY: ${{ needs.prepare.outputs.cache-key }}
++        run: |
++          mkdir -p .local/android-avd "$HOME/.android/avd"
++          current_key=$(python3 scripts/android-smoke/clean_avd.py metadata --sdk "$ANDROID_HOME" --metadata .local/android-avd/current.json)
++          test "$current_key" = "$PREPARED_KEY" || { echo 'Independent runner or SDK is incompatible with the prepared fingerprint'; exit 1; }
++      - name: Restore exact sealed cache without host ADB keys
++        uses: actions/cache/restore@v4
++        with:
++          path: |
++            ~/.android/avd/predioon-clean.avd
++            ~/.android/avd/predioon-clean.ini
++            ~/.android/avd/predioon-clean-manifest.json
++          key: ${{ needs.prepare.outputs.cache-key }}
++          fail-on-cache-miss: true
++      - name: Verify bytes before the emulator can modify userdata
++        run: |
++          python3 scripts/android-smoke/avd_snapshot.py verify --sdk "$ANDROID_HOME" --metadata .local/android-avd/current.json --avd-home "$HOME/.android/avd" --manifest "$HOME/.android/avd/predioon-clean-manifest.json" --evidence .local/android-avd/restoration
++          cp "$HOME/.android/avd/predioon-clean-manifest.json" .local/android-avd/manifest.json
++      - name: Enable KVM on the independent runner
++        run: |
++          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
++          sudo udevadm control --reload-rules
++          sudo udevadm trigger --name-match=kvm
++      - name: Prove snapshot restoration with fresh ADB and healthy HOME
++        uses: reactivecircus/android-emulator-runner@v2
++        with:
++          api-level: 35
++          target: google_apis
++          arch: x86_64
++          profile: pixel_6
++          avd-name: predioon-clean
++          cores: 4
++          ram-size: 4096M
++          force-avd-creation: false
++          disable-animations: true
++          emulator-boot-timeout: 600
++          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot-save -noaudio -no-boot-anim -camera-back none -camera-front none -timezone Etc/UTC
++          pre-emulator-launch-script: python3 scripts/android-smoke/avd_snapshot.py configure --sdk "$ANDROID_HOME" --metadata .local/android-avd/current.json --avd-home "$HOME/.android/avd" --manifest "$HOME/.android/avd/predioon-clean-manifest.json" --evidence .local/android-avd/restoration
++          script: python3 scripts/android-smoke/avd_snapshot.py boot --restored --sdk "$ANDROID_HOME" --metadata .local/android-avd/current.json --avd-home "$HOME/.android/avd" --manifest "$HOME/.android/avd/predioon-clean-manifest.json" --evidence .local/android-avd/restoration
++      - name: Preserve restoration evidence, never save mutated AVD state
++        if: always()
++        uses: actions/upload-artifact@v4
++        with:
++          name: android-avd-restoration-${{ github.run_id }}
++          path: .local/android-avd/
++          include-hidden-files: true
++          if-no-files-found: warn
++          retention-days: 7
+diff --git a/apps/api/test/audit-capabilities.test.ts b/apps/api/test/audit-capabilities.test.ts
+new file mode 100644
+index 0000000..1deb020
+--- /dev/null
++++ b/apps/api/test/audit-capabilities.test.ts
+@@ -0,0 +1,271 @@
++import assert from "node:assert/strict";
++import { randomUUID } from "node:crypto";
++import { after, before, describe, it } from "node:test";
++import { sql } from "drizzle-orm";
++import { sqlClient } from "@predioon/db";
++import { closeAppDb, withUserContext } from "@predioon/db/runtime";
++import { hashPassword } from "../src/auth/passwords.js";
++import { pgErrorCode } from "../src/http/errors.js";
++import { call, login, startTestServer, type TestServer } from "./helpers.js";
++
++describe("audit capabilities isolate local history from platform history", () => {
++  let server: TestServer, passwordHash: string;
++  before(async () => {
++    passwordHash = await hashPassword("predioon123");
++    server = await startTestServer();
++  });
++  after(async () => {
++    await server?.close();
++    await closeAppDb(); await sqlClient.end();
++  });
++
++  type Kind = "reader" | "exact" | "worker" | "legacy" | "platform" | "support" | "outsider";
++  async function fixture(run: (f: {
++    a: string; b: string; org: string; device: string; foreignDevice: string;
++    team: string; binding: string; role: string; ids: Record<Kind, string>;
++    logs: Record<"local" | "other" | "foreign" | "global" | "provisioned" | "feature" | "unknown", string>;
++    request: (user: string, path?: string, options?: { method?: string; body?: unknown }) => Promise<Response>;
++  }) => Promise<void>) {
++    const suffix = randomUUID(), org = `audit-org-${suffix}`, a = `audit-a-${suffix}`, b = `audit-b-${suffix}`;
++    const device = `audit-device-${suffix}`, foreignDevice = `audit-foreign-${suffix}`;
++    const team = randomUUID(), binding = randomUUID(), role = `AUDIT_READER_${suffix}`;
++    const ids = Object.fromEntries((["reader", "exact", "worker", "legacy", "platform", "support", "outsider"] as Kind[]).map(kind => [kind, `audit-${kind}-${suffix}`])) as Record<Kind, string>;
++    const logs = Object.fromEntries(["local", "other", "foreign", "global", "provisioned", "feature", "unknown"].map(kind => [kind, randomUUID()])) as Parameters<typeof run>[0]["logs"];
++    const tokens = new Map<string, string>();
++    const request = async (user: string, path = "/audit", options: { method?: string; body?: unknown } = {}) => {
++      if (!tokens.has(user)) tokens.set(user, (await login(server.url, `${user}@audit.test`)).accessToken);
++      return call(server.url, path, { ...options, token: tokens.get(user) });
++    };
++    try {
++      await sqlClient`insert into organizations(id,name,slug) values(${org},'Audit fixtures',${org})`;
++      for (const building of [a, b]) await sqlClient`insert into buildings(id,organization_id,name,code) values(${building},${org},${building},${building})`;
++      for (const [kind,id] of Object.entries(ids)) await sqlClient`insert into users(id,name,email,password_hash,is_platform_admin) values(${id},${kind},${`${id}@audit.test`},${passwordHash},${kind === 'platform'})`;
++      await sqlClient`insert into roles(key,scope,label) values(${role},'BUILDING','Audit reader fixture')`;
++      await sqlClient`insert into role_permissions(role_key,permission_key) values(${role},'audit:read')`;
++      await sqlClient`insert into teams(id,building_id,name) values(${team},${a},'Audit team')`;
++      await sqlClient`insert into team_members(team_id,building_id,user_id) values(${team},${a},${ids.worker})`;
++      await sqlClient`insert into role_bindings(id,user_id,building_id,role_key) values(${binding},${ids.reader},${a},${role})`;
++      await sqlClient`insert into role_bindings(team_id,building_id,role_key) values(${team},${a},${role})`;
++      await sqlClient`insert into role_bindings(user_id,building_id,role_key,resource_type,resource_id) values(${ids.exact},${a},${role},'device',${device})`;
++      await sqlClient`insert into role_bindings(user_id,role_key) values(${ids.support},'PLATFORM_SUPPORT')`;
++      await sqlClient`insert into memberships(user_id,building_id,role) values(${ids.legacy},${a},'BUILDING_ADMIN'),(${ids.legacy},${b},'RESIDENT')`;
++      await sqlClient`insert into devices(id,building_id,name,type) values(${device},${a},'Audit target','WATER_LEVEL_SENSOR'),(${foreignDevice},${b},'Foreign target','WATER_LEVEL_SENSOR')`;
++      const entries = [
++        [logs.local, a, "DEVICE_UPDATED", "device", device],
++        [logs.other, a, "MEMBERSHIP_UPSERTED", "membership", randomUUID()],
++        [logs.foreign, b, "DEVICE_UPDATED", "device", foreignDevice],
++        [logs.global, null, "ORGANIZATION_CREATED", "organization", org],
++        [logs.provisioned, a, "BUILDING_CREATED", "building", a],
++        [logs.feature, a, "FEATURE_CONFIGURATION_CHANGED", "feature", "TICKETS"],
++        [logs.unknown, null, "DEVICE_UPDATED", "device", "removed-device"],
++      ];
++      for (const [id, building, action, type, resource] of entries) await sqlClient`insert into audit_logs(id,building_id,user_id,action,resource_type,resource_id,metadata,ip_address,user_agent,created_at) values(${id!},${building},${ids.platform},${action!},${type!},${resource},'{"private":"never expose raw payload"}','192.0.2.9','Private fixture agent','2026-01-01T00:00:00Z')`;
++      await run({ a,b,org,device,foreignDevice,team,binding,role,ids,logs,request });
++    } finally {
++      await sqlClient`delete from audit_logs where id in ${sqlClient(Object.values(logs))}`;
++      await sqlClient`delete from audit_logs where user_id in ${sqlClient(Object.values(ids))}`;
++      await sqlClient`delete from buildings where organization_id=${org}`;
++      await sqlClient`delete from organizations where id=${org}`;
++      await sqlClient`delete from users where id in ${sqlClient(Object.values(ids))}`;
++      await sqlClient`delete from roles where key=${role}`;
++    }
++  }
++  const as = <T>(userId: string, run: Parameters<typeof withUserContext<T>>[1]) => withUserContext({ userId, role: "PLATFORM_ADMIN" }, run);
++  async function items(response: Response) {
++    assert.equal(response.status, 200, await response.clone().text());
++    return (await response.json()).items as { id: string; buildingId: string | null; [key: string]: unknown }[];
++  }
++  const sorted = (ids: string[]) => [...ids].sort();
++
++  it("direct and team grants work without a legacy membership, with and without building filter", async () => fixture(async f => {
++    for (const user of [f.ids.reader, f.ids.worker]) for (const path of ["/audit", `/audit?buildingId=${f.a}`]) {
++      assert.deepEqual(sorted((await items(await f.request(user,path))).map(row => row.id)), sorted([f.logs.local,f.logs.other,f.logs.provisioned,f.logs.feature]));
++    }
++  }));
++  it("platform reading does not include local or unclassified events, even if their actor is a platform admin", async () => fixture(async f => {
++    assert.deepEqual(sorted((await items(await f.request(f.ids.platform))).map(row => row.id)), sorted([f.logs.global,f.logs.provisioned]));
++  }));
++  it("an explicit local grant combines with global reading without exposing any other tenant", async () => fixture(async f => {
++    await sqlClient`insert into role_bindings(user_id,building_id,role_key) values(${f.ids.platform},${f.a},${f.role})`;
++    assert.deepEqual(sorted((await items(await f.request(f.ids.platform))).map(row=>row.id)),sorted([f.logs.global,f.logs.provisioned,f.logs.local,f.logs.other,f.logs.feature]));
++    assert.deepEqual(sorted((await items(await f.request(f.ids.platform,`/audit?buildingId=${f.a}`))).map(row=>row.id)),sorted([f.logs.provisioned,f.logs.local,f.logs.other,f.logs.feature]));
++    await sqlClient`update role_bindings set active=false where user_id=${f.ids.platform} and building_id=${f.a}`;
++    assert.deepEqual(sorted((await items(await f.request(f.ids.platform))).map(row=>row.id)),sorted([f.logs.global,f.logs.provisioned]));
++  }));
++  it("building admin A/resident B reads only A, and direct SQL enforces the same scope", async () => fixture(async f => {
++    assert.deepEqual(sorted((await items(await f.request(f.ids.legacy))).map(row => row.id)), sorted([f.logs.local,f.logs.other,f.logs.provisioned,f.logs.feature]));
++    assert.equal((await f.request(f.ids.legacy,`/audit?buildingId=${f.b}`)).status,403);
++    const rows = await as(f.ids.reader,tx => tx.execute(sql`select id from audit_logs`));
++    assert.deepEqual(sorted(rows.map(row => String(row.id))), sorted([f.logs.local,f.logs.other,f.logs.provisioned,f.logs.feature]));
++  }));
++  it("exact resource grants expose no neighbor, do not cross tenant and stop after resource removal", async () => fixture(async f => {
++    assert.deepEqual((await items(await f.request(f.ids.exact))).map(row => row.id),[f.logs.local]);
++    await sqlClient`update role_bindings set resource_id=${f.foreignDevice} where user_id=${f.ids.exact}`;
++    assert.equal((await f.request(f.ids.exact)).status,403);
++    await sqlClient`update role_bindings set resource_id=${f.device} where user_id=${f.ids.exact}`;
++    await sqlClient`delete from devices where id=${f.device}`;
++    assert.equal((await f.request(f.ids.exact)).status,403);
++    assert.ok((await items(await f.request(f.ids.reader))).some(row => row.id===f.logs.local));
++  }));
++  it("unit membership audit aliases resolve to the actual membership resource and tenant", async () => fixture(async f => {
++    const unit=randomUUID(), membership=randomUUID(), created=randomUUID(), revoked=randomUUID();
++    await sqlClient`insert into units(id,building_id,code) values(${unit},${f.a},'101')`;
++    await sqlClient`insert into unit_memberships(id,building_id,unit_id,user_id) values(${membership},${f.a},${unit},${f.ids.outsider})`;
++    await sqlClient`update role_bindings set resource_type='membership',resource_id=${membership} where user_id=${f.ids.exact}`;
++    await sqlClient`insert into audit_logs(id,building_id,user_id,action,resource_type,resource_id) values
++      (${created},${f.a},${f.ids.platform},'UNIT_MEMBERSHIP_CREATED','unit_membership',${membership}),
++      (${revoked},${f.a},${f.ids.platform},'UNIT_MEMBERSHIP_REVOKED','unit-memberships',${membership})`;
++    assert.deepEqual(sorted((await items(await f.request(f.ids.exact))).map(row=>row.id)),sorted([created,revoked]));
++    await sqlClient`delete from unit_memberships where id=${membership}`;
++    assert.equal((await f.request(f.ids.exact)).status,403);
++    assert.ok((await items(await f.request(f.ids.reader))).some(row=>row.id===revoked));
++  }));
++  it("HTTP projection and runtime columns omit raw metadata, IP and user-agent", async () => fixture(async f => {
++    const rows = await items(await f.request(f.ids.legacy));
++    for (const row of rows) for (const key of ["metadata","ipAddress","userAgent"]) assert.equal(Object.hasOwn(row,key),false,key);
++    for (const column of ["metadata","ip_address","user_agent"]) await assert.rejects(as(f.ids.legacy,tx => tx.execute(sql.raw(`select ${column} from audit_logs`))), error => pgErrorCode(error)==='42501');
++  }));
++  it("revocation and team expiration take effect on the same access token", async () => fixture(async f => {
++    assert.equal((await f.request(f.ids.reader)).status,200);
++    await sqlClient`update role_bindings set active=false where id=${f.binding}`;
++    assert.equal((await f.request(f.ids.reader)).status,403);
++    assert.equal((await f.request(f.ids.worker)).status,200);
++    await sqlClient`update team_members set ends_at=clock_timestamp()-interval '1 second' where team_id=${f.team}`;
++    assert.equal((await f.request(f.ids.worker)).status,403);
++  }));
++  it("deleted building FK never promotes local audit to platform history", async () => fixture(async f => {
++    await sqlClient`delete from buildings where id=${f.a}`;
++    const rows = await items(await f.request(f.ids.platform));
++    assert.ok(rows.some(row => row.id===f.logs.provisioned));
++    for (const id of [f.logs.local,f.logs.other,f.logs.feature,f.logs.unknown]) assert.equal(rows.some(row => row.id===id),false,id);
++  }));
++  it("unauthorized users and support do not inherit audit; forged context is not authority", async () => fixture(async f => {
++    for (const user of [f.ids.outsider,f.ids.support]) {
++      assert.equal((await f.request(user)).status,403);
++      assert.equal((await as(user,tx => tx.execute(sql`select id from audit_logs`))).length,0);
++    }
++  }));
++  it("same-time pagination is stable and authorized empty history stays distinct from rejection", async () => fixture(async f => {
++    const expected = sorted([f.logs.local,f.logs.other,f.logs.provisioned,f.logs.feature]).reverse();
++    const found: string[] = [];
++    for (let offset=0;offset<4;offset+=2) found.push(...(await items(await f.request(f.ids.reader,`/audit?limit=2&offset=${offset}`))).map(row => row.id));
++    assert.deepEqual(found,expected);
++    await sqlClient`delete from audit_logs where building_id=${f.a}`;
++    assert.deepEqual(await items(await f.request(f.ids.reader)),[]);
++    assert.equal((await f.request(f.ids.outsider)).status,403);
++  }));
++  it("inactive tenant, organization and role withdraw local visibility without changing the token", async () => fixture(async f => {
++    assert.equal((await f.request(f.ids.reader)).status,200);
++    for (const [table,id] of [["buildings",f.a],["organizations",f.org],["roles",f.role]] as const) {
++      const key = table==='roles' ? 'key' : 'id';
++      await sqlClient.unsafe(`update ${table} set active=false where ${key}=$1`,[id]);
++      try { assert.equal((await f.request(f.ids.reader)).status,403); }
++      finally { await sqlClient.unsafe(`update ${table} set active=true where ${key}=$1`,[id]); }
++      assert.equal((await f.request(f.ids.reader)).status,200);
++    }
++    await sqlClient`update users set active=false where id=${f.ids.reader}`;
++    assert.equal((await f.request(f.ids.reader)).status,401);
++  }));
++  it("team inactivity and future/expired membership windows do not retain audit access", async () => fixture(async f => {
++    assert.equal((await f.request(f.ids.worker)).status,200);
++    await sqlClient`update teams set active=false where id=${f.team}`;
++    assert.equal((await f.request(f.ids.worker)).status,403);
++    await sqlClient`update teams set active=true where id=${f.team}`;
++    await sqlClient`update team_members set starts_at=clock_timestamp()+interval '1 hour' where team_id=${f.team}`;
++    assert.equal((await f.request(f.ids.worker)).status,403);
++    await sqlClient`update team_members set starts_at=null,ends_at=clock_timestamp()-interval '1 second' where team_id=${f.team}`;
++    assert.equal((await f.request(f.ids.worker)).status,403);
++  }));
++  it("permission deactivation denies both runtime reading and query availability", async () => fixture(async f => {
++    assert.equal((await f.request(f.ids.reader)).status,200);
++    const [prior] = await sqlClient`select active from permissions where key='audit:read'`;
++    await sqlClient`update permissions set active=false where key='audit:read'`;
++    try {
++      assert.equal((await f.request(f.ids.reader)).status,403);
++      assert.equal((await as(f.ids.reader,tx => tx.execute(sql`select id from audit_logs`))).length,0);
++    } finally { await sqlClient`update permissions set active=${prior!.active} where key='audit:read'`; }
++  }));
++  it("expiry is re-evaluated in a later statement of the same SQL transaction", async () => fixture(async f => {
++    await sqlClient`update role_bindings set ends_at=clock_timestamp()+interval '300 milliseconds' where id=${f.binding}`;
++    await as(f.ids.reader,async tx => {
++      assert.ok((await tx.execute(sql`select id from audit_logs`)).length>0);
++      await tx.execute(sql`select pg_sleep(0.4)`);
++      assert.equal((await tx.execute(sql`select id from audit_logs`)).length,0);
++    });
++  }));
++  it("global audit requires its own active permission and current platform role", async () => fixture(async f => {
++    assert.equal((await f.request(f.ids.platform)).status,200);
++    const [prior] = await sqlClient`select active from permissions where key='audit:read-platform'`;
++    await sqlClient`update permissions set active=false where key='audit:read-platform'`;
++    try { assert.equal((await f.request(f.ids.platform)).status,403); }
++    finally { await sqlClient`update permissions set active=${prior!.active} where key='audit:read-platform'`; }
++    await sqlClient`update users set is_platform_admin=false where id=${f.ids.platform}`;
++    assert.equal((await f.request(f.ids.platform)).status,403);
++  }));
++  it("tenant snapshot remains immutable when the foreign key is cleared", async () => fixture(async f => {
++    const [before] = await sqlClient`select scope_kind,scope_building_id from audit_logs where id=${f.logs.local}`;
++    assert.deepEqual(before,{scope_kind:'BUILDING',scope_building_id:f.a});
++    await assert.rejects(sqlClient`update audit_logs set scope_kind='PLATFORM' where id=${f.logs.local}`,e=>pgErrorCode(e)==='42501');
++    await assert.rejects(sqlClient`update audit_logs set scope_building_id=${f.b} where id=${f.logs.local}`,e=>pgErrorCode(e)==='42501');
++    await sqlClient`delete from buildings where id=${f.a}`;
++    const [after] = await sqlClient`select building_id,scope_kind,scope_building_id from audit_logs where id=${f.logs.local}`;
++    assert.deepEqual(after,{building_id:null,...before});
++  }));
++  it("application cannot update, delete or read private audit fields", async () => fixture(async f => {
++    for (const user of [f.ids.reader,f.ids.legacy,f.ids.platform]) {
++      await assert.rejects(as(user,tx=>tx.execute(sql`update audit_logs set action='REWRITTEN' where id=${f.logs.local}`)),e=>pgErrorCode(e)==='42501');
++      await assert.rejects(as(user,tx=>tx.execute(sql`delete from audit_logs where id=${f.logs.local}`)),e=>pgErrorCode(e)==='42501');
++      await assert.rejects(as(user,tx=>tx.execute(sql`select metadata from audit_logs`)),e=>pgErrorCode(e)==='42501');
++    }
++  }));
++  it("unknown actions cannot use a legacy context or a real platform role to append audit", async () => fixture(async f => {
++    for (const user of [f.ids.outsider,f.ids.reader,f.ids.legacy,f.ids.platform]) {
++      for (const building of [f.a,null]) {
++        await assert.rejects(as(user,tx=>tx.execute(sql`insert into audit_logs(building_id,user_id,action,resource_type,resource_id) values(${building},${user},'UNREGISTERED_ACTION','device',${f.device})`)),e=>pgErrorCode(e)==='42501');
++      }
++    }
++  }));
++  it("legacy producer pairs require their real capability and a resource in the same tenant", async () => fixture(async f => {
++    for (const user of [f.ids.outsider,f.ids.reader]) {
++      await assert.rejects(as(user,tx=>tx.execute(sql`insert into audit_logs(building_id,user_id,action,resource_type,resource_id) values(${f.a},${user},'TEAM_CREATED','team',${f.team})`)),e=>pgErrorCode(e)==='42501');
++    }
++    for (const [building,type,id] of [[f.b,'team',f.team],[f.a,'device',f.device],[f.a,'team',randomUUID()]] as const) {
++      await assert.rejects(as(f.ids.legacy,tx=>tx.execute(sql`insert into audit_logs(building_id,user_id,action,resource_type,resource_id) values(${building},${f.ids.legacy},'TEAM_CREATED',${type},${id})`)),e=>pgErrorCode(e)==='42501');
++    }
++    await as(f.ids.legacy,tx=>tx.execute(sql`insert into audit_logs(building_id,user_id,action,resource_type,resource_id) values(${f.a},${f.ids.legacy},'TEAM_CREATED','team',${f.team})`));
++  }));
++  it("unscoped rejection stays stored but never becomes a platform event", async () => fixture(async f => {
++    const id=randomUUID();
++    await as(f.ids.outsider,tx=>tx.execute(sql`insert into audit_logs(id,user_id,action,resource_type,resource_id,scope_kind,scope_building_id) values(${id},${f.ids.outsider},'ACCESS_REQUEST_REJECTED','gate','invalid-target','PLATFORM',${f.a})`));
++    const [row]=await sqlClient`select scope_kind,scope_building_id from audit_logs where id=${id}`;
++    assert.deepEqual(row,{scope_kind:'LEGACY_UNKNOWN',scope_building_id:null});
++    assert.equal((await items(await f.request(f.ids.platform))).some(row=>row.id===id),false);
++  }));
++  it("legacy administrator can revoke their sole local membership atomically", async () => fixture(async f => {
++    const [membership]=await sqlClient`select id from memberships where building_id=${f.a} and user_id=${f.ids.legacy}`;
++    const response=await f.request(f.ids.legacy,`/users/memberships/${membership!.id}`,{method:'DELETE'});
++    assert.equal(response.status,204,await response.text());
++    const [row]=await sqlClient`select active from memberships where id=${membership!.id}`;
++    assert.equal(row!.active,false);
++    const rows=await sqlClient`select user_id,resource_id,scope_kind,scope_building_id from audit_logs where user_id=${f.ids.legacy} and action='MEMBERSHIP_REVOKED'`;
++    assert.deepEqual([...rows],[{user_id:f.ids.legacy,resource_id:membership!.id,scope_kind:'BUILDING',scope_building_id:f.a}]);
++    assert.equal((await f.request(f.ids.legacy,`/audit?buildingId=${f.a}`)).status,403);
++  }));
++  it("a failed membership revocation rolls back its earlier audit as well", async () => fixture(async f => {
++    const [membership]=await sqlClient`select id from memberships where building_id=${f.a} and user_id=${f.ids.legacy}`;
++    const name=`audit_reject_${randomUUID().replaceAll('-','')}`;
++    await sqlClient.unsafe(`create function ${name}() returns trigger language plpgsql as $$ begin if NEW.id='${membership!.id}'::uuid then raise exception 'Fixture rejects mutation' using errcode='23514'; end if; return NEW; end $$`);
++    try {
++      await sqlClient.unsafe(`create trigger ${name} before update on memberships for each row execute function ${name}()`);
++      const response=await f.request(f.ids.legacy,`/users/memberships/${membership!.id}`,{method:'DELETE'});
++      assert.ok(response.status>=400,await response.text());
++      const [row]=await sqlClient`select active from memberships where id=${membership!.id}`;
++      assert.equal(row!.active,true);
++      assert.equal((await sqlClient`select id from audit_logs where user_id=${f.ids.legacy} and action='MEMBERSHIP_REVOKED'`).length,0);
++      assert.equal((await f.request(f.ids.legacy,`/audit?buildingId=${f.a}`)).status,200);
++    } finally {
++      await sqlClient.unsafe(`drop trigger if exists ${name} on memberships`);
++      await sqlClient.unsafe(`drop function if exists ${name}()`);
++    }
++  }));
++});
+diff --git a/docs/superpowers/plans/2026-10-02-audit-capabilities.md b/docs/superpowers/plans/2026-10-02-audit-capabilities.md
+new file mode 100644
+index 0000000..f9e9700
+--- /dev/null
++++ b/docs/superpowers/plans/2026-10-02-audit-capabilities.md
+@@ -0,0 +1,80 @@
++# Auditoria por capacidades — migration 036
++
++Estado: draft SQL/HTTP aplicado somente no snapshot isolado5435, com 68 testes dirigidos e de regressão aprovados. Nenhuma036 entrou no runtime compartilhado ou ledger. Este recorte integra a etapa2B.3 e não encerra a migração dos demais domínios.
++
++## Fronteira atual
++
++`GET /audit` usa papel legado, memberships do token e SELECT de todas as colunas. A policy de leitura 001 aceita administração global como acesso a todos os eventos privados. `audit_logs.building_id` tem FK `ON DELETE SET NULL`: sua ausência não prova escopo global. A interface administrativa atual ainda confunde carregamento, erro e lista vazia e limita a consulta aos primeiros 100 registros.
++
++## Autoridade e escopo persistido
++
++- Adicionar `audit:read` ao catálogo local e ao papel BUILDING_ADMIN; não conceder a manutenção/morador/suporte por inferência. `audit:read-platform` pertence ao catálogo global de PLATFORM_ADMIN. Uma concessão global não concede leitura local.
++- Persistir `scope_kind` como PLATFORM, BUILDING ou LEGACY_UNKNOWN e `scope_building_id` como texto sem FK. São derivados pelo banco na inserção e imutáveis depois dela; o SET NULL da FK de apresentação não recalcula nem apaga o tenant original.
++- Classificar por ação, tipo de recurso e escopo real, nunca pelo ator nem por metadata fornecido. A coluna de categoria enviada por um cliente não é prova de classificação.
++- Eventos locais usam concessões vigentes no tenant original, organização/condomínio/conta ativos e, quando pontuais, o recurso concreto ainda pertencente ao tenant. A concessão exata não permite ler eventos de seus vizinhos nem equivale à concessão inteira. Recursos removidos só mantêm histórico para quem tem `audit:read` amplo no condomínio; conjuntos sem um recurso RBAC concreto também exigem concessão ampla.
++- Uma autoridade local ampla pode ler o histórico associado a seu condomínio, inclusive o provisionamento que o criou; uma autoridade global só pode ler eventos classificados PLATFORM. Não usar permissões operacionais de equipamentos/chamados para conceder leitura de auditoria automaticamente.
++- Suporte mantém o catálogo diagnóstico atual, sem `audit:read` na allowlist de suporte. É possível conceder papel local explícito pelos mecanismos ordinários; isso não é uma concessão de suporte implícita.
++
++## Matriz de classificação
++
++| Ação e recurso | Evento novo | Histórico anterior à migration |
++|---|---|---|
++| ORGANIZATION_CREATED/UPDATED + organization | PLATFORM; sem tenant | PLATFORM somente para esse par e sem tenant; combinações incoerentes ficam desconhecidas |
++| USER_CREATED + user | PLATFORM; sem tenant | Mesma regra, pois esse produtor é global e não recebe tenant |
++| BUILDING_CREATED + building | PLATFORM, preservando o tenant criado e exigindo resourceId igual ao buildingId | PLATFORM somente com tenant/identidade comprovados; NULL anterior é ambíguo |
++| BUILDING_UPDATED + building | BUILDING, independentemente do ator global ou local | BUILDING quando tenant presente; NULL anterior permanece desconhecido |
++| FEATURE_CONFIGURATION_CHANGED + feature | BUILDING com tenant; PLATFORM sem tenant apenas para chave real de funcionalidade global e capacidade global vigente | Com tenant, BUILDING; sem tenant, LEGACY_UNKNOWN porque a FK pode ter sido removida |
++| Demais eventos com tenant | BUILDING | BUILDING quando o tenant ainda está registrado |
++| Demais eventos sem tenant, incluindo rejeições sem alvo comprovado | LEGACY_UNKNOWN | LEGACY_UNKNOWN, indisponível na projeção global até classificação administrativa explícita |
++
++Não usar `metadata.buildingId`, nomes de usuário ou identidade do operador para recuperar automaticamente um tenant perdido. Logs desconhecidos continuam armazenados. A migration não apaga nem reescreve seus payloads.
++
++## Leitura e escrita
++
++- Substituir a policy SELECT e apenas o fallback genérico do CASE de INSERT. Preservar todas as branches específicas e o registro transacional dos domínios, incluindo as quatro branches físicas da034. A035 não introduz ação de auditoria.
++- Acrescentar barreira restritiva de INSERT que prove os pares globais e a autoridade da ação: provisionamento para BUILDING_CREATED, features:manage para funcionalidade global, administração de plataforma vigente para os produtores de usuários/organizações ainda legados. Autorizar leitura nunca concede escrita. Um escritor local não pode criar um registro classificável como global por alterar action/resourceType.
++- Não conceder UPDATE/DELETE. Proteger categoria e tenant original também durante alterações da FK. Reaplicação não reclassifica eventos já classificados, não reativa permissões/revogações nem substitui helpers/policies de outros domínios.
++- Retornar DTO mínimo: ID, tenant original autorizado, ator, ação, tipo/ID do recurso, data e categoria. Não devolver IP, user-agent ou metadata bruto. Restringir SELECT do runtime às colunas da projeção; os campos sensíveis continuam disponíveis apenas ao proprietário administrativo e aos fluxos de inserção já autorizados. Um futuro detalhamento exige uma política de campos por ação, fora deste recorte.
++- Preservar `/audit`, `{ items, limit, offset }` e filtro buildingId, agora aplicado ao tenant original. Ordenar por createdAt e id para paginação estável. Consultas sem qualquer concessão retornam 403, distinto de lista autorizada vazia; não revelar existência de tenant/recurso alheio.
++- Consulta sem filtro pode reunir somente as linhas explicitamente autorizadas. O consumidor comum de auditoria usa a API como fonte de escopo, com carregamento, erro/retry, paginação, atualização e descarte de resposta ao trocar condomínio/conta. Administração e gestão recebem rotas próprias sem comparações ordinais de papel.
++
++## Produtores que deixam o fallback genérico
++
++| Ação / resource_type | Prova de escrita vigente |
++|---|---|
++| ORGANIZATION_CREATED/UPDATED / organization; USER_CREATED / user | Sem tenant, entidade real e flag `is_platform_admin` da conta ativa. Estes produtores permanecem legados até recorte próprio; não ampliar para papel global RBAC por inferência. |
++| MEMBERSHIP_UPSERTED/REVOKED / membership | Membership real do tenant e `memberships:manage` local ou a administração global real já aceita pelo produtor legado. Isso não concede leitura local de auditoria. |
++| BLOCK_CREATED / block; UNIT_CREATED / unit | `units:manage` inteiro e entidade real do mesmo tenant. |
++| TEAM_CREATED / team; TEAM_MEMBER_ADDED / team_member; TEAM_MEMBER_REVOKED / team-members | `teams:manage` inteiro e entidade real do mesmo tenant. |
++| UNIT_MEMBERSHIP_CREATED / unit_membership; UNIT_MEMBERSHIP_REVOKED / unit-memberships | `memberships:manage` inteiro e vínculo real do mesmo tenant. |
++| ROLE_BINDING_CREATED / role_binding; ROLE_BINDING_REVOKED / role-bindings | `memberships:manage` inteiro e concessão real do tenant; criação também comprova `granted_by` igual ao ator. |
++| SUPPORT_CONFIG_SAVED/REQUESTED/RESULT_RECORDED / remote_support | `app_support_admin()` atual, prédio ativo e host/request real; requested_by/closed_by correspondem ao ator nas respectivas ações. A restrição de leitura de suporte existente permanece. |
++| Desconhecida ou par incoerente | Negada, inclusive com app.role forjado ou administração global real. |
++
++`ACCESS_REQUEST_REJECTED` conserva sua policy estreita separada: USER atual, tenantNULL e recurso gate. Continua classificado como LEGACY_UNKNOWN, sem promoção a histórico global. Eventos físicos SYSTEM e abertura controlada pelo owner continuam fora da escrita livre do runtime. A substituição da expressão aborta diante de CASE aninhado inesperado, em vez de sobrescrever clauses de outro domínio.
++
++Autorrevogação do membership legado exige registrar a auditoria antes de remover a própria autoridade, dentro da mesma transação. O draft HTTP faz essa mudança; um trigger de teste que recusa a mutação confirma rollback do registro anterior e preservação do vínculo.
++
++## Testes e isolamento
++
++- Banco exclusivo `predioon-test-audit`, loopback5435, baseline e migrations001–033 pelo runner controlado; nenhum dado compartilhado ou seed de demonstração necessário. RED usa arquivo `.pending.ts` invocado explicitamente para não contaminar a suite publicada.
++- HTTP e SQL sem filtro: concessão direta/equipe/exata sem membership legado; síndico A/morador B; global não lê local; morador, suporte diagnóstico e contexto app.role forjado não leem auditoria.
++- Revogação/expiração de binding e equipe, conta/papel/permissão/tenant/organização inativos, mantendo o mesmo token quando aplicável.
++- Exclusão da FK não promove evento local a global; evento global que referencia prédio mantém sua classificação; gravar/alterar categoria ou tenant falsos falha; metadata/IP/user-agent nunca aparecem na resposta e SELECT direto desses campos é negado ao runtime.
++- Exato sobre recurso estrangeiro, removido ou de outro tipo não funciona. Paginação com timestamps iguais não repete/omite registros. Estado vazio autorizado difere de erro/403.
++- Reaplicar036 duas vezes em transação e comparar catálogo, ACLs, helpers, INSERT audit e policies alheias; fixtures próprias têm teardown em finally. Regressão de mutação+auditoria dos domínios permanece obrigatória.
++- Medir EXPLAIN real com histórico local volumoso e poucos eventos globais. Se a consulta sem filtro varrer história privada, acrescentar pré-filtro autorizado e índice sem remover RLS ou perder a união de concessões globais/locais.
++- Playwright real nos três motores: auditor global vê somente categoria autorizada, auditor local navega páginas e perde conteúdo após revogação, seleção de condomínio não conserva dados anteriores, erro seguido de retry.
++
++## Aceite
++
++- [x] RED documentado; desenho aprovado em princípio pelo agente principal, com exigências incorporadas na matriz de classificação.
++- [ ] Migration036 isolada e testes HTTP/RLS negativos verdes.
++- [ ] Consumidor web e Playwright dirigidos verdes.
++- [ ] Duas revisões, regressão apropriada e evidência exata antes do checkpoint.
++
++## Evidência inicial
++
++Banco5435 preparado pelo bootstrap e runner001–033, roles runtime separadas, sem seed. Os nove testes iniciais de audit-capabilities.pending.ts falharam nas lacunas esperadas: concessões RBAC sem membership bloqueadas, global lendo eventos locais/desconhecidos, filtro de tenant sem rejeição, payload bruto exposto e perda da FK promovendo histórico privado. O SQL com app.role forjado também retornou sete registros para um usuário sem concessão, confirmando que a antiga policy depende do contexto legado. Log preservado em .local/audit-capabilities-red.log. Tipos da API passaram. O arquivo pending só é invocado explicitamente até a implementação; nenhuma SQL036 ou alteração de produção foi aplicada nesta etapa.
++
++O draft isolado passou depois em 21 casos próprios, incluindo INSERT desconhecido, par/recurso incorreto, rejeição sem tenant, autorrevogação e rollback. Somados a tenancy HTTP, membership lifecycle, suporte, governança e capacidades de edifício/funcionalidade, foram **68/68**, sem skip. O snapshot recebeu somente catálogo036, rotaaudit, ordem do registro na revogação e ajuste do teste de suporte para consultar ID em vez de SELECT*; a negativa de leitura dos campos privados foi acrescentada. O catálogo e runtime do checkout compartilhado continuam sem036. Reaplicação/ACL/performance, integração com034/035 e UI ainda estão pendentes.
+diff --git a/docs/superpowers/plans/2026-10-02-password-change.md b/docs/superpowers/plans/2026-10-02-password-change.md
+new file mode 100644
+index 0000000..96f28b4
+--- /dev/null
++++ b/docs/superpowers/plans/2026-10-02-password-change.md
+@@ -0,0 +1,28 @@
++# Troca da própria senha e serialização de credenciais
++
++Recorte planejado da identidade 2C. Estado inicial: ainda sem implementação ou aceite. A migration 037 está reservada; 036 pertence à auditoria.
++
++## Comportamento
++
++Uma pessoa autenticada poderá trocar a própria senha confirmando a senha atual. O servidor obtém conta e sessão da autenticação, nunca de campos escolhidos no corpo. A troca bem-sucedida altera somente a credencial da conta e revoga atomicamente todas as suas famílias de sessão, inclusive a atual. Uma nova entrada é necessária. Senha incorreta, sessão expirada/revogada, conta inativa, falha de persistência ou corrida perdida não alteram a senha nem revogam parcialmente sessões.
++
++O corpo terá validação estrita e tamanho limitado antes de Argon2. A nova senha terá pelo menos 15 caracteres Unicode e no máximo 1024 bytes UTF-8; espaços são preservados e não haverá regras artificiais de composição. Senhas antigas continuam verificáveis para permitir atualização. Repetição da senha atual será recusada. Verificações de MFA, recuperação e convite permanecem recortes separados e explícitos do plano maior.
++
++## Concorrência e limites
++
++- Argon2 ocorre antes de adquirir locks de negócio. A transação confere novamente o hash observado e a identidade atual antes de gravar.
++- Login, refresh e troca passam a usar uma ordem uniforme: conta, família, geração do refresh. Um login que verificou uma senha anterior à troca não poderá criar família depois da alteração. Nenhuma renovação poderá reabrir uma família revogada.
++- Login revalida conta ativa e igualdade do hash sob lock. Refresh revalida o vínculo entre geração, família e conta e usa tempo do banco após esperar locks.
++- A operação HTTP autenticada compartilha a admissão persistente por conta/rede com o login, usando o e-mail autenticado. Não aceita e-mail fornecido no corpo. A admissão termina antes do KDF e não é revertida por senha incorreta.
++- A credencial de identidade não recebe UPDATE livre em users. Um helper SQL privado de alteração compara o hash anterior, confirma a sessão atual e revoga as famílias na mesma transação. ACLs, owner e search_path serão verificados.
++- Eventos de segurança da própria conta não podem ser expostos como auditoria global da plataforma. Definir armazenamento e acesso específico antes de introduzir um evento novo.
++
++## Sequência de aceite
++
++1. Reproduzir RED: endpoint ausente, login antigo aceito depois de mudança concorrente e ordem de locks incompatível com revogação de credencial.
++2. Implementar API/SQL com testes HTTP, PostgreSQL e corridas determinísticas (bloqueio observado, não apenas sleeps).
++3. Provar sessão própria, token estrangeiro/revogado, conta inativa, senha literal, corpo inválido, limitação429, rollback de falha de persistência e negação de UPDATE direto/runtime indevido.
++4. Revisar independentemente, executar regressão de sessões/cookies/limites e ensaio de migrations/restauração. Publicar incremento de API somente após essas provas.
++5. Integrar formulário nos três portais e dois apps. Limpar campos ao sair, preservar geração de identidade e encerrar a sessão somente após sucesso confirmado. Verificar Playwright e jornada Android separadamente, sem apresentar contrato HTTP como teste visual.
++
++Referências de projeto: [OWASP Authentication Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html) para confirmação da senha e nova autenticação; [PostgreSQL 16 — locks explícitos](https://www.postgresql.org/docs/16/explicit-locking.html) para aquisição consistente e revalidação após espera. Essas referências orientam o desenho; aprovação depende dos testes do projeto.
+diff --git a/docs/superpowers/plans/2026-10-02-web-access-capabilities.md b/docs/superpowers/plans/2026-10-02-web-access-capabilities.md
+new file mode 100644
+index 0000000..a42abb4
+--- /dev/null
++++ b/docs/superpowers/plans/2026-10-02-web-access-capabilities.md
+@@ -0,0 +1,35 @@
++# Consumidor web de acesso físico — API 034
++
++Recorte autorizado após o checkpoint de backend 034. Não altera API, SQL nem o transporte MQTT. O agente web está corrigindo o `useResource` compartilhado; este recorte apenas o consome e coordena linhas pontuais de `App.tsx`/`Operations.tsx`.
++
++## Problemas observados
++
++`AccessPanel` usa a prop do portal somada a `AccessList.canManage`, ocultando a configuração de gates concedidos por recurso exato. O editor depende de listas de inventário mesmo para preservar o controlador/gateway já autorizados. `available` vem corretamente da API 034, mas uma ação ainda usa o snapshot da tela sem nova consulta depois da confirmação.
++
++O requestId incerto é guardado num ref do componente e apagado ao trocar de prédio ou desmontar. Voltar à tela após uma resposta perdida pode gerar outra identificação, embora o servidor já tenha recebido a primeira intenção. A nova interface deve preservar o identificador apenas na memória da sessão, nunca disparar POST por montagem, polling, reconexão ou retorno do foco.
++
++## Comportamento proposto
++
++- Ler gates exclusivamente por `/access`; configurar cada gate quando seu `canManage` atual permitir, sem exigir `buildings:manage` ou inventário geral. O campo agregado permite criar somente quando também há um controlador autorizado disponível no seletor.
++- O editor conserva o gateway/controlador atual com rótulos mínimos quando não há inventário. Não recebe ID manual nem amplia os direitos para enumerar destinos. Configuração de outro alvo segue limitada aos destinos que a API já disponibiliza; a API continua decidindo no PATCH.
++- Todo pedido de abertura exige confirmação explícita do gate e nova leitura da API. Após aguardar essa consulta, o POST só acontece se sessão, prédio, gate e tela continuam atuais e o documento continua visível. Background, navegação ou mudança de identidade invalidam a confirmação pendente.
++- Guardar intenção por sessão + prédio + gate em memória no AuthProvider. A mudança de sessão invalida o store anterior imediatamente. Navegação entre telas/prédios preserva o requestId de uma resposta incerta; tentativa manual posterior usa a mesma identificação. Dois cliques não podem enviar duas requisições simultâneas. Polling só consulta.
++- A reconciliação de uma intenção aceita apenas commandId/requestId/gate correspondentes, sem substituir a intenção incerta por um comando de outro usuário ou por outro histórico mais recente. Estado confirmado não volta a PENDING por respostas fora de ordem.
++- Mostrar claramente resposta incerta, falta de permissão para consultar e execução reconhecida pelo controlador; isso não confirma a posição física do portão. Revogação remove o editor/ações e a API permanece autoridade de cada mutação.
++
++## Provas antes e depois
++
++Testes puros do store/guarda: dupla submissão, resposta perdida preservada entre montagens, reset de sessão descarta conclusão tardia, histórico divergente não substitui intenção, estados não regridem, retorno do foco não revalida uma confirmação antiga. Adaptar os testes de AuthActions para provar a limpeza em login/logout/restore/cancel sem invalidar refresh comum do token.
++
++Playwright com API/PostgreSQL reais e nenhum dispatcher físico:
++
++1. Gestor de gate exato sem inventário configura nome/política; não vê outro gate, não cria outro alvo; revogação fecha editor e impede PATCH posterior.
++2. Leitor sem request vê o gate, mas nenhuma abertura é aceita; gate com request exige confirmação, conserva requestId e cria exatamente uma intenção após confirmar.
++3. Resposta de POST perdida após o servidor aceitar, navegação SPA e retorno: nada é reenviado automaticamente; tentativa explícita repete exatamente o requestId original, inclusive quando o histórico está revogado e o replay retorna 403.
++4. Nova leitura antes do POST retida em rede, seguida de navegação/background/troca de sessão: liberação da resposta não produz POST.
++
++RED usa UI publicada antes deste recorte, backend 034/035 e fixtures isoladas. GREEN roda nos três motores disponíveis; WebKit usa Linux porque AppControl bloqueia suas DLLs no Windows. Não desativar proteção ou reiniciar o computador. Documentar falhas de infraestrutura separadamente de falhas de comportamento. Cleanup usa apenas IDs exatos das fixtures e retém evidência em `.local`, fora do Git.
++
++## Limites
++
++O store não é persistido e não atravessa fechamento completo do portal. A API continua com idempotência, throttle e ausência de replay físico, mas a interface não promete recuperar uma intenção cujo identificador saiu da memória ao fechar a sessão/página. Uma nova sessão limpa a memória anterior deliberadamente. Homologação com controlador real permanece fora da evidência de testes simulados.
+diff --git a/e2e/access.spec.ts b/e2e/access.spec.ts
+new file mode 100644
+index 0000000..f73dd75
+--- /dev/null
++++ b/e2e/access.spec.ts
+@@ -0,0 +1,518 @@
++import { randomUUID } from "node:crypto";
++import {
++  expect,
++  test,
++  type APIRequestContext,
++  type Page,
++} from "@playwright/test";
++import { API_URL, BUILDING_URL } from "./environment";
++import { isolatedTenant, signIn } from "./helpers";
++import { withFixtureDatabase } from "./database";
++
++async function accessFixture(request: APIRequestContext) {
++  const base = await isolatedTenant(request),
++    delegate = await base.person("AcessoDelegado");
++  const roles: string[] = [];
++  const gateway = await base.managerApi.create<{ id: string }>("/gateways", {
++    buildingId: base.building.id,
++    name: "Gateway dos portões",
++    serialNumber: `E2E-ACCESS-${randomUUID()}`,
++  });
++  async function gate(name: string) {
++    const device = await base.managerApi.create<{ id: string }>("/devices", {
++      buildingId: base.building.id,
++      gatewayId: gateway.id,
++      name: `Controlador ${name}`,
++      type: "GATE_CONTROLLER",
++    });
++    const gate = await base.managerApi.create<{ id: string }>("/access", {
++      buildingId: base.building.id,
++      gatewayId: gateway.id,
++      deviceId: device.id,
++      name,
++      kind: "GARAGE",
++      enabled: true,
++      allowResidents: true,
++    });
++    await withFixtureDatabase(async (sql) => {
++      await sql`update gateways set enabled=true,status='ONLINE',last_seen_at=clock_timestamp() where id=${gateway.id}`;
++      await sql`update devices set enabled=true,status='ONLINE',last_seen_at=clock_timestamp() where id=${device.id}`;
++    });
++    return { ...gate, deviceId: device.id };
++  }
++  const main = await gate("Portão autorizado"),
++    hidden = await gate("Portão reservado");
++  async function grant(capabilities: string[]) {
++    const role = `E2E_ACCESS_${randomUUID()}`;
++    roles.push(role);
++    await withFixtureDatabase((sql) =>
++      sql.begin(async (tx) => {
++        await tx`insert into roles(key,scope,label) values(${role},'BUILDING','Physical access E2E')`;
++        for (const capability of new Set(["buildings:read", ...capabilities]))
++          await tx`insert into role_permissions(role_key,permission_key) values(${role},${capability})`;
++        await tx`insert into role_bindings(user_id,building_id,role_key,resource_type,resource_id) values(${delegate.id},${base.building.id},${role},'gate',${main.id})`;
++      }),
++    );
++    return role;
++  }
++  const cleanup = () =>
++    withFixtureDatabase((sql) =>
++      sql.begin(async (tx) => {
++        await tx`delete from gate_commands where building_id=${base.building.id}`;
++        await tx`delete from audit_logs where building_id=${base.building.id}`;
++        await tx`delete from buildings where id=${base.building.id}`;
++        await tx`delete from users where id in ${tx([base.manager.id, base.resident.id, delegate.id])}`;
++        if (roles.length) await tx`delete from roles where key in ${tx(roles)}`;
++      }),
++    );
++  const commands = () =>
++    withFixtureDatabase(
++      (sql) =>
++        sql`select id,request_id,status from gate_commands where building_id=${base.building.id}`,
++    );
++  return { ...base, delegate, gateway, main, hidden, grant, cleanup, commands };
++}
++async function enter(page: Page, email: string) {
++  await signIn(page, BUILDING_URL, email);
++  await page.goto(`${BUILDING_URL}/acessos`);
++  await expect(
++    page.getByRole("heading", { name: "Portão autorizado", exact: true }),
++  ).toBeVisible();
++}
++const mainCard = (page: Page) =>
++  page
++    .getByRole("heading", { name: "Portão autorizado", exact: true })
++    .locator("xpath=ancestor::section[1]");
++async function explicitOpen(page: Page) {
++  await mainCard(page)
++    .getByRole("button", { name: /Abrir garagem|Reenviar mesma solicitação/ })
++    .click();
++  // This compatibility branch lets the RED fixture reach the lost-response bug
++  // in the old one-click UI. A separate test requires the new confirmation.
++  if (await page.getByRole("dialog").count())
++    await page
++      .getByRole("dialog")
++      .getByRole("button", { name: /^Confirmar (abertura|reenvio)$/ })
++      .click();
++}
++
++test("acesso: concessão exata configura o gate sem inventário e revogação fecha o editor", async ({
++  page,
++  request,
++}) => {
++  const f = await accessFixture(request);
++  try {
++    const role = await f.grant(["gates:read", "gates:manage"]);
++    const inventory: string[] = [];
++    page.on("request", (r) => {
++      if (["/devices", "/gateways"].includes(new URL(r.url()).pathname))
++        inventory.push(r.url());
++    });
++    await enter(page, f.delegate.email);
++    await expect(
++      page.getByText("Portão reservado", { exact: true }),
++    ).toHaveCount(0);
++    await expect(
++      page.getByRole("button", { name: "Cadastrar acesso", exact: true }),
++    ).toHaveCount(0);
++    await mainCard(page)
++      .getByRole("button", { name: "Configurar", exact: true })
++      .click();
++    await page.getByLabel("Nome", { exact: true }).fill("Portão revisado");
++    const saved = page.waitForResponse(
++      (r) =>
++        r.url() === `${API_URL}/access/${f.main.id}` &&
++        r.request().method() === "PATCH",
++    );
++    await page
++      .getByRole("button", { name: "Salvar acesso", exact: true })
++      .click();
++    expect((await saved).status()).toBe(200);
++    const stored = await f.managerApi.get(
++      `/access?buildingId=${f.building.id}`,
++    );
++    expect(
++      (await stored.json()).items.find((gate: any) => gate.id === f.main.id)
++        .name,
++    ).toBe("Portão revisado");
++    await page
++      .getByRole("heading", { name: "Portão revisado", exact: true })
++      .locator("xpath=ancestor::section[1]")
++      .getByRole("button", { name: "Configurar", exact: true })
++      .click();
++    await withFixtureDatabase(
++      (sql) =>
++        sql`delete from role_permissions where role_key=${role} and permission_key='gates:manage'`,
++    );
++    await expect(
++      page.getByRole("button", { name: "Salvar acesso", exact: true }),
++    ).toHaveCount(0);
++    await expect(
++      page.getByRole("button", { name: "Configurar", exact: true }),
++    ).toHaveCount(0);
++    expect(inventory).toEqual([]);
++    expect(await f.commands()).toHaveLength(0);
++  } finally {
++    await f.cleanup();
++  }
++});
++
++test("acesso: leitura não abre e request exige confirmação explícita antes de uma única intenção", async ({
++  page,
++  request,
++}) => {
++  const f = await accessFixture(request);
++  try {
++    const role = await f.grant(["gates:read"]);
++    await enter(page, f.delegate.email);
++    await expect(
++      mainCard(page).getByRole("button", {
++        name: "Abrir garagem",
++        exact: true,
++      }),
++    ).toBeDisabled();
++    await withFixtureDatabase(
++      (sql) =>
++        sql`insert into role_permissions(role_key,permission_key) values(${role},'commands:request')`,
++    );
++    await expect(
++      mainCard(page).getByRole("button", {
++        name: "Abrir garagem",
++        exact: true,
++      }),
++    ).toBeEnabled();
++    await mainCard(page)
++      .getByRole("button", { name: "Abrir garagem", exact: true })
++      .click();
++    const dialog = page.getByRole("dialog", {
++      name: "Solicitar abertura de Portão autorizado?",
++    });
++    await expect(dialog).toBeVisible();
++    expect(await f.commands()).toHaveLength(0);
++    await dialog.getByRole("button", { name: "Cancelar", exact: true }).click();
++    expect(await f.commands()).toHaveLength(0);
++    await mainCard(page)
++      .getByRole("button", { name: "Abrir garagem", exact: true })
++      .click();
++    const accepted = page.waitForResponse(
++      (r) =>
++        r.url() === `${API_URL}/access/${f.main.id}/open` &&
++        r.request().method() === "POST",
++    );
++    await dialog
++      .getByRole("button", { name: "Confirmar abertura", exact: true })
++      .click();
++    expect((await accepted).status()).toBe(202);
++    expect(await f.commands()).toHaveLength(1);
++    await expect(
++      page.getByText("Aguardando envio", { exact: true }),
++    ).toBeVisible();
++  } finally {
++    await f.cleanup();
++  }
++});
++
++test("acesso: resposta perdida conserva a identificação após navegação e não reenvia automaticamente", async ({
++  page,
++  request,
++}) => {
++  const f = await accessFixture(request);
++  try {
++    await f.grant(["gates:read", "commands:request"]);
++    await enter(page, f.delegate.email);
++    const requestIds: string[] = [];
++    let received!: () => void;
++    const firstReceived = new Promise<void>((r) => {
++      received = r;
++    });
++    await page.route(`${API_URL}/access/${f.main.id}/open`, async (route) => {
++      requestIds.push(route.request().postDataJSON().requestId);
++      if (requestIds.length === 1) {
++        const response = await route.fetch();
++        expect(response.status()).toBe(202);
++        await route.abort("failed");
++        received();
++      } else await route.continue();
++    });
++    await explicitOpen(page);
++    await firstReceived;
++    await page.getByRole("link", { name: "Início", exact: true }).click();
++    await page
++      .getByRole("link", { name: "Portões e acessos", exact: true })
++      .click();
++    await expect(
++      page.getByRole("heading", { name: "Portão autorizado", exact: true }),
++    ).toBeVisible();
++    expect(requestIds).toHaveLength(1);
++    expect(await f.commands()).toHaveLength(1);
++    const repeated = page.waitForResponse(
++      (r) =>
++        r.url() === `${API_URL}/access/${f.main.id}/open` &&
++        r.request().method() === "POST",
++    );
++    await explicitOpen(page);
++    const response = await repeated;
++    expect(requestIds).toEqual([requestIds[0], requestIds[0]]);
++    expect(
++      response.status(),
++      "repeat cannot bypass the independently absent history grant",
++    ).toBe(403);
++    expect(await f.commands()).toHaveLength(1);
++  } finally {
++    await f.cleanup();
++  }
++});
++
++test("acesso: abandonar a tela durante a nova leitura cancela o POST físico", async ({
++  page,
++  request,
++}) => {
++  const f = await accessFixture(request);
++  let release!: () => void;
++  try {
++    await f.grant(["gates:read", "commands:request"]);
++    await enter(page, f.delegate.email);
++    const held = new Promise<void>((r) => {
++      release = r;
++    });
++    let caught!: () => void;
++    const pending = new Promise<void>((r) => {
++      caught = r;
++    });
++    let armed = false;
++    const posts: string[] = [];
++    page.on("request", (r) => {
++      if (
++        r.method() === "POST" &&
++        r.url().endsWith(`/access/${f.main.id}/open`)
++      )
++        posts.push(r.url());
++    });
++    await page.route(
++      `${API_URL}/access?buildingId=${f.building.id}`,
++      async (route) => {
++        if (armed) {
++          armed = false;
++          caught();
++          await held;
++        }
++        await route.continue();
++      },
++    );
++    await mainCard(page)
++      .getByRole("button", { name: "Abrir garagem", exact: true })
++      .click();
++    const dialog = page.getByRole("dialog", {
++      name: "Solicitar abertura de Portão autorizado?",
++    });
++    await expect(dialog).toBeVisible();
++    armed = true;
++    await dialog
++      .getByRole("button", { name: "Confirmar abertura", exact: true })
++      .click();
++    await pending;
++    await page.getByRole("link", { name: "Início", exact: true }).click();
++    release();
++    await expect(
++      page.getByRole("heading", { name: "Acessos", exact: true }),
++    ).toHaveCount(0);
++    await page
++      .getByRole("link", { name: "Portões e acessos", exact: true })
++      .click();
++    await expect(
++      page.getByRole("heading", { name: "Portão autorizado", exact: true }),
++    ).toBeVisible();
++    await expect(
++      page.getByText(/A confirmação foi cancelada ao sair da tela/),
++    ).toBeVisible();
++    expect(posts).toEqual([]);
++    expect(await f.commands()).toHaveLength(0);
++  } finally {
++    release?.();
++    await f.cleanup();
++  }
++});
++
++for (const transition of ["background", "logout"] as const) {
++  test(`acesso: ${transition} invalida o preflight mesmo após retornar à sessão/tela`, async ({
++    page,
++    request,
++  }) => {
++    const f = await accessFixture(request);
++    let release!: () => void;
++    try {
++      await f.grant(["gates:read", "commands:request"]);
++      await enter(page, f.delegate.email);
++      const held = new Promise<void>((resolve) => {
++        release = resolve;
++      });
++      let caught!: () => void;
++      const pending = new Promise<void>((resolve) => {
++        caught = resolve;
++      });
++      let armed = false;
++      const posts: string[] = [];
++      page.on("request", (r) => {
++        if (
++          r.method() === "POST" &&
++          r.url().endsWith(`/access/${f.main.id}/open`)
++        )
++          posts.push(r.url());
++      });
++      await page.route(
++        `${API_URL}/access?buildingId=${f.building.id}`,
++        async (route) => {
++          if (!armed) {
++            await route.continue();
++            return;
++          }
++          // Hold an already-authorized response. Every concurrent poll is held
++          // too, so a timer cannot consume the barrier intended for preflight.
++          const response = await route.fetch();
++          caught();
++          await held;
++          await route.fulfill({ response });
++        },
++      );
++      await mainCard(page)
++        .getByRole("button", { name: "Abrir garagem", exact: true })
++        .click();
++      const dialog = page.getByRole("dialog", {
++        name: "Solicitar abertura de Portão autorizado?",
++      });
++      await expect(dialog).toBeVisible();
++      armed = true;
++      await dialog
++        .getByRole("button", { name: "Confirmar abertura", exact: true })
++        .click();
++      await pending;
++      if (transition === "background") {
++        // Explicit lifecycle simulation is deterministic across headless
++        // engines; it verifies the browser event contract, not OS suspension.
++        await page.evaluate(() => {
++          Object.defineProperty(document, "visibilityState", {
++            configurable: true,
++            get: () => "hidden",
++          });
++          document.dispatchEvent(new Event("visibilitychange"));
++          Object.defineProperty(document, "visibilityState", {
++            configurable: true,
++            get: () => "visible",
++          });
++          document.dispatchEvent(new Event("visibilitychange"));
++        });
++        armed = false;
++        release();
++        await expect(
++          page.getByText(/A confirmação foi cancelada ao sair da tela/),
++        ).toBeVisible();
++      } else {
++        const logout = page.waitForResponse(
++          (r) => r.url() === `${API_URL}/auth/web/logout`,
++        );
++        await page
++          .getByRole("button", { name: "Sair da conta", exact: true })
++          .click();
++        expect((await logout).status()).toBe(204);
++        armed = false;
++        release();
++        await enter(page, f.delegate.email);
++        await expect(
++          mainCard(page).getByRole("button", {
++            name: "Abrir garagem",
++            exact: true,
++          }),
++        ).toBeEnabled();
++        await expect(
++          page.getByRole("button", {
++            name: "Reenviar mesma solicitação",
++            exact: true,
++          }),
++        ).toHaveCount(0);
++      }
++      expect(posts).toEqual([]);
++      expect(await f.commands()).toHaveLength(0);
++    } finally {
++      release?.();
++      await f.cleanup();
++    }
++  });
++}
++
++test("acesso: background cancela também a configuração ainda em preflight", async ({
++  page,
++  request,
++}) => {
++  const f = await accessFixture(request);
++  let release!: () => void;
++  try {
++    await f.grant(["gates:read", "gates:manage"]);
++    await enter(page, f.delegate.email);
++    await mainCard(page)
++      .getByRole("button", { name: "Configurar", exact: true })
++      .click();
++    await page.getByLabel("Nome", { exact: true }).fill("Não deve ser salvo");
++    const held = new Promise<void>((resolve) => {
++      release = resolve;
++    });
++    let caught!: () => void;
++    const pending = new Promise<void>((resolve) => {
++      caught = resolve;
++    });
++    let armed = true;
++    const writes: string[] = [];
++    page.on("request", (r) => {
++      if (
++        r.method() === "PATCH" &&
++        r.url() === `${API_URL}/access/${f.main.id}`
++      )
++        writes.push(r.url());
++    });
++    await page.route(
++      `${API_URL}/access?buildingId=${f.building.id}`,
++      async (route) => {
++        if (!armed) {
++          await route.continue();
++          return;
++        }
++        const response = await route.fetch();
++        caught();
++        await held;
++        await route.fulfill({ response });
++      },
++    );
++    await page
++      .getByRole("button", { name: "Salvar acesso", exact: true })
++      .click();
++    await pending;
++    await page.evaluate(() => {
++      Object.defineProperty(document, "visibilityState", {
++        configurable: true,
++        get: () => "hidden",
++      });
++      document.dispatchEvent(new Event("visibilitychange"));
++      Object.defineProperty(document, "visibilityState", {
++        configurable: true,
++        get: () => "visible",
++      });
++      document.dispatchEvent(new Event("visibilitychange"));
++    });
++    armed = false;
++    release();
++    await expect(
++      page.getByText(/A configuração foi cancelada ao sair da tela/),
++    ).toBeVisible();
++    const response = await f.managerApi.get(
++      `/access?buildingId=${f.building.id}`,
++    );
++    expect(
++      (await response.json()).items.find((gate: any) => gate.id === f.main.id)
++        .name,
++    ).toBe("Portão autorizado");
++    expect(writes).toEqual([]);
++    expect(await f.commands()).toHaveLength(0);
++  } finally {
++    release?.();
++    await f.cleanup();
++  }
++});
+diff --git a/infrastructure/036-audit-capabilities.sql b/infrastructure/036-audit-capabilities.sql
+new file mode 100644
+index 0000000..ac77d98
+--- /dev/null
++++ b/infrastructure/036-audit-capabilities.sql
+@@ -0,0 +1,220 @@
++-- Separate platform history from explicitly authorized local audit history.
++INSERT INTO permissions(key,resource_type,action,label) VALUES
++ ('audit:read','audit','read','Consultar auditoria do escopo concedido'),
++ ('audit:read-platform','audit','read-platform','Consultar auditoria da plataforma')
++ON CONFLICT(key) DO NOTHING;
++INSERT INTO role_permissions(role_key,permission_key) VALUES
++ ('BUILDING_ADMIN','audit:read'),('PLATFORM_ADMIN','audit:read-platform') ON CONFLICT DO NOTHING;
++
++DO $$ DECLARE definition text; BEGIN
++ SELECT pg_get_functiondef('app_has_global_capability_at(text,timestamptz)'::regprocedure) INTO STRICT definition;
++ IF position('''audit:read-platform''' IN definition)=0 THEN
++  IF position('''platform:read-health''' IN definition)=0 THEN RAISE EXCEPTION 'Missing global health capability'; END IF;
++  EXECUTE replace(definition,'''platform:read-health''','''platform:read-health'',''audit:read-platform''');
++ END IF;
++END $$;
++
++ALTER TABLE audit_logs ADD COLUMN IF NOT EXISTS scope_kind text;
++ALTER TABLE audit_logs ADD COLUMN IF NOT EXISTS scope_building_id text;
++-- Legacy NULL is not evidence of a platform feature change: a tenant FK may have vanished.
++UPDATE audit_logs SET scope_building_id=building_id, scope_kind=CASE
++ WHEN building_id IS NULL AND ((action IN ('ORGANIZATION_CREATED','ORGANIZATION_UPDATED') AND resource_type='organization')
++   OR (action='USER_CREATED' AND resource_type='user')) AND resource_id IS NOT NULL THEN 'PLATFORM'
++ WHEN action='BUILDING_CREATED' AND resource_type='building' AND building_id IS NOT NULL AND resource_id=building_id THEN 'PLATFORM'
++ WHEN building_id IS NOT NULL THEN 'BUILDING'
++ ELSE 'LEGACY_UNKNOWN' END
++WHERE scope_kind IS NULL;
++ALTER TABLE audit_logs ALTER COLUMN scope_kind SET NOT NULL;
++ALTER TABLE audit_logs ALTER COLUMN scope_kind SET DEFAULT 'LEGACY_UNKNOWN';
++DO $$ BEGIN
++ IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conrelid='audit_logs'::regclass AND conname='audit_logs_scope_kind_ck') THEN
++  ALTER TABLE audit_logs ADD CONSTRAINT audit_logs_scope_kind_ck CHECK(scope_kind IN ('PLATFORM','BUILDING','LEGACY_UNKNOWN') AND (scope_kind<>'BUILDING' OR scope_building_id IS NOT NULL));
++ END IF;
++END $$;
++
++CREATE OR REPLACE FUNCTION app_audit_capture_scope() RETURNS trigger
++LANGUAGE plpgsql SET search_path=public,pg_temp AS $$ BEGIN
++ IF TG_OP='UPDATE' THEN
++  IF NEW.scope_kind IS DISTINCT FROM OLD.scope_kind OR NEW.scope_building_id IS DISTINCT FROM OLD.scope_building_id THEN
++   RAISE EXCEPTION 'Audit scope is immutable' USING ERRCODE='42501';
++  END IF;
++  -- The FK can clear building_id; it must never reclassify the retained snapshot.
++  RETURN NEW;
++ END IF;
++ NEW.scope_building_id:=NEW.building_id;
++ NEW.scope_kind:=CASE
++  WHEN NEW.building_id IS NULL AND ((NEW.action IN ('ORGANIZATION_CREATED','ORGANIZATION_UPDATED') AND NEW.resource_type='organization')
++    OR (NEW.action='USER_CREATED' AND NEW.resource_type='user')
++    OR (NEW.action='FEATURE_CONFIGURATION_CHANGED' AND NEW.resource_type='feature')) AND NEW.resource_id IS NOT NULL THEN 'PLATFORM'
++  WHEN NEW.action='BUILDING_CREATED' AND NEW.resource_type='building' AND NEW.building_id IS NOT NULL AND NEW.resource_id=NEW.building_id THEN 'PLATFORM'
++  WHEN NEW.building_id IS NOT NULL THEN 'BUILDING'
++  ELSE 'LEGACY_UNKNOWN' END;
++ RETURN NEW;
++END $$;
++DROP TRIGGER IF EXISTS audit_logs_capture_scope ON audit_logs;
++CREATE TRIGGER audit_logs_capture_scope BEFORE INSERT OR UPDATE ON audit_logs FOR EACH ROW EXECUTE FUNCTION app_audit_capture_scope();
++
++CREATE OR REPLACE FUNCTION app_audit_resource_type(value text) RETURNS text
++LANGUAGE sql IMMUTABLE SET search_path=pg_catalog AS $$
++ SELECT CASE value WHEN 'financial_report' THEN 'finance' WHEN 'unit_membership' THEN 'membership' WHEN 'unit-memberships' THEN 'membership' ELSE value END;
++$$;
++
++CREATE OR REPLACE FUNCTION app_audit_local_read(target_building text,target_type text,target_id text)
++RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public,pg_temp AS $$
++ SELECT target_building IS NOT NULL AND app_rbac_tenant_active(target_building) AND (
++  app_has_capability(target_building,'audit:read') OR
++  (target_type IS NOT NULL AND target_id IS NOT NULL
++   AND app_discovery_resource_belongs(target_building,app_audit_resource_type(target_type),target_id)
++   AND app_has_capability(target_building,'audit:read',app_audit_resource_type(target_type),target_id)));
++$$;
++CREATE OR REPLACE FUNCTION app_audit_row_visible(category text,target_building text,target_type text,target_id text)
++RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public,pg_temp AS $$
++ SELECT category IN ('PLATFORM','BUILDING') AND (
++  (category='PLATFORM' AND app_has_global_capability('audit:read-platform'))
++  OR app_audit_local_read(target_building,target_type,target_id));
++$$;
++CREATE OR REPLACE FUNCTION app_audit_can_query(target_building text DEFAULT NULL)
++RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public,pg_temp AS $$
++ SELECT app_has_global_capability('audit:read-platform') OR EXISTS(
++  SELECT 1 FROM memberships m WHERE m.user_id=app_current_user_id()
++   AND (target_building IS NULL OR m.building_id=target_building)
++   AND app_has_capability(m.building_id,'audit:read')
++ ) OR EXISTS(
++  SELECT 1 FROM role_bindings rb WHERE rb.building_id IS NOT NULL
++   AND (target_building IS NULL OR rb.building_id=target_building)
++   AND (rb.user_id=app_current_user_id() OR app_rbac_team_member(rb.building_id,rb.team_id))
++   AND (app_has_capability(rb.building_id,'audit:read') OR
++    (rb.resource_type IS NOT NULL AND rb.resource_id IS NOT NULL
++     AND app_discovery_resource_belongs(rb.building_id,rb.resource_type,rb.resource_id)
++     AND app_has_capability(rb.building_id,'audit:read',rb.resource_type,rb.resource_id)))
++ );
++$$;
++
++-- Candidate tenants are derived from current grants, not from audit history.
++-- They only narrow the indexed HTTP query; RLS still validates every exact row.
++CREATE OR REPLACE FUNCTION app_audit_query_scope(target_building text DEFAULT NULL)
++RETURNS TABLE(platform boolean,buildings text[]) LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public,pg_temp AS $$
++ SELECT app_has_global_capability('audit:read-platform'), ARRAY(
++  SELECT DISTINCT candidate.building_id FROM (
++   SELECT m.building_id FROM memberships m WHERE m.user_id=app_current_user_id()
++    AND (target_building IS NULL OR m.building_id=target_building) AND app_has_capability(m.building_id,'audit:read')
++   UNION
++   SELECT rb.building_id FROM role_bindings rb WHERE rb.building_id IS NOT NULL
++    AND (target_building IS NULL OR rb.building_id=target_building)
++    AND (rb.user_id=app_current_user_id() OR app_rbac_team_member(rb.building_id,rb.team_id))
++    AND (app_has_capability(rb.building_id,'audit:read') OR
++      (rb.resource_type IS NOT NULL AND rb.resource_id IS NOT NULL
++       AND app_discovery_resource_belongs(rb.building_id,rb.resource_type,rb.resource_id)
++       AND app_has_capability(rb.building_id,'audit:read',rb.resource_type,rb.resource_id)))
++  ) candidate ORDER BY candidate.building_id
++ );
++$$;
++
++-- These producers still use the real legacy platform flag. Do not silently
++-- broaden them to RBAC-only platform roles or grant them local audit reading.
++CREATE OR REPLACE FUNCTION app_audit_legacy_platform_actor() RETURNS boolean
++LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public,pg_temp AS $$
++ SELECT EXISTS(SELECT 1 FROM users WHERE id=app_current_user_id() AND active AND is_platform_admin);
++$$;
++
++-- Only the final legacy fallback delegates here. Already migrated domain
++-- branches, and the narrowly scoped access rejection policy, remain intact.
++CREATE OR REPLACE FUNCTION app_audit_legacy_insert(target_building text,action_name text,target_type text,target_id text)
++RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public,pg_temp AS $$
++ SELECT CASE
++  WHEN action_name IN ('ORGANIZATION_CREATED','ORGANIZATION_UPDATED') AND target_type='organization' THEN
++   target_building IS NULL AND app_audit_legacy_platform_actor() AND EXISTS(SELECT 1 FROM organizations WHERE id=target_id)
++  WHEN action_name='USER_CREATED' AND target_type='user' THEN
++   target_building IS NULL AND app_audit_legacy_platform_actor() AND EXISTS(SELECT 1 FROM users WHERE id=target_id)
++  WHEN action_name IN ('MEMBERSHIP_UPSERTED','MEMBERSHIP_REVOKED') AND target_type='membership' THEN
++   (app_audit_legacy_platform_actor() OR app_has_capability(target_building,'memberships:manage'))
++   AND EXISTS(SELECT 1 FROM memberships WHERE id::text=target_id AND building_id=target_building)
++  WHEN action_name='BLOCK_CREATED' AND target_type='block' THEN
++   app_has_capability(target_building,'units:manage') AND EXISTS(SELECT 1 FROM blocks WHERE id::text=target_id AND building_id=target_building)
++  WHEN action_name='UNIT_CREATED' AND target_type='unit' THEN
++   app_has_capability(target_building,'units:manage') AND EXISTS(SELECT 1 FROM units WHERE id::text=target_id AND building_id=target_building)
++  WHEN action_name='TEAM_CREATED' AND target_type='team' THEN
++   app_has_capability(target_building,'teams:manage') AND EXISTS(SELECT 1 FROM teams WHERE id::text=target_id AND building_id=target_building)
++  WHEN (action_name='UNIT_MEMBERSHIP_CREATED' AND target_type='unit_membership')
++    OR (action_name='UNIT_MEMBERSHIP_REVOKED' AND target_type='unit-memberships') THEN
++   app_has_capability(target_building,'memberships:manage') AND EXISTS(SELECT 1 FROM unit_memberships WHERE id::text=target_id AND building_id=target_building)
++  WHEN (action_name='TEAM_MEMBER_ADDED' AND target_type='team_member')
++    OR (action_name='TEAM_MEMBER_REVOKED' AND target_type='team-members') THEN
++   app_has_capability(target_building,'teams:manage') AND EXISTS(SELECT 1 FROM team_members WHERE id::text=target_id AND building_id=target_building)
++  WHEN (action_name='ROLE_BINDING_CREATED' AND target_type='role_binding')
++    OR (action_name='ROLE_BINDING_REVOKED' AND target_type='role-bindings') THEN
++   app_has_capability(target_building,'memberships:manage') AND EXISTS(SELECT 1 FROM role_bindings WHERE id::text=target_id AND building_id=target_building
++     AND (action_name<>'ROLE_BINDING_CREATED' OR granted_by=app_current_user_id()))
++  WHEN action_name='SUPPORT_CONFIG_SAVED' AND target_type='remote_support' THEN
++   app_support_admin() AND target_id=target_building AND EXISTS(SELECT 1 FROM support_hosts h JOIN buildings b ON b.id=h.building_id
++     WHERE h.building_id=target_building AND b.active)
++  WHEN action_name='SUPPORT_REQUESTED' AND target_type='remote_support' THEN
++   app_support_admin() AND EXISTS(SELECT 1 FROM support_requests r JOIN buildings b ON b.id=r.building_id
++     WHERE r.id::text=target_id AND r.building_id=target_building AND b.active AND r.requested_by=app_current_user_id())
++  WHEN action_name='SUPPORT_RESULT_RECORDED' AND target_type='remote_support' THEN
++   app_support_admin() AND EXISTS(SELECT 1 FROM support_requests r JOIN buildings b ON b.id=r.building_id
++     WHERE r.id::text=target_id AND r.building_id=target_building AND b.active AND r.closed_by=app_current_user_id())
++  ELSE false END;
++$$;
++
++DO $$ DECLARE policy_expression text; updated_expression text; BEGIN
++ SELECT pg_get_expr(polwithcheck,polrelid) INTO STRICT policy_expression FROM pg_policy
++ WHERE polrelid='audit_logs'::regclass AND polname='audit_logs_insert_policy';
++ -- Fail closed for an unexpected/nested CASE rather than overwriting another
++ -- domain's expression. The current 034 branches contain no nested CASE.
++ IF regexp_count(policy_expression,'\mCASE\M')<>1 OR regexp_count(policy_expression,'\mELSE\M')<>1
++    OR regexp_count(policy_expression,'\mEND\M')<>1 OR position('CASE action' IN policy_expression)=0 THEN
++  RAISE EXCEPTION 'Unexpected audit INSERT policy shape';
++ END IF;
++ updated_expression:=regexp_replace(policy_expression,'ELSE[[:space:]]+.*[[:space:]]+END',
++   'ELSE app_audit_legacy_insert(building_id,action,resource_type,resource_id) END','s');
++ IF updated_expression=policy_expression AND position('app_audit_legacy_insert' IN policy_expression)=0 THEN
++  RAISE EXCEPTION 'Audit INSERT fallback was not replaced';
++ END IF;
++ EXECUTE 'ALTER POLICY audit_logs_insert_policy ON audit_logs WITH CHECK (' || updated_expression || ')';
++END $$;
++
++-- Reading an audit never grants creation. Add restrictive proof for the finite
++-- set of platform action producers, independent from mutable payload metadata.
++CREATE OR REPLACE FUNCTION app_audit_platform_insert(category text,target_building text,action_name text,target_type text,target_id text)
++RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public,pg_temp AS $$
++ SELECT CASE WHEN category<>'PLATFORM' THEN true ELSE CASE
++  WHEN action_name='BUILDING_CREATED' AND target_type='building' THEN
++   target_building IS NOT NULL AND target_id=target_building AND app_has_global_capability('buildings:provision')
++   AND EXISTS(SELECT 1 FROM buildings WHERE id=target_building)
++  WHEN action_name='FEATURE_CONFIGURATION_CHANGED' AND target_type='feature' THEN
++   target_building IS NULL AND app_has_global_capability('features:manage')
++   AND EXISTS(SELECT 1 FROM global_feature_settings WHERE feature_key=target_id)
++  WHEN action_name IN ('ORGANIZATION_CREATED','ORGANIZATION_UPDATED') AND target_type='organization' THEN
++   target_building IS NULL AND app_audit_legacy_platform_actor()
++   AND EXISTS(SELECT 1 FROM organizations WHERE id=target_id)
++  WHEN action_name='USER_CREATED' AND target_type='user' THEN
++   target_building IS NULL AND app_audit_legacy_platform_actor()
++   AND EXISTS(SELECT 1 FROM users WHERE id=target_id)
++  ELSE false END END;
++$$;
++
++DROP POLICY IF EXISTS audit_logs_scope_policy ON audit_logs;
++CREATE POLICY audit_logs_scope_policy ON audit_logs FOR SELECT TO predioon_app
++ USING(app_audit_row_visible(scope_kind,scope_building_id,resource_type,resource_id));
++DROP POLICY IF EXISTS audit_logs_platform_insert_proof ON audit_logs;
++CREATE POLICY audit_logs_platform_insert_proof ON audit_logs AS RESTRICTIVE FOR INSERT TO predioon_app
++ WITH CHECK(app_audit_platform_insert(scope_kind,scope_building_id,action,resource_type,resource_id));
++REVOKE SELECT,UPDATE,DELETE ON audit_logs FROM predioon_app;
++REVOKE SELECT(metadata,ip_address,user_agent) ON audit_logs FROM predioon_app;
++GRANT SELECT(id,building_id,scope_kind,scope_building_id,user_id,actor_type,action,resource_type,resource_id,created_at) ON audit_logs TO predioon_app;
++CREATE INDEX IF NOT EXISTS audit_logs_scope_building_created_idx ON audit_logs(scope_building_id,created_at DESC,id DESC);
++CREATE INDEX IF NOT EXISTS audit_logs_platform_created_idx ON audit_logs(created_at DESC,id DESC) WHERE scope_kind='PLATFORM';
++
++DO $$ DECLARE owner_name text; signature text; BEGIN
++ SELECT pg_get_userbyid(proowner) INTO STRICT owner_name FROM pg_proc WHERE oid='app_has_capability(text,text,text,text)'::regprocedure;
++ FOREACH signature IN ARRAY ARRAY[
++  'app_audit_capture_scope()','app_audit_resource_type(text)','app_audit_local_read(text,text,text)',
++  'app_audit_row_visible(text,text,text,text)','app_audit_can_query(text)','app_audit_query_scope(text)','app_audit_platform_insert(text,text,text,text,text)',
++  'app_audit_legacy_platform_actor()','app_audit_legacy_insert(text,text,text,text)'
++ ] LOOP
++  EXECUTE format('ALTER FUNCTION %s OWNER TO %I',signature,owner_name);
++  EXECUTE format('REVOKE ALL ON FUNCTION %s FROM PUBLIC,predioon_app,predioon_identity,predioon_broker_auth',signature);
++ END LOOP;
++END $$;
++GRANT EXECUTE ON FUNCTION app_audit_row_visible(text,text,text,text),app_audit_can_query(text),app_audit_query_scope(text),app_audit_platform_insert(text,text,text,text,text),app_audit_legacy_insert(text,text,text,text) TO predioon_app;
+diff --git a/packages/contracts/src/audit.ts b/packages/contracts/src/audit.ts
+new file mode 100644
+index 0000000..525a293
+--- /dev/null
++++ b/packages/contracts/src/audit.ts
+@@ -0,0 +1,14 @@
++/** Deliberately excludes raw payloads, IP addresses and user agents. */
++export type AuditEntry = {
++  id: string;
++  buildingId: string | null;
++  scopeKind: "PLATFORM" | "BUILDING";
++  userId: string | null;
++  actorType: "USER" | "SYSTEM" | "GATEWAY";
++  action: string;
++  resourceType: string;
++  resourceId: string | null;
++  createdAt: string;
++};
++
++export type AuditPage = { items: AuditEntry[]; limit: number; offset: number };
+diff --git a/packages/ui/src/access-intents.ts b/packages/ui/src/access-intents.ts
+new file mode 100644
+index 0000000..d50881d
+--- /dev/null
++++ b/packages/ui/src/access-intents.ts
+@@ -0,0 +1,147 @@
++import type { AccessCommandView } from "@predioon/shared";
++
++export type AccessIntent = {
++  requestId: string;
++  buildingId: string;
++  gateId: string;
++  pending: boolean;
++  command: AccessCommandView | null;
++  error: string | null;
++};
++const stages = { PENDING: 0, SENT: 1, FAILED: 2, EXPIRED: 2, ACKNOWLEDGED: 3 };
++export function commandSettled(command: AccessCommandView | null): boolean {
++  return Boolean(command && !["PENDING", "SENT"].includes(command.status));
++}
++export function reconcileCommand(
++  local: AccessCommandView | null,
++  remote: AccessCommandView,
++): AccessCommandView {
++  if (!local) return remote;
++  if (
++    remote.id !== local.id ||
++    remote.requestId !== local.requestId ||
++    remote.gateId !== local.gateId
++  )
++    return local;
++  return stages[remote.status] > stages[local.status] ? remote : local;
++}
++export function commandMessage(command: AccessCommandView): string {
++  switch (command.status) {
++    case "PENDING":
++      return "Solicitação aceita pela API. Aguardando envio ao equipamento.";
++    case "SENT":
++      return "Comando enviado. Aguardando resposta do controlador.";
++    case "ACKNOWLEDGED":
++      return "Execução reconhecida pelo controlador. A posição física do portão não foi confirmada.";
++    case "FAILED":
++      return "A solicitação falhou. Não há confirmação de abertura.";
++    case "EXPIRED":
++      return "O prazo de confirmação expirou. Não há confirmação de abertura.";
++  }
++}
++
++/** Memory only, owned by the authenticated session, not by a screen or tenant selection.
++ * Reading/reconciling state can never send a command. submit is an explicit user gesture.
++ */
++export function createAccessIntentStore(newRequestId: () => string) {
++  let current: Record<string, AccessIntent> = {};
++  let valid = true;
++  const listeners = new Set<() => void>();
++  const key = (buildingId: string, gateId: string) =>
++    JSON.stringify([buildingId, gateId]);
++  function replace(id: string, intent: AccessIntent) {
++    if (!valid) return;
++    current = { ...current, [id]: intent };
++    for (const listener of listeners) listener();
++  }
++  return {
++    key,
++    isValid: () => valid,
++    getSnapshot: () => current,
++    subscribe(listener: () => void) {
++      listeners.add(listener);
++      return () => {
++        listeners.delete(listener);
++      };
++    },
++    invalidate() {
++      valid = false;
++      current = {};
++      for (const listener of listeners) listener();
++    },
++    observe(buildingId: string, gateId: string, command: AccessCommandView) {
++      const id = key(buildingId, gateId);
++      const intent = current[id];
++      if (
++        !valid ||
++        !intent ||
++        intent.requestId !== command.requestId ||
++        gateId !== command.gateId
++      )
++        return;
++      const next = reconcileCommand(intent.command, command);
++      if (next !== intent.command)
++        replace(id, { ...intent, command: next, error: null });
++    },
++    async submit(
++      buildingId: string,
++      gateId: string,
++      post: (requestId: string) => Promise<AccessCommandView>,
++    ) {
++      if (!valid) return;
++      const id = key(buildingId, gateId);
++      const previous = current[id];
++      if (
++        previous?.pending ||
++        (previous?.command && !commandSettled(previous.command))
++      )
++        return;
++      // An uncertain HTTP response keeps the original ID; only a settled intent permits a new one.
++      const requestId =
++        previous && !previous.command ? previous.requestId : newRequestId();
++      const intent: AccessIntent = {
++        requestId,
++        buildingId,
++        gateId,
++        pending: true,
++        command: null,
++        error: null,
++      };
++      replace(id, intent);
++      try {
++        const command = await post(requestId);
++        if (command.requestId !== requestId || command.gateId !== gateId)
++          throw new Error("A resposta não corresponde à solicitação enviada.");
++        if (!valid) return;
++        replace(id, {
++          ...intent,
++          pending: false,
++          command: reconcileCommand(current[id]?.command ?? null, command),
++        });
++      } catch (cause) {
++        if (!valid) return;
++        replace(id, {
++          ...(current[id] ?? intent),
++          pending: false,
++          error:
++            cause instanceof Error
++              ? cause.message
++              : "Não foi possível confirmar a resposta da API.",
++        });
++      }
++    },
++  };
++}
++export type AccessIntentStore = ReturnType<typeof createAccessIntentStore>;
++
++/** A previous confirmation cannot become current again when the view returns. */
++export function createAccessInteractionGuard() {
++  let generation = 0;
++  return {
++    capture: () => generation,
++    isCurrent: (expected: number) => expected === generation,
++    invalidate: () => {
++      generation++;
++    },
++  };
++}
+diff --git a/packages/ui/test/access-intents.test.ts b/packages/ui/test/access-intents.test.ts
+new file mode 100644
+index 0000000..5a5414d
+--- /dev/null
++++ b/packages/ui/test/access-intents.test.ts
+@@ -0,0 +1,193 @@
++import assert from "node:assert/strict";
++import { test } from "node:test";
++import {
++  createAccessIntentStore,
++  createAccessInteractionGuard,
++} from "../src/access-intents.ts";
++
++const command = {
++  id: "command-a",
++  requestId: "request-a",
++  gateId: "gate-a",
++  status: "PENDING" as const,
++  createdAt: "2026-10-02T12:00:00Z",
++  expiresAt: "2026-10-02T12:00:15Z",
++  failureReason: null,
++};
++function deferred<T>() {
++  let resolve!: (value: T) => void;
++  let reject!: (e: unknown) => void;
++  const promise = new Promise<T>((r, j) => {
++    resolve = r;
++    reject = j;
++  });
++  return { promise, resolve, reject };
++}
++
++test("a duplicate gesture cannot submit twice while one physical request is pending", async () => {
++  const store = createAccessIntentStore(() => command.requestId),
++    response = deferred<typeof command>();
++  let sent = 0;
++  const post = async () => {
++    sent++;
++    return response.promise;
++  };
++  const first = store.submit("building-a", "gate-a", post);
++  await store.submit("building-a", "gate-a", post);
++  assert.equal(sent, 1);
++  response.resolve(command);
++  await first;
++  assert.equal(
++    store.getSnapshot()[store.key("building-a", "gate-a")]?.command?.id,
++    command.id,
++  );
++});
++
++test("a lost response keeps its requestId across view subscriptions and tenant selections", async () => {
++  let generated = 0;
++  const store = createAccessIntentStore(() => `request-${++generated}`),
++    sent: string[] = [];
++  const cancel = store.subscribe(() => {});
++  await store.submit("building-a", "gate-a", async (id) => {
++    sent.push(id);
++    throw new Error("lost response");
++  });
++  cancel();
++  const remounted = store.subscribe(() => {});
++  await store.submit("building-b", "gate-b", async (id) => ({
++    ...command,
++    id: "command-b",
++    gateId: "gate-b",
++    requestId: id,
++  }));
++  await store.submit("building-a", "gate-a", async (id) => {
++    sent.push(id);
++    return { ...command, requestId: id };
++  });
++  remounted();
++  assert.deepEqual(sent, ["request-1", "request-1"]);
++  assert.equal(generated, 2);
++});
++
++test("mounting, observing and reading state never send physical commands", async () => {
++  let sent = 0;
++  const store = createAccessIntentStore(() => command.requestId);
++  await store.submit("building-a", "gate-a", async () => {
++    sent++;
++    throw new Error("uncertain");
++  });
++  const remove = store.subscribe(() => {});
++  store.getSnapshot();
++  store.observe("building-a", "gate-a", { ...command, status: "SENT" });
++  remove();
++  assert.equal(sent, 1);
++  assert.equal(
++    store.getSnapshot()[store.key("building-a", "gate-a")]?.command?.status,
++    "SENT",
++  );
++});
++
++test("a different latest request cannot replace or settle the local uncertain intent", async () => {
++  const store = createAccessIntentStore(() => command.requestId);
++  await store.submit("building-a", "gate-a", async () => {
++    throw new Error("uncertain");
++  });
++  store.observe("building-a", "gate-a", {
++    ...command,
++    id: "other-command",
++    requestId: "other-request",
++    status: "ACKNOWLEDGED",
++  });
++  assert.equal(
++    store.getSnapshot()[store.key("building-a", "gate-a")]?.command,
++    null,
++  );
++  store.observe("building-a", "gate-a", {
++    ...command,
++    gateId: "other-gate",
++    status: "ACKNOWLEDGED",
++  });
++  assert.equal(
++    store.getSnapshot()[store.key("building-a", "gate-a")]?.command,
++    null,
++  );
++});
++
++test("a late HTTP receipt cannot regress a confirmed command observed while awaiting the response", async () => {
++  const store = createAccessIntentStore(() => command.requestId),
++    response = deferred<typeof command>();
++  const pending = store.submit("building-a", "gate-a", () => response.promise);
++  store.observe("building-a", "gate-a", { ...command, status: "ACKNOWLEDGED" });
++  response.resolve(command);
++  await pending;
++  assert.equal(
++    store.getSnapshot()[store.key("building-a", "gate-a")]?.command?.status,
++    "ACKNOWLEDGED",
++  );
++});
++
++test("session invalidation clears intents and ignores late receipts or new calls on the old store", async () => {
++  const store = createAccessIntentStore(() => command.requestId),
++    response = deferred<typeof command>();
++  let sent = 0;
++  const pending = store.submit("building-a", "gate-a", async () => {
++    sent++;
++    return response.promise;
++  });
++  store.invalidate();
++  response.resolve(command);
++  await pending;
++  await store.submit("building-a", "gate-a", async () => {
++    sent++;
++    return command;
++  });
++  assert.deepEqual(store.getSnapshot(), {});
++  assert.equal(sent, 1);
++});
++
++test("only a settled request permits a newly generated physical intention", async () => {
++  let generated = 0;
++  const store = createAccessIntentStore(() => `request-${++generated}`);
++  let sent = 0;
++  const post = async (id: string) => {
++    sent++;
++    return { ...command, requestId: id };
++  };
++  await store.submit("building-a", "gate-a", post);
++  await store.submit("building-a", "gate-a", post);
++  assert.equal(sent, 1);
++  store.observe("building-a", "gate-a", {
++    ...command,
++    requestId: "request-1",
++    status: "FAILED",
++  });
++  await store.submit("building-a", "gate-a", post);
++  assert.equal(sent, 2);
++  assert.equal(generated, 2);
++});
++
++test("a mismatched POST response stays uncertain under the original request identity", async () => {
++  const store = createAccessIntentStore(() => command.requestId);
++  await store.submit("building-a", "gate-a", async () => ({
++    ...command,
++    requestId: "unexpected",
++  }));
++  const intent = store.getSnapshot()[store.key("building-a", "gate-a")];
++  assert.equal(intent?.command, null);
++  assert.equal(intent?.requestId, command.requestId);
++  assert.equal(intent?.pending, false);
++  assert.match(intent?.error ?? "", /corresponde/);
++});
++
++test("navigation or background invalidates a captured confirmation even after returning to the same view", () => {
++  const guard = createAccessInteractionGuard(),
++    before = guard.capture();
++  assert.equal(guard.isCurrent(before), true);
++  guard.invalidate();
++  assert.equal(guard.isCurrent(before), false);
++  const returned = guard.capture();
++  assert.equal(guard.isCurrent(returned), true);
++  assert.equal(guard.isCurrent(before), false);
++  guard.invalidate();
++  assert.equal(guard.isCurrent(returned), false);
++});
+diff --git a/scripts/android-smoke/avd_snapshot.py b/scripts/android-smoke/avd_snapshot.py
+new file mode 100644
+index 0000000..c51cf15
+--- /dev/null
++++ b/scripts/android-smoke/avd_snapshot.py
+@@ -0,0 +1,190 @@
++"""Validate a clean AVD snapshot and prove restoration; never copy ADB keys or app state."""
++import argparse
++import hashlib
++import json
++import os
++from pathlib import Path
++import re
++import time
++
++from clean_avd import ROOT, Device, check_clean_environment, installed_metadata, properties, require_health
++
++
++def checked_config(source, settings):
++    # The action appends CPU/RAM even when avdmanager already wrote them. Keep
++    # its explicit final value, then write each key once before starting QEMU.
++    values = {}
++    for line in source.splitlines():
++        if not line.strip() or line.lstrip().startswith("#"):
++            continue
++        key, separator, value = line.partition("=")
++        key, value = key.strip(), value.strip()
++        if not separator or not key or (key in values and key not in {"hw.cpu.ncore", "hw.ramSize"}):
++            raise ValueError("Invalid or ambiguous AVD configuration")
++        values[key] = value
++    expected = {"abi.type": settings["abi"], "hw.cpu.arch": settings["abi"], "hw.cpu.ncore": str(settings["cores"]), "hw.device.name": settings["profile"], "tag.id": settings["target"], "target": "android-" + str(settings["apiLevel"]), "image.sysdir.1": f"system-images/android-{settings['apiLevel']}/{settings['target']}/{settings['abi']}/"}
++    if any(values.get(key) != value for key, value in expected.items()) or values.get("hw.ramSize") not in {str(settings["ramMiB"]), str(settings["ramMiB"]) + "M"}:
++        raise ValueError("Actual AVD configuration does not match the fingerprint")
++    values["hw.ramSize"] = str(settings["ramMiB"])
++    return "".join(f"{key}={value}\n" for key, value in sorted(values.items()))
++
++
++def avd_paths(home, metadata):
++    home = home.resolve(strict=True)
++    name = metadata["components"]["settings"]["avdName"]
++    if not re.fullmatch(r"[a-z0-9-]+", name):
++        raise ValueError("Unexpected AVD name")
++    avd, ini = home / (name + ".avd"), home / (name + ".ini")
++    if avd.is_symlink() or ini.is_symlink() or not avd.is_dir() or not ini.is_file():
++        raise ValueError("Expected a regular AVD directory and pointer")
++    pointer = properties(ini.read_text(encoding="utf-8"))
++    if Path(pointer.get("path", "")).resolve() != avd or pointer.get("target") != "android-" + str(metadata["components"]["settings"]["apiLevel"]):
++        raise ValueError("AVD pointer path or target is inconsistent")
++    return home, avd, ini
++
++
++def digest(path):
++    value = hashlib.sha256()
++    with path.open("rb") as source:
++        for chunk in iter(lambda: source.read(4 * 1024 * 1024), b""):
++            value.update(chunk)
++    return value.hexdigest()
++
++
++def inventory(home, avd, ini):
++    files = {}
++    for path in [ini, *sorted(avd.rglob("*"))]:
++        if path.is_symlink() or not path.resolve().is_relative_to(home):
++            raise ValueError("Cache contents contain an unsafe path")
++        if path.is_dir():
++            continue
++        if not path.is_file():
++            raise ValueError("Cache contents contain a non-regular file")
++        files[path.relative_to(home).as_posix()] = {"bytes": path.stat().st_size, "sha256": digest(path)}
++    return files
++
++
++def require_boot_identity(value):
++    if not isinstance(value, dict) or not re.fullmatch(r"[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}", value.get("bootId", "")) or not re.fullmatch(r"[0-9a-f]{64}", value.get("adbPublicKeySha256", "")):
++        raise ValueError("Missing guest boot or public ADB identity evidence")
++
++
++def seal_snapshot(home, metadata, health):
++    require_health(health, metadata)
++    require_boot_identity(health)
++    home, avd, ini = avd_paths(home, metadata)
++    config = (avd / "config.ini").read_text(encoding="utf-8")
++    checked_config(config, metadata["components"]["settings"])
++    for name in ["snapshot.pb", "ram.img"]:
++        snapshot = avd / "snapshots/default_boot" / name
++        if not snapshot.is_file() or snapshot.stat().st_size == 0:
++            raise ValueError("Completed default_boot snapshot is missing or empty")
++    return {"metadata": metadata, "health": health, "files": inventory(home, avd, ini)}
++
++
++def verify_snapshot(home, metadata, manifest):
++    if manifest.get("metadata") != metadata:
++        raise ValueError("Snapshot fingerprint differs from current SDK, runner or settings")
++    current = seal_snapshot(home, metadata, manifest.get("health", {}))
++    if manifest.get("files") != current["files"]:
++        raise ValueError("Snapshot contents differ from the sealed clean AVD")
++
++
++def require_restored_boot(current, saved):
++    require_boot_identity(current)
++    require_boot_identity(saved)
++    if current["bootId"] != saved["bootId"]:
++        raise ValueError("Guest boot ID changed: a cache hit did not restore the saved kernel")
++    if current["adbPublicKeySha256"] == saved["adbPublicKeySha256"]:
++        raise ValueError("Restore verification requires a fresh host ADB identity")
++
++
++def qemu_running(name):
++    for process in Path("/proc").iterdir():
++        if not process.name.isdecimal():
++            continue
++        try:
++            args = (process / "cmdline").read_bytes().split(b"\0")
++        except (FileNotFoundError, PermissionError, ProcessLookupError):
++            continue
++        if args and (b"qemu-system" in args[0] or Path(os.fsdecode(args[0])).name == "emulator"):
++            if b"-avd" in args and args[args.index(b"-avd") + 1:][:1] == [name.encode()]:
++                return True
++    return False
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("action", choices=["configure", "boot", "seal", "verify"])
++    parser.add_argument("--sdk", type=Path, required=True)
++    parser.add_argument("--metadata", type=Path, required=True)
++    parser.add_argument("--avd-home", type=Path, required=True)
++    parser.add_argument("--manifest", type=Path, required=True)
++    parser.add_argument("--evidence", type=Path, required=True)
++    parser.add_argument("--restored", action="store_true")
++    args = parser.parse_args()
++    if os.environ.get("CI") != "true" or os.environ.get("ANDROID_AUTH_PASSWORD"):
++        raise SystemExit("Snapshot verification is restricted to clean disposable CI before credentials")
++    metadata = installed_metadata(args.sdk)
++    if json.loads(args.metadata.read_text(encoding="utf-8")) != metadata:
++        raise SystemExit("SDK/runner changed after the cache fingerprint was computed")
++    _, avd, _ = avd_paths(args.avd_home, metadata)
++    settings = metadata["components"]["settings"]
++    if args.action == "configure":
++        config = avd / "config.ini"
++        config.write_text(checked_config(config.read_text(encoding="utf-8"), settings), encoding="utf-8")
++        return
++    if args.action == "verify":
++        verify_snapshot(args.avd_home, metadata, json.loads(args.manifest.read_text(encoding="utf-8")))
++        print("Exact clean snapshot inventory verified before launch")
++        return
++    args.evidence.mkdir(parents=True, exist_ok=True)
++    health_path = args.evidence / "clean-health.json"
++    if args.action == "seal":
++        deadline = time.monotonic() + 60
++        while qemu_running(settings["avdName"]):
++            if time.monotonic() >= deadline:
++                raise SystemExit("Emulator did not stop; live userdata must never be cached")
++            time.sleep(0.5)
++        manifest = seal_snapshot(args.avd_home, metadata, json.loads(health_path.read_text(encoding="utf-8")))
++        args.manifest.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
++        print("Stopped clean snapshot sealed; no cache save was performed by the helper")
++        return
++    device = Device("emulator-5554", "resident-mobile", args.evidence)
++    report = {"passed": False, "cacheKey": metadata["cacheKey"]}
++    try:
++        report = check_clean_environment(device, metadata, ROOT)
++        hardware = properties((avd / "hardware-qemu.ini").read_text(encoding="utf-8"))
++        expected = {"hw.cpu.arch": settings["abi"], "hw.cpu.ncore": str(settings["cores"]), "hw.ramSize": str(settings["ramMiB"]), "hw.device.name": settings["profile"]}
++        if any(hardware.get(key) != value for key, value in expected.items()) or hardware.get("hw.gpu.mode") not in {"swiftshader", "swiftshader_indirect"}:
++            raise ValueError("Running QEMU hardware differs from the expected CPU, RAM, profile or renderer")
++        report["hardware"] = {**expected, "hw.gpu.mode": hardware["hw.gpu.mode"]}
++        report["bootId"] = device.adb("shell", "cat", "/proc/sys/kernel/random/boot_id").strip()
++        # Only the public key digest is evidence. The host private key is neither
++        # read by this script nor included in any cache/artifact path.
++        public_key = Path(os.environ["HOME"]) / ".android/adbkey.pub"
++        report["adbPublicKeySha256"] = digest(public_key)
++        require_boot_identity(report)
++        if args.restored:
++            manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
++            require_restored_boot(report, manifest["health"])
++        report["snapshotRestored"] = args.restored
++    except Exception as error:
++        report["passed"] = False
++        report["error"] = str(error)
++        raise SystemExit("Clean snapshot boot failed; inspect preparation evidence") from None
++    finally:
++        try:
++            if getattr(device, "clean_diagnostics_allowed", False):
++                device.collect()
++        except Exception:
++            report["passed"] = False
++            report["error"] = "Could not collect clean snapshot diagnostics"
++            raise
++        finally:
++            health_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
++    print("Clean AVD boot verified" + (" with preserved kernel and fresh host ADB identity" if args.restored else ""))
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/scripts/android-smoke/test_avd_snapshot.py b/scripts/android-smoke/test_avd_snapshot.py
+new file mode 100644
+index 0000000..d6cda01
+--- /dev/null
++++ b/scripts/android-smoke/test_avd_snapshot.py
+@@ -0,0 +1,89 @@
++import copy
++import json
++from pathlib import Path
++import tempfile
++import unittest
++
++from avd_snapshot import checked_config, seal_snapshot, verify_snapshot, require_restored_boot
++from clean_avd import SETTINGS, build_metadata
++from test_clean_avd import EMULATOR, IMAGE, HOST
++
++CONFIG = "abi.type=x86_64\nhw.cpu.arch=x86_64\nhw.cpu.ncore=2\nhw.cpu.ncore=4\nhw.ramSize=2048\nhw.ramSize=4096M\nhw.device.name=pixel_6\nimage.sysdir.1=system-images/android-35/google_apis/x86_64/\ntag.id=google_apis\ntarget=android-35\n"
++BOOT = "11111111-1111-4111-8111-111111111111"
++
++
++class SnapshotTests(unittest.TestCase):
++    def fixture(self, root):
++        metadata = build_metadata(EMULATOR, IMAGE, HOST, SETTINGS)
++        avd = root / "predioon-clean.avd"
++        snapshots = avd / "snapshots/default_boot"
++        snapshots.mkdir(parents=True)
++        (avd / "config.ini").write_text(checked_config(CONFIG, SETTINGS))
++        (snapshots / "snapshot.pb").write_bytes(b"snapshot test metadata")
++        (snapshots / "ram.img").write_bytes(b"snapshot test RAM")
++        (avd / "userdata-qemu.img.qcow2").write_bytes(b"clean image")
++        (root / "predioon-clean.ini").write_text(f"path={avd}\ntarget=android-35\n")
++        health = {"passed": True, "cacheKey": metadata["cacheKey"], "checks": {"emulator": True, "bootCompleted": True, "timezone": "Etc/UTC", "homeComponent": "com.android.launcher/.Launcher", "stableObservations": 2, "productPackagesAbsent": True, "diagnosticsClean": True}, "bootId": BOOT, "adbPublicKeySha256": "a" * 64}
++        return metadata, avd, health
++
++    def test_action_duplicate_cpu_ram_entries_are_canonicalized_but_wrong_effective_config_is_refused(self):
++        canonical = checked_config(CONFIG, SETTINGS)
++        self.assertEqual(canonical.count("hw.cpu.ncore="), 1)
++        self.assertEqual(canonical.count("hw.ramSize="), 1)
++        self.assertEqual(checked_config(canonical, SETTINGS), canonical)
++        for old, new in [("hw.cpu.ncore=4", "hw.cpu.ncore=2"), ("4096M", "2048M"), ("pixel_6", "pixel_7"), ("image.sysdir.1=system-images/", "image.sysdir.1=../system-images/"), ("tag.id=google_apis", "tag.id=default")]:
++            with self.assertRaises(ValueError):
++                checked_config(CONFIG.replace(old, new), SETTINGS)
++
++    def test_seal_requires_healthy_proof_and_snapshot_files_and_verifies_every_cached_byte(self):
++        with tempfile.TemporaryDirectory() as directory:
++            root = Path(directory)
++            metadata, avd, health = self.fixture(root)
++            manifest = seal_snapshot(root, metadata, health)
++            verify_snapshot(root, metadata, manifest)
++            (avd / "userdata-qemu.img.qcow2").write_bytes(b"changed data")
++            with self.assertRaisesRegex(ValueError, "contents"):
++                verify_snapshot(root, metadata, manifest)
++            for invalid in [{**health, "passed": False}, {**health, "cacheKey": "other"}]:
++                with self.assertRaises(ValueError):
++                    seal_snapshot(root, metadata, invalid)
++            (avd / "snapshots/default_boot/snapshot.pb").unlink()
++            with self.assertRaisesRegex(ValueError, "snapshot"):
++                seal_snapshot(root, metadata, health)
++
++    def test_extra_files_and_redirected_avd_paths_are_never_treated_as_the_cached_clean_avd(self):
++        with tempfile.TemporaryDirectory() as directory:
++            root = Path(directory)
++            metadata, avd, health = self.fixture(root)
++            manifest = seal_snapshot(root, metadata, health)
++            (avd / "extra.txt").write_text("not in clean manifest")
++            with self.assertRaises(ValueError):
++                verify_snapshot(root, metadata, manifest)
++            (root / "predioon-clean.ini").write_text("path=/outside/another.avd\ntarget=android-35\n")
++            with self.assertRaisesRegex(ValueError, "path"):
++                seal_snapshot(root, metadata, health)
++
++    def test_restore_requires_same_guest_boot_and_new_host_adb_identity(self):
++        original = {"bootId": BOOT, "adbPublicKeySha256": "a" * 64}
++        restored = {"bootId": BOOT, "adbPublicKeySha256": "b" * 64}
++        require_restored_boot(restored, original)
++        for change in [{"bootId": "22222222-2222-4222-8222-222222222222"}, {"adbPublicKeySha256": "a" * 64}, {"adbPublicKeySha256": "bad"}, {"bootId": ""}]:
++            with self.assertRaises(ValueError):
++                require_restored_boot({**restored, **change}, original)
++
++    def test_manifest_from_other_sdk_runner_or_settings_is_rejected(self):
++        with tempfile.TemporaryDirectory() as directory:
++            root = Path(directory)
++            metadata, _, health = self.fixture(root)
++            manifest = seal_snapshot(root, metadata, health)
++            changed = build_metadata(EMULATOR, IMAGE, {**HOST, "cpu": "another CPU"}, SETTINGS)
++            with self.assertRaises(ValueError):
++                verify_snapshot(root, changed, manifest)
++            malformed = copy.deepcopy(manifest)
++            malformed["health"]["checks"]["diagnosticsClean"] = False
++            with self.assertRaises(ValueError):
++                verify_snapshot(root, metadata, malformed)
++
++
++if __name__ == "__main__":
++    unittest.main()
