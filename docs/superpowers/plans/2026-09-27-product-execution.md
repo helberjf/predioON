@@ -138,3 +138,13 @@ O usuário acrescentou as seguintes entregas ao aceite final, depois da conclus�
 - [ ] Conferir os vídeos gerados, disponibilizá-los em `outputs` fora do Git e documentar como reproduzir a apresentação. Distinguir demonstração em emulador de homologação em aparelho; execução nativa iOS depende de ambiente Apple.
 
 As gravações não substituem testes automatizados nem comprovam integrações externas indisponíveis. A sessão deve continuar sem reiniciar o computador, conforme instrução explícita do usuário.
+
+## Novos checkpoints — 02/10/2026
+
+- `3c6e179`: teste real de backup/restauração publicado e ligado ao CI. Executor e ensaio repetidos após 032: **26/26**, sem skips; ledger aplicou somente 032 e `--check` confirmou consistência.
+- `7319b3e`: workflow Android de autenticação real publicado. Sua primeira execução falhou antes do login, em leitura ADB de diagnóstico; não constitui aprovação do runtime autenticado. O smoke de inicialização de Operação também foi bloqueado por diálogo ANR do Pixel Launcher, com tela do app atrás e buffer de crash do app vazio. `2235d98` acrescenta prontidão do launcher e diagnóstico completo do erro ADB, preservando todas as exigências do teste. Nova execução ainda deve comprovar os cenários completos.
+- `eec6174`: backend de cookies web e proteção CSRF publicado, **10 testes novos/23 dirigidos** aprovados. Portais ainda em migração; não afirmar remoção de tokens do localStorage antes da validação do novo adaptador.
+- `707ab48`: interface financeira por relatório publicada, **54/54 testes UI** e **12/12 combinações dirigidas** de finanças/overview nos três navegadores. Tipos, fronteiras e build building-web passaram.
+- `59447a2`: regras de alerta 032 publicadas, incluindo PATCH sem defaults destrutivos e correção de deadlock com retarget/ingestão. **222 dirigidos**, depois **36** com ajuste de locks e **2 corridas adicionais**, sem skips. Revisões independentes concluídas. A integral da API com 032/cookies está em execução; seu resultado será registrado separadamente.
+- `702cfd5`: adaptador SSE por fetch com bearer no header, sem cookie nem token na URL, cancelamento e parser limitado. **12/12 testes dirigidos** do adaptador/coordenador passaram; uso nos portais acompanha a migração de sessões em andamento.
+- Ferramentas locais Android preparadas fora do Git em `work/toolchains`: Temurin 17, SDK, emulator e imagem API35. Checksums dos downloads conferidos e `emulator-check accel` confirmou WHPX disponível. O primeiro boot foi encerrado para liberar memória durante a regressão; abertura do Android, instalação dos apps e gravações locais ainda não estão verificadas. Nenhum reboot do computador foi executado.

@@ -117,10 +117,26 @@ Conteúdo publicado é imutável: correções criam outra revisão. O processo H
 
 Em 031, `/overview/building` acrescenta `occurrenceVisibility` e mantém `counts.open_occurrences` nullable. Gestão inteira resulta em `whole/all`; leitura própria em `partial/own`; gestão específica, inclusive combinada com leitura própria, em `partial/scoped`. Apenas OPEN, IN_ANALYSIS e IN_PROGRESS entram no contador. Ausência de capacidade ou TICKETS pausada produz `none/none` e null. A contagem e sua autorização são consultadas juntas no statement final; não incluem identidade, protocolo, descrição ou eventos. Os rótulos do painel distinguem claramente essas visões e não inferem saúde completa do condomínio a partir delas.
 
-Os recortes 030/031 passaram nos testes dirigidos de HTTP/SQL, revogação, isolamento, versões, rollback, apresentação e planos de consulta com histórico volumoso. A regressão integral posterior está em execução; os resultados dirigidos não a substituem. As provas e os commits correspondentes são registrados no [tracker](superpowers/plans/2026-09-27-product-execution.md).
+Os recortes 030/031 passaram na regressão integral de 501 testes da API e na matriz Playwright de 63 combinações. A interface financeira agora consulta a permissão do relatório selecionado: leitura e gestão são exigidas juntas para editar/publicar, enquanto criação e nova revisão exigem escopo inteiro. A lista autorizada não depende de `buildings:manage`. Doze combinações dirigidas nos três navegadores verificaram finanças e overview após essa integração. As provas e os commits são registrados no [tracker](superpowers/plans/2026-09-27-product-execution.md).
+
+## Configuração das regras de alerta — 032
+
+`alert-rules:read` e `alert-rules:manage` são independentes de alertas, telemetria e inventário. Somente BUILDING_ADMIN recebe ambas por padrão. A leitura/gestão pode ser concedida no condomínio inteiro, na regra concreta ou em seu dispositivo real; uma regra geral sem dispositivo exige concessão inteira para criação. Suporte técnico e administração global não ganham configuração privada implicitamente.
+
+Mudar o dispositivo exige autorização sobre a regra atual e o destino; remover o dispositivo para tornar a regra geral exige concessão inteira. A mesma restrição vale para SQL direto. Equipamentos desabilitados continuam configuráveis. A API consulta somente a classificação mínima necessária para verificar funcionalidades, sem liberar inventário ao leitor da regra.
+
+PATCH preserva todos os campos omitidos, incluindo gravidade e cooldown. Antes de retarget, o dispositivo de destino é bloqueado com KEY SHARE autorizado; a regra é bloqueada em seguida, na ordem compatível com ingestão. Há revalidação depois das esperas. DELETE mantém auditoria e remoção na mesma transação e conserva alertas históricos. O deadlock com a ingestão foi reproduzido antes da correção; não foram acrescentadas retentativas de mutação.
+
+O recorte passou em 222 testes dirigidos antes do ajuste final de locks, seguido de 36 testes e duas novas corridas de revogação no lock de destino. Revisões independentes não encontraram bloqueadores. A regressão integral com 032 e as novas sessões web está em execução; a interface de regras ainda está sendo alinhada a esses escopos.
+
+## Sessões web — backend disponível, migração dos portais em andamento
+
+As rotas `/auth/web/login`, `/auth/web/refresh` e `/auth/web/logout` guardam o refresh somente em cookie HttpOnly. Em HTTPS o cookie tem Secure e prefixo `__Host-`, sem Domain, com SameSite=Strict e nome distinto por origem permitida. Cada requisição exige Origin exata, JSON e `X-Predioon-Web: 1`; requisições cross-site são rejeitadas. Os portais e a API devem compartilhar o mesmo site HTTPS em produção. HTTP é admitido apenas para origens loopback fora de produção.
+
+O JSON contém access token e identidade; a validade do cookie acompanha a expiração absoluta da família. Replay/expiração apagam o cookie, enquanto erro transitório preserva possibilidade de recuperação. Rotas de domínio continuam exigindo bearer. Dez testes novos e 23 dirigidos com JWT/ciclo de sessões passaram, incluindo rollback real de rotação. Os endpoints nativos permanecem compatíveis. A substituição de localStorage nos portais e a coordenação entre abas ainda precisam concluir a validação do cliente, conforme [plano de sessões web](superpowers/plans/2026-10-02-web-cookie-sessions.md).
 
 ## Fronteiras ainda em migração
 
-A etapa 2B permanece aberta. Regras de alerta, estacionamento, atuação física e parte da administração ainda precisam concluir a migração própria. Kinds novos de eventos precisam de projeção e autorização específicas. Consumidores web/mobile estão sendo alinhados às capacidades de cada domínio; telas ainda legadas não devem usar a ausência de uma capacidade nova para presumir que suas regras anteriores foram migradas.
+A etapa 2B permanece aberta. Estacionamento, atuação física e parte da administração ainda precisam concluir a migração própria. Kinds novos de eventos precisam de projeção e autorização específicas. Consumidores web/mobile estão sendo alinhados às capacidades de cada domínio; telas ainda legadas não devem usar a ausência de uma capacidade nova para presumir que suas regras anteriores foram migradas.
 
 A API separa as conexões de negócio, identidade e autorização MQTT conforme [credenciais de banco](CREDENCIAIS_BANCO.md). A retirada da credencial proprietária da ingestão ainda está pendente, junto do processamento durável. Também permanecem fluxos de suporte, MFA para ações privilegiadas, cookies/CSRF, conclusão dos cadastros e homologação dos consumidores móveis. O tracker distingue essas pendências da fundação já verificada.
