@@ -42,8 +42,11 @@ def inspect_calendar(source, package, building, state, forbidden):
 
 def inspect_confirmation(source, package):
     nodes = parse_nodes(source, package)
-    one(nodes, lambda n: n.get("resource-id") == "android:id/alertTitle" and matches(n, "Cancelar reserva?"), "reservation confirmation title")
-    one(nodes, lambda n: matches(n, "O horário será liberado para outros moradores."), "reservation confirmation message")
+    # RN's AndroidX dialog uses its application-owned alert_title resource;
+    # platform dialogs retain android:id/alertTitle. Never accept arbitrary IDs.
+    title_ids = {"android:id/alertTitle", package + ":id/alert_title"}
+    one(nodes, lambda n: n.get("resource-id") in title_ids and n.get("class") == "android.widget.TextView" and matches(n, "Cancelar reserva?"), "reservation confirmation title")
+    one(nodes, lambda n: n.get("resource-id") == "android:id/message" and n.get("class") == "android.widget.TextView" and matches(n, "O horário será liberado para outros moradores."), "reservation confirmation message")
     result = {}
     for key, identifier, label in [("back", "button2", "Voltar"), ("confirm", "button1", "Cancelar reserva")]:
         target = one(nodes, lambda n: n.get("resource-id") == "android:id/" + identifier and n.get("class") == "android.widget.Button" and n.get("text", "").casefold() == label.casefold() and n.get("clickable") == "true" and n.get("enabled") == "true", "native " + key)

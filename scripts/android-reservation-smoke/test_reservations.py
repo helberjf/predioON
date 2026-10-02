@@ -36,6 +36,16 @@ def dialog():
 
 
 class ReservationAssertions(unittest.TestCase):
+    def test_observed_androidx_dialog_uses_the_application_title_resource_and_strict_native_buttons(self):
+        # Captured from run36973342789 at ed21b67; the dialog contains no account data.
+        source = (Path(__file__).parent / "fixtures/reservation-confirmation-androidx.xml").read_text(encoding="utf-8")
+        result = inspect_confirmation(source, PACKAGE)
+        self.assertEqual(result["back"].get("resource-id"), "android:id/button2")
+        self.assertEqual(result["confirm"].get("resource-id"), "android:id/button1")
+        for invalid in [source.replace(PACKAGE + ":id/alert_title", "other.app:id/alert_title"), source.replace("Cancelar reserva?", "Pixel Launcher isn't responding"), source.replace("android:id/button2", PACKAGE + ":id/button2"), source.replace("android:id/message", PACKAGE + ":id/message")]:
+            with self.assertRaises(AssertionError):
+                inspect_confirmation(invalid, PACKAGE)
+
     def test_calendar_private_content_is_terminal_without_capturing_an_approved_phase(self):
         fixture = {"forbidden": ["PRIVATE"], "accounts": {"resident-mobile": {"buildingName": BUILDING}}}
         with tempfile.TemporaryDirectory() as output:
