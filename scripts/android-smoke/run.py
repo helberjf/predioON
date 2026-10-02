@@ -90,9 +90,14 @@ class Device:
         self.package = APPS[app][0]
         self.steps = []
         self.last_adb_failure = None
+        self.last_hierarchy_output = None
+        self.environment_attempts = []
 
-    def adb(self, *args, binary=False, required=True, timeout=30):
+    def adb(self, *args, binary=False, required=True, timeout=30, record_hierarchy=False):
         result = subprocess.run(["adb", "-s", self.serial, *args], capture_output=True, timeout=timeout)
+        if record_hierarchy:
+            self.last_hierarchy_output = {"exitCode": result.returncode, "stdout": result.stdout.decode(errors="replace"),
+                                          "stderr": result.stderr.decode(errors="replace")}
         if required and result.returncode:
             self.last_adb_failure = {"command": list(args[:3]), "exitCode": result.returncode,
                                      "stdout": result.stdout.decode(errors="replace"), "stderr": result.stderr.decode(errors="replace")}
@@ -100,9 +105,10 @@ class Device:
         return result.stdout if binary else result.stdout.decode("utf-8", errors="replace")
 
     def hierarchy(self):
-        result = self.adb("shell", "uiautomator", "dump", "/sdcard/predioon-smoke.xml", timeout=20)
+        result = self.adb("shell", "uiautomator", "dump", "/sdcard/predioon-smoke.xml", timeout=20, record_hierarchy=True)
         if "dumped" not in result.lower():
-            raise AssertionError("UIAutomator did not produce a hierarchy")
+            diagnostic = self.last_hierarchy_output or {"stdout": result, "stderr": ""}
+            raise AssertionError(f"UIAutomator did not produce a hierarchy: {diagnostic['stdout']} {diagnostic['stderr']}".strip())
         return self.adb("shell", "cat", "/sdcard/predioon-smoke.xml")
 
     def screen(self, name):
@@ -151,16 +157,29 @@ class Device:
         self.adb("shell", "am", "start", "-W", "-a", "android.intent.action.MAIN", "-c", "android.intent.category.HOME")
         deadline, stable = time.monotonic() + 90, 0
         while time.monotonic() < deadline:
-            source = self.hierarchy()
+            attempt = {"number": len(self.environment_attempts) + 1, "ready": False}
+            self.environment_attempts.append(attempt)
             try:
+                source = self.hierarchy()
                 parse_nodes(source, package)
             except (AssertionError, ET.ParseError) as error:
+                attempt["error"] = str(error)
+                attempt["hierarchyCommand"] = self.last_hierarchy_output
                 if "Android system dialog" in str(error):
                     raise AssertionError(f"Emulator environment failed before app installation: {error}") from None
                 stable = 0
+            except Exception as error:
+                attempt["error"] = str(error)
+                attempt["hierarchyCommand"] = self.last_hierarchy_output
+                raise
             else:
                 # Success is mandatory. No retry or suppression of diagnostic errors.
-                self.adb("logcat", "-d", "-v", "threadtime")
+                try:
+                    self.adb("logcat", "-d", "-v", "threadtime")
+                except Exception as error:
+                    attempt["error"] = str(error)
+                    raise
+                attempt["ready"] = True
                 stable += 1
                 if stable == 2:
                     return
@@ -176,6 +195,7 @@ class Device:
         self.adb("shell", "input", "keyevent", "KEYCODE_BACK")
 
     def collect(self):
+        (self.output / "environment-readiness.json").write_text(json.dumps({"attempts": self.environment_attempts, "lastHierarchyCommand": self.last_hierarchy_output}, indent=2), encoding="utf-8")
         if self.last_adb_failure:
             (self.output / "adb-failure.json").write_text(json.dumps(self.last_adb_failure, ensure_ascii=False), encoding="utf-8")
         for name, args in {

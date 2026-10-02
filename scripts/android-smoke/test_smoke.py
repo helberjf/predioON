@@ -56,6 +56,56 @@ class UiAssertions(unittest.TestCase):
 
 
 class CrashAssertions(unittest.TestCase):
+    def test_home_readiness_waits_for_accessibility_before_installing_the_app(self):
+        device = Device("emulator-test", "resident-mobile", Path("unused"))
+        home = '<hierarchy><node package="com.android.launcher" /></hierarchy>'
+        def adb(*args):
+            return "com.android.launcher/.Launcher\n" if "resolve-activity" in args else ""
+        with patch.object(device, "adb", side_effect=adb) as command, patch.object(device, "hierarchy", side_effect=[AssertionError("UIAutomator did not produce a hierarchy"), home, home]) as dump, patch("run.time.sleep"):
+            device.wait_environment_ready()
+            self.assertEqual(dump.call_count, 3)
+            self.assertEqual(sum(call.args[0] == "logcat" for call in command.call_args_list), 2)
+            self.assertFalse(any("install" in call.args or "input" in call.args for call in command.call_args_list))
+            self.assertEqual([attempt["ready"] for attempt in device.environment_attempts], [False, True, True])
+            self.assertIn("did not produce", device.environment_attempts[0]["error"])
+
+    def test_permanent_missing_home_expires_and_preserves_every_attempt(self):
+        device = Device("emulator-test", "resident-mobile", Path("unused"))
+        device.last_hierarchy_output = {"exitCode": 0, "stdout": "", "stderr": "ERROR: could not get idle state."}
+        with patch.object(device, "adb", return_value="com.android.launcher/.Launcher\n") as command, patch.object(device, "hierarchy", side_effect=AssertionError("UIAutomator did not produce a hierarchy")), patch("run.time.monotonic", side_effect=[0, 1, 45, 91]), patch("run.time.sleep"):
+            with self.assertRaisesRegex(AssertionError, "HOME did not become ready"):
+                device.wait_environment_ready()
+            self.assertEqual(len(device.environment_attempts), 2)
+            self.assertTrue(all(not attempt["ready"] and attempt["hierarchyCommand"]["stderr"] == "ERROR: could not get idle state." for attempt in device.environment_attempts))
+            self.assertFalse(any("install" in call.args or "input" in call.args for call in command.call_args_list))
+
+    def test_missing_dump_preserves_zero_exit_stderr_and_never_reads_a_previous_xml(self):
+        device = Device("emulator-test", "resident-mobile", Path("unused"))
+        result = type("Result", (), {"returncode": 0, "stdout": b"", "stderr": b"ERROR: null root node returned by UiTestAutomationBridge."})()
+        with patch("run.subprocess.run", return_value=result) as command:
+            with self.assertRaisesRegex(AssertionError, "null root node"):
+                device.hierarchy()
+            self.assertEqual(command.call_count, 1)
+            self.assertEqual(device.last_hierarchy_output["exitCode"], 0)
+            self.assertIn("null root node", device.last_hierarchy_output["stderr"])
+
+    def test_nonzero_adb_dump_aborts_readiness_without_another_observation(self):
+        device = Device("emulator-test", "resident-mobile", Path("unused"))
+        def execute(command, **_kwargs):
+            if "resolve-activity" in command:
+                return type("Result", (), {"returncode": 0, "stdout": b"com.android.launcher/.Launcher\n", "stderr": b""})()
+            if "uiautomator" in command:
+                return type("Result", (), {"returncode": 1, "stdout": b"partial dump", "stderr": b"transport disconnected"})()
+            return type("Result", (), {"returncode": 0, "stdout": b"", "stderr": b""})()
+        with patch("run.subprocess.run", side_effect=execute) as command, patch("run.time.sleep") as sleep:
+            with self.assertRaisesRegex(RuntimeError, "exit 1"):
+                device.wait_environment_ready()
+            self.assertEqual(sum("uiautomator" in call.args[0] for call in command.call_args_list), 1)
+            self.assertEqual(len(device.environment_attempts), 1)
+            self.assertEqual(device.last_adb_failure["stdout"], "partial dump")
+            self.assertEqual(device.environment_attempts[0]["hierarchyCommand"]["stderr"], "transport disconnected")
+            sleep.assert_not_called()
+
     def test_emulator_launcher_readiness_needs_two_observations_and_complete_diagnostics(self):
         device = Device("emulator-test", "resident-mobile", Path("unused"))
         def adb(*args):

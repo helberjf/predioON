@@ -89,6 +89,8 @@ class AuthAssertions(unittest.TestCase):
             with self.subTest(secret_kind="password" if secret == password else "token"), tempfile.TemporaryDirectory() as directory:
                 device = AuthDevice("unused", "resident-mobile", Path(directory), fixture(), password)
                 device.last_adb_failure = {"stdout": secret, "stderr": secret, "exitCode": 1}
+                device.last_hierarchy_output = {"stdout": secret, "stderr": secret, "exitCode": 0}
+                device.environment_attempts = [{"number": 1, "ready": False, "error": secret, "hierarchyCommand": device.last_hierarchy_output}]
                 source = profile("resident-mobile").replace("</hierarchy>", f'<node text="{secret}" /></hierarchy>')
                 with patch.object(device, "assert_no_crash"), patch.object(device, "hierarchy", return_value=source), patch.object(device, "screen") as screenshot:
                     with patch("run_auth.time.monotonic", side_effect=[0, 0, 61]), patch("run_auth.time.sleep"):

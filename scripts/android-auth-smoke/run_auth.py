@@ -94,6 +94,7 @@ class AuthDevice(Device):
         self.wait_for(phase, lambda source: inspect_login(source, self.app))
 
     def collect(self):
+        (self.output / "environment-readiness.json").write_text(redact(json.dumps({"attempts": self.environment_attempts, "lastHierarchyCommand": self.last_hierarchy_output}, ensure_ascii=False, indent=2), self.password), encoding="utf-8")
         if self.last_adb_failure:
             (self.output / "adb-failure.json").write_text(redact(json.dumps(self.last_adb_failure, ensure_ascii=False), self.password), encoding="utf-8")
         for name, args in {
