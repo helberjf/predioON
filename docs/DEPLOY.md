@@ -108,6 +108,8 @@ físico em uso. `MQTT_CA_FILE` é opcional para uma CA privada confiável.
 
 Procedimento operacional e efeitos de cada controle: [FUNCIONALIDADES.md](FUNCIONALIDADES.md).
 
+O [procedimento de backup e restauração](BACKUP_E_RESTAURACAO.md) registra o ensaio real de dump customizado, recuperação Timescale e preservação de RLS/ledger, além dos limites e das etapas para um destino separado.
+
 Configurar backup com teste de restauração, monitoramento de disponibilidade e renovação
 de certificados. As políticas comentadas em `001-timescale-rls.sql` são referências de retenção/compressão, não instruções para editar uma migration já aplicada. Definir os prazos conforme a operação e publicar a alteração numa nova migration revisada. Um rollback de código não desfaz mudanças de schema ou dados.
 

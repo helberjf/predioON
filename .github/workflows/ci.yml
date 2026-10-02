@@ -59,6 +59,8 @@ jobs:
           pnpm db:seed
           pnpm db:bootstrap
       - name: Database migration and privilege tests
+        env:
+          TEST_BACKUP_CONTAINER: ${{ job.services.postgres.id }}
         run: pnpm --filter @predioon/db exec node --import tsx --test --test-concurrency=1 test/*.test.ts
       - name: Full platform regression
         run: pnpm test
