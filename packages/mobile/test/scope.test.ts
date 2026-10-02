@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   ownedTickets,
+  reservationActions,
   reservationWindow,
   screensFor,
   transparencySections,
@@ -16,6 +17,10 @@ const resident: Scope = {
     "notices:read",
     "occurrences:create-own",
     "occurrences:read-own",
+    "common-areas:read",
+    "reservations:read-own",
+    "reservations:create-own",
+    "reservations:cancel-own",
     "telemetry:read-published",
   ],
   features: ["NOTICES", "TICKETS", "RESERVATIONS"].map((key) => ({
@@ -64,6 +69,21 @@ test("changing to a tenant with no grants removes all prior screens", () => {
     }),
     [],
   );
+});
+test("reservation navigation and actions do not borrow ticket or building permissions", () => {
+  const scope: Scope = { buildingId: "one", capabilities: ["occurrences:read-own", "buildings:manage"], features: [{ key: "RESERVATIONS", enabled: true }] };
+  assert.deepEqual(screensFor("resident", scope), []);
+  assert.deepEqual(reservationActions(scope), { read: false, areas: false, create: false, cancel: false });
+  const readOnly = { ...scope, capabilities: ["reservations:read-own"] as Scope["capabilities"] };
+  assert.deepEqual(screensFor("resident", readOnly), ["reservations"]);
+  assert.deepEqual(reservationActions(readOnly), { read: true, areas: false, create: false, cancel: false });
+  assert.deepEqual(reservationActions(resident), { read: true, areas: true, create: true, cancel: true });
+  assert.equal(reservationActions({ ...resident, capabilities: resident.capabilities.filter(capability => capability !== "common-areas:read") }).create, false);
+  assert.equal(reservationActions({ ...resident, capabilities: resident.capabilities.filter(capability => capability !== "reservations:create-own") }).create, false);
+  assert.equal(reservationActions({ ...resident, capabilities: resident.capabilities.filter(capability => capability !== "reservations:cancel-own") }).cancel, false);
+  assert.deepEqual(reservationActions({ ...resident, features: [{ key: "RESERVATIONS", enabled: false }] }), { read: false, areas: false, create: false, cancel: false });
+  assert.deepEqual(reservationActions({ ...scope, capabilities: ["reservations:manage"] }), { read: false, areas: false, create: false, cancel: false });
+  assert.deepEqual(reservationActions({ ...scope, capabilities: ["reservations:manage", "common-areas:read"] }), { read: true, areas: true, create: false, cancel: true });
 });
 test("feature disable and missing feature state fail closed", () => {
   assert.deepEqual(screensFor("resident", { ...resident, features: [] }), []);

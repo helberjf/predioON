@@ -5,6 +5,7 @@ import type { FinancialReport } from "@predioon/contracts";
 import type { Product, Scope } from "./scope.ts";
 import {
   ownedTickets,
+  reservationActions,
   reservationWindow,
   transparencySections,
 } from "./scope.ts";
@@ -514,14 +515,15 @@ function TicketConversation({
   );
 }
 
-export function Reservations({ api, buildingId }: Props) {
+export function Reservations({ api, buildingId, scope }: Props & { scope: Scope }) {
+  const actions = reservationActions(scope);
   const areas = useResource<List<CommonArea>>(
     api,
-    `/common-areas?buildingId=${encodeURIComponent(buildingId)}`,
+    actions.areas ? `/common-areas?buildingId=${encodeURIComponent(buildingId)}` : null,
   );
   const mine = useResource<List<Reservation>>(
     api,
-    `/reservations?buildingId=${encodeURIComponent(buildingId)}&mine=true`,
+    actions.read ? `/reservations?buildingId=${encodeURIComponent(buildingId)}&mine=true` : null,
   );
   const [form, setForm] = useState({
     areaId: "",
@@ -531,25 +533,29 @@ export function Reservations({ api, buildingId }: Props) {
     unit: "",
   });
   const mutation = useMutation();
-  const selected = areas.data?.items.find((area) => area.id === form.areaId);
+  const selected = actions.create ? areas.data?.items.find((area) => area.id === form.areaId) : undefined;
   return (
     <>
-      <Text style={styles.subtitle}>Reservar um espaço</Text>
-      <Feedback
-        resource={areas}
-        empty={areas.data?.items.length === 0}
-        emptyMessage="Nenhuma área disponível."
-      />
-      <View style={styles.row}>
-        {areas.data?.items.map((area) => (
-          <Button
-            key={area.id}
-            label={area.name}
-            secondary={area.id !== form.areaId}
-            onPress={() => setForm({ ...form, areaId: area.id })}
+      {actions.create && (
+        <>
+          <Text style={styles.subtitle}>Reservar um espaço</Text>
+          <Feedback
+            resource={areas}
+            empty={areas.data?.items.length === 0}
+            emptyMessage="Nenhuma área disponível."
           />
-        ))}
-      </View>
+          <View style={styles.row}>
+            {areas.data?.items.map((area) => (
+              <Button
+                key={area.id}
+                label={area.name}
+                secondary={area.id !== form.areaId}
+                onPress={() => setForm({ ...form, areaId: area.id })}
+              />
+            ))}
+          </View>
+        </>
+      )}
       {mutation.error && <ErrorMessage message={mutation.error} />}
       {mutation.success && (
         <Text accessibilityLiveRegion="polite" style={styles.text}>
@@ -640,7 +646,7 @@ export function Reservations({ api, buildingId }: Props) {
           <Text style={styles.text}>
             {dateTime(reservation.startsAt)} até {dateTime(reservation.endsAt)}
           </Text>
-          {["PENDING", "CONFIRMED"].includes(reservation.status) && (
+          {actions.cancel && ["PENDING", "CONFIRMED"].includes(reservation.status) && (
             <Button
               secondary
               label="Cancelar reserva"

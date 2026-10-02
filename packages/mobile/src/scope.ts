@@ -29,6 +29,21 @@ export function transparencySections(scope: Scope) {
   };
 }
 
+/** Each reservation action follows its own current domain permission. */
+export function reservationActions(scope: Scope) {
+  const enabled = scope.features.some((feature) => feature.key === "RESERVATIONS" && feature.enabled);
+  const has = (grant: Grant) => scope.capabilities.includes(grant);
+  const readOwn = has("reservations:read-own");
+  const manage = has("reservations:manage") && has("common-areas:read");
+  const areas = enabled && has("common-areas:read");
+  return {
+    read: enabled && (readOwn || manage),
+    areas,
+    create: areas && readOwn && has("reservations:create-own"),
+    cancel: enabled && (manage || (readOwn && has("reservations:cancel-own"))),
+  };
+}
+
 export function screensFor(product: Product, scope: Scope): Screen[] {
   const transparency = transparencySections(scope);
   const has = (grant: Grant) => scope.capabilities.includes(grant);
@@ -43,7 +58,7 @@ export function screensFor(product: Product, scope: Scope): Screen[] {
       feature("TICKETS")
         ? ["tickets" as const]
         : []),
-      ...(has("occurrences:read-own") && feature("RESERVATIONS")
+      ...(reservationActions(scope).read
         ? ["reservations" as const]
         : []),
       ...(transparency.notices || transparency.finance

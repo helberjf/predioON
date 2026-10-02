@@ -497,7 +497,7 @@ function BuildingApp({
               />
             )}
             {current === "reservations" && (
-              <Reservations api={api} buildingId={building.id} />
+              <Reservations api={api} buildingId={building.id} scope={scope} />
             )}
             {current === "transparency" && (
               <Transparency api={api} buildingId={building.id} scope={scope} />
