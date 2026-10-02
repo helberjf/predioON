@@ -74,6 +74,29 @@ class DomainDevice(AuthDevice):
         # Exactly one user action. No POST/gesture replay on a slow response.
         self.adb("shell", "input", "tap", *center(target))
 
+    def find_text(self, label):
+        for attempt in range(9):
+            nodes = self.nodes()
+            try:
+                target = one(nodes, lambda n: n.get("class") == "android.widget.TextView" and n.get("text") == label, "visible text " + label)
+                center(target)
+                return target
+            except AssertionError:
+                if attempt == 8:
+                    raise
+                self.scroll()
+                time.sleep(0.5)
+
+    def send_comment(self, phase, text):
+        self.fill("Nova mensagem", text)
+        self.tap("Enviar mensagem")
+        # Wait for the result of that one submission before searching further
+        # down the conversation; slow API responses must never trigger a resend.
+        self.wait_domain(phase + "-sent", ["Mensagem enviada."])
+        self.top()
+        self.find_text(text)
+        self.wait_domain(phase, [text])
+
     def tab(self, label):
         order = TABS[self.app]
         for attempt in range(4):
@@ -175,10 +198,7 @@ def run(devices, apks, fixture_file, output):
     resident.fill("Descrição", labels["description"])
     resident.tap("Enviar solicitação")
     resident.wait_domain("07-created", [labels["created"]])
-    resident.fill("Nova mensagem", labels["comment"])
-    resident.tap("Enviar mensagem")
-    resident.top()
-    resident.wait_domain("08-comment", [labels["comment"]])
+    resident.send_comment("08-comment", labels["comment"])
     prove(fixture_file, output, "resident")
 
     operator.launch()
@@ -198,10 +218,7 @@ def run(devices, apks, fixture_file, output):
     operator.wait_domain("08-conversation", [labels["operatorTicket"]])
     operator.tap("Iniciar")
     operator.wait_domain("09-in-progress", ["Em execução"])
-    operator.fill("Nova mensagem", labels["operatorComment"])
-    operator.tap("Enviar mensagem")
-    operator.top()
-    operator.wait_domain("10-comment", [labels["operatorComment"]])
+    operator.send_comment("10-comment", labels["operatorComment"])
     prove(fixture_file, output, "actions")
 
     operator.tab("Sensores")

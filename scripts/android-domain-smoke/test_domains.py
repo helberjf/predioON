@@ -30,6 +30,46 @@ def page(*labels, button=None, enabled="true"):
 
 
 class DomainAssertions(unittest.TestCase):
+    def test_comment_waits_for_submission_confirmation_before_scrolling_and_never_resends(self):
+        fixture = {"forbidden": [], "accounts": {"operations-mobile": {"buildingName": BUILDING}}}
+        device = DomainDevice("unused", "operations-mobile", Path("unused"), fixture, "FixturePassword123")
+        for fails in [False, True]:
+            steps = []
+            def wait(phase, required):
+                steps.append(("wait", phase, required))
+                if fails:
+                    raise AssertionError("Submission confirmation did not arrive")
+            with patch.object(device, "fill", side_effect=lambda *args: steps.append(("fill", *args))), patch.object(device, "tap", side_effect=lambda *args: steps.append(("tap", *args))), patch.object(device, "wait_domain", side_effect=wait), patch.object(device, "top", side_effect=lambda: steps.append(("top",))), patch.object(device, "find_text", side_effect=lambda *args: steps.append(("find", *args))):
+                if fails:
+                    with self.assertRaisesRegex(AssertionError, "confirmation"):
+                        device.send_comment("10-comment", "Equipe iniciou o atendimento")
+                else:
+                    device.send_comment("10-comment", "Equipe iniciou o atendimento")
+            expected = [("fill", "Nova mensagem", "Equipe iniciou o atendimento"), ("tap", "Enviar mensagem"), ("wait", "10-comment-sent", ["Mensagem enviada."])]
+            if not fails:
+                expected.extend([("top",), ("find", "Equipe iniciou o atendimento"), ("wait", "10-comment", ["Equipe iniciou o atendimento"])])
+            self.assertEqual(steps, expected)
+
+    def test_comment_below_status_event_is_scrolled_into_view_without_another_send(self):
+        fixture = {"forbidden": [], "accounts": {"operations-mobile": {"buildingName": BUILDING}}}
+        hidden = ET.Element("node", {"class": "android.widget.TextView", "text": "Equipe iniciou o atendimento", "bounds": "[103,2390][979,2337]"})
+        visible = ET.Element("node", {**hidden.attrib, "bounds": "[103,1500][979,1560]"})
+        device = DomainDevice("unused", "operations-mobile", Path("unused"), fixture, "FixturePassword123")
+        with patch.object(device, "nodes", side_effect=[[hidden], [visible]]), patch.object(device, "scroll") as scroll, patch.object(device, "adb") as command, patch("run_domains.time.sleep"):
+            self.assertIs(device.find_text("Equipe iniciou o atendimento"), visible)
+            scroll.assert_called_once_with()
+            command.assert_not_called()
+
+    def test_missing_comment_expires_without_replaying_a_write_or_tap(self):
+        fixture = {"forbidden": [], "accounts": {"operations-mobile": {"buildingName": BUILDING}}}
+        device = DomainDevice("unused", "operations-mobile", Path("unused"), fixture, "FixturePassword123")
+        with patch.object(device, "nodes", return_value=[]) as observe, patch.object(device, "scroll") as scroll, patch.object(device, "adb") as command, patch("run_domains.time.sleep"):
+            with self.assertRaisesRegex(AssertionError, "found 0"):
+                device.find_text("Equipe iniciou o atendimento")
+            self.assertEqual(observe.call_count, 9)
+            self.assertEqual(scroll.call_count, 8)
+            command.assert_not_called()
+
     def test_offscreen_field_is_scrolled_into_view_before_any_input_action(self):
         fixture = {"forbidden": [], "accounts": {"operations-mobile": {"buildingName": BUILDING}}}
         hidden = ET.Element("node", {"class": "android.widget.EditText", "content-desc": "Nova mensagem", "enabled": "true", "bounds": "[103,2352][979,2337]"})
