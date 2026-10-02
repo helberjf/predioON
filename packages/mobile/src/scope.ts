@@ -5,6 +5,8 @@ export type Screen =
   | "notices"
   | "tickets"
   | "reservations"
+  | "transparency"
+  | "access"
   | "overview"
   | "alerts"
   | "readings";
@@ -16,7 +18,19 @@ export type Scope = {
   features: readonly Feature[];
 };
 
+export function transparencySections(scope: Scope) {
+  const enabled = (key: string) =>
+    scope.features.some((feature) => feature.key === key && feature.enabled);
+  return {
+    notices:
+      scope.capabilities.includes("notices:read") && enabled("TRANSPARENCY"),
+    finance:
+      scope.capabilities.includes("buildings:read") && enabled("FINANCE"),
+  };
+}
+
 export function screensFor(product: Product, scope: Scope): Screen[] {
+  const transparency = transparencySections(scope);
   const has = (grant: Grant) => scope.capabilities.includes(grant);
   const feature = (key: string) =>
     scope.features.some((item) => item.key === key && item.enabled);
@@ -31,6 +45,13 @@ export function screensFor(product: Product, scope: Scope): Screen[] {
         : []),
       ...(has("occurrences:read-own") && feature("RESERVATIONS")
         ? ["reservations" as const]
+        : []),
+      ...(transparency.notices || transparency.finance
+        ? ["transparency" as const]
+        : []),
+      ...(has("buildings:read") &&
+      (feature("GARAGE_ACCESS") || feature("PEDESTRIAN_ACCESS"))
+        ? ["access" as const]
         : []),
     ];
   return [

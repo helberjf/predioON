@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -28,7 +28,13 @@ import {
 import type { Building, List } from "./models.ts";
 import { useResource } from "./resource.ts";
 import { Alerts, Overview, Readings } from "./operations.tsx";
-import { Notices, Reservations, Tickets } from "./resident.tsx";
+import { Notices, Reservations, Tickets, Transparency } from "./resident.tsx";
+import { Access } from "./access.tsx";
+import {
+  createAccessIntentStore,
+  type AccessIntentStore,
+} from "./access-intents.ts";
+import { createNativeRequestId } from "./secure-request-id.ts";
 import {
   Button,
   Card,
@@ -44,6 +50,8 @@ const titles: Record<Screen, string> = {
   notices: "Avisos",
   tickets: "Solicitações",
   reservations: "Reservas",
+  transparency: "Transparência",
+  access: "Acessos",
   overview: "Resumo",
   alerts: "Alertas",
   readings: "Sensores",
@@ -82,7 +90,11 @@ export function PredioApp({
       <StatusBar barStyle="dark-content" />
       <SafeAreaView style={styles.root}>
         {normalized ? (
-          <ConnectedApp key={`${product}:${normalized}`} product={product} baseUrl={normalized} />
+          <ConnectedApp
+            key={`${product}:${normalized}`}
+            product={product}
+            baseUrl={normalized}
+          />
         ) : (
           <View style={styles.page}>
             <Text style={styles.title}>{productTitles[product]}</Text>
@@ -106,6 +118,12 @@ function ConnectedApp({
   const [bootError, setBootError] = useState<string | null>(null);
   const [retry, setRetry] = useState(0);
   const [selected, setSelected] = useState<Building | null>(null);
+  const accessIntents = useMemo(
+    () => createAccessIntentStore(createNativeRequestId),
+    [user?.id],
+  );
+  const accessRef = useRef(accessIntents);
+  accessRef.current = accessIntents;
   const actions = useMemo(createSessionActionScope, []);
   const storage = useMemo(
     () => nativeTokenStorage(product, baseUrl),
@@ -118,6 +136,7 @@ function ConnectedApp({
         storage,
         fetch: boundedFetch,
         onAuthLost: () => {
+          accessRef.current.invalidate();
           setUser(null);
           setSelected(null);
         },
@@ -154,13 +173,18 @@ function ConnectedApp({
   }, [api, storage, retry]);
   async function signOut() {
     const action = actions.begin();
+    accessRef.current.invalidate();
     setUser(null);
     setSelected(null);
     setBootError(null);
     try {
       await api.logout();
     } catch (error) {
-      if (!actions.isCurrent(action) || (error instanceof ApiError && error.code === "SESSION_CHANGED")) return;
+      if (
+        !actions.isCurrent(action) ||
+        (error instanceof ApiError && error.code === "SESSION_CHANGED")
+      )
+        return;
       setBootError(
         error instanceof Error
           ? error.message
@@ -198,7 +222,11 @@ function ConnectedApp({
         key={product}
         api={api}
         product={product}
-        beginSignIn={() => { actions.begin(); setBootError(null); }}
+        beginSignIn={() => {
+          actions.begin();
+          accessRef.current.invalidate();
+          setBootError(null);
+        }}
         signedIn={(profile) => {
           setSelected(null);
           setUser(profile);
@@ -222,11 +250,14 @@ function ConnectedApp({
           </Text>
           <Button label="Sair" secondary onPress={() => void signOut()} />
         </View>
+        <Text numberOfLines={1} style={styles.muted}>
+          {user.email}
+        </Text>
       </View>
       {selected ? (
         <BuildingApp
           key={`${user.id}:${selected.id}`}
-          {...{ api, product, user }}
+          {...{ api, product, user, accessIntents }}
           building={selected}
           chooseBuilding={() => setSelected(null)}
         />
@@ -378,12 +409,14 @@ function BuildingApp({
   user,
   building,
   chooseBuilding,
+  accessIntents,
 }: {
   api: ApiClient;
   product: Product;
   user: AuthUser;
   building: Building;
   chooseBuilding(): void;
+  accessIntents: AccessIntentStore;
 }) {
   const authorization = useResource<AuthorizationResponse>(
     api,
@@ -465,6 +498,12 @@ function BuildingApp({
             )}
             {current === "reservations" && (
               <Reservations api={api} buildingId={building.id} />
+            )}
+            {current === "transparency" && (
+              <Transparency api={api} buildingId={building.id} scope={scope} />
+            )}
+            {current === "access" && (
+              <Access api={api} scope={scope} intents={accessIntents} />
             )}
             {current === "overview" && (
               <Overview api={api} buildingId={building.id} />

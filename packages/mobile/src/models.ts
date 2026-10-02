@@ -7,11 +7,13 @@ export type Building = {
 };
 export type Notice = {
   id: string;
+  buildingId: string;
   title: string;
   body: string;
   category: string;
   pinned: boolean;
   publishedAt: string;
+  expiresAt: string | null;
 };
 export type Ticket = {
   id: string;

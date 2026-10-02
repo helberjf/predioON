@@ -1,8 +1,13 @@
 import React, { useState } from "react";
-import { Alert, Text, View } from "react-native";
+import { Alert, Linking, Text, View } from "react-native";
 import type { ApiClient } from "@predioon/api-client";
+import type { FinancialReport } from "@predioon/contracts";
 import type { Product, Scope } from "./scope.ts";
-import { ownedTickets, reservationWindow } from "./scope.ts";
+import {
+  ownedTickets,
+  reservationWindow,
+  transparencySections,
+} from "./scope.ts";
 import type {
   CommonArea,
   List,
@@ -13,6 +18,12 @@ import type {
 } from "./models.ts";
 import { useResource } from "./resource.ts";
 import { useMutation } from "./mutation.ts";
+import {
+  money,
+  publishedReports,
+  safeReceiptUrl,
+  validReportMonth,
+} from "./resident-services.ts";
 import {
   Badge,
   Button,
@@ -27,20 +38,32 @@ import {
 } from "./ui.tsx";
 
 type Props = { api: ApiClient; buildingId: string };
-export function Notices({ api, buildingId }: Props) {
+export function Notices({
+  api,
+  buildingId,
+  category,
+}: Props & { category?: "GESTAO" }) {
   const resource = useResource<List<Notice>>(
     api,
-    `/notices?buildingId=${encodeURIComponent(buildingId)}`,
+    `/notices?buildingId=${encodeURIComponent(buildingId)}${category ? `&category=${category}` : ""}`,
+  );
+  const now = Date.now();
+  const items = (resource.data?.items ?? []).filter(
+    (notice) =>
+      notice.buildingId === buildingId &&
+      (!category || notice.category === category) &&
+      Date.parse(notice.publishedAt) <= now &&
+      (!notice.expiresAt || Date.parse(notice.expiresAt) > now),
   );
   return (
     <>
       <Refresh resource={resource} />
       <Feedback
         resource={resource}
-        empty={resource.data?.items.length === 0}
+        empty={resource.data !== null && items.length === 0}
         emptyMessage="Nenhum aviso publicado."
       />
-      {resource.data?.items.map((notice) => (
+      {items.map((notice) => (
         <Card key={notice.id}>
           <View style={styles.row}>
             <Badge value={notice.category} />
@@ -52,6 +75,168 @@ export function Notices({ api, buildingId }: Props) {
         </Card>
       ))}
     </>
+  );
+}
+
+export function Transparency({
+  api,
+  buildingId,
+  scope,
+}: Props & { scope: Scope }) {
+  const sections = transparencySections(scope);
+  return (
+    <>
+      {sections.notices && (
+        <>
+          <Text style={styles.subtitle}>Informes da gestão</Text>
+          <Notices api={api} buildingId={buildingId} category="GESTAO" />
+        </>
+      )}
+      {sections.finance && (
+        <FinancialStatements api={api} buildingId={buildingId} />
+      )}
+    </>
+  );
+}
+
+function FinancialStatements({ api, buildingId }: Props) {
+  const [offset, setOffset] = useState(0);
+  const [month, setMonth] = useState("");
+  const [draftMonth, setDraftMonth] = useState("");
+  const valid = validReportMonth(draftMonth);
+  const resource = useResource<List<FinancialReport>>(
+    api,
+    `/finance?buildingId=${encodeURIComponent(buildingId)}&limit=50&offset=${offset}${month ? `&month=${month}` : ""}`,
+  );
+  const reports = publishedReports(resource.data?.items ?? [], buildingId);
+  return (
+    <>
+      <Text style={styles.subtitle}>Prestação de contas</Text>
+      <Text style={styles.muted}>
+        Consulte as revisões publicadas e seus comprovantes. As revisões
+        anteriores são preservadas.
+      </Text>
+      <Card>
+        <Field
+          label="Mês (AAAA-MM, vazio para todos)"
+          value={draftMonth}
+          onChangeText={setDraftMonth}
+          maxLength={7}
+          autoCapitalize="none"
+          placeholder="2030-01"
+        />
+        {!valid && (
+          <Text style={styles.muted}>
+            Informe um mês válido no formato AAAA-MM.
+          </Text>
+        )}
+        <Button
+          label="Filtrar mês"
+          disabled={!valid}
+          onPress={() => {
+            setOffset(0);
+            setMonth(draftMonth);
+          }}
+        />
+      </Card>
+      <Refresh resource={resource} />
+      <Feedback
+        resource={resource}
+        empty={resource.data !== null && reports.length === 0}
+        emptyMessage="Nenhuma prestação publicada nesta página para o período selecionado."
+      />
+      {reports.map((report) => (
+        <Statement key={report.id} report={report} />
+      ))}
+      <Pages
+        offset={offset}
+        count={resource.data?.items.length ?? 0}
+        setOffset={setOffset}
+      />
+    </>
+  );
+}
+
+function Statement({ report }: { report: FinancialReport }) {
+  const [expanded, setExpanded] = useState(false);
+  const [visibleEntries, setVisibleEntries] = useState(25);
+  const [error, setError] = useState<string | null>(null);
+  async function openReceipt(value: string | null) {
+    const url = safeReceiptUrl(value);
+    if (!url) return;
+    setError(null);
+    try {
+      await Linking.openURL(url);
+    } catch {
+      setError("Não foi possível abrir o comprovante no navegador.");
+    }
+  }
+  return (
+    <Card>
+      <Text style={styles.subtitle}>{report.title}</Text>
+      <Text style={styles.muted}>
+        {report.month} · Revisão {report.revision} · Publicada em{" "}
+        {dateTime(report.publishedAt!)}
+      </Text>
+      <Text style={styles.text}>{report.summary}</Text>
+      <Text style={styles.text}>
+        Saldo inicial: {money(report.openingBalanceCents)}
+      </Text>
+      <Text style={styles.text}>
+        Receitas: {money(report.totals.incomeCents)}
+      </Text>
+      <Text style={styles.text}>
+        Despesas: {money(report.totals.expenseCents)}
+      </Text>
+      <Text style={styles.subtitle}>
+        Saldo final: {money(report.totals.closingBalanceCents)}
+      </Text>
+      <Button
+        secondary
+        label={
+          expanded
+            ? "Ocultar lançamentos"
+            : `Ver lançamentos (${report.entries.length})`
+        }
+        onPress={() => setExpanded((value) => !value)}
+      />
+      {expanded &&
+        report.entries.slice(0, visibleEntries).map((entry, index) => (
+          <View
+            key={index}
+            style={{
+              gap: 6,
+              borderTopWidth: 1,
+              borderTopColor: "#dce5eb",
+              paddingTop: 12,
+            }}
+          >
+            <Text style={styles.text}>
+              {entry.type === "INCOME" ? "Receita" : "Despesa"} ·{" "}
+              {money(entry.amountCents)}
+            </Text>
+            <Text style={styles.text}>{entry.description}</Text>
+            <Text style={styles.muted}>
+              {entry.date.split("-").reverse().join("/")} · {entry.category}
+            </Text>
+            {safeReceiptUrl(entry.receiptUrl) && (
+              <Button
+                secondary
+                label="Abrir comprovante no navegador"
+                onPress={() => void openReceipt(entry.receiptUrl)}
+              />
+            )}
+          </View>
+        ))}
+      {expanded && visibleEntries < report.entries.length && (
+        <Button
+          secondary
+          label="Ver mais lançamentos"
+          onPress={() => setVisibleEntries((value) => value + 25)}
+        />
+      )}
+      {error && <ErrorMessage message={error} />}
+    </Card>
   );
 }
 

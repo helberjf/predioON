@@ -4,6 +4,7 @@ import {
   ownedTickets,
   reservationWindow,
   screensFor,
+  transparencySections,
   validateApiUrl,
   type Scope,
 } from "../src/scope.ts";
@@ -75,6 +76,50 @@ test("feature disable and missing feature state fail closed", () => {
       ],
     }),
     ["notices"],
+  );
+});
+test("resident finance and access navigation follows tenant features without inventing operator grants", () => {
+  const features = [
+    "TRANSPARENCY",
+    "FINANCE",
+    "GARAGE_ACCESS",
+    "PEDESTRIAN_ACCESS",
+  ].map((key) => ({ key, enabled: true }));
+  assert.deepEqual(screensFor("resident", { ...resident, features }), [
+    "transparency",
+    "access",
+  ]);
+  assert.deepEqual(screensFor("operations", { ...resident, features }), []);
+  assert.deepEqual(
+    screensFor("resident", { ...resident, features, capabilities: [] }),
+    [],
+  );
+  assert.deepEqual(
+    screensFor("resident", {
+      ...resident,
+      features: [{ key: "FINANCE", enabled: true }],
+    }),
+    ["transparency"],
+  );
+});
+test("a notices-only reader sees GESTAO transparency without issuing a financial query", () => {
+  const scope: Scope = {
+    buildingId: "one",
+    capabilities: ["notices:read"],
+    features: [
+      { key: "NOTICES", enabled: false },
+      { key: "TRANSPARENCY", enabled: true },
+      { key: "FINANCE", enabled: true },
+    ],
+  };
+  assert.deepEqual(screensFor("resident", scope), ["transparency"]);
+  assert.deepEqual(transparencySections(scope), {
+    notices: true,
+    finance: false,
+  });
+  assert.deepEqual(
+    transparencySections({ ...scope, capabilities: ["buildings:read"] }),
+    { notices: false, finance: true },
   );
 });
 test("resident product filters third-party tickets even when user has management scope", () => {

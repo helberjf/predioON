@@ -18,6 +18,10 @@
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "check:boundaries": "node scripts/check-boundaries.mjs",
-    "test": "pnpm -r --workspace-concurrency=1 --filter @predioon/api-client --filter @predioon/ui --filter @predioon/mobile --filter @predioon/api --filter @predioon/ingest test"
+    "test": "pnpm -r --workspace-concurrency=1 --filter @predioon/api-client --filter @predioon/ui --filter @predioon/mobile --filter @predioon/api --filter @predioon/ingest test",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
   }
 }

@@ -4,7 +4,7 @@ Biblioteca de experiência compartilhada por dois projetos **React Native sem Ex
 
 | Aplicativo | Android / iOS | Fluxos deste incremento |
 | --- | --- | --- |
-| Morador | `com.predioon.resident` | Avisos publicados; solicitações próprias, criação e conversa; criação e cancelamento de reservas |
+| Morador | `com.predioon.resident` | Avisos publicados; solicitações próprias, criação e conversa; criação e cancelamento de reservas; transparência e prestação de contas; solicitação de abertura de portões autorizados |
 | Operação | `com.predioon.operations` | Resumo com indicação de cobertura; leituras; alertas e ações autorizadas; acompanhamento de solicitações |
 
 Os aplicativos consultam a API existente, sem dados demonstrativos embutidos. A seleção de condomínio usa `/buildings`; as telas consultam `/v1/authorization` e funcionalidades do condomínio. As permissões são revalidadas pelo servidor em cada chamada. O produto Morador não exibe telas operacionais nem solicitações de terceiros, mesmo quando uma mesma conta possui permissões de gestão. Contas sem os módulos necessários veem uma mensagem de acesso indisponível.
@@ -35,6 +35,9 @@ O `config.ts` de cada app usa `http://10.0.2.2:3000` no emulador Android e `http
 - As telas ativas atualizam a cada 15 segundos. Ao entrar em segundo plano, a consulta periódica para e os dados visíveis são limpos. A troca de condomínio desmonta telas e formulários anteriores.
 - Falhas de transporte não repetem mutações automaticamente. Em caso de resposta perdida, atualize a lista antes de reenviar uma solicitação ou reserva. A API ainda não possui idempotência em todos esses endpoints.
 - O logout apaga primeiro as credenciais locais e tenta revogar a sessão remota. Sem conexão, a sessão remota permanece sujeita à política de expiração/revogação do servidor.
+- Transparência consulta informes `GESTAO` e prestações publicadas conforme os módulos habilitados, com filtro por mês, revisões e comprovantes HTTPS. O aplicativo não oferece edição financeira. Mesmo uma conta de gestão usando o Morador vê somente publicações nesta tela.
+- Acessos solicita confirmação antes de enviar e conserva um UUID seguro por intenção na sessão, inclusive após trocar abas ou condomínio. Falha de transporte não reenvia comandos automaticamente; um reenvio explicitamente confirmado reutiliza o UUID e a idempotência da API. Consultas e retorno ao primeiro plano apenas leem o resultado. O UUID não é uma fila offline e é descartado no logout ou encerramento do processo.
+- `SENT` significa envio aguardando resposta; `ACKNOWLEDGED` significa execução reconhecida pelo controlador, sem confirmar a posição física do portão. A API verifica novamente vínculo, módulo, autorização do portão e conexão recente antes de aceitar um novo comando. O app Morador mostra somente portões habilitados para moradores, inclusive quando a conta também possui perfil de gestão.
 
 ## Validação e limites deste incremento
 
@@ -44,9 +47,9 @@ pnpm --filter @predioon/mobile --filter @predioon/resident-mobile --filter @pred
 pnpm --filter @predioon/resident-mobile exec react-native config
 ```
 
-Os testes cobrem persistência apenas de refresh, restauração, rotação concorrente, falha temporária, logout, revogação, separação entre públicos, mudança de escopo, funcionalidades e validação de reservas/HTTPS. A geração de bundle Metro verifica resolução de módulos JavaScript; não substitui build nativo nem teste em aparelho.
+Os testes cobrem persistência apenas de refresh, restauração, rotação concorrente, falha temporária, logout, revogação, separação entre públicos, mudança de escopo, funcionalidades, reservas/HTTPS, publicação financeira, idempotência de comandos, respostas fora de ordem e invalidação de intenções ao sair. A geração de bundle Metro verifica resolução de módulos JavaScript; não substitui build nativo nem teste em aparelho.
 
-Ainda exigem implementação/validação: push FCM/APNs e instalações móveis; ordens de serviço e automações quando os módulos da API forem entregues; transparência/acessos no app Morador; navegação por concessões restritas a recursos (este incremento solicita capacidades no escopo do condomínio); MFA e identificação da audiência na sessão; ícones finais e publicação nas lojas. As rotas legadas de convivência ainda dependem dos vínculos aceitos pela API: um novo papel de manutenção não recebe um vínculo legado implicitamente. Não ampliar privilégios no cliente para contornar uma resposta 403.
+Ainda exigem implementação/validação: push FCM/APNs e instalações móveis; ordens de serviço e automações quando os módulos da API forem entregues; navegação por concessões restritas a recursos (este incremento solicita capacidades no escopo do condomínio); MFA e identificação da audiência na sessão; ícones finais e publicação nas lojas; execução em aparelho e confirmação com controlador físico. As rotas legadas de convivência e acessos ainda dependem dos vínculos aceitos pela API: um novo papel de manutenção não recebe um vínculo legado implicitamente. Não ampliar privilégios no cliente para contornar uma resposta 403.
 
 Os projetos nativos vêm de `@react-native-community/template` **0.87.2**, com React Native **0.87.1**, React **19.2.3** e CLI **20.2.0**. A licença original está em `TEMPLATE-LICENSE` de cada app. Identificadores, Metro para o monorepo e assinatura Android de release foram adaptados. A chave pública de debug do template serve apenas ao desenvolvimento; a release não é assinada com ela. Defina chaves próprias e equipe Apple fora do Git antes da publicação.
 

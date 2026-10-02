@@ -17,7 +17,7 @@ permissions:
 
 concurrency:
   group: mobile-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   android:
@@ -43,9 +43,14 @@ jobs:
           packages: 'platform-tools'
           log-accepted-android-sdk-licenses: false
       - run: pnpm install --frozen-lockfile
+      - name: Verify official dependency repository availability
+        run: |
+          for artifact in org/jetbrains/kotlin/kotlin-stdlib/2.3.0/kotlin-stdlib-2.3.0.pom org/jetbrains/kotlin/kotlin-gradle-plugins-bom/2.2.0/kotlin-gradle-plugins-bom-2.2.0.pom io/github/java-diff-utils/java-diff-utils/4.15/java-diff-utils-4.15.pom; do
+            curl --fail --retry 3 --retry-all-errors --output /dev/null "https://repo.maven.apache.org/maven2/$artifact"
+          done
       - name: Compile Android application and bundled JavaScript
         working-directory: apps/${{ matrix.app }}/android
-        run: bash gradlew --no-daemon :app:assembleRelease -PreactNativeArchitectures=arm64-v8a
+        run: bash gradlew --no-daemon --refresh-dependencies --info :app:assembleRelease -PreactNativeArchitectures=arm64-v8a
       - name: Preserve unsigned verification build
         uses: actions/upload-artifact@v4
         with:

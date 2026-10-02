@@ -1,0 +1,116 @@
+import { expect, test } from "@playwright/test";
+import { API_URL, BUILDING_URL, RESIDENT_URL } from "./environment";
+import { authenticatedApi, isolatedTenant, signIn } from "./helpers";
+
+test("morador abre chamado, conversa com a gestão e cancela sem expor o relato a outro morador", async ({ page, request }) => {
+  const fixture = await isolatedTenant(request);
+  const title = `Lâmpada sem funcionar ${fixture.suffix}`;
+  await page.setViewportSize({ width: 390, height: 844 });
+  await signIn(page, RESIDENT_URL, fixture.resident.email);
+  await page.goto(`${RESIDENT_URL}/chamados`);
+  await page.getByRole("button", { name: "Abrir novo chamado", exact: true }).click();
+  await page.getByLabel("Resumo", { exact: true }).fill(title);
+  await page.getByLabel("Local", { exact: true }).fill("Hall do térreo");
+  await page.getByLabel("Descrição", { exact: true }).fill("A lâmpada do hall não acende. Solicito a verificação.");
+  const created = page.waitForResponse(response => response.url() === `${API_URL}/occurrences` && response.request().method() === "POST");
+  await page.getByRole("button", { name: "Enviar chamado", exact: true }).click();
+  const createResponse = await created;
+  expect(createResponse.status()).toBe(201);
+  const ticket = await createResponse.json() as { id: string };
+  const row = page.getByRole("listitem").filter({ has: page.getByRole("heading", { name: title, exact: true }) });
+  await expect(row).toBeVisible();
+  await row.getByRole("button", { name: "Ver histórico e responder", exact: true }).click();
+  await expect(page.getByLabel("Situação do chamado", { exact: true })).toHaveCount(0);
+  await page.getByLabel("Mensagem para este chamado", { exact: true }).fill("O problema começou nesta manhã.");
+  const comment = page.waitForResponse(response => response.url() === `${API_URL}/occurrences/${ticket.id}/comments` && response.request().method() === "POST");
+  await page.getByRole("button", { name: "Enviar resposta", exact: true }).click();
+  expect((await comment).status()).toBe(201);
+  await expect(row.getByText("O problema começou nesta manhã.", { exact: true })).toBeVisible();
+
+  const managerPage = await page.context().newPage();
+  await signIn(managerPage, BUILDING_URL, fixture.manager.email);
+  await managerPage.goto(`${BUILDING_URL}/chamados`);
+  const managerRow = managerPage.getByRole("listitem").filter({ has: managerPage.getByRole("heading", { name: title, exact: true }) });
+  await managerRow.getByRole("button", { name: "Ver histórico e responder", exact: true }).click();
+  await expect(managerRow.getByText("O problema começou nesta manhã.", { exact: true })).toBeVisible();
+  await managerPage.getByLabel("Situação do chamado", { exact: true }).selectOption("IN_PROGRESS");
+  const progressed = managerPage.waitForResponse(response => response.url() === `${API_URL}/occurrences/${ticket.id}` && response.request().method() === "PATCH");
+  await managerPage.getByRole("button", { name: "Salvar andamento", exact: true }).click();
+  expect((await progressed).status()).toBe(200);
+  await managerPage.getByLabel("Mensagem para este chamado", { exact: true }).fill("Equipe encaminhada ao local.");
+  const reply = managerPage.waitForResponse(response => response.url() === `${API_URL}/occurrences/${ticket.id}/comments` && response.request().method() === "POST");
+  await managerPage.getByRole("button", { name: "Enviar resposta", exact: true }).click();
+  expect((await reply).status()).toBe(201);
+  await expect(managerRow.getByText("Equipe encaminhada ao local.", { exact: true })).toBeVisible();
+
+  await page.reload();
+  await row.getByRole("button", { name: "Ver histórico e responder", exact: true }).click();
+  await expect(row.getByText("Equipe encaminhada ao local.", { exact: true })).toBeVisible();
+  const cancelled = page.waitForResponse(response => response.url() === `${API_URL}/occurrences/${ticket.id}` && response.request().method() === "PATCH");
+  await page.getByRole("button", { name: "Cancelar meu chamado", exact: true }).click();
+  expect((await cancelled).status()).toBe(200);
+  await expect(row).toHaveCount(0);
+  await page.getByLabel("Exibir chamados", { exact: true }).selectOption("false");
+  await expect(row).toContainText("Cancelado");
+  await page.reload();
+  await page.getByLabel("Exibir chamados", { exact: true }).selectOption("false");
+  await expect(row).toContainText("Cancelado");
+
+  const neighbor = await fixture.person("Vizinho");
+  await fixture.membership(neighbor, fixture.building, "RESIDENT");
+  const neighborApi = await authenticatedApi(request, neighbor.email);
+  const neighborList = await neighborApi.get(`/occurrences?buildingId=${fixture.building.id}&onlyOpen=false`);
+  expect(neighborList.status()).toBe(200);
+  expect((await neighborList.json()).items).toEqual([]);
+  const neighborDetail = await neighborApi.get(`/occurrences/${ticket.id}`);
+  expect(neighborDetail.status()).toBe(404);
+  await managerPage.close();
+});
+
+test("reserva pendente passa pela aprovação da gestão e cancelamento pelo morador", async ({ page, request }) => {
+  const fixture = await isolatedTenant(request);
+  const areaName = `Salão E2E ${fixture.suffix}`;
+  await fixture.managerApi.create("/common-areas", {
+    buildingId: fixture.building.id, name: areaName, requiresApproval: true, opensAt: "08:00", closesAt: "22:00", maxHoursPerBooking: 4,
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await signIn(page, RESIDENT_URL, fixture.resident.email);
+  await page.goto(`${RESIDENT_URL}/reservas`);
+  await page.getByRole("button").filter({ has: page.getByRole("heading", { name: areaName, exact: true }) }).click();
+  const date = new Date(Date.now() + 14 * 86_400_000).toISOString().slice(0, 10);
+  await page.getByLabel("Data", { exact: true }).fill(date);
+  await page.getByLabel("Início", { exact: true }).fill("12:00");
+  await page.getByLabel("Duração (h)", { exact: true }).fill("2");
+  await page.getByLabel("Unidade", { exact: true }).fill("101");
+  const booked = page.waitForResponse(response => response.url() === `${API_URL}/reservations` && response.request().method() === "POST");
+  await page.getByRole("button", { name: "Confirmar reserva", exact: true }).click();
+  const booking = await booked;
+  expect(booking.status()).toBe(201);
+  const reservation = await booking.json() as { id: string };
+  const residentRow = page.getByRole("listitem").filter({ hasText: areaName });
+  await expect(residentRow).toContainText("Pendente");
+  await page.reload();
+  await expect(residentRow).toContainText("Pendente");
+
+  const managerPage = await page.context().newPage();
+  await signIn(managerPage, BUILDING_URL, fixture.manager.email);
+  await managerPage.goto(`${BUILDING_URL}/areas`);
+  const pending = managerPage.getByRole("listitem").filter({ hasText: areaName }).filter({ has: managerPage.getByRole("button", { name: "Aprovar", exact: true }) });
+  await expect(pending).toContainText("unidade 101");
+  const approved = managerPage.waitForResponse(response => response.url() === `${API_URL}/reservations/${reservation.id}/decision` && response.request().method() === "POST");
+  await pending.getByRole("button", { name: "Aprovar", exact: true }).click();
+  expect((await approved).status()).toBe(200);
+  await expect(pending).toHaveCount(0);
+  await page.reload();
+  await expect(residentRow).toContainText("Confirmada");
+  const cancelled = page.waitForResponse(response => response.url() === `${API_URL}/reservations/${reservation.id}` && response.request().method() === "DELETE");
+  await residentRow.getByRole("button", { name: "Cancelar reserva", exact: true }).click();
+  expect((await cancelled).status()).toBe(204);
+  await expect(residentRow).toContainText("Cancelado");
+  await expect(residentRow.getByRole("button", { name: "Cancelar reserva", exact: true })).toHaveCount(0);
+  await page.reload();
+  await expect(residentRow).toContainText("Cancelado");
+  await managerPage.reload();
+  await expect(managerPage.getByText("Sem reservas confirmadas.", { exact: true })).toBeVisible();
+  await managerPage.close();
+});
