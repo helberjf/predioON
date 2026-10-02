@@ -17,6 +17,7 @@ import {
 import type { AuthUser } from "@predioon/contracts/auth";
 import type { AuthorizationResponse } from "@predioon/contracts/tenancy";
 import { nativeTokenStorage } from "./keychain.ts";
+import { createBoundedFetch } from "./bounded-fetch.ts";
 import { createSessionActionScope } from "./session-actions.ts";
 import {
   type Feature,
@@ -61,16 +62,7 @@ const productTitles: Record<Product, string> = {
   operations: "Prédio ON Operação",
 };
 
-/** Fetch timeouts bound user waiting without replaying an uncertain mutation. */
-const boundedFetch: typeof fetch = async (input, init) => {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 20_000);
-  try {
-    return await fetch(input, { ...init, signal: controller.signal });
-  } finally {
-    clearTimeout(timer);
-  }
-};
+const boundedFetch = createBoundedFetch((input, init) => fetch(input, init));
 
 export function PredioApp({
   product,
