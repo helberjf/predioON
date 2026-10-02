@@ -56,16 +56,29 @@ try {
   if ($Setup) {
     Write-Host "Instalando dependencias com o lockfile..." -ForegroundColor Cyan
     Invoke-CheckedCommand "pnpm" @("install", "--frozen-lockfile")
+  } elseif (-not (Test-Path -LiteralPath (Join-Path $projectRoot "node_modules/.pnpm/lock.yaml"))) {
+    throw "Dependencias ausentes. Execute '.\scripts\start-local.ps1 -Setup' primeiro."
+  }
+
+  Write-Host "Iniciando banco e broker locais e aguardando o PostgreSQL..." -ForegroundColor Cyan
+  Invoke-CheckedCommand "pnpm" @("infra:up")
+  Invoke-CheckedCommand "pnpm" @("db:wait")
+
+  if ($Setup) {
     Write-Host "Preparando infraestrutura, schema e credenciais restritas..." -ForegroundColor Cyan
-    foreach ($setupCommand in @("infra:up", "db:wait", "db:bootstrap", "db:infra", "db:provision-runtime")) {
+    foreach ($setupCommand in @("db:bootstrap", "db:infra", "db:provision-runtime")) {
       Invoke-CheckedCommand "pnpm" @($setupCommand)
     }
     if ($SeedDemo) {
       Write-Host "Cadastrando demonstracao e redefinindo senhas demo (solicitado com -SeedDemo)..." -ForegroundColor Yellow
       Invoke-CheckedCommand "pnpm" @("db:seed")
     }
-  } elseif (-not (Test-Path -LiteralPath (Join-Path $projectRoot "node_modules/.pnpm/lock.yaml"))) {
-    throw "Dependencias ausentes. Execute '.\scripts\start-local.ps1 -Setup' primeiro."
+  }
+
+  Write-Host "Conferindo migrations sem alterar o banco..." -ForegroundColor Cyan
+  try { Invoke-CheckedCommand "pnpm" @("db:infra", "--check") }
+  catch {
+    throw "Banco ainda nao liberado para esta versao. Confira o diagnostico acima. Para uma preparacao ou atualizacao revisada, execute '.\scripts\start-local.ps1 -Setup' sem -SeedDemo. Divergencia de checksum ou banco legado sem ledger exigem revisao do historico; consulte docs/MIGRATIONS.md. API e ingestao nao foram iniciadas."
   }
 
   Write-Host "Iniciando API, ingestao e paineis. Ctrl+C para encerrar." -ForegroundColor Green

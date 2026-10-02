@@ -94,7 +94,7 @@ npm install -g pnpm@10.17.1
 ### 1. Instalar dependências e preparar o ambiente
 
 ```powershell
-pnpm install
+pnpm install --frozen-lockfile
 if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 ```
 
@@ -108,7 +108,9 @@ Com o Docker Desktop ativo:
 pnpm setup:local
 ```
 
-Esse comando prepara a demonstração: sobe PostgreSQL/TimescaleDB e EMQX, aguarda o banco, aplica o SQL inicial versionado somente em banco vazio, executa as migrations e provisiona credenciais. O seed explícito da demonstração redefine senhas locais. Não use o seed para atualizar dados reais. A preparação rejeita schemas parciais em vez de reconstruir tabelas.
+Esse comando prepara a demonstração: sobe PostgreSQL/TimescaleDB e EMQX, aguarda o banco, aplica o SQL inicial versionado somente em banco vazio, executa as migrations pendentes e provisiona credenciais. O seed da demonstração redefine senhas locais. Não use `setup:local` nem seed para atualizar dados reais. Para preparar sem dados demonstrativos, use `scripts/start-local.ps1 -Setup`.
+
+As migrations têm histórico em `public.schema_migrations`, checksum e exclusão mútua. Uma nova execução confere o histórico e aplica somente arquivos ainda pendentes. Schema parcial, arquivo histórico alterado ou banco legado com dados/políticas mas sem histórico válido interrompem a preparação. A adoção automática de instalações legadas **não está implementada**; consulte [Migrações e recuperação](docs/MIGRATIONS.md).
 
 O banco fica em `localhost:5434`, o MQTT em `localhost:1883` e o dashboard EMQX em `localhost:18083`. O Compose local publica essas portas somente em `127.0.0.1`.
 
@@ -124,11 +126,13 @@ Como alternativa às etapas manuais, o script abaixo instala dependências, cria
 
 ```powershell
 .\scripts\start-local.ps1 -Setup -SeedDemo
-# Nas próximas execuções, sem reinstalar nem alterar o banco:
+# Nas próximas execuções: retoma banco/broker e confere o histórico, sem migrar:
 .\scripts\start-local.ps1
 # Diagnóstico somente leitura:
 node scripts/check-environment.mjs
 ```
+
+O script padrão verifica ferramentas e `.env`, sobe os serviços locais do Compose, espera o PostgreSQL e executa `pnpm db:infra --check`. Só então inicia API, ingestão e painéis. Migrations pendentes ou histórico incompatível interrompem a inicialização com diagnóstico. Após revisar uma atualização, execute `scripts/start-local.ps1 -Setup` **sem `-SeedDemo`** para instalar dependências, aplicar migrations e provisionar as credenciais configuradas. Nenhum desses caminhos executa reset ou reinicia o computador. `pnpm dev` sozinho não sobe a infraestrutura nem verifica migrations.
 
 ### Contas de demonstração
 
@@ -198,14 +202,19 @@ Consulte [`.env.example`](.env.example) para os padrões locais e [DEPLOY](docs/
 
 ## Testes e verificações
 
-Prepare o ambiente local de demonstração com `pnpm setup:local`. Execute os testes com o banco ativo e a plataforma/simuladores parados para evitar interferência nos dados de teste. Alguns testes de integração de acessos só são habilitados com `RUN_ACCESS_DB_TESTS=1`:
+Use um banco **isolado e descartável**, separado dos dados de uso diário. A API/ingestão e simuladores desse ambiente devem estar parados durante a regressão. O [guia de migrations](docs/MIGRATIONS.md#testes-em-banco-isolado) descreve uma preparação reproduzível na porta 5439. No mesmo PowerShell, configure as quatro conexões para esse banco e habilite as duas famílias de testes de integração:
 
 ```powershell
 $env:RUN_ACCESS_DB_TESTS = "1"
+$env:RUN_RBAC_DB_TESTS = "1"
+$env:TEST_MIGRATIONS_DATABASE_URL = $env:DATABASE_URL
+pnpm --filter @predioon/db exec node --import tsx --test --test-concurrency=1 test/*.test.ts
 pnpm test
 ```
 
-O comando executa os testes de `@predioon/ui`, `@predioon/api` e `@predioon/ingest` em sequência, incluindo autorização/RLS, sessão, contratos MQTT, telemetria, alertas, acessos, vagas, avisos, consumo, suporte, governança e pausa/retomada de funcionalidades. Os testes de acesso usam clientes MQTT em memória e não acionam portões físicos.
+`pnpm test` executa `@predioon/api-client`, `@predioon/ui`, `@predioon/mobile`, `@predioon/api` e `@predioon/ingest` em sequência. A suíte de banco é chamada separadamente acima; sua conexão administrativa precisa poder criar/remover bancos temporários. As verificações incluem sessão, autorização HTTP/RLS, contratos MQTT, telemetria, comandos, pausa/retomada e histórico de migrations. Testes ignorados por falta de variáveis não contam como validação dessas integrações. Os testes de acesso simulam controladores e não comprovam atuação de um portão físico.
+
+Os fluxos de navegador usam `pnpm exec playwright install chromium firefox webkit` e `pnpm test:e2e`; siga [o guia E2E](e2e/README.md) para preparar o banco e evitar disputa com outros serviços. O comportamento do inicializador Windows pode ser testado sem executar Docker ou alterar banco: `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/test-start-local.ps1`. O parâmetro de política vale somente para esse processo de teste.
 
 Para verificar tipos e compilar, execute cada etapa após a anterior terminar:
 
@@ -231,8 +240,10 @@ Os resultados de validações anteriores e os ensaios com broker local estão em
 | `pnpm infra:down` | Para e remove os containers, preservando o volume do banco. |
 | `pnpm db:wait` | Aguarda a disponibilidade do banco. |
 | `pnpm db:bootstrap` | Cria atomicamente o banco vazio com SQL versionado; preserva dados e rejeita estruturas parciais. |
-| `pnpm db:push` | Sincroniza o schema Drizzle com o banco configurado. |
-| `pnpm db:infra` | Reaplica os arquivos `infrastructure/*.sql` em ordem no banco do Compose local. |
+| `pnpm db:push` | Ferramenta de desenvolvimento para schema; não é o mecanismo de atualização de instalação com histórico. |
+| `pnpm db:infra` | Usa `DATABASE_URL` administrativa; verifica checksums e aplica somente migrations pendentes, com ledger e lock. |
+| `pnpm db:infra --check` | Consulta baseline/histórico/pendências sem DDL; saída 0 = pronto, 2 = pendente, 1 = erro ou histórico incompatível. |
+| `pnpm db:provision-runtime` | Habilita login e configura as senhas das três roles restritas conforme as URLs do ambiente. |
 | `pnpm db:seed` | Cadastra/complementa a demonstração e redefine a senha das contas demo. |
 | `pnpm --filter @predioon/admin-web dev` | Inicia apenas o painel administrador. |
 | `pnpm --filter @predioon/building-web dev` | Inicia apenas o painel do síndico. |
@@ -255,12 +266,13 @@ pnpm dev
 | Sintoma | O que conferir |
 |---|---|
 | `docker` não é reconhecido ou o engine não responde | Instalação e inicialização do Docker Desktop; depois reabra o PowerShell e confira `docker compose version`. |
-| Porta `5434` ocupada | Ajuste a porta externa em `infrastructure/docker-compose.yml` e as duas conexões, `DATABASE_URL` e `DATABASE_URL_APP`, no `.env`. |
+| Porta `5434` ocupada | Ajuste a porta externa em `infrastructure/docker-compose.yml` e as quatro conexões `DATABASE_URL`, `DATABASE_URL_APP`, `DATABASE_URL_IDENTITY` e `DATABASE_URL_BROKER_AUTH` no `.env`. |
 | Portas `3000`, `5173`, `5174` ou `5175` ocupadas | Libere as portas antes de iniciar. Se alterar os endereços, ajuste também `VITE_API_URL` e `CORS_ORIGINS`. |
 | Painel mostra “API indisponível” | Confira `/health/ready`, o terminal da API e se `pnpm setup:local` terminou sem erro. |
 | Painel abre, mas não mostra leituras atuais | Confira ingestão, broker e simulador; verifique cadastro do dispositivo e disponibilidade do recurso em **Funcionalidades**. |
 | Portão não permite abertura | O seed começa desativado. Confira recurso, permissão, gateway/controlador habilitados e comunicação recente conforme [Acessos](docs/ACESSOS.md). |
-| Testes de acessos aparecem como ignorados | Defina `$env:RUN_ACCESS_DB_TESTS = "1"` no mesmo terminal antes de `pnpm test`. |
+| Migrations pendentes na inicialização | Revise a release e o banco selecionado; use `scripts/start-local.ps1 -Setup` sem `-SeedDemo`. Consulte [MIGRATIONS](docs/MIGRATIONS.md) se houver checksum divergente ou histórico ausente. |
+| Testes de banco/acessos/RBAC aparecem como ignorados | Configure `TEST_MIGRATIONS_DATABASE_URL`, `RUN_ACCESS_DB_TESTS=1` e `RUN_RBAC_DB_TESTS=1` no terminal do banco isolado. |
 | Build ou testes esgotam memória | Execute verificações em sequência e use as opções de concorrência descritas acima. |
 
 ## Estrutura do repositório
