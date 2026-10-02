@@ -5,6 +5,11 @@ node_modules
 
 # Artefatos locais
 **/dist
+**/android/.gradle
+**/android/app/build
+**/android/build
+**/ios/Pods
+**/ios/build
 **/.vercel
 **/*.tsbuildinfo
 .git

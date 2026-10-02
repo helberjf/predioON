@@ -11,6 +11,8 @@ WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/shared/package.json packages/shared/
+COPY packages/contracts/package.json packages/contracts/
+COPY packages/api-client/package.json packages/api-client/
 COPY packages/db/package.json packages/db/
 COPY packages/ui/package.json packages/ui/
 COPY apps/admin-web/package.json apps/admin-web/
@@ -20,7 +22,9 @@ COPY apps/resident-web/package.json apps/resident-web/
 RUN pnpm install --frozen-lockfile
 
 COPY packages ./packages
-COPY apps ./apps
+COPY apps/admin-web ./apps/admin-web
+COPY apps/building-web ./apps/building-web
+COPY apps/resident-web ./apps/resident-web
 
 # VITE_API_URL é lido em tempo de build: trocar o domínio da API exige reconstruir esta imagem.
 RUN pnpm --filter @predioon/admin-web build \

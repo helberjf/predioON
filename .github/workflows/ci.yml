@@ -11,7 +11,7 @@ permissions:
 
 concurrency:
   group: platform-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   platform:
@@ -61,9 +61,14 @@ jobs:
           done
           pnpm db:provision-runtime
           pnpm db:seed
+          pnpm db:bootstrap
       - name: Database migration and privilege tests
         run: pnpm --filter @predioon/db exec node --import tsx --test --test-concurrency=1 test/*.test.ts
       - name: Full platform regression
         run: pnpm test
       - name: Build services and websites
         run: pnpm build
+      - name: Validate production container builds
+        run: |
+          docker build -f infrastructure/Dockerfile.node --build-arg SERVICE=api -t predioon-api:test .
+          docker build -f infrastructure/Dockerfile.web --build-arg VITE_API_URL=https://api.example.invalid -t predioon-web:test .

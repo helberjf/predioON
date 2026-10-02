@@ -2,7 +2,7 @@
 #
 # Prepara o banco de produção na ordem certa:
 #   1. sobe o PostgreSQL e espera ficar saudável
-#   2. cria as tabelas com drizzle-kit
+#   2. cria a estrutura inicial por SQL versionado se o banco estiver vazio
 #   3. aplica TimescaleDB, RLS, role da aplicação e constraints
 #   4. opcionalmente semeia os dados de demonstração
 #
@@ -27,15 +27,17 @@ echo "→ subindo o banco"
 "${COMPOSE[@]}" up -d db
 
 echo "→ esperando o PostgreSQL aceitar conexões"
+database_ready=false
 for _ in $(seq 1 60); do
-  if "${COMPOSE[@]}" exec -T db pg_isready -U predioon -d predioon >/dev/null 2>&1; then break; fi
+  if "${COMPOSE[@]}" exec -T db pg_isready -U predioon -d predioon >/dev/null 2>&1; then database_ready=true; break; fi
   sleep 2
 done
+if [ "$database_ready" != true ]; then echo "PostgreSQL indisponível; preparação interrompida."; exit 1; fi
 
 echo "→ criando as tabelas"
-"${COMPOSE[@]}" run --rm \
+"${COMPOSE[@]}" run --rm --build \
   -e DATABASE_URL="postgres://predioon:${POSTGRES_PASSWORD}@db:5432/predioon" \
-  api pnpm --filter @predioon/db exec drizzle-kit push --force
+  api pnpm --filter @predioon/db db:bootstrap
 
 echo "→ aplicando TimescaleDB, RLS e a role da aplicação"
 for script in infrastructure/0*.sql; do
