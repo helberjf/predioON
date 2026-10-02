@@ -12,14 +12,15 @@ ALLOWED = {("GET", "/health"), ("GET", "/auth/me"), ("GET", "/buildings"),
 MAX_BODY = 1_048_576
 
 
-def make_handler(upstream_port):
+def make_handler(upstream_port, allow_request=None):
+    permitted = allow_request or (lambda method, path: (method, path) in ALLOWED)
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, _format, *_args):
             pass  # No URL query, headers, credentials or tokens in diagnostics.
 
         def forward(self):
             path = urlsplit(self.path)
-            if path.scheme or path.netloc or (self.command, path.path) not in ALLOWED:
+            if path.scheme or path.netloc or not permitted(self.command, path.path):
                 self.send_error(403)
                 return
             try:
@@ -51,6 +52,7 @@ def make_handler(upstream_port):
 
         do_GET = forward
         do_POST = forward
+        do_PATCH = forward
     return Handler
 
 
