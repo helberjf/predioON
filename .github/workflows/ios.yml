@@ -53,13 +53,13 @@ jobs:
         run: bundle exec pod install
       - name: Configure reserved startup origin in disposable checkout
         run: python3 scripts/android-smoke/prepare.py configure --app ${{ matrix.app }}
-      - name: Compile unsigned simulator application
+      - name: Compile locally signed simulator application
         working-directory: apps/${{ matrix.app }}/ios
         run: >-
           xcodebuild -workspace ${{ matrix.scheme }}.xcworkspace
           -scheme ${{ matrix.scheme }} -configuration Release
           -sdk iphonesimulator -destination 'generic/platform=iOS Simulator'
-          -derivedDataPath build CODE_SIGNING_ALLOWED=NO
+          -derivedDataPath build CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=-
           build
       - name: Launch the release build and capture both process lifetimes
         run: >-

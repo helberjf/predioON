@@ -1,4 +1,4 @@
-"""Capture the unsigned CI build on a new, disposable iPhone simulator.
+"""Capture the locally signed CI build on a new, disposable iPhone simulator.
 
 This proves launch/process survival and form text, not authenticated workflows.
 Each screenshot still requires visual review before being presented as evidence.
@@ -12,7 +12,6 @@ import plistlib
 import re
 import subprocess
 import time
-import tempfile
 import uuid
 
 
@@ -47,14 +46,13 @@ def iphone_target(inventory: dict, sdk_version: str) -> tuple[str, str]:
     raise RuntimeError("No available iPhone/iOS runtime compatible with the selected Xcode SDK")
 
 
-def simulator_entitlements(info: dict) -> dict:
+def simulator_product(info: dict) -> str:
     if info.get("CFBundleSupportedPlatforms") != ["iPhoneSimulator"]:
-        raise RuntimeError("Local CI signing requires an iPhoneSimulator build")
+        raise RuntimeError("CI capture requires an iPhoneSimulator build")
     bundle = info.get("CFBundleIdentifier")
     if bundle not in {"com.predioon.resident", "com.predioon.operations"}:
         raise RuntimeError("Unexpected application bundle")
-    identifier = "PRDIOONCI0." + bundle
-    return {"application-identifier": identifier, "keychain-access-groups": [identifier]}
+    return bundle
 
 
 def capture(application: Path, destination: Path) -> None:
@@ -65,10 +63,8 @@ def capture(application: Path, destination: Path) -> None:
     destination = destination.resolve()
     with (application / "Info.plist").open("rb") as source:
         info = plistlib.load(source)
-    bundle = info["CFBundleIdentifier"]
+    bundle = simulator_product(info)
     executable = info["CFBundleExecutable"]
-    if bundle not in {"com.predioon.resident", "com.predioon.operations"}:
-        raise RuntimeError("Unexpected application bundle")
     binary = application / executable
     if not binary.is_file() or not os.access(binary, os.X_OK):
         raise RuntimeError("Application executable missing or not executable")
@@ -80,20 +76,15 @@ def capture(application: Path, destination: Path) -> None:
     }
     device_id = None
     try:
-        # A binary compiled with CODE_SIGNING_ALLOWED=NO can launch but cannot
-        # access the Keychain. Give only this simulator build an ad-hoc signature
-        # with its own application group; no certificate or store identity is used.
-        expected_entitlements = simulator_entitlements(info)
-        with tempfile.TemporaryDirectory(prefix="predioon-ios-sign-") as temporary:
-            entitlements = Path(temporary) / "simulator.plist"
-            entitlements.write_bytes(plistlib.dumps(expected_entitlements))
-            command("codesign", "--force", "--sign", "-", "--entitlements", str(entitlements), str(application))
-        actual_entitlements = plistlib.loads(command("codesign", "--display", "--entitlements", ":-", str(application)).encode())
-        if actual_entitlements != expected_entitlements:
-            raise RuntimeError("Simulator signature does not contain the exact isolated Keychain group")
+        # Xcode embeds the simulated iOS entitlements in Mach-O sections. Putting
+        # them in a replacement macOS code signature can make the host refuse
+        # to launch. Validate the Xcode product without re-signing its binary.
         command("codesign", "--verify", "--strict", str(application))
-        evidence.update(entitlements=actual_entitlements, signing="local ad-hoc simulator identity; not a distribution signature",
-                        binarySha256=hashlib.sha256(binary.read_bytes()).hexdigest())
+        sections = command("xcrun", "otool", "-l", str(binary))
+        if not re.search(r"sectname\s+__entitlements\b", sections):
+            raise RuntimeError("Xcode simulator binary has no embedded entitlement section")
+        evidence.update(signing="Xcode local simulator signature; not a distribution signature",
+                        embeddedEntitlementSection=True)
         evidence["phases"].append("simulator-signature-verified")
         sdk_version = command("xcrun", "--sdk", "iphonesimulator", "--show-sdk-version")
         inventory = json.loads(command("xcrun", "simctl", "list", "--json"))
@@ -141,8 +132,13 @@ def capture(application: Path, destination: Path) -> None:
         if device_id:
             try:
                 logs = command("xcrun", "simctl", "spawn", device_id, "log", "show", "--style", "compact",
-                               "--last", "3m", "--predicate", f'process == "{executable}"')
+                               "--last", "3m", "--predicate",
+                               f'process == "{executable}" OR eventMessage CONTAINS "{bundle}"')
                 (destination / "application.log").write_text(logs, encoding="utf-8")
+                if not evidence["passed"]:
+                    command("log", "show", "--style", "compact", "--last", "3m", "--predicate",
+                            f'eventMessage CONTAINS "{bundle}" OR eventMessage CONTAINS "{executable}"',
+                            output=destination / "host-launch.log")
             except Exception as error:
                 evidence["diagnosticError"] = str(error)
             cleanup_errors = []
