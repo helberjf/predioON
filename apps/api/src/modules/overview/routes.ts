@@ -10,6 +10,7 @@ import { alertFeatureKeys, authorizedAlertContexts, type AlertContext } from "..
 import { buildingOverviewScope, type OverviewScope } from "./authorization.js";
 
 export const overviewRouter = Router();
+overviewRouter.use((_req,res,next)=>{res.setHeader('Cache-Control','no-store');next();});
 const BuildingQuerySchema = z.object({ buildingId: z.string().min(1) });
 
 overviewRouter.get("/platform", async (req, res) => {
@@ -32,7 +33,7 @@ overviewRouter.get("/platform", async (req, res) => {
 type DeviceStatus={id:string;status:string};
 type GatewayStatus={id:string;name:string;status:string;last_seen_at:string|null};
 type LocalAlert=BuildingOverview['latestAlerts'][number];
-type Revalidation={scope:OverviewScope;devices:string[];gateways:string[];alerts:AlertContext[]};
+type Revalidation={scope:OverviewScope;devices:string[];gateways:string[];alerts:AlertContext[];occurrences:{open_count:number|null;coverage:OverviewCoverage;visibility:BuildingOverview['occurrenceVisibility']}};
 // A new grant after an earlier partial read cannot upgrade cached coverage.
 function intersection(before:OverviewCoverage,after:OverviewCoverage):OverviewCoverage {
   return before==='none'||after==='none'?'none':before==='whole'&&after==='whole'?'whole':'partial';
@@ -46,19 +47,23 @@ overviewRouter.get("/building", validateQuery(BuildingQuerySchema), async (req, 
     const gateways:GatewayStatus[]=initial.gateways==='none'?[]:await tx.execute(sql`select id,name,status::text,last_seen_at from gateways where building_id=${buildingId} order by name,id`) as unknown as GatewayStatus[];
     const candidates:LocalAlert[]=initial.alerts==='none'?[]:await tx.execute(sql`select id,device_id,severity::text,type,status::text,message,triggered_at from alerts where building_id=${buildingId} and status<>'RESOLVED' order by triggered_at desc,id desc`) as unknown as LocalAlert[];
     const contexts=initial.alerts==='none'?[]:await authorizedAlertContexts(tx,buildingId);
-    // Feature state is readable only after current alert domain authorization;
+    // Feature state is readable only after current domain authorization;
     // the shared feature lock remains held through final resource validation.
     const authorizedBeforeFeatures=await buildingOverviewScope(tx,buildingId);
-    const features=initial.alerts!=='none'&&authorizedBeforeFeatures.alerts!=='none'?await readFeatures(tx,buildingId):null;
+    const features=(initial.alerts!=='none'&&authorizedBeforeFeatures.alerts!=='none')||authorizedBeforeFeatures.occurrences?await readFeatures(tx,buildingId):null;
     const [row]=await tx.execute(sql`select
-      (select to_jsonb(s) from app_overview_building_scope(${buildingId}) s) scope,
+      (select to_jsonb(s)||jsonb_build_object('occurrences',app_occurrence_can_read_scope(${buildingId},false)) from app_overview_building_scope(${buildingId}) s) scope,
+      (select to_jsonb(o) from app_overview_occurrences(${buildingId}) o) occurrences,
       coalesce((select jsonb_agg(d.id) from devices d where d.building_id=${buildingId}),'[]'::jsonb) devices,
       coalesce((select jsonb_agg(g.id) from gateways g where g.building_id=${buildingId}),'[]'::jsonb) gateways,
       coalesce((select jsonb_agg(to_jsonb(a)) from app_alert_authorized_contexts(${buildingId},null) a),'[]'::jsonb) alerts`);
     const current=row as Revalidation;
-    if(!current.scope.basic&&[current.scope.devices,current.scope.gateways,current.scope.alerts,current.scope.telemetry].every(value=>value==='none'))throw forbidden("Prédio fora do seu escopo");
+    if(!current.scope.basic&&!current.scope.occurrences&&[current.scope.devices,current.scope.gateways,current.scope.alerts,current.scope.telemetry].every(value=>value==='none'))throw forbidden("Prédio fora do seu escopo");
+    // Count and scope are read together in this final statement, not cached
+    // before revocation. The shared feature lock keeps the pause state stable.
+    const occurrences=features?.TICKETS.enabled&&current.scope.occurrences?current.occurrences:null;
     const coverage:BuildingOverview['coverage']={devices:intersection(initial.devices,current.scope.devices),gateways:intersection(initial.gateways,current.scope.gateways),
-      alerts:intersection(intersection(initial.alerts,authorizedBeforeFeatures.alerts),current.scope.alerts),telemetry:intersection(initial.telemetry,current.scope.telemetry),occurrences:'none'};
+      alerts:intersection(intersection(initial.alerts,authorizedBeforeFeatures.alerts),current.scope.alerts),telemetry:intersection(initial.telemetry,current.scope.telemetry),occurrences:occurrences?.coverage??'none'};
     const deviceIds=new Set(current.devices),gatewayIds=new Set(current.gateways),originalContexts=new Set(contexts.map(c=>c.alert_id));
     const currentContexts=new Map(current.alerts.map(c=>[c.alert_id,c]));
     const visibleDevices=coverage.devices==='none'?[]:devices.filter(d=>deviceIds.has(d.id));
@@ -67,9 +72,9 @@ overviewRouter.get("/building", validateQuery(BuildingQuerySchema), async (req, 
       const context=currentContexts.get(a.id);
       return context&&originalContexts.has(a.id)&&alertFeatureKeys(context,a.type).every(key=>features[key].enabled);
     });
-    return {buildingId,coverage,counts:{devices:coverage.devices==='none'?null:visibleDevices.length,devices_online:coverage.devices==='none'?null:visibleDevices.filter(d=>d.status==='ONLINE').length,
+    return {buildingId,coverage,occurrenceVisibility:occurrences?.visibility??'none',counts:{devices:coverage.devices==='none'?null:visibleDevices.length,devices_online:coverage.devices==='none'?null:visibleDevices.filter(d=>d.status==='ONLINE').length,
       gateways:coverage.gateways==='none'?null:visibleGateways.length,gateways_online:coverage.gateways==='none'?null:visibleGateways.filter(g=>g.status==='ONLINE').length,
-      open_alerts:coverage.alerts==='none'?null:visibleAlerts.length,open_occurrences:null},latestAlerts:visibleAlerts.slice(0,10),gateways:visibleGateways} satisfies BuildingOverview;
+      open_alerts:coverage.alerts==='none'?null:visibleAlerts.length,open_occurrences:occurrences?.open_count==null?null:Number(occurrences.open_count)},latestAlerts:visibleAlerts.slice(0,10),gateways:visibleGateways} satisfies BuildingOverview;
   });
   res.json(payload);
 });

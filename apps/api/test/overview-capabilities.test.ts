@@ -67,11 +67,11 @@ describe("overview capabilities: truthful aggregate and local coverage", () => {
     await status(await f.request(f.flag,'/overview/platform'),200);
   }));
   it("reports whole individual/team coverage and partial exact-device coverage without a gateway",async()=>fixture(async f=>{
-    for(const u of [f.admin,f.teamUser]){const d=await body(await local(f,u));assert.deepEqual(d.coverage,{devices:'whole',gateways:'whole',alerts:'whole',telemetry:'whole',occurrences:'none'});assert.equal(d.counts.devices,3);assert.equal(d.counts.gateways,2);assert.equal(d.counts.open_alerts,3);assert.equal(d.counts.open_occurrences,null);await status(await local(f,u,f.b),403);}
+    for(const u of [f.admin,f.teamUser]){const d=await body(await local(f,u));assert.deepEqual(d.coverage,{devices:'whole',gateways:'whole',alerts:'whole',telemetry:'whole',occurrences:u===f.admin?'whole':'partial'});assert.equal(d.counts.devices,3);assert.equal(d.counts.gateways,2);assert.equal(d.counts.open_alerts,3);assert.equal(d.counts.open_occurrences,0);assert.equal(d.occurrenceVisibility,u===f.admin?'all':'own');await status(await local(f,u,f.b),403);}
     const d=await body(await local(f,f.exact));assert.equal(d.coverage.devices,'partial');assert.equal(d.coverage.alerts,'partial');assert.equal(d.coverage.gateways,'none');assert.equal(d.counts.devices,1);assert.equal(d.counts.gateways,null);assert.equal(d.gateways.length,0);assert.equal(d.counts.open_alerts,1);
   }));
   it("keeps resident, alert-only and telemetry-only dashboards neutral",async()=>fixture(async f=>{
-    for(const u of [f.resident,f.support,f.telemetry]){const d=await body(await local(f,u));assert.equal(d.counts.devices,null);assert.equal(d.counts.devices_online,null);assert.equal(d.counts.gateways,null);assert.equal(d.counts.open_occurrences,null);assert.equal(d.coverage.devices,'none');assert.equal(d.coverage.gateways,'none');if(u===f.support){assert.equal(d.counts.open_alerts,1);assert.equal(d.coverage.alerts,'partial');}else{assert.equal(d.counts.open_alerts,null);assert.deepEqual(d.latestAlerts,[]);}}
+    for(const u of [f.resident,f.support,f.telemetry]){const d=await body(await local(f,u));assert.equal(d.counts.devices,null);assert.equal(d.counts.devices_online,null);assert.equal(d.counts.gateways,null);assert.equal(d.counts.open_occurrences,u===f.resident?0:null);assert.equal(d.occurrenceVisibility,u===f.resident?'own':'none');assert.equal(d.coverage.devices,'none');assert.equal(d.coverage.gateways,'none');if(u===f.support){assert.equal(d.counts.open_alerts,1);assert.equal(d.coverage.alerts,'partial');}else{assert.equal(d.counts.open_alerts,null);assert.deepEqual(d.latestAlerts,[]);}}
   }));
   it("validates telemetry-only scope against actual same-building gateway references",async()=>fixture(async f=>{
     const d=await body(await local(f,f.telemetry));assert.equal(d.coverage.telemetry,'partial');
@@ -105,9 +105,9 @@ describe("overview capabilities: truthful aggregate and local coverage", () => {
     await sqlClient`update organizations set active=false where id=${f.org}`;
     const org=await body(await f.request(f.platform,'/overview/platform'));assert.ok(!org.buildings.some((b:any)=>[f.a,f.b].includes(b.id)));assert.equal(org.counts.organizations,before.counts.organizations-1);await status(await local(f,f.admin),403);
   }));
-  it("distinguishes authorized empty from unreadable and keeps occurrences unavailable",async()=>fixture(async f=>{
+  it("distinguishes authorized empty counts from unreadable domains",async()=>fixture(async f=>{
     await sqlClient`delete from alerts where building_id=${f.a}`;await sqlClient`delete from devices where building_id=${f.a}`;await sqlClient`delete from gateways where building_id=${f.a}`;
-    const d=await body(await local(f,f.admin));assert.deepEqual(d.counts,{devices:0,devices_online:0,gateways:0,gateways_online:0,open_alerts:0,open_occurrences:null});assert.deepEqual(d.latestAlerts,[]);assert.deepEqual(d.gateways,[]);
+    const d=await body(await local(f,f.admin));assert.deepEqual(d.counts,{devices:0,devices_online:0,gateways:0,gateways_online:0,open_alerts:0,open_occurrences:0});assert.deepEqual(d.latestAlerts,[]);assert.deepEqual(d.gateways,[]);
     const resident=await body(await local(f,f.resident));assert.equal(resident.counts.devices,null);assert.equal(resident.counts.open_alerts,null);
     await status(await local(f,f.exact),403);await status(await local(f,f.support),403);await status(await local(f,f.telemetry),403);
   }));
@@ -137,7 +137,7 @@ describe("overview capabilities: truthful aggregate and local coverage", () => {
       [f.teamUser,()=>sqlClient`update role_bindings set active=false where id=${f.teamBinding}`],
       [f.resident,()=>sqlClient`update memberships set active=false where user_id=${f.resident}`],
       [f.support,()=>sqlClient`update support_grants set revoked_at=clock_timestamp() where id=${f.grant}`],
-      [f.support,()=>sqlClient`update support_grants set expires_at=clock_timestamp()-interval '1 second' where id=${f.grant}`],
+      [f.support,()=>sqlClient`update support_grants set created_at=clock_timestamp()-interval '1 hour',expires_at=clock_timestamp()-interval '1 second' where id=${f.grant}`],
       [f.support,()=>sqlClient`update role_bindings set active=false where id=${f.supportBinding}`],
       [f.admin,()=>sqlClient`update buildings set active=false where id=${f.a}`],
       [f.admin,()=>sqlClient`update organizations set active=false where id=${f.org}`],

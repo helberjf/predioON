@@ -3,11 +3,12 @@ export type OverviewCoverage = "whole" | "partial" | "none";
 export type OverviewCounts = {
   devices: number | null; devices_online: number | null;
   gateways: number | null; gateways_online: number | null;
-  open_alerts: number | null; open_occurrences: null;
+  open_alerts: number | null; open_occurrences: number | null;
 };
 export type BuildingOverview = {
   buildingId: string;
-  coverage: { devices: OverviewCoverage; gateways: OverviewCoverage; alerts: OverviewCoverage; telemetry: OverviewCoverage; occurrences: "none" };
+  coverage: { devices: OverviewCoverage; gateways: OverviewCoverage; alerts: OverviewCoverage; telemetry: OverviewCoverage; occurrences: OverviewCoverage };
+  occurrenceVisibility: "all" | "own" | "scoped" | "none";
   counts: OverviewCounts;
   latestAlerts: Array<{id:string;device_id:string|null;severity:string;type:string;status:string;message:string;triggered_at:string}>;
   gateways: Array<{id:string;name:string;status:string;last_seen_at:string|null}>;

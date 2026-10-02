@@ -1,7 +1,7 @@
 import { useEffect, useState, type ComponentType } from "react";
 import { Link } from "react-router-dom";
 import { Activity, AlertTriangle, ArrowRight, CalendarDays, Check, CheckCircle2, Cpu, Droplets, House, Megaphone, RadioTower, ShieldCheck, SlidersHorizontal, Thermometer, Wrench, Zap } from "lucide-react";
-import { Feature, useFeatures, readingFeature, Badge, Card, ErrorBanner, ResourceFeedback, formatNumber, formatRelative, numericReading, booleanReading, readingStatus, PageHeading, ProgressRing, useAuth, useRealtime, useResource, WaterTank, overviewMonitoringState, overviewCommunicationState, overviewCountLabel, overviewRatio } from "@predioon/ui";
+import { Feature, useFeatures, readingFeature, Badge, Card, ErrorBanner, ResourceFeedback, formatNumber, formatRelative, numericReading, booleanReading, readingStatus, PageHeading, ProgressRing, useAuth, useRealtime, useResource, WaterTank, overviewMonitoringState, overviewCommunicationState, overviewCountLabel, overviewRatio, overviewOccurrenceState } from "@predioon/ui";
 import type { AlertRule, BuildingOverview, Device, LatestReading, Notice, Paged, Tone } from "@predioon/ui";
 import { deviceFeatures, FEATURE_CATALOG, sensorReadingState } from "@predioon/shared";
 import { DashboardChart } from "../components/DashboardChart.js";
@@ -57,6 +57,7 @@ export function Dashboard({ buildingId }: { buildingId: string }) {
     inventoryDeviceIds:devices.data?.items.map(d=>d.id),
   });
   const communication=overviewCommunicationState(counts?.gateways_online,counts?.gateways,coverage?.gateways);
+  const occurrences=overviewOccurrenceState(overview.data,{error:Boolean(overview.error||flags.error),paused:flags.loading||!flags.enabled("TICKETS")});
   const normal=monitoring.tone==='success';
   const status = overview.loading && !counts ? "Carregando a situação do condomínio" : monitoring.label;
   const StatusIcon = normal ? Check : AlertTriangle;
@@ -95,7 +96,7 @@ export function Dashboard({ buildingId }: { buildingId: string }) {
       </Card>
       <Card title="Prevenção e acompanhamento" action={<Link to="/regras" className="text-xs text-sky-600">Ver regras</Link>}>
         {rules.data?.items.length ? <ul className="space-y-3">{rules.data.items.slice(0,3).map(rule => <li key={rule.id} className="flex items-center gap-3"><span className="rounded-lg bg-emerald-50 p-2 text-emerald-600"><ShieldCheck size={19}/></span><div className="flex-1"><p className="text-xs font-semibold text-[#193551]">{rule.name}</p><p className="mt-1 text-[11px] text-slate-500">{rule.enabled ? "Monitoramento automático ativo" : "Regra desativada"}</p></div></li>)}</ul> : <ResourceFeedback resource={rules} emptyText="Configure regras para acompanhar os sensores."/>}
-        <Feature name="TICKETS"><Link to="/chamados" className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-600"><span className="flex items-center gap-2"><Wrench size={16}/>Acompanhar ocorrências</span><ArrowRight size={14}/></Link></Feature>
+        <Link to="/chamados" className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-600"><span className="flex items-center gap-2"><Wrench size={16}/>{occurrences.label}</span><span className="flex items-center gap-2">{occurrences.count!==null&&<strong>{occurrences.count}</strong>}<ArrowRight size={14}/></span></Link>
       </Card>
       <Card title="Conectividade dos sensores"><div className="flex items-center justify-center gap-3 py-2"><ProgressRing label="Sensores online" value={overviewRatio(counts?.devices_online,counts?.devices,coverage?.devices)}/><div><p className="text-base font-bold text-[#193551]">{counts?.devices!=null&&counts.devices_online!=null?`${counts.devices_online} de ${counts.devices}`:overviewCountLabel(null,coverage?.devices)}</p><p className="mt-1 text-xs text-slate-500">{coverage?.devices==='partial'?"equipamentos online no seu escopo":"equipamentos online"}</p></div></div><Link to="/dispositivos" className="mt-3 block text-right text-xs text-sky-600">Ver equipamentos →</Link></Card>
     </div>

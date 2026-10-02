@@ -2,6 +2,21 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 const helpers = await import("../src/overview-state.ts");
 const full={buildingId:'a',coverage:{devices:'whole',gateways:'whole',alerts:'whole',telemetry:'whole',occurrences:'none'},counts:{devices:1,devices_online:1,gateways:1,gateways_online:1,open_alerts:0,open_occurrences:null},latestAlerts:[],gateways:[]} as const;
+const own={...full,coverage:{...full.coverage,occurrences:'partial'},occurrenceVisibility:'own',counts:{...full.counts,open_occurrences:0}} as const;
+test('occurrence summary keeps own/scoped/whole labels and authorized zero distinct',()=>{
+  assert.deepEqual(helpers.overviewOccurrenceState(own),{label:'Seus chamados abertos',count:'0'});
+  assert.deepEqual(helpers.overviewOccurrenceState({...own,occurrenceVisibility:'scoped',counts:{...own.counts,open_occurrences:2}}),{label:'Chamados abertos no seu escopo',count:'2'});
+  assert.deepEqual(helpers.overviewOccurrenceState({...own,occurrenceVisibility:'all',coverage:{...own.coverage,occurrences:'whole'}}),{label:'Chamados abertos',count:'0'});
+  assert.equal(helpers.overviewOccurrenceState({...own,occurrenceVisibility:'all'}).label,'Chamados abertos no seu escopo');
+});
+test('unavailable, paused or failed occurrence summaries never present a false zero',()=>{
+  const neutral={label:'Acompanhar ocorrências',count:null};
+  assert.deepEqual(helpers.overviewOccurrenceState(undefined),neutral);
+  for(const options of [{error:true},{paused:true}])assert.deepEqual(helpers.overviewOccurrenceState(own,options),neutral);
+  assert.deepEqual(helpers.overviewOccurrenceState({...own,counts:{...own.counts,open_occurrences:null}}),neutral);
+  assert.deepEqual(helpers.overviewOccurrenceState({...own,coverage:{...own.coverage,occurrences:'none'}}),neutral);
+  assert.deepEqual(helpers.overviewOccurrenceState({...own,occurrenceVisibility:'none'}),neutral);
+});
 test('missing/error data and unreadable zero-looking counts are neutral',()=>{
   assert.equal(helpers.overviewMonitoringState(undefined,[],{}).tone,'neutral');
   assert.equal(helpers.overviewMonitoringState(full,[],{error:true}).tone,'neutral');

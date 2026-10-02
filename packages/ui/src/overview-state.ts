@@ -4,6 +4,12 @@ import type { FeatureKey, FeatureState } from "@predioon/shared";
 export type OverviewObservation={deviceId:string;state:'missing'|'invalid'|'stale'|'disabled'|'detected'|'clear'|'reading'};
 type MonitoringOverview=Pick<BuildingOverview,'counts'|'coverage'>;
 type DisplayState={tone:'neutral'|'success'|'warning';label:string};
+export function overviewOccurrenceState(overview:Pick<BuildingOverview,'counts'|'coverage'|'occurrenceVisibility'>|null|undefined,options:{error?:boolean;paused?:boolean}={}):{label:string;count:string|null} {
+  const unavailable={label:'Acompanhar ocorrências',count:null};
+  if(!overview||options.error||options.paused||overview.coverage.occurrences==='none'||overview.occurrenceVisibility==='none'||overview.counts.open_occurrences==null)return unavailable;
+  const label=overview.occurrenceVisibility==='own'?'Seus chamados abertos':overview.occurrenceVisibility==='all'&&overview.coverage.occurrences==='whole'?'Chamados abertos':'Chamados abertos no seu escopo';
+  return {label,count:String(overview.counts.open_occurrences)};
+}
 type MonitoringFeatureState=Pick<FeatureState,'key'|'enabled'>;
 /** Relevant domains come from the canonical catalog and inventory supplied by the caller. */
 export function overviewMonitoringPaused(featureStates:readonly MonitoringFeatureState[]|null|undefined,monitoredFeatureKeys:readonly FeatureKey[]):boolean {
