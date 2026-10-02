@@ -8,7 +8,7 @@ import { createRefreshToken, hashRefreshToken, refreshTokenExpiry, signAccessTok
 
 type ClientMeta = { userAgent?: string | null; ipAddress?: string | null };
 export type Identity = { userId: string; name: string; email: string; role: Role; memberships: Array<{ buildingId: string; role: "BUILDING_ADMIN" | "RESIDENT" }> };
-export type SessionTokens = { accessToken: string; refreshToken: string; identity: Identity };
+export type SessionTokens = { accessToken: string; refreshToken: string; identity: Identity; expiresAt: Date };
 
 function effectiveRole(isPlatformAdmin: boolean, links: Identity["memberships"]): Role {
   if (isPlatformAdmin) return "PLATFORM_ADMIN";
@@ -40,9 +40,9 @@ export async function resolveIdentity(claims: AccessTokenClaims): Promise<Identi
   return buildIdentity(session.userId);
 }
 
-async function issueTokens(userId: string, sessionId: string, refreshToken: string): Promise<SessionTokens> {
+async function issueTokens(userId: string, sessionId: string, refreshToken: string, expiresAt: Date): Promise<SessionTokens> {
   const identity = await buildIdentity(userId);
-  return { accessToken: await signAccessToken({ sub: userId, sid: sessionId }), refreshToken, identity };
+  return { accessToken: await signAccessToken({ sub: userId, sid: sessionId }), refreshToken, identity, expiresAt };
 }
 
 export async function login(email: string, password: string, meta: ClientMeta): Promise<SessionTokens> {
@@ -60,7 +60,7 @@ export async function login(email: string, password: string, meta: ClientMeta): 
       tokenHash, expiresAt, userAgent: meta.userAgent ?? null, ipAddress: meta.ipAddress ?? null });
     return created;
   });
-  return issueTokens(user.id, session!.id, token);
+  return issueTokens(user.id, session!.id, token, expiresAt);
 }
 
 /** Lock the family first; replay revocation is committed before sending the 401. */
@@ -94,10 +94,10 @@ export async function refreshSession(presentedToken: string, meta: ClientMeta): 
       userAgent: meta.userAgent ?? null, ipAddress: meta.ipAddress ?? null });
     await tx.update(sessions).set({ lastUsedAt: now, userAgent: meta.userAgent ?? family.userAgent,
       ipAddress: meta.ipAddress ?? family.ipAddress }).where(eq(sessions.id, family.id));
-    return { userId: family.userId, sessionId: family.id };
+    return { userId: family.userId, sessionId: family.id, expiresAt: family.expiresAt };
   });
   if (!outcome) throw unauthorized("Sessão expirada ou reutilizada");
-  return issueTokens(outcome.userId, outcome.sessionId, successor.token);
+  return issueTokens(outcome.userId, outcome.sessionId, successor.token, outcome.expiresAt);
 }
 
 /** Logout accepts any known generation, including one consumed by rotation. */

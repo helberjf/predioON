@@ -4,9 +4,11 @@ import { validateBody } from "../http/validate.js";
 import { authenticate, currentAuth } from "./middleware.js";
 import { listSessions, login, refreshSession, revokeAllSessions, revokeSession, revokeSessionById } from "./service.js";
 import type { SessionTokens } from "./service.js";
+import { webAuthRouter } from "./web-routes.js";
 
 export const authRouter = Router();
 authRouter.use((_req, res, next) => { res.setHeader("Cache-Control", "no-store"); next(); });
+authRouter.use("/web", webAuthRouter);
 
 const LoginSchema = z.object({
   email: z.string().email(),
