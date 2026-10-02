@@ -66,13 +66,13 @@ Sensores / gateway / simulador
 
 Para abertura de portões, a API registra o pedido, a ingestão publica o comando e o controlador devolve uma confirmação (ACK). O fluxo completo está em [Acessos](docs/ACESSOS.md).
 
-O portal do morador é uma aplicação web adaptada a celular e permanece disponível por compatibilidade. Os aplicativos **Morador** e **Operação (síndico e manutenção)**, em React Native **sem Expo**, são a evolução definida na [arquitetura de produto](docs/superpowers/specs/2026-09-27-arquitetura-produto-design.md) e ainda não estão implementados. Não há aplicativo móvel administrativo da plataforma.
+O portal do morador permanece disponível por compatibilidade. Os aplicativos **Morador** e **Operação**, em React Native **sem Expo**, estão em `apps/resident-mobile` e `apps/operations-mobile`, com sessão segura e fluxos conectados à API. Veja [execução, requisitos e limites dos apps](packages/mobile/README.md). A publicação e integrações nativas externas continuam separadas da validação do código. Não há aplicativo móvel administrativo da plataforma.
 
 ## Instalação local
 
 ### Pré-requisitos
 
-- Node.js compatível com o Vite registrado no lockfile: `^20.19.0` ou `>=22.12.0`.
+- Node.js compatível com os apps e ferramentas do monorepo: `^22.13.0`, `^24.3.0` ou `>=26`.
 - pnpm **10.17.1**, conforme `packageManager` no `package.json`.
 - Docker Desktop com o engine ativo e Docker Compose disponível.
 
@@ -108,7 +108,7 @@ Com o Docker Desktop ativo:
 pnpm setup:local
 ```
 
-Esse comando sobe PostgreSQL/TimescaleDB e EMQX, aguarda o banco, aplica o schema Drizzle, executa os arquivos SQL de infraestrutura em ordem e cadastra os dados de demonstração. As migrações incluem monitoramento, acessos, vagas/avisos, suporte, governança e controle de funcionalidades.
+Esse comando prepara a demonstração: sobe PostgreSQL/TimescaleDB e EMQX, aguarda o banco, aplica o SQL inicial versionado somente em banco vazio, executa as migrations e provisiona credenciais. O seed explícito da demonstração redefine senhas locais. Não use o seed para atualizar dados reais. A preparação rejeita schemas parciais em vez de reconstruir tabelas.
 
 O banco fica em `localhost:5434`, o MQTT em `localhost:1883` e o dashboard EMQX em `localhost:18083`. O Compose local publica essas portas somente em `127.0.0.1`.
 
@@ -123,7 +123,11 @@ Mantenha o terminal aberto. O comando inicia API, ingestão MQTT e os três pain
 Como alternativa às etapas manuais, o script abaixo instala dependências, cria o `.env` se necessário, prepara o banco e inicia a plataforma:
 
 ```powershell
+.\scripts\start-local.ps1 -Setup -SeedDemo
+# Nas próximas execuções, sem reinstalar nem alterar o banco:
 .\scripts\start-local.ps1
+# Diagnóstico somente leitura:
+node scripts/check-environment.mjs
 ```
 
 ### Contas de demonstração
@@ -226,6 +230,7 @@ Os resultados de validações anteriores e os ensaios com broker local estão em
 | `pnpm infra:up` | Sobe apenas o banco e o broker. |
 | `pnpm infra:down` | Para e remove os containers, preservando o volume do banco. |
 | `pnpm db:wait` | Aguarda a disponibilidade do banco. |
+| `pnpm db:bootstrap` | Cria atomicamente o banco vazio com SQL versionado; preserva dados e rejeita estruturas parciais. |
 | `pnpm db:push` | Sincroniza o schema Drizzle com o banco configurado. |
 | `pnpm db:infra` | Reaplica os arquivos `infrastructure/*.sql` em ordem no banco do Compose local. |
 | `pnpm db:seed` | Cadastra/complementa a demonstração e redefine a senha das contas demo. |
@@ -288,6 +293,8 @@ A evolução de `codex/product-platform` foi integrada à `main` em 01/10/2026. 
 | 2B.1 | Fundação de RBAC e tenancy: catálogo de permissões, concessões, unidades, equipes e suporte temporário; migração `014-rbac-tenancy.sql`; rotas `/v1/tenancy` e `/v1/authorization` | Concluída |
 | 2B.2 | Credenciais restritas da API, separando identidade e autorização do broker; migração `015-api-runtime-roles.sql` | Integrada |
 | 2B.3 | Capacidades para condomínios, equipamentos, telemetria, alertas, monitoramento, eventos e dashboards; migrations 016–024 | Parcial; demais domínios pendentes |
+| 2B.4 | Seleção de condomínio, gestão de unidades/equipes/vínculos e diretório mínimo por capacidade (025) | Integrada; regressão executada pela CI |
+| 5 | Apps Morador e Operação, sessão em Keychain/Keystore e fluxos existentes da API | Incremento integrado; publicação e módulos novos pendentes |
 | 2C–6 | MFA e cookies, processamento durável (inbox/outbox/workers), ativos e ordens de serviço, automações, planos/assinaturas, aplicativos móveis e operação revisada | Planejadas |
 
 Evidências e números de teste por etapa ficam no [tracker de execução](docs/superpowers/plans/2026-09-27-product-execution.md). Os débitos técnicos conhecidos, incluindo a fronteira entre confirmação MQTT e commit, estão em [TDD, seção 18](docs/TDD.md#18-débitos-técnicos-e-riscos-de-implementação).

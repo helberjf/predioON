@@ -1,29 +1,80 @@
+#requires -Version 5.1
+[CmdletBinding()]
+param(
+  [switch]$Setup,
+  [switch]$SeedDemo
+)
+
 $ErrorActionPreference = "Stop"
 
-Write-Host "Prédio ON - preparação local" -ForegroundColor Cyan
-
-if (-not (Get-Command node -ErrorAction SilentlyContinue)) { throw "Node.js não encontrado." }
-if (-not (Get-Command docker -ErrorAction SilentlyContinue)) { throw "Docker não encontrado. Abra/instale o Docker Desktop." }
-if (-not (Get-Command pnpm -ErrorAction SilentlyContinue)) {
-  Write-Host "pnpm não encontrado. Tentando habilitar Corepack..." -ForegroundColor Yellow
-  corepack enable
+function Invoke-CheckedCommand {
+  param([string]$Executable, [string[]]$Arguments)
+  & $Executable @Arguments
+  if ($LASTEXITCODE -ne 0) {
+    throw "Falha em '$Executable $($Arguments -join ' ')' (codigo $LASTEXITCODE). A inicializacao foi interrompida."
+  }
 }
 
-if (-not (Test-Path ".env")) {
-  Copy-Item ".env.example" ".env"
-  Write-Host ".env criado a partir de .env.example" -ForegroundColor Green
+if ($SeedDemo -and -not $Setup) {
+  throw "-SeedDemo exige -Setup. Use -Setup -SeedDemo apenas em uma demonstracao local descartavel: o seed redefine as senhas das contas demo."
 }
 
-Write-Host "Instalando dependências..." -ForegroundColor Cyan
-pnpm install
+$projectRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..")).Path
+Push-Location -LiteralPath $projectRoot
+try {
+  Write-Host "Predio ON - inicializacao local" -ForegroundColor Cyan
+  foreach ($requiredTool in @("node", "pnpm", "docker")) {
+    if (-not (Get-Command $requiredTool -ErrorAction SilentlyContinue)) {
+      throw "$requiredTool nao encontrado no PATH. Execute 'node scripts/check-environment.mjs' para ver os requisitos."
+    }
+  }
 
-Write-Host "Subindo infraestrutura e preparando banco..." -ForegroundColor Cyan
-pnpm setup:local
+  $manifest = Get-Content -LiteralPath (Join-Path $projectRoot "package.json") -Raw | ConvertFrom-Json
+  if ($manifest.packageManager -notmatch '^pnpm@(\d+\.\d+\.\d+)(?:\+.*)?$') {
+    throw "packageManager deve declarar uma versao exata do pnpm no package.json."
+  }
+  $requiredPnpmVersion = $Matches[1]
+  $pnpmVersion = ((Invoke-CheckedCommand "pnpm" @("--version")) -join "`n").Trim()
+  if ($pnpmVersion -ne $requiredPnpmVersion) {
+    throw "Este projeto exige pnpm $requiredPnpmVersion. Instale/ative a versao fixada (npm install --global pnpm@$requiredPnpmVersion), reabra o terminal e confira 'pnpm --version'."
+  }
 
-Write-Host "Iniciando API, ingestão e painéis..." -ForegroundColor Green
-Write-Host "Admin:    http://localhost:5173"
-Write-Host "Prédio:   http://localhost:5174"
-Write-Host "Morador:  http://localhost:5175"
-Write-Host "API:      http://localhost:3000/health"
-Write-Host "EMQX:     http://localhost:18083"
-pnpm dev
+  Invoke-CheckedCommand "node" @("-e", "const [major,minor]=process.versions.node.split('.').map(Number); if (!(major===22&&minor>=13 || major===24&&minor>=3 || major>=26)) { console.error('Node incompativel: use 22.13+, 24.3+ ou 26+ conforme os aplicativos moveis.'); process.exit(1); }")
+  Write-Host "Verificando Docker Compose e engine..." -ForegroundColor Cyan
+  Invoke-CheckedCommand "docker" @("compose", "version", "--short")
+  Invoke-CheckedCommand "docker" @("info", "--format", "{{.ServerVersion}}")
+
+  $environmentPath = Join-Path $projectRoot ".env"
+  if (-not (Test-Path -LiteralPath $environmentPath)) {
+    if (-not $Setup) {
+      throw ".env ausente. Execute '.\scripts\start-local.ps1 -Setup' para preparar o ambiente local."
+    }
+    Copy-Item -LiteralPath (Join-Path $projectRoot ".env.example") -Destination $environmentPath
+    Write-Host ".env criado a partir de .env.example. Valores existentes nunca sao sobrescritos." -ForegroundColor Green
+  }
+
+  if ($Setup) {
+    Write-Host "Instalando dependencias com o lockfile..." -ForegroundColor Cyan
+    Invoke-CheckedCommand "pnpm" @("install", "--frozen-lockfile")
+    Write-Host "Preparando infraestrutura, schema e credenciais restritas..." -ForegroundColor Cyan
+    foreach ($setupCommand in @("infra:up", "db:wait", "db:bootstrap", "db:infra", "db:provision-runtime")) {
+      Invoke-CheckedCommand "pnpm" @($setupCommand)
+    }
+    if ($SeedDemo) {
+      Write-Host "Cadastrando demonstracao e redefinindo senhas demo (solicitado com -SeedDemo)..." -ForegroundColor Yellow
+      Invoke-CheckedCommand "pnpm" @("db:seed")
+    }
+  } elseif (-not (Test-Path -LiteralPath (Join-Path $projectRoot "node_modules/.pnpm/lock.yaml"))) {
+    throw "Dependencias ausentes. Execute '.\scripts\start-local.ps1 -Setup' primeiro."
+  }
+
+  Write-Host "Iniciando API, ingestao e paineis. Ctrl+C para encerrar." -ForegroundColor Green
+  Write-Host "Administrador: http://localhost:5173"
+  Write-Host "Condominio:    http://localhost:5174"
+  Write-Host "Morador:       http://localhost:5175"
+  Write-Host "API:           http://localhost:3000/health"
+  Write-Host "EMQX:          http://localhost:18083"
+  Invoke-CheckedCommand "pnpm" @("dev")
+} finally {
+  Pop-Location
+}
