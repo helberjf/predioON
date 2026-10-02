@@ -3,15 +3,13 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "jsx": "react-jsx",
     "strict": true,
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "lib": ["ES2022", "DOM"],
-    "types": ["react", "react-native", "node"]
+    "types": ["node"]
   },
-  "include": ["src", "test"],
-  "exclude": ["test/*.integration.mts"]
+  "include": ["*.integration.mts"]
 }

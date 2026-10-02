@@ -1,10 +1,16 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Alert, Text, View } from "react-native";
 import type { ApiClient } from "@predioon/api-client";
 import type { BuildingOverview } from "@predioon/contracts";
 import type { Scope } from "./scope.ts";
 import type { AlertRow, List, Reading } from "./models.ts";
-import { useResource } from "./resource.ts";
+import { useReadResource, useResource } from "./resource.ts";
+import {
+  alertActionScope,
+  alertTargets,
+  occurrenceSummary,
+  readResourceAuthorization,
+} from "./authorization.ts";
 import { useMutation } from "./mutation.ts";
 import {
   Badge,
@@ -70,6 +76,11 @@ export function Overview({ api, buildingId }: Props) {
               </View>
             ))}
           </Card>
+          <Card>
+            <Text style={styles.muted}>Chamados em aberto</Text>
+            <Text style={styles.title}>{occurrenceSummary(data).value}</Text>
+            <Text style={styles.muted}>{occurrenceSummary(data).detail}</Text>
+          </Card>
           <Text style={styles.subtitle}>Alertas recentes</Text>
           {data.latestAlerts.length === 0 && (
             <Text style={styles.muted}>Nenhum alerta no seu escopo.</Text>
@@ -102,6 +113,7 @@ export function Overview({ api, buildingId }: Props) {
 export function Alerts({ api, buildingId, scope }: Props & { scope: Scope }) {
   const [offset, setOffset] = useState(0);
   const [status, setStatus] = useState("OPEN");
+  const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const resource = useResource<List<AlertRow>>(
     api,
     `/alerts?buildingId=${encodeURIComponent(buildingId)}&limit=50&offset=${offset}&status=${status}`,
@@ -155,37 +167,31 @@ export function Alerts({ api, buildingId, scope }: Props & { scope: Scope }) {
           </View>
           <Text style={styles.text}>{alert.message}</Text>
           <Text style={styles.muted}>{dateTime(alert.triggeredAt)}</Text>
-          <View style={styles.row}>
-            {alert.status === "OPEN" &&
-              scope.capabilities.includes("alerts:acknowledge") && (
-                <Button
-                  label="Reconhecer"
-                  disabled={mutation.pending}
-                  onPress={() => transition(alert.id, "acknowledge")}
-                />
-              )}
-            {alert.status !== "RESOLVED" &&
-              scope.capabilities.includes("alerts:resolve") && (
-                <Button
-                  label="Resolver"
-                  secondary
-                  disabled={mutation.pending}
-                  onPress={() =>
-                    Alert.alert(
-                      "Resolver alerta?",
-                      "Confirme que a condição foi verificada pela equipe.",
-                      [
-                        { text: "Voltar", style: "cancel" },
-                        {
-                          text: "Resolver",
-                          onPress: () => transition(alert.id, "resolve"),
-                        },
-                      ],
-                    )
-                  }
-                />
-              )}
-          </View>
+          {alert.status !== "RESOLVED" && (
+            <Button
+              secondary
+              label={
+                selectedAction === alert.id
+                  ? "Ocultar ações"
+                  : "Ver ações deste alerta"
+              }
+              onPress={() =>
+                setSelectedAction((current) =>
+                  current === alert.id ? null : alert.id,
+                )
+              }
+            />
+          )}
+          {selectedAction === alert.id && (
+            <AlertActionControls
+              key={`${alert.id}:${alert.deviceId}:${alert.gatewayId}`}
+              api={api}
+              buildingId={buildingId}
+              alert={alert}
+              pending={mutation.pending}
+              transition={(action) => transition(alert.id, action)}
+            />
+          )}
         </Card>
       ))}
       {resource.data && (
@@ -195,6 +201,69 @@ export function Alerts({ api, buildingId, scope }: Props & { scope: Scope }) {
           setOffset={setOffset}
         />
       )}
+    </>
+  );
+}
+
+function AlertActionControls({
+  api,
+  buildingId,
+  alert,
+  pending,
+  transition,
+}: Props & {
+  alert: AlertRow;
+  pending: boolean;
+  transition(action: "acknowledge" | "resolve"): void;
+}) {
+  const read = useCallback(
+    () =>
+      Promise.all(
+        alertTargets(alert).map((target) =>
+          readResourceAuthorization(api, target),
+        ),
+      ),
+    [api, alert.id, alert.buildingId, alert.deviceId, alert.gatewayId],
+  );
+  const authorization = useReadResource(
+    `alert-actions:${buildingId}:${alert.id}:${alert.deviceId}:${alert.gatewayId}`,
+    read,
+  );
+  const allowed = alertActionScope(buildingId, alert, authorization.data ?? []);
+  return (
+    <>
+      <Feedback resource={authorization} />
+      {authorization.data && !allowed.acknowledge && !allowed.resolve && (
+        <Text style={styles.muted}>
+          Este alerta está disponível somente para consulta.
+        </Text>
+      )}
+      <View style={styles.row}>
+        {alert.status === "OPEN" && allowed.acknowledge && (
+          <Button
+            label="Reconhecer"
+            disabled={pending}
+            onPress={() => transition("acknowledge")}
+          />
+        )}
+        {alert.status !== "RESOLVED" && allowed.resolve && (
+          <Button
+            label="Resolver"
+            secondary
+            disabled={pending}
+            onPress={() =>
+              Alert.alert(
+                "Resolver alerta?",
+                "Confirme que a condição foi verificada pela equipe.",
+                [
+                  { text: "Voltar", style: "cancel" },
+                  { text: "Resolver", onPress: () => transition("resolve") },
+                ],
+              )
+            }
+          />
+        )}
+      </View>
     </>
   );
 }

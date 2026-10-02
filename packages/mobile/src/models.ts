@@ -53,6 +53,9 @@ export type Reservation = {
 };
 export type AlertRow = {
   id: string;
+  buildingId: string;
+  deviceId: string | null;
+  gatewayId: string | null;
   message: string;
   severity: string;
   status: string;

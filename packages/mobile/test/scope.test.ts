@@ -9,6 +9,29 @@ import {
   validateApiUrl,
   type Scope,
 } from "../src/scope.ts";
+import type { BuildingOverview } from "@predioon/contracts";
+
+const partialOverview: BuildingOverview = {
+  buildingId: "one",
+  coverage: {
+    devices: "none",
+    gateways: "none",
+    alerts: "partial",
+    telemetry: "none",
+    occurrences: "partial",
+  },
+  occurrenceVisibility: "scoped",
+  counts: {
+    devices: null,
+    devices_online: null,
+    gateways: null,
+    gateways_online: null,
+    open_alerts: 0,
+    open_occurrences: 1,
+  },
+  latestAlerts: [],
+  gateways: [],
+};
 
 const resident: Scope = {
   buildingId: "one",
@@ -71,20 +94,127 @@ test("changing to a tenant with no grants removes all prior screens", () => {
     [],
   );
 });
-test("reservation navigation and actions do not borrow ticket or building permissions", () => {
-  const scope: Scope = { buildingId: "one", capabilities: ["occurrences:read-own", "buildings:manage"], features: [{ key: "RESERVATIONS", enabled: true }] };
+test("current partial API coverage opens only its operation domains without promoting capabilities", () => {
+  const scope = {
+    buildingId: "one",
+    capabilities: [],
+    features: [{ key: "TICKETS", enabled: true }],
+    overview: partialOverview,
+  };
+  assert.deepEqual(screensFor("operations", scope), [
+    "overview",
+    "alerts",
+    "tickets",
+  ]);
+  assert.deepEqual(scope.capabilities, []);
   assert.deepEqual(screensFor("resident", scope), []);
-  assert.deepEqual(reservationActions(scope), { read: false, areas: false, create: false, cancel: false });
-  const readOnly = { ...scope, capabilities: ["reservations:read-own"] as Scope["capabilities"] };
+  assert.deepEqual(
+    screensFor("operations", { ...scope, buildingId: "other" }),
+    [],
+  );
+  assert.deepEqual(screensFor("operations", { ...scope, overview: null }), []);
+});
+test("an authorized own occurrence count opens the summary and ticket list without technical grants", () => {
+  const overview: BuildingOverview = {
+    ...partialOverview,
+    coverage: { ...partialOverview.coverage, alerts: "none" },
+    occurrenceVisibility: "own",
+    counts: {
+      ...partialOverview.counts,
+      open_alerts: null,
+      open_occurrences: 0,
+    },
+  };
+  const scope = {
+    buildingId: "one",
+    capabilities: [],
+    features: [{ key: "TICKETS", enabled: true }],
+    overview,
+  };
+  assert.deepEqual(screensFor("operations", scope), ["overview", "tickets"]);
+  assert.deepEqual(
+    screensFor("operations", {
+      ...scope,
+      features: [{ key: "TICKETS", enabled: false }],
+    }),
+    [],
+  );
+});
+test("reservation navigation and actions do not borrow ticket or building permissions", () => {
+  const scope: Scope = {
+    buildingId: "one",
+    capabilities: ["occurrences:read-own", "buildings:manage"],
+    features: [{ key: "RESERVATIONS", enabled: true }],
+  };
+  assert.deepEqual(screensFor("resident", scope), []);
+  assert.deepEqual(reservationActions(scope), {
+    read: false,
+    areas: false,
+    create: false,
+    cancel: false,
+  });
+  const readOnly = {
+    ...scope,
+    capabilities: ["reservations:read-own"] as Scope["capabilities"],
+  };
   assert.deepEqual(screensFor("resident", readOnly), ["reservations"]);
-  assert.deepEqual(reservationActions(readOnly), { read: true, areas: false, create: false, cancel: false });
-  assert.deepEqual(reservationActions(resident), { read: true, areas: true, create: true, cancel: true });
-  assert.equal(reservationActions({ ...resident, capabilities: resident.capabilities.filter(capability => capability !== "common-areas:read") }).create, false);
-  assert.equal(reservationActions({ ...resident, capabilities: resident.capabilities.filter(capability => capability !== "reservations:create-own") }).create, false);
-  assert.equal(reservationActions({ ...resident, capabilities: resident.capabilities.filter(capability => capability !== "reservations:cancel-own") }).cancel, false);
-  assert.deepEqual(reservationActions({ ...resident, features: [{ key: "RESERVATIONS", enabled: false }] }), { read: false, areas: false, create: false, cancel: false });
-  assert.deepEqual(reservationActions({ ...scope, capabilities: ["reservations:manage"] }), { read: false, areas: false, create: false, cancel: false });
-  assert.deepEqual(reservationActions({ ...scope, capabilities: ["reservations:manage", "common-areas:read"] }), { read: true, areas: true, create: false, cancel: true });
+  assert.deepEqual(reservationActions(readOnly), {
+    read: true,
+    areas: false,
+    create: false,
+    cancel: false,
+  });
+  assert.deepEqual(reservationActions(resident), {
+    read: true,
+    areas: true,
+    create: true,
+    cancel: true,
+  });
+  assert.equal(
+    reservationActions({
+      ...resident,
+      capabilities: resident.capabilities.filter(
+        (capability) => capability !== "common-areas:read",
+      ),
+    }).create,
+    false,
+  );
+  assert.equal(
+    reservationActions({
+      ...resident,
+      capabilities: resident.capabilities.filter(
+        (capability) => capability !== "reservations:create-own",
+      ),
+    }).create,
+    false,
+  );
+  assert.equal(
+    reservationActions({
+      ...resident,
+      capabilities: resident.capabilities.filter(
+        (capability) => capability !== "reservations:cancel-own",
+      ),
+    }).cancel,
+    false,
+  );
+  assert.deepEqual(
+    reservationActions({
+      ...resident,
+      features: [{ key: "RESERVATIONS", enabled: false }],
+    }),
+    { read: false, areas: false, create: false, cancel: false },
+  );
+  assert.deepEqual(
+    reservationActions({ ...scope, capabilities: ["reservations:manage"] }),
+    { read: false, areas: false, create: false, cancel: false },
+  );
+  assert.deepEqual(
+    reservationActions({
+      ...scope,
+      capabilities: ["reservations:manage", "common-areas:read"],
+    }),
+    { read: true, areas: true, create: false, cancel: true },
+  );
 });
 test("feature disable and missing feature state fail closed", () => {
   assert.deepEqual(screensFor("resident", { ...resident, features: [] }), []);
@@ -144,15 +274,39 @@ test("a notices-only reader sees GESTAO transparency without issuing a financial
   );
 });
 test("financial readers need their own current permission and enabled feature, without building discovery", () => {
-  const scope: Scope = { buildingId: "one", capabilities: [], features: [{ key: "FINANCE", enabled: true }] };
-  for (const capability of ["finance:read-published", "finance:read"] as const) {
+  const scope: Scope = {
+    buildingId: "one",
+    capabilities: [],
+    features: [{ key: "FINANCE", enabled: true }],
+  };
+  for (const capability of [
+    "finance:read-published",
+    "finance:read",
+  ] as const) {
     const reader = { ...scope, capabilities: [capability] };
-    assert.deepEqual(transparencySections(reader), { notices: false, finance: true });
+    assert.deepEqual(transparencySections(reader), {
+      notices: false,
+      finance: true,
+    });
     assert.deepEqual(screensFor("resident", reader), ["transparency"]);
-    assert.deepEqual(transparencySections({ ...reader, features: [] }), { notices: false, finance: false });
-    assert.deepEqual(transparencySections({ ...reader, features: [{ key: "FINANCE", enabled: false }] }), { notices: false, finance: false });
+    assert.deepEqual(transparencySections({ ...reader, features: [] }), {
+      notices: false,
+      finance: false,
+    });
+    assert.deepEqual(
+      transparencySections({
+        ...reader,
+        features: [{ key: "FINANCE", enabled: false }],
+      }),
+      { notices: false, finance: false },
+    );
   }
-  for (const capabilities of [[], ["finance:manage"], ["buildings:read"], ["buildings:manage"]] as const) {
+  for (const capabilities of [
+    [],
+    ["finance:manage"],
+    ["buildings:read"],
+    ["buildings:manage"],
+  ] as const) {
     assert.deepEqual(screensFor("resident", { ...scope, capabilities }), []);
   }
 });

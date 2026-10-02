@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Alert, Linking, Text, View } from "react-native";
 import type { ApiClient } from "@predioon/api-client";
 import type { FinancialReport } from "@predioon/contracts";
@@ -17,7 +17,8 @@ import type {
   Ticket,
   TicketDetail,
 } from "./models.ts";
-import { useResource } from "./resource.ts";
+import { useReadResource, useResource } from "./resource.ts";
+import { readResourceAuthorization } from "./authorization.ts";
 import { useMutation } from "./mutation.ts";
 import {
   money,
@@ -403,10 +404,29 @@ function TicketConversation({
   );
   const [message, setMessage] = useState("");
   const mutation = useMutation();
+  const readAuthorization = useCallback(
+    () =>
+      readResourceAuthorization(api, {
+        buildingId: scope.buildingId,
+        resourceType: "occurrence",
+        resourceId: id,
+      }),
+    [api, scope.buildingId, id],
+  );
+  const authorization = useReadResource(
+    product === "operations"
+      ? `occurrence-actions:${scope.buildingId}:${id}`
+      : null,
+    readAuthorization,
+  );
   const ticket = resource.data;
   const canManage =
     product === "operations" &&
-    scope.capabilities.includes("occurrences:manage");
+    authorization.data?.capabilities.includes("occurrences:manage") === true;
+  const canComment =
+    product === "resident" ||
+    canManage ||
+    authorization.data?.capabilities.includes("occurrences:read-own") === true;
   function transition(status: string) {
     void mutation.run(async () => {
       await api.patch(`/occurrences/${encodeURIComponent(id)}`, { status });
@@ -418,6 +438,7 @@ function TicketConversation({
       <Button label="Voltar às solicitações" secondary onPress={back} />
       <Refresh resource={resource} />
       <Feedback resource={resource} />
+      {product === "operations" && <Feedback resource={authorization} />}
       {mutation.error && <ErrorMessage message={mutation.error} />}
       {mutation.success && (
         <Text accessibilityLiveRegion="polite" style={styles.text}>
@@ -486,44 +507,54 @@ function TicketConversation({
               <Text style={styles.muted}>{dateTime(event.createdAt)}</Text>
             </Card>
           ))}
-          <Card>
-            <Field
-              label="Nova mensagem"
-              value={message}
-              onChangeText={setMessage}
-              multiline
-              maxLength={2000}
-            />
-            <Button
-              label={mutation.pending ? "Enviando…" : "Enviar mensagem"}
-              disabled={mutation.pending || !message.trim()}
-              onPress={() =>
-                void mutation.run(async () => {
-                  await api.post(
-                    `/occurrences/${encodeURIComponent(id)}/comments`,
-                    { message: message.trim() },
-                  );
-                  setMessage("");
-                  resource.reload();
-                }, "Mensagem enviada.")
-              }
-            />
-          </Card>
+          {canComment && (
+            <Card>
+              <Field
+                label="Nova mensagem"
+                value={message}
+                onChangeText={setMessage}
+                multiline
+                maxLength={2000}
+              />
+              <Button
+                label={mutation.pending ? "Enviando…" : "Enviar mensagem"}
+                disabled={mutation.pending || !message.trim()}
+                onPress={() =>
+                  void mutation.run(async () => {
+                    await api.post(
+                      `/occurrences/${encodeURIComponent(id)}/comments`,
+                      { message: message.trim() },
+                    );
+                    setMessage("");
+                    resource.reload();
+                  }, "Mensagem enviada.")
+                }
+              />
+            </Card>
+          )}
         </>
       )}
     </>
   );
 }
 
-export function Reservations({ api, buildingId, scope }: Props & { scope: Scope }) {
+export function Reservations({
+  api,
+  buildingId,
+  scope,
+}: Props & { scope: Scope }) {
   const actions = reservationActions(scope);
   const areas = useResource<List<CommonArea>>(
     api,
-    actions.areas ? `/common-areas?buildingId=${encodeURIComponent(buildingId)}` : null,
+    actions.areas
+      ? `/common-areas?buildingId=${encodeURIComponent(buildingId)}`
+      : null,
   );
   const mine = useResource<List<Reservation>>(
     api,
-    actions.read ? `/reservations?buildingId=${encodeURIComponent(buildingId)}&mine=true` : null,
+    actions.read
+      ? `/reservations?buildingId=${encodeURIComponent(buildingId)}&mine=true`
+      : null,
   );
   const [form, setForm] = useState({
     areaId: "",
@@ -533,7 +564,9 @@ export function Reservations({ api, buildingId, scope }: Props & { scope: Scope 
     unit: "",
   });
   const mutation = useMutation();
-  const selected = actions.create ? areas.data?.items.find((area) => area.id === form.areaId) : undefined;
+  const selected = actions.create
+    ? areas.data?.items.find((area) => area.id === form.areaId)
+    : undefined;
   return (
     <>
       {actions.create && (
@@ -646,33 +679,34 @@ export function Reservations({ api, buildingId, scope }: Props & { scope: Scope 
           <Text style={styles.text}>
             {dateTime(reservation.startsAt)} até {dateTime(reservation.endsAt)}
           </Text>
-          {actions.cancel && ["PENDING", "CONFIRMED"].includes(reservation.status) && (
-            <Button
-              secondary
-              label="Cancelar reserva"
-              disabled={mutation.pending}
-              onPress={() =>
-                Alert.alert(
-                  "Cancelar reserva?",
-                  "O horário será liberado para outros moradores.",
-                  [
-                    { text: "Voltar", style: "cancel" },
-                    {
-                      text: "Cancelar reserva",
-                      style: "destructive",
-                      onPress: () =>
-                        void mutation.run(async () => {
-                          await api.delete(
-                            `/reservations/${encodeURIComponent(reservation.id)}`,
-                          );
-                          mine.reload();
-                        }, "Reserva cancelada."),
-                    },
-                  ],
-                )
-              }
-            />
-          )}
+          {actions.cancel &&
+            ["PENDING", "CONFIRMED"].includes(reservation.status) && (
+              <Button
+                secondary
+                label="Cancelar reserva"
+                disabled={mutation.pending}
+                onPress={() =>
+                  Alert.alert(
+                    "Cancelar reserva?",
+                    "O horário será liberado para outros moradores.",
+                    [
+                      { text: "Voltar", style: "cancel" },
+                      {
+                        text: "Cancelar reserva",
+                        style: "destructive",
+                        onPress: () =>
+                          void mutation.run(async () => {
+                            await api.delete(
+                              `/reservations/${encodeURIComponent(reservation.id)}`,
+                            );
+                            mine.reload();
+                          }, "Reserva cancelada."),
+                      },
+                    ],
+                  )
+                }
+              />
+            )}
         </Card>
       ))}
     </>

@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -27,7 +33,8 @@ import {
   validateApiUrl,
 } from "./scope.ts";
 import type { Building, List } from "./models.ts";
-import { useResource } from "./resource.ts";
+import { useReadResource, useResource } from "./resource.ts";
+import { readOperationsAccess } from "./authorization.ts";
 import { Alerts, Overview, Readings } from "./operations.tsx";
 import { Notices, Reservations, Tickets, Transparency } from "./resident.tsx";
 import { Access } from "./access.tsx";
@@ -412,7 +419,17 @@ function BuildingApp({
 }) {
   const authorization = useResource<AuthorizationResponse>(
     api,
-    `/v1/authorization?buildingId=${encodeURIComponent(building.id)}`,
+    product === "resident"
+      ? `/v1/authorization?buildingId=${encodeURIComponent(building.id)}`
+      : null,
+  );
+  const readAccess = useCallback(
+    () => readOperationsAccess(api, building.id),
+    [api, building.id],
+  );
+  const operationsAccess = useReadResource(
+    product === "operations" ? `operations:${building.id}` : null,
+    readAccess,
   );
   const features = useResource<List<Feature>>(
     api,
@@ -421,11 +438,19 @@ function BuildingApp({
   const [selected, setSelected] = useState<Screen | null>(null);
   const scope = {
     buildingId: building.id,
-    capabilities: authorization.data?.capabilities ?? [],
+    capabilities:
+      (product === "operations" ? operationsAccess.data : authorization.data)
+        ?.capabilities ?? [],
     features: features.data?.items ?? [],
+    ...(product === "operations"
+      ? { overview: operationsAccess.data?.overview ?? null }
+      : {}),
   };
   const screens = screensFor(product, scope);
-  const ready = Boolean(authorization.data && features.data);
+  const ready = Boolean(
+    (product === "operations" ? operationsAccess.data : authorization.data) &&
+      features.data,
+  );
   const current =
     selected && screens.includes(selected) ? selected : screens[0];
   return (
@@ -462,7 +487,9 @@ function BuildingApp({
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.page}
       >
-        <Feedback resource={authorization} />
+        <Feedback
+          resource={product === "operations" ? operationsAccess : authorization}
+        />
         <Feedback resource={features} />
         {ready && !current && (
           <Card>

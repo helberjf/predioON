@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AppState } from "react-native";
 import type { ApiClient } from "@predioon/api-client";
 import { createResourcePoller } from "./resource-poller.ts";
@@ -14,18 +14,33 @@ export function useResource<T>(
   api: ApiClient,
   path: string | null,
 ): Resource<T> {
+  const read = useCallback(() => api.get<T>(path!), [api, path]);
+  return useReadResource(path, read);
+}
+
+/** A keyed composite read shares the same foreground/generation guarantees. */
+export function useReadResource<T>(
+  path: string | null,
+  read: () => Promise<T>,
+): Resource<T> {
   const [revision, setRevision] = useState(0);
   const [state, setState] = useState<
     Omit<Resource<T>, "reload"> & { path: string | null }
   >({ path, data: null, error: null, loading: true, updatedAt: null });
   useEffect(() => {
     if (!path) {
-      setState({ path, data: null, error: null, loading: false, updatedAt: null });
+      setState({
+        path,
+        data: null,
+        error: null,
+        loading: false,
+        updatedAt: null,
+      });
       return;
     }
     const poller = createResourcePoller({
       active: AppState.currentState === "active",
-      read: () => api.get<T>(path),
+      read,
       loading: () =>
         setState((previous) => ({
           ...previous,
@@ -66,7 +81,7 @@ export function useResource<T>(
       poller.dispose();
       listener.remove();
     };
-  }, [api, path, revision]);
+  }, [read, path, revision]);
   return {
     ...(state.path === path
       ? state

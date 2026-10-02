@@ -1,4 +1,5 @@
 import type { AuthorizationResponse } from "@predioon/contracts/tenancy";
+import type { BuildingOverview } from "@predioon/contracts";
 
 export type Product = "resident" | "operations";
 export type Screen =
@@ -16,6 +17,8 @@ export type Scope = {
   buildingId: string;
   capabilities: readonly Grant[];
   features: readonly Feature[];
+  /** Current server projection for operation navigation, never action grants. */
+  overview?: BuildingOverview | null;
 };
 
 export function transparencySections(scope: Scope) {
@@ -26,13 +29,16 @@ export function transparencySections(scope: Scope) {
       scope.capabilities.includes("notices:read") && enabled("TRANSPARENCY"),
     finance:
       (scope.capabilities.includes("finance:read-published") ||
-        scope.capabilities.includes("finance:read")) && enabled("FINANCE"),
+        scope.capabilities.includes("finance:read")) &&
+      enabled("FINANCE"),
   };
 }
 
 /** Each reservation action follows its own current domain permission. */
 export function reservationActions(scope: Scope) {
-  const enabled = scope.features.some((feature) => feature.key === "RESERVATIONS" && feature.enabled);
+  const enabled = scope.features.some(
+    (feature) => feature.key === "RESERVATIONS" && feature.enabled,
+  );
   const has = (grant: Grant) => scope.capabilities.includes(grant);
   const readOwn = has("reservations:read-own");
   const manage = has("reservations:manage") && has("common-areas:read");
@@ -59,9 +65,7 @@ export function screensFor(product: Product, scope: Scope): Screen[] {
       feature("TICKETS")
         ? ["tickets" as const]
         : []),
-      ...(reservationActions(scope).read
-        ? ["reservations" as const]
-        : []),
+      ...(reservationActions(scope).read ? ["reservations" as const] : []),
       ...(transparency.notices || transparency.finance
         ? ["transparency" as const]
         : []),
@@ -70,6 +74,29 @@ export function screensFor(product: Product, scope: Scope): Screen[] {
         ? ["access" as const]
         : []),
     ];
+  if ("overview" in scope) {
+    const overview =
+      scope.overview?.buildingId === scope.buildingId ? scope.overview : null;
+    if (!overview) return [];
+    const tickets =
+      feature("TICKETS") &&
+      overview.coverage.occurrences !== "none" &&
+      overview.occurrenceVisibility !== "none";
+    const summary =
+      tickets ||
+      [
+        overview.coverage.devices,
+        overview.coverage.gateways,
+        overview.coverage.alerts,
+        overview.coverage.telemetry,
+      ].some((value) => value !== "none");
+    return [
+      ...(summary ? ["overview" as const] : []),
+      ...(overview.coverage.alerts !== "none" ? ["alerts" as const] : []),
+      ...(overview.coverage.telemetry !== "none" ? ["readings" as const] : []),
+      ...(tickets ? ["tickets" as const] : []),
+    ];
+  }
   return [
     ...(["telemetry:read", "devices:read", "alerts:read"].some((grant) =>
       scope.capabilities.includes(grant as Grant),
