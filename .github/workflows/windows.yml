@@ -1,0 +1,28 @@
+name: Windows startup verification
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/start-local.ps1'
+      - 'scripts/test-start-local.ps1'
+      - '.github/workflows/windows.yml'
+  pull_request:
+    paths:
+      - 'scripts/start-local.ps1'
+      - 'scripts/test-start-local.ps1'
+      - '.github/workflows/windows.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  startup:
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify startup and failure handling in Windows PowerShell 5.1
+        shell: powershell
+        run: .\scripts\test-start-local.ps1
