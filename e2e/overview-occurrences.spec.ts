@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
 import { BUILDING_URL } from "./environment";
 import { authenticatedApi, isolatedTenant, signIn, signOut } from "./helpers";
+import { withFixtureDatabase } from "./database";
 
 type Overview = {
   counts: { open_occurrences: number | null };
@@ -19,20 +20,6 @@ async function openOverview(page: Page, buildingId: string) {
   expect(loaded.status()).toBe(200);
   expect(loaded.headers()["cache-control"]).toBe("no-store");
   return loaded.json() as Promise<Overview>;
-}
-
-/** Only the resource-scoped role fixture needs owner SQL: the public tenancy
- * endpoint intentionally grants standard whole-building roles only. */
-async function isolatedFixtureDatabase() {
-  const runtime = new URL(process.env.DATABASE_URL_APP ?? "postgres://predioon_app:predioon_app@localhost:5436/predioon");
-  const owner = new URL(process.env.DATABASE_URL ?? "postgres://predioon:predioon@localhost:5436/predioon");
-  const loopback = (host: string) => ["localhost", "127.0.0.1", "[::1]"].includes(host);
-  if (!loopback(owner.hostname) || !loopback(runtime.hostname) || owner.port !== runtime.port || owner.pathname !== runtime.pathname) {
-    throw new Error("A fixture SQL E2E exige DATABASE_URL no mesmo banco e porta loopback de DATABASE_URL_APP.");
-  }
-  // Set before the lazy import so .env cannot select the ordinary development DB.
-  process.env.DATABASE_URL = owner.toString();
-  return (await import("../packages/db/src/index.js")).sqlClient;
 }
 
 test("dashboard conta chamados próprios e da gestão sem conteúdo privado, distingue zero de pausa", async ({ page, request }) => {
@@ -118,12 +105,11 @@ test("dashboard limita o contador ao recurso autorizado e não inventa zero para
   const hidden = await residentApi.create<{ id: string }>("/occurrences", {
     buildingId: fixture.building.id, title: `Outro relato ${fixture.suffix}`, description: "Outro relato privado.", category: "GENERAL",
   });
-  const sql = await isolatedFixtureDatabase();
   const scopedRole = `E2E_SCOPE_${randomUUID()}`;
   const basicRole = `E2E_BASIC_${randomUUID()}`;
   const scopedBinding = randomUUID();
   const basicBinding = randomUUID();
-  try {
+  await withFixtureDatabase(async sql => { try {
     await sql.begin(async tx => {
       await tx`insert into roles(key,scope,label) values (${scopedRole},'BUILDING','E2E scoped count'),(${basicRole},'BUILDING','E2E basic count')`;
       // Discovery reads only the parent of this same exact occurrence binding;
@@ -158,11 +144,9 @@ test("dashboard limita o contador ao recurso autorizado e não inventa zero para
       await expect(page.locator("body")).not.toContainText(value);
     }
   } finally {
-    try {
-      await sql.begin(async tx => {
-        await tx`delete from role_bindings where id in (${scopedBinding},${basicBinding})`;
-        await tx`delete from roles where key in (${scopedRole},${basicRole})`;
-      });
-    } finally { await sql.end({ timeout: 5 }); }
-  }
+    await sql.begin(async tx => {
+      await tx`delete from role_bindings where id in (${scopedBinding},${basicBinding})`;
+      await tx`delete from roles where key in (${scopedRole},${basicRole})`;
+    });
+  } });
 });

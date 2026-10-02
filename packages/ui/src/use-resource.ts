@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
-import { api } from "./api.js";
+import { api, ApiError } from "./api.js";
 import { resourceReducer } from "./resource-state.js";
 
-type Resource<T> = { data: T | null; error: string | null; loading: boolean; reload: () => void };
+type Resource<T> = { data: T | null; error: string | null; errorStatus?: number | null; loading: boolean; reload: () => void };
 
 /** Minimal data hook: one request, one reload, no cache. Enough for panels of this size. */
 export function useResource<T>(path: string | null, deps: unknown[] = []): Resource<T> {
@@ -21,7 +21,7 @@ export function useResource<T>(path: string | null, deps: unknown[] = []): Resou
     api
       .get<T>(path)
       .then((data) => active && dispatch({ type: "success", data }))
-      .catch((cause: unknown) => active && dispatch({ type: "error", error: cause instanceof Error ? cause.message : "Falha ao carregar" }))
+      .catch((cause: unknown) => active && dispatch({ type: "error", error: cause instanceof Error ? cause.message : "Falha ao carregar", status: cause instanceof ApiError ? cause.status : undefined }))
       .finally(() => { if (active) pending.current = false; });
     return () => {
       active = false;

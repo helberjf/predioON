@@ -22,3 +22,13 @@ test("changing sensor and failed refresh discard values that cannot be used for 
   assert.equal(disabled.loading, false);
   assert.equal(disabled.data, null);
 });
+
+test("permission denial clears private content and its status cannot follow a new scope or successful retry", () => {
+  const loaded = { path: "/finance?a", data: { privateDraft: true }, error: null, loading: false };
+  const denied = resource.resourceReducer(loaded, { type: "error", error: "Forbidden", status: 403 });
+  assert.equal(denied.data, null);
+  assert.equal(denied.errorStatus, 403);
+  assert.equal(resource.resourceReducer(denied, { type: "start", path: "/finance?b" }).errorStatus, null);
+  assert.equal(resource.resourceReducer(denied, { type: "success", data: { privateDraft: false } }).errorStatus, null);
+  assert.equal(resource.resourceReducer(denied, { type: "error", error: "Network unavailable" }).errorStatus, null);
+});
