@@ -39,6 +39,9 @@ jobs:
           distribution: temurin
           java-version: '17'
       - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools'
+          log-accepted-android-sdk-licenses: false
       - run: pnpm install --frozen-lockfile
       - name: Compile Android application and bundled JavaScript
         working-directory: apps/${{ matrix.app }}/android
