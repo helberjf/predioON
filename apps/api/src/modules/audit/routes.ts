@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { and, desc, eq, inArray } from "drizzle-orm";
-import { auditLogs } from "@predioon/db";
+import { auditLogs } from "@predioon/db/runtime";
 import { z } from "zod";
 import { currentAuth, inTenantContext, requireRole } from "../../auth/middleware.js";
 import { PaginationSchema } from "../../http/pagination.js";

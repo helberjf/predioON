@@ -9,12 +9,14 @@
     "db:wait": "pnpm --filter @predioon/db db:wait",
     "db:push": "pnpm --filter @predioon/db db:push",
     "db:infra": "pnpm --filter @predioon/db db:infra",
+    "db:provision-runtime": "pnpm --filter @predioon/db db:provision-runtime",
     "db:seed": "pnpm --filter @predioon/db db:seed",
-    "setup:local": "pnpm infra:up && pnpm db:wait && pnpm db:push && pnpm db:infra && pnpm db:seed",
+    "setup:local": "pnpm infra:up && pnpm db:wait && pnpm db:push && pnpm db:infra && pnpm db:provision-runtime && pnpm db:seed",
     "dev": "pnpm -r --parallel dev",
     "simulate:hardware": "pnpm --filter @predioon/ingest simulator",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
-    "test": "pnpm -r --workspace-concurrency=1 --filter @predioon/ui --filter @predioon/api --filter @predioon/ingest test"
+    "check:boundaries": "node scripts/check-boundaries.mjs",
+    "test": "pnpm -r --workspace-concurrency=1 --filter @predioon/api-client --filter @predioon/ui --filter @predioon/api --filter @predioon/ingest test"
   }
 }

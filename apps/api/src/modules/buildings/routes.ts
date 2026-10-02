@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { asc, eq, inArray } from "drizzle-orm";
+import { asc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
-import { buildings } from "@predioon/db";
+import { buildings } from "@predioon/db/runtime";
 import { CreatePropertySchema, UpdatePropertySchema } from "@predioon/shared";
-import { assertBuildingAccess, currentAuth, inTenantContext, requireRole, scopedBuildingIds } from "../../auth/middleware.js";
+import { assertBuildingDiscovery, assertCapability, assertGlobalCapability, currentAuth, inTenantContext } from "../../auth/middleware.js";
 import { notFound } from "../../http/errors.js";
 import { generateId } from "../../http/ids.js";
 import { validateBody } from "../../http/validate.js";
@@ -15,31 +15,29 @@ export const buildingsRouter = Router();
 const CreateSchema = CreatePropertySchema;
 const UpdateSchema = UpdatePropertySchema;
 
-/** Residents and building admins see only their own buildings; RLS enforces the same rule. */
+/** PostgreSQL discovers current scopes from bindings, teams and diagnostic grants. */
 buildingsRouter.get("/", async (req, res) => {
-  const scope = scopedBuildingIds(currentAuth(req));
-  const rows = await inTenantContext(req, (tx) => {
-    const base = tx.select().from(buildings);
-    return scope ? base.where(inArray(buildings.id, scope.length ? scope : [""])).orderBy(asc(buildings.name))
-                 : base.orderBy(asc(buildings.name));
-  });
+  const rows = await inTenantContext(req, tx => tx.select().from(buildings).orderBy(asc(buildings.name)));
   res.json({ items: rows });
 });
 
 buildingsRouter.get("/:buildingId", async (req, res) => {
-  assertBuildingAccess(currentAuth(req), param(req, "buildingId"));
-  const [row] = await inTenantContext(req, (tx) =>
-    tx.select().from(buildings).where(eq(buildings.id, param(req, "buildingId"))).limit(1),
-  );
-  if (!row) throw notFound("Prédio não encontrado");
+  const buildingId = param(req, "buildingId");
+  const row = await inTenantContext(req, async tx => {
+    await assertBuildingDiscovery(tx, buildingId);
+    const [found] = await tx.select().from(buildings).where(eq(buildings.id, buildingId)).limit(1);
+    if (!found) throw notFound("Prédio não encontrado");
+    return found;
+  });
   res.json(row);
 });
 
-buildingsRouter.post("/", requireRole("PLATFORM_ADMIN"), validateBody(CreateSchema), async (req, res) => {
+buildingsRouter.post("/", validateBody(CreateSchema), async (req, res) => {
   const input = req.body as z.infer<typeof CreateSchema>;
   const auth = currentAuth(req);
 
   const row = await inTenantContext(req, async (tx) => {
+    await assertGlobalCapability(tx, "buildings:provision");
     const [created] = await tx
       .insert(buildings)
       .values({ id: generateId("bld"), ...input, address: input.address ?? {} })
@@ -60,16 +58,15 @@ buildingsRouter.post("/", requireRole("PLATFORM_ADMIN"), validateBody(CreateSche
 buildingsRouter.patch("/:buildingId", validateBody(UpdateSchema), async (req, res) => {
   const auth = currentAuth(req);
   const buildingId = param(req, "buildingId");
-  assertBuildingAccess(auth, buildingId, "BUILDING_ADMIN");
   const input = req.body as z.infer<typeof UpdateSchema>;
 
   const row = await inTenantContext(req, async (tx) => {
-    const [updated] = await tx
-      .update(buildings)
-      .set({ ...input, updatedAt: new Date() })
-      .where(eq(buildings.id, buildingId))
-      .returning();
-    if (!updated) throw notFound("Prédio não encontrado");
+    const [global] = await tx.execute(sql`select app_has_global_capability('buildings:manage') as allowed`);
+    if (!global?.allowed) await assertCapability(tx, "buildings:manage", buildingId, { type: "building", id: buildingId });
+    const [existing] = await tx.select().from(buildings).where(eq(buildings.id, buildingId)).for("update").limit(1);
+    if (!existing) throw notFound("Prédio não encontrado");
+    // Auditing before deactivation preserves the current tenant grant; rollback
+    // keeps the audit and mutation atomic if the update subsequently fails.
     await recordAudit(tx, req, {
       buildingId,
       userId: auth.userId,
@@ -78,6 +75,9 @@ buildingsRouter.patch("/:buildingId", validateBody(UpdateSchema), async (req, re
       resourceId: buildingId,
       metadata: input,
     });
+    const [updated] = await tx.update(buildings).set({ ...input, updatedAt: new Date() })
+      .where(eq(buildings.id, buildingId)).returning();
+    if (!updated) throw notFound("Prédio não encontrado");
     return updated;
   });
 

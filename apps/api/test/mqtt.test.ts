@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { before, after, describe, it } from "node:test";
 import { eq } from "drizzle-orm";
-import { db, sqlClient, closeAppDb, devices, gateways } from "@predioon/db";
+import { db, sqlClient, devices, gateways } from "@predioon/db";
+import { closeAppDb } from "@predioon/db/runtime";
 import { hashPassword } from "../src/auth/passwords.js";
 
 process.env.MQTT_AUTH_SECRET = "test-broker-secret-with-at-least-32-chars";
@@ -11,6 +12,7 @@ const { startTestServer, login, call } = await import("./helpers.js");
 const id = `gw_test_${randomUUID().slice(0, 8)}`;
 const deviceId = `sensor_${randomUUID().slice(0, 8)}`;
 const username = `gw_${id}`;
+const localGatewayGrant = randomUUID();
 let server: Awaited<ReturnType<typeof startTestServer>>;
 
 async function broker(path: string, body: unknown, secret = process.env.MQTT_AUTH_SECRET) {
@@ -26,10 +28,13 @@ describe("segurança MQTT", () => {
     await db.insert(gateways).values({ id, buildingId: "bld_001", name: "Teste MQTT", serialNumber: id,
       metadata: { mqttUsername: username, mqttPasswordHash: await hashPassword("gateway-password") } });
     await db.insert(devices).values({ id: deviceId, buildingId: "bld_001", gatewayId: id, name: "Sensor MQTT", type: "WATER_LEVEL_SENSOR" });
+    await sqlClient`insert into role_bindings(id,user_id,building_id,role_key,resource_type,resource_id)
+      select ${localGatewayGrant},id,'bld_001','BUILDING_ADMIN','gateway',${id} from users where email='admin@predioon.local'`;
     server = await startTestServer();
   });
   after(async () => {
     await server?.close();
+    await sqlClient`delete from role_bindings where id=${localGatewayGrant}`;
     await db.delete(devices).where(eq(devices.id, deviceId));
     await db.delete(gateways).where(eq(gateways.id, id));
     await closeAppDb(); await sqlClient.end();

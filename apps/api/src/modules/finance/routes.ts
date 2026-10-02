@@ -2,7 +2,7 @@ import { assertFeature } from "../../auth/features.js";
 import { Router } from "express";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
-import { financialReports } from "@predioon/db";
+import { financialReports } from "@predioon/db/runtime";
 import { FinancialContentSchema, financialTotals } from "@predioon/shared";
 import { currentAuth, inTenantContext } from "../../auth/middleware.js";
 import { badRequest, conflict, notFound } from "../../http/errors.js";

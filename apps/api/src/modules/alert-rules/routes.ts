@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
-import { alertRules } from "@predioon/db";
+import { alertRules } from "@predioon/db/runtime";
 import { assertBuildingAccess, currentAuth, inTenantContext, requireRole, scopedBuildingIds } from "../../auth/middleware.js";
 import { notFound } from "../../http/errors.js";
 import { query, validateBody, validateQuery } from "../../http/validate.js";

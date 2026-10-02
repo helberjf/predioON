@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import type { AppTransaction } from "@predioon/db";
+import type { AppTransaction } from "@predioon/db/runtime";
 import { forbidden } from "../http/errors.js";
 
 /** Consults current membership and account status rather than trusting a stale token. */

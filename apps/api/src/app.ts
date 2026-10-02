@@ -27,6 +27,8 @@ import { parkingRouter } from "./modules/parking/routes.js";
 import { supportRouter } from "./modules/support/routes.js";
 import { financeRouter } from "./modules/finance/routes.js";
 import { featuresRouter } from "./modules/features/routes.js";
+import { tenancyRouter } from "./modules/tenancy/routes.js";
+import { authorizationRouter } from "./modules/authorization/routes.js";
 
 export const app = express();
 
@@ -42,6 +44,8 @@ app.use("/internal/mqtt", mqttRouter);
 app.use("/events", eventsRouter);
 
 app.use(authenticate);
+app.use("/v1/tenancy", tenancyRouter);
+app.use("/v1/authorization", authorizationRouter);
 app.use("/features", featuresRouter);
 app.use("/organizations", organizationsRouter);
 app.use("/buildings", buildingsRouter);

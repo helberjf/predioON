@@ -2,7 +2,7 @@ import { assertFeature } from "../../auth/features.js";
 import { Router } from "express";
 import { and, asc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { commonAreas } from "@predioon/db";
+import { commonAreas } from "@predioon/db/runtime";
 import { assertBuildingAccess, currentAuth, inTenantContext } from "../../auth/middleware.js";
 import { notFound } from "../../http/errors.js";
 import { param } from "../../http/params.js";

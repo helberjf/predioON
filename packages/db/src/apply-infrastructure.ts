@@ -11,10 +11,13 @@ const composeFile = fileURLToPath(new URL("../../../infrastructure/docker-compos
 const infraDir = fileURLToPath(new URL("../../../infrastructure/", import.meta.url));
 
 function runSql(script: string, label: string): void {
+  // New migrations are atomic. Keep the older bootstrap scripts' execution
+  // semantics until the controlled migration runner replaces that flow.
+  const transactionArgs = Number.parseInt(label, 10) >= 15 ? ["--single-transaction"] : [];
   const result = spawnSync(
     "docker",
     ["compose", "-f", composeFile, "exec", "-T", "db",
-     "psql", "-U", "predioon", "-d", "predioon", "-v", "ON_ERROR_STOP=1", "-f", "-"],
+     "psql", "-U", "predioon", "-d", "predioon", "-v", "ON_ERROR_STOP=1", ...transactionArgs, "-f", "-"],
     { cwd: rootDir, input: script, encoding: "utf8" },
   );
 

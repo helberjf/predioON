@@ -2,7 +2,7 @@ import { assertFeature, buildingFeatures, observationIsCurrent } from "../../aut
 import { Router } from "express";
 import { and, asc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { devices, gateways, parkingLots, type AppTransaction } from "@predioon/db";
+import { devices, gateways, parkingLots, type AppTransaction } from "@predioon/db/runtime";
 import { ParkingConfigSchema, ParkingOccupancySchema, parkingAvailability, parkingFeature } from "@predioon/shared";
 import { assertBuildingAccess, currentAuth, inTenantContext, requireRole } from "../../auth/middleware.js";
 import { badRequest, conflict, notFound, pgErrorCode } from "../../http/errors.js";

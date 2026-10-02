@@ -1,5 +1,7 @@
 # Instalação — Prédio ON
 
+> Este roteiro corresponde aos serviços e scripts existentes. A [arquitetura de produto revisada](superpowers/specs/2026-09-27-arquitetura-produto-design.md) define workers por carga, imagens fixadas e migrations versionadas. A separação de credenciais da API está integrada ao Compose; ingestão, workers e o fluxo definitivo de migrations continuam pendentes. Uma VPS única não oferece alta disponibilidade contra perda do host.
+
 O roteiro completo, com resumo inicial, instalação de campo, primeira conta administrativa, operação e aceite, está no [manual de implantação em condomínio](IMPLANTACAO_CONDOMINIO.md). Este arquivo detalha a infraestrutura.
 
 Configuração preparada para uma VPS com Docker Compose. A entrega de 21/09/2026 foi
@@ -18,6 +20,10 @@ em [ENTREGA_HELBER.md](ENTREGA_HELBER.md).
 ```bash
 node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
 ```
+
+Configure `APP_DB_PASSWORD`, `IDENTITY_DB_PASSWORD` e `BROKER_AUTH_DB_PASSWORD` com senhas distintas. A senha proprietária `POSTGRES_PASSWORD` é usada no provisionamento e, durante a transição, na ingestão; ela não entra no ambiente do container da API.
+
+A API em produção exige `JWT_ACTIVE_KID`, `JWT_PRIVATE_KEY` Ed25519 e `JWT_PUBLIC_KEYS`, um objeto JSON que associa cada `kid` ao PEM público. Use um par persistente guardado no gerenciador de segredos; o par efêmero de desenvolvimento é recusado em produção. PEMs podem usar a sequência literal `\n`. O access token tem duração de cinco minutos e a sessão é consultada a cada requisição. A configuração anterior `JWT_SECRET` não é mais usada; a transição exige novo login. Consulte [autenticação](AUTENTICACAO.md).
 
 O Caddy obtém TLS dos quatro serviços web. Para MQTT, obter separadamente um certificado
 válido para `mqtt.SEUDOMINIO` e colocar `fullchain.pem` e `privkey.pem` no diretório absoluto
@@ -39,14 +45,17 @@ docker compose -f infrastructure/docker-compose.prod.yml --env-file infrastructu
 ```
 
 O script aplica as tabelas e todos os arquivos `infrastructure/0*.sql` em ordem, incluindo
-`005-audit-insert.sql` e `006-telemetry-read-policy.sql`. A API usa a role restrita `predioon_app`; a ingestão usa a conexão
-administrativa interna. O banco vazio exige provisionar o primeiro administrador.
+`013-sessions.sql`, `014-rbac-tenancy.sql` e `015-api-runtime-roles.sql`, e provisiona as senhas das roles restritas em uma operação administrativa separada. A API usa `predioon_app` nas consultas com contexto do usuário, `predioon_identity` para autenticação e sessões e `predioon_broker_auth` para autorização do broker. As duas últimas roles são criadas sem login pela migração; `pnpm db:provision-runtime` habilita o login com as senhas configuradas. O processo HTTP não precisa de `DATABASE_URL`.
+
+A ingestão ainda usa a conexão administrativa interna. O banco vazio exige provisionar o primeiro administrador.
 Para um **piloto com dados demonstrativos**, preencher `SEED_PASSWORD` com senha exclusiva
 e usar `./infrastructure/setup-prod.sh --seed`. Isso cria as três contas listadas no README
 e os sensores de demonstração; não representa um cadastro real do condomínio.
 
 Para atualizar uma instalação existente, fazer backup do banco e executar novamente o
 script após atualizar o código. Não usar `infra:reset` em banco com dados reais.
+
+O bootstrap atual executa `drizzle-kit push --force`: revisar as alterações de schema e ensaiar a atualização/restauração antes de reaplicá-lo a uma instalação com dados reais. O executor de migrations com lock/checksum já possui testes, mas sua integração ao bootstrap ainda está pendente.
 
 ## MQTT de produção
 

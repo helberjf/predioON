@@ -1,5 +1,6 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { api, setAuthLostHandler, tokens, type Session } from "./api.js";
+import { createAuthActions } from "./auth-state.js";
 
 type AuthUser = Session["user"];
 
@@ -17,45 +18,26 @@ const AuthContext = createContext<AuthState | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const actions = useMemo(() => createAuthActions({ api, tokens, onUserChange: setUser, onLoadingChange: setLoading }), []);
 
   useEffect(() => {
-    // A stored token may be expired; /auth/me is the cheapest way to find out.
-    if (!tokens.access()) {
-      setLoading(false);
-      return;
-    }
-    api
-      .get<AuthUser>("/auth/me")
-      .then(setUser)
-      .catch(() => tokens.clear())
-      .finally(() => setLoading(false));
-  }, []);
-
-  // Any request that fails to renew the session sends the user back to the login screen.
-  useEffect(() => {
-    setAuthLostHandler(() => setUser(null));
-    return () => setAuthLostHandler(null);
-  }, []);
-
-  const signIn = useCallback(async (email: string, password: string) => {
-    const session = await api.login(email, password);
-    setUser(session.user);
-  }, []);
-
-  const signOut = useCallback(async () => {
-    await api.logout();
-    setUser(null);
-  }, []);
+    setAuthLostHandler(actions.authLost);
+    void actions.restore();
+    return () => {
+      actions.cancel();
+      setAuthLostHandler(null);
+    };
+  }, [actions]);
 
   const value = useMemo<AuthState>(
     () => ({
       user,
       loading,
-      signIn,
-      signOut,
+      signIn: actions.signIn,
+      signOut: actions.signOut,
       buildingId: user?.memberships[0]?.buildingId ?? null,
     }),
-    [user, loading, signIn, signOut],
+    [user, loading, actions],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

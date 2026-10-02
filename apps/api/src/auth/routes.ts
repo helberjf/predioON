@@ -1,9 +1,8 @@
 import { Router } from "express";
 import { z } from "zod";
 import { validateBody } from "../http/validate.js";
-import { badRequest } from "../http/errors.js";
 import { authenticate, currentAuth } from "./middleware.js";
-import { login, refreshSession, revokeSession } from "./service.js";
+import { listSessions, login, refreshSession, revokeAllSessions, revokeSession, revokeSessionById } from "./service.js";
 import type { SessionTokens } from "./service.js";
 
 export const authRouter = Router();
@@ -20,11 +19,11 @@ function sessionResponse(session: SessionTokens) {
     accessToken: session.accessToken,
     refreshToken: session.refreshToken,
     user: {
-      id: session.claims.sub,
-      name: session.claims.name,
-      email: session.claims.email,
-      role: session.claims.role,
-      memberships: session.claims.memberships,
+      id: session.identity.userId,
+      name: session.identity.name,
+      email: session.identity.email,
+      role: session.identity.role,
+      memberships: session.identity.memberships,
     },
   };
 }
@@ -49,8 +48,25 @@ authRouter.post("/refresh", validateBody(RefreshSchema), async (req, res) => {
 
 authRouter.post("/logout", validateBody(RefreshSchema), async (req, res) => {
   const { refreshToken } = req.body as z.infer<typeof RefreshSchema>;
-  if (!refreshToken) throw badRequest("refreshToken é obrigatório");
   await revokeSession(refreshToken);
+  res.status(204).end();
+});
+
+authRouter.get("/sessions", authenticate, async (req, res) => {
+  const auth = currentAuth(req);
+  res.json({ items: await listSessions(auth.userId, auth.sessionId) });
+});
+
+authRouter.delete("/sessions/:id", authenticate, async (req, res) => {
+  const auth = currentAuth(req);
+  const id = z.string().uuid().safeParse(req.params.id);
+  if (!id.success) { res.status(404).end(); return; }
+  await revokeSessionById(auth.userId, id.data);
+  res.status(204).end();
+});
+
+authRouter.post("/sessions/revoke-all", authenticate, async (req, res) => {
+  await revokeAllSessions(currentAuth(req).userId);
   res.status(204).end();
 });
 

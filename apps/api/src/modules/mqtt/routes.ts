@@ -2,7 +2,8 @@ import { timingSafeEqual } from "node:crypto";
 import { Router } from "express";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { db, devices, gateways, buildings, gates } from "@predioon/db";
+import { devices, gateways, buildings, gates } from "@predioon/db/runtime";
+import { brokerAuthDb as db } from "@predioon/db/broker-auth";
 import { ACCESS_ACK_TOPIC, parseAccessTopic, TELEMETRY_TOPIC, WATER_TELEMETRY_TOPIC, GATEWAY_STATUS_TOPIC, parseTelemetryTopic, parseWaterTelemetryTopic, parseGatewayStatusTopic } from "@predioon/shared";
 import { verifyPassword } from "../../auth/passwords.js";
 import { config } from "../../config.js";
@@ -41,7 +42,7 @@ async function findGateway(username: string, clientid: string) {
   if (!username.startsWith("gw_")) return null;
   const id = username.slice(3);
   if (clientid !== id) return null;
-  const [row] = await db.select({ gateway: gateways }).from(gateways)
+  const [row] = await db.select({ gateway: { id: gateways.id, buildingId: gateways.buildingId, enabled: gateways.enabled, metadata: gateways.metadata } }).from(gateways)
     .innerJoin(buildings, eq(buildings.id, gateways.buildingId))
     .where(and(eq(gateways.id, id), eq(gateways.enabled, true), eq(buildings.active, true))).limit(1);
   return row?.gateway.metadata.mqttUsername === username ? row.gateway : null;

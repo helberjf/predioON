@@ -9,6 +9,8 @@ node_modules
 **/*.tsbuildinfo
 .git
 .github
+.local
+.codex
 
 # Segredos e coisas que não pertencem à imagem
 .env

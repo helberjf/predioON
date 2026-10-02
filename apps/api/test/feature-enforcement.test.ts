@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { after, before, describe, it } from "node:test";
-import { closeAppDb, sqlClient } from "@predioon/db";
+import { sqlClient } from "@predioon/db";
+import { closeAppDb } from "@predioon/db/runtime";
 import { call, json, login, startTestServer, unique, type Session, type TestServer } from "./helpers.js";
 import { startRealtimeBus } from "../src/modules/events/bus.js";
 

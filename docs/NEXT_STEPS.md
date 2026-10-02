@@ -1,6 +1,6 @@
 # Estado da entrega — Prédio ON
 
-A lista solicitada foi implementada no código local, com disjuntor/extintor fora do escopo. A matriz e as evidências estão em [REVISAO_FUNCIONALIDADES.md](REVISAO_FUNCIONALIDADES.md).
+O escopo funcional da entrega de 23/09/2026 foi implementado no código local, com disjuntor/extintor fora do escopo. A matriz e as evidências estão em [REVISAO_FUNCIONALIDADES.md](REVISAO_FUNCIONALIDADES.md). A proposta ampliada de 27/09/2026 está na [arquitetura de produto](superpowers/specs/2026-09-27-arquitetura-produto-design.md) e ainda requer implementação; os resultados anteriores não validam essa nova arquitetura.
 
 ## Validação local concluída em 23/09/2026
 
@@ -22,6 +22,8 @@ Tipos e geração dos painéis/serviços passaram. Esses resultados validam o so
 - Cadastrar usuários e permissões e validar os equipamentos no local.
 
 ## Evoluções futuras
+
+A direção atual é entregar **App Morador** e **App Operação (síndico/equipe de manutenção)** em React Native sem Expo, além dos painéis web de síndico e plataforma. Ambos os apps usam o mesmo backend e banco. A [sequência de evolução](superpowers/specs/2026-09-27-arquitetura-produto-design.md) inclui RBAC por capacidade, sessões, equipes/unidades, inbox/outbox, workers separados, manutenção, automações versionadas, planos/assinaturas e operação em uma VPS preparada para extração de cargas.
 
 A integração de [suporte remoto com AnyDesk](SUPORTE_REMOTO.md) foi acrescentada ao painel administrativo: cadastro do computador por condomínio, preparação de acesso e registro manual do resultado, com autorização atual e auditoria. Instalar/configurar o AnyDesk e testar o computador real continua sendo etapa de campo.
 

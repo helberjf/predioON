@@ -1,12 +1,12 @@
-import { assertSensorFeatures, buildingFeatures, observationIsCurrent, sensorFeatureKeys } from "../../auth/features.js";
+import { featureDisabled, observationIsCurrent } from "../../auth/features.js";
 import { Router } from "express";
-import { eq } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 import { z } from "zod";
-import { devices } from "@predioon/db";
-import { assertBuildingAccess, currentAuth, inTenantContext } from "../../auth/middleware.js";
-import { notFound } from "../../http/errors.js";
+import { readFeatures } from "@predioon/db/runtime";
+import { inTenantContext } from "../../auth/middleware.js";
+import { forbidden, notFound } from "../../http/errors.js";
 import { query, validateQuery } from "../../http/validate.js";
+import { authorizedTelemetryDevices, telemetryFeatureKeys } from "./authorization.js";
 
 export const telemetryRouter = Router();
 
@@ -43,26 +43,40 @@ type LatestRow = {
 /** One row per device+metric with the most recent reading. DISTINCT ON is the cheapest way on Timescale. */
 telemetryRouter.get("/latest", validateQuery(LatestQuerySchema), async (req, res) => {
   const { buildingId } = query<z.infer<typeof LatestQuerySchema>>(req);
-  assertBuildingAccess(currentAuth(req), buildingId);
-
   const rows = await inTenantContext(req, async (tx) => {
-    const features = await buildingFeatures(tx, buildingId);
+    const rawDevices = await authorizedTelemetryDevices(tx, buildingId);
+    const publishedDevices = await authorizedTelemetryDevices(tx, buildingId, "telemetry:read-published");
+    if (!rawDevices.length && !publishedDevices.length) {
+      const [scope] = await tx.execute(sql`select
+        app_has_capability(${buildingId},'telemetry:read') OR
+        app_has_capability(${buildingId},'telemetry:read-published') as allowed`);
+      if (!scope?.allowed) throw forbidden("Sem a capacidade necessária para telemetria");
+    }
+    // Capability authorization precedes feature reads, all under the transaction's shared lock.
+    const features = await readFeatures(tx, buildingId);
     const result = await tx.execute(sql`
       SELECT DISTINCT ON (t.device_id, t.metric)
-             t.device_id, d.name AS device_name, t.metric, t.value,
+             t.device_id, d.device_name, t.metric, t.value,
              t.numeric_value, t.unit, t.quality, t.time
       FROM telemetry t
-      JOIN devices d ON d.id = t.device_id
+      JOIN app_telemetry_authorized_devices(${buildingId}) d
+        ON d.device_id = t.device_id AND d.building_id = t.building_id
       WHERE t.building_id = ${buildingId}
         AND t.time > now() - interval '7 days'
-      ORDER BY t.device_id, t.metric, t.time DESC
+      ORDER BY t.device_id, t.metric, t.time DESC, t.id DESC
     `);
-    const visible: LatestRow[] = [];
+    const rawById = new Map(rawDevices.map(device => [device.device_id, device]));
+    const visible = new Map<string, LatestRow>();
     for (const row of result as unknown as LatestRow[]) {
-      const keys = await sensorFeatureKeys(tx, { buildingId, deviceId: row.device_id, metric: row.metric });
-      if (observationIsCurrent(features, keys, row.time)) visible.push(row);
+      const device = rawById.get(row.device_id);
+      if (device && observationIsCurrent(features, telemetryFeatureKeys(device, row.metric), row.time)) visible.set(`${row.device_id}:${row.metric}`, row);
     }
-    return visible;
+    const published = await tx.execute(sql`select * from app_published_water_levels(${buildingId})`);
+    for (const row of published as unknown as LatestRow[]) {
+      const key = `${row.device_id}:${row.metric}`;
+      if (!visible.has(key) && observationIsCurrent(features, ["WATER_TANK"], row.time)) visible.set(key, row);
+    }
+    return [...visible.values()];
   });
 
   res.json({ items: rows });
@@ -70,16 +84,15 @@ telemetryRouter.get("/latest", validateQuery(LatestQuerySchema), async (req, res
 
 telemetryRouter.get("/series", validateQuery(SeriesQuerySchema), async (req, res) => {
   const { deviceId, metric, from, to, bucket } = query<z.infer<typeof SeriesQuerySchema>>(req);
-  const auth = currentAuth(req);
   const interval = BUCKETS[bucket];
   const start = from ?? new Date(Date.now() - 24 * 60 * 60 * 1000);
   const end = to ?? new Date();
 
   const rows = await inTenantContext(req, async (tx) => {
-    const [device] = await tx.select().from(devices).where(eq(devices.id, deviceId)).limit(1);
+    const [device] = await tx.execute(sql`select * from app_telemetry_authorized_devices(null) where device_id=${deviceId}`) as unknown as Awaited<ReturnType<typeof authorizedTelemetryDevices>>;
     if (!device) throw notFound("Dispositivo não encontrado");
-    assertBuildingAccess(auth, device.buildingId);
-    await assertSensorFeatures(tx, { buildingId: device.buildingId, deviceId, metric });
+    const features = await readFeatures(tx, device.building_id);
+    for (const key of telemetryFeatureKeys(device, metric)) if (!features[key].enabled) throw featureDisabled(key);
 
     const result = await tx.execute(sql`
       SELECT time_bucket(${interval}::interval, time) AS bucket,
@@ -89,6 +102,7 @@ telemetryRouter.get("/series", validateQuery(SeriesQuerySchema), async (req, res
              count(*)           AS samples
       FROM telemetry
       WHERE device_id = ${deviceId}
+        AND building_id = ${device.building_id}
         AND metric = ${metric}
         AND time >= ${start.toISOString()}
         AND time <= ${end.toISOString()}

@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { Router, type Request } from "express";
 import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
-import { occurrenceEvents, occurrences, type AppTransaction } from "@predioon/db";
+import { occurrenceEvents, occurrences, type AppTransaction } from "@predioon/db/runtime";
 import { duplicateTopic, TicketCreateSchema, TicketPrioritySchema } from "@predioon/shared";
 import { assertBuildingAccess, buildingRole, currentAuth, inTenantContext, scopedBuildingIds } from "../../auth/middleware.js";
 import { badRequest, conflict, forbidden, notFound } from "../../http/errors.js";

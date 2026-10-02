@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { after, before, describe, it } from "node:test";
 import { eq, inArray, sql } from "drizzle-orm";
-import { db, users, organizations, buildings, memberships, auditLogs, globalFeatureSettings, buildingFeatureSettings, featureRuntime, sqlClient, closeAppDb, withUserContext } from "@predioon/db";
+import { db, users, organizations, buildings, memberships, auditLogs, globalFeatureSettings, buildingFeatureSettings, featureRuntime, sqlClient } from "@predioon/db";
+import { closeAppDb, withUserContext } from "@predioon/db/runtime";
 import { hashPassword } from "../src/auth/passwords.js";
 import { startTestServer, login, call } from "./helpers.js";
 
@@ -93,7 +94,7 @@ describe("central de funcionalidades", () => {
     try { assert.equal((await request("/features/global")).status, 403); }
     finally { await db.update(users).set({ isPlatformAdmin: true }).where(eq(users.id, adminId)); }
     await db.update(users).set({ active: false }).where(eq(users.id, adminId));
-    try { assert.equal((await request(`/features/buildings/${b}/GAS`, "PUT", { enabled: true, version: 1, reason: "Conta desativada" })).status, 403); }
+    try { assert.equal((await request(`/features/buildings/${b}/GAS`, "PUT", { enabled: true, version: 1, reason: "Conta desativada" })).status, 401); }
     finally { await db.update(users).set({ active: true }).where(eq(users.id, adminId)); }
   });
 });

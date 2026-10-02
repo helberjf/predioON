@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { after, before, describe, it } from "node:test";
 import { eq, and } from "drizzle-orm";
-import { db, sqlClient, closeAppDb, devices, gateways, memberships, auditLogs, users, withUserContext } from "@predioon/db";
+import { db, sqlClient, devices, gateways, memberships, auditLogs, users } from "@predioon/db";
+import { closeAppDb, withUserContext } from "@predioon/db/runtime";
 import { gates, gateCommands } from "../../../packages/db/src/schema-access.js";
 import { startTestServer, login, call } from "./helpers.js";
 import { hashPassword } from "../src/auth/passwords.js";
@@ -11,6 +12,7 @@ describe("acessos HTTP e isolamento RLS", { skip: process.env.RUN_ACCESS_DB_TEST
   const suffix = randomUUID();
   const gatewayId = `gw_access_${suffix}`; const deviceId = `gate_${suffix}`;
   const residentId = `resident_access_${suffix}`; const email = `${residentId}@test.local`;
+  const localDeviceGrant = randomUUID(), localGatewayGrant = randomUUID();
   let gateId: string; let server: Awaited<ReturnType<typeof startTestServer>>;
   let admin: Awaited<ReturnType<typeof login>>; let resident: Awaited<ReturnType<typeof login>>;
   before(async () => {
@@ -18,6 +20,10 @@ describe("acessos HTTP e isolamento RLS", { skip: process.env.RUN_ACCESS_DB_TEST
     await db.insert(memberships).values({ userId: residentId, buildingId: "bld_001", role: "RESIDENT" });
     await db.insert(gateways).values({ id: gatewayId, buildingId: "bld_001", name: "Gateway acessos", serialNumber: gatewayId, status: "ONLINE", lastSeenAt: new Date() });
     await db.insert(devices).values({ id: deviceId, buildingId: "bld_001", gatewayId, name: "Garagem", type: "GARAGE_GATE", status: "ONLINE", lastSeenAt: new Date() });
+    await sqlClient`insert into role_bindings(id,user_id,building_id,role_key,resource_type,resource_id)
+      select ${localDeviceGrant},id,'bld_001','BUILDING_ADMIN','device',${deviceId} from users where email='admin@predioon.local'`;
+    await sqlClient`insert into role_bindings(id,user_id,building_id,role_key,resource_type,resource_id)
+      select ${localGatewayGrant},id,'bld_001','BUILDING_ADMIN','gateway',${gatewayId} from users where email='admin@predioon.local'`;
     server = await startTestServer();
     admin = await login(server.url, "admin@predioon.local");
     resident = await login(server.url, email);
@@ -26,6 +32,7 @@ describe("acessos HTTP e isolamento RLS", { skip: process.env.RUN_ACCESS_DB_TEST
   });
   after(async () => {
     await server?.close();
+    await sqlClient`delete from role_bindings where id in ${sqlClient([localDeviceGrant,localGatewayGrant])}`;
     if (gateId) { await db.delete(gateCommands).where(eq(gateCommands.gateId, gateId)); await db.delete(auditLogs).where(eq(auditLogs.resourceId, gateId)); await db.delete(gates).where(eq(gates.id, gateId)); }
     await db.delete(devices).where(eq(devices.id, deviceId)); await db.delete(gateways).where(eq(gateways.id, gatewayId));
     await db.delete(users).where(eq(users.id, residentId));
@@ -38,6 +45,15 @@ describe("acessos HTTP e isolamento RLS", { skip: process.env.RUN_ACCESS_DB_TEST
     assert.equal(modified.length, 0, "RLS também bloqueia alteração direta por morador");
   });
   it("mantém pendente até ACK, deduplica pedidos e limita novas aberturas", async () => {
+    const configuration = await withUserContext({ userId: residentId, role: "PLATFORM_ADMIN" }, async tx => ({
+      devices: await tx.select().from(devices), gateways: await tx.select().from(gateways),
+    }));
+    assert.deepEqual(configuration,{devices:[],gateways:[]});
+    const list = await call(server.url,"/access?buildingId=bld_001",{token:resident.accessToken});
+    assert.equal(list.status,200);
+    const listed = await list.json();
+    assert.equal(listed.items.find((gate: {id:string})=>gate.id===gateId).available,true);
+    assert.deepEqual(listed.devices,[]); assert.deepEqual(listed.gateways,[]);
     const requestId = randomUUID();
     const open = () => call(server.url, `/access/${gateId}/open`, { method: "POST", token: resident.accessToken, body: { requestId } });
     const first = await open(); assert.equal(first.status, 202); const one = await first.json(); assert.equal(one.status, "PENDING");

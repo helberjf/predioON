@@ -2,8 +2,10 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { before, after, describe, it } from "node:test";
 import { eq } from "drizzle-orm";
-import { db, sqlClient, closeAppDb, devices, gateways } from "@predioon/db";
+import { db, sqlClient, devices, gateways } from "@predioon/db";
+import { closeAppDb } from "@predioon/db/runtime";
 import { gates } from "../../../packages/db/src/schema-access.js";
+import { hashPassword } from "../src/auth/passwords.js";
 process.env.MQTT_AUTH_SECRET = "test-access-broker-secret-at-least-32-characters";
 const { startTestServer } = await import("./helpers.js");
 
@@ -17,7 +19,7 @@ describe("autorização MQTT dos acessos", { skip: process.env.RUN_ACCESS_DB_TES
     assert.equal(response.status, 200); return (await response.json()).result;
   }
   before(async () => {
-    await db.insert(gateways).values({ id: gatewayId, buildingId: "bld_001", name: "Gateway ACL", serialNumber: gatewayId, metadata: { mqttUsername: username } });
+    await db.insert(gateways).values({ id: gatewayId, buildingId: "bld_001", name: "Gateway ACL", serialNumber: gatewayId, metadata: { mqttUsername: username, mqttPasswordHash: await hashPassword("gateway-test-password") } });
     await db.insert(devices).values({ id: deviceId, buildingId: "bld_001", gatewayId, name: "Controlador ACL", type: "GATE_CONTROLLER" });
     const [gate] = await db.insert(gates).values({ buildingId: "bld_001", name: "Portão ACL", kind: "GARAGE", gatewayId, deviceId, enabled: true }).returning();
     gateId = gate!.id; server = await startTestServer();
@@ -27,6 +29,16 @@ describe("autorização MQTT dos acessos", { skip: process.env.RUN_ACCESS_DB_TES
     if (gateId) await db.delete(gates).where(eq(gates.id, gateId));
     await db.delete(devices).where(eq(devices.id, deviceId)); await db.delete(gateways).where(eq(gateways.id, gatewayId));
     await closeAppDb(); await sqlClient.end();
+  });
+  it("autentica o gateway pelo pool restrito e nega senha ou cliente incorretos", async () => {
+    const authenticate = async (password: string, clientid = gatewayId) => {
+      const response = await fetch(`${server.url}/internal/mqtt/authn`, { method: "POST", headers: { "Content-Type": "application/json", "x-mqtt-secret": process.env.MQTT_AUTH_SECRET! }, body: JSON.stringify({ username, clientid, password }) });
+      assert.equal(response.status, 200);
+      return (await response.json()).result;
+    };
+    assert.equal(await authenticate("gateway-test-password"), "allow");
+    assert.equal(await authenticate("wrong-password"), "deny");
+    assert.equal(await authenticate("gateway-test-password", "other-gateway"), "deny");
   });
   it("gateway assina comando exato e publica somente sua confirmação", async () => {
     assert.equal(await authorize("subscribe", topic("command")), "allow");

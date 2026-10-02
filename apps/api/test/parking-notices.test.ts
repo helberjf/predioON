@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
-import { closeAppDb, sqlClient, withUserContext } from "@predioon/db";
+import { sqlClient } from "@predioon/db";
+import { closeAppDb, withUserContext } from "@predioon/db/runtime";
 import { sql } from "drizzle-orm";
 import { call, json, login, startTestServer, unique, type Session, type TestServer } from "./helpers.js";
 

@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { after, before, describe, it } from "node:test";
 import { eq, inArray, sql } from "drizzle-orm";
-import { db, users, organizations, buildings, memberships, auditLogs, occurrences, sqlClient, closeAppDb, withUserContext } from "@predioon/db";
+import { db, users, organizations, buildings, memberships, auditLogs, occurrences, sqlClient } from "@predioon/db";
+import { closeAppDb, withUserContext } from "@predioon/db/runtime";
 import { hashPassword } from "../src/auth/passwords.js";
 import { startTestServer, login, call } from "./helpers.js";
 

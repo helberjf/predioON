@@ -182,7 +182,8 @@ O simulador de portões é separado, aceita apenas broker local e exige gateway/
 | `DATABASE_URL` | Conexão proprietária do banco, usada pela ingestão, migrations e seed. |
 | `DATABASE_URL_APP` | Conexão restrita `predioon_app`, usada nas operações autorizadas da API com RLS. |
 | `API_PORT` / `VITE_API_URL` | Porta da API e endereço usado pelos painéis. |
-| `JWT_SECRET` | Segredo de assinatura com pelo menos 32 caracteres. |
+| `DATABASE_URL_IDENTITY` / `DATABASE_URL_BROKER_AUTH` | Credenciais restritas de identidade e autorização MQTT. |
+| `JWT_ACTIVE_KID` / `JWT_PRIVATE_KEY` / `JWT_PUBLIC_KEYS` | Chaves Ed25519 persistentes e identificação da chave; obrigatórias em produção. |
 | `CORS_ORIGINS` | Origens permitidas, separadas por vírgula. |
 | `MQTT_URL` / `MQTT_USERNAME` / `MQTT_PASSWORD` | Conexão da ingestão com o broker. |
 | `MQTT_AUTH_SECRET` / `MQTT_INGEST_USERNAME` / `MQTT_INGEST_PASSWORD` | Autenticação e autorização HTTP do broker quando configuradas. |
@@ -278,15 +279,15 @@ docs/              Implantação, integração, operação e materiais comerciai
 
 ## Evolução em andamento
 
-A execução da [arquitetura de produto](docs/superpowers/specs/2026-09-27-arquitetura-produto-design.md) acontece na linha `codex/product-platform`, **ainda não mesclada** nesta. O que estiver nas etapas abaixo não está disponível nos comandos deste README.
+A evolução de `codex/product-platform` foi integrada à `main` em 01/10/2026. O [tracker](docs/superpowers/plans/2026-09-27-product-execution.md) registra as evidências históricas; validações executadas no computador atual são registradas separadamente. Integração do código não significa conclusão de todos os critérios do produto.
 
 | Etapa | Conteúdo | Estado |
 |---|---|---|
 | 1 | Contratos (`@predioon/contracts`) e cliente HTTP portátil (`@predioon/api-client`) | Concluída |
 | 2A | Sessões com rotação atômica, famílias de refresh e JWT Ed25519 com `kid`; migração `013-sessions.sql` | Concluída |
 | 2B.1 | Fundação de RBAC e tenancy: catálogo de permissões, concessões, unidades, equipes e suporte temporário; migração `014-rbac-tenancy.sql`; rotas `/v1/tenancy` e `/v1/authorization` | Concluída |
-| 2B.2 | Credenciais restritas da API, separando identidade e autorização do broker; migração `015-api-runtime-roles.sql` | Em execução |
-| 2B.3 | Migração dos módulos existentes de papel ordenado para capacidades, conforme o [plano de 29/09/2026](docs/superpowers/plans/2026-09-29-rbac-domain-migration.md) | Planejada |
+| 2B.2 | Credenciais restritas da API, separando identidade e autorização do broker; migração `015-api-runtime-roles.sql` | Integrada |
+| 2B.3 | Capacidades para condomínios, equipamentos, telemetria, alertas, monitoramento, eventos e dashboards; migrations 016–024 | Parcial; demais domínios pendentes |
 | 2C–6 | MFA e cookies, processamento durável (inbox/outbox/workers), ativos e ordens de serviço, automações, planos/assinaturas, aplicativos móveis e operação revisada | Planejadas |
 
 Evidências e números de teste por etapa ficam no [tracker de execução](docs/superpowers/plans/2026-09-27-product-execution.md). Os débitos técnicos conhecidos, incluindo a fronteira entre confirmação MQTT e commit, estão em [TDD, seção 18](docs/TDD.md#18-débitos-técnicos-e-riscos-de-implementação).

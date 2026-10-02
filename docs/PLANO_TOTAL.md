@@ -1,5 +1,7 @@
 # Plano total da plataforma Prédio ON
 
+> Direção de produto atualizada em 27/09/2026: a [arquitetura de produto e escala](superpowers/specs/2026-09-27-arquitetura-produto-design.md) é a referência para a evolução. Ela define App Morador, App Operação (síndico/manutenção), web do síndico e web da plataforma, com backend central modular, RBAC por capacidade e workers por carga. Este arquivo registra a arquitetura e as etapas da implementação existente; não comprova a implementação da nova proposta.
+
 ## 1. Objetivo
 
 Centralizar monitoramento de infraestrutura, histórico, consumo, alertas e rotina do imóvel. A análise histórica usa referência estatística aprendida de consumo e tempo de bomba. O módulo de acessos solicita abertura remota de portões autorizados e exige confirmação do controlador.
@@ -121,8 +123,10 @@ CRUD administrativo completo, auditoria, tempo real por SSE, detecção de offli
 chamados, avisos e reservas de áreas comuns.
 
 ### Fase 3 — escala ⏳ em aberto
-MQTTS com certificado por gateway, autorizador HTTP do EMQX, provisionamento automático,
+MQTTS com certificado individual por gateway, provisionamento ampliado,
 retenção/compressão no TimescaleDB e alta disponibilidade.
+
+A sequência revisada está na [arquitetura de produto](superpowers/specs/2026-09-27-arquitetura-produto-design.md): contratos, identidade/RBAC, processamento durável e separação de cargas, módulos de manutenção/automações/planos, aplicativos e operação verificada. O autorizador HTTP já existe na configuração atual; provisionamento ampliado, validação de certificados individuais, escalabilidade e alta disponibilidade precisam ser tratados conforme o estado real de cada instalação.
 
 ### Fase 4 — análise histórica implementada e validada localmente
 Detecção estatística de desvios de consumo e bomba implementada. A validação integrada dos novos módulos, concluída em 23/09/2026, está descrita em [REVISAO_FUNCIONALIDADES.md](REVISAO_FUNCIONALIDADES.md). Instalação e comissionamento dos equipamentos físicos continuam necessários; manutenção preditiva permanece futura.

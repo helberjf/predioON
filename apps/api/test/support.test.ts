@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { after, before, describe, it } from "node:test";
 import { eq, inArray, sql } from "drizzle-orm";
-import { db, users, organizations, buildings, memberships, auditLogs, sqlClient, closeAppDb, withUserContext } from "@predioon/db";
+import { db, users, organizations, buildings, memberships, auditLogs, sqlClient } from "@predioon/db";
+import { closeAppDb, withUserContext } from "@predioon/db/runtime";
 import { hashPassword } from "../src/auth/passwords.js";
 import { startTestServer, login, call } from "./helpers.js";
 
@@ -100,8 +101,8 @@ describe("suporte remoto HTTP e RLS", () => {
   it("nega token antigo após desativação ou remoção de administrador", async () => {
     try {
       await db.update(users).set({ active: false }).where(eq(users.id, adminId));
-      assert.equal((await req(`/support?buildingId=${building}`)).status, 403);
-      assert.equal((await save()).status, 403); assert.equal((await open()).status, 403);
+      assert.equal((await req(`/support?buildingId=${building}`)).status, 401);
+      assert.equal((await save()).status, 401); assert.equal((await open()).status, 401);
       const hidden = await withUserContext({ userId: adminId, role: "PLATFORM_ADMIN" }, tx => tx.execute(sql`select * from support_hosts`));
       assert.equal(hidden.length, 0, "RLS também verifica desativação atual");
       await db.update(users).set({ active: true, isPlatformAdmin: false }).where(eq(users.id, adminId));

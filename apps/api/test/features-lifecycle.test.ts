@@ -3,7 +3,8 @@ import { randomUUID } from "node:crypto";
 import { createServer } from "node:http";
 import { after, before, describe, it } from "node:test";
 import { and, eq } from "drizzle-orm";
-import { alerts, auditLogs, buildings, closeAppDb, dailyUsage, db, devices, gateCommands, gates, gateways, organizations, parkingLots, sqlClient, telemetry, usageCursors } from "@predioon/db";
+import { alerts, auditLogs, buildings, dailyUsage, db, devices, gateCommands, gates, gateways, organizations, parkingLots, sqlClient, telemetry, usageCursors } from "@predioon/db";
+import { closeAppDb } from "@predioon/db/runtime";
 import { accessTopic, dayKey, telemetryTopic } from "@predioon/shared";
 import { handleTelemetry } from "../../../services/ingest/src/pipeline/telemetry.js";
 import { dispatchAccessOnce, handleAccessAck } from "../../../services/ingest/src/access/dispatcher.js";
@@ -14,6 +15,7 @@ import { call, login, startTestServer } from "./helpers.js";
 describe("pause and resume through the real API, database and ingestion", () => {
   const suffix = randomUUID().slice(0, 8), org = `life_org_${suffix}`, buildingId = `life_${suffix}`, gatewayId = `gw_${suffix}`;
   const meterId = `meter_${suffix}`, controllerId = `gate_${suffix}`, parkingId = `park_${suffix}`;
+  const localEquipmentGrant = randomUUID();
   let server: Awaited<ReturnType<typeof startTestServer>>, token: string, profileId: string, gateId: string, lotId: string;
   const request = (path: string, method = "GET", body?: unknown) => call(server.url, path, { token, method, body });
   async function ok(path: string, method = "GET", body?: unknown, status = 200) {
@@ -38,6 +40,8 @@ describe("pause and resume through the real API, database and ingestion", () => 
     await db.insert(buildings).values({ id: buildingId, organizationId: org, name: "Lifecycle test", code: buildingId });
     await db.insert(gateways).values({ id: gatewayId, buildingId, name: "Test gateway", serialNumber: gatewayId, status: "ONLINE", lastSeenAt: new Date() });
     await db.insert(devices).values([{ id: meterId, buildingId, gatewayId, name: "Mixed meter", type: "ENERGY_METER" }, { id: controllerId, buildingId, gatewayId, name: "Test gate", type: "GATE_CONTROLLER", status: "ONLINE", lastSeenAt: new Date() }, { id: parkingId, buildingId, gatewayId, name: "Test parking", type: "PARKING_SENSOR" }]);
+    await sqlClient`insert into role_bindings(id,user_id,building_id,role_key)
+      select ${localEquipmentGrant},id,${buildingId},'BUILDING_ADMIN' from users where email='admin@predioon.local'`;
     server = await startTestServer(); token = (await login(server.url, "admin@predioon.local")).accessToken;
     profileId = (await ok("/monitoring", "POST", { buildingId, deviceId: meterId, kind: "ENERGY", tariff: 1 }, 201)).id;
     gateId = (await ok("/access", "POST", { buildingId, gatewayId, deviceId: controllerId, kind: "GARAGE", name: "Test garage", enabled: true, allowResidents: false }, 201)).id;
@@ -45,6 +49,7 @@ describe("pause and resume through the real API, database and ingestion", () => 
   });
   after(async () => {
     await server?.close();
+    await sqlClient`delete from role_bindings where id=${localEquipmentGrant}`;
     await db.delete(gateCommands).where(eq(gateCommands.buildingId, buildingId));
     await db.delete(gates).where(eq(gates.buildingId, buildingId));
     await db.delete(auditLogs).where(eq(auditLogs.buildingId, buildingId));
@@ -111,13 +116,31 @@ describe("pause and resume through the real API, database and ingestion", () => 
     assert.equal(published, 0);
   });
   it("pause waits for an in-flight publish and still accepts its acknowledgement", async () => {
-    const createdAt = new Date(), expiresAt = new Date(createdAt.getTime() + 15000);
+    const state = (await ok(`/features/buildings/${buildingId}`)).items.find((row: any) => row.key === "GARAGE_ACCESS");
+    // The resume boundary comes from PostgreSQL; the host clock can lag behind
+    // it. This fixture must represent a new command after the recorded resume.
+    const createdAt = new Date(Math.max(Date.now(), state.resumedAt ? Date.parse(state.resumedAt) + 1 : 0));
+    const expiresAt = new Date(createdAt.getTime() + 15000);
     const [command] = await db.insert(gateCommands).values({ requestId: randomUUID(), gateId, buildingId, gatewayId, deviceId: controllerId, requestedBy: "platform_admin", createdAt, expiresAt }).returning();
     let entered!: () => void, finish!: () => void;
+    let publicationStarted = false;
     const publishing = new Promise<void>(resolve => { entered = resolve; });
-    const dispatch = dispatchAccessOnce({ connected: true, options: { queueQoSZero: false }, publish: (_t: unknown, _p: unknown, _o: unknown, done: () => void) => { finish = done; entered(); } } as Parameters<typeof dispatchAccessOnce>[0], new Date(0));
-    await publishing;
-    const state = (await ok(`/features/buildings/${buildingId}`)).items.find((row: any) => row.key === "GARAGE_ACCESS");
+    const dispatch = dispatchAccessOnce({ connected: true, options: { queueQoSZero: false }, publish: (_t: unknown, _p: unknown, _o: unknown, done: () => void) => { publicationStarted = true; finish = done; entered(); } } as Parameters<typeof dispatchAccessOnce>[0], new Date(0));
+    let publicationTimeout: ReturnType<typeof setTimeout> | undefined;
+    try {
+      await Promise.race([
+        publishing,
+        dispatch.then(async () => {
+          if (publicationStarted) return;
+          const [outcome] = await db.select({ status: gateCommands.status, reason: gateCommands.failureReason })
+            .from(gateCommands).where(eq(gateCommands.id, command!.id));
+          assert.fail(`Dispatch ended before publishing: ${outcome?.status} (${outcome?.reason ?? "no reason"})`);
+        }),
+        new Promise<never>((_resolve, reject) => {
+          publicationTimeout = setTimeout(() => reject(new Error("Dispatch did not begin publishing within 10 seconds")), 10_000);
+        }),
+      ]);
+    } finally { clearTimeout(publicationTimeout); }
     let completed = false;
     const change = ok(`/features/buildings/${buildingId}/GARAGE_ACCESS`, "PUT", { enabled: false, version: state.version, reason: "Concorrência com envio em andamento" }).then(result => { completed = true; return result; });
     try { await queuedChange(); assert.equal(completed, false); } finally { finish(); }

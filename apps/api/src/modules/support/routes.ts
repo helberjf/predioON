@@ -2,7 +2,7 @@ import { assertFeature } from "../../auth/features.js";
 import { Router, type Request } from "express";
 import { and, desc, eq, getTableColumns, sql } from "drizzle-orm";
 import { z } from "zod";
-import { buildings, supportHosts, supportRequests, users, type AppTransaction } from "@predioon/db";
+import { buildings, supportHosts, supportRequests, users, type AppTransaction } from "@predioon/db/runtime";
 import { anydeskUri, SupportConfigSchema, SupportOutcomeSchema, SupportRequestSchema } from "@predioon/shared";
 import { currentAuth, inTenantContext, requireRole } from "../../auth/middleware.js";
 import { badRequest, conflict, forbidden, notFound } from "../../http/errors.js";

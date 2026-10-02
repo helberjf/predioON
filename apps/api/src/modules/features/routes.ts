@@ -1,9 +1,9 @@
 import { Router, type Request } from "express";
 import { and, eq, sql } from "drizzle-orm";
-import { buildings, buildingFeatureSettings, globalFeatureSettings, lockFeatureChanges, readFeatures, type AppTransaction } from "@predioon/db";
+import { buildings, buildingFeatureSettings, globalFeatureSettings, lockFeatureChanges, readFeatures, type AppTransaction } from "@predioon/db/runtime";
 import { FEATURE_CATALOG, FEATURE_KEYS, FeatureKeySchema, FeatureUpdateSchema, REALTIME_CHANNEL, resolveFeatures, type FeatureKey, type FeatureStates } from "@predioon/shared";
-import { currentAuth, inTenantContext, requireRole } from "../../auth/middleware.js";
-import { badRequest, conflict, forbidden, notFound } from "../../http/errors.js";
+import { assertBuildingDiscovery, assertGlobalCapability, currentAuth, inTenantContext } from "../../auth/middleware.js";
+import { badRequest, conflict, notFound } from "../../http/errors.js";
 import { param } from "../../http/params.js";
 import { validateBody } from "../../http/validate.js";
 import { recordAudit } from "../audit/repo.js";
@@ -12,18 +12,12 @@ export const featuresRouter = Router();
 featuresRouter.use((_req, res, next) => { res.setHeader("Cache-Control", "no-store"); next(); });
 
 async function assertAdmin(tx: AppTransaction): Promise<void> {
-  const [row] = await tx.execute(sql`select app_support_admin() as allowed`);
-  if (!row?.allowed) throw forbidden("Acesso exclusivo de administradores ativos da plataforma");
+  await assertGlobalCapability(tx, "features:manage");
 }
-async function assertBuilding(tx: AppTransaction, req: Request, buildingId: string): Promise<void> {
-  if (currentAuth(req).role === "PLATFORM_ADMIN") {
-    await assertAdmin(tx);
-    const [building] = await tx.select({ id: buildings.id }).from(buildings).where(eq(buildings.id, buildingId)).limit(1);
-    if (!building) throw notFound("Condomínio não encontrado");
-  } else {
-    const [row] = await tx.execute(sql`select app_governance_access(${buildingId}) as allowed`);
-    if (!row?.allowed) throw forbidden("Prédio fora do seu escopo");
-  }
+async function assertBuilding(tx: AppTransaction, buildingId: string): Promise<void> {
+  await assertBuildingDiscovery(tx, buildingId);
+  const [building] = await tx.select({ id: buildings.id }).from(buildings).where(eq(buildings.id, buildingId)).limit(1);
+  if (!building) throw notFound("Condomínio não encontrado");
 }
 async function globalView(tx: AppTransaction) {
   const states = resolveFeatures(await tx.select().from(globalFeatureSettings), []);
@@ -35,17 +29,17 @@ function featureParam(req: Request): FeatureKey {
   return parsed.data;
 }
 
-featuresRouter.get("/catalog", requireRole("PLATFORM_ADMIN"), async (req, res) => {
+featuresRouter.get("/catalog", async (req, res) => {
   await inTenantContext(req, assertAdmin);
   res.json({ items: FEATURE_CATALOG });
 });
-featuresRouter.get("/global", requireRole("PLATFORM_ADMIN"), async (req, res) => {
+featuresRouter.get("/global", async (req, res) => {
   res.json(await inTenantContext(req, async tx => { await assertAdmin(tx); return globalView(tx); }));
 });
 featuresRouter.get("/buildings/:buildingId", async (req, res) => {
   const buildingId = param(req, "buildingId");
   res.json(await inTenantContext(req, async tx => {
-    await assertBuilding(tx, req, buildingId);
+    await assertBuilding(tx, buildingId);
     return { items: Object.values(await readFeatures(tx, buildingId)) };
   }));
 });
@@ -56,7 +50,7 @@ async function update(req: Request, buildingId: string | null) {
   return inTenantContext(req, async tx => {
     await lockFeatureChanges(tx);
     await assertAdmin(tx);
-    if (buildingId !== null) await assertBuilding(tx, req, buildingId);
+    if (buildingId !== null) await assertBuilding(tx, buildingId);
     const targets = buildingId === null ? await tx.select({ id: buildings.id }).from(buildings) : [{ id: buildingId }];
     const priorStates = new Map<string, FeatureStates>();
     for (const target of targets) priorStates.set(target.id, await readFeatures(tx, target.id));
@@ -89,5 +83,5 @@ async function update(req: Request, buildingId: string | null) {
   }, { featureWrite: true });
 }
 
-featuresRouter.put("/global/:key", requireRole("PLATFORM_ADMIN"), validateBody(FeatureUpdateSchema), async (req, res) => res.json(await update(req, null)));
-featuresRouter.put("/buildings/:buildingId/:key", requireRole("PLATFORM_ADMIN"), validateBody(FeatureUpdateSchema), async (req, res) => res.json(await update(req, param(req, "buildingId"))));
+featuresRouter.put("/global/:key", validateBody(FeatureUpdateSchema), async (req, res) => res.json(await update(req, null)));
+featuresRouter.put("/buildings/:buildingId/:key", validateBody(FeatureUpdateSchema), async (req, res) => res.json(await update(req, param(req, "buildingId"))));

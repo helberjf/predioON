@@ -2,7 +2,7 @@ import { assertFeature, buildingFeatures } from "../../auth/features.js";
 import { Router } from "express";
 import { and, desc, eq, gt, isNull, lte, or, sql } from "drizzle-orm";
 import { z } from "zod";
-import { notices, noticeSchedules, type AppTransaction } from "@predioon/db";
+import { notices, noticeSchedules, type AppTransaction } from "@predioon/db/runtime";
 import { nextNoticeOccurrence, NoticeScheduleSchema, type NoticeSchedule } from "@predioon/shared";
 import { assertBuildingAccess, currentAuth, inTenantContext } from "../../auth/middleware.js";
 import { badRequest, conflict, notFound } from "../../http/errors.js";

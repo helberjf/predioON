@@ -307,10 +307,20 @@ export const auditLogs = pgTable(
   ],
 );
 
-/**
- * Refresh tokens are stored hashed. Rotation revokes the previous token by setting `revokedAt`,
- * so a stolen refresh token stops working as soon as the legitimate client refreshes.
- */
+/** One login/device is one refresh family and one independently revocable access session. */
+export const sessions = pgTable("sessions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  lastUsedAt: timestamp("last_used_at", { withTimezone: true }).notNull().defaultNow(),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  revokedReason: text("revoked_reason"),
+  userAgent: text("user_agent"),
+  ipAddress: text("ip_address"),
+}, (table) => [index("sessions_user_created_idx").on(table.userId, table.createdAt)]);
+
+/** Hashed opaque tokens; legacy rows have no sessionId and are rejected. */
 export const refreshTokens = pgTable(
   "refresh_tokens",
   {
@@ -318,6 +328,7 @@ export const refreshTokens = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    sessionId: uuid("session_id").references(() => sessions.id, { onDelete: "cascade" }),
     tokenHash: text("token_hash").notNull(),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
     revokedAt: timestamp("revoked_at", { withTimezone: true }),
@@ -329,6 +340,7 @@ export const refreshTokens = pgTable(
   (table) => [
     uniqueIndex("refresh_tokens_hash_uq").on(table.tokenHash),
     index("refresh_tokens_user_idx").on(table.userId),
+    index("refresh_tokens_session_idx").on(table.sessionId),
   ],
 );
 
@@ -492,3 +504,4 @@ export * from './schema-notice-schedules.js';
 export * from './schema-support.js';
 export * from './schema-finance.js';
 export * from './schema-features.js';
+export * from './schema-rbac.js';

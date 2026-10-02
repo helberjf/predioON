@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { alertRules, devices, gates, parkingLots, readFeatures, type AppTransaction } from "@predioon/db";
+import { alertRules, devices, gates, parkingLots, readFeatures, type AppTransaction } from "@predioon/db/runtime";
 import { deviceFeatures, gateFeature, kindFeature, metricFeature, parkingFeature, type FeatureKey, type FeatureStates } from "@predioon/shared";
 import { HttpError } from "../http/errors.js";
 import { assertGovernanceAccess } from "./governance.js";
