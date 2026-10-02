@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { decodeJwt, decodeProtectedHeader, generateKeyPair, SignJWT } from "jose";
-import { generateKeyPairSync } from "node:crypto";
+import { generateKeyPairSync, randomBytes } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { signAccessToken, verifyAccessToken } from "../src/auth/tokens.js";
 
@@ -25,7 +25,8 @@ describe("access token cryptography", () => {
       first: first.publicKey.export({ format: "pem", type: "spki" }),
       second: second.publicKey.export({ format: "pem", type: "spki" }),
     });
-    const base = { ...process.env, NODE_ENV: "production", JWT_PUBLIC_KEYS: publicKeys };
+    const base = { ...process.env, NODE_ENV: "production", JWT_PUBLIC_KEYS: publicKeys,
+      AUTH_RATE_LIMIT_KEY: randomBytes(32).toString("base64url") };
     const firstEnv = { ...base, JWT_ACTIVE_KID: "first", JWT_PRIVATE_KEY: first.privateKey.export({ format: "pem", type: "pkcs8" }) as string };
     const signed = spawnSync(process.execPath, ["--import", "tsx", "--input-type=module", "-e",
       "const {signAccessToken}=await import('./src/auth/tokens.ts'); console.log(await signAccessToken({sub:'resident_demo',sid:'182da407-3cdb-4796-b9d7-303c0304a68e'}))"],
@@ -48,6 +49,19 @@ describe("access token cryptography", () => {
     ].join(" ")], { cwd: process.cwd(), env: secondEnv, encoding: "utf8" });
     assert.equal(rejected.status, 0, rejected.stderr);
     assert.deepEqual(JSON.parse(rejected.stdout.trim()), [null, null]);
+  });
+  it("rejects a missing production login-budget key even with valid signing configuration", () => {
+    const pair = generateKeyPairSync("ed25519");
+    const env = { ...process.env, NODE_ENV: "production", JWT_ACTIVE_KID: "test",
+      JWT_PRIVATE_KEY: pair.privateKey.export({ format: "pem", type: "pkcs8" }) as string,
+      JWT_PUBLIC_KEYS: JSON.stringify({ test: pair.publicKey.export({ format: "pem", type: "spki" }) }) };
+    delete env.AUTH_RATE_LIMIT_KEY;
+    const child = spawnSync(process.execPath, ["--import", "tsx", "--input-type=module", "-e", "await import('./src/auth/tokens.ts')"], {
+      cwd: process.cwd(), env, encoding: "utf8", windowsHide: true,
+    });
+    assert.notEqual(child.status, 0);
+    assert.match(child.stderr, /AUTH_RATE_LIMIT_KEY/);
+    assert.ok(!child.stderr.includes(env.JWT_PRIVATE_KEY));
   });
   it("signs a short-lived EdDSA token with session, issuer, audience and key id", async () => {
     const token = await signAccessToken(claims);
