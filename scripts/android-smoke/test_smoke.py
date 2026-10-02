@@ -56,6 +56,32 @@ class UiAssertions(unittest.TestCase):
 
 
 class CrashAssertions(unittest.TestCase):
+    def test_home_resolution_follows_first_boot_setup_transition(self):
+        device = Device("emulator-test", "resident-mobile", Path("unused"))
+        setup = "com.google.android.googlesdksetup/.DefaultActivity"
+        launcher = "com.google.android.apps.nexuslauncher/.NexusLauncherActivity"
+        resolutions = iter([setup, launcher, launcher])
+        home = '<hierarchy><node package="com.google.android.apps.nexuslauncher" /></hierarchy>'
+        def adb(*args):
+            return next(resolutions) + "\n" if "resolve-activity" in args else ""
+        with patch.object(device, "adb", side_effect=adb) as command, patch.object(device, "hierarchy", return_value=home), patch("run.time.monotonic", side_effect=[0, 1, 5, 9, 91]), patch("run.time.sleep"):
+            device.wait_environment_ready()
+        self.assertEqual([attempt["homeComponent"] for attempt in device.environment_attempts], [setup, launcher, launcher])
+        self.assertEqual([attempt["ready"] for attempt in device.environment_attempts], [False, True, True])
+        self.assertEqual(sum("start" in call.args for call in command.call_args_list), 1)
+        self.assertFalse(any("install" in call.args or "input" in call.args for call in command.call_args_list))
+
+    def test_two_ready_observations_must_use_the_same_current_home_component(self):
+        device = Device("emulator-test", "resident-mobile", Path("unused"))
+        old, new = "com.android.launcher/.OldHome", "com.android.launcher/.NewHome"
+        resolutions = iter([old, new, new])
+        home = '<hierarchy><node package="com.android.launcher" /></hierarchy>'
+        with patch.object(device, "adb", side_effect=lambda *args: next(resolutions) if "resolve-activity" in args else "") as command, patch.object(device, "hierarchy", return_value=home) as dump, patch("run.time.sleep"):
+            device.wait_environment_ready()
+        self.assertEqual(dump.call_count, 3)
+        self.assertEqual([attempt["homeComponent"] for attempt in device.environment_attempts], [old, new, new])
+        self.assertEqual(sum(call.args[0] == "logcat" for call in command.call_args_list), 3)
+
     def test_home_readiness_waits_for_accessibility_before_installing_the_app(self):
         device = Device("emulator-test", "resident-mobile", Path("unused"))
         home = '<hierarchy><node package="com.android.launcher" /></hierarchy>'

@@ -149,25 +149,29 @@ class Device:
 
     def wait_environment_ready(self):
         """Require a usable HOME and diagnostics before installing the test product."""
-        resolved = self.adb("shell", "cmd", "package", "resolve-activity", "--brief", "-a", "android.intent.action.MAIN", "-c", "android.intent.category.HOME")
-        components = [line.strip() for line in resolved.splitlines() if re.fullmatch(r"[A-Za-z0-9_.]+/[A-Za-z0-9_.$]+", line.strip())]
-        if len(components) != 1:
-            raise AssertionError("Disposable emulator has no unambiguous HOME activity")
-        package = components[0].split("/")[0]
         self.adb("shell", "am", "start", "-W", "-a", "android.intent.action.MAIN", "-c", "android.intent.category.HOME")
-        deadline, stable = time.monotonic() + 90, 0
+        deadline, stable, previous_home = time.monotonic() + 90, 0, None
         while time.monotonic() < deadline:
             attempt = {"number": len(self.environment_attempts) + 1, "ready": False}
             self.environment_attempts.append(attempt)
             try:
+                # First boot can replace the setup HOME with the launcher after
+                # sys.boot_completed. Resolve current identity for every read;
+                # never keep waiting for the temporary setup package.
+                resolved = self.adb("shell", "cmd", "package", "resolve-activity", "--brief", "-a", "android.intent.action.MAIN", "-c", "android.intent.category.HOME")
+                attempt["homeResolution"] = resolved
+                components = [line.strip() for line in resolved.splitlines() if re.fullmatch(r"[A-Za-z0-9_.]+/[A-Za-z0-9_.$]+", line.strip())]
+                if len(components) != 1:
+                    raise AssertionError("Disposable emulator has no unambiguous HOME activity")
+                component = attempt["homeComponent"] = components[0]
                 source = self.hierarchy()
-                parse_nodes(source, package)
+                parse_nodes(source, component.split("/")[0])
             except (AssertionError, ET.ParseError) as error:
                 attempt["error"] = str(error)
                 attempt["hierarchyCommand"] = self.last_hierarchy_output
                 if "Android system dialog" in str(error):
                     raise AssertionError(f"Emulator environment failed before app installation: {error}") from None
-                stable = 0
+                stable, previous_home = 0, None
             except Exception as error:
                 attempt["error"] = str(error)
                 attempt["hierarchyCommand"] = self.last_hierarchy_output
@@ -180,7 +184,8 @@ class Device:
                     attempt["error"] = str(error)
                     raise
                 attempt["ready"] = True
-                stable += 1
+                stable = stable + 1 if component == previous_home else 1
+                previous_home = component
                 if stable == 2:
                     return
             time.sleep(1)

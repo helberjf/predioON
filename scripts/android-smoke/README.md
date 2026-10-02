@@ -40,6 +40,24 @@ A correção mantém o prazo de 90 segundos e exige duas observações consecuti
 
 Dois testes novos falharam antes da correção. Depois dela, 17/17 testes comuns passaram em Linux, incluindo disponibilidade tardia, ausência permanente com histórico, stderr preservado e recusa de ANR; os oito testes autenticados também passaram com TLS/OpenSSL real. Essa aprovação do harness ainda precisa de nova execução em emulador. Nenhuma asserção de aplicativo foi dispensada.
 
+### Primeiro boot, troca de HOME e recursos do emulador — 02/10/2026
+
+As execuções do commit `17fb8d2` reprovaram antes de instalar os aplicativos. Foram baixados os três artefatos, sem descartar os resultados anteriores:
+
+| Execução / produto | Job / artefato | Evidência observada |
+| --- | --- | --- |
+| [36964879870 — Morador](https://github.com/helberjf/predioON/actions/runs/36964879870) | `110707170533` / `11209965767` | ANR do Pixel Launcher, primeira observação, zero fases de app |
+| [36964879870 — Operação](https://github.com/helberjf/predioON/actions/runs/36964879870) | `110707170300` / `11210265046` | Prazo de HOME esgotado, launcher visível na captura final, zero fases de app |
+| [36964879846 — sessão autenticada](https://github.com/helberjf/predioON/actions/runs/36964879846) | `110706739985` / `11209452698` | Prazo de HOME esgotado, launcher visível, nenhuma fase de login dos dois produtos |
+
+Nos dois timeouts, o log registra a abertura de HOME em `com.google.android.googlesdksetup/.DefaultActivity` e a troca automática para `com.google.android.apps.nexuslauncher/.NexusLauncherActivity` segundos depois. O harness resolvia HOME apenas uma vez e continuava procurando o pacote temporário durante todo o prazo. O código AOSP de [FallbackHome](https://android.googlesource.com/platform/packages/apps/Settings/+/refs/heads/main/src/com/android/settings/FallbackHome.java) também demonstra que o HOME pode mudar durante o desbloqueio e a conclusão do boot; `sys.boot_completed=1` sozinho não fixa a identidade do launcher.
+
+A correção reconsulta a resolução do HOME em cada observação e registra `homeResolution` e `homeComponent` por tentativa. São necessárias duas observações consecutivas do **mesmo componente atual**, com sua árvore acessível e logcat obrigatório. A abertura de HOME continua única e o prazo continua de 90 segundos. Nenhum gesto de ação é repetido, nenhum diálogo é fechado e falhas obrigatórias de ADB permanecem fatais. As duas regressões novas falharam antes do ajuste: troca setup→launcher causava timeout e mudança de componente não reiniciava a contagem. Após o ajuste, passaram 19 testes comuns, oito autenticados com TLS real e sete de domínio em Linux. Isso confirma o harness local; a aprovação nativa deste ajuste depende de nova execução de CI.
+
+O ANR do Morador é um problema ambiental separado: `Input dispatching timed out (Application does not have a focused window)`. O relatório do Android registra CPU total de 99%, pressão de CPU `some avg10=76.07` e pressão de memória `some avg10=11.07`. Os logs mostram dois núcleos virtuais e RAM elevada pelo próprio emulador para 2560 MB. Tanto essa falha quanto a aprovação autenticada anterior `eec6174` usaram emulator `37.2.12.0` e a mesma configuração; não foi identificada uma mudança de versão que explique a diferença.
+
+Os três workflows Android passam a declarar quatro núcleos e 4096 MB de RAM, mantendo API 35, imagem Google APIs, Pixel 6, ABI e asserções. `nproc` e `free -m` registram a capacidade efetiva do host antes da inicialização. Este repositório é público; a [documentação de runners GitHub](https://docs.github.com/en/actions/reference/runners/github-hosted-runners#standard-github-hosted-runners-for-public-repositories) especifica quatro CPUs e 16 GB para Linux padrão. A [action do emulador](https://github.com/ReactiveCircus/android-emulator-runner/blob/main/action.yml) aceita `cores` e `ram-size`, e o [Android documenta](https://developer.android.com/studio/run/emulator-commandline#common) RAM de 1536 a 8192 MB. O ajuste é uma **mitigação ambiental a verificar**, não uma correção comprovada do ANR. Qualquer novo ANR continua reprovando e preservando seus diagnósticos.
+
 ## Transporte HTTP e evidência separada
 
 O commit `63a7179` acrescenta `packages/mobile/src/bounded-fetch.ts`. O limite de 20 segundos acompanha os cabeçalhos e a leitura completa de uma cópia do corpo da resposta; o cliente recebe a `Response` original, mantendo status, headers, URL final, informação de redirecionamento e corpo ainda não consumido. Cancelamento do chamador é propagado, temporizadores/listeners são removidos ao concluir e o chamador deixa de aguardar mesmo se o transporte nativo ignorar o sinal de abort. O adaptador atende respostas finitas da API JSON; não é destinado a streaming ou downloads.
