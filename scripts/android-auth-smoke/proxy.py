@@ -53,6 +53,7 @@ def make_handler(upstream_port, allow_request=None):
         do_GET = forward
         do_POST = forward
         do_PATCH = forward
+        do_DELETE = forward
     return Handler
 
 

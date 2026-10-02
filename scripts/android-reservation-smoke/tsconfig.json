@@ -1,0 +1,4 @@
+{
+  "extends": "../android-domain-smoke/tsconfig.json",
+  "include": ["*.mts"]
+}

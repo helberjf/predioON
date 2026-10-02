@@ -1,0 +1,154 @@
+name: Android native reservations
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/*-mobile/**"
+      - "apps/api/src/**"
+      - "apps/api/test/helpers.ts"
+      - "packages/mobile/**"
+      - "packages/api-client/**"
+      - "packages/contracts/**"
+      - "packages/shared/**"
+      - "packages/db/src/**"
+      - "infrastructure/*.sql"
+      - "pnpm-lock.yaml"
+      - "scripts/android-smoke/**"
+      - "scripts/android-auth-smoke/**"
+      - "scripts/android-domain-smoke/**"
+      - "scripts/android-reservation-smoke/**"
+      - ".github/workflows/android-reservations.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-reservations-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  reservations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 80
+    services:
+      postgres:
+        image: timescale/timescaledb:2.17.2-pg16
+        env:
+          POSTGRES_USER: predioon
+          POSTGRES_PASSWORD: predioon
+          POSTGRES_DB: predioon
+          TIMESCALEDB_TELEMETRY: "off"
+        ports: ["5436:5432"]
+        options: >-
+          --health-cmd "pg_isready -U predioon -d predioon"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      NODE_ENV: test
+      TZ: UTC
+      API_PORT: "3000"
+      JWT_ACCESS_TTL_MINUTES: "30"
+      DATABASE_URL: postgres://predioon:predioon@localhost:5436/predioon
+      DATABASE_URL_APP: postgres://predioon_app:predioon_app@localhost:5436/predioon
+      DATABASE_URL_IDENTITY: postgres://predioon_identity:predioon_identity@localhost:5436/predioon
+      DATABASE_URL_BROKER_AUTH: postgres://predioon_broker_auth:predioon_broker_auth@localhost:5436/predioon
+      ANDROID_RESERVATION_DISPOSABLE_DB: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: pnpm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: "platform-tools"
+          log-accepted-android-sdk-licenses: false
+      - run: pnpm install --frozen-lockfile
+      - name: Test assertions and real certificate verification
+        run: |
+          openssl version
+          python3 -m unittest discover -s scripts/android-smoke -p 'test_*.py' -v
+          python3 -m unittest discover -s scripts/android-auth-smoke -p 'test_*.py' -v
+          python3 -m unittest discover -s scripts/android-domain-smoke -p 'test_*.py' -v
+          python3 -m unittest discover -s scripts/android-reservation-smoke -p 'test_*.py' -v
+      - name: Bootstrap isolated database and ephemeral credentials
+        run: |
+          pnpm db:bootstrap
+          pnpm db:infra
+          pnpm db:infra
+          pnpm db:provision-runtime
+          mkdir -p .local/android-reservations
+          python3 - <<'PY'
+          import os, secrets
+          password = secrets.token_hex(18)
+          print(f"::add-mask::{password}")
+          with open(os.environ['GITHUB_ENV'], 'a') as env:
+              env.write(f"ANDROID_AUTH_PASSWORD={password}\n")
+          PY
+      - name: Verify fixture contracts against the real isolated API
+        run: |
+          pnpm --filter @predioon/api exec tsc --project ../../scripts/android-reservation-smoke/tsconfig.json
+          pnpm --filter @predioon/api exec tsx --test ../../scripts/android-reservation-smoke/test_fixture.mts
+      - name: Create isolated accounts and configure verification-only APK trust
+        run: |
+          pnpm --filter @predioon/api exec tsx ../../scripts/android-reservation-smoke/fixture.mts create ../../.local/android-reservations/fixture.json
+          python3 scripts/android-auth-smoke/tls.py --output .local/android-reservations/tls
+      - name: Compile and sign the resident verification APK
+        run: |
+          for app in resident-mobile; do
+            (cd "apps/$app/android" && bash gradlew --no-daemon --refresh-dependencies :app:assembleRelease -PreactNativeArchitectures=x86_64)
+            python3 scripts/android-smoke/prepare.py sign --scenario auth --app "$app" --apk "apps/$app/android/app/build/outputs/apk/release/app-release-unsigned.apk" --output ".local/android-reservations/$app/verification.apk"
+          done
+      - name: Start real API and isolated HTTPS proxy
+        run: |
+          pnpm --filter @predioon/api exec tsx src/server.ts > .local/android-reservations/api.log 2>&1 &
+          echo $! > .local/android-reservations/api.pid
+          python3 scripts/android-reservation-smoke/proxy_reservations.py --tls .local/android-reservations/tls > .local/android-reservations/proxy.log 2>&1 &
+          echo $! > .local/android-reservations/proxy.pid
+          curl --fail --retry 30 --retry-connrefused --retry-delay 1 --max-time 3 http://127.0.0.1:3000/health/ready
+          curl --fail --cacert .local/android-reservations/tls/ca.pem https://127.0.0.1:3443/health
+      - name: Enable emulator hardware acceleration
+        run: |
+          nproc
+          free -m
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Exercise private calendar, conflict, cancellation and current revocation
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          cores: 4
+          ram-size: 4096M
+          force-avd-creation: true
+          disable-animations: true
+          emulator-boot-timeout: 600
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none -camera-front none -timezone Etc/UTC
+          script: python3 scripts/android-reservation-smoke/run_reservations.py --fixture .local/android-reservations/fixture.json --apk .local/android-reservations/resident-mobile/verification.apk --artifacts .local/android-reservations/evidence
+      - name: Sanitize service diagnostics and remove only the fixture data
+        if: always()
+        run: |
+          python3 scripts/android-auth-smoke/diagnostics.py --directory .local/android-reservations
+          if test -f .local/android-reservations/fixture.json; then
+            pnpm --filter @predioon/api exec tsx ../../scripts/android-reservation-smoke/fixture.mts cleanup ../../.local/android-reservations/fixture.json
+          fi
+      - name: Preserve evidence without APKs, keys, passwords or tokens
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-reservations-${{ github.run_id }}
+          path: |
+            .local/android-reservations/resident-mobile/build.json
+            .local/android-reservations/evidence/
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7
