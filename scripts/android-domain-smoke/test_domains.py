@@ -30,6 +30,27 @@ def page(*labels, button=None, enabled="true"):
 
 
 class DomainAssertions(unittest.TestCase):
+    def test_offscreen_field_is_scrolled_into_view_before_any_input_action(self):
+        fixture = {"forbidden": [], "accounts": {"operations-mobile": {"buildingName": BUILDING}}}
+        hidden = ET.Element("node", {"class": "android.widget.EditText", "content-desc": "Nova mensagem", "enabled": "true", "bounds": "[103,2352][979,2337]"})
+        visible = ET.Element("node", {**hidden.attrib, "bounds": "[103,1500][979,1700]"})
+        device = DomainDevice("unused", "operations-mobile", Path("unused"), fixture, "FixturePassword123")
+        with patch.object(device, "nodes", side_effect=[[hidden], [visible]]), patch.object(device, "scroll") as scroll, patch.object(device, "adb") as command, patch("run_domains.time.sleep"):
+            self.assertIs(device.find("Nova mensagem", field=True), visible)
+            scroll.assert_called_once_with()
+            command.assert_not_called()
+
+    def test_permanently_hidden_field_expires_without_tapping_or_typing(self):
+        fixture = {"forbidden": [], "accounts": {"operations-mobile": {"buildingName": BUILDING}}}
+        hidden = ET.Element("node", {"class": "android.widget.EditText", "content-desc": "Nova mensagem", "enabled": "true", "bounds": "[0,0][0,0]"})
+        device = DomainDevice("unused", "operations-mobile", Path("unused"), fixture, "FixturePassword123")
+        with patch.object(device, "nodes", return_value=[hidden]) as observe, patch.object(device, "scroll") as scroll, patch.object(device, "adb") as command, patch("run_domains.time.sleep"):
+            with self.assertRaisesRegex(AssertionError, "visible area"):
+                device.find("Nova mensagem", field=True)
+            self.assertEqual(observe.call_count, 9)
+            self.assertEqual(scroll.call_count, 8)
+            command.assert_not_called()
+
     @unittest.skipUnless(shutil.which("openssl"), "OpenSSL is required for the actual TLS transport")
     def test_real_tls_default_rejects_patch_and_domain_forwards_only_allowed_patch(self):
         seen = []

@@ -4,6 +4,18 @@ Este recorte exercita a UI real de Morador e Operação contra API HTTP/PostgreS
 
 **Estado:** harness, fixture e verificações de contrato implementados; a primeira execução nativa deste roteiro ainda não foi aprovada. Testes Python e API local não devem ser apresentados como evidência de que essas telas passaram no emulador.
 
+### Primeira execução preservada
+
+A [execução 36965837399](https://github.com/helberjf/predioON/actions/runs/36965837399), commit `c106a78`, job `110709277239`, reprovou **antes de instalar os APKs**. O artefato `11210147243` foi baixado e inspecionado: zero fases nos dois apps, 24 tentativas de HOME, primeiro dump com `null root node` e stderr preservado, seguido de divergência de pacote até o prazo de 90 segundos. O log registra HOME temporário `com.google.android.googlesdksetup` às 04:53:29 e abertura de `com.google.android.apps.nexuslauncher` às 04:53:31; o XML final contém o launcher. Não foi encontrada evidência de ANR/crash de app nesse percurso, pois os aplicativos ainda não haviam sido instalados.
+
+É a mesma resolução inicial de HOME já corrigida em `f13f89c`, conforme [diagnóstico do harness comum](../android-smoke/README.md#primeiro-boot-troca-de-home-e-recursos-do-emulador--02102026). O novo workflow reconsulta HOME e declara recursos explícitos, mas esse ajuste só será considerado verificado quando a nova execução terminar. A primeira falha não representa teste executado de avisos, contas, chamados ou alertas.
+
+### Execução com HOME corrigido e campo fora da tela
+
+A [execução 36966606934](https://github.com/helberjf/predioON/actions/runs/36966606934), commit `f13f89c`, job `110711756119`, passou a preparação e executou **11 fases do Morador** antes de reprovar. O artefato `11210293019` registra entrada vazia, preenchimento, autenticação real, perfil/condomínio, aviso, prestação publicada, lançamento, solicitação própria e criação de uma nova solicitação. Operação ainda não havia iniciado; comentário, revogações e snapshot final também não foram executados.
+
+A falha `UI node has no visible area` corresponde ao campo nativo `Nova mensagem`, cujos bounds no XML são `[103,2352][979,2337]`: estava abaixo da parte visível. A busca por campo retornava após validar rótulo/classe, antes de validar seus limites; a etapa de digitação recusou corretamente o toque. O ajuste verifica os bounds dentro da busca e usa a rolagem limitada existente antes de devolver o campo para digitação. Não altera o aplicativo nem repete toque/envio. Duas regressões falharam antes do ajuste (campo oculto seguido de visível; campo permanentemente oculto); depois passaram os nove testes de domínios e os oito de autenticação com TLS real em Linux. Uma nova execução nativa ainda é necessária para concluir o percurso completo.
+
 ## Identidades e autorização
 
 A fixture cria uma organização, dois condomínios, dois usuários dos apps, um vizinho e papéis exclusivos da execução. Não cria memberships legadas, privilégios de plataforma ou permissões sobre comandos físicos. A senha alfanumérica é aleatória e mascarada pelo workflow; não faz parte da fixture JSON.

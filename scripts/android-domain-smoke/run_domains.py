@@ -59,7 +59,9 @@ class DomainDevice(AuthDevice):
             nodes = self.nodes()
             try:
                 if field:
-                    return one(nodes, lambda n: matches(n, label) and n.get("class") == "android.widget.EditText" and n.get("enabled") == "true", label)
+                    target = one(nodes, lambda n: matches(n, label) and n.get("class") == "android.widget.EditText" and n.get("enabled") == "true", label)
+                    center(target)  # Scroll an offscreen field before returning it for input.
+                    return target
                 return action_node(nodes, label)
             except AssertionError:
                 if attempt == 8:
