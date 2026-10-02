@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { demoAccountEmail, expect, test } from "./fixtures";
 import { API_URL, BUILDING_URL, RESIDENT_URL } from "./environment";
 import { adminFixtures, authenticatedApi, createWithForm, enterCredentials, isolatedTenant, signIn, signOut } from "./helpers";
 
@@ -16,7 +16,7 @@ test("login valida campos, informa senha incorreta e permite recuperar a entrada
   expect(await email.evaluate((input: HTMLInputElement) => input.validity.typeMismatch)).toBe(true);
   expect(loginRequests).toEqual([]);
 
-  await email.fill("sindico@predioon.local");
+  await email.fill(demoAccountEmail("sindico@predioon.local"));
   const rejected = page.waitForResponse(response => response.url() === `${API_URL}/auth/web/login`);
   await page.getByRole("button", { name: "Entrar", exact: true }).click();
   expect((await rejected).status()).toBe(401);

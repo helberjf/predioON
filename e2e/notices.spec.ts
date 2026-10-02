@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { API_URL, BUILDING_URL } from "./environment";
 import { authenticatedApi, enterCredentials, isolatedTenant, signIn, signOut } from "./helpers";
 

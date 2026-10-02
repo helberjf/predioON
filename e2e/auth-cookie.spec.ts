@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { demoAccountEmail, expect, test, type Page } from "./fixtures";
 import { API_URL, BUILDING_URL, DEMO_PASSWORD, RESIDENT_URL } from "./environment";
 import { authenticatedApi, enterCredentials, isolatedTenant, signIn, signOut } from "./helpers";
 
@@ -107,12 +107,12 @@ test("cookie não autentica domínio e tentativas CSRF rejeitadas preservam a se
 test("login inválido revoga um cookie anterior sem reabrir a conta antiga no reload", async ({ page }) => {
   await page.goto(BUILDING_URL); await expect(loginFields(page)).toBeVisible();
   // Simulate a recoverable cookie arriving while this tab still displays the login form.
-  const created = await page.evaluate(async ({ api, password }) => (await fetch(`${api}/auth/web/login`, {
+  const created = await page.evaluate(async ({ api, email, password }) => (await fetch(`${api}/auth/web/login`, {
     method: "POST", credentials: "include", headers: { "X-Predioon-Web": "1", "Content-Type": "application/json" },
-    body: JSON.stringify({ email: "sindico@predioon.local", password }),
-  })).status, { api: API_URL, password: DEMO_PASSWORD });
+    body: JSON.stringify({ email, password }),
+  })).status, { api: API_URL, email: demoAccountEmail("sindico@predioon.local"), password: DEMO_PASSWORD });
   expect(created).toBe(200);
-  await loginFields(page).fill("morador@predioon.local"); await page.getByLabel("Senha", { exact: true }).fill("senha-invalida");
+  await loginFields(page).fill(demoAccountEmail("morador@predioon.local")); await page.getByLabel("Senha", { exact: true }).fill("senha-invalida");
   await page.getByRole("button", { name: "Entrar", exact: true }).click();
   await expect(page.getByRole("alert")).toHaveText("E-mail ou senha inválidos");
   await page.reload(); await expect(loginFields(page)).toBeVisible(); await expect(managerGreeting(page)).toHaveCount(0);

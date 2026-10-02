@@ -4,7 +4,7 @@ import {
   test,
   type APIRequestContext,
   type Page,
-} from "@playwright/test";
+} from "./fixtures";
 import { API_URL, BUILDING_URL, RESIDENT_URL } from "./environment";
 import { isolatedTenant, signIn } from "./helpers";
 import { withFixtureDatabase } from "./database";

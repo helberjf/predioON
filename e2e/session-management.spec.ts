@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { ADMIN_URL, API_URL, BUILDING_URL, DEMO_PASSWORD, RESIDENT_URL } from "./environment";
 import { adminFixtures, isolatedTenant, signIn } from "./helpers";
 import { withFixtureDatabase } from "./database";

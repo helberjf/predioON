@@ -2,7 +2,7 @@
 
 Atualizado em **02/10/2026**, horário de São Paulo. Este é o ponto de retomada em outro computador ou outra sessão. **O plano completo ainda não terminou.** Resultados de uma versão não aprovam automaticamente mudanças posteriores.
 
-Repositório: <https://github.com/helberjf/predioON>. Linha de trabalho autorizada: `main`. Último incremento funcional/testável antes deste documento: **`3e9c648`**, preparação de fixtures respeitando o limite de login. As migrations publicadas terminam em **035**. A036 está em rascunho recuperável; a037 tem somente um plano, sem implementação.
+Repositório: <https://github.com/helberjf/predioON>. Linha de trabalho autorizada: `main`. A API publicada até **`cde21f1`** passou na nova integral de **632 testes**. **`ac28caf`** acrescentou capturas de inicialização iOS ao CI; o resultado nativo ainda precisa ser conferido. As migrations publicadas terminam em **035**. A036 está em rascunho recuperável; a037 tem somente um plano, sem implementação.
 
 ## 1. Instruções permanentes do proprietário
 
@@ -43,6 +43,9 @@ Documentos de referência: [arquitetura aprovada](superpowers/specs/2026-09-27-a
 | `bd52637` | Atualização de leitura web pendente passa a executar uma nova leitura ao terminar; job Playwright usa imagem oficial. |
 | `42f2130` | Navegação móvel reconhece concessão de acesso por recurso; contrato HTTP real e CI. |
 | `3e9c648` | Preparação de fixtures HTTP respeita429/Retry-After com limite de tentativas, sem mudar a política de produção. |
+| `4c349b1` | Documento de continuidade e checkpoint portátil de 24 rascunhos, com restauração verificada. |
+| `cde21f1` | Expectativas de equipamentos atualizadas para a autorização física034; 50 dirigidos aprovados. |
+| `ac28caf` | CI iOS passa a abrir o build Release em simulador novo, verificar dois processos e preservar imagens. Resultado real em conferência. |
 
 ## 4. Evidências e falhas conhecidas
 
@@ -53,14 +56,16 @@ Documentos de referência: [arquitetura aprovada](superpowers/specs/2026-09-27-a
 | Login035 | 24 próprios, 29 dirigidos de autenticação e26 de banco/restauração. Restauração real verificou44 tabelas e35 migrations, RLS/ACL/helpers/dados. Proxy Caddy real também testado. |
 | Integral Linux727264e | **602/615**, 13 falhas. Uma fixture de chave corrigida em8e0be69; duas expectativas antigas de equipment-capabilities corrigidas no checkpoint abaixo; duas faltas de dependência na cópia Linux corrigidas; oito429 de preparação de estacionamento tratados em3e9c648. Não somar dirigidos para declarar uma integral verde. |
 | Após ajuste das fixtures | **3/3** próprios do helper e **60/60** dirigidos Linux de estacionamento/limites/monitoramento/lifecycle, sem skips; tipos API aprovados. |
-| Equipamentos e acesso após correção das expectativas | **50/50** dirigidos Linux, sem skips, sobre a fonte publicada 4c349b1 mais o ajuste dos testes. A consulta mínima admite concessões atuais no dispositivo/gateway, nega administrador global sem concessão local e volta a negar após revogação. As provas de isolamento, validade e inventário privado foram preservadas. Nova integral em andamento. |
+| Equipamentos e acesso após correção das expectativas | **50/50** dirigidos Linux, sem skips, sobre a fonte publicada 4c349b1 mais o ajuste dos testes. A consulta mínima admite concessões atuais no dispositivo/gateway, nega administrador global sem concessão local e volta a negar após revogação. As provas de isolamento, validade e inventário privado foram preservadas. |
+| Nova integral API035 | **632/632**, 50 suites, zero falhas/cancelamentos/skips, em Linux com PostgreSQL/Timescale real e ambas as flags de integração ativas. Fonte de API publicada em cde21f1, sem rascunhos036. Duração13min25s; log local work/api035-regression-final.log. Esse resultado substitui a integral anterior da API, mas não comprova ingestão, navegador ou alterações posteriores. |
 | Mobile42f2130 | **59/59** unitários e **1/1** contrato real de navegação de portões; tipos e bundles dos dois apps aprovados. A descoberta básica exige buildings:read no mesmo recurso, além de gates:read; não foi criada concessão ampla implícita. |
-| Playwright atual publicado | [CI42f2130](https://github.com/helberjf/predioON/actions/runs/36975943741): **54/153**, 99 falhas. O log confirma429 na conta compartilhada admin de preparação. A imagem oficial está ativa, mas o aceite integral continua aberto. Isolar/reutilizar de forma segura a identidade de fixture; não remover o limitador. |
+| Playwright anterior publicado | [CI42f2130](https://github.com/helberjf/predioON/actions/runs/36975943741): **54/153**, 99 falhas. O log confirma429 na conta compartilhada admin de preparação. As fixtures foram corrigidas para identidades exclusivas por cenário, sem remover o limitador. |
+| Playwright com identidades isoladas | **57/57** combinações de cookies, isolamento e portais nos três motores, sem retries/skips, contra fonte publicada ac28caf/SQL035 e ajuste das fixtures. Tipos E2E aprovados. A matriz integral de153 está em execução e tem resultado independente. |
 | Web AccessPanel em rascunho | Quatro primeiros cenários Chromium passaram. Ampliação teve5 aprovados/2 falhas de ciclo de vida; correções posteriores ainda precisam de GREEN. A rodada seguinte14falhas parou na criação das fixtures porque fonte já tinha colunas036 e banco não; isso é incompatibilidade de snapshot, não prova de falha em cada tela. |
 | Auditoria036 em rascunho | Snapshot integrado034/035/036 passou **98/98**, sem skips. Consulta global entre30mil eventos privados e20globais caiu para21ms com índice; união global/local autorizada50linhas mediu87ms. Ainda faltam correção de reaplicação, revisões finais, UI e Playwright. |
 | Android autenticado | Há percursos anteriores completos com19/21 fases por app; histórico e limites em scripts/android-auth-smoke/README.md. Não equivalem a homologar todos os domínios. |
 | Android reservas42f2130 | [CI36975943695](https://github.com/helberjf/predioON/actions/runs/36975943695) aprovado, artefato11212879728 conferido: **23 fases**, criação/cancelamento/pedido pendente/retirada de calendário, provas no banco e buffer de crash vazio. Capturas de confirmação e revogação inspecionadas. Reserva estrangeira permaneceu intacta. |
-| Android domínios | [CI42f2130](https://github.com/helberjf/predioON/actions/runs/36975943742) falhou no harness; precisa abrir o artefato e identificar a fase. Há falhas anteriores de ANR do Pixel Launcher antes de instalar apps, que não contam como testes funcionais aprovados. |
+| Android domínios | [CI42f2130](https://github.com/helberjf/predioON/actions/runs/36975943742), artefato11213644516 conferido: oito fases de Morador passaram e Operação não começou. Falhou ao localizar “Ver lançamentos (1)”. Imagens/XML mostram carregamento financeiro; o proxy recebeu respostas200 e o log do app contém MissingViewState do renderer. A causa ainda não está demonstrada; não classificar esta execução como ANR de launcher nem corrigir apenas aumentando espera sem investigar. |
 | Builds nativos42f2130 | Android e [iOS](https://github.com/helberjf/predioON/actions/runs/36975943839) terminaram com sucesso. iOS é build unsigned para simulador; execução, screenshots e homologação iOS ainda não estão comprovadas. |
 
 ## 5. Rascunhos preservados fora do código ativo
@@ -152,12 +157,12 @@ Banco/backup: seguir [BACKUP_E_RESTAURACAO.md](BACKUP_E_RESTAURACAO.md), incluin
 ## 7. Ordem prática para continuar
 
 1. Conferir a main e recuperar os rascunhos se necessário; manter API/schema/SQL de uma mesma versão por snapshot de teste.
-2. Conferir o resultado da nova integral após corrigir as duas expectativas antigas em `apps/api/test/equipment-capabilities.test.ts` para o contrato034. Os 50 dirigidos passaram, mas não substituem a integral.
-3. Corrigir isolamento de login das fixtures Playwright em `e2e/helpers.ts`: a contaadmin compartilhada estoura20tentativas/15min. As telas de login devem continuar passando pelo limitador; não inserir bypass de teste no runtime.
+2. Preservar a integral API035 aprovada em632/632 e acompanhar o CI da fonte publicada. Rascunhos036 e futuras alterações exigem nova validação própria.
+3. Conferir a matriz Playwright completa após isolar as contas por cenário em `e2e/fixtures.ts`. Os57 dirigidos passaram; nenhuma proteção de login foi desativada.
 4. Fechar o AccessPanel com21combinações (sete cenários × três motores), tipos e testes de sessão. Publicar só esse incremento.
 5. Corrigir reaplicação036, conferir98 dirigidos e ampliar regressão. Implementar auditoria web/paginação/retry/isolamento e seus E2E; revisar e publicar036.
-6. Conferir artefatos Android atuais, diagnosticar a falha de domínios, concluir ensaio de snapshot limpo. Conservar ANR/crash como falha e não repetir mutações para mascarar erros.
-7. Executar nova regressão integralAPI/ingestão/banco/clientes/web com a fonte publicada exata. Registrar commit, resultados e causas; nenhuma integral atual está aprovada.
+6. Diagnosticar a falha financeira de Android e conferir capturas da execução iOS36998776108; concluir ensaio de snapshot limpo. Conservar ANR/crash como falha e não repetir mutações para mascarar erros.
+7. Completar regressão de ingestão/banco/clientes/web com a fonte publicada exata e repetir API quando houver mudanças. A integralAPI035 está aprovada; a plataforma inteira ainda não tem aceite final.
 8. Prosseguir identidade037 e os itens2C/3/4/5/6 da arquitetura. A037 ainda não deve ser adicionada ao runner antes da036.
 9. Entregar imagens reais solicitadas, depois concluir documentação, abertura local e cinco vídeos conforme inventário. Capturas isoladas não substituem vídeos nem homologação.
 

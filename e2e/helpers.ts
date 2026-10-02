@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { expect, type APIRequestContext, type Page } from "@playwright/test";
 import { API_URL, DEMO_PASSWORD } from "./environment";
+import { demoAccountEmail } from "./fixtures";
 
 export async function signIn(page: Page, origin: string, email: string) {
   await page.goto(origin);
@@ -8,7 +9,7 @@ export async function signIn(page: Page, origin: string, email: string) {
 }
 
 export async function enterCredentials(page: Page, email: string) {
-  await page.getByLabel("E-mail", { exact: true }).fill(email);
+  await page.getByLabel("E-mail", { exact: true }).fill(demoAccountEmail(email));
   await page.getByLabel("Senha", { exact: true }).fill(DEMO_PASSWORD);
   const response = page.waitForResponse(response => response.url() === `${API_URL}/auth/web/login` && response.request().method() === "POST");
   await page.getByRole("button", { name: "Entrar", exact: true }).click();
@@ -32,9 +33,9 @@ export async function createWithForm(page: Page, endpoint: string, button: strin
 type Person = { id: string; name: string; email: string };
 type Building = { id: string; name: string; organizationId: string };
 
-/** All fixtures go through the same authenticated API and RLS used by the UI. */
+/** Domain fixtures go through the same authenticated API and RLS used by the UI. */
 export async function authenticatedApi(request: APIRequestContext, email: string) {
-  const login = await request.post(`${API_URL}/auth/login`, { data: { email, password: DEMO_PASSWORD } });
+  const login = await request.post(`${API_URL}/auth/login`, { data: { email: demoAccountEmail(email), password: DEMO_PASSWORD } });
   expect(login.status(), `Autenticação da fixture ${email}`).toBe(200);
   const { accessToken } = await login.json() as { accessToken: string };
   const headers = { Authorization: `Bearer ${accessToken}` };

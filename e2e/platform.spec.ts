@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { ADMIN_URL, BUILDING_URL, RESIDENT_URL } from "./environment";
 import { createWithForm, enterCredentials, signIn, signOut } from "./helpers";
 

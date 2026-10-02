@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
 import { BUILDING_URL } from "./environment";
 import { authenticatedApi, isolatedTenant, signIn, signOut } from "./helpers";
 import { withFixtureDatabase } from "./database";
