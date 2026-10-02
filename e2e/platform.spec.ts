@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
-import { ADMIN_URL, API_URL, BUILDING_URL, RESIDENT_URL } from "./environment";
+import { ADMIN_URL, BUILDING_URL, RESIDENT_URL } from "./environment";
 import { createWithForm, enterCredentials, signIn, signOut } from "./helpers";
 
 test("síndico abre dashboard e cadastra bloco, unidade e equipe persistidos", async ({ page }) => {
@@ -76,9 +76,7 @@ test("logout e entrada como morador removem formulários e capacidades do síndi
   await page.getByRole("link", { name: "Unidades e equipes", exact: true }).click();
   await page.getByLabel("Código do bloco", { exact: true }).fill(`rascunho-${randomUUID().slice(0, 8)}`);
   await expect(page.getByRole("button", { name: "Cadastrar bloco", exact: true })).toBeVisible();
-  const logout = page.waitForResponse(response => response.url() === `${API_URL}/auth/logout` && response.request().method() === "POST");
-  await page.getByRole("button", { name: "Sair da conta", exact: true }).click();
-  expect((await logout).status()).toBe(204);
+  await signOut(page);
   await expect(page.getByLabel("E-mail", { exact: true })).toBeVisible();
   await expect(page.getByLabel("Código do bloco", { exact: true })).toHaveCount(0);
 
