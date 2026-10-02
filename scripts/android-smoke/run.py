@@ -17,6 +17,9 @@ PASSWORD = "EmulatorOnly123"
 
 def parse_nodes(source, package):
     root = ET.fromstring(source)
+    blocking = next((node.get("text") for node in root.iter("node") if node.get("package") == "android" and node.get("resource-id") == "android:id/alertTitle"), None)
+    if blocking:
+        raise AssertionError(f"Android system dialog blocks the application: {blocking}")
     nodes = [node for node in root.iter("node") if node.get("package") == package]
     if not nodes:
         raise AssertionError("Expected application is not present in the UI hierarchy")
@@ -86,11 +89,14 @@ class Device:
         self.serial, self.app, self.output = serial, app, output
         self.package = APPS[app][0]
         self.steps = []
+        self.last_adb_failure = None
 
     def adb(self, *args, binary=False, required=True, timeout=30):
         result = subprocess.run(["adb", "-s", self.serial, *args], capture_output=True, timeout=timeout)
         if required and result.returncode:
-            raise RuntimeError(f"adb {' '.join(args[:3])} failed: {result.stderr.decode(errors='replace')}")
+            self.last_adb_failure = {"command": list(args[:3]), "exitCode": result.returncode,
+                                     "stdout": result.stdout.decode(errors="replace"), "stderr": result.stderr.decode(errors="replace")}
+            raise RuntimeError(f"adb {' '.join(args[:3])} failed (exit {result.returncode}, stdout {len(result.stdout)} bytes): {result.stderr.decode(errors='replace')}")
         return result.stdout if binary else result.stdout.decode("utf-8", errors="replace")
 
     def hierarchy(self):
@@ -135,6 +141,32 @@ class Device:
         if not re.search(r"Status:\s*ok", result):
             raise AssertionError(f"Activity launch failed: {result}")
 
+    def wait_environment_ready(self):
+        """Require a usable HOME and diagnostics before installing the test product."""
+        resolved = self.adb("shell", "cmd", "package", "resolve-activity", "--brief", "-a", "android.intent.action.MAIN", "-c", "android.intent.category.HOME")
+        components = [line.strip() for line in resolved.splitlines() if re.fullmatch(r"[A-Za-z0-9_.]+/[A-Za-z0-9_.$]+", line.strip())]
+        if len(components) != 1:
+            raise AssertionError("Disposable emulator has no unambiguous HOME activity")
+        package = components[0].split("/")[0]
+        self.adb("shell", "am", "start", "-W", "-a", "android.intent.action.MAIN", "-c", "android.intent.category.HOME")
+        deadline, stable = time.monotonic() + 90, 0
+        while time.monotonic() < deadline:
+            source = self.hierarchy()
+            try:
+                parse_nodes(source, package)
+            except (AssertionError, ET.ParseError) as error:
+                if "Android system dialog" in str(error):
+                    raise AssertionError(f"Emulator environment failed before app installation: {error}") from None
+                stable = 0
+            else:
+                # Success is mandatory. No retry or suppression of diagnostic errors.
+                self.adb("logcat", "-d", "-v", "threadtime")
+                stable += 1
+                if stable == 2:
+                    return
+            time.sleep(1)
+        raise AssertionError("Disposable emulator HOME did not become ready before app installation")
+
     def edit(self, node, value):
         self.adb("shell", "input", "tap", *center(node))
         time.sleep(0.5)
@@ -144,6 +176,8 @@ class Device:
         self.adb("shell", "input", "keyevent", "KEYCODE_BACK")
 
     def collect(self):
+        if self.last_adb_failure:
+            (self.output / "adb-failure.json").write_text(json.dumps(self.last_adb_failure, ensure_ascii=False), encoding="utf-8")
         for name, args in {
             "logcat.txt": ("logcat", "-d", "-v", "threadtime"),
             "crash.txt": ("logcat", "-b", "crash", "-d"),
@@ -166,6 +200,7 @@ def run_smoke(device, apk):
         raise AssertionError("Smoke is restricted to a disposable emulator, never a physical device")
     if device.adb("shell", "getprop", "sys.boot_completed").strip() != "1":
         raise AssertionError("Emulator has not finished booting")
+    device.wait_environment_ready()
     device.adb("install", "-r", str(apk), timeout=120)
     device.adb("shell", "pm", "clear", device.package)
     device.adb("logcat", "-c")

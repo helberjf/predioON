@@ -49,7 +49,11 @@ Antes da primeira execução nativa, foram verificados localmente:
 - API real local para as duas contas: senha inválida, login, perfil, descoberta somente do condomínio próprio, refresh, logout e recusa do acesso revogado; as contagens finais corresponderam a uma família revogada e uma rotação por conta;
 - limpeza da fixture no banco isolado seguida de snapshot com zero sessões e refresh tokens para as duas contas.
 
-Esses resultados não incluem ainda a execução autenticada no emulador. Quando ela terminar, registrar o run e o commit exatos; não transferir aprovação automaticamente a alterações posteriores.
+Esses resultados locais não substituem a execução autenticada no emulador. Não transferir aprovação automaticamente a alterações posteriores.
+
+Na primeira [execução nativa 36961694246](https://github.com/helberjf/predioON/actions/runs/36961694246), commit `7319b3e20892b4b8e8c857acc347ffd7a4712221`, os dois APKs compilaram e o Morador exibiu a entrada vazia. A execução foi interrompida antes do primeiro envio de login: uma leitura obrigatória de `adb logcat` retornou código 1, sem stderr. O artefato `11208231474` preserva `passed: false`, formulário observado, buffer de crash vazio e logs da API/proxy contendo somente health. A causa exata desse erro de diagnóstico não foi comprovada; não houve aprovação do fluxo autenticado.
+
+O harness passou a exigir duas observações do launcher HOME e leitura bem-sucedida de diagnósticos antes da instalação. Um diálogo de sistema bloqueante é reportado como falha de ambiente, sem ser fechado automaticamente. Erros ADB registram código e stdout/stderr sanitizados; nenhuma falha de diagnóstico durante o teste é dispensada. As três regressões dessa preparação elevam a suíte comum para 13 testes; os oito testes autenticados foram repetidos com sucesso em Linux. A nova execução nativa ainda precisa confirmar o percurso completo.
 
 ## Limites e continuidade
 

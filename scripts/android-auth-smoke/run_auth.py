@@ -94,6 +94,8 @@ class AuthDevice(Device):
         self.wait_for(phase, lambda source: inspect_login(source, self.app))
 
     def collect(self):
+        if self.last_adb_failure:
+            (self.output / "adb-failure.json").write_text(redact(json.dumps(self.last_adb_failure, ensure_ascii=False), self.password), encoding="utf-8")
         for name, args in {
             "logcat.txt": ("logcat", "-d", "-v", "threadtime"),
             "crash.txt": ("logcat", "-b", "crash", "-d"),
@@ -143,6 +145,7 @@ def run(devices, apks, fixture_file, output):
         raise AssertionError("Authentication smoke requires a disposable emulator")
     if first.adb("shell", "getprop", "sys.boot_completed").strip() != "1":
         raise AssertionError("Emulator has not finished booting")
+    first.wait_environment_ready()
     for device in devices:
         device.adb("install", "-r", str(apks / device.app / "verification.apk"), timeout=120)
         device.adb("shell", "pm", "clear", device.package)

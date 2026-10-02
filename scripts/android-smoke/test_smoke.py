@@ -1,8 +1,10 @@
 import unittest
+from pathlib import Path
+from unittest.mock import patch
 import xml.etree.ElementTree as ET
 
 from prepare import configure_source, validate_badging, AUTH_ORIGIN, SMOKE_ORIGIN
-from run import APPS, EMAIL, PASSWORD, center, crash_evidence, inspect_login, run_smoke
+from run import APPS, Device, EMAIL, PASSWORD, center, crash_evidence, inspect_login, run_smoke
 
 
 def hierarchy(app="resident-mobile", email="", password="", enabled="false", secure="true"):
@@ -54,6 +56,35 @@ class UiAssertions(unittest.TestCase):
 
 
 class CrashAssertions(unittest.TestCase):
+    def test_emulator_launcher_readiness_needs_two_observations_and_complete_diagnostics(self):
+        device = Device("emulator-test", "resident-mobile", Path("unused"))
+        def adb(*args):
+            return "com.android.launcher/.Launcher\n" if "resolve-activity" in args else ""
+        home = '<hierarchy><node package="com.android.launcher" /></hierarchy>'
+        with patch.object(device, "adb", side_effect=adb) as command, patch.object(device, "hierarchy", return_value=home) as dump, patch("run.time.sleep"):
+            device.wait_environment_ready()
+            self.assertEqual(dump.call_count, 2)
+            self.assertEqual(sum(call.args[0] == "logcat" for call in command.call_args_list), 2)
+        with patch.object(device, "adb", side_effect=lambda *args: adb(*args) if args[0] != "logcat" else (_ for _ in ()).throw(RuntimeError("Diagnostic read failed"))), patch.object(device, "hierarchy", return_value=home):
+            with self.assertRaisesRegex(RuntimeError, "Diagnostic read failed"):
+                device.wait_environment_ready()
+
+    def test_launcher_anr_is_reported_as_blocking_environment_without_dismissing_it(self):
+        device = Device("emulator-test", "operations-mobile", Path("unused"))
+        source = '<hierarchy><node package="android" resource-id="android:id/alertTitle" text="Pixel Launcher is not responding" /></hierarchy>'
+        with patch.object(device, "adb", return_value="com.android.launcher/.Launcher\n") as command, patch.object(device, "hierarchy", return_value=source):
+            with self.assertRaisesRegex(AssertionError, "environment failed.*Pixel Launcher"):
+                device.wait_environment_ready()
+            self.assertFalse(any("input" in call.args or "install" in call.args for call in command.call_args_list))
+
+    def test_adb_failure_retains_full_diagnostics_and_exit_code(self):
+        device = Device("emulator-test", "resident-mobile", Path("unused"))
+        result = type("Result", (), {"returncode": 1, "stdout": b"partial diagnostic output", "stderr": b""})()
+        with patch("run.subprocess.run", return_value=result):
+            with self.assertRaisesRegex(RuntimeError, "exit 1, stdout 25 bytes"):
+                device.adb("logcat", "-d", "-v", "threadtime")
+        self.assertEqual(device.last_adb_failure, {"command": ["logcat", "-d", "-v"], "exitCode": 1, "stdout": "partial diagnostic output", "stderr": ""})
+
     def test_detects_java_native_and_anr_evidence(self):
         package = APPS["resident-mobile"][0]
         samples = [
