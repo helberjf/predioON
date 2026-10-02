@@ -1,5 +1,6 @@
 import { defineConfig } from "@playwright/test";
 import { ADMIN_URL, API_URL, BUILDING_URL, E2E_PORT_OFFSET, RESIDENT_URL } from "./e2e/environment";
+import { isDisposableDatabaseTarget } from "./e2e/database-target";
 
 const runSuffix = E2E_PORT_OFFSET ? `-${E2E_PORT_OFFSET}` : "";
 
@@ -8,8 +9,8 @@ const databaseEnvironment = Object.fromEntries(databaseRoles.map(role => {
   const key = `DATABASE_URL_${role}`;
   const roleName = `predioon_${role.toLowerCase()}`;
   const value = process.env[key] ?? `postgres://${roleName}:${roleName}@localhost:5436/predioon`;
-  if (!["localhost", "127.0.0.1", "[::1]"].includes(new URL(value).hostname)) {
-    throw new Error("E2E exige um banco isolado acessível por loopback. Não aponte estes testes de escrita para um banco remoto ou de produção.");
+  if (!isDisposableDatabaseTarget(new URL(value))) {
+    throw new Error("E2E exige banco descartável em loopback ou o serviço postgres explícito do job GitHub. Não use banco remoto ou de produção.");
   }
   return [key, value];
 }));

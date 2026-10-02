@@ -16,6 +16,12 @@ concurrency:
 jobs:
   browser:
     runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      options: --init --ipc=host
+    defaults:
+      run:
+        shell: bash
     timeout-minutes: 20
     services:
       postgres:
@@ -25,15 +31,15 @@ jobs:
           POSTGRES_PASSWORD: predioon
           POSTGRES_DB: predioon
           TIMESCALEDB_TELEMETRY: 'off'
-        ports: ['5436:5432']
         options: >-
           --health-cmd "pg_isready -U predioon -d predioon"
           --health-interval 5s --health-timeout 5s --health-retries 20
     env:
-      DATABASE_URL: postgres://predioon:predioon@localhost:5436/predioon
-      DATABASE_URL_APP: postgres://predioon_app:predioon_app@localhost:5436/predioon
-      DATABASE_URL_IDENTITY: postgres://predioon_identity:predioon_identity@localhost:5436/predioon
-      DATABASE_URL_BROKER_AUTH: postgres://predioon_broker_auth:predioon_broker_auth@localhost:5436/predioon
+      E2E_DATABASE_SERVICE: postgres
+      DATABASE_URL: postgres://predioon:predioon@postgres:5432/predioon
+      DATABASE_URL_APP: postgres://predioon_app:predioon_app@postgres:5432/predioon
+      DATABASE_URL_IDENTITY: postgres://predioon_identity:predioon_identity@postgres:5432/predioon
+      DATABASE_URL_BROKER_AUTH: postgres://predioon_broker_auth:predioon_broker_auth@postgres:5432/predioon
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -42,6 +48,10 @@ jobs:
           node-version: '24'
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Verify disposable database guards and matching browser image
+        run: |
+          node --experimental-strip-types --test e2e/database-target.test.ts
+          node -e "if (require('@playwright/test/package.json').version !== '1.63.0') throw new Error('Update the pinned Playwright image together with the package')"
       - name: Prepare disposable database for real browser workflows
         run: |
           pnpm db:bootstrap
@@ -49,8 +59,6 @@ jobs:
           pnpm db:infra
           pnpm db:provision-runtime
           pnpm db:seed
-      - name: Install browser and operating system dependencies
-        run: pnpm exec playwright install --with-deps chromium firefox webkit
       - name: Exercise all three portals against the real API
         run: pnpm test:e2e
       - name: Preserve report and failure evidence

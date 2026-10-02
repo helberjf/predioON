@@ -9,20 +9,33 @@ export function useResource<T>(path: string | null, deps: unknown[] = []): Resou
   const [state, dispatch] = useReducer(resourceReducer<T>, { path, data: null, error: null, loading: Boolean(path) });
   const [nonce, setNonce] = useState(0);
   const pending = useRef(false);
+  const reloadRequested = useRef(false);
 
   // Polling must not discard a response that takes longer than the refresh interval.
-  const reload = useCallback(() => { if (!pending.current) setNonce((value) => value + 1); }, []);
+  // Coalesce concurrent refreshes instead of losing a manual/post-mutation request.
+  const reload = useCallback(() => {
+    if (pending.current) reloadRequested.current = true;
+    else setNonce((value) => value + 1);
+  }, []);
 
   useEffect(() => {
     dispatch({ type: "start", path });
     pending.current = Boolean(path);
+    reloadRequested.current = false;
     if (!path) return;
     let active = true;
     api
       .get<T>(path)
       .then((data) => active && dispatch({ type: "success", data }))
       .catch((cause: unknown) => active && dispatch({ type: "error", error: cause instanceof Error ? cause.message : "Falha ao carregar", status: cause instanceof ApiError ? cause.status : undefined }))
-      .finally(() => { if (active) pending.current = false; });
+      .finally(() => {
+        if (!active) return;
+        pending.current = false;
+        if (reloadRequested.current) {
+          reloadRequested.current = false;
+          setNonce((value) => value + 1);
+        }
+      });
     return () => {
       active = false;
     };

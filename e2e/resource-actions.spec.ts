@@ -126,17 +126,38 @@ test("gestão de chamado exato altera somente o item concedido sem criar chamado
     await expect(page.getByRole("button", { name: "Cancelar meu chamado", exact: true })).toHaveCount(0);
     await expect(page.getByRole("checkbox", { name: /Aplicar status/ })).toHaveCount(0);
     await expect(page.getByText(hidden.title, { exact: true })).toHaveCount(0);
-    await page.getByLabel("Situação do chamado", { exact: true }).selectOption("IN_PROGRESS");
-    const changed = page.waitForResponse(response => response.url() === `${API_URL}/occurrences/${one.id}` && response.request().method() === "PATCH");
-    await page.getByRole("button", { name: "Salvar andamento", exact: true }).click();
-    expect((await changed).status()).toBe(200);
-    expect((await (await f.managerApi.get(`/occurrences/${hidden.id}`)).json()).status).toBe("OPEN");
-    await page.getByLabel("Mensagem para este chamado", { exact: true }).fill("Rascunho que deve desaparecer após revogação");
-    await f.revoke(role, "occurrences:manage");
-    await page.getByRole("button", { name: "Atualizar", exact: true }).click();
-    await expect(page.getByLabel("Mensagem para este chamado", { exact: true })).toHaveCount(0);
-    await expect(page.getByText(one.title, { exact: true })).toHaveCount(0);
-    expect((await delegateApi.patch(`/occurrences/${one.id}`, { status: "DONE" })).status()).toBe(404);
+    // Hold real pre-revocation responses, rather than fabricating a payload.
+    // A manual refresh during this window must queue a fresh authorized read.
+    let release!: () => void;
+    let hold = true;
+    const pending = new Promise<void>(resolve => { release = resolve; });
+    const targets = ["list", "detail", "authorization"] as const;
+    const arrivals = new Map<string, () => void>();
+    const arrived = targets.map(target => new Promise<void>(resolve => { arrivals.set(target, resolve); }));
+    await page.route(url => url.origin === API_URL && (url.pathname === "/occurrences" || url.pathname === `/occurrences/${one.id}` || (url.pathname === "/v1/authorization" && url.searchParams.get("resourceId") === one.id)), async route => {
+      if (!hold || route.request().method() !== "GET") return route.continue();
+      const url = new URL(route.request().url());
+      const target = url.pathname === "/occurrences" ? "list" : url.pathname === "/v1/authorization" ? "authorization" : "detail";
+      const response = await route.fetch();
+      arrivals.get(target)?.();
+      await pending;
+      await route.fulfill({ response });
+    });
+    try {
+      await page.getByLabel("Situação do chamado", { exact: true }).selectOption("IN_PROGRESS");
+      const changed = page.waitForResponse(response => response.url() === `${API_URL}/occurrences/${one.id}` && response.request().method() === "PATCH");
+      await page.getByRole("button", { name: "Salvar andamento", exact: true }).click();
+      expect((await changed).status()).toBe(200);
+      await Promise.all(arrived);
+      expect((await (await f.managerApi.get(`/occurrences/${hidden.id}`)).json()).status).toBe("OPEN");
+      await page.getByLabel("Mensagem para este chamado", { exact: true }).fill("Rascunho que deve desaparecer após revogação");
+      await f.revoke(role, "occurrences:manage");
+      await page.getByRole("button", { name: "Atualizar", exact: true }).click();
+      hold = false; release();
+      await expect(page.getByLabel("Mensagem para este chamado", { exact: true })).toHaveCount(0);
+      await expect(page.getByText(one.title, { exact: true })).toHaveCount(0);
+      expect((await delegateApi.patch(`/occurrences/${one.id}`, { status: "DONE" })).status()).toBe(404);
+    } finally { hold = false; release(); await page.unrouteAll({ behavior: "wait" }); }
   } finally { await f.cleanup(); }
 });
 
@@ -156,6 +177,7 @@ test("leitura própria exata permite responder e cancelar, mas não concede cria
     await page.getByLabel("Mensagem para este chamado", { exact: true }).fill("Nova informação do solicitante");
     const comment = page.waitForResponse(response => response.url() === `${API_URL}/occurrences/${own.id}/comments` && response.request().method() === "POST");
     await page.getByRole("button", { name: "Enviar resposta", exact: true }).click(); expect((await comment).status()).toBe(201);
+    await expect(page.getByText("Nova informação do solicitante", { exact: true })).toBeVisible();
     const cancelled = page.waitForResponse(response => response.url() === `${API_URL}/occurrences/${own.id}` && response.request().method() === "PATCH");
     await page.getByRole("button", { name: "Cancelar meu chamado", exact: true }).click(); expect((await cancelled).status()).toBe(200);
     expect((await (await delegateApi.get(`/occurrences/${own.id}`)).json()).status).toBe("CANCELLED");
