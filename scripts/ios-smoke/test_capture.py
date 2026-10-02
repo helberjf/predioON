@@ -3,7 +3,7 @@ from pathlib import Path
 import unittest
 from unittest.mock import patch
 
-from capture import capture, iphone_target
+from capture import capture, iphone_target, simulator_entitlements
 
 
 class RuntimeSelection(unittest.TestCase):
@@ -36,6 +36,24 @@ class RuntimeSelection(unittest.TestCase):
         with patch.dict(os.environ, {"GITHUB_ACTIONS": "false"}):
             with self.assertRaisesRegex(RuntimeError, "disposable GitHub"):
                 capture(Path("does-not-exist.app"), Path("must-not-be-created"))
+
+    def test_each_simulator_product_receives_only_its_own_keychain_group(self):
+        groups = []
+        for bundle in ["com.predioon.resident", "com.predioon.operations"]:
+            entitlements = simulator_entitlements({"CFBundleIdentifier": bundle, "CFBundleSupportedPlatforms": ["iPhoneSimulator"]})
+            self.assertEqual(set(entitlements), {"application-identifier", "keychain-access-groups"})
+            self.assertEqual(entitlements["keychain-access-groups"], [entitlements["application-identifier"]])
+            self.assertTrue(entitlements["application-identifier"].endswith("." + bundle))
+            groups.extend(entitlements["keychain-access-groups"])
+        self.assertEqual(len(set(groups)), 2)
+
+    def test_device_distribution_and_foreign_bundles_are_not_signed(self):
+        for info in [
+            {"CFBundleIdentifier": "com.predioon.resident", "CFBundleSupportedPlatforms": ["iPhoneOS"]},
+            {"CFBundleIdentifier": "com.example.foreign", "CFBundleSupportedPlatforms": ["iPhoneSimulator"]},
+        ]:
+            with self.assertRaises(RuntimeError):
+                simulator_entitlements(info)
 
 
 if __name__ == "__main__":

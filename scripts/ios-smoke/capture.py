@@ -12,6 +12,7 @@ import plistlib
 import re
 import subprocess
 import time
+import tempfile
 import uuid
 
 
@@ -46,6 +47,16 @@ def iphone_target(inventory: dict, sdk_version: str) -> tuple[str, str]:
     raise RuntimeError("No available iPhone/iOS runtime compatible with the selected Xcode SDK")
 
 
+def simulator_entitlements(info: dict) -> dict:
+    if info.get("CFBundleSupportedPlatforms") != ["iPhoneSimulator"]:
+        raise RuntimeError("Local CI signing requires an iPhoneSimulator build")
+    bundle = info.get("CFBundleIdentifier")
+    if bundle not in {"com.predioon.resident", "com.predioon.operations"}:
+        raise RuntimeError("Unexpected application bundle")
+    identifier = "PRDIOONCI0." + bundle
+    return {"application-identifier": identifier, "keychain-access-groups": [identifier]}
+
+
 def capture(application: Path, destination: Path) -> None:
     if os.environ.get("GITHUB_ACTIONS") != "true":
         raise RuntimeError("This command manages only disposable GitHub macOS runner simulators")
@@ -69,6 +80,21 @@ def capture(application: Path, destination: Path) -> None:
     }
     device_id = None
     try:
+        # A binary compiled with CODE_SIGNING_ALLOWED=NO can launch but cannot
+        # access the Keychain. Give only this simulator build an ad-hoc signature
+        # with its own application group; no certificate or store identity is used.
+        expected_entitlements = simulator_entitlements(info)
+        with tempfile.TemporaryDirectory(prefix="predioon-ios-sign-") as temporary:
+            entitlements = Path(temporary) / "simulator.plist"
+            entitlements.write_bytes(plistlib.dumps(expected_entitlements))
+            command("codesign", "--force", "--sign", "-", "--entitlements", str(entitlements), str(application))
+        actual_entitlements = plistlib.loads(command("codesign", "--display", "--entitlements", ":-", str(application)).encode())
+        if actual_entitlements != expected_entitlements:
+            raise RuntimeError("Simulator signature does not contain the exact isolated Keychain group")
+        command("codesign", "--verify", "--strict", str(application))
+        evidence.update(entitlements=actual_entitlements, signing="local ad-hoc simulator identity; not a distribution signature",
+                        binarySha256=hashlib.sha256(binary.read_bytes()).hexdigest())
+        evidence["phases"].append("simulator-signature-verified")
         sdk_version = command("xcrun", "--sdk", "iphonesimulator", "--show-sdk-version")
         inventory = json.loads(command("xcrun", "simctl", "list", "--json"))
         runtime, device_type = iphone_target(inventory, sdk_version)
