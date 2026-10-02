@@ -10,14 +10,14 @@ export async function signIn(page: Page, origin: string, email: string) {
 export async function enterCredentials(page: Page, email: string) {
   await page.getByLabel("E-mail", { exact: true }).fill(email);
   await page.getByLabel("Senha", { exact: true }).fill(DEMO_PASSWORD);
-  const response = page.waitForResponse(response => response.url() === `${API_URL}/auth/login` && response.request().method() === "POST");
+  const response = page.waitForResponse(response => response.url() === `${API_URL}/auth/web/login` && response.request().method() === "POST");
   await page.getByRole("button", { name: "Entrar", exact: true }).click();
   expect((await response).status(), "O seed precisa fornecer contas de demonstração com a senha configurada").toBe(200);
   await expect(page.getByLabel("Senha", { exact: true })).toHaveCount(0);
 }
 
 export async function signOut(page: Page, button = "Sair da conta") {
-  const response = page.waitForResponse(response => response.url() === `${API_URL}/auth/logout` && response.request().method() === "POST");
+  const response = page.waitForResponse(response => response.url() === `${API_URL}/auth/web/logout` && response.request().method() === "POST");
   await page.getByRole("button", { name: button, exact: true }).click();
   expect((await response).status()).toBe(204);
   await expect(page.getByLabel("E-mail", { exact: true })).toBeVisible();

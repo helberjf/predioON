@@ -1,11 +1,11 @@
-import { ApiError, type ApiClient } from "@predioon/api-client";
+import { ApiError, type WebApiClient } from "@predioon/api-client";
 import type { AuthUser } from "@predioon/contracts/auth";
 
 type Options = {
-  api: Pick<ApiClient, "get" | "login" | "logout">;
-  tokens: { access(): string | null; clear(): void };
+  api: Pick<WebApiClient, "restore" | "login" | "logout" | "clearMemory">;
   onUserChange(user: AuthUser | null): void;
   onLoadingChange(loading: boolean): void;
+  onErrorChange(error: string | null): void;
 };
 
 /** Keep React identity updates in the same order as explicit authentication actions. */
@@ -22,13 +22,17 @@ export function createAuthActions(options: Options) {
     async restore(): Promise<void> {
       const expected = ++generation;
       options.onLoadingChange(true);
+      options.onErrorChange(null);
       try {
-        const user = options.tokens.access() ? await options.api.get<AuthUser>("/auth/me") : null;
-        if (generation === expected) options.onUserChange(user);
+        const session = await options.api.restore();
+        if (generation === expected) options.onUserChange(session?.user ?? null);
       } catch (error) {
         if (generation === expected && !(error instanceof ApiError && error.code === "SESSION_CHANGED")) {
-          options.tokens.clear();
+          options.api.clearMemory();
           options.onUserChange(null);
+          if (!(error instanceof ApiError && error.status === 401)) {
+            options.onErrorChange(error instanceof Error ? error.message : "Não foi possível recuperar a sessão. Tente novamente.");
+          }
         }
       } finally {
         if (generation === expected) options.onLoadingChange(false);
@@ -37,6 +41,7 @@ export function createAuthActions(options: Options) {
 
     async signIn(email: string, password: string): Promise<void> {
       clearIdentity();
+      options.onErrorChange(null);
       const expected = generation;
       const session = await options.api.login(email, password);
       if (generation === expected) options.onUserChange(session.user);
@@ -44,7 +49,14 @@ export function createAuthActions(options: Options) {
 
     async signOut(): Promise<void> {
       clearIdentity();
-      await options.api.logout();
+      options.onErrorChange(null);
+      const expected = generation;
+      try { await options.api.logout(); }
+      catch (error) {
+        if (generation === expected && !(error instanceof ApiError && error.code === "SESSION_CHANGED")) {
+          options.onErrorChange("Você saiu deste portal. Não foi possível confirmar a revogação no servidor; ao entrar novamente, vamos concluir essa etapa primeiro.");
+        }
+      }
     },
 
     authLost: clearIdentity,

@@ -15,6 +15,7 @@ function world() {
   const listeners = new Map<number, () => void>();
   let sequence = 0, queue: Promise<unknown> = Promise.resolve(), cookie: string | null = null, revision = 0;
   let notifications = true, offline = false, active = 0, peak = 0;
+  let failActivation = false;
   const calls: Array<{ path: string; init: RequestInit }> = [];
   let intercept: ((path: string, init: RequestInit) => Promise<Response | null>) | null = null;
   const fetcher: typeof fetch = async (input, init = {}) => {
@@ -45,7 +46,10 @@ function world() {
     const id = ++sequence;
     const coordinator = createWebSessionCoordinator({
       namespace,
-      storage: { getItem: key => values.get(key) ?? null, setItem: (key, value) => { values.set(key, value); }, removeItem: key => { values.delete(key); } },
+      storage: { getItem: key => values.get(key) ?? null, setItem: (key, value) => {
+        if (failActivation && JSON.parse(value).blocked === false) throw new Error("Storage unavailable");
+        values.set(key, value);
+      }, removeItem: key => { values.delete(key); } },
       locks: supported ? { request: <T>(_key: string, run: () => Promise<T>): Promise<T> => {
         const pending = queue.then(run); queue = pending.catch(() => undefined); return pending;
       } } : undefined,
@@ -60,6 +64,7 @@ function world() {
   }
   return { tab, calls, values, peak: () => peak, cookie: () => cookie, revision: () => revision,
     offline(value: boolean) { offline = value; }, notifications(value: boolean) { notifications = value; },
+    failActivation(value: boolean) { failActivation = value; },
     intercept(value: typeof intercept) { intercept = value; }, setCookie(value: string) { cookie = value; revision++; },
   };
 }
@@ -196,7 +201,7 @@ it("missing Web Locks fails closed with an actionable error and makes no network
 
 it("stalled auth headers or body abort, release the lock and cannot restore a late session", async () => {
   for (const stage of ["headers", "body"] as const) {
-    const fixture = world(), a = fixture.tab("portal", true, 15), b = fixture.tab();
+    const fixture = world(), a = fixture.tab("portal", true, 100), b = fixture.tab();
     const delayed = deferred<Response>(), body = deferred<unknown>(), began = deferred<void>();
     let authSignal: AbortSignal | undefined;
     fixture.intercept(async (path, init) => {
@@ -232,6 +237,31 @@ it("equivalent API URLs use the same portal lock and metadata namespace", () => 
     webSessionNamespace("https://portal.example.test", "https://api.example.test/path"));
   assert.notEqual(webSessionNamespace("https://other.example.test", "https://api.example.test"),
     webSessionNamespace("https://portal.example.test", "https://api.example.test"));
+});
+
+it("failed metadata activation cannot leave usable access credentials after a rejected login", async () => {
+  const fixture = world(), tab = fixture.tab(); fixture.failActivation(true);
+  await assert.rejects(tab.api.login("new", "password"), error => error instanceof ApiError && error.code === "BROWSER_UNSUPPORTED");
+  assert.equal(tab.api.accessToken(), null);
+  assert.equal(await tab.api.restore(), null);
+  fixture.failActivation(false);
+  assert.equal((await tab.api.login("recovered", "password")).user.id, "recovered");
+  tab.close();
+});
+
+it("cleanup from an old failed login cannot invalidate a newer login in the same tab", async () => {
+  const fixture = world(), tab = fixture.tab();
+  const delayed = deferred<Response>(), began = deferred<void>(); let first = true;
+  fixture.intercept(async path => {
+    if (path !== "/auth/web/login" || !first) return null;
+    first = false; began.resolve(); return delayed.promise;
+  });
+  const old = assert.rejects(tab.api.login("old", "password"), changed); await began.promise;
+  const next = tab.api.login("new", "password");
+  delayed.resolve(Response.json(session("old"))); await old;
+  assert.equal((await next).user.id, "new");
+  assert.deepEqual(await tab.api.get("/private"), { owner: "new" });
+  tab.close();
 });
 
 it("different API/portal namespaces do not invalidate each other's memory sessions", async () => {

@@ -11,22 +11,23 @@ function deferred<T>() {
 }
 
 const user = (id: string) => ({ id, name: id, email: `${id}@example.com`, role: "RESIDENT" as const, memberships: [] });
-const session = (id: string) => ({ accessToken: id, refreshToken: id, user: user(id) });
+const session = (id: string) => ({ accessToken: id, user: user(id) });
 
 function harness() {
-  const restore = deferred<ReturnType<typeof user>>();
+  const restore = deferred<ReturnType<typeof session> | null>();
   const login = deferred<ReturnType<typeof session>>();
   const logout = deferred<void>();
   let currentUser: ReturnType<typeof user> | null = user("old");
   let loading = true;
   let clears = 0;
+  let error: string | null = null;
   const actions = createAuthActions({
-    api: { get: async <T>() => await restore.promise as T, login: async () => login.promise, logout: async () => logout.promise },
-    tokens: { access: () => "old", clear: () => { clears++; } },
+    api: { restore: async () => restore.promise, login: async () => login.promise, logout: async () => logout.promise, clearMemory: () => { clears++; } },
     onUserChange: next => { currentUser = next; },
     onLoadingChange: next => { loading = next; },
+    onErrorChange: next => { error = next; },
   });
-  return { actions, restore, login, logout, state: () => ({ user: currentUser, loading, clears }) };
+  return { actions, restore, login, logout, state: () => ({ user: currentUser, loading, clears }), error: () => error };
 }
 
 it("does not let a failed bootstrap clear a newer login", async () => {
@@ -45,10 +46,30 @@ it("does not expose a stale bootstrap result after logout", async () => {
   const restoring = context.actions.restore();
   const signingOut = context.actions.signOut();
   assert.equal(context.state().user, null);
-  context.restore.resolve(user("old"));
+  context.restore.resolve(session("old"));
   await restoring;
   context.logout.resolve();
   await signingOut;
+  assert.equal(context.state().user, null);
+});
+
+it("restores the HttpOnly session without a pre-existing access token", async () => {
+  const context = harness();
+  const restoring = context.actions.restore();
+  context.restore.resolve(session("cookie-user")); await restoring;
+  assert.equal(context.state().user?.id, "cookie-user");
+  assert.equal(context.state().loading, false);
+});
+
+it("reports transient restore failure while preserving recovery and reports incomplete server logout", async () => {
+  const context = harness();
+  const restoring = context.actions.restore();
+  context.restore.reject(new ApiError(0, "offline", "NETWORK_ERROR")); await restoring;
+  assert.equal(context.error(), "offline");
+  assert.equal(context.state().user, null);
+  const logout = context.actions.signOut();
+  context.logout.reject(new ApiError(0, "offline", "NETWORK_ERROR")); await logout;
+  assert.match(context.error()!, /revogação no servidor/);
   assert.equal(context.state().user, null);
 });
 

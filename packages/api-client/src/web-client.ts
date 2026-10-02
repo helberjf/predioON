@@ -22,6 +22,7 @@ export type WebApiClientOptions = {
 
 export function createWebApiClient(options: WebApiClientOptions) {
   let session: WebSession | null = null;
+  let intent = 0;
   const { coordinator } = options;
   const webRequest = (path: string, body: unknown = {}) => ({
     path: `/auth/web/${path}`,
@@ -50,12 +51,11 @@ export function createWebApiClient(options: WebApiClientOptions) {
     },
   });
   const unsubscribe = coordinator.subscribe(available => {
-    session = null;
-    core.invalidateSession();
+    invalidate();
     options.onAuthLost?.();
     if (available) options.onSessionAvailable?.();
   });
-  const invalidate = () => { session = null; core.invalidateSession(); };
+  function invalidate() { intent++; session = null; core.invalidateSession(); }
   return {
     ...core,
     /** Synchronous memory access is needed for SSE; nothing is persisted. */
@@ -73,8 +73,16 @@ export function createWebApiClient(options: WebApiClientOptions) {
     },
     async login(email: string, password: string): Promise<WebSession> {
       invalidate();
-      coordinator.beginIdentityChange();
-      return core.login(email, password);
+      const expected = intent;
+      try {
+        coordinator.beginIdentityChange();
+        return await core.login(email, password);
+      } catch (error) {
+        // A storage/coordination failure after the HTTP response must not leave
+        // usable credentials behind, nor clear a newer explicit identity.
+        if (intent === expected) invalidate();
+        throw error;
+      }
     },
     async logout(): Promise<void> {
       invalidate();

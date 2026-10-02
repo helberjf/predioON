@@ -5,6 +5,7 @@
   "type": "module",
   "main": "./src/index.ts",
   "exports": { ".": "./src/index.ts" },
+  "imports": { "#web-session-coordinator": "./src/web-session-coordinator.ts" },
   "scripts": { "typecheck": "tsc --noEmit", "test": "node --experimental-strip-types --test test/*.test.ts" },
   "dependencies": {
     "@predioon/api-client": "workspace:*",

@@ -11,11 +11,15 @@ pnpm test:e2e
 
 Em runners Linux, use `pnpm exec playwright install --with-deps chromium firefox webkit`. Para investigar um navegador isoladamente, acrescente `--project=chromium`, `--project=firefox` ou `--project=webkit` ao comando de testes. As contas são `sindico@predioon.local`, `morador@predioon.local` e `admin@predioon.local`; a senha acompanha `SEED_PASSWORD`, com o padrão de demonstração `predioon123`.
 
-A configuração inicia a API na porta 3100 e os portais nas portas 5273–5275. Servidores existentes não são reutilizados. O serviço de ingestão não é necessário para estes testes: o dashboard pode mostrar ausência de telemetria, sem inventar leituras.
+A configuração inicia a API na porta 3100 e os portais nas portas 5273–5275. `E2E_PORT_OFFSET` aceita um inteiro de 0 a 9999 e desloca as quatro portas e as pastas de resultado para execuções locais independentes; cada execução também precisa de seu próprio banco. Servidores existentes não são reutilizados. O serviço de ingestão não é necessário para estes testes: o dashboard pode mostrar ausência de telemetria, sem inventar leituras.
 
-Os 23 cenários, totalizando 69 execuções, cobrem:
+Os 35 cenários, totalizando 105 execuções configuradas, cobrem:
 
 - Login real e inválido, validação HTML, dashboard, contas sem condomínio e recuperação do painel administrativo.
+- Cookie HttpOnly e SameSite, access somente em memória, limpeza dos tokens legados e SSE com bearer no cabeçalho, sem credencial na URL.
+- Restauração após reload, renovação simultânea em duas abas, propagação de logout/troca de conta, sessões independentes entre portais e revogação real de família.
+- Logout sem rede permanece bloqueado após reload; login inválido não recupera a identidade antiga; ausência de Web Locks apresenta diagnóstico sem enviar autenticação.
+- Proteção CSRF real para cabeçalho ausente, formulário e origem não permitida; cookie isolado não autentica rotas de domínio.
 - Criação e persistência de bloco/unidade/equipe/integrante, diretório de pessoas e administrador autorizado exclusivamente por RBAC.
 - Troca de condomínio com descarte de rascunhos, persistência da escolha e separação dos registros.
 - Concessão e revogação de papel com confirmação cancelável, verificação das capacidades no servidor e formulários ocultos para moradores.
@@ -27,6 +31,7 @@ Os 23 cenários, totalizando 69 execuções, cobrem:
 - Dashboard com contagem de chamados próprios, do condomínio e do recurso autorizado; ausência de permissão e pausa não aparecem como zero, e o resumo nunca inclui o conteúdo privado dos relatos.
 - Contas com rascunho privado, edição, publicação dos totais e correção que preserva a publicação anterior; morador não recebe ações de gestão.
 - Gestão financeira limitada ao relatório selecionado, separada da consulta de outro relatório; revogar leitura ou gestão desmonta o editor e descarta o rascunho local, sem conceder criação no condomínio.
+- Regras de alerta com leitura/gestão próprias, concessões exatas por regra ou equipamento, criação sem acesso ao inventário e remoção dos controles após revogação; configurar equipamentos não concede gestão de regras.
 - Logout com revogação no servidor, histórico do navegador e nova identidade sem formulários da sessão anterior.
 
 As fixtures criam prédios, pessoas e vínculos pela API autenticada, usando as mesmas políticas de acesso do produto. A conta da plataforma cria o cadastro inicial; a conta do condomínio faz as operações. Os registros recebem nomes únicos e permanecem somente no banco descartável; a suíte não reseta o banco nem apaga registros de outros testes. Os casos que removem avisos ou revogam vínculos atuam apenas sobre registros criados pelo próprio cenário.

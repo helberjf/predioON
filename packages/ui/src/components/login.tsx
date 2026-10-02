@@ -6,7 +6,7 @@ import { Field, Input } from "./fields.js";
 
 /** Same sign-in screen for the three panels; only the subtitle changes. */
 export function LoginScreen({ subtitle }: { subtitle: string }) {
-  const { signIn } = useAuth();
+  const { signIn, error: sessionError, retryRestore } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -37,6 +37,9 @@ export function LoginScreen({ subtitle }: { subtitle: string }) {
         </div>
 
         {error && <ErrorBanner message={error} />}
+        {sessionError && <div className="space-y-2"><ErrorBanner message={sessionError} />
+          <Button type="button" variant="secondary" onClick={() => void retryRestore()}>Tentar recuperar sessão</Button>
+        </div>}
 
         <Field label="E-mail">
           <Input type="email" value={email} onChange={setEmail} placeholder="voce@condominio.com" required />

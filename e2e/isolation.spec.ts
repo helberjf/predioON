@@ -7,7 +7,7 @@ test("login valida campos, informa senha incorreta e permite recuperar a entrada
   const email = page.getByLabel("E-mail", { exact: true });
   const password = page.getByLabel("Senha", { exact: true });
   const loginRequests: string[] = [];
-  page.on("request", request => { if (request.url() === `${API_URL}/auth/login`) loginRequests.push(request.method()); });
+  page.on("request", request => { if (request.url() === `${API_URL}/auth/web/login`) loginRequests.push(request.method()); });
   await page.getByRole("button", { name: "Entrar", exact: true }).click();
   expect(await email.evaluate((input: HTMLInputElement) => input.validity.valueMissing)).toBe(true);
   await email.fill("email-invalido");
@@ -17,7 +17,7 @@ test("login valida campos, informa senha incorreta e permite recuperar a entrada
   expect(loginRequests).toEqual([]);
 
   await email.fill("sindico@predioon.local");
-  const rejected = page.waitForResponse(response => response.url() === `${API_URL}/auth/login`);
+  const rejected = page.waitForResponse(response => response.url() === `${API_URL}/auth/web/login`);
   await page.getByRole("button", { name: "Entrar", exact: true }).click();
   expect((await rejected).status()).toBe(401);
   await expect(page.getByRole("alert")).toHaveText("E-mail ou senha inválidos");
@@ -141,7 +141,7 @@ test("concessão exige justificativa e revogação tem confirmação cancelável
 });
 
 test("logout revoga a sessão no servidor e histórico do navegador não restaura gestão", async ({ page, request }) => {
-  const authenticated = page.waitForResponse(response => response.url() === `${API_URL}/auth/login` && response.status() === 200);
+  const authenticated = page.waitForResponse(response => response.url() === `${API_URL}/auth/web/login` && response.status() === 200);
   await signIn(page, BUILDING_URL, "sindico@predioon.local");
   const { accessToken } = await (await authenticated).json() as { accessToken: string };
   await page.getByRole("link", { name: "Unidades e equipes", exact: true }).click();

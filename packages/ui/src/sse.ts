@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { RealtimeEvent } from "@predioon/shared";
 import { api, tokens } from "./api.js";
-import { startRealtimeConnection, type RealtimeSource } from "./realtime-connection.js";
+import { startRealtimeConnection } from "./realtime-connection.js";
+import { createFetchEventSource } from "./fetch-event-source.js";
 
 type Options = { enabled?: boolean };
 
@@ -15,7 +16,7 @@ export function useRealtime(onEvent: (event: RealtimeEvent) => void, { enabled =
     return startRealtimeConnection({
       accessToken: tokens.access,
       validateSession: () => api.get("/auth/me"),
-      openStream: access => new EventSource(`${api.baseUrl}/events/stream?access_token=${encodeURIComponent(access)}`) as unknown as RealtimeSource,
+      openStream: access => createFetchEventSource(`${api.baseUrl}/events/stream`, access),
       schedule: (callback, delay) => { const timer = setTimeout(callback, delay); return () => clearTimeout(timer); },
       onConnection: setConnected,
       onEvent: event => handler.current(event),
