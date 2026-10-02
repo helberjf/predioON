@@ -34,12 +34,12 @@ function fixture() {
   const device = { id: "mixed", buildingId: "building", gatewayId: "gateway", type: "ENERGY_METER", enabled: true };
   const rows: Record<string, any[] | (() => any[])> = {
     devices: [device], gateways: [{ id: "gateway", buildingId: "building", enabled: true }],
-    buildings: [{ id: "building", active: true, timezone: "America/Sao_Paulo" }],
+    buildings: [{ id: "building", active: true, organizationActive: true, timezone: "America/Sao_Paulo" }],
     global_feature_settings: globalSettings, building_feature_settings: [], feature_runtime: runtime,
   };
   const chain = (result: () => any[]): any => {
     const query: any = { then: (resolve: any, reject: any) => Promise.resolve().then(result).then(resolve, reject) };
-    for (const method of ["where", "limit", "for", "orderBy", "onConflictDoNothing", "onConflictDoUpdate", "returning"]) query[method] = () => query;
+    for (const method of ["where", "innerJoin", "limit", "for", "orderBy", "onConflictDoNothing", "onConflictDoUpdate", "returning"]) query[method] = () => query;
     return query;
   };
   const tx: any = {
