@@ -119,5 +119,10 @@ implementado para WhatsApp ou e-mail.
 
 Os painéis também podem ser hospedados como arquivos estáticos, compilados com
 `VITE_API_URL` da API pública e os rewrites de SPA existentes. API e ingestão exigem processos
-permanentes; o banco precisa suportar TimescaleDB e LISTEN/NOTIFY. As URLs Vercel históricas
-não foram atualizadas nem validadas nesta entrega.
+permanentes; o banco precisa suportar TimescaleDB e LISTEN/NOTIFY. Os portais agora usam
+refresh em cookie HttpOnly/SameSite=Strict: API e portais precisam compartilhar o mesmo
+site HTTPS, como os subdomínios do Compose. No provedor estático, configure domínios
+próprios desse mesmo site e suas origens exatas no CORS. As URLs Vercel históricas não
+foram atualizadas nem validadas; uma origem de outro site não se torna compatível
+somente por entrar no CORS. Publique a API antes dos portais e siga a
+[transição de sessões web](AUTENTICACAO.md#implantação-e-transição-dos-portais).

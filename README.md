@@ -304,10 +304,11 @@ A evolução de `codex/product-platform` foi integrada à `main` em 01/10/2026. 
 | 2A | Sessões com rotação atômica, famílias de refresh e JWT Ed25519 com `kid`; migração `013-sessions.sql` | Concluída |
 | 2B.1 | Fundação de RBAC e tenancy: catálogo de permissões, concessões, unidades, equipes e suporte temporário; migração `014-rbac-tenancy.sql`; rotas `/v1/tenancy` e `/v1/authorization` | Concluída |
 | 2B.2 | Credenciais restritas da API, separando identidade e autorização do broker; migração `015-api-runtime-roles.sql` | Integrada |
-| 2B.3 | Capacidades para condomínios, equipamentos, telemetria, alertas, monitoramento, eventos e dashboards; migrations 016–024 | Parcial; demais domínios pendentes |
+| 2B.3 | Capacidades para condomínios, equipamentos, telemetria, alertas, monitoramento, eventos, dashboards, avisos, chamados, reservas, contas e regras; migrations 016–032 | Parcial; estacionamento, atuação e administração ainda em migração |
 | 2B.4 | Seleção de condomínio, gestão de unidades/equipes/vínculos e diretório mínimo por capacidade (025) | Integrada; regressão executada pela CI |
 | 5 | Apps Morador e Operação, sessão em Keychain/Keystore e fluxos existentes da API | Incremento integrado; publicação e módulos novos pendentes |
-| 2C–6 | MFA e cookies, processamento durável (inbox/outbox/workers), ativos e ordens de serviço, automações, planos/assinaturas, aplicativos móveis e operação revisada | Planejadas |
+| 2C | Cookies HttpOnly/CSRF nos três portais, access em memória e coordenação entre abas | Integrado; MFA, convites, recuperação e limites de tentativas pendentes |
+| 3, 4 e 6 | Processamento durável (inbox/outbox/workers), ativos e ordens de serviço, automações, planos/assinaturas e operação revisada | Pendentes; entregas operacionais parciais registradas no tracker |
 
 Evidências e números de teste por etapa ficam no [tracker de execução](docs/superpowers/plans/2026-09-27-product-execution.md). Os débitos técnicos conhecidos, incluindo a fronteira entre confirmação MQTT e commit, estão em [TDD, seção 18](docs/TDD.md#18-débitos-técnicos-e-riscos-de-implementação).
 

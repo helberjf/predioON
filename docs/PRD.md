@@ -147,7 +147,7 @@ versão entregue está em [REVISAO_FUNCIONALIDADES.md](REVISAO_FUNCIONALIDADES.m
 | RF-03 | Rotação atômica do refresh com detecção de reutilização e invalidação da família | P0 | Em execução (2A concluída: 9/9 testes) |
 | RF-04 | Assinatura assimétrica (Ed25519) com `kid` e rotação de chave | P0 | Em execução (2A concluída: 4/4 testes) |
 | RF-05 | Listar e revogar sessões e dispositivos; revogar todas em incidente | P1 | Em execução |
-| RF-06 | Web com refresh em cookie `HttpOnly` e proteção CSRF; mobile em Keychain/Keystore | P0 | Planejado (2C) |
+| RF-06 | Web com refresh em cookie `HttpOnly` e proteção CSRF; mobile em Keychain/Keystore | P0 | Integrado; testes e limites em AUTENTICACAO.md |
 | RF-07 | MFA para administração da plataforma e ações privilegiadas do síndico | P0 | Planejado (2C) |
 | RF-08 | Convites e recuperação por token de uso único com expiração; limite de tentativas | P1 | Planejado (2C) |
 

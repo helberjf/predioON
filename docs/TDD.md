@@ -291,7 +291,7 @@ Limitações reconhecidas e o que a etapa 2 muda:
 |---|---|---|
 | HS256 com segredo compartilhado | Ed25519 com `kid` e rotação; só identidade assina | Em execução (4/4 testes) |
 | Rotação de refresh sem trava | Consumo atômico com detecção de reutilização e invalidação da família | Em execução (9/9 testes; diagnóstico reproduziu duas renovações aceitas em 4 de 5 tentativas antes da correção) |
-| Token em `localStorage` | Cookie `HttpOnly`/`Secure` com CSRF na web; Keychain/Keystore no mobile | Planejado (2C) |
+| Token em `localStorage` | Cookie `HttpOnly`/`Secure` com CSRF na web; Keychain/Keystore no mobile | Integrado; access em memória e remoção dos tokens legados na abertura do novo cliente |
 | Papel ordenado | Capacidade: sujeito + ação + escopo + recurso + condição | Em execução (2B) |
 | Sem MFA | MFA para plataforma e ações privilegiadas | Planejado (2C) |
 
