@@ -121,3 +121,20 @@ Próximos recortes: autorização financeira 030, integração do contador de ch
 - Executor de banco novamente aprovado em 25/25, sem skips, carregando a sequência 001–031. No banco de teste com ledger antigo, `db:infra` aplicou somente 029–031; repetição foi no-op e `--check` confirmou ausência de pendências sem mutação.
 
 Próximo domínio em preparação: [regras de alerta 032](2026-10-02-alert-rules-capabilities.md). Produção permanece estável durante a integral atual. Os itens maiores de identidade, processamento durável, atuação/administração, novos domínios e homologação final seguem abertos conforme a sequência inicial.
+
+## Continuação e entregas de apresentação — 02/10/2026
+
+- Regressão integral de 030/031 concluída: **501/501 testes da API**, 46 suites, sem falhas, cancelamentos ou skips. Log local de evidência: `work/api-all-030031.log`, fora do repositório.
+- `3047d26`: menu inicial estabilizado durante consulta de autorização; a matriz Playwright terminou em **63/63**, 21 cenários em Chromium, Firefox e WebKit, sem retries nem skips. A navegação conserva o menu durante atualização em segundo plano e apresenta recuperação em caso de falha inicial.
+- Banco: **26/26 testes**, incluindo restauração real Timescale, conteúdo de 43 tabelas, migrations 001–031, ACLs, RLS e revogação após recuperação. Revisão corrigiu a limpeza para tentar todos os recursos isolados mesmo quando outra etapa falha; o ensaio foi repetido com sucesso. Limites e procedimento estão em [BACKUP_E_RESTAURACAO.md](../../BACKUP_E_RESTAURACAO.md).
+- Próximas implementações em andamento: regras de alerta 032, controles financeiros web por relatório e testes Android autenticados contra API real. Esses trabalhos não estão contabilizados nos resultados acima.
+
+O usuário acrescentou as seguintes entregas ao aceite final, depois da conclusão dos itens de implementação e verificação:
+
+- [ ] Reconciliar e reescrever a documentação completa com o estado final dos sistemas e suas dependências externas.
+- [ ] Preparar dados fictícios coerentes e um roteiro por sistema, cobrindo cada funcionalidade implementada e cada perfil relevante.
+- [ ] Abrir os três portais web e os aplicativos Morador/Operação disponíveis neste computador para revisão do usuário.
+- [ ] Gravar demonstrações de tela separadas de cada portal e aplicativo, com identificação das etapas e cobertura vinculada ao roteiro. Não exibir credenciais ou dados pessoais reais.
+- [ ] Conferir os vídeos gerados, disponibilizá-los em `outputs` fora do Git e documentar como reproduzir a apresentação. Distinguir demonstração em emulador de homologação em aparelho; execução nativa iOS depende de ambiente Apple.
+
+As gravações não substituem testes automatizados nem comprovam integrações externas indisponíveis. A sessão deve continuar sem reiniciar o computador, conforme instrução explícita do usuário.
