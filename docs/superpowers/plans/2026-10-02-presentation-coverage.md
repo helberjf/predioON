@@ -4,7 +4,9 @@ Pedido do proprietário: abrir os websites e os dois aplicativos neste computado
 
 ## Arquivos e evidência de conclusão
 
-Entregar cinco vídeos separados em `outputs`, fora do Git: administração, operação web, morador web, Morador Android e Operação Android. Cada um terá um roteiro com capítulos e tempos reais, commit do sistema demonstrado, resolução, ambiente e perfil utilizado. Gravação de Android em emulador deve ser identificada como tal. O build iOS para simulador não constitui uma demonstração executada neste Windows.
+Entregar cinco vídeos separados em `outputs`, fora do Git: administração, operação web, morador web, Morador Android e Operação Android. Cada um terá um roteiro com capítulos e tempos reais, commit do sistema demonstrado, resolução, ambiente e perfil utilizado. Gravação de Android em emulador deve ser identificada como tal. Os apps iOS já abriram e reabriram no simulador do runner Apple em `b4726b9`, com imagens inspecionadas; isso não constitui demonstração completa nem execução nativa neste Windows.
+
+A galeria `outputs/IMAGENS_DOS_SISTEMAS.html` contém oito capturas reais do andamento: três Android, três portais web e duas iOS. Sua origem e os limites de cada resultado estão identificados. A galeria e as imagens acompanham o ZIP portátil, cujo carregamento e controles foram verificados também depois da extração, sem servidor. Estado consolidado e recuperação do projeto: [CONTINUIDADE.md](../../CONTINUIDADE.md). As capturas atendem à prévia visual solicitada; os cinco vídeos permanecem pendentes.
 
 Antes de gravar, criar um ambiente de apresentação isolado, com nomes fictícios coerentes, dois condomínios, gestores, moradores e uma equipe com concessões limitadas. Configurar leituras e histórico suficientes para diferenciar dado atual, histórico, ausência de leitura, pausa e acesso parcial. Preparar segundo usuário/dispositivo para conversas, reservas e revogação de sessões. Não modificar os bancos das regressões enquanto estiverem em execução.
 
@@ -25,9 +27,10 @@ Fazer a entrada antes de iniciar a captura; nunca mostrar senhas, tokens, consol
 | `/usuarios` | Cadastro e vínculos; privacidade e restrições dos papéis após a migração pendente. |
 | `/unidades-equipes` | Blocos, unidades, pessoas, equipes, vínculos com vigência, motivo e revogação. |
 | `/funcionalidades` | Configuração global/local, herança, justificativa, pausa e retomada. |
-| `/auditoria` | Registro das alterações demonstradas e filtros disponíveis. |
+| `/auditoria` | Lista atual de registros; paginação, recuperação de erro e separação explícita de escopos dependem do consumidor036 ainda pendente. |
+| `/sessoes` | Sessão atual, outros dispositivos, encerradas/expiradas, confirmação de revogação e saída de todos os dispositivos. |
 
-Acrescentar “Minhas sessões” depois de sua implementação. Conferir administração comercial, planos/assinaturas e suporte com concessão explícita quando a etapa4 estiver integrada; as rotas futuras não estão contabilizadas como implementadas.
+“Minhas sessões” já está implementado e coberto pela matriz de navegador. Conferir administração comercial, planos/assinaturas e suporte com concessão explícita quando a etapa4 estiver integrada; as rotas futuras não estão contabilizadas como implementadas.
 
 ## Operação web do condomínio
 
@@ -48,8 +51,9 @@ Acrescentar “Minhas sessões” depois de sua implementação. Conferir admini
 | `/avisos` | Comunicado, agenda, repetição semanal, fuso, publicação futura, expiração e edição. |
 | `/areas` | Áreas comuns e aprovação/rejeição de reservas; acompanhamento das confirmadas. |
 | `/unidades-equipes` | Cadastros locais e concessões autorizadas, incluindo vencimento/revogação. |
+| `/sessoes` | Identificação da conexão atual, revogação de outro dispositivo, confirmação cancelável e encerramento de todas as conexões da própria conta. |
 
-Acrescentar sessões, ativos, ordens de serviço e automações quando implementados. Mostrar troca de condomínio descartando os dados e rascunhos do anterior, menu responsivo e recuperação de uma falha de leitura.
+Acrescentar ativos, ordens de serviço e automações quando implementados. Mostrar troca de condomínio descartando os dados e rascunhos do anterior, menu responsivo e recuperação de uma falha de leitura. Na gestão de sessões já existente, mostrar a conclusão da saída mesmo após navegar para outra página durante a revogação.
 
 ## Morador web
 
@@ -63,7 +67,7 @@ Acrescentar sessões, ativos, ordens de serviço e automações quando implement
 | `/chamados` | Criar solicitação, acompanhar resposta, comentar e cancelar a própria; não mostrar vizinho. |
 | `/transparencia` | Informes e prestação publicada, expansão dos lançamentos; rascunhos permanecem privados. |
 | `/reservas` | Calendário que mostra somente horários ocupados, reserva, conflito, aprovação e cancelamento. |
-| `/perfil` | Identidade, quantidade de condomínios, sessões quando integradas e saída. |
+| `/perfil` | Identidade, quantidade de condomínios, painel de sessões já integrado, confirmação de revogação e saída. |
 
 ## Aplicativos Android
 
