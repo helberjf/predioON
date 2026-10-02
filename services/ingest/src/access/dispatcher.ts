@@ -1,6 +1,6 @@
 import type { MqttClient } from "mqtt";
 import { and, asc, eq, inArray, lte } from "drizzle-orm";
-import { db, auditLogs, buildings, devices, gates, gateCommands, gateways, memberships, users, lockFeatures, readFeatures, type DbTransaction } from "@predioon/db";
+import { db, auditLogs, organizations, buildings, devices, gates, gateCommands, gateways, memberships, users, lockFeatures, readFeatures, type DbTransaction } from "@predioon/db";
 import { AccessAckSchema, accessAvailability, accessRole, gateFeature, parseAccessTopic, validAccessAck } from "@predioon/shared";
 import { publishAccessCommand } from "./publish.js";
 import { permitsFeature } from "../features.js";
@@ -43,12 +43,15 @@ async function dispatchWithFeatureLock(client: MqttClient, connection: Date | ((
     if (gate && !permitsFeature(features, gateFeature(gate.kind), pending.createdAt)) {
       await fail(tx, pending, "Funcionalidade de acesso pausada; solicite novamente após a retomada"); return null;
     }
-    const [building] = await tx.select().from(buildings).where(eq(buildings.id, pending.buildingId)).limit(1);
+    // Ingest bypasses tenant RLS. Check the current parent organization too:
+    // disabling it must cancel requests already queued while it was active.
+    const [building] = await tx.select({ active: buildings.active, organizationActive: organizations.active }).from(buildings)
+      .innerJoin(organizations, eq(organizations.id, buildings.organizationId)).where(eq(buildings.id, pending.buildingId)).limit(1);
     const [gateway] = await tx.select().from(gateways).where(eq(gateways.id, pending.gatewayId)).limit(1);
     const [device] = await tx.select().from(devices).where(eq(devices.id, pending.deviceId)).limit(1);
     const [user] = await tx.select().from(users).where(eq(users.id, pending.requestedBy)).limit(1);
     const [membership] = await tx.select().from(memberships).where(and(eq(memberships.userId, pending.requestedBy), eq(memberships.buildingId, pending.buildingId))).limit(1);
-    const validBinding = building?.active && gate && gate.buildingId === pending.buildingId && gate.gatewayId === pending.gatewayId && gate.deviceId === pending.deviceId && gateway?.buildingId === pending.buildingId && device?.buildingId === pending.buildingId && device?.gatewayId === pending.gatewayId;
+    const validBinding = building?.active && building.organizationActive && gate && gate.buildingId === pending.buildingId && gate.gatewayId === pending.gatewayId && gate.deviceId === pending.deviceId && gateway?.buildingId === pending.buildingId && device?.buildingId === pending.buildingId && device?.gatewayId === pending.gatewayId;
     const reason = validBinding ? accessAvailability(gate, gateway, device, accessRole(user, membership)) : "Configuração de acesso alterada ou indisponível";
     if (reason) { await fail(tx, pending, reason); return null; }
     if (pending.expiresAt <= new Date()) { await fail(tx, pending, "Prazo de envio encerrado"); return null; }
