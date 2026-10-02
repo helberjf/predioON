@@ -14,7 +14,7 @@ export function createBoundedFetch(
   timeoutMs = 20_000,
 ): typeof globalThis.fetch {
   return async (input, init) => {
-    const upstream = init && "signal" in init
+    const upstream = init?.signal !== undefined
       ? init.signal
       : typeof Request !== "undefined" && input instanceof Request
         ? input.signal

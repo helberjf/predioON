@@ -79,6 +79,35 @@ test("an already cancelled Request is rejected before any transport call", async
   assert.equal(sent, 0);
 });
 
+test("undefined init.signal inherits Request cancellation, while null explicitly detaches it", async () => {
+  const caller = new AbortController();
+  let transportSignal: AbortSignal | null | undefined;
+  let headersReady!: () => void;
+  const ready = new Promise<void>((resolve) => { headersReady = resolve; });
+  const fetch = createBoundedFetch(async (_input, init) => {
+    transportSignal = init?.signal;
+    headersReady();
+    return new Response(new ReadableStream({
+      start(controller) {
+        init?.signal?.addEventListener("abort", () => controller.error(new Error("cancelled")), { once: true });
+      },
+    }));
+  }, 100);
+  const request = new Request("https://api.example.test", { signal: caller.signal });
+  const pending = fetch(request, { signal: undefined });
+  await ready;
+  caller.abort();
+  const forwardedImmediately = transportSignal?.aborted;
+  await assert.rejects(pending, { name: "AbortError" });
+  assert.equal(forwardedImmediately, true, "undefined must not discard the Request signal");
+
+  const detached = createBoundedFetch(async (_input, init) => {
+    assert.equal(init?.signal?.aborted, false);
+    return Response.json({ detached: true });
+  });
+  assert.deepEqual(await (await detached(request, { signal: null })).json(), { detached: true });
+});
+
 test("a complete response keeps identity, status, headers and an unread original body", async () => {
   const original = Response.json({ error: "forbidden" }, { status: 403, headers: { "x-trace": "example" } });
   const caller = new AbortController();
