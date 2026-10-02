@@ -21,8 +21,8 @@ export function Reservations({ buildingId }: { buildingId:string }) {
       const startsAt = new Date(`${form.date}T${form.start}:00`);
       const hours = Number(form.hours);
       if (!Number.isFinite(startsAt.getTime()) || !Number.isFinite(hours) || hours <= 0) throw new Error("Informe uma data, horário e duração válidos.");
-      await api.post("/reservations",{areaId:form.areaId,startsAt:startsAt.toISOString(),endsAt:new Date(startsAt.getTime()+hours*3600000).toISOString(),unit:form.unit||undefined});
-      setSuccess(area?.requiresApproval ? "Reserva enviada para aprovação da administração." : "Reserva confirmada com sucesso.");
+      const created = await api.post<Reservation>("/reservations",{areaId:form.areaId,startsAt:startsAt.toISOString(),endsAt:new Date(startsAt.getTime()+hours*3600000).toISOString(),unit:form.unit||undefined});
+      setSuccess(created.status === "CONFIRMED" ? "Reserva confirmada com sucesso." : created.status === "PENDING" ? "Reserva enviada para aprovação da administração." : "Reserva registrada. Confira a situação em Minhas reservas.");
       mine.reload(); setSearch({tab:"minhas"}); setForm({...form,date:""});
     } catch(cause) {setError(cause instanceof Error ? cause.message : "Falha ao reservar");}
     finally {setPending(false);}

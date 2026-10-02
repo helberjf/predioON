@@ -52,6 +52,20 @@ describe("RBAC explícito por capacidade, condomínio e recurso", () => {
     assert.ok(ROLE_CAPABILITIES.MAINTENANCE.includes("telemetry:read"));
     assert.ok(!ROLE_CAPABILITIES.MAINTENANCE.includes("finance:read"));
   });
+  it("áreas comuns exigem capacidade local e respeitam o recurso concedido", () => {
+    for (const role of ["BUILDING_ADMIN", "MAINTENANCE_MANAGER", "MAINTENANCE", "RESIDENT"] as const) {
+      assert.equal(roleGrants(role, "common-areas:read"), true);
+      assert.equal(roleGrants(role, "common-areas:manage"), role === "BUILDING_ADMIN");
+    }
+    for (const role of ["PLATFORM_ADMIN", "PLATFORM_SUPPORT"] as const) {
+      assert.equal(roleGrants(role, "common-areas:read"), false);
+      assert.equal(roleGrants(role, "common-areas:manage"), false);
+    }
+    const exact = subject([{ role: "BUILDING_ADMIN", buildingId: building, resourceType: "common_area", resourceId: "area-1", active: true }]);
+    assert.equal(allowsCapability(exact, "common-areas:manage", { buildingId: building, resourceType: "common_area", resourceId: "area-1" }), true);
+    assert.equal(allowsCapability(exact, "common-areas:manage", { buildingId: building, resourceType: "common_area", resourceId: "area-2" }), false);
+    assert.equal(allowsCapability(exact, "common-areas:manage", { buildingId: building }), false);
+  });
   it("não transforma vínculo global em acesso privado ou atuação física", () => {
     for (const role of ["PLATFORM_ADMIN", "PLATFORM_SUPPORT", "BUILDING_ADMIN"] as const) {
       const global = subject([{ role, buildingId: null, active: true }]);

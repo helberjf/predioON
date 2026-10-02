@@ -46,7 +46,7 @@ describe("privacidade do DTO de reservas", () => {
         const starts = new Date(Date.now() + (++index + 1) * 86_400_000);
         const ends = new Date(starts.getTime() + 3_600_000);
         await sqlClient`insert into reservations(id,building_id,area_id,user_id,starts_at,ends_at,unit,notes)
-          values(${booking[key]},${building},${area},${user},${starts},${ends},${`unit-${key}`},${`private-note-${key}`})`;
+          values(${booking[key]},${building},${area},${user},${starts.toISOString()}::timestamptz,${ends.toISOString()}::timestamptz,${`unit-${key}`},${`private-note-${key}`})`;
       }
       const tokens = new Map<string, string>();
       for (const id of ids) tokens.set(id, (await login(server.url, `${id}@privacy.test`)).accessToken);
