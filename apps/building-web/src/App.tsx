@@ -42,13 +42,13 @@ function BuildingApp() {
         <Route path="/consumo" element={<FeatureContent path="/consumo"><MonitoringPanel buildingId={buildingId} canManage={can("devices:configure")} /></FeatureContent>} />
         <Route path="/sensores" element={<FeatureContent path="/sensores"><Safety buildingId={buildingId} /></FeatureContent>} />
         <Route path="/acessos" element={<FeatureContent path="/acessos"><AccessPanel buildingId={buildingId} canManage={can("buildings:manage")} /></FeatureContent>} />
-        <Route path="/vagas" element={<FeatureContent path="/vagas"><ParkingPanel buildingId={buildingId} canManage={can("buildings:manage")} /></FeatureContent>} />
+        <Route path="/vagas" element={<FeatureContent path="/vagas"><ParkingPanel buildingId={buildingId} /></FeatureContent>} />
         <Route path="/dispositivos" element={<Devices buildingId={buildingId} />} />
         <Route path="/alertas" element={<FeatureContent><Alerts buildingId={buildingId} /></FeatureContent>} />
         <Route path="/regras" element={<FeatureContent><Rules buildingId={buildingId} /></FeatureContent>} />
         <Route path="/chamados" element={<FeatureContent path="/chamados"><Occurrences buildingId={buildingId} /></FeatureContent>} />
         <Route path="/transparencia" element={<FeatureContent path="/transparencia"><TransparencyPanel buildingId={buildingId} /></FeatureContent>} />
-        <Route path="/avisos" element={<FeatureContent path="/avisos"><Notices buildingId={buildingId} canManage={can("notices:manage")} canManageParking={can("buildings:manage")} /></FeatureContent>} />
+        <Route path="/avisos" element={<FeatureContent path="/avisos"><Notices buildingId={buildingId} canManage={can("notices:manage")} /></FeatureContent>} />
         <Route path="/areas" element={<FeatureContent path="/areas"><Areas buildingId={buildingId} canManage={can("reservations:manage") && can("common-areas:read")} /></FeatureContent>} />
         <Route path="/unidades-equipes" element={<TenancyPanel buildingId={buildingId} />} />
         <Route path="*" element={<Navigate to="/" replace />} />

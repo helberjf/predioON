@@ -13,7 +13,7 @@ type ManagedNotice = Notice & ScheduledNotice & { expiresAt: string | null; upda
 const emptyForm = () => ({ title: "", body: "", category: "COMMUNICATION", pinned: false, eventAt: "", recurrence: "NONE" as "NONE" | "WEEKLY", timeZone: "America/Sao_Paulo", publishAt: "", expiresAt: "" });
 const dateInZone = (value: string | Date, timeZone: string) => new Intl.DateTimeFormat("pt-BR", { timeZone, dateStyle: "short", timeStyle: "short" }).format(new Date(value));
 
-export function Notices({ buildingId, canManage = false, canManageParking = false }: { buildingId: string; canManage?: boolean; canManageParking?: boolean }) {
+export function Notices({ buildingId, canManage = false }: { buildingId: string; canManage?: boolean }) {
   const flags = useFeatures();
   const notices = useResource<Paged<ManagedNotice>>(`/notices?buildingId=${encodeURIComponent(buildingId)}${canManage ? "&includeUnpublished=true&includeExpired=true" : ""}`);
   const [error, setError] = useState<string | null>(null);
@@ -63,7 +63,7 @@ export function Notices({ buildingId, canManage = false, canManageParking = fals
     <h1 className="text-2xl font-bold text-slate-900">Avisos e agenda</h1>
     {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
     {message && <p role="status" className="rounded-xl bg-emerald-50 p-3 text-sm text-emerald-700">{message}</p>}
-    <ParkingPanel buildingId={buildingId} canManage={canManageParking} />
+    <ParkingPanel buildingId={buildingId} />
     <div className="grid items-start gap-5 xl:grid-cols-3">
       {canManage && <Card title={editing ? "Editar aviso" : "Novo aviso"}>
         <div className="space-y-3">

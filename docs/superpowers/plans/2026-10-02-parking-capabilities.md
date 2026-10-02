@@ -58,4 +58,25 @@ Validação concluída:
 - Reaplicação dupla preservou permissões/vínculos inativos, todas as branches alheias de auditoria/eventos, policies de outros domínios e validadores de recursos anteriores. Helpers privados ficaram sem EXECUTE para app/identity/broker; helpers públicos do domínio ficaram somente para app, com owner/search_path restritos. EXPLAIN do SQL persistido usou a PK de estacionamento e candidatos de vínculos para escopo, sem forçar planner.
 - Tipos API/shared, fronteiras arquiteturais e diff-check passaram. Cleanup confirmado: zero organizações, usuários e papéis das fixtures de estacionamento. Duas revisões independentes não encontraram outro bloqueador após o ajuste de criação.
 
-Próximos passos de integração: commit/push pelo agente principal, aplicação nos bancos de integração e ledger, regressão integral API/DB, depois adaptação do ParkingPanel e testes reais de navegador. `e2e/parking.spec.ts` está preparado para o RED da interface, mas ainda não foi executado nem integra este checkpoint backend. A interface continua sendo uma entrega dependente; este registro não afirma que estacionamento ou o projeto completo estejam encerrados.
+O backend foi publicado em `ff3e528` e aplicado nos bancos de integração e ledger. A CI posterior, com a mesma fonte de API/SQL, passou 570/570 testes de API e 26/26 de banco/restauração. A regressão local sob carga teve dois watchdogs SSE encerrados por tempo; os arquivos correspondentes passaram isoladamente (17/17 e 23/23), sem alteração de backend. A conclusão da interface dependente está registrada abaixo.
+
+## Evidência do consumidor web — 02/10/2026
+
+`ParkingPanel` deixou de receber autoridade por `canManage`/`buildings:manage`. Os consumidores de vagas e avisos do portal do condomínio, a operação administrativa e os componentes do morador usam o mesmo contrato. O painel consulta capacidades atuais inteiras, exatas na vaga e no sensor realmente projetado pela API. Leitura e gestão podem vir de concessões distintas. As consultas pontuais ficam limitadas aos dois cartões fixos de carros/motos; o inventário só é consultado com gestão inteira do domínio e `devices:read` inteiro.
+
+O RED real, em snapshot da interface anterior e backend 033, confirmou três fluxos autorizados sem seus controles: cadastro, configuração exata e contagem por sensor. O quarto caso, leitura do morador, passou antes da alteração. As fixtures e autenticação estavam válidas em todos os casos.
+
+A matriz final passou **18/18**, seis cenários em Chromium, Firefox e WebKit, com API e PostgreSQL reais, um worker e zero retries/skips. Foram verificados:
+
+- Cadastro e contagem manual por gestor do domínio, sem consultar inventário; ausência de contagem permanece desconhecida.
+- Configuração de vaga exata preservando o sensor atual e removendo editor/ações após revogação de gestão.
+- União de leitura exata na vaga com gestão no sensor real, sem expor a capacidade vizinha nem promover cadastro; revogação independente da leitura remove a projeção.
+- Morador somente leitura, distinguindo contagem desconhecida e vencida de disponibilidade zero.
+- Atualização preserva o rascunho da mesma identidade; concorrência de versão responde 409, fecha o editor, carrega o valor persistido e produz somente uma tentativa de escrita.
+- Substituição do registro por outro UUID, mesmo com versão inicial coincidente, descarta o rascunho anterior.
+
+Antes de cada escrita o painel reconsulta a autorização; API/RLS continuam sendo a autoridade final. Respostas 403/404/409 atualizam permissões/dados imediatamente. Falhas de rede ao consultar permissões mostram diagnóstico e opção de atualização. Troca de condomínio/registro desmonta o estado anterior e uma conclusão atrasada não inicia nova escrita após desmontagem. Não há retry automático de mutação.
+
+Limitação explícita deste incremento: criação e escolha de outro sensor pela interface exigem leitura/gestão inteiras do condomínio. Concessões exatas configuram e atualizam a vaga e o sensor já projetados; a API também aceita destinos autorizados por dispositivo, mas descobrir novos destinos com uma projeção mínima é uma entrega posterior. Não foi adicionado inventário amplo para preencher essa lacuna.
+
+Typechecks de UI e dos três portais, tipos dos seis testes E2E e diff-check passaram. Revisões independentes não encontraram bloqueador após incluir a chave por identidade da vaga, diagnóstico de autorização e atualização imediata na negação. Cleanup do banco de navegador confirmou zero papéis `E2E_PARKING_*`; as fixtures removem seus próprios registros e usuários no finally. Evidência local: `.local/parking-green.log`, `.local/playwright-report-parking-green` e `.local/playwright-results-parking-green`. Os relatórios e traces são artefatos locais; o agente principal realiza o commit/push do checkpoint.
