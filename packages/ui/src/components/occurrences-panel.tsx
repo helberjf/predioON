@@ -55,22 +55,25 @@ function TicketDetail({ buildingId, row, canManageGroup, revision, reload }: { b
 
 function TicketConversation({ row, permissions, canManageGroup, reload }: { row: Detail; permissions: ReturnType<typeof occurrencePermissions>; canManageGroup: boolean; reload: () => void }) {
   const flags = useFeatures();
-  const [status, setStatus] = useState(row.status), [priority, setPriority] = useState(row.priority === "URGENT" ? "HIGH" : row.priority);
+  const originalPriority = row.priority === "URGENT" ? "HIGH" : row.priority;
+  const [status, setStatus] = useState(row.status), [priority, setPriority] = useState(originalPriority);
   const [reason, setReason] = useState(""), [message, setMessage] = useState(""), [groupRequested, setGroupRequested] = useState(false);
   const [busy, setBusy] = useState(false), [error, setError] = useState("");
   const pending = useRef(false);
   const canManage = permissions.manage;
   const groupAllowed = canManage && canManageGroup && flags.enabled("TICKET_GROUPING") && Boolean(row.groupId);
   const group = groupAllowed && groupRequested;
+  // A legacy spelling has the same meaning; status-only writes preserve it.
+  const priorityChanged = priority !== originalPriority;
   // A refreshed status must not remount the conversation and discard a reply draft.
   useEffect(() => { setStatus(row.status); }, [row.status]);
-  useEffect(() => { setPriority(row.priority === "URGENT" ? "HIGH" : row.priority); }, [row.priority]);
+  useEffect(() => { setPriority(originalPriority); }, [originalPriority]);
   async function act(kind: "save" | "comment" | "cancel") {
     if (pending.current || (kind === "save" && !canManage) || (kind === "comment" && !permissions.comment) || (kind === "cancel" && !permissions.cancelOwn)) return;
     pending.current = true; setBusy(true); setError("");
     try {
       if (kind === "comment") { await api.post(`/occurrences/${row.id}/comments`, ticketFeatureInput({ message, applyToGroup: canManage && group }, flags.items)); setMessage(current => current === message ? "" : current); }
-      else await api.patch(`/occurrences/${row.id}`, kind === "cancel" ? { status: "CANCELLED" } : ticketFeatureInput({ status, ...(priority !== row.priority ? { priority, priorityReason: reason } : {}), applyToGroup: group }, flags.items));
+      else await api.patch(`/occurrences/${row.id}`, kind === "cancel" ? { status: "CANCELLED" } : ticketFeatureInput({ status, ...(priorityChanged ? { priority, priorityReason: reason } : {}), applyToGroup: group }, flags.items));
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Falha ao atualizar chamado"); }
     finally { pending.current = false; setBusy(false); reload(); }
   }
@@ -79,8 +82,8 @@ function TicketConversation({ row, permissions, canManageGroup, reload }: { row:
     {groupAllowed && <label className="flex items-start gap-2 text-sm"><input type="checkbox" checked={group} onChange={e => setGroupRequested(e.target.checked)} />Aplicar status e gravidade aos chamados ainda abertos do grupo; enviar respostas a todos os solicitantes.</label>}
     {canManage && row.groupId && flags.enabled("TICKET_GROUPING") && !canManageGroup && <p className="text-xs text-slate-500">Estas ações afetam somente este chamado. A gestão coletiva exige autorização sobre o grupo completo.</p>}
     {canManage && <div className="space-y-3"><div className="grid gap-3 sm:grid-cols-2"><Field label="Situação do chamado"><Select value={status} onChange={setStatus} options={TICKET_STATUSES} /></Field>{flags.enabled("TICKET_PRIORITY") && <Field label="Alterar gravidade"><Select value={priority} onChange={setPriority} options={TICKET_PRIORITIES} /></Field>}</div>
-      {flags.enabled("TICKET_PRIORITY") && priority !== row.priority && <Field label="Motivo da classificação de gravidade"><Input value={reason} onChange={setReason} placeholder="Explique a avaliação feita" /></Field>}
-      <Button disabled={busy || (flags.enabled("TICKET_PRIORITY") && priority !== row.priority && reason.trim().length < 3)} onClick={() => void act("save")}>Salvar andamento{group ? " do grupo" : ""}</Button></div>}
+      {flags.enabled("TICKET_PRIORITY") && priorityChanged && <Field label="Motivo da classificação de gravidade"><Input value={reason} onChange={setReason} placeholder="Explique a avaliação feita" /></Field>}
+      <Button disabled={busy || (flags.enabled("TICKET_PRIORITY") && priorityChanged && reason.trim().length < 3)} onClick={() => void act("save")}>Salvar andamento{group ? " do grupo" : ""}</Button></div>}
     <div><h3 className="text-sm font-semibold text-slate-800">Histórico e respostas</h3>
       <ol className="mt-3 space-y-3">{row.timeline.filter(event => (event.kind !== "PRIORITY_CHANGED" || flags.enabled("TICKET_PRIORITY")) && (event.kind !== "GROUPED" || flags.enabled("TICKET_GROUPING"))).map(event => <li key={event.id} className="rounded-lg bg-slate-50 p-3 text-sm"><p className="text-xs text-slate-500">{formatDateTime(event.createdAt)} · {({ CREATED: "Abertura", COMMENT: "Resposta", STATUS_CHANGED: "Andamento", PRIORITY_CHANGED: "Gravidade", GROUPED: "Atendimento conjunto" } as Record<string, string>)[event.kind] ?? event.kind}</p>
         {event.kind === "PRIORITY_CHANGED" && <p className="mt-1 font-medium">{priorityLabel(event.metadata.from ?? "")} → {priorityLabel(event.metadata.to ?? "")}</p>}
