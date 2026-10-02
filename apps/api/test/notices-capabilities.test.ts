@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { createRequire } from "node:module";
+import { readFile } from "node:fs/promises";
 import { after, before, describe, it } from "node:test";
 import { sql } from "drizzle-orm";
 import { sqlClient } from "@predioon/db";
@@ -20,7 +21,7 @@ describe("notices use current resource capabilities and publication windows", ()
   async function create() {
     const suffix = randomUUID(), org = `notice-org-${suffix}`, a = `notice-a-${suffix}`, b = `notice-b-${suffix}`;
     const kinds = ["manager", "reader", "worker", "exact", "exactReader", "mixed", "resident", "platform", "flag", "support", "outsider", "actionOnly"] as const;
-    const ids = Object.fromEntries(kinds.map(kind => [kind, `notice-${kind}-${suffix}`])) as Record<typeof kinds[number], string>;
+    const ids = Object.fromEntries(kinds.map(kind => [kind, `notice-${kind.toLowerCase()}-${suffix}`])) as Record<typeof kinds[number], string>;
     const role = `NOTICE_MANAGER_${suffix}`, readerRole = `NOTICE_READER_${suffix}`, actionRole = `NOTICE_ACTION_${suffix}`;
     const team = randomUUID(), binding = randomUUID(), exactBinding = randomUUID();
     const published = randomUUID(), future = randomUUID(), expired = randomUUID(), governance = randomUUID(), foreign = randomUUID();
@@ -70,6 +71,35 @@ describe("notices use current resource capabilities and publication windows", ()
   }
   const newNotice = (buildingId: string) => ({buildingId,title:'New authorized notice',body:'This is the announcement body.'});
   const raw = (user: string, building: string) => as(user,tx=>tx.execute(sql`select id from notices where building_id=${building}`));
+
+  it("reapplies only notice audit branches and preserves every current domain branch", async () => {
+    const migration = await readFile(new URL('../../../infrastructure/026-notices-capabilities.sql', import.meta.url), 'utf8');
+    const rollback = new Error('notice migration preservation rollback');
+    const stripNotices = (expression: string) => expression.replace(/WHEN 'NOTICE_(?:SCHEDULED|PUBLISHED|UPDATED|DELETED)'::text THEN .*?(?=WHEN |ELSE)/gs, '').replace(/\s+/g, ' ').trim();
+    await assert.rejects(sqlClient.begin(async owner => {
+      const [current] = await owner`select pg_get_expr(polwithcheck,polrelid) as expression from pg_policy where polrelid='audit_logs'::regclass and polname='audit_logs_insert_policy'`;
+      assert.match(current!.expression, /MONITORING_CREATED/);
+      assert.match(current!.expression, /MONITORING_UPDATED/);
+      // A later independent domain is represented without relying on a future
+      // migration number. Reapplying notices must preserve its exact condition.
+      const sentinel = String(current!.expression).replace('ELSE', "WHEN 'NOTICE_PRESERVATION_SENTINEL'::text THEN false ELSE");
+      await owner.unsafe(`alter policy audit_logs_insert_policy on audit_logs with check (${sentinel})`);
+      const [before] = await owner`select pg_get_expr(polwithcheck,polrelid) as expression from pg_policy where polrelid='audit_logs'::regclass and polname='audit_logs_insert_policy'`;
+      const [feature] = await owner`select pg_get_functiondef('app_can_read_feature_event(text)'::regprocedure) as definition`;
+      await owner.unsafe(String(feature!.definition).replace("OR app_equipment_can_read_scope(b.id,'gateway')", "OR app_equipment_can_read_scope(b.id,'gateway') OR false /* later feature domain */"));
+      const [featureBefore] = await owner`select prosrc from pg_proc where oid='app_can_read_feature_event(text)'::regprocedure`;
+      const stripNoticeFeature = (source: string) => source.replaceAll('OR app_notice_can_read_feature_state(b.id)', '').replace(/\s+/g, ' ').trim();
+      for (let iteration = 0; iteration < 2; iteration++) {
+        await owner.unsafe(migration);
+        const [after] = await owner`select pg_get_expr(polwithcheck,polrelid) as expression from pg_policy where polrelid='audit_logs'::regclass and polname='audit_logs_insert_policy'`;
+        assert.equal(stripNotices(after!.expression), stripNotices(before!.expression));
+        for (const action of ['SCHEDULED','PUBLISHED','UPDATED','DELETED']) assert.equal(String(after!.expression).split(`WHEN 'NOTICE_${action}'::text`).length - 1, 1);
+        const [featureAfter] = await owner`select prosrc from pg_proc where oid='app_can_read_feature_event(text)'::regprocedure`;
+        assert.equal(stripNoticeFeature(featureAfter!.prosrc), stripNoticeFeature(featureBefore!.prosrc));
+      }
+      throw rollback;
+    }), error => error === rollback);
+  });
 
   it("allows RBAC-only people and teams while hiding future/expired notices and schedules from readers",async()=>fixture(async f=>{
     for (const user of [f.ids.manager,f.ids.worker]) {

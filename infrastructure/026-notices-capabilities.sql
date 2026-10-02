@@ -91,71 +91,45 @@ DROP POLICY IF EXISTS feature_runtime_notices_read ON feature_runtime;
 CREATE POLICY feature_runtime_notices_read ON feature_runtime FOR SELECT TO predioon_app
  USING (app_notice_can_read_feature_state(building_id));
 
--- Preserve every existing domain and the global marker from migration 022.
-CREATE OR REPLACE FUNCTION app_can_read_feature_event(target_building_id text)
-RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public, pg_temp AS $$
- SELECT EXISTS (
-   SELECT 1 FROM buildings b WHERE b.id=target_building_id AND (
-     app_has_global_capability('features:manage')
-     OR app_can_discover_building(b.id)
-     OR app_telemetry_can_read_feature_state(b.id)
-     OR app_alert_can_read_feature_state(b.id)
-     OR app_equipment_can_read_scope(b.id,'device')
-     OR app_equipment_can_read_scope(b.id,'gateway')
-     OR app_notice_can_read_feature_state(b.id)
-   )
- );
-$$;
+-- Add only this domain to the current feature event function. Preserve future
+-- local domains and the global marker when this migration is reapplied.
+DO $$ DECLARE function_definition text; equipment_clause text; BEGIN
+ SELECT pg_get_functiondef('app_can_read_feature_event(text)'::regprocedure) INTO STRICT function_definition;
+ equipment_clause := 'OR app_equipment_can_read_scope(b.id,''gateway'')';
+ IF position(equipment_clause in function_definition)=0 THEN
+   RAISE EXCEPTION 'Unexpected feature event function shape';
+ END IF;
+ function_definition := replace(function_definition,'OR app_notice_can_read_feature_state(b.id)','');
+ function_definition := replace(function_definition,equipment_clause,equipment_clause || E'\n     OR app_notice_can_read_feature_state(b.id)');
+ EXECUTE function_definition;
+END $$;
 
--- Preserve the complete policy from 020; only these four notice actions gain
--- a new branch. Audit deletion while the current parent still exists.
-DROP POLICY IF EXISTS audit_logs_insert_policy ON audit_logs;
-CREATE POLICY audit_logs_insert_policy ON audit_logs FOR INSERT TO predioon_app WITH CHECK (
- user_id=app_current_user_id() AND actor_type='USER' AND CASE action
-   WHEN 'BUILDING_CREATED' THEN resource_type='building' AND resource_id=building_id
-     AND building_id IS NOT NULL AND app_has_global_capability('buildings:provision')
-   WHEN 'BUILDING_UPDATED' THEN resource_type='building' AND resource_id=building_id
-     AND building_id IS NOT NULL AND (app_has_global_capability('buildings:manage')
-       OR app_has_capability(building_id,'buildings:manage','building',building_id))
-   WHEN 'FEATURE_CONFIGURATION_CHANGED' THEN resource_type='feature'
-     AND resource_id IS NOT NULL AND app_has_global_capability('features:manage')
-   WHEN 'ALERT_ACKNOWLEDGED' THEN resource_type='alert' AND building_id IS NOT NULL
-     AND app_alert_has_capability(building_id,resource_id,'alerts:read')
-     AND app_alert_has_capability(building_id,resource_id,'alerts:acknowledge')
-   WHEN 'ALERT_RESOLVED' THEN resource_type='alert' AND building_id IS NOT NULL
-     AND app_alert_has_capability(building_id,resource_id,'alerts:read')
-     AND app_alert_has_capability(building_id,resource_id,'alerts:resolve')
-   WHEN 'DEVICE_CREATED' THEN resource_type='device' AND building_id IS NOT NULL
-     AND app_has_capability(building_id,'devices:read') AND app_has_capability(building_id,'devices:configure')
-     AND app_device_has_capability(building_id,resource_id,'devices:read')
-   WHEN 'GATEWAY_CREATED' THEN resource_type='gateway' AND building_id IS NOT NULL
-     AND app_has_capability(building_id,'devices:read') AND app_has_capability(building_id,'devices:configure')
-     AND app_gateway_has_capability(building_id,resource_id,'devices:read')
-   WHEN 'DEVICE_UPDATED' THEN resource_type='device' AND building_id IS NOT NULL
-     AND app_device_has_capability(building_id,resource_id,'devices:read')
-     AND app_device_has_capability(building_id,resource_id,'devices:configure')
-   WHEN 'GATEWAY_UPDATED' THEN resource_type='gateway' AND building_id IS NOT NULL
-     AND app_gateway_has_capability(building_id,resource_id,'devices:read')
-     AND app_gateway_has_capability(building_id,resource_id,'devices:configure')
-   WHEN 'GATEWAY_CREDENTIALS_ISSUED' THEN resource_type='gateway' AND building_id IS NOT NULL
-     AND app_gateway_has_capability(building_id,resource_id,'devices:read')
-     AND app_gateway_has_capability(building_id,resource_id,'devices:configure')
-   WHEN 'DEVICE_METRIC_CREATED' THEN resource_type='device_metric' AND building_id IS NOT NULL
-     AND app_device_metric_has_capability(building_id,resource_id,'devices:read')
-     AND app_device_metric_has_capability(building_id,resource_id,'devices:configure')
-   WHEN 'NOTICE_SCHEDULED' THEN resource_type='notice' AND building_id IS NOT NULL
+-- Replace only notice CASE branches in the CURRENT policy, including the
+-- monitoring branches added by 023 and any later independent domain. Audit
+-- deletion while the current parent still exists. Reapplication is idempotent.
+DO $$ DECLARE policy_expression text; notice_branches text; action_name text; BEGIN
+ SELECT pg_get_expr(polwithcheck,polrelid) INTO STRICT policy_expression
+ FROM pg_policy WHERE polrelid='audit_logs'::regclass AND polname='audit_logs_insert_policy';
+ IF policy_expression NOT LIKE '%CASE action%' OR policy_expression NOT LIKE '%ELSE%' THEN
+   RAISE EXCEPTION 'Unexpected audit policy shape';
+ END IF;
+ notice_branches := $branches$
+   WHEN 'NOTICE_SCHEDULED'::text THEN resource_type='notice' AND building_id IS NOT NULL
      AND app_notice_has_capability(building_id,resource_id,'notices:read') AND app_notice_has_capability(building_id,resource_id,'notices:manage')
-   WHEN 'NOTICE_PUBLISHED' THEN resource_type='notice' AND building_id IS NOT NULL
+   WHEN 'NOTICE_PUBLISHED'::text THEN resource_type='notice' AND building_id IS NOT NULL
      AND app_notice_has_capability(building_id,resource_id,'notices:read') AND app_notice_has_capability(building_id,resource_id,'notices:manage')
-   WHEN 'NOTICE_UPDATED' THEN resource_type='notice' AND building_id IS NOT NULL
+   WHEN 'NOTICE_UPDATED'::text THEN resource_type='notice' AND building_id IS NOT NULL
      AND app_notice_has_capability(building_id,resource_id,'notices:read') AND app_notice_has_capability(building_id,resource_id,'notices:manage')
-   WHEN 'NOTICE_DELETED' THEN resource_type='notice' AND building_id IS NOT NULL
+   WHEN 'NOTICE_DELETED'::text THEN resource_type='notice' AND building_id IS NOT NULL
      AND app_notice_has_capability(building_id,resource_id,'notices:read') AND app_notice_has_capability(building_id,resource_id,'notices:manage')
-   ELSE app_is_platform_admin() OR (building_id IS NOT NULL AND (
-     app_can_access_building(building_id) OR app_has_capability(building_id,'units:manage')
-     OR app_has_capability(building_id,'teams:manage') OR app_has_capability(building_id,'memberships:manage')
-   )) END
-);
+ $branches$;
+ FOREACH action_name IN ARRAY ARRAY['NOTICE_SCHEDULED','NOTICE_PUBLISHED','NOTICE_UPDATED','NOTICE_DELETED'] LOOP
+   policy_expression := regexp_replace(policy_expression,
+     'WHEN ''' || action_name || '''::text THEN .*?(?=WHEN |ELSE)', '', 'ns');
+ END LOOP;
+ policy_expression := regexp_replace(policy_expression,'ELSE',notice_branches || ' ELSE');
+ EXECUTE 'ALTER POLICY audit_logs_insert_policy ON audit_logs WITH CHECK (' || policy_expression || ')';
+END $$;
 
 DO $$ DECLARE helper_owner text; helper regprocedure; grantee_name text; BEGIN
  SELECT pg_get_userbyid(proowner) INTO STRICT helper_owner
