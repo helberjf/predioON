@@ -74,14 +74,24 @@ describe("consumo, tarifas e análise histórica", () => {
     const rows = await withUserContext({ userId: "resident_demo", role: "RESIDENT" }, tx => tx.update(monitoringProfiles).set({ tariff: 0 }).where(eq(monitoringProfiles.id, profileId)).returning());
     assert.equal(rows.length, 0);
   });
-  it("configuração de bomba aceita minutos e rejeita cobrança sem medidor", async () => {
+  it("configuração de bomba aceita minutos e rejeita cobrança sem medidor", async t => {
     const path = "/monitoring", base = { buildingId: "bld_001", deviceId: pumpId, kind: "PUMP" };
     assert.equal((await call(server.url, path, { method: "POST", token: admin.accessToken, body: { ...base, tariff: 1 } })).status, 400);
     const response = await call(server.url, path, { method: "POST", token: admin.accessToken, body: { ...base, dailyLimit: 60, continuousLimitMinutes: 60, maxGapSeconds: 3600 } });
     assert.equal(response.status, 201);
-    await ingest(true, new Date(now.getTime() - 7200000), pumpId, "pump_running");
-    await ingest(true, new Date(now.getTime() - 3600000), pumpId, "pump_running");
-    const result = await ingest(false, now, pumpId, "pump_running");
-    assert.ok(result.some(n => n.type === "DAILY_PUMP_LIMIT")); assert.ok(result.some(n => n.type === "PUMP_CONTINUOUS_LIMIT"));
+    // This scenario covers two hours in one local day. Real midnight would
+    // correctly split daily usage and invalidate its >60-minute expectation.
+    // Freeze ingestion only, after HTTP authentication, so token clocks stay real.
+    const pumpNow = new Date(dayBounds(key, "America/Sao_Paulo").start.getTime() + 12 * 3600000);
+    t.mock.timers.enable({ apis: ["Date"], now: pumpNow.getTime() });
+    try {
+      await ingest(true, new Date(pumpNow.getTime() - 7200000), pumpId, "pump_running");
+      await ingest(true, new Date(pumpNow.getTime() - 3600000), pumpId, "pump_running");
+      const result = await ingest(false, pumpNow, pumpId, "pump_running");
+      assert.ok(result.some(n => n.type === "DAILY_PUMP_LIMIT")); assert.ok(result.some(n => n.type === "PUMP_CONTINUOUS_LIMIT"));
+      const [profile] = await db.select().from(monitoringProfiles).where(eq(monitoringProfiles.deviceId, pumpId));
+      const [usage] = await db.select().from(dailyUsage).where(and(eq(dailyUsage.profileId, profile!.id), eq(dailyUsage.day, key)));
+      assert.equal(usage!.quantity, 120);
+    } finally { t.mock.timers.reset(); }
   });
 });

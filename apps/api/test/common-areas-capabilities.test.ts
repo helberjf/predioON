@@ -291,11 +291,23 @@ describe("áreas comuns com capacidades atuais e configuração preservada", () 
 
   it("reaplicar028 conserva catálogo alheio, grants suspensos e políticas de outros módulos",async()=>{
     const migration=await readFile(new URL("../../../infrastructure/028-common-areas-capabilities.sql",import.meta.url),"utf8");
+    const auditBranches=(expression:string)=>{
+      const branches:Array<{action:string;condition:string}>=[];
+      const normalize=(value:string)=>value.replace(/\s+/g,' ').trim();
+      const other=expression.replace(/WHEN '(COMMON_AREA_CREATED|COMMON_AREA_UPDATED)'::text THEN (.*?)(?=WHEN |ELSE)/gs,(_match,action:string,condition:string)=>{
+        branches.push({action,condition:normalize(condition)});return '';
+      });
+      // Distinct CASE action values may move when an older migration is
+      // reapplied after a newer domain. Compare every condition, including
+      // ours, while preserving the exact remaining policy expression.
+      assert.equal(branches.length,2);
+      return {other:normalize(other),branches:branches.sort((a,b)=>a.action.localeCompare(b.action))};
+    };
     const snapshot=async()=>({
       permissions:await sqlClient`select to_jsonb(p) as row from permissions p order by key`,
       roles:await sqlClient`select to_jsonb(r) as row from role_permissions r order by role_key,permission_key`,
       windows:await sqlClient`select pg_get_functiondef('app_rbac_window(boolean,timestamptz,timestamptz)'::regprocedure) as definition`,
-      policies:await sqlClient`select schemaname,tablename,policyname,permissive,roles,cmd,qual,with_check from pg_policies order by schemaname,tablename,policyname`,
+      policies:(await sqlClient`select schemaname,tablename,policyname,permissive,roles,cmd,qual,with_check from pg_policies order by schemaname,tablename,policyname`).map(row=>row.tablename==='audit_logs'&&row.policyname==='audit_logs_insert_policy'?{...row,with_check:auditBranches(row.with_check)}:row),
       acl:await sqlClient`select c.relname,c.relacl from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' order by c.relname`,
     });
     const [permission]=await sqlClient`select active from permissions where key='common-areas:read'`;

@@ -119,10 +119,14 @@ describe('occurrences use current capabilities and private requester timelines',
   it('hides inconsistent timeline parents and blocks forged actor, tenant, audit and identity writes',async()=>fixture(async f=>{
     await sqlClient`insert into occurrence_events(occurrence_id,building_id,author_id,kind,message) values(${f.own},${f.b},${f.ids.neighbor},'COMMENT','Cross-tenant poison')`;
     assert.equal((await status(await f.request(f.ids.manager,`/occurrences/${f.own}`),200)).timeline.length,1);
+    assert.equal((await as(f.ids.manager,tx=>tx.execute(sql`select id from occurrence_events where occurrence_id=${f.own}::uuid`))).length,1,'RLS hides the inconsistent parent even without a tenant predicate');
     for(const assignment of [sql`id=${randomUUID()}::uuid`,sql`building_id=${f.b}`,sql`opened_by=${f.ids.manager}`,sql`protocol='forged'`,sql`description='forged'`,sql`created_at=statement_timestamp()`]) await assert.rejects(as(f.ids.manager,tx=>tx.execute(sql`update occurrences set ${assignment} where id=${f.own}::uuid`)),e=>pgErrorCode(e)==='42501');
     for(const statement of [sql`insert into occurrence_events(occurrence_id,building_id,author_id,kind) values(${f.own}::uuid,${f.b},${f.ids.manager},'COMMENT')`,sql`insert into occurrence_events(occurrence_id,building_id,author_id,kind) values(${f.own}::uuid,${f.a},${f.ids.neighbor},'COMMENT')`,sql`delete from occurrences where id=${f.own}::uuid`,sql`update occurrence_events set message='forged'`,sql`delete from occurrence_events`])await assert.rejects(as(f.ids.manager,tx=>tx.execute(statement)),e=>pgErrorCode(e)==='42501');
     await assert.rejects(as(f.ids.resident,tx=>tx.execute(sql`insert into occurrence_events(occurrence_id,building_id,author_id,kind) values(${f.own}::uuid,${f.a},${f.ids.resident},'STATUS_CHANGED')`)),e=>pgErrorCode(e)==='42501');
+    await assert.rejects(as(f.ids.resident,tx=>tx.execute(sql`insert into occurrences(building_id,protocol,category,title,description,opened_by) values(${f.a},${'FORGED-'+randomUUID()},'GENERAL','Forged author','Cannot impersonate a neighbor',${f.ids.neighbor})`)),e=>pgErrorCode(e)==='42501');
     for(const user of [f.ids.platform,f.ids.resident])await assert.rejects(as(user,tx=>tx.execute(sql`insert into audit_logs(building_id,user_id,action,resource_type,resource_id) values(${f.a},${user},'OCCURRENCE_UPDATED','occurrence',${f.neighbor})`)),e=>pgErrorCode(e)==='42501');
+    await assert.rejects(as(f.ids.exact,tx=>tx.execute(sql`insert into audit_logs(building_id,user_id,action,resource_type,resource_id,metadata) values(${f.a},${f.ids.exact},'OCCURRENCE_COMMENTED','occurrence',${f.own},'{"applyToGroup":true}'::jsonb)`)),e=>pgErrorCode(e)==='42501');
+    await assert.rejects(as(f.ids.exact,tx=>tx.execute(sql`insert into audit_logs(building_id,user_id,action,resource_type,resource_id) values(${f.a},${f.ids.exact},'OCCURRENCES_GROUPED','occurrence_group',${f.group})`)),e=>pgErrorCode(e)==='42501');
   }));
   it('uses feature settings without building discovery and preserves normal priority when paused',async()=>fixture(async f=>{
     await sqlClient`insert into building_feature_settings(building_id,feature_key,enabled) values(${f.a},'TICKET_PRIORITY',false)`;
@@ -134,6 +138,7 @@ describe('occurrences use current capabilities and private requester timelines',
     assert.equal((await as(f.ids.resident,tx=>tx.execute(sql`select app_can_read_feature_event(${f.a}) as allowed`)))[0]!.allowed,true);
   }));
   it('rechecks every active parent and grant windows using the same JWT',async()=>fixture(async f=>{
+    assert.equal((await status(await list(f,f.ids.worker),200)).items.length,5);
     for(const [table,key,value] of [['users','id',f.ids.worker],['organizations','id',f.org],['buildings','id',f.a],['teams','id',f.team],['roles','key',f.role],['permissions','key','occurrences:manage']] as const) {
       const [saved]=await sqlClient`select active from ${sqlClient(table)} where ${sqlClient(key)}=${value}`;
       try {await sqlClient`update ${sqlClient(table)} set active=false where ${sqlClient(key)}=${value}`;assert.ok([401,403].includes((await list(f,f.ids.worker)).status));assert.equal((await raw(f.ids.worker)).length,0);}
@@ -219,14 +224,41 @@ describe('occurrences use current capabilities and private requester timelines',
     } finally {await sqlClient.unsafe(`drop trigger ${name} on audit_logs`);await sqlClient.unsafe(`drop function ${name}()`);}
   }));
   it('keeps private clocks inaccessible and narrow routines hardened while rejecting malformed point IDs',async()=>fixture(async f=>{
-    const signatures=['app_occurrence_has_capability(text,text,text)','app_occurrence_can_read_scope(text,boolean)','app_occurrence_can_read_feature_state(text)','app_occurrence_group_can_manage(text,text)','app_occurrence_can_manage_group(text,text)','app_occurrence_assignee_active(text,text,text)','app_occurrence_cancel_own(text,uuid)','app_occurrence_touch_own(text,uuid)'];
+    const signatures=['app_occurrence_has_capability(text,text,text)','app_occurrence_can_read_scope(text,boolean)','app_occurrence_can_read_feature_state(text)','app_occurrence_cancelled_own(text,text)','app_occurrence_group_can_manage(text,text)','app_occurrence_can_manage_group(text,text)','app_occurrence_assignee_active(text,text,text)','app_occurrence_cancel_own(text,uuid)','app_occurrence_touch_own(text,uuid)'];
     for(const signature of signatures) {
       const [row]=await sqlClient`select p.prosecdef,p.provolatile,p.proconfig,p.proowner=c.proowner as owned,has_function_privilege('predioon_app',p.oid,'EXECUTE') as app,has_function_privilege('predioon_identity',p.oid,'EXECUTE') as identity,has_function_privilege('predioon_broker_auth',p.oid,'EXECUTE') as broker from pg_proc p cross join pg_proc c where p.oid=${signature}::regprocedure and c.oid='app_has_capability(text,text,text,text)'::regprocedure`;
       assert.equal(row!.prosecdef,true);assert.equal(row!.owned,true);assert.ok(row!.proconfig.includes('search_path=public, pg_temp'));assert.equal(row!.app,true);assert.equal(row!.identity,false);assert.equal(row!.broker,false);
-      assert.equal(row!.provolatile,signature.includes('_own(')?'v':'s');
+      assert.equal(row!.provolatile,signature.includes('_cancel_own(')||signature.includes('_touch_own(')?'v':'s');
+    }
+    for(const runtime of ['predioon_app','predioon_identity','predioon_broker_auth']) {
+      const [acl]=await sqlClient`select has_table_privilege(${runtime},'occurrence_events','UPDATE') as can_update,has_table_privilege(${runtime},'occurrence_events','DELETE') as can_delete`;
+      assert.deepEqual({...acl},{can_update:false,can_delete:false});
     }
     for(const runtime of ['predioon_app','predioon_identity','predioon_broker_auth'])assert.equal((await sqlClient`select has_function_privilege(${runtime},'app_occurrence_has_capability_at(text,text,text,timestamptz)','EXECUTE') as allowed`)[0]!.allowed,false);
     const [bad]=await as(f.ids.manager,tx=>tx.execute(sql`select app_occurrence_has_capability(${f.a},'bad-uuid','occurrences:manage') as malformed,app_occurrence_has_capability(${f.a},${f.foreign},'occurrences:manage') as foreign_resource,app_occurrence_has_capability(${f.a},${f.own},'notices:read') as wrong_capability`));
     assert.deepEqual({...bad},{malformed:false,foreign_resource:false,wrong_capability:false});
+  }));
+  it('uses primary-key and group indexes while scope authority avoids scanning request history',async t=>fixture(async f=>{
+    await sqlClient`insert into occurrences(building_id,protocol,title,description,category,opened_by,status)
+      select ${f.a},${'HISTORY-'+f.org+'-'} || n::text,'Historical request','Private historical description','GENERAL',${f.ids.neighbor},'DONE'
+      from generate_series(1,4000) n`;
+    await sqlClient`analyze occurrences`;await sqlClient`analyze role_bindings`;
+    const plans=await sqlClient.begin(async owner=>{
+      await owner`select set_config('app.user_id',${f.ids.exact},true)`;
+      const [point]=await owner`select prosrc from pg_proc where oid='app_occurrence_has_capability_at(text,text,text,timestamptz)'::regprocedure`;
+      const pointBody=String(point!.prosrc).replaceAll('target_building_id','$1').replaceAll('target_occurrence_id','$2').replaceAll('target_capability','$3').replaceAll('evaluated_at','$4');
+      const [pointPlan]=await owner.unsafe(`explain (format json) ${pointBody}`,[f.a,f.own,'occurrences:manage',new Date().toISOString()]);
+      const [scope]=await owner`select prosrc from pg_proc where oid='app_occurrence_can_read_scope(text,boolean)'::regprocedure`;
+      const scopeBody=String(scope!.prosrc).replaceAll('target_building_id','$1').replaceAll('require_management','$2');
+      const [scopePlan]=await owner.unsafe(`explain (format json) ${scopeBody}`,[f.a,true]);
+      const [group]=await owner`select prosrc from pg_proc where oid='app_occurrence_group_can_manage(text,text)'::regprocedure`;
+      const groupBody=String(group!.prosrc).replaceAll('target_building_id','$1').replaceAll('target_group_id','$2');
+      const [groupPlan]=await owner.unsafe(`explain (format json) ${groupBody}`,[f.a,f.group]);
+      return {point:JSON.stringify(pointPlan!['QUERY PLAN']),scope:JSON.stringify(scopePlan!['QUERY PLAN']),group:JSON.stringify(groupPlan!['QUERY PLAN'])};
+    });
+    assert.ok(plans.point.includes('occurrences_pkey'),plans.point);
+    assert.ok(!plans.scope.includes('"Relation Name":"occurrences"'),plans.scope);
+    assert.ok(plans.group.includes('occurrences_group_idx'),plans.group);
+    t.diagnostic('Actual owner SQL bodies: primary-key point lookup, indexed group coverage, no occurrence-history relation in scope plan; planner flags unchanged.');
   }));
 });
