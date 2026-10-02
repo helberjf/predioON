@@ -8,83 +8,31 @@ INSERT INTO role_permissions(role_key,permission_key) VALUES
  ('MAINTENANCE_MANAGER','common-areas:read'),('MAINTENANCE','common-areas:read'),('RESIDENT','common-areas:read')
 ON CONFLICT(role_key,permission_key) DO NOTHING;
 
--- Extend only the resource whitelist; the time window helper remains from 021.
-CREATE OR REPLACE FUNCTION app_rbac_scope_valid(resource_type text, resource_id text)
-RETURNS boolean LANGUAGE sql IMMUTABLE SET search_path = pg_catalog AS $$
- SELECT (resource_type IS NULL AND resource_id IS NULL) OR
-   (resource_type IS NOT NULL AND resource_id IS NOT NULL AND btrim(resource_id) <> '' AND
-     resource_type IN ('building','block','unit','team','membership','device','gateway','alert','work_order','automation','finance','support_grant','notice','occurrence','telemetry','common_area'));
-$$;
-ALTER TABLE role_bindings DROP CONSTRAINT IF EXISTS role_bindings_scope_ck;
-ALTER TABLE role_bindings ADD CONSTRAINT role_bindings_scope_ck CHECK (
- ((resource_type IS NULL AND resource_id IS NULL) OR
-   (resource_type IS NOT NULL AND resource_id IS NOT NULL AND btrim(resource_id) <> '' AND
-     resource_type IN ('building','block','unit','team','membership','device','gateway','alert','work_order','automation','finance','support_grant','notice','occurrence','telemetry','common_area')))
- AND ((role_key IN ('PLATFORM_ADMIN','PLATFORM_SUPPORT') AND building_id IS NULL AND team_id IS NULL AND resource_type IS NULL)
-   OR (role_key NOT IN ('PLATFORM_ADMIN','PLATFORM_SUPPORT') AND building_id IS NOT NULL))
-);
-ALTER TABLE support_grants DROP CONSTRAINT IF EXISTS support_grants_valid_ck;
-ALTER TABLE support_grants ADD CONSTRAINT support_grants_valid_ck CHECK (
- ((resource_type IS NULL AND resource_id IS NULL) OR
-   (resource_type IS NOT NULL AND resource_id IS NOT NULL AND btrim(resource_id) <> '' AND
-     resource_type IN ('building','block','unit','team','membership','device','gateway','alert','work_order','automation','finance','support_grant','notice','occurrence','telemetry','common_area')))
- AND btrim(reason) <> ''
- AND isfinite(expires_at) AND expires_at > created_at AND support_user_id <> granted_by
- AND capability IN ('telemetry:read','alerts:read','devices:read','work-orders:read-assigned','support:read')
-);
-
--- CREATE OR REPLACE preserves the owner-only ACL and original helper owner.
-CREATE OR REPLACE FUNCTION app_discovery_resource_belongs(
-  target_building_id text, target_resource_type text, target_resource_id text
-) RETURNS boolean LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = public, pg_temp AS $$
-DECLARE resource_uuid uuid;
-BEGIN
-  IF target_resource_type IS NULL AND target_resource_id IS NULL THEN RETURN true; END IF;
-  IF target_resource_type IS NULL OR target_resource_id IS NULL OR btrim(target_resource_id) = '' THEN RETURN false; END IF;
-
-  -- Text primary keys remain text: no normalization or cross-tenant fallback.
-  CASE target_resource_type
-    WHEN 'building' THEN
-      RETURN EXISTS (SELECT 1 FROM buildings b WHERE b.id=target_resource_id AND b.id=target_building_id);
-    WHEN 'device' THEN
-      RETURN EXISTS (SELECT 1 FROM devices d WHERE d.id=target_resource_id AND d.building_id=target_building_id);
-    WHEN 'gateway' THEN
-      RETURN EXISTS (SELECT 1 FROM gateways g WHERE g.id=target_resource_id AND g.building_id=target_building_id);
-    ELSE
-      -- work_order/automation have no concrete entity, and telemetry has no
-      -- globally unique id. Fail closed without reading time-series history.
-      IF target_resource_type NOT IN ('block','unit','team','membership','alert','finance','notice','occurrence','support_grant','common_area') THEN RETURN false; END IF;
-  END CASE;
-
-  -- Invalid UUID input is a denied scope, never a runtime 22P02 exception.
-  BEGIN
-    resource_uuid := target_resource_id::uuid;
-  EXCEPTION WHEN invalid_text_representation THEN RETURN false;
-  END;
-  CASE target_resource_type
-    WHEN 'block' THEN
-      RETURN EXISTS (SELECT 1 FROM blocks b WHERE b.id=resource_uuid AND b.building_id=target_building_id);
-    WHEN 'unit' THEN
-      RETURN EXISTS (SELECT 1 FROM units u WHERE u.id=resource_uuid AND u.building_id=target_building_id);
-    WHEN 'team' THEN
-      RETURN EXISTS (SELECT 1 FROM teams t WHERE t.id=resource_uuid AND t.building_id=target_building_id);
-    WHEN 'membership' THEN
-      RETURN EXISTS (SELECT 1 FROM memberships m WHERE m.id=resource_uuid AND m.building_id=target_building_id)
-        OR EXISTS (SELECT 1 FROM unit_memberships m WHERE m.id=resource_uuid AND m.building_id=target_building_id);
-    WHEN 'alert' THEN
-      RETURN EXISTS (SELECT 1 FROM alerts a WHERE a.id=resource_uuid AND a.building_id=target_building_id);
-    WHEN 'finance' THEN
-      RETURN EXISTS (SELECT 1 FROM financial_reports f WHERE f.id=resource_uuid AND f.building_id=target_building_id);
-    WHEN 'notice' THEN
-      RETURN EXISTS (SELECT 1 FROM notices n WHERE n.id=resource_uuid AND n.building_id=target_building_id);
-    WHEN 'occurrence' THEN
-      RETURN EXISTS (SELECT 1 FROM occurrences o WHERE o.id=resource_uuid AND o.building_id=target_building_id);
-    WHEN 'common_area' THEN
-      RETURN EXISTS (SELECT 1 FROM common_areas a WHERE a.id=resource_uuid AND a.building_id=target_building_id);
-    WHEN 'support_grant' THEN
-      RETURN EXISTS (SELECT 1 FROM support_grants s WHERE s.id=resource_uuid AND s.building_id=target_building_id);
-    ELSE RETURN false;
-  END CASE;
+-- Extend the live definitions only once, preserving later resource types/cases.
+DO $$ DECLARE definition text; constraint_row record; BEGIN
+ SELECT pg_get_functiondef('app_rbac_scope_valid(text,text)'::regprocedure) INTO STRICT definition;
+ IF position('''common_area''' in definition)=0 THEN
+   IF position('''telemetry''' in definition)=0 THEN RAISE EXCEPTION 'Unexpected scope validator shape'; END IF;
+   EXECUTE replace(definition,'''telemetry''','''telemetry'',''common_area''');
+ END IF;
+ FOR constraint_row IN SELECT conname,conrelid::regclass AS target,pg_get_constraintdef(oid) AS definition FROM pg_constraint
+   WHERE (conrelid='role_bindings'::regclass AND conname='role_bindings_scope_ck')
+     OR (conrelid='support_grants'::regclass AND conname='support_grants_valid_ck') LOOP
+   IF position('''common_area''::text' in constraint_row.definition)=0 THEN
+     IF position('''telemetry''::text' in constraint_row.definition)=0 THEN RAISE EXCEPTION 'Unexpected resource constraint shape'; END IF;
+     definition:=replace(constraint_row.definition,'''telemetry''::text','''telemetry''::text, ''common_area''::text');
+     EXECUTE format('ALTER TABLE %s DROP CONSTRAINT %I',constraint_row.target,constraint_row.conname);
+     EXECUTE format('ALTER TABLE %s ADD CONSTRAINT %I %s',constraint_row.target,constraint_row.conname,definition);
+   END IF;
+ END LOOP;
+ SELECT pg_get_functiondef('app_discovery_resource_belongs(text,text,text)'::regprocedure) INTO STRICT definition;
+ IF position('WHEN ''common_area'' THEN' in definition)=0 THEN
+   IF position('WHEN ''support_grant'' THEN' in definition)=0 THEN RAISE EXCEPTION 'Unexpected discovery function shape'; END IF;
+   definition:=regexp_replace(definition,'(IF target_resource_type NOT IN \()([^)]*)(\))','\1\2,''common_area''\3');
+   definition:=replace(definition,'WHEN ''support_grant'' THEN',
+     'WHEN ''common_area'' THEN RETURN EXISTS (SELECT 1 FROM common_areas a WHERE a.id=resource_uuid AND a.building_id=target_building_id); WHEN ''support_grant'' THEN');
+   EXECUTE definition;
+ END IF;
 END $$;
 
 CREATE OR REPLACE FUNCTION app_common_area_has_capability(target_building_id text, target_area_id text, target_capability text)

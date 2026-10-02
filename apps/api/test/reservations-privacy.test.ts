@@ -11,8 +11,8 @@ type Reservation = {
   startsAt: string; endsAt: string; status: string; notes: string | null;
 };
 
-/** HTTP containment until 029 replaces the broad legacy reservations SELECT policy.
- * These tests do not claim to prove direct SQL isolation or implement a calendar API.
+/** Private response contract, complemented by direct SQL and capability tests in
+ * reservations-capabilities.test.ts and migration 029.
  */
 describe("privacidade do DTO de reservas", () => {
   let server: TestServer, passwordHash: string;
