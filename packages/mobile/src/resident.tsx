@@ -21,6 +21,7 @@ import { useMutation } from "./mutation.ts";
 import {
   money,
   publishedReports,
+  reservationResultMessage,
   safeReceiptUrl,
   validReportMonth,
 } from "./resident-services.ts";
@@ -607,17 +608,16 @@ export function Reservations({ api, buildingId }: Props) {
                     form.hours.replace(",", "."),
                     selected.maxHoursPerBooking,
                   );
-                  await api.post("/reservations", {
+                  const created = await api.post<Reservation>("/reservations", {
                     areaId: selected.id,
                     ...window,
                     unit: form.unit.trim() || undefined,
                   });
                   setForm({ ...form, areaId: "", date: "" });
                   mine.reload();
+                  return created;
                 },
-                selected.requiresApproval
-                  ? "Reserva enviada para aprovação."
-                  : "Reserva confirmada.",
+                (created) => reservationResultMessage(created.status),
               )
             }
           />

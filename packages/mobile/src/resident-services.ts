@@ -53,3 +53,9 @@ export function money(cents: number): string {
     currency: "BRL",
   });
 }
+
+export function reservationResultMessage(status: string): string {
+  if (status === "CONFIRMED") return "Reserva confirmada.";
+  if (status === "PENDING") return "Reserva enviada para aprovação.";
+  return "Reserva registrada. Consulte a situação na lista.";
+}
