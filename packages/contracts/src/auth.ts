@@ -22,4 +22,17 @@ export type LoginRequest = { email: string; password: string };
 export type RefreshRequest = { refreshToken: string };
 export type LogoutRequest = RefreshRequest;
 export type MeResponse = AuthUser;
+/** Own session metadata; credentials are never part of this response. */
+export type SessionView = {
+  id: string;
+  userId: string;
+  createdAt: string;
+  expiresAt: string;
+  lastUsedAt: string;
+  revokedAt: string | null;
+  revokedReason: string | null;
+  userAgent: string | null;
+  ipAddress: string | null;
+  current: boolean;
+};
 export type ApiErrorResponse = { error: string };

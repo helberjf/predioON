@@ -1,11 +1,11 @@
-import { Button, Card, useAuth, useBuildingScope } from "@predioon/ui";
+import { Button, Card, SessionsPanel, useAuth, useBuildingScope } from "@predioon/ui";
 
 export function Profile() {
   const { user, signOut } = useAuth();
   const { buildings } = useBuildingScope();
 
   return (
-    <Card title="Meu perfil">
+    <><Card title="Meu perfil">
       <dl className="space-y-3 text-sm">
         <div>
           <dt className="text-xs text-slate-400">Nome</dt>
@@ -26,6 +26,6 @@ export function Profile() {
           Sair da conta
         </Button>
       </div>
-    </Card>
+    </Card><SessionsPanel /></>
   );
 }

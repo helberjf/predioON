@@ -15,6 +15,7 @@ const LINKS = [
   { to: "/unidades-equipes", label: "Unidades e equipes", icon: Building2 },
   { to: "/funcionalidades", label: "Funcionalidades", icon: ShieldCheck },
   { to: "/auditoria", label: "Histórico de atividades", icon: ScrollText },
+  { to: "/sessoes", label: "Minhas sessões", icon: Monitor },
 ];
 export function Shell({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();

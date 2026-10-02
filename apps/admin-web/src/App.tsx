@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import { Button, FeatureProvider, FeatureContent, LoginScreen, useAuth } from "@predioon/ui";
+import { Button, FeatureProvider, FeatureContent, LoginScreen, SessionsPanel, useAuth } from "@predioon/ui";
 import { Shell } from "./layout/Shell.js";
 import { Overview } from "./pages/Overview.js";
 import { Clients } from "./pages/Clients.js";
@@ -39,6 +39,7 @@ export function App() {
         <Route path="/dispositivos" element={<Devices />} />
         <Route path="/alertas" element={<FeatureContent><Alerts /></FeatureContent>} />
         <Route path="/usuarios" element={<Users />} />
+        <Route path="/sessoes" element={<SessionsPanel />} />
         <Route path="/unidades-equipes" element={<Tenancy />} />
         <Route path="/funcionalidades" element={<Features />} />
         <Route path="/auditoria" element={<Audit />} />
