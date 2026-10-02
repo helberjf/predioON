@@ -131,7 +131,7 @@ test("replacing the building or identity cannot move an old native confirmation 
   const newScreen = createMutationRunner();
   const newOutput = output();
   await oldConfirmation();
-  assert.deepEqual(writes, []);
+  assert.deepEqual(writes.slice(), []);
   assert.deepEqual(oldOutput.events, []);
   assert.deepEqual(newOutput.events, []);
   await newScreen.run(
