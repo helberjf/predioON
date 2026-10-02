@@ -8,6 +8,18 @@ function subject(bindings: AuthorizationSubject["bindings"], supportGrants: Auth
 }
 
 describe("RBAC explícito por capacidade, condomínio e recurso", () => {
+  it("separa configuração física, solicitação e histórico sem autoridade global implícita", () => {
+    for (const role of ["PLATFORM_ADMIN", "PLATFORM_SUPPORT", "MAINTENANCE_MANAGER", "MAINTENANCE"] as const) {
+      for (const capability of ["gates:read", "gates:manage", "commands:read", "commands:read-own"] as const) assert.equal(roleGrants(role, capability), false);
+    }
+    for (const capability of ["gates:read", "commands:request", "commands:read-own"] as const) assert.equal(roleGrants("RESIDENT", capability), true);
+    assert.equal(roleGrants("RESIDENT", "gates:manage"), false);
+    assert.equal(roleGrants("RESIDENT", "commands:read"), false);
+    const exact = subject([{role:"BUILDING_ADMIN",buildingId:building,resourceType:"gate",resourceId:"gate-a",active:true}]);
+    assert.equal(allowsCapability(exact,"commands:request",{buildingId:building,resourceType:"gate",resourceId:"gate-a"}),true);
+    assert.equal(allowsCapability(exact,"commands:request",{buildingId:building,resourceType:"gate",resourceId:"gate-b"}),false);
+    assert.equal(allowsCapability(exact,"commands:request",{buildingId:building}),false);
+  });
   it("não transforma manutenção em síndico por comparação de papel", () => {
     const maintenance = subject([{ role: "MAINTENANCE", buildingId: building, active: true }]);
     assert.equal(allowsCapability(maintenance, "telemetry:read", { buildingId: building }), true);

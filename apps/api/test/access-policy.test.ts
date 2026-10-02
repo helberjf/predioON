@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { accessAvailability, accessRole, parseAccessTopic, validAccessAck, AccessAckSchema, GateConfigSchema, OpenGateSchema } from "../../../packages/shared/src/access.js";
+import { accessCapabilityAvailability, parseAccessTopic, validAccessAck, AccessAckSchema, GateConfigSchema, GatePatchSchema, OpenGateSchema } from "../../../packages/shared/src/access.js";
 
 const now = new Date("2026-09-22T12:00:00Z");
 const live = { enabled: true, status: "ONLINE", lastSeenAt: now };
@@ -8,23 +8,18 @@ const gate = { enabled: true, allowResidents: true };
 const command = { id: "c3a4615e-0770-4b7c-b0d6-e4343e11cc30", buildingId: "b1", gatewayId: "gw1", gateId: "g1", deviceId: "d1", status: "SENT", expiresAt: new Date(now.getTime() + 15000) };
 const ack = { commandId: command.id, buildingId: "b1", gatewayId: "gw1", gateId: "g1", deviceId: "d1", result: "EXECUTED" as const };
 describe("segurança de acessos sem banco", () => {
-  it("usa usuário e vínculo atuais, com início e expiração", () => {
-    const user = { active: true, isPlatformAdmin: false };
-    const membership = { active: true, role: "RESIDENT" as const, startsAt: null, endsAt: null };
-    assert.equal(accessRole(user, membership, now), "RESIDENT");
-    assert.equal(accessRole({ ...user, active: false }, membership, now), null);
-    assert.equal(accessRole(user, { ...membership, active: false }, now), null);
-    assert.equal(accessRole(user, { ...membership, endsAt: now }, now), null);
-    assert.equal(accessRole(user, { ...membership, startsAt: new Date(now.getTime() + 1) }, now), null);
-    assert.equal(accessRole(user, null, now), null);
+  it("preserva campos omitidos no PATCH em vez de aplicar defaults de criação", () => {
+    assert.deepEqual(GatePatchSchema.parse({name:"Novo nome"}), {name:"Novo nome"});
+    assert.deepEqual(GatePatchSchema.parse({enabled:false}), {enabled:false});
+    assert.deepEqual(GatePatchSchema.parse({allowResidents:false}), {allowResidents:false});
   });
-  it("bloqueia acesso desativado, morador sem permissão e hardware offline ou obsoleto", () => {
-    assert.equal(accessAvailability(gate, live, live, "RESIDENT", now), null);
-    assert.match(accessAvailability({ ...gate, enabled: false }, live, live, "BUILDING_ADMIN", now)!, /desativado/);
-    assert.match(accessAvailability({ ...gate, allowResidents: false }, live, live, "RESIDENT", now)!, /moradores/);
-    assert.match(accessAvailability(gate, { ...live, status: "OFFLINE" }, live, "RESIDENT", now)!, /conexão/);
-    assert.match(accessAvailability(gate, live, { ...live, lastSeenAt: new Date(now.getTime() - 61000) }, "RESIDENT", now)!, /conexão/);
-    assert.match(accessAvailability(gate, live, live, null, now)!, /permissão/);
+  it("exige permissão atual, acesso habilitado e hardware com conexão recente", () => {
+    assert.equal(accessCapabilityAvailability(gate, live, live, true, now), null);
+    assert.match(accessCapabilityAvailability({ ...gate, enabled: false }, live, live, true, now)!, /desativado/);
+    assert.match(accessCapabilityAvailability(gate, { ...live, status: "OFFLINE" }, live, true, now)!, /conexão/);
+    assert.match(accessCapabilityAvailability(gate, live, { ...live, lastSeenAt: new Date(now.getTime() - 61000) }, true, now)!, /conexão/);
+    assert.match(accessCapabilityAvailability(gate, live, { ...live, lastSeenAt: new Date(now.getTime() + 5001) }, true, now)!, /conexão/);
+    assert.match(accessCapabilityAvailability(gate, live, live, false, now)!, /permissão/);
   });
   it("aceita apenas tópicos exatos e nunca curingas", () => {
     assert.deepEqual(parseAccessTopic("predio/b1/gateway/gw1/access/g1/command"), { buildingId: "b1", gatewayId: "gw1", gateId: "g1", kind: "command" });

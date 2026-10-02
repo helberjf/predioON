@@ -14,7 +14,11 @@ export const GateConfigSchema = z.object({
   enabled: z.boolean().default(false),
   allowResidents: z.boolean().default(false),
 }).strict();
-export const GatePatchSchema = GateConfigSchema.omit({ buildingId: true }).partial();
+// Zod defaults inside partial() still materialize omitted booleans. A PATCH
+// must not disable a gate or change its resident policy when only naming it.
+export const GatePatchSchema = GateConfigSchema.omit({ buildingId: true }).extend({
+  enabled: z.boolean(), allowResidents: z.boolean(),
+}).partial();
 export const OpenGateSchema = z.object({ requestId: z.string().uuid() }).strict();
 export const AccessAckSchema = z.object({
   commandId: z.string().uuid(), buildingId: TopicId, gatewayId: TopicId,
@@ -24,20 +28,12 @@ export const AccessCommandSchema = AccessAckSchema.omit({ result: true }).extend
   action: z.literal("OPEN"), issuedAt: z.string().datetime(), expiresAt: z.string().datetime(),
 }).strict();
 export type AccessAck = z.infer<typeof AccessAckSchema>;
-export type AccessRole = "PLATFORM_ADMIN" | "BUILDING_ADMIN" | "RESIDENT";
 export type AccessCommandStatus = "PENDING" | "SENT" | "ACKNOWLEDGED" | "FAILED" | "EXPIRED";
-type Membership = { active: boolean; role: "BUILDING_ADMIN" | "RESIDENT"; startsAt: Date | null; endsAt: Date | null };
-export function accessRole(user: { active: boolean; isPlatformAdmin: boolean } | null | undefined, membership: Membership | null | undefined, now = new Date()): AccessRole | null {
-  if (!user?.active) return null;
-  if (user.isPlatformAdmin) return "PLATFORM_ADMIN";
-  if (!membership?.active || (membership.startsAt && membership.startsAt > now) || (membership.endsAt && membership.endsAt <= now)) return null;
-  return membership.role;
-}
 type Hardware = { enabled: boolean; status: string; lastSeenAt: Date | null };
-export function accessAvailability(gate: { enabled: boolean; allowResidents: boolean }, gateway: Hardware | null | undefined, device: Hardware | null | undefined, role: AccessRole | null, now = new Date()): string | null {
-  if (!role) return "Você não tem permissão para este acesso";
+/** Permission is evaluated from current scoped grants by the API, never a role. */
+export function accessCapabilityAvailability(gate: { enabled: boolean }, gateway: Hardware | null | undefined, device: Hardware | null | undefined, requestPermitted: boolean, now = new Date()): string | null {
+  if (!requestPermitted) return "Você não tem permissão atual para solicitar este acesso";
   if (!gate.enabled) return "Acesso desativado pela administração";
-  if (role === "RESIDENT" && !gate.allowResidents) return "Abertura por moradores não autorizada";
   for (const hardware of [gateway, device]) {
     if (!hardware?.enabled || hardware.status !== "ONLINE" || !hardware.lastSeenAt || now.getTime() - hardware.lastSeenAt.getTime() > ACCESS_LIVE_MAX_AGE_MS || hardware.lastSeenAt.getTime() > now.getTime() + 5000) return "Equipamento sem conexão recente. Tente novamente quando estiver online";
   }
@@ -58,5 +54,5 @@ export function validAccessAck(command: CommandIdentity, ack: AccessAck, now = n
     command.buildingId === ack.buildingId && command.gatewayId === ack.gatewayId && command.gateId === ack.gateId && command.deviceId === ack.deviceId;
 }
 export type AccessCommandView = { id: string; requestId: string; gateId: string; status: AccessCommandStatus; expiresAt: string; createdAt: string; failureReason: string | null };
-export type AccessGateView = { id: string; buildingId: string; name: string; kind: "GARAGE" | "PEDESTRIAN"; gatewayId: string; deviceId: string; enabled: boolean; allowResidents: boolean; available: boolean; unavailableReason: string | null; latestCommand: AccessCommandView | null };
+export type AccessGateView = { id: string; buildingId: string; name: string; kind: "GARAGE" | "PEDESTRIAN"; gatewayId: string; deviceId: string; enabled: boolean; allowResidents: boolean; canManage?: boolean; available: boolean; unavailableReason: string | null; latestCommand: AccessCommandView | null };
 export type AccessList = { items: AccessGateView[]; canManage: boolean; gateways: Array<{ id: string; name: string }>; devices: Array<{ id: string; name: string; gatewayId: string | null; type: string }> };

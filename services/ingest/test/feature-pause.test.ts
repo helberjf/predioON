@@ -46,7 +46,18 @@ function fixture() {
     select: () => ({ from: (table: any) => chain(() => { const value = rows[getTableName(table)]; return typeof value === "function" ? value() : value ?? []; }) }),
     insert: (table: any) => ({ values: (values: any) => chain(() => { writes.push({ table: getTableName(table), values }); return [{ id: "alert", ...values }]; }) }),
     update: (table: any) => ({ set: (values: any) => chain(() => { updates.push({ table: getTableName(table), values }); return []; }) }),
-    execute: async (query: any) => { statements.push(new PgDialect().sqlToQuery(query).sql); return []; },
+    execute: async (query: any) => {
+      const statement = new PgDialect().sqlToQuery(query).sql;
+      statements.push(statement);
+      if (statement.includes("app_mark_access_sent")) {
+        // This fixture models the transaction boundary. Capability/clock/lock
+        // decisions inside the transition are exercised against real Postgres
+        // in access-capabilities.integration.test.ts.
+        updates.push({ table: "gate_commands", values: { status: "SENT" } });
+        return [{ reason: null }];
+      }
+      return [];
+    },
   };
   let activeTransactions = 0;
   mock.method(db, "transaction", async (callback: any) => { activeTransactions++; try { return await callback(tx); } finally { activeTransactions--; } });
@@ -81,7 +92,6 @@ function accessFixture() {
   state.rows.gateways = [{ id: "gateway", buildingId: "building", enabled: true, status: "ONLINE", lastSeenAt: new Date() }];
   state.rows.gates = [{ id: "gate", buildingId: "building", gatewayId: "gateway", deviceId: "mixed", kind: "GARAGE", enabled: true, allowResidents: true }];
   state.rows.gate_commands = [{ id: "0c98c434-2071-4e57-9b8c-5f99948a51ad", gateId: "gate", buildingId: "building", gatewayId: "gateway", deviceId: "mixed", requestedBy: "user", createdAt, expiresAt: new Date(Date.now() + 15000), status: "PENDING" }];
-  state.rows.users = [{ id: "user", active: true, isPlatformAdmin: true }];
   return { ...state, createdAt };
 }
 
