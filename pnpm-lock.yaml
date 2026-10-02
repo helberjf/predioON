@@ -222,6 +222,9 @@ importers:
       '@types/react':
         specifier: ^19.2.0
         version: 19.3.0
+      hermes-compiler:
+        specifier: 250829098.0.17
+        version: 250829098.0.17
       typescript:
         specifier: ^5.9.2
         version: 5.9.3
@@ -277,6 +280,9 @@ importers:
       '@types/react':
         specifier: ^19.2.0
         version: 19.3.0
+      hermes-compiler:
+        specifier: 250829098.0.17
+        version: 250829098.0.17
       typescript:
         specifier: ^5.9.2
         version: 5.9.3
