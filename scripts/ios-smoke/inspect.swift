@@ -6,7 +6,9 @@ import Vision
 guard CommandLine.arguments.count == 3 else { fatalError("Expected screenshot and bundle ID") }
 let url = URL(fileURLWithPath: CommandLine.arguments[1])
 let bundle = CommandLine.arguments[2]
-let products = ["com.predioon.resident": "Predio ON Morador", "com.predioon.operations": "Predio ON Operacao"]
+// Match the actual LoginScreen in packages/mobile/src/app.tsx. The recovery
+// screen has a different product title and must never pass as a login form.
+let products = ["com.predioon.resident": "Seu condomínio, por perto.", "com.predioon.operations": "A operação, em suas mãos."]
 guard let title = products[bundle] else { fatalError("Unexpected product") }
 let request = VNRecognizeTextRequest()
 request.recognitionLevel = .accurate
@@ -18,7 +20,7 @@ func normalized(_ value: String) -> String {
         .replacingOccurrences(of: "[^a-z0-9]", with: "", options: .regularExpression)
 }
 let visible = lines.map(normalized).joined()
-let required = [title, "E-mail", "Senha", "Entrar"]
+let required = ["PRÉDIO ON", title, "E-mail", "Senha", "Entrar"]
 let missing = required.filter { !visible.contains(normalized($0)) }
 let result: [String: Any] = ["passed": missing.isEmpty, "required": required, "missing": missing, "recognized": lines]
 let data = try JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted, .sortedKeys])

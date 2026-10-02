@@ -99,8 +99,10 @@ def capture(application: Path, destination: Path) -> None:
         evidence["phases"].append("release-installed")
         previous_pid = None
         for phase in ("01-first-launch", "02-new-process"):
+            launch_started = time.monotonic()
             launched = command("xcrun", "simctl", "launch", device_id, bundle,
-                               "-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR")
+                               "-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR", timeout=120)
+            evidence.setdefault("launchSeconds", {})[phase] = round(time.monotonic() - launch_started, 3)
             match = re.fullmatch(re.escape(bundle) + r":\s*(\d+)", launched)
             if not match:
                 raise RuntimeError("simctl did not return the application PID")
