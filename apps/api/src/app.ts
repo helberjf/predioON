@@ -31,6 +31,7 @@ import { tenancyRouter } from "./modules/tenancy/routes.js";
 import { authorizationRouter } from "./modules/authorization/routes.js";
 
 export const app = express();
+app.set("trust proxy", config.trustedProxyCidrs.length ? config.trustedProxyCidrs : false);
 
 app.use(cors({ origin: config.corsOrigins, credentials: true }));
 app.use(express.json({ limit: "1mb" }));
