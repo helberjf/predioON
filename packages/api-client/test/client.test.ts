@@ -1,6 +1,15 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
-import { ApiError, createApiClient } from "../src/index.ts";
+import { ApiError, createApiClient, reservationAvailabilityPath } from "../src/index.ts";
+
+it("calendar query preserves explicit instants and cannot inject a different tenant or range", () => {
+  const query = { buildingId: "a&buildingId=foreign", areaId: "area/?x=1", from: "2030-01-01T00:00:00-03:00", to: "2030-01-02T00:00:00-03:00" };
+  const path = reservationAvailabilityPath(query);
+  const url = new URL(path, "https://api.example.test");
+  assert.equal(url.pathname, "/reservations/availability");
+  assert.equal([...url.searchParams.keys()].length, 4);
+  for (const [key, value] of Object.entries(query)) assert.equal(url.searchParams.get(key), value);
+});
 
 const session = (name = "old") => ({
   accessToken: `${name}-access`, refreshToken: `${name}-refresh`,

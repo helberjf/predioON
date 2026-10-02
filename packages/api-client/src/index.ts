@@ -1,6 +1,14 @@
 import type { ApiErrorResponse, Session, SessionTokens } from "@predioon/contracts/auth";
+import type { ReservationAvailabilityQuery } from "@predioon/contracts";
 
 export type { Session, SessionTokens } from "@predioon/contracts/auth";
+
+/** Shared by web/native callers; values can never become extra query parameters. */
+export function reservationAvailabilityPath(query: ReservationAvailabilityQuery): string {
+  return `/reservations/availability?${new URLSearchParams({
+    buildingId: query.buildingId, areaId: query.areaId, from: query.from, to: query.to,
+  })}`;
+}
 
 export type ApiErrorCode = "HTTP_ERROR" | "NETWORK_ERROR" | "SESSION_CHANGED" | "INVALID_RESPONSE";
 

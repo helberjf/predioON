@@ -13,7 +13,7 @@ Em runners Linux, use `pnpm exec playwright install --with-deps chromium firefox
 
 A configuração inicia a API na porta 3100 e os portais nas portas 5273–5275. Servidores existentes não são reutilizados. O serviço de ingestão não é necessário para estes testes: o dashboard pode mostrar ausência de telemetria, sem inventar leituras.
 
-Os 18 cenários, totalizando 54 execuções, cobrem:
+Os 19 cenários, totalizando 57 execuções, cobrem:
 
 - Login real e inválido, validação HTML, dashboard, contas sem condomínio e recuperação do painel administrativo.
 - Criação e persistência de bloco/unidade/equipe/integrante, diretório de pessoas e administrador autorizado exclusivamente por RBAC.
@@ -23,6 +23,7 @@ Os 18 cenários, totalizando 54 execuções, cobrem:
 - Chamado em tela de 390 px: criação, conversa, andamento pela gestão, cancelamento e privacidade entre moradores.
 - Reserva em tela de 390 px: solicitação, aprovação pela gestão, cancelamento e persistência após recarregar.
 - Mudança real da exigência de aprovação enquanto o formulário está aberto: mensagem e situação refletem a resposta atual do servidor.
+- Calendário diário sem dados pessoais, conflito real de horário e atualização após cancelamento para permitir uma nova reserva.
 - Logout com revogação no servidor, histórico do navegador e nova identidade sem formulários da sessão anterior.
 
 As fixtures criam prédios, pessoas e vínculos pela API autenticada, usando as mesmas políticas de acesso do produto. A conta da plataforma cria o cadastro inicial; a conta do condomínio faz as operações. Os registros recebem nomes únicos e permanecem somente no banco descartável; a suíte não reseta o banco nem apaga registros de outros testes. Os casos que removem avisos ou revogam vínculos atuam apenas sobre registros criados pelo próprio cenário.

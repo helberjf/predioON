@@ -7,3 +7,4 @@ export type {
 } from "./auth.js";
 export type * from "./tenancy.js";
 export type * from "./overview.js";
+export type * from "./reservations.js";
