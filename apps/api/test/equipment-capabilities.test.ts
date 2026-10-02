@@ -332,7 +332,12 @@ describe("equipment capabilities: private inventory and configuration", () => {
   }));
   it("denies the hardware projection for forged roles, foreign gates and changed hardware relations", async () => fixture(async f => {
     const gate = await physicalGate(f);
-    for(const user of [f.outsider,f.worker,f.scoped]) assert.equal((await as(user,tx=>tx.execute(sql`select * from app_access_hardware_state(${f.a},${gate}::uuid)`))).length,0);
+    for(const user of [f.outsider,f.worker,f.platform]) assert.equal((await as(user,tx=>tx.execute(sql`select * from app_access_hardware_state(${f.a},${gate}::uuid)`))).length,0);
+    // 034 admits gates:read on the gate's actual device/gateway, independently
+    // of legacy memberships and without broadening private inventory access.
+    for(const user of [f.scoped,f.gateway]) assert.equal((await as(user,tx=>tx.execute(sql`select * from app_access_hardware_state(${f.a},${gate}::uuid)`))).length,1);
+    await sqlClient`update role_bindings set active=false where id=${f.scopedBinding}`;
+    assert.equal((await as(f.scoped,tx=>tx.execute(sql`select * from app_access_hardware_state(${f.a},${gate}::uuid)`))).length,0);
     for(const [building,id] of [[f.b,gate],[f.a,randomUUID()]] as const) assert.equal((await as(f.resident,tx=>tx.execute(sql`select * from app_access_hardware_state(${building},${id}::uuid)`))).length,0);
     await sqlClient`update devices set gateway_id=${f.gb} where id=${f.d1}`;
     assert.equal((await as(f.resident,tx=>tx.execute(sql`select * from app_access_hardware_state(${f.a},${gate}::uuid)`))).length,0);
@@ -340,10 +345,10 @@ describe("equipment capabilities: private inventory and configuration", () => {
     await sqlClient`update gateways set building_id=${f.b} where id=${f.ga}`;
     assert.equal((await as(f.resident,tx=>tx.execute(sql`select * from app_access_hardware_state(${f.a},${gate}::uuid)`))).length,0);
   }));
-  it("rechecks legacy physical-access identity, membership windows and tenant activity for the minimal projection", async () => fixture(async f => {
+  it("rechecks membership windows and tenant activity without granting global physical access", async () => fixture(async f => {
     const gate = await physicalGate(f);
     const projection = (user: string) => as(user,tx=>tx.execute(sql`select * from app_access_hardware_state(${f.a},${gate}::uuid)`));
-    assert.equal((await projection(f.resident)).length,1); assert.equal((await projection(f.platform)).length,1);
+    assert.equal((await projection(f.resident)).length,1); assert.equal((await projection(f.platform)).length,0);
     for(const mutate of [
       ()=>sqlClient`update memberships set active=false where user_id=${f.resident}`,
       ()=>sqlClient`update memberships set starts_at=now()+interval '1 hour' where user_id=${f.resident}`,
@@ -359,6 +364,6 @@ describe("equipment capabilities: private inventory and configuration", () => {
       await sqlClient`update users set active=true where id=${f.resident}`;
     }
     await sqlClient`update users set is_platform_admin=false where id=${f.platform}`;
-    assert.equal((await projection(f.platform)).length,0,'global RBAC role alone does not establish legacy physical access');
+    assert.equal((await projection(f.platform)).length,0,'neither the legacy platform flag nor a global RBAC role grants physical access');
   }));
 });
