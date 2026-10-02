@@ -18,7 +18,9 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: mcr.microsoft.com/playwright:v1.63.0-noble
-      options: --init --ipc=host
+      # Match the owner of GitHub's mounted home/workspace; Firefox refuses a
+      # root process using the runner's home. Keep the same official image.
+      options: --init --ipc=host --user 1001
     defaults:
       run:
         shell: bash
