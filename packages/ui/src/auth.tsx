@@ -11,6 +11,7 @@ type AuthState = {
   retryRestore: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  signOutAfter: (operation: () => Promise<void>) => Promise<void>;
   /** First building the user administers or lives in. Panels are single-building by nature. */
   buildingId: string | null;
 };
@@ -42,6 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       retryRestore: actions.restore,
       signIn: actions.signIn,
       signOut: actions.signOut,
+      signOutAfter: actions.signOutAfter,
       buildingId: user?.memberships[0]?.buildingId ?? null,
     }),
     [user, loading, error, actions],

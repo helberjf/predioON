@@ -18,6 +18,18 @@ export function createAuthActions(options: Options) {
     options.onLoadingChange(false);
   }
 
+  async function signOut(): Promise<void> {
+    clearIdentity();
+    options.onErrorChange(null);
+    const expected = generation;
+    try { await options.api.logout(); }
+    catch (error) {
+      if (generation === expected && !(error instanceof ApiError && error.code === "SESSION_CHANGED")) {
+        options.onErrorChange("Você saiu deste portal. Não foi possível confirmar a revogação no servidor; ao entrar novamente, vamos concluir essa etapa primeiro.");
+      }
+    }
+  }
+
   return {
     async restore(): Promise<void> {
       const expected = ++generation;
@@ -47,16 +59,14 @@ export function createAuthActions(options: Options) {
       if (generation === expected) options.onUserChange(session.user);
     },
 
-    async signOut(): Promise<void> {
-      clearIdentity();
-      options.onErrorChange(null);
+    signOut,
+
+    /** Completion belongs to the provider, even if its initiating view unmounts.
+     * A later login/restore always supersedes this captured identity. */
+    async signOutAfter(operation: () => Promise<void>): Promise<void> {
       const expected = generation;
-      try { await options.api.logout(); }
-      catch (error) {
-        if (generation === expected && !(error instanceof ApiError && error.code === "SESSION_CHANGED")) {
-          options.onErrorChange("Você saiu deste portal. Não foi possível confirmar a revogação no servidor; ao entrar novamente, vamos concluir essa etapa primeiro.");
-        }
-      }
+      await operation();
+      if (generation === expected) await signOut();
     },
 
     authLost: clearIdentity,
