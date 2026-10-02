@@ -1,5 +1,7 @@
 import { defineConfig } from "@playwright/test";
-import { ADMIN_URL, API_URL, BUILDING_URL, RESIDENT_URL } from "./e2e/environment";
+import { ADMIN_URL, API_URL, BUILDING_URL, E2E_PORT_OFFSET, RESIDENT_URL } from "./e2e/environment";
+
+const runSuffix = E2E_PORT_OFFSET ? `-${E2E_PORT_OFFSET}` : "";
 
 const databaseRoles = ["APP", "IDENTITY", "BROKER_AUTH"] as const;
 const databaseEnvironment = Object.fromEntries(databaseRoles.map(role => {
@@ -22,8 +24,8 @@ export default defineConfig({
   timeout: 90_000,
   expect: { timeout: 15_000 },
   // Existing .local exclusion keeps recordings and browser credentials out of Git.
-  outputDir: ".local/playwright-results",
-  reporter: [["list"], ["html", { outputFolder: ".local/playwright-report", open: "never" }]],
+  outputDir: `.local/playwright-results${runSuffix}`,
+  reporter: [["list"], ["html", { outputFolder: `.local/playwright-report${runSuffix}`, open: "never" }]],
   use: {
     baseURL: BUILDING_URL,
     viewport: { width: 1440, height: 1000 },
@@ -46,18 +48,18 @@ export default defineConfig({
       env: {
         ...databaseEnvironment,
         NODE_ENV: "test",
-        API_PORT: "3100",
+        API_PORT: new URL(API_URL).port,
         CORS_ORIGINS: [ADMIN_URL, BUILDING_URL, RESIDENT_URL].join(","),
       },
       timeout: 90_000,
       reuseExistingServer: false,
     },
     ...([
-      ["admin-web", "5273", ADMIN_URL],
-      ["building-web", "5274", BUILDING_URL],
-      ["resident-web", "5275", RESIDENT_URL],
-    ] as const).map(([workspace, port, url]) => ({
-      command: `pnpm --filter @predioon/${workspace} exec vite --host 127.0.0.1 --port ${port} --strictPort`,
+      ["admin-web", ADMIN_URL],
+      ["building-web", BUILDING_URL],
+      ["resident-web", RESIDENT_URL],
+    ] as const).map(([workspace, url]) => ({
+      command: `pnpm --filter @predioon/${workspace} exec vite --host 127.0.0.1 --port ${new URL(url).port} --strictPort`,
       url,
       env: { VITE_API_URL: API_URL },
       timeout: 90_000,

@@ -45,7 +45,7 @@ function BuildingApp() {
         <Route path="/vagas" element={<FeatureContent path="/vagas"><ParkingPanel buildingId={buildingId} canManage={can("buildings:manage")} /></FeatureContent>} />
         <Route path="/dispositivos" element={<Devices buildingId={buildingId} />} />
         <Route path="/alertas" element={<FeatureContent><Alerts buildingId={buildingId} canAcknowledge={can("alerts:acknowledge")} canResolve={can("alerts:resolve")} /></FeatureContent>} />
-        <Route path="/regras" element={<FeatureContent><Rules buildingId={buildingId} canManage={can("devices:configure")} /></FeatureContent>} />
+        <Route path="/regras" element={<FeatureContent><Rules buildingId={buildingId} /></FeatureContent>} />
         <Route path="/chamados" element={<FeatureContent path="/chamados"><Occurrences buildingId={buildingId} canManage={can("occurrences:manage")} /></FeatureContent>} />
         <Route path="/transparencia" element={<FeatureContent path="/transparencia"><TransparencyPanel buildingId={buildingId} /></FeatureContent>} />
         <Route path="/avisos" element={<FeatureContent path="/avisos"><Notices buildingId={buildingId} canManage={can("notices:manage")} canManageParking={can("buildings:manage")} /></FeatureContent>} />
