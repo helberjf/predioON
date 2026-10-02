@@ -78,11 +78,16 @@ services:
       JWT_PUBLIC_KEYS: ${JWT_PUBLIC_KEYS:?defina JWT_PUBLIC_KEYS}
       JWT_ACCESS_TTL_MINUTES: 5
       JWT_REFRESH_TTL_DAYS: 30
-      TRUST_PROXY_CIDRS: ${TRUST_PROXY_CIDRS:-}
+      AUTH_RATE_LIMIT_KEY: ${AUTH_RATE_LIMIT_KEY:?defina AUTH_RATE_LIMIT_KEY}
+      # Trust only the concrete Caddy peer, never the default application network.
+      TRUST_PROXY_CIDRS: ${PROXY_IPV4_ADDRESS:-172.30.250.2}/32
       MQTT_AUTH_SECRET: ${MQTT_AUTH_SECRET}
       MQTT_INGEST_USERNAME: ${MQTT_INGEST_USERNAME:-predioon_ingest}
       MQTT_INGEST_PASSWORD: ${MQTT_INGEST_PASSWORD}
       CORS_ORIGINS: https://admin.${DOMAIN},https://sindico.${DOMAIN},https://morador.${DOMAIN}
+    networks:
+      - default
+      - edge_proxy
 
   ingest:
     build:
@@ -122,6 +127,17 @@ services:
     volumes:
       - caddy_data:/data
       - caddy_config:/config
+    networks:
+      edge_proxy:
+        ipv4_address: ${PROXY_IPV4_ADDRESS:-172.30.250.2}
+
+networks:
+  default:
+  # Only Caddy and the API join this network. The API exposes no host port.
+  edge_proxy:
+    ipam:
+      config:
+        - subnet: ${PROXY_NETWORK_CIDR:-172.30.250.0/29}
 
 volumes:
   pg_data:

@@ -78,3 +78,5 @@ jobs:
         run: |
           docker build -f infrastructure/Dockerfile.node --build-arg SERVICE=api -t predioon-api:test .
           docker build -f infrastructure/Dockerfile.web --build-arg VITE_API_URL=https://api.example.invalid -t predioon-web:test .
+      - name: Verify production proxy isolation and forwarded headers
+        run: node scripts/test-production-proxy.mjs

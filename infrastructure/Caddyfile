@@ -13,12 +13,17 @@
 api.{$DOMAIN} {
     @internal path /internal/*
     respond @internal 404
-	reverse_proxy api:3000
+	reverse_proxy api:3000 {
+		header_up X-Forwarded-For {remote_host}
+		header_up -Forwarded
+	}
 
 	# SSE precisa passar sem buffer, senão o painel só recebe os eventos em lote.
 	@sse path /events/*
 	reverse_proxy @sse api:3000 {
 		flush_interval -1
+		header_up X-Forwarded-For {remote_host}
+		header_up -Forwarded
 	}
 
 	header {

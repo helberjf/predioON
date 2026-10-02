@@ -6,6 +6,8 @@ import { config } from '../config.js';
 import { HttpError, badRequest, forbidden, unauthorized } from '../http/errors.js';
 import { validateBody } from '../http/validate.js';
 import { login, refreshSession, revokeSession, type SessionTokens } from './service.js';
+import { LoginSchema } from './login-schema.js';
+import { admitLogin } from './login-budget.js';
 
 export const webAuthRouter=Router();
 
@@ -48,7 +50,7 @@ webAuthRouter.use((req,_res,next)=>{
   next();
 });
 
-webAuthRouter.post('/login',validateBody(z.object({email:z.string().email(),password:z.string().min(1)}).strict()),async(req,res)=>{
+webAuthRouter.post('/login',validateBody(LoginSchema),admitLogin,async(req,res)=>{
   const policy=cookiePolicy(req);
   const session=await login(req.body.email,req.body.password,{userAgent:req.header('user-agent'),ipAddress:req.ip});
   res.cookie(policy.name,session.refreshToken,{...policy.options,expires:session.expiresAt,

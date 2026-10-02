@@ -1,6 +1,6 @@
 # Limitação persistente de tentativas de login — desenho para 035
 
-Estado: fundação de configuração de proxies implementada e verificada; limitador, segredo HMAC, baldes e migração035 ainda não implementados. A migração depende da publicação de034 e não deve entrar no ledger antes dela.
+Estado: implementação de035 concluída e validada após a publicação de034 (`1c80551`), aguardando checkpoint próprio. O limitador, segredo HMAC, baldes e topologia concreta do Caddy estão presentes. MFA, convites e recuperação continuam fora deste recorte.
 
 O recorte cobre `/auth/login` e `/auth/web/login` antes da consulta de credencial e do Argon2. Ambos usam o mesmo orçamento persistente, inclusive entre processos da API. Recuperação, convites e MFA continuam em etapas seguintes. A recusa temporária não altera a conta nem invalida sessões já existentes.
 
@@ -49,3 +49,17 @@ O recorte cobre `/auth/login` e `/auth/web/login` antes da consulta de credencia
 Cinco testes escritos antes da implementação passaram: parser, negações e requisições HTTP reais demonstram que cabeçalhos forjados de peer não confiável são ignorados, a cadeia para no primeiro salto não autorizado e cada proxy adicional exige configuração explícita. Depois da revisão, o caso de representação IPv4-compatible foi normalizado e os cinco testes passaram novamente. Regressão dirigida de senhas, sessões e cookies com banco real passou29/29, sem skips. Tipos da API e do E2E de sessões passaram. Revisão independente não encontrou bloqueador de confiança.
 
 O Compose de produção encaminha a variável opcional e os exemplos explicam seu valor vazio. Este checkpoint não altera a topologia do Caddy, não escolhe uma rede privada como confiável automaticamente e não ativa limites de login. A topologia restrita de produção e o consumo persistente continuam nos critérios de035 acima.
+
+## Implementação e evidências de035
+
+As duas rotas usam schema compartilhado (8 KiB de JSON, 254 bytes de e-mail, 1024 bytes de senha) e admissão antes do serviço de credenciais. A transação tem timeout de statement de dois segundos e termina antes do Argon2. A decisão429 é retornada após commit; erro de armazenamento produz503 sem repassar a causa. A origem web continua validada antes do consumo. O segredo obrigatório em produção é separado das chaves existentes.
+
+O SQL usa UPSERT que adquire a linha existente atomicamente. A revisão independente identificou que `DO NOTHING` seguido de SELECT permitiria à limpeza apagar um registro expirado entre os statements; essa janela foi removida. Reposição usa relógio após aquisição e mantém a observação anterior se o relógio recuar. Limpeza executada depois dos locks remove no máximo32 linhas expiradas com SKIP LOCKED. EXPLAIN/auto_explain capturou o statement interno real entre10 mil registros ativos: dois Index Scan, sem varredura sequencial e com até32 linhas em cada acesso. Reaplicação dupla preservou os saldos e restaurou a autoridade privada das funções.
+
+RED de armazenamento: cinco testes falharam por ausência das funções; RED de chaves: módulo inexistente; RED HTTP: seis testes falharam pelas respostas atuais200/401 em lugar de429/503/400. Após implementação, **24/24 testes próprios** passaram: quatro de identidade HMAC, dois de configuração/schema, onze de concorrência/relógio/limpeza/ACL/reaplicação e sete HTTP/processos. Um processo Node novo observou o limite persistido, retomou após reposição e deixou seu consumo visível ao processo pai. A matriz cobre contas desconhecidas/inativas, senha literal, origem forjada, corpo inválido, CSRF e nenhuma sessão/cookie após recusa.
+
+Regressão com o limitador ativo: **29/29** testes de senhas, lifecycle, cookies e proxies passaram, sem skips. **26/26** testes de banco passaram, incluindo arquivo pg_dump e restauração serial real de **44 tabelas e35 migrations**, dados, ACLs, RLS, helpers de aplicação e identidade. O backup agora compara também as funções `identity_*`.
+
+Compose atribui endereço estático ao Caddy numa rede exclusiva com a API; confiança é somente o endereço/32. Caddy sobrescreve XFF com o peer e remove Forwarded em API/SSE. O teste Docker real passou com cabeçalhos falsificados, rotas internas404 e nenhuma porta pública da API. Adicionado à CI de plataforma. A configuração foi conferida com documentação oficial de [headers no Caddy](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#headers), [IP estático no Compose](https://docs.docker.com/reference/compose-file/services/#ipv4_address-ipv6_address) e [UPSERT do PostgreSQL16](https://www.postgresql.org/docs/16/sql-insert.html).
+
+Revisão independente de SQL/middleware/chaves/configuração/topologia não encontrou bloqueador após a correção do UPSERT. Fixtures de regressão continuam sujeitas à política padrão; contas compartilhadas por muitos cenários podem exigir isolamento de fixture, jamais bypass silencioso do runtime. Ainda não há homologação pública da topologia/TLS nem execução completa de navegador vinculada a035. O guia de operação está em `docs/AUTENTICACAO.md`.

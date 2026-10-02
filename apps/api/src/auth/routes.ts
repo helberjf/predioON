@@ -5,15 +5,12 @@ import { authenticate, currentAuth } from "./middleware.js";
 import { listSessions, login, refreshSession, revokeAllSessions, revokeSession, revokeSessionById } from "./service.js";
 import type { SessionTokens } from "./service.js";
 import { webAuthRouter } from "./web-routes.js";
+import { LoginSchema } from "./login-schema.js";
+import { admitLogin } from "./login-budget.js";
 
 export const authRouter = Router();
 authRouter.use((_req, res, next) => { res.setHeader("Cache-Control", "no-store"); next(); });
 authRouter.use("/web", webAuthRouter);
-
-const LoginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
-});
 
 const RefreshSchema = z.object({ refreshToken: z.string().min(10) });
 
@@ -31,7 +28,7 @@ function sessionResponse(session: SessionTokens) {
   };
 }
 
-authRouter.post("/login", validateBody(LoginSchema), async (req, res) => {
+authRouter.post("/login", validateBody(LoginSchema), admitLogin, async (req, res) => {
   const { email, password } = req.body as z.infer<typeof LoginSchema>;
   const session = await login(email, password, {
     userAgent: req.header("user-agent"),
