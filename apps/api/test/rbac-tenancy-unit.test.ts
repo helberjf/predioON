@@ -52,6 +52,20 @@ describe("RBAC explícito por capacidade, condomínio e recurso", () => {
     assert.ok(ROLE_CAPABILITIES.MAINTENANCE.includes("telemetry:read"));
     assert.ok(!ROLE_CAPABILITIES.MAINTENANCE.includes("finance:read"));
   });
+  it("separa contas publicadas, leitura administrativa e gestão financeira", () => {
+    for (const role of ["BUILDING_ADMIN", "MAINTENANCE_MANAGER", "MAINTENANCE", "RESIDENT"] as const) {
+      assert.equal(roleGrants(role, "finance:read-published"), true);
+      assert.equal(roleGrants(role, "finance:read"), role === "BUILDING_ADMIN");
+      assert.equal(roleGrants(role, "finance:manage"), role === "BUILDING_ADMIN");
+    }
+    for (const role of ["PLATFORM_ADMIN", "PLATFORM_SUPPORT"] as const) {
+      for (const capability of ["finance:read-published", "finance:read", "finance:manage"] as const) assert.equal(roleGrants(role, capability), false);
+    }
+    const exact = subject([{ role: "BUILDING_ADMIN", buildingId: building, resourceType: "finance", resourceId: "report-1", active: true }]);
+    assert.equal(allowsCapability(exact, "finance:manage", { buildingId: building, resourceType: "finance", resourceId: "report-1" }), true);
+    assert.equal(allowsCapability(exact, "finance:manage", { buildingId: building, resourceType: "finance", resourceId: "report-2" }), false);
+    assert.equal(allowsCapability(exact, "finance:manage", { buildingId: building }), false);
+  });
   it("áreas comuns exigem capacidade local e respeitam o recurso concedido", () => {
     for (const role of ["BUILDING_ADMIN", "MAINTENANCE_MANAGER", "MAINTENANCE", "RESIDENT"] as const) {
       assert.equal(roleGrants(role, "common-areas:read"), true);
