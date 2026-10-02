@@ -5,6 +5,7 @@
   "type": "module",
   "main": "./src/index.ts",
   "exports": { ".": "./src/index.ts" },
+  "imports": { "#engine": "./src/engine.ts", "#errors": "./src/errors.ts", "#web-client": "./src/web-client.ts" },
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --test test/*.test.ts"
