@@ -16,7 +16,11 @@ test("síndico abre dashboard e cadastra bloco, unidade e equipe persistidos", a
   expect((await overview).ok()).toBeTruthy();
   await expect(page.getByText("Condomínio Piloto", { exact: true }).first()).toBeVisible();
 
-  await page.getByRole("link", { name: "Unidades e equipes", exact: true }).click();
+  const tenancyLink = page.getByRole("link", { name: "Unidades e equipes", exact: true });
+  await tenancyLink.focus();
+  await expect(tenancyLink).toBeFocused();
+  await tenancyLink.press("Enter");
+  await expect(page).toHaveURL(`${BUILDING_URL}/unidades-equipes`);
   await expect(page.getByRole("heading", { name: "Unidades e equipes", exact: true })).toBeVisible();
   await page.getByLabel("Código do bloco", { exact: true }).fill(blockCode);
   await page.getByLabel("Nome do bloco", { exact: true }).fill(blockName);

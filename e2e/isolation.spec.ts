@@ -50,6 +50,7 @@ test("trocar condomínio descarta rascunhos, isola cadastros e preserva a escolh
 
   await signIn(page, BUILDING_URL, fixture.manager.email);
   await page.getByRole("link", { name: "Unidades e equipes", exact: true }).click();
+  await expect(page).toHaveURL(`${BUILDING_URL}/unidades-equipes`);
   const selector = page.getByLabel("Condomínio em uso", { exact: true });
   await selector.selectOption(fixture.building.id);
   await expect(page.getByRole("listitem").filter({ hasText: nameA })).toBeVisible();

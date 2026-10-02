@@ -8,10 +8,11 @@ export type NavigationItem = { to: string; label: string; icon: ComponentType<{ 
 type Props = {
   children: ReactNode; title: string; subtitle: string; userName: string; role: string;
   links: NavigationItem[]; pathname: string; signOut: () => void;
+  navigationFeedback?: ReactNode; navigationBusy?: boolean;
   renderLink: (to: string, children: ReactNode, className: string) => ReactNode;
 };
 
-export function DashboardFrame({ children, title, subtitle, userName, role, links, pathname, signOut, renderLink }: Props) {
+export function DashboardFrame({ children, title, subtitle, userName, role, links, pathname, signOut, renderLink, navigationFeedback, navigationBusy = false }: Props) {
   const [search, setSearch] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const initials = userName.split(" ").filter(Boolean).slice(0, 2).map(part => part[0]).join("");
@@ -37,7 +38,7 @@ export function DashboardFrame({ children, title, subtitle, userName, role, link
       <Brand dark/>
       {onClose && <button aria-label="Fechar menu" onClick={onClose} className="-mr-1 rounded-md p-2 text-slate-300 hover:bg-white/10"><X size={20}/></button>}
     </div>
-    <nav aria-label="Menu principal" className="space-y-1 px-3">{nav()}</nav>
+    <nav aria-label="Menu principal" aria-busy={navigationBusy} className="space-y-1 px-3">{navigationFeedback ?? nav()}</nav>
     <div className="relative mt-5 min-h-32 flex-1 overflow-hidden" aria-hidden="true">
       <img src={buildingImage} alt="" className="absolute inset-0 h-full w-full object-cover object-center opacity-65"/>
       <div className="absolute inset-0 bg-gradient-to-b from-[#0c202e] via-transparent to-[#0c202e]"/>
