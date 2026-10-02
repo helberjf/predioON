@@ -1,6 +1,6 @@
 import { assertFeature } from "../../auth/features.js";
 import { Router } from "express";
-import { and, asc, eq, gte } from "drizzle-orm";
+import { and, asc, eq, gte, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { commonAreas, reservations } from "@predioon/db/runtime";
 import { assertBuildingAccess, buildingRole, currentAuth, inTenantContext } from "../../auth/middleware.js";
@@ -10,11 +10,12 @@ import { query, validateBody, validateQuery } from "../../http/validate.js";
 import { recordAudit } from "../audit/repo.js";
 
 export const reservationsRouter = Router();
+reservationsRouter.use((_req, res, next) => { res.setHeader("Cache-Control", "no-store"); next(); });
 
 const ListQuerySchema = z.object({
   buildingId: z.string().min(1),
   from: z.coerce.date().optional(),
-  mine: z.coerce.boolean().default(false),
+  mine: z.enum(["true", "false"]).default("false").transform(value => value === "true"),
 });
 
 const CreateSchema = z.object({
@@ -42,13 +43,30 @@ reservationsRouter.get("/", validateQuery(ListQuerySchema), async (req, res) => 
   const rows = await inTenantContext(req, async (tx) => {
     await assertFeature(tx, buildingId, "RESERVATIONS");
     return tx
-      .select()
+      .select({
+        id: reservations.id,
+        buildingId: reservations.buildingId,
+        areaId: reservations.areaId,
+        userId: reservations.userId,
+        unit: reservations.unit,
+        startsAt: reservations.startsAt,
+        endsAt: reservations.endsAt,
+        status: reservations.status,
+        notes: reservations.notes,
+      })
       .from(reservations)
       .where(
         and(
           eq(reservations.buildingId, buildingId),
           gte(reservations.startsAt, from ?? new Date()),
-          mine ? eq(reservations.userId, auth.userId) : undefined,
+          // 003 still exposes a broad calendar through RLS. Until 029 replaces
+          // that policy with a minimal availability projection, never select
+          // another person's private booking without current tenant management.
+          // Evaluate authority in this statement, not from the account's top role.
+          mine ? eq(reservations.userId, auth.userId) : or(
+            eq(reservations.userId, auth.userId),
+            sql`app_governance_access(${reservations.buildingId}, true)`,
+          ),
         ),
       )
       .orderBy(asc(reservations.startsAt));
