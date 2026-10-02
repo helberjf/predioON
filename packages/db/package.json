@@ -10,6 +10,7 @@
     "./broker-auth": "./src/broker-auth.ts"
   },
   "scripts": {
+    "db:bootstrap": "tsx src/bootstrap.ts",
     "db:push": "drizzle-kit push",
     "db:seed": "tsx src/seed.ts",
     "typecheck": "tsc --noEmit",

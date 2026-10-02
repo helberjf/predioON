@@ -23,18 +23,18 @@ jobs:
         env:
           POSTGRES_USER: predioon
           POSTGRES_PASSWORD: predioon
-          POSTGRES_DB: predioon_test
+          POSTGRES_DB: predioon
           TIMESCALEDB_TELEMETRY: 'off'
         ports: ['5436:5432']
         options: >-
-          --health-cmd "pg_isready -U predioon -d predioon_test"
+          --health-cmd "pg_isready -U predioon -d predioon"
           --health-interval 5s --health-timeout 5s --health-retries 20
     env:
-      DATABASE_URL: postgres://predioon:predioon@localhost:5436/predioon_test
-      DATABASE_URL_APP: postgres://predioon_app:predioon_app@localhost:5436/predioon_test
-      DATABASE_URL_IDENTITY: postgres://predioon_identity:predioon_identity@localhost:5436/predioon_test
-      DATABASE_URL_BROKER_AUTH: postgres://predioon_broker_auth:predioon_broker_auth@localhost:5436/predioon_test
-      TEST_MIGRATIONS_DATABASE_URL: postgres://predioon:predioon@localhost:5436/predioon_test
+      DATABASE_URL: postgres://predioon:predioon@localhost:5436/predioon
+      DATABASE_URL_APP: postgres://predioon_app:predioon_app@localhost:5436/predioon
+      DATABASE_URL_IDENTITY: postgres://predioon_identity:predioon_identity@localhost:5436/predioon
+      DATABASE_URL_BROKER_AUTH: postgres://predioon_broker_auth:predioon_broker_auth@localhost:5436/predioon
+      TEST_MIGRATIONS_DATABASE_URL: postgres://predioon:predioon@localhost:5436/predioon
       RUN_ACCESS_DB_TESTS: '1'
       RUN_RBAC_DB_TESTS: '1'
     steps:
@@ -53,10 +53,11 @@ jobs:
         env:
           PG_CONTAINER: ${{ job.services.postgres.id }}
         run: |
-          pnpm --filter @predioon/db exec drizzle-kit push --force
+          pnpm db:bootstrap
+          pnpm db:bootstrap
           for script in infrastructure/[0-9]*.sql; do
             echo "Applying $script"
-            docker exec -i "$PG_CONTAINER" psql -U predioon -d predioon_test -v ON_ERROR_STOP=1 -f - < "$script"
+            docker exec -i "$PG_CONTAINER" psql -U predioon -d predioon -v ON_ERROR_STOP=1 -f - < "$script"
           done
           pnpm db:provision-runtime
           pnpm db:seed
