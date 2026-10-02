@@ -62,6 +62,21 @@ describe("RBAC explícito por capacidade, condomínio e recurso", () => {
     assert.equal(allowsCapability(exact, "alert-rules:manage", { buildingId: building, resourceType: "device", resourceId: "rule-1" }), false);
     assert.equal(allowsCapability(exact, "alert-rules:manage", { buildingId: building }), false);
   });
+  it("separa leitura local e gestão de vagas sem conceder autoridade global", () => {
+    for (const role of ["BUILDING_ADMIN", "MAINTENANCE_MANAGER", "MAINTENANCE", "RESIDENT"] as const) {
+      assert.equal(roleGrants(role, "parking:read"), true);
+      assert.equal(roleGrants(role, "parking:manage"), role === "BUILDING_ADMIN");
+    }
+    for (const role of ["PLATFORM_ADMIN", "PLATFORM_SUPPORT"] as const) {
+      assert.equal(roleGrants(role, "parking:read"), false);
+      assert.equal(roleGrants(role, "parking:manage"), false);
+    }
+    const exact = subject([{ role: "BUILDING_ADMIN", buildingId: building, resourceType: "parking", resourceId: "parking-1", active: true }]);
+    assert.equal(allowsCapability(exact, "parking:manage", { buildingId: building, resourceType: "parking", resourceId: "parking-1" }), true);
+    assert.equal(allowsCapability(exact, "parking:manage", { buildingId: building, resourceType: "parking", resourceId: "parking-2" }), false);
+    assert.equal(allowsCapability(exact, "parking:manage", { buildingId: building }), false);
+    assert.equal(allowsCapability(exact, "parking:manage", { buildingId: building, resourceType: "device", resourceId: "parking-1" }), false);
+  });
   it("separa contas publicadas, leitura administrativa e gestão financeira", () => {
     for (const role of ["BUILDING_ADMIN", "MAINTENANCE_MANAGER", "MAINTENANCE", "RESIDENT"] as const) {
       assert.equal(roleGrants(role, "finance:read-published"), true);

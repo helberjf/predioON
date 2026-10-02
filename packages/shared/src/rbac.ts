@@ -4,7 +4,7 @@ import { z } from "zod";
 export const CAPABILITIES = [
   "platform:read-health",
   "buildings:read", "buildings:manage", "buildings:provision", "features:manage",
-  "alert-rules:read", "alert-rules:manage", "notices:read", "notices:manage", "occurrences:create-own", "occurrences:read-own", "occurrences:manage",
+  "parking:read", "parking:manage", "alert-rules:read", "alert-rules:manage", "notices:read", "notices:manage", "occurrences:create-own", "occurrences:read-own", "occurrences:manage",
   "common-areas:read", "common-areas:manage",
   "reservations:create-own", "reservations:read-own", "reservations:cancel-own", "reservations:read-calendar", "reservations:manage",
   "telemetry:read", "telemetry:read-published", "alerts:read", "alerts:acknowledge", "alerts:resolve", "work-orders:read-assigned", "work-orders:assign",
@@ -15,7 +15,7 @@ export const CAPABILITIES = [
 export type Capability = (typeof CAPABILITIES)[number];
 export const CapabilitySchema = z.enum(CAPABILITIES);
 
-export const RESOURCE_TYPES = ["building", "block", "unit", "team", "membership", "device", "gateway", "alert", "work_order", "automation", "finance", "support_grant", "notice", "occurrence", "telemetry", "common_area", "reservation", "alert_rule"] as const;
+export const RESOURCE_TYPES = ["building", "block", "unit", "team", "membership", "device", "gateway", "alert", "work_order", "automation", "finance", "support_grant", "notice", "occurrence", "telemetry", "common_area", "reservation", "alert_rule", "parking"] as const;
 export type ResourceType = (typeof RESOURCE_TYPES)[number];
 export const ResourceTypeSchema = z.enum(RESOURCE_TYPES);
 
@@ -27,10 +27,10 @@ export const RbacRoleSchema = z.enum(RBAC_ROLES);
 export const ROLE_CAPABILITIES: Readonly<Record<RbacRole, readonly Capability[]>> = {
   PLATFORM_ADMIN: ["platform:read-health", "buildings:read", "buildings:manage", "buildings:provision", "features:manage", "plans:read", "plans:manage", "rbac:manage", "support:grant"],
   PLATFORM_SUPPORT: [],
-  BUILDING_ADMIN: ["reservations:create-own", "reservations:read-own", "reservations:cancel-own", "reservations:read-calendar", "reservations:manage", "common-areas:read", "common-areas:manage", "buildings:read", "buildings:manage", "alert-rules:read", "alert-rules:manage", "notices:read", "notices:manage", "occurrences:create-own", "occurrences:read-own", "occurrences:manage", "telemetry:read", "telemetry:read-published", "alerts:read", "alerts:acknowledge", "alerts:resolve", "work-orders:read-assigned", "work-orders:assign", "work-orders:update-assigned", "devices:read", "devices:configure", "commands:request", "automations:read", "automations:manage", "finance:read", "finance:read-published", "finance:manage", "memberships:read", "memberships:manage", "units:read", "units:manage", "teams:read", "teams:manage", "support:read"],
-  MAINTENANCE_MANAGER: ["finance:read-published", "reservations:create-own", "reservations:read-own", "reservations:cancel-own", "reservations:read-calendar", "common-areas:read", "buildings:read", "notices:read", "occurrences:create-own", "occurrences:read-own", "occurrences:manage", "telemetry:read", "telemetry:read-published", "alerts:read", "alerts:acknowledge", "alerts:resolve", "work-orders:read-assigned", "work-orders:assign", "work-orders:update-assigned", "devices:read", "automations:read", "teams:read", "units:read"],
-  MAINTENANCE: ["finance:read-published", "reservations:create-own", "reservations:read-own", "reservations:cancel-own", "reservations:read-calendar", "common-areas:read", "buildings:read", "notices:read", "occurrences:create-own", "occurrences:read-own", "telemetry:read", "telemetry:read-published", "alerts:read", "alerts:acknowledge", "work-orders:read-assigned", "work-orders:update-assigned", "devices:read", "automations:read", "units:read"],
-  RESIDENT: ["finance:read-published", "reservations:create-own", "reservations:read-own", "reservations:cancel-own", "reservations:read-calendar", "buildings:read", "notices:read", "occurrences:create-own", "occurrences:read-own", "telemetry:read-published", "units:read", "common-areas:read"],
+  BUILDING_ADMIN: ["reservations:create-own", "reservations:read-own", "reservations:cancel-own", "reservations:read-calendar", "reservations:manage", "common-areas:read", "common-areas:manage", "buildings:read", "buildings:manage", "parking:read", "parking:manage", "alert-rules:read", "alert-rules:manage", "notices:read", "notices:manage", "occurrences:create-own", "occurrences:read-own", "occurrences:manage", "telemetry:read", "telemetry:read-published", "alerts:read", "alerts:acknowledge", "alerts:resolve", "work-orders:read-assigned", "work-orders:assign", "work-orders:update-assigned", "devices:read", "devices:configure", "commands:request", "automations:read", "automations:manage", "finance:read", "finance:read-published", "finance:manage", "memberships:read", "memberships:manage", "units:read", "units:manage", "teams:read", "teams:manage", "support:read"],
+  MAINTENANCE_MANAGER: ["parking:read", "finance:read-published", "reservations:create-own", "reservations:read-own", "reservations:cancel-own", "reservations:read-calendar", "common-areas:read", "buildings:read", "notices:read", "occurrences:create-own", "occurrences:read-own", "occurrences:manage", "telemetry:read", "telemetry:read-published", "alerts:read", "alerts:acknowledge", "alerts:resolve", "work-orders:read-assigned", "work-orders:assign", "work-orders:update-assigned", "devices:read", "automations:read", "teams:read", "units:read"],
+  MAINTENANCE: ["parking:read", "finance:read-published", "reservations:create-own", "reservations:read-own", "reservations:cancel-own", "reservations:read-calendar", "common-areas:read", "buildings:read", "notices:read", "occurrences:create-own", "occurrences:read-own", "telemetry:read", "telemetry:read-published", "alerts:read", "alerts:acknowledge", "work-orders:read-assigned", "work-orders:update-assigned", "devices:read", "automations:read", "units:read"],
+  RESIDENT: ["parking:read", "finance:read-published", "reservations:create-own", "reservations:read-own", "reservations:cancel-own", "reservations:read-calendar", "buildings:read", "notices:read", "occurrences:create-own", "occurrences:read-own", "telemetry:read-published", "units:read", "common-areas:read"],
 };
 
 export type AuthorizationBinding = {
