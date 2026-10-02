@@ -25,17 +25,7 @@ export async function startTestServer(): Promise<TestServer> {
   };
 }
 
-export type Session = { accessToken: string; refreshToken: string; user: { id: string; role: string } };
-
-export async function login(url: string, email: string, password = "predioon123"): Promise<Session> {
-  const response = await fetch(`${url}/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  });
-  if (!response.ok) throw new Error(`Login falhou para ${email}: ${response.status}`);
-  return (await response.json()) as Session;
-}
+export { login, type Session } from "./fixture-login.js";
 
 type RequestOptions = { method?: string; token?: string; body?: unknown };
 
