@@ -30,12 +30,32 @@ export function connectIngest(onMessage: MessageHandler): mqtt.MqttClient {
   client.on("reconnect", () => console.warn("MQTT reconectando..."));
   client.on("error", (error) => console.error("Erro MQTT:", error.message));
 
-  client.on("message", (topic, payload) => {
-    // One bad message must never take the service down.
-    void onMessage(topic, payload).catch((error) => {
-      console.error("Mensagem MQTT descartada:", topic, error);
+  // MQTT.js sends QoS1 PUBACK only after handleMessage calls back successfully.
+  // A detached `message` listener would acknowledge before the DB commit.
+  // The tail also serializes a reconnect's delivery behind an older transaction.
+  let processing: Promise<void> = Promise.resolve();
+  client.handleMessage = (packet, done) => {
+    const stream = client.stream;
+    const isCurrent = () => stream === client.stream && !stream.destroyed && !client.disconnecting;
+    const delivery = processing.then(async () => {
+      if (!isCurrent()) return false;
+      await onMessage(packet.topic, Buffer.isBuffer(packet.payload) ? packet.payload : Buffer.from(packet.payload));
+      return isCurrent();
     });
-  });
+    processing = delivery.then(() => undefined, () => undefined);
+    void delivery.then(current => {
+      // Late callbacks belong to their original connection, even when message
+      // IDs have been reused by a replacement connection. Never ACK that stream.
+      done(current ? undefined : new Error("Conexão MQTT encerrada antes da confirmação"));
+    }, () => {
+      // Keep the persistent broker session and withhold PUBACK. MQTT.js reconnects
+      // after the transport closes; the broker then redelivers the unacked input.
+      // This path never retries an outbound physical command.
+      stream.destroy();
+      console.error("Persistência MQTT falhou; aguardando reentrega:", packet.topic);
+      done(new Error("Mensagem MQTT não confirmada"));
+    });
+  };
 
   return client;
 }

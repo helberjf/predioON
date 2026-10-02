@@ -9,9 +9,12 @@ import { publishRealtime } from "../realtime.js";
  */
 export async function handleGatewayStatus(topic: string, raw: Buffer): Promise<void> {
   const topicParts = parseGatewayStatusTopic(topic);
-  if (!topicParts) return;
+  if (!topicParts || raw.length > 16_384) return;
 
-  const parsed = GatewayStatusSchema.safeParse(JSON.parse(raw.toString("utf8")));
+  // Malformed input is an intentional drop, not a retryable persistence error.
+  let body: unknown;
+  try { body = JSON.parse(raw.toString("utf8")); } catch { return; }
+  const parsed = GatewayStatusSchema.safeParse(body);
   if (!parsed.success) {
     console.warn("Status de gateway rejeitado pelo schema:", topic, parsed.error.issues);
     return;
