@@ -10,6 +10,7 @@ on:
       - 'packages/contracts/**'
       - 'pnpm-lock.yaml'
       - '.github/workflows/ios.yml'
+      - 'scripts/ios-smoke/**'
   workflow_dispatch:
 
 permissions:
@@ -55,6 +56,20 @@ jobs:
           -sdk iphonesimulator -destination 'generic/platform=iOS Simulator'
           -derivedDataPath build CODE_SIGNING_ALLOWED=NO
           build
+      - name: Launch the release build and capture both process lifetimes
+        run: >-
+          python3 scripts/ios-smoke/capture.py
+          --application apps/${{ matrix.app }}/ios/build/Build/Products/Release-iphonesimulator/${{ matrix.scheme }}.app
+          --output .local/ios-smoke/${{ matrix.app }}
+      - name: Preserve runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.app }}-ios-runtime-${{ github.run_id }}
+          path: .local/ios-smoke/${{ matrix.app }}/
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7
       - name: Preserve simulator build
         uses: actions/upload-artifact@v4
         with:
