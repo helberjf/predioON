@@ -8,7 +8,7 @@ Telemetria grava leitura/consumo/alertas atomicamente, mas publica SSE e chama `
 
 O MQTT já aguarda `handleMessage` antes do PUBACK. O problema atual de notificação não deve ser atribuído a um listener sem await. Antes de separar toda a recepção em inbox, um primeiro incremento de outbox pode fechar a perda de alertas nos produtores existentes, preservando a entrada e atuação atuais.
 
-Fontes: [telemetry.ts](../../../../services/ingest/src/pipeline/telemetry.ts), [offline-sweeper.ts](../../../../services/ingest/src/offline-sweeper.ts), [notify/index.ts](../../../../services/ingest/src/notify/index.ts), [features-lifecycle.test.ts](../../../../apps/api/test/features-lifecycle.test.ts).
+Fontes: [telemetry.ts](../../../services/ingest/src/pipeline/telemetry.ts), [offline-sweeper.ts](../../../services/ingest/src/offline-sweeper.ts), [notify/index.ts](../../../services/ingest/src/notify/index.ts), [features-lifecycle.test.ts](../../../apps/api/test/features-lifecycle.test.ts).
 
 ## Recorte proposto e dados
 
