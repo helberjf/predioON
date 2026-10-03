@@ -2,7 +2,7 @@
 
 Publicadas em **03/10/2026**. Estas capturas foram conferidas em execuções reais e usam dados fictícios. Cada imagem mantém o commit de origem; a data de publicação não altera a versão demonstrada. O plano completo e os cinco vídeos finais continuam pendentes, conforme [CONTINUIDADE.md](CONTINUIDADE.md).
 
-As doze imagens e a [galeria HTML](IMAGENS_DOS_SISTEMAS.html) agora acompanham o clone. Abra a galeria no navegador para filtrar e ampliar. O [manifesto](imagens/2026-10-03/manifesto.json) registra dimensões, SHA-256 e origem.
+As quinze imagens e a [galeria HTML](IMAGENS_DOS_SISTEMAS.html) agora acompanham o clone. Abra a galeria no navegador para filtrar e ampliar. O [manifesto](imagens/2026-10-03/manifesto.json) registra dimensões, SHA-256 e origem.
 
 ## Android — Morador: avisos
 
@@ -75,3 +75,21 @@ Origem: [8408a5d](https://github.com/helberjf/predioON/actions/runs/37130882267)
 Origem: [8408a5d](https://github.com/helberjf/predioON/actions/runs/37130882267), artefato11276742968, APK release x86_64 com API/PostgreSQL reais e dados fictícios. Reconhecimento confirmado na interface e nas provas de ações do banco. Fase06 aprovada; percurso completo falhou mais tarde na verificação de conteúdo revogado. Esta captura parcial não homologa toda a jornada nem aparelho físico.
 
 ![Android — Operação · Alerta reconhecido](imagens/2026-10-03/android-operacao-alerta-reconhecido.png)
+
+## Web — Administração · Segurança da conta
+
+Fonte037 [057722b](https://github.com/helberjf/predioON/commit/057722bd61d3466516e5eb0eec8527c485fdd5b9), com23 arquivos comparados por SHA-256 LF. Formulário real com campos vazios protegidos, confirmação e cancelamento. API/PostgreSQL reais, contas fictícias isoladas e captura revisada; não é gravação final. A matriz funcional separada passou222/222 nos três motores, sem retries. No Morador, a rolagem nativa deixa o formulário inteiro acima da navegação fixa; nenhum elemento foi removido ou alterado para a imagem.
+
+![Web — Administração · Segurança da conta](imagens/2026-10-03/web-senha-administracao.png)
+
+## Web — Síndico · Segurança da conta
+
+Fonte037 [057722b](https://github.com/helberjf/predioON/commit/057722bd61d3466516e5eb0eec8527c485fdd5b9), com23 arquivos comparados por SHA-256 LF. Formulário real com campos vazios protegidos, confirmação e cancelamento. API/PostgreSQL reais, contas fictícias isoladas e captura revisada; não é gravação final. A matriz funcional separada passou222/222 nos três motores, sem retries. No Morador, a rolagem nativa deixa o formulário inteiro acima da navegação fixa; nenhum elemento foi removido ou alterado para a imagem.
+
+![Web — Síndico · Segurança da conta](imagens/2026-10-03/web-senha-sindico.png)
+
+## Web — Morador · Segurança da conta
+
+Fonte037 [057722b](https://github.com/helberjf/predioON/commit/057722bd61d3466516e5eb0eec8527c485fdd5b9), com23 arquivos comparados por SHA-256 LF. Formulário real com campos vazios protegidos, confirmação e cancelamento. API/PostgreSQL reais, contas fictícias isoladas e captura revisada; não é gravação final. A matriz funcional separada passou222/222 nos três motores, sem retries. No Morador, a rolagem nativa deixa o formulário inteiro acima da navegação fixa; nenhum elemento foi removido ou alterado para a imagem.
+
+![Web — Morador · Segurança da conta](imagens/2026-10-03/web-senha-morador.png)

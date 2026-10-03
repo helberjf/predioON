@@ -117,6 +117,39 @@
       "journeyPassed": false,
       "apkSha256": "16a2f23a2d8bbe143e719d72bf139f737fb4136bd7618a9439250bca454ff910",
       "limit": "Reconhecimento confirmado na interface e nas provas de ações do banco. Fase06 aprovada; percurso completo falhou mais tarde na verificação de conteúdo revogado."
+    },
+    {
+      "file": "web-senha-administracao.png",
+      "sha256": "21f3adbc3c8a9ada19fe388e9692fa472651d44e82f1f73e55e9702c7dc1a6e9",
+      "width": 1440,
+      "height": 1171,
+      "sourceCommit": "057722bd61d3466516e5eb0eec8527c485fdd5b9",
+      "sourceRun": null,
+      "sourceEvidence": "web-password-evidence.json",
+      "capturePassed": true,
+      "limit": "Formulário real com campos vazios protegidos, confirmação e cancelamento. API/PostgreSQL reais, contas fictícias isoladas e captura revisada; não é gravação final."
+    },
+    {
+      "file": "web-senha-sindico.png",
+      "sha256": "12c1a48727991f4fd2bbfb8ceffbc60dc6e679be1bc42ef2b598b3654b345a39",
+      "width": 1440,
+      "height": 1171,
+      "sourceCommit": "057722bd61d3466516e5eb0eec8527c485fdd5b9",
+      "sourceRun": null,
+      "sourceEvidence": "web-password-evidence.json",
+      "capturePassed": true,
+      "limit": "Formulário real com campos vazios protegidos, confirmação e cancelamento. API/PostgreSQL reais, contas fictícias isoladas e captura revisada; não é gravação final."
+    },
+    {
+      "file": "web-senha-morador.png",
+      "sha256": "6c7fb15a34db8af3f80e002d4bf1a5d461e9ef6126d9a4fe74875d51cf5e9e13",
+      "width": 390,
+      "height": 844,
+      "sourceCommit": "057722bd61d3466516e5eb0eec8527c485fdd5b9",
+      "sourceRun": null,
+      "sourceEvidence": "web-password-evidence.json",
+      "capturePassed": true,
+      "limit": "Formulário real com campos vazios protegidos, confirmação e cancelamento. API/PostgreSQL reais, contas fictícias isoladas e captura revisada; não é gravação final."
     }
   ]
 }
