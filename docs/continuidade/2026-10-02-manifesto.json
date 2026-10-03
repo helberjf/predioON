@@ -1,18 +1,134 @@
 {
-  "baseCommit": "17f9e47a904389cc0352bb752c00edc192540ba2",
+  "baseCommit": "8408a5dcdcc87e97ddb39e4fa71051fa621483c0",
   "capturedOn": "2026-10-03",
   "state": "Drafts: restore for review, not approved product changes",
   "patch": "2026-10-02-em-andamento.patch",
-  "sha256": "2500d3e5b9629110d07dd9279ff8c18ca1180e0c3c2281cf5ff661e353daa3d9",
+  "sha256": "3ab1474251eb5a0247d98f82d774248b7e799d1a69a6bf6d93ce58e2e71678c9",
   "files": [
+    {
+      "path": ".github/workflows/android-password.yml",
+      "sha256LF": "3a27d5f7b2c96e43c95428cef3669c67ffc8c299a9486bd54fececc85c780065"
+    },
+    {
+      "path": "apps/api/src/app.ts",
+      "sha256LF": "0561b94fc44764bf2757ca75dbcb96b2d4b350dab45ee29364ac30a7ea260d7e"
+    },
+    {
+      "path": "apps/api/src/auth/login-budget.ts",
+      "sha256LF": "0ddd96389418fbb8d74360b04a36f9682dfa59b62462696a6e6766c492ab7e8a"
+    },
+    {
+      "path": "apps/api/src/auth/routes.ts",
+      "sha256LF": "5779db2833f01565a65f536e29b80b20199f92f3e39a24daed95f3d3bcbb0e9b"
+    },
+    {
+      "path": "apps/api/src/auth/service.ts",
+      "sha256LF": "4817c9139db2d9be302db4a02afec3a2cdc7d8fe83b66cca5d540a1b9e9cca8e"
+    },
+    {
+      "path": "apps/api/src/auth/web-routes.ts",
+      "sha256LF": "d17703eff9b435930298a5d30fa80397c90ab8025ce30833ce65c880c94bb6b1"
+    },
+    {
+      "path": "apps/api/src/auth/password-change-schema.ts",
+      "sha256LF": "78b4d7f82c33bcb1a04c79fd61e45100d96d9504f2d1dabe90543f2f63e57ef0"
+    },
+    {
+      "path": "apps/api/test/password-change.test.ts",
+      "sha256LF": "5de83d1312f0f2017eca64143b9fc6ea90773d91c2b10b2eaabf79103b8c81b5"
+    },
+    {
+      "path": "infrastructure/037-password-change.sql",
+      "sha256LF": "7d74d7de33cc7f8ac769a56d3acfcb9d283ab8a5a61f36f734ab5dcb392a0276"
+    },
+    {
+      "path": "packages/api-client/src/engine.ts",
+      "sha256LF": "158aed55b20a2ab75fe9889eb6da10566875bcd6b87486d78d4e10ade0564cf7"
+    },
+    {
+      "path": "packages/api-client/src/index.ts",
+      "sha256LF": "a5708fc712d1be3bbfb102b4fe6080b529314372e228074cce63c7f313d0f50c"
+    },
+    {
+      "path": "packages/api-client/src/web-client.ts",
+      "sha256LF": "3578dcb8826fee3e269d992a03b6f3404d446040f2edcdf962058ee429e9fd7c"
+    },
+    {
+      "path": "packages/api-client/test/web-client.test.ts",
+      "sha256LF": "f8511e507cdf5dabdcf9e910cab4a2e4fe8888c04a546016ce4767e7d86c90c6"
+    },
+    {
+      "path": "packages/api-client/test/password-change.test.ts",
+      "sha256LF": "746247860029198d23cb984ab690f3f67a0becf25ceb6a9e3be60558559a63b1"
+    },
+    {
+      "path": "packages/contracts/src/auth.ts",
+      "sha256LF": "5091958a86f706a4f35891999c22fa5c901e92b9068bc8d749917c2a5306b615"
+    },
+    {
+      "path": "packages/mobile/src/app.tsx",
+      "sha256LF": "7d0fbce780c10107f01662a14e2073b8e1deafe1503d7cf7d29297292ab01b1a"
+    },
+    {
+      "path": "packages/mobile/src/account.tsx",
+      "sha256LF": "3b6ea8a1ebed4b092c82375cb108a8c9641243787c85bbfd16863f03300ea0ec"
+    },
+    {
+      "path": "packages/mobile/src/password-change.ts",
+      "sha256LF": "70bb663ab5b5fdb7d05ea3b9ba1ef2eda11a1c2b6da6ac00151d9d95b597a13e"
+    },
+    {
+      "path": "packages/mobile/test/password-change.test.ts",
+      "sha256LF": "f08188dda4a94bf6c8e1a1b988499a41994d5589cc03fc8b530825a071365739"
+    },
+    {
+      "path": "packages/ui/src/components/sessions-panel.tsx",
+      "sha256LF": "05a6aba7e51568ec6ca17b4c721b58c5fd94477746a8f45073a0c72dd6b6ccdb"
+    },
+    {
+      "path": "packages/ui/src/components/password-change-panel.tsx",
+      "sha256LF": "e1c4bfd061fa3ac29cbde2132e5e035a2b4906f2f83072d513b0d17f32a175b3"
+    },
+    {
+      "path": "packages/ui/src/password-change-state.ts",
+      "sha256LF": "82fb2165174afc6067b723db51d44aa14757314f88fc6c8ea2b39a66947a30e9"
+    },
+    {
+      "path": "packages/ui/test/password-change-state.test.ts",
+      "sha256LF": "2896444b2aafcc72d9957292279752e444dfac0ba2cb18ddc4dd85e554364834"
+    },
+    {
+      "path": "e2e/password-change.spec.ts",
+      "sha256LF": "f3ef94cd5378681bfbaa2d7d28759f2a09b0eb796a03938d0988bf0df8742bf2"
+    },
+    {
+      "path": "scripts/android-password-smoke/run_password.py",
+      "sha256LF": "7a88f3c245c77f1f5396054a6cc07b65edba9cf553aa81b91f30ecfa2a3e5097"
+    },
+    {
+      "path": "scripts/android-password-smoke/password_proxy.py",
+      "sha256LF": "3d49c35337a7353b542bb619a9d9624c5426dc5369bd3b9478061291fe242083"
+    },
+    {
+      "path": "scripts/android-password-smoke/diagnostics.py",
+      "sha256LF": "bfa1dfdb53dc9fab15c6d1692df389b1fffc4b31c76847ec44549c2f18b49401"
+    },
+    {
+      "path": "scripts/android-password-smoke/test_password.py",
+      "sha256LF": "2784dc080fd2401569b1bfef8b501ca26dda9d3444e034d44f362cd139ac2a92"
+    },
     {
       "path": "docs/superpowers/plans/2026-10-02-password-change.md",
       "sha256LF": "41a0d900e844bdb7f4ea357110ae7193a3610cc98617ea48d0cc041a11c49764"
+    },
+    {
+      "path": "packages/contracts/src/index.ts",
+      "sha256LF": "2db1a9506cfe60794361571186d6163b477b195e130747b37122f775579c141b"
     }
   ],
   "restoreCheck": {
     "passed": true,
-    "filesVerified": 1,
+    "filesVerified": 30,
     "method": "git apply to archived base, compare SHA-256 with normalized LF"
   }
 }
