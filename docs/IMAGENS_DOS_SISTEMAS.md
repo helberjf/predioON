@@ -2,7 +2,7 @@
 
 Publicadas em **03/10/2026**. Estas capturas foram conferidas em execuções reais e usam dados fictícios. Cada imagem mantém o commit de origem; a data de publicação não altera a versão demonstrada. O plano completo e os cinco vídeos finais continuam pendentes, conforme [CONTINUIDADE.md](CONTINUIDADE.md).
 
-As dezessete imagens e a [galeria HTML](IMAGENS_DOS_SISTEMAS.html) agora acompanham o clone. Abra a galeria no navegador para filtrar e ampliar. O [manifesto](imagens/2026-10-03/manifesto.json) registra dimensões, SHA-256 e origem.
+As dezenove imagens e a [galeria HTML](IMAGENS_DOS_SISTEMAS.html) agora acompanham o clone. Abra a galeria no navegador para filtrar e ampliar. O [manifesto](imagens/2026-10-03/manifesto.json) registra dimensões, SHA-256 e origem.
 
 ## Android — Morador: avisos
 
@@ -105,3 +105,15 @@ Captura manual real no navegador desta máquina, API e banco demonstrativo com37
 Captura manual real no navegador desta máquina, API e banco demonstrativo com37 migrations. Rascunho privado e publicação foram verificados entre Síndico e Morador; saldo inicial R$123,45 menos despesa R$23,45 resultou R$100,00. Dados exclusivamente fictícios, sem pagamento real. Fonte [580a236](https://github.com/helberjf/predioON/commit/580a23608f4f79df3f9728946be4bfdb993155bb), com198 arquivos de runtime comparados ao commit e hashes dos bundles no [registro](imagens/2026-10-03/web-finance-manual-evidence.json). O screenshot retornou JPEG; bytes preservados, sem conversão ou edição. Viewport real1280×720, captura da página inteira; não é teste de390px nem app nativo.
 
 ![Web — Morador · Prestação publicada](imagens/2026-10-03/web-financeiro-morador.jpg)
+
+## Android — Morador · Segurança da conta
+
+Origem: [CI1f7bd3d](https://github.com/helberjf/predioON/actions/runs/37157034870), artefato11285664020, APK Release x86_64 com assinatura efêmera de teste. Minha conta com campos protegidos vazios e confirmação desabilitada. 29 fases por app aprovadas contra API/PG/HTTPS reais: erro400 preserva sessão, troca204 revoga as próprias famílias, senha antiga401, nova literal200 e isolamento entre apps. É captura nativa de emulador Release, sem edição; aparelho físico e iOS autenticado pendentes. Um aviso MissingViewState permanece na jornada de senha da Operação; não houve crash/ANR. Hashes de imagem/APK e resultado no [registro](imagens/2026-10-03/android-password-evidence.json).
+
+![Android — Morador · Segurança da conta](imagens/2026-10-03/android-senha-morador.png)
+
+## Android — Operação · Segurança da conta
+
+Origem: [CI1f7bd3d](https://github.com/helberjf/predioON/actions/runs/37157034870), artefato11285664020, APK Release x86_64 com assinatura efêmera de teste. Minha conta com campos protegidos vazios e confirmação desabilitada. 29 fases por app aprovadas contra API/PG/HTTPS reais: erro400 preserva sessão, troca204 revoga as próprias famílias, senha antiga401, nova literal200 e isolamento entre apps. É captura nativa de emulador Release, sem edição; aparelho físico e iOS autenticado pendentes. Um aviso MissingViewState permanece na jornada de senha da Operação; não houve crash/ANR. Hashes de imagem/APK e resultado no [registro](imagens/2026-10-03/android-password-evidence.json).
+
+![Android — Operação · Segurança da conta](imagens/2026-10-03/android-senha-operacao.png)
