@@ -2,11 +2,11 @@
 
 ## Evidência verificada
 
-Em 02/10/2026, `packages/db/test/backup-restore.test.ts` criou dois bancos descartáveis num PostgreSQL 16 com TimescaleDB 2.17.2. O primeiro recebeu bootstrap, migrations 001–031 e dados sintéticos de dois condomínios. Um arquivo customizado de `pg_dump` foi restaurado serialmente no segundo banco.
+Em 03/10/2026, `packages/db/test/backup-restore.test.ts` criou dois bancos descartáveis num PostgreSQL 16 com TimescaleDB 2.17.2. O primeiro recebeu bootstrap, migrations 001–036 e dados sintéticos de dois condomínios. Um arquivo customizado de `pg_dump` foi restaurado serialmente no segundo banco. A suite completa de banco passou26/26, sem skips; log local work/audit036-db-verified.log.
 
-O teste comparou conteúdo das 43 tabelas públicas, ledger, policies, privilégios de tabelas/colunas/funções, owners e definições dos helpers `app_*`. ACL explícita equivalente à ACL padrão é normalizada; nenhuma concessão é descartada. Depois verificou RLS com o papel restrito: chamado próprio, contas publicadas locais, telemetria bruta inacessível, projeção autorizada de água, DELETE financeiro negado e revogação do vínculo efetiva. Os chunks antigos/recentes e os valores em centavos foram preservados. Escrita no destino não alterou a origem; o executor reconheceu o ledger sem reaplicar migrations.
+O teste comparou conteúdo das 44 tabelas públicas, ledger, policies, privilégios de tabelas/colunas/funções, owners e definições dos helpers `app_*`/`identity_*`. ACL explícita equivalente à ACL padrão é normalizada; nenhuma concessão é descartada. Depois verificou RLS com o papel restrito: chamado próprio, contas publicadas locais, telemetria bruta inacessível, projeção autorizada de água, DELETE financeiro negado e revogação efetiva. A auditoria local/global permaneceu separada, metadata/IP/user-agent e DELETE foram negados, o tenant original ficou imutável e a exclusão daFK não promoveu histórico privado a global. Os chunks antigos/recentes e os valores em centavos foram preservados. Escrita no destino não alterou a origem; o executor reconheceu as36 migrations sem reaplicar privilégios.
 
-A execução local levou aproximadamente 8,3 segundos, incluindo preparação; dump, restauração e verificações levaram aproximadamente 4,2 segundos nesse conjunto pequeno. Isso não estima recuperação de produção. O ensaio não cobre grandes volumes, chunks comprimidos, WAL/PITR, armazenamento externo nem recuperação de todo o servidor.
+A execução dirigida da restauração levou aproximadamente19 segundos, incluindo preparação; dump, restauração e verificações levaram aproximadamente9 segundos nesse conjunto pequeno. A suite completa posterior passou em58 segundos. Isso não estima recuperação de produção. O ensaio não cobre grandes volumes, chunks comprimidos, WAL/PITR, armazenamento externo nem recuperação de todo o servidor.
 
 ## Executar o ensaio
 

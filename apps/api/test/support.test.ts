@@ -132,7 +132,7 @@ describe("suporte remoto HTTP e RLS", () => {
       assert.equal(requests.length, 0);
       const changed = await withUserContext({ userId, role: "PLATFORM_ADMIN" }, tx => tx.execute(sql`update support_hosts set enabled = false where building_id = ${building} returning building_id`));
       assert.equal(changed.length, 0);
-      const hiddenAudit = await withUserContext({ userId, role: userId === managerId ? "BUILDING_ADMIN" : "RESIDENT" }, tx => tx.execute(sql`select * from audit_logs where resource_type = 'remote_support'`));
+      const hiddenAudit = await withUserContext({ userId, role: userId === managerId ? "BUILDING_ADMIN" : "RESIDENT" }, tx => tx.execute(sql`select id from audit_logs where resource_type = 'remote_support'`));
       assert.equal(hiddenAudit.length, 0, "histórico técnico não vaza pela auditoria geral");
       await assert.rejects(withUserContext({ userId, role: "PLATFORM_ADMIN" }, tx => tx.execute(sql`insert into support_hosts (building_id,display_name,anydesk_id) values (${other},'Malicioso','999999999')`)));
     }

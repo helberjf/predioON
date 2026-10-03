@@ -139,11 +139,8 @@ usersRouter.delete("/memberships/:membershipId", async (req, res) => {
     if (!current) throw notFound("Vínculo não encontrado");
     assertBuildingAccess(auth, current.buildingId, "BUILDING_ADMIN");
 
-    await tx
-      .update(memberships)
-      .set({ active: false, endsAt: new Date(), updatedAt: new Date() })
-      .where(and(eq(memberships.id, current.id)));
-
+    // Record while the actor still has authority, including self-revocation.
+    // Both the audit and the mutation roll back if either operation fails.
     await recordAudit(tx, req, {
       buildingId: current.buildingId,
       userId: auth.userId,
@@ -151,6 +148,12 @@ usersRouter.delete("/memberships/:membershipId", async (req, res) => {
       resourceType: "membership",
       resourceId: current.id,
     });
+    const changed = await tx
+      .update(memberships)
+      .set({ active: false, endsAt: new Date(), updatedAt: new Date() })
+      .where(and(eq(memberships.id, current.id)))
+      .returning({ id: memberships.id });
+    if (changed.length !== 1) throw conflict("O vínculo mudou durante a revogação. Atualize e tente novamente.");
   });
 
   res.status(204).end();

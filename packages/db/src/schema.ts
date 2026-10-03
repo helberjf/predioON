@@ -293,6 +293,9 @@ export const auditLogs = pgTable(
     buildingId: text("building_id").references(() => buildings.id, { onDelete: "set null" }),
     userId: text("user_id").references(() => users.id, { onDelete: "set null" }),
     actorType: actorTypeEnum("actor_type").notNull().default("USER"),
+    // Captured by the database trigger; deliberately no FK on the tenant snapshot.
+    scopeKind: text("scope_kind").$type<"PLATFORM" | "BUILDING" | "LEGACY_UNKNOWN">().notNull().default("LEGACY_UNKNOWN"),
+    scopeBuildingId: text("scope_building_id"),
     action: text("action").notNull(),
     resourceType: text("resource_type").notNull(),
     resourceId: text("resource_id"),

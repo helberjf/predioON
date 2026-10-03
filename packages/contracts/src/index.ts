@@ -8,3 +8,4 @@ export type {
 export type * from "./tenancy.js";
 export type * from "./overview.js";
 export type * from "./reservations.js";
+export type * from "./audit.js";

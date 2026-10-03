@@ -49,6 +49,16 @@ it('restores a real Timescale archive with data, migration history and restricte
     await source`insert into financial_reports(building_id,month,title,summary,opening_balance_cents,created_by,published_by,published_at)
       values('restore-a','2026-10','Published fixture','Financial fixture',12345,'restore-reader','restore-reader',clock_timestamp()-interval '1 minute'),
             ('restore-b','2026-10','Foreign fixture','Private foreign finance',99999,'restore-neighbor','restore-neighbor',clock_timestamp()-interval '1 minute')`;
+    await source`insert into users(id,email,name) values('restore-global-auditor','restore-global@example.invalid','Global audit reader')`;
+    await source`insert into roles(key,scope,label) values('RESTORE_AUDIT_LOCAL','BUILDING','Recovery local audit')`;
+    await source`insert into role_permissions(role_key,permission_key) values('RESTORE_AUDIT_LOCAL','audit:read')`;
+    await source`insert into role_bindings(user_id,building_id,role_key) values('restore-reader','restore-a','RESTORE_AUDIT_LOCAL')`;
+    await source`insert into role_bindings(user_id,role_key) values('restore-global-auditor','PLATFORM_ADMIN')`;
+    await source`insert into audit_logs(building_id,user_id,action,resource_type,resource_id,metadata,ip_address,user_agent)
+      values('restore-a','restore-reader','DEVICE_UPDATED','device','restore-sensor','{"private":"recovery fixture"}','192.0.2.1','Private fixture'),
+            ('restore-b','restore-neighbor','DEVICE_UPDATED','device','restore-foreign','{}','192.0.2.2','Foreign fixture'),
+            (null,'restore-reader','ORGANIZATION_CREATED','organization','restore-org','{}',null,null),
+            (null,'restore-reader','DEVICE_UPDATED','device','restore-unclassified','{}',null,null)`;
     async function snapshot(client:postgres.Sql){
       const tables=await client`select tablename from pg_tables where schemaname='public' order by tablename`;
       const data=[];
@@ -87,7 +97,17 @@ it('restores a real Timescale archive with data, migration history and restricte
       assert.deepEqual((await tx`select opening_balance_cents::text cents from financial_reports`).map(row=>row.cents),['12345']);
       assert.equal((await tx`select * from telemetry`).length,0,'resident cannot read raw telemetry after restoration');
       assert.deepEqual((await tx`select numeric_value from app_published_water_levels('restore-a')`).map(row=>row.numeric_value),[73]);
+      assert.deepEqual((await tx`select resource_id from audit_logs`).map(row=>row.resource_id),['restore-sensor'],'only the explicitly granted local audit survives recovery');
     });
+    await target.begin(async tx=>{
+      await tx`set local role predioon_app`;
+      await tx`select set_config('app.user_id','restore-global-auditor',true),set_config('app.role','RESIDENT',true)`;
+      assert.deepEqual((await tx`select resource_id from audit_logs`).map(row=>row.resource_id),['restore-org'],'global audit grant does not expose local or unclassified history');
+    });
+    for(const column of ['metadata','ip_address','user_agent']){
+      await assert.rejects(target.begin(async tx=>{await tx`set local role predioon_app`;await tx.unsafe(`select ${column} from audit_logs`);}),error=>(error as {code?:string}).code==='42501');
+    }
+    await assert.rejects(target.begin(async tx=>{await tx`set local role predioon_app`;await tx`delete from audit_logs`;}),error=>(error as {code?:string}).code==='42501');
     await assert.rejects(target.begin(async tx=>{await tx`set local role predioon_app`;await tx`delete from financial_reports`;}),error=>(error as {code?:string}).code==='42501');
     await target`update role_bindings set active=false where user_id='restore-reader'`;
     await target.begin(async tx=>{
@@ -96,9 +116,19 @@ it('restores a real Timescale archive with data, migration history and restricte
       assert.equal((await tx`select id from occurrences`).length,0);
       assert.equal((await tx`select id from financial_reports`).length,0);
       assert.equal((await tx`select * from app_published_water_levels('restore-a')`).length,0);
+      assert.equal((await tx`select id from audit_logs`).length,0,'revocation is effective without rewriting the restored history');
     });
     await target`insert into telemetry(event_id,building_id,device_id,metric,value,numeric_value,time) values('restore-after','restore-a','restore-sensor','water_level_percent','74'::jsonb,74,clock_timestamp()+interval '1 second')`;
     assert.equal(Number((await source`select count(*) as n from telemetry`)[0]!.n),2,'restored writes never touch the source');
+    await assert.rejects(target`update audit_logs set scope_kind='PLATFORM' where resource_id='restore-sensor'`,error=>(error as {code?:string}).code==='42501');
+    await target`delete from buildings where id='restore-a'`;
+    const [retained]=await target`select building_id,scope_kind,scope_building_id from audit_logs where resource_id='restore-sensor'`;
+    assert.deepEqual(retained,{building_id:null,scope_kind:'BUILDING',scope_building_id:'restore-a'});
+    await target.begin(async tx=>{
+      await tx`set local role predioon_app`;
+      await tx`select set_config('app.user_id','restore-global-auditor',true),set_config('app.role','PLATFORM_ADMIN',true)`;
+      assert.deepEqual((await tx`select resource_id from audit_logs`).map(row=>row.resource_id),['restore-org'],'deleting a tenant after restore does not promote its audit to global');
+    });
     t.diagnostic(`Custom archive and serial restore verified in ${Date.now()-started}ms: ${expected.data.length} public tables, ${migrations.length} migrations, multiple telemetry chunks, policies, ACLs, helpers and real RLS.`);
   }catch(error){
     failed=true;throw error;

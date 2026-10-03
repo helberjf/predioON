@@ -308,7 +308,7 @@ A evolução de `codex/product-platform` foi integrada à `main` em 01/10/2026. 
 | 2A | Sessões com rotação atômica, famílias de refresh e JWT Ed25519 com `kid`; migração `013-sessions.sql` | Concluída |
 | 2B.1 | Fundação de RBAC e tenancy: catálogo de permissões, concessões, unidades, equipes e suporte temporário; migração `014-rbac-tenancy.sql`; rotas `/v1/tenancy` e `/v1/authorization` | Concluída |
 | 2B.2 | Credenciais restritas da API, separando identidade e autorização do broker; migração `015-api-runtime-roles.sql` | Integrada |
-| 2B.3 | Capacidades para condomínios, equipamentos, telemetria, alertas, monitoramento, eventos, dashboards, avisos, chamados, reservas, contas e regras; migrations 016–032 | Parcial; estacionamento, atuação e administração ainda em migração |
+| 2B.3 | Capacidades dos domínios operacionais, estacionamento033 e acesso físico034; auditoria036 | Parcial; administrativos legados e consumidores ainda têm pendências. Estado e validações em [Continuidade](docs/CONTINUIDADE.md). |
 | 2B.4 | Seleção de condomínio, gestão de unidades/equipes/vínculos e diretório mínimo por capacidade (025) | Integrada; regressão executada pela CI |
 | 5 | Apps Morador e Operação, sessão em Keychain/Keystore e fluxos existentes da API | Incremento integrado; publicação e módulos novos pendentes |
 | 2C | Cookies HttpOnly/CSRF nos três portais, access em memória e coordenação entre abas | Integrado; MFA, convites, recuperação e limites de tentativas pendentes |
@@ -339,6 +339,7 @@ Para produção, siga [DEPLOY](docs/DEPLOY.md): segredos exclusivos, conexão re
 | Monitoramento | [Consumo e análise](docs/CONSUMO_E_ANALISE.md) · [Sensores](docs/SENSORES.md) |
 | Operação | [Acessos](docs/ACESSOS.md) · [Vagas e avisos](docs/VAGAS_AVISOS.md) |
 | Atendimento e gestão | [Suporte remoto](docs/SUPORTE_REMOTO.md) · [Gestão transparente](docs/GESTAO_TRANSPARENTE.md) |
+| Histórico e privacidade | [Auditoria por capacidades](docs/AUDITORIA.md) |
 | Hardware e MQTT | [Hardware/software](docs/HARDWARE_SOFTWARE.md) · [Contrato e entrega para Helber](docs/ENTREGA_HELBER.md) · [Teste MQTT](docs/TESTE_MQTT.md) |
 | Banco e arquitetura | [Modelo de dados](docs/DATABASE_MODEL.md) · [Preparação do banco](docs/DATABASE_SETUP.md) · [Plano técnico](docs/PLANO_TOTAL.md) |
 | Evolução | [Próximos passos](docs/NEXT_STEPS.md) |
