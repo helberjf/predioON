@@ -12,7 +12,7 @@ Prioridades: **P0** bloqueia uma entrega confiável; **P1** completa a operaçã
 
 Estes itens já pertencem à evolução prevista. Não devem ser apresentados como ideias opcionais para encobrir trabalho pendente.
 
-Estado consolidado em [CONTINUIDADE.md](CONTINUIDADE.md). Cookies web/CSRF, coordenação entre abas e gestão das próprias sessões já foram implementados e testados. O executor de migrations com checksum/lock/no-op e a restauração local real até 036 também estão entregues; implantação e recuperação do ambiente de produção continuam pendentes. Esses itens saíram da lista de implementações a iniciar e devem permanecer na regressão.
+Estado consolidado em [CONTINUIDADE.md](CONTINUIDADE.md). Cookies web/CSRF, coordenação entre abas e gestão das próprias sessões já foram implementados e testados. O executor de migrations com checksum/lock/no-op e a restauração local real até037 também estão entregues; implantação e recuperação do ambiente de produção continuam pendentes. Esses itens saíram da lista de implementações a iniciar e devem permanecer na regressão.
 
 | Prioridade | Trabalho | Resultado esperado | Critério de aceite |
 |---|---|---|---|
@@ -82,7 +82,7 @@ Oferecer prévia, erros por linha e confirmação do lote antes de aplicar. Usar
 
 | Prioridade | Sugestão | Evidência necessária antes da entrega |
 |---|---|---|
-| P1 | Consolidar a matriz de testes já existente em Chromium, Firefox e WebKit | Preservar os 153 cenários locais aprovados e os 21 dirigidos de acesso; resolver falhas WebKit do CI e aprovar a integral ampliada |
+| P1 | Consolidar a matriz de testes já existente em Chromium, Firefox e WebKit | Preservar a integral222/222 dos três portais compilados, três motores e0 retries, aprovada localmente e no CI3035245; ampliar para novos módulos sem somar dirigidos como integral |
 | P1 | Testes de componente e acessibilidade nativa | Controles, estados de erro e nomes acessíveis verificados; complementar testes em aparelho |
 | P1 | Ensaio de atualização e retorno de versão | Backup anterior restaurável, migrations compatíveis e procedimento de recuperação exercitado |
 | P2 | Dividir o JavaScript do painel por rota | Medição antes/depois de download e abertura inicial; sem regressão de navegação ou autorização |
@@ -118,3 +118,9 @@ Para cada item aprovado, registrar: problema observado, público, fluxo esperado
 - Localizar as ações de auditoria para português e oferecer filtros por ação/período, mantendo escopo e autorização no servidor.
 - Implementar cursor e exportação com autorização/limites próprios para percorrer histórico sob inserções concorrentes; o offset atual não representa um snapshot imutável.
 - Medir memória, CPU, boot e traces de ANR do Pixel Launcher no runner Android antes de integrar snapshot às jornadas. Cache hit não é prova de restauração ou saúde.
+
+## 10. Atualização após senha037
+
+Troca de senha e revogação atômica de todas as famílias já foram entregues na API, três portais e dois apps. MFA, convites e recuperação continuam no escopo pendente; não confundir recuperação com troca autenticada. Priorizar aceite Android/iOS e processamento durável038, preservando credenciais restritas, pausa e testes negativos.
+
+Como melhoriaP1, manter um índice de evidências por commit com versão da fonte, suite integral, ausência de skips/retries e limites de cada imagem. Um teste React host não aprova Fabric, build não aprova sessão nativa e capturas de uma fase não aprovam toda a jornada. Galeria15 versionada; cinco vídeos ainda pendentes.
