@@ -1,6 +1,6 @@
 # Melhorias e novas implementações — Prédio ON
 
-Revisão: 02/10/2026. Documento vivo de priorização; não é uma declaração de conclusão nem substitui o [PRD](PRD.md), o [TDD](TDD.md) e o [plano de execução](superpowers/plans/2026-09-27-product-execution.md).
+Revisão: 03/10/2026. Documento vivo de priorização; não é uma declaração de conclusão nem substitui o [PRD](PRD.md), o [TDD](TDD.md) e o [plano de execução](superpowers/plans/2026-09-27-product-execution.md).
 
 ## 1. Como usar este documento
 
@@ -12,7 +12,7 @@ Prioridades: **P0** bloqueia uma entrega confiável; **P1** completa a operaçã
 
 Estes itens já pertencem à evolução prevista. Não devem ser apresentados como ideias opcionais para encobrir trabalho pendente.
 
-Estado consolidado em [CONTINUIDADE.md](CONTINUIDADE.md). Cookies web/CSRF, coordenação entre abas e gestão das próprias sessões já foram implementados e testados. O executor de migrations com checksum/lock/no-op e a restauração local real até 035 também estão entregues; implantação e recuperação do ambiente de produção continuam pendentes. Esses itens saíram da lista de implementações a iniciar e devem permanecer na regressão.
+Estado consolidado em [CONTINUIDADE.md](CONTINUIDADE.md). Cookies web/CSRF, coordenação entre abas e gestão das próprias sessões já foram implementados e testados. O executor de migrations com checksum/lock/no-op e a restauração local real até 036 também estão entregues; implantação e recuperação do ambiente de produção continuam pendentes. Esses itens saíram da lista de implementações a iniciar e devem permanecer na regressão.
 
 | Prioridade | Trabalho | Resultado esperado | Critério de aceite |
 |---|---|---|---|
@@ -111,3 +111,10 @@ Oferecer prévia, erros por linha e confirmação do lote antes de aplicar. Usar
 ## 8. Modelo para promover uma sugestão ao plano
 
 Para cada item aprovado, registrar: problema observado, público, fluxo esperado, limites de escopo, dependências, dados tratados, capacidades exigidas, critérios de aceite, testes negativos, estratégia de implantação e evidência final. Usar commits pequenos no padrão `feat(escopo): ...`, `fix(escopo): ...`, `test(escopo): ...` e `docs(escopo): ...`. Não registrar um item como concluído apenas porque o código foi escrito ou enviado à `main`.
+
+## 9. Sugestões adicionais após auditoria036
+
+- Exibir nomes de atores e recursos por uma projeção autorizada própria, preservando o ID de referência e a restrição de campos privados.
+- Localizar as ações de auditoria para português e oferecer filtros por ação/período, mantendo escopo e autorização no servidor.
+- Implementar cursor e exportação com autorização/limites próprios para percorrer histórico sob inserções concorrentes; o offset atual não representa um snapshot imutável.
+- Medir memória, CPU, boot e traces de ANR do Pixel Launcher no runner Android antes de integrar snapshot às jornadas. Cache hit não é prova de restauração ou saúde.

@@ -2,7 +2,7 @@
 
 Atualizado em **03/10/2026**, horário de São Paulo. Este é o ponto de retomada em outro computador ou outra sessão. **O plano completo ainda não terminou.** Resultados de uma versão não aprovam automaticamente mudanças posteriores.
 
-Repositório: <https://github.com/helberjf/predioON>. Linha autorizada: `main`. As migrations publicadas terminam em **035**; o CI de plataforma e navegador de `ccda38c` foi aprovado. A **036** tem API/SQL/consumidor implementados localmente: **36/36 dirigidos, banco/restauração26/26, UI83/83, Playwright15/15 dirigidos e 189/189 na integral**. A publicação ainda aguarda a regressão completa da API com dependências completas. A rodada anterior terminou642/645: dois imports sem dependências e um stream além do prazo, sem aprovação integral. O snapshot Android foi publicado em `4bbe231`, com37 testes Windows/Linux; [ensaio nativo em andamento](https://github.com/helberjf/predioON/actions/runs/37097071872). iOS abriu/reabriu ambos os apps em `b4726b9`; jornadas autenticadas continuam pendentes. A **037** tem somente plano.
+Repositório: <https://github.com/helberjf/predioON>. Linha autorizada: `main`. Auditoria **036** publicada em `187521a`, com **658/658 testes de API locais**, banco/restauração **26/26** e autorizações reais. O consumidor de `c2871f0` passou **15/15 dirigidos e 189/189 na matriz integral Playwright**, nos três motores, com portais compilados, sem retries. A correção posterior de identificação do ator, `17f9e47`, passou mais **15/15 dirigidos**; não é uma nova integral. O CI da nova fonte ainda precisa de conferência; o run de plataforma `c2871f0` estava em andamento. As **10 imagens reais estão versionadas** em `b68e8e5`. O verificador Android tem **39 testes Windows/Linux**; o ensaio nativo `db5dcbc` falhou com ANR do Pixel Launcher antes de instalar apps, sem salvar cache. iOS abriu/reabriu os dois formulários em `b4726b9`; jornadas autenticadas continuam pendentes. As migrations publicadas terminam em **036**. A **037** tem somente plano.
 
 ## 1. Instruções permanentes do proprietário
 
@@ -13,14 +13,14 @@ Repositório: <https://github.com/helberjf/predioON>. Linha autorizada: `main`. 
 - Manter sugestões em [MELHORIAS_E_EVOLUCOES.md](MELHORIAS_E_EVOLUCOES.md).
 - **Não reiniciar o computador nesta sessão.** Nenhum reboot foi executado pelo agente. Reiniciar um processo de teste não é reiniciar o computador.
 - Ao terminar, abrir os três portais e os apps Morador/Operação neste computador e entregar cinco gravações completas, separadas, com dados fictícios. Também foram solicitadas imagens de Android, iOS e web durante o andamento.
-- **Incluir as imagens conferidas nos commits**, com origem e limites identificados. Desde03/10, as oito capturas e a galeria estão em [IMAGENS_DOS_SISTEMAS.md](IMAGENS_DOS_SISTEMAS.md), dentro do clone.
+- **Incluir as imagens conferidas nos commits**, com origem e limites identificados. Desde 03/10, as dez capturas e a galeria estão em [IMAGENS_DOS_SISTEMAS.md](IMAGENS_DOS_SISTEMAS.md), dentro do clone.
 
 ## 2. Estado das etapas
 
 | Etapa da arquitetura | Estado | O que falta para encerrá-la |
 | --- | --- | --- |
 | 1. Contratos e cliente HTTP | Concluída no escopo original | Preservar regressões durante novas integrações. |
-| 2. Identidade e RBAC | Parcial, com muitos domínios migrados | Concluir auditoria/administrativos legados e consumidores; MFA, convites, recuperação e demais fluxos de identidade. |
+| 2. Identidade e RBAC | Parcial; auditoria036 concluída neste recorte | Concluir administrativos legados e consumidores restantes; senha037, MFA, convites, recuperação e demais fluxos de identidade. |
 | 3. Processamento durável | Pendente | Inbox/outbox, consumidores separados, leases, retomada, deduplicação, dead letter e credenciais específicas. Nunca repetir atuação física automaticamente. |
 | 4. Evolução dos domínios | Pendente para os novos módulos | Ativos, ordens de serviço, automações versionadas, planos/assinaturas e suporte com concessão explícita, com API/UI e testes. |
 | 5. Apps Morador/Operação | Parcial | Corrigir a jornada Android de domínios, testar jornadas autenticadas iOS, integrar novos módulos/identidade/notificações e homologar em aparelhos. A inicialização iOS já passou. |
@@ -56,6 +56,13 @@ Documentos de referência: [arquitetura aprovada](superpowers/specs/2026-09-27-a
 | `b4726b9` | OCR iOS corresponde às telas reais de cada app; inicialização e novo processo aprovados nos dois produtos, com capturas conferidas. |
 | `80c9798` | Playwright compila e testa os bundles dos três portais; matriz local174/174 e [CI174/174](https://github.com/helberjf/predioON/actions/runs/37024663752) aprovados, sem retries. |
 
+| `ccda38c` | Oito imagens reais e galeria versionadas, com origem/hashes; CI de plataforma e navegador aprovado. |
+| `4bbe231` | Verificador de snapshot Android em dois runners;37 unitários Windows/Linux e YAML conferidos, ensaio nativo em verificação. |
+| `187521a` | Auditoria036 por capacidade, escopo imutável e DTO mínimo; revogação com confirmação de alteração e restore real. |
+| `c2871f0` | Histórico comum nos dois portais, paginação/retry e descarte por identidade/tenant; matriz189 aprovada. |
+| `b68e8e5` | Duas capturas reais de auditoria adicionadas à galeria e aos commits. |
+| `3f9e064`, `db5dcbc` | Identidade ADB explícita, diagnóstico de configuração e API validada no ini do AVD;39 unitários Windows/Linux. Ensaio nativo ainda falha com ANR. |
+| `17f9e47` | AtorUSER sem identificação deixa de aparecer como Sistema;15 dirigidos Playwright e tipos UI/E2E aprovados. |
 
 ## 4. Evidências e falhas conhecidas
 
@@ -74,7 +81,7 @@ Documentos de referência: [arquitetura aprovada](superpowers/specs/2026-09-27-a
 | Web AccessPanel publicado | **83/83** testes UI, tipos e builds dos três portais aprovados; **21/21** combinações Playwright reais, sem retries. Na rodada anterior 20/21 passaram; o teste restante segurava um poll antes do clique e desabilitava Salvar. A barreira agora começa na submissão real. Logs work/web-access-final.log e work/web-access-green.log. Não somar 153+21 como nova integral de 174. |
 | Falhas anteriores do CI web | Em [983b996](https://github.com/helberjf/predioON/actions/runs/37007267359), **150/153** passaram: todos Chromium/Firefox e três falhas WebKit. Dois traces registraram `Network process crashed`; a terceira falha de logout não teve causa demonstrada. Em [aec9f41](https://github.com/helberjf/predioON/actions/runs/37009385219), **170/174**, com quatro falhas WebKit. Em [b4726b9](https://github.com/helberjf/predioON/actions/runs/37017848875), **172/174**: os dois traces WebKit de regras/sessões registram `Network process crashed`, consultas abortadas e perda da sessão. A configuração de80c9798 passou depois no CI completo. O histórico é preservado; um resultado verde não determina sozinho a causa interna desses crashes. |
 | Matriz dos portais compilados | **174/174 localmente e 174/174 no [CI80c9798](https://github.com/helberjf/predioON/actions/runs/37024663752)**, 58 por motor, sem retries, um worker e API/PostgreSQL reais até035. Compila os três portais antes de servir por vite preview, verificando os bundles de produção sem HMR. Sem os rascunhos036. Duração local22min30s e CI9,7min; logs work/browser035-preview-all.log e work/browser-ci-80c9798.log; tipos da configuração aprovados. São duas execuções integrais próprias, sem somar resultados parciais. |
-| Auditoria036 em validação | API completa pendente; última rodada642/645; banco26/26 com restore real de44 tabelas/36 migrations; UI83/83; Playwright15/15 e integral189/189 em26min, três motores, zero retries. Lote atual de auditoria/tenancy/lifecycle36/36, incluindo409 e rollback de mutação silenciosamente recusada. Perfis globais não recebem histórico privado implicitamente; metadata/IP/user-agent são negados. Logs locais work/audit036-api-complete-full.log, work/audit036-db-verified.log e work/audit036-web-full.log. |
+| Auditoria036 publicada | API658/658 em integral própria; banco26/26 com restore real de44 tabelas/36 migrations; UI83/83; Playwright15/15 e integral189/189 em26min, três motores, zero retries. Lote atual de auditoria/tenancy/lifecycle36/36, incluindo409 e rollback de mutação silenciosamente recusada. Perfis globais não recebem histórico privado implicitamente; metadata/IP/user-agent são negados. Logs locais work/audit036-api-complete-full.log, work/audit036-db-verified.log e work/audit036-web-full.log. |
 | Android autenticado | Há percursos anteriores completos com19/21 fases por app; histórico e limites em scripts/android-auth-smoke/README.md. Não equivalem a homologar todos os domínios. |
 | Android reservas42f2130 | [CI36975943695](https://github.com/helberjf/predioON/actions/runs/36975943695) aprovado, artefato11212879728 conferido: **23 fases**, criação/cancelamento/pedido pendente/retirada de calendário, provas no banco e buffer de crash vazio. Capturas de confirmação e revogação inspecionadas. Reserva estrangeira permaneceu intacta. |
 | Android domínios | [CI42f2130](https://github.com/helberjf/predioON/actions/runs/36975943742), artefato11213644516 conferido: oito fases de Morador passaram e Operação não começou. Falhou ao localizar “Ver lançamentos (1)”. Imagens/XML mostram carregamento financeiro; o proxy recebeu respostas200 e o log do app contém MissingViewState do renderer. A causa ainda não está demonstrada; não classificar esta execução como ANR de launcher nem corrigir apenas aumentando espera sem investigar. |
@@ -82,16 +89,17 @@ Documentos de referência: [arquitetura aprovada](superpowers/specs/2026-09-27-a
 | Runtime iOS | [b4726b9](https://github.com/helberjf/predioON/actions/runs/37017848643) **aprovado para Morador e Operação**, em iPhone16Pro/iOS18.5/Xcode16.4: instalação, primeira abertura, sobrevivência, OCR, encerramento e novo processo. Quatro imagens inspecionadas e hashes conferidos; simuladores descartáveis removidos. Artefatos Morador11232611156/Operação11232270958. Os erros anteriores de configuração, Keychain, assinatura e OCR estão registrados em [scripts/ios-smoke/README.md](../scripts/ios-smoke/README.md). A origem reservada smoke-api.invalid não autentica: login, API e jornadas continuam pendentes. |
 | Plataforma CI | [96b5f4b](https://github.com/helberjf/predioON/actions/runs/37013422221) passou: **API633/633, banco26/26, ingestão83/83, cliente48/48, UI83/83 e mobile59/59**, dois contratos móveis reais, tipos, fronteiras, builds, imagens e proxy. Zero falhas/cancelamentos/skips. O CI de plataforma [b4726b9](https://github.com/helberjf/predioON/actions/runs/37017848487) também terminou aprovado. O ajuste da admissão dos cookies corrigiu as três falhas de preparação de983b996, sem mudar produção nem as negativas CSRF/429. Os21/21 dirigidos precederam essa integral; não substituíram a execução completa. |
 
+O [ensaio de snapshot db5dcbc](https://github.com/helberjf/predioON/actions/runs/37098757001) falhou com ANR do Pixel Launcher antes de instalar qualquer app; o job de restauração foi pulado e nenhum cache foi salvo. Os dois ensaios anteriores também falharam; identidade ADB e alvo do config.ini foram corrigidos com RED/39 testes Windows/Linux, mas não resolvem por si a saúde do Android. Evidências locais: work/android-avd-first-evidence, second-evidence e third-evidence; detalhes em scripts/android-smoke/README.md. Não foi afirmada causa comum com a falha financeira dos apps. A correção de rótulo17f9e47 passou15/15 dirigidos, depois da integral189 do consumidorc2871f0; a fonte posterior exige essa distinção.
+
 ## 5. Rascunhos recuperáveis
 
-O [patch](continuidade/2026-10-02-em-andamento.patch) contém **20 arquivos** baseados em `4bbe231bc6613c9dc57ae9ace678986ab635a885`. O [manifesto](continuidade/2026-10-02-manifesto.json) registra SHA-256 do patch e de cada arquivo normalizado paraLF. A aplicação real sobre uma cópia Git limpa e os **20 hashes** foram conferidos. O snapshot AVD já está na main e saiu do patch; a recuperação inclui o novo consumidor, teste de restore e documentação em preparo.
+O [patch](continuidade/2026-10-02-em-andamento.patch) contém **1 arquivo**, o plano de senha037, baseado em `17f9e47a904389cc0352bb752c00edc192540ba2`. O [manifesto](continuidade/2026-10-02-manifesto.json) registra SHA-256 do patch e do arquivo normalizado para LF. A aplicação real sobre uma cópia Git limpa e o hash foram conferidos. O verificador de snapshot AVD, a auditoria e o consumidor já estão na main e saíram do patch; nenhum disco/snapshot Android foi colocado no Git.
 
 O patch serve para revisão e continuidade; não é aprovação para implantação. Nesta máquina os rascunhos já estão aplicados: não reaplicar sobre a árvore local. Checkpoints antigos de14/24 arquivos são históricos e não devem ser aplicados sobre arquivos já publicados.
 
 | Rascunho | Estado | Próximo passo |
 | --- | --- | --- |
-| Auditoria036 e consumidor | API, SQL, contrato, catálogo, revogação atômica, restore, AuditPanel, rotas e E2E. Dirigidos e matriz web aprovados; integral API ainda pendente. | Terminar a execução com dependências completas; investigar qualquer falha; publicar backend e consumidor em incrementos verificados. |
-| Senha037 | Somente plano Markdown; nenhum endpoint ou SQL037 implementado. | Escrever RED e implementar confirmação atual/revogação atômica depois de036. |
+| Senha037 | Somente plano Markdown; nenhum endpoint ou SQL037 implementado. | Escrever RED, confirmar senha atual e revogar famílias atomicamente; preservar ordem de locks conta→família. |
 
 ## 6. Retomar em outro computador
 
@@ -119,10 +127,10 @@ git diff --check
 git status --short
 ```
 
-SHA-256 esperado: `284a91ff2cc975ecdeb73e24c367522882200dd20bff993f1745b0acc7b4a2da`. Se a main avançou e `--check` falhar, não forçar, sobrescrever arquivos ou reaplicar trechos às cegas. Abra uma cópia de trabalho na base exata e aplique nela, preservando o clone atual:
+SHA-256 esperado: `2500d3e5b9629110d07dd9279ff8c18ca1180e0c3c2281cf5ff661e353daa3d9`. Se a main avançou e `--check` falhar, não forçar, sobrescrever arquivos ou reaplicar trechos às cegas. Abra uma cópia de trabalho na base exata e aplique nela, preservando o clone atual:
 
 ```powershell
-git worktree add --detach ../predioON-checkpoint 4bbe231bc6613c9dc57ae9ace678986ab635a885
+git worktree add --detach ../predioON-checkpoint 17f9e47a904389cc0352bb752c00edc192540ba2
 git -C ../predioON-checkpoint apply --check ../predioON/docs/continuidade/2026-10-02-em-andamento.patch
 git -C ../predioON-checkpoint apply ../predioON/docs/continuidade/2026-10-02-em-andamento.patch
 ```
@@ -139,7 +147,7 @@ pnpm setup:local
 pnpm dev
 ```
 
-`setup:local` é para **banco local novo e descartável**, pois inclui seed que redefine credenciais demonstrativas. Não usar seed/reset para atualizar banco real. A main aplica001–035; recuperar o patch acrescenta036 em revisão. Não iniciar código/schema036 sobre banco035. Conferir código, schema e ledger da mesma versão antes de iniciar os serviços.
+`setup:local` é para **banco local novo e descartável**, pois inclui seed que redefine credenciais demonstrativas. Não usar seed/reset para atualizar banco real. A main aplica001–036; o patch restante não acrescenta migration. Conferir código, schema e ledger da mesma versão antes de iniciar os serviços.
 
 Portas locais padrão: banco5434, API3000, administração5173, síndico5174, morador5175. O `.env.example` e [README](../README.md#instalação-local) contêm contas exclusivamente de demonstração. A API deve usar os três DSNs restritos; o DSN proprietário serve para migrations/fixtures/ingestão enquanto a separação desta última permanece pendente.
 
@@ -169,8 +177,8 @@ Banco/backup: seguir [BACKUP_E_RESTAURACAO.md](BACKUP_E_RESTAURACAO.md), incluin
 ## 7. Ordem prática para continuar
 
 1. Conferir a main, o manifesto e o CI da versão exata; recuperar somente os rascunhos ainda não publicados.
-2. Concluir a integral API036 no volume com dependências completas e banco5445; nenhuma soma de dirigidos substitui a integral. Depois publicar API/SQL e consumidor com os respectivos testes.
-3. Conferir [o ensaio Android de snapshot](https://github.com/helberjf/predioON/actions/runs/37097071872). Os37 unitários Windows/Linux passaram; restauração real e posterior integração aos percursos ainda precisam de evidência. Não aceitar cache parcial, ANR/crash ou guardar estado autenticado.
+2. Preservar a auditoria036 e os regressores atuais: API658, banco26 e matriz web189.
+3. Investigar [o ANR do Pixel Launcher no ensaio Android](https://github.com/helberjf/predioON/actions/runs/37098757001), anterior à instalação de qualquer app. Os39 unitários Windows/Linux passaram; correções de identidade ADB e formato de configuração foram feitas, mas o cache/restauração real ainda não passaram nem foram integrados às jornadas. Não ignorar ANR/crash nem salvar estado autenticado.
 4. Diagnosticar o carregamento financeiro Android e testar jornadas autenticadas iOS contra API real; inicialização iOS já passou nos dois apps.
 5. Implementar identidade037 e demais itens2C/3/4/5/6: MFA/convites/recuperação, processamento durável, novos módulos, notificações e operação.
 6. Manter API/banco/ingestão/clientes, Playwright e nativos aprovados a cada mudança. Preservar os traces de falhas, sem retries ou mutações repetidas para esconder problemas.
@@ -180,12 +188,12 @@ Banco/backup: seguir [BACKUP_E_RESTAURACAO.md](BACKUP_E_RESTAURACAO.md), incluin
 
 `.local`, `work`, toolchains, containers, volumes Docker, `.env`, tokens, keystores, artefatos nativos, evidências brutas e vídeos não ficam no Git. As **capturas conferidas agora são versionadas** em docs/imagens, conforme o pedido do proprietário; o [manifesto](imagens/2026-10-03/manifesto.json) identifica origem, dimensões e SHA-256. O patch de código contém somente código, testes, workflow e planos. Recriar bancos descartáveis pelos scripts; não é necessário transportar os volumes desta máquina.
 
-Os artefatos de CI têm retenção curta (em geral 3–7 dias): baixar evidências importantes enquanto disponíveis e guardar fora do repositório. Nesta máquina os entregáveis ficam na pasta `outputs` ao lado do clone. A galeria contém **oito imagens reais**: três Android (Morador/avisos, Morador/reservas e Operação/resumo), três web (Administração, Síndico e Morador) e duas iOS (entrada de Morador/Operação). As imagens web usam a UI de5eda20e e banco fictício; Android contém os commits descritos na galeria; iOS corresponde ao novo processo de cada app em b4726b9. As oito imagens carregaram, filtros e ampliação passaram em Chromium sem erro de página. Nenhum dos cinco vídeos finais foi produzido.
+Os artefatos de CI têm retenção curta (em geral 3–7 dias): baixar evidências importantes enquanto disponíveis e guardar fora do repositório. Nesta máquina os entregáveis ficam em `outputs` ao lado do clone. A galeria contém **dez imagens reais**: três Android, cinco web e duas iOS. Os três dashboards web são de5eda20e; as duas capturas de auditoria correspondem aos16 arquivos testados e publicados emc2871f0, conferidos contra esse commit com normalização LF. As imagens nativas conservam as versões/origens descritas no manifesto. As dez imagens, filtros e ampliação passaram em Chromium sem erro de página. Nenhum dos cinco vídeos finais foi produzido.
 
-O pacote local `outputs/PREDIO_ON_CONTINUIDADE.zip` reúne uma cópia deste documento, sugestões, instruções de backup, patch/manifesto e galeria com as capturas. Seus19 arquivos têm integridade conferida, incluindo os hashes iOS e do patch. A galeria extraída também passou nos testes sem servidor local. Para transportar o trabalho, salvar esse pacote fora desta máquina. Fonte publicada, rascunhos recuperáveis, galeria e imagens estão preservados no GitHub; o ZIP permanece fora do Git.
+O pacote local `outputs/PREDIO_ON_CONTINUIDADE.zip` reúne MDs, patch/manifesto, galeria e dez capturas. Seus22 arquivos têm integridade conferida, incluindo hashes das imagens e do patch. A galeria extraída também é verificada sem servidor local. Para transportar o trabalho, salvar esse pacote fora desta máquina. Fonte publicada, plano recuperável, galeria e imagens estão no GitHub; ZIP, banco e evidências brutas permanecem fora do Git.
 
 Credenciais de produção, certificados Apple/Android, FCM/APNs, domínio/TLS público e controladores físicos não foram configurados/homologados como parte do aceite atual. Essa lista não impede continuar implementando e testando localmente; define quais resultados não podem ser afirmados ainda.
 
 ## 9. Prompt sugerido para a próxima sessão
 
-> Continue o Prédio ON pela main. Leia docs/CONTINUIDADE.md, arquitetura e tracker. Confira o commit, CI e patch/manifesto antes de recuperar os 20 arquivos em andamento. Auditoria036 e seu consumidor estão em validação: banco26/26 e Playwright189/189 aprovados; integral API ainda pendente. Não executar código036 sobre banco035. Snapshot Android4bbe231 tem37 unitários Windows/Linux; conferir restauração nativa antes da integração. Priorize concluir a validação corrente, Android de domínios, iOS autenticado e identidade; prossiga as demais etapas. Faça Conventional Commits e push na main após incrementos verificados. Inclua imagens conferidas com origem. Não reinicie o computador. O produto completo, documentação final, abertura dos cinco sistemas e cinco vídeos continuam pendentes.
+> Continue o Prédio ON pela main. Leia docs/CONTINUIDADE.md, arquitetura e tracker. Confira o CI da versão exata e o patch/manifesto: resta somente o plano de senha037, não implementado. Auditoria036/API187521a passou658/658 local; banco26/26 e consumidorc2871f0 passou189/189 na integral Playwright. A correção de ator17f9e47 passou15/15 dirigidos. Há dez imagens versionadas. Android tem39 testes do verificador, mas o ensaio nativo falhou com ANR do Pixel Launcher antes de instalar apps; não integrar cache ainda. Priorize investigar esse ambiente, Android de domínios, iOS autenticado, identidade e demais etapas. Faça Conventional Commits e push na main após incrementos verificados. Inclua imagens conferidas com origem. Não reinicie o computador. O produto completo, documentação final, abertura dos cinco sistemas e cinco vídeos continuam pendentes.
