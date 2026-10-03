@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { AlertTriangle, CalendarDays, Car, ChartNoAxesCombined, Cpu, DoorOpen, Droplets, House, Megaphone, Monitor, ShieldCheck, SlidersHorizontal, Wrench, Zap } from "lucide-react";
+import { AlertTriangle, CalendarDays, Car, ChartNoAxesCombined, Cpu, DoorOpen, Droplets, House, Megaphone, Monitor, ScrollText, ShieldCheck, SlidersHorizontal, Wrench, Zap } from "lucide-react";
 import { BuildingSelector, DashboardFrame, useFeatures, useAuth, useBuildingScope, useResource } from "@predioon/ui";
 const LINKS = [
   { to: "/", label: "Início", icon: House },
@@ -19,6 +19,7 @@ const LINKS = [
   { to: "/unidades-equipes", label: "Unidades e equipes", icon: House },
   { to: "/regras", label: "Regras de alerta", icon: SlidersHorizontal },
   { to: "/sessoes", label: "Minhas sessões", icon: Monitor },
+  { to: "/auditoria", label: "Histórico de atividades", icon: ScrollText },
 ];
 export function Shell({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();

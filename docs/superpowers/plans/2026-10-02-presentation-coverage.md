@@ -27,7 +27,7 @@ Fazer a entrada antes de iniciar a captura; nunca mostrar senhas, tokens, consol
 | `/usuarios` | Cadastro e vínculos; privacidade e restrições dos papéis após a migração pendente. |
 | `/unidades-equipes` | Blocos, unidades, pessoas, equipes, vínculos com vigência, motivo e revogação. |
 | `/funcionalidades` | Configuração global/local, herança, justificativa, pausa e retomada. |
-| `/auditoria` | Lista atual de registros; paginação, recuperação de erro e separação explícita de escopos dependem do consumidor036 ainda pendente. |
+| `/auditoria` | Histórico036: escopos global/local/exato, páginas de25, atualização, erro/retry e vazio autorizado. Uma concessão global não lê histórico privado implicitamente. |
 | `/sessoes` | Sessão atual, outros dispositivos, encerradas/expiradas, confirmação de revogação e saída de todos os dispositivos. |
 
 “Minhas sessões” já está implementado e coberto pela matriz de navegador. Conferir administração comercial, planos/assinaturas e suporte com concessão explícita quando a etapa4 estiver integrada; as rotas futuras não estão contabilizadas como implementadas.
@@ -51,6 +51,7 @@ Fazer a entrada antes de iniciar a captura; nunca mostrar senhas, tokens, consol
 | `/avisos` | Comunicado, agenda, repetição semanal, fuso, publicação futura, expiração e edição. |
 | `/areas` | Áreas comuns e aprovação/rejeição de reservas; acompanhamento das confirmadas. |
 | `/unidades-equipes` | Cadastros locais e concessões autorizadas, incluindo vencimento/revogação. |
+| `/auditoria` | Histórico do condomínio em uso, concessão exata, paginação, atualização, perda de permissão e troca de condomínio/conta sem resposta antiga. |
 | `/sessoes` | Identificação da conexão atual, revogação de outro dispositivo, confirmação cancelável e encerramento de todas as conexões da própria conta. |
 
 Acrescentar ativos, ordens de serviço e automações quando implementados. Mostrar troca de condomínio descartando os dados e rascunhos do anterior, menu responsivo e recuperação de uma falha de leitura. Na gestão de sessões já existente, mostrar a conclusão da saída mesmo após navegar para outra página durante a revogação.

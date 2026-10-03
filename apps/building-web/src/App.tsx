@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import { AccessPanel, BuildingScopeProvider, BuildingScopeFeedback, FeatureProvider, FeatureContent, LoginScreen, MonitoringPanel, ParkingPanel, SessionsPanel, TenancyPanel, TransparencyPanel, useAuth, useBuildingScope, useResource } from "@predioon/ui";
+import { AccessPanel, AuditPanel, BuildingScopeProvider, BuildingScopeFeedback, FeatureProvider, FeatureContent, LoginScreen, MonitoringPanel, ParkingPanel, SessionsPanel, TenancyPanel, TransparencyPanel, useAuth, useBuildingScope, useResource } from "@predioon/ui";
 import { Shell } from "./layout/Shell.js";
 import { Dashboard } from "./pages/Dashboard.js";
 import { Water } from "./pages/Water.js";
@@ -52,6 +52,7 @@ function BuildingApp() {
         <Route path="/areas" element={<FeatureContent path="/areas"><Areas buildingId={buildingId} canManage={can("reservations:manage") && can("common-areas:read")} /></FeatureContent>} />
         <Route path="/unidades-equipes" element={<TenancyPanel buildingId={buildingId} />} />
         <Route path="/sessoes" element={<SessionsPanel />} />
+        <Route path="/auditoria" element={<AuditPanel buildingId={buildingId} />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Shell></FeatureProvider>
