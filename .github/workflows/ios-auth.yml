@@ -1,0 +1,125 @@
+name: iOS authenticated identity and password
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/*-mobile/**'
+      - 'apps/api/src/auth/**'
+      - 'packages/mobile/**'
+      - 'packages/api-client/**'
+      - 'packages/contracts/src/auth.ts'
+      - 'packages/db/src/**'
+      - 'infrastructure/*.sql'
+      - 'pnpm-lock.yaml'
+      - 'scripts/ios-smoke/**'
+      - 'scripts/android-auth-smoke/**'
+      - 'scripts/android-password-smoke/password_proxy.py'
+      - '.github/workflows/ios-auth.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-auth-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  authenticated:
+    runs-on: macos-15
+    timeout-minutes: 90
+    env:
+      NODE_ENV: test
+      API_PORT: '3000'
+      JWT_ACCESS_TTL_MINUTES: '30'
+      ANDROID_AUTH_DISPOSABLE_DB: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+          working-directory: apps/resident-mobile
+      - run: pnpm install --frozen-lockfile
+      - name: Verify host guards and exporter before preparing private runtime
+        run: |
+          python3 -B -m unittest discover -s scripts/ios-smoke -p 'test_*.py' -v
+          bash -n scripts/ios-smoke/database.sh
+          ruby -c scripts/ios-smoke/project.rb
+      - name: Prepare ephemeral database credentials and fixed HTTPS app origin
+        run: |
+          python3 - <<'PY'
+          import os, secrets
+          environment = {}
+          for variable, role in [('DATABASE_URL','predioon'), ('DATABASE_URL_APP','predioon_app'), ('DATABASE_URL_IDENTITY','predioon_identity'), ('DATABASE_URL_BROKER_AUTH','predioon_broker_auth')]:
+              password = secrets.token_hex(24)
+              print('::add-mask::' + password)
+              environment[variable] = f'postgres://{role}:{password}@127.0.0.1:5436/predioon'
+              if variable == 'DATABASE_URL':
+                  environment['IOS_DB_PASSWORD'] = password
+          with open(os.environ['GITHUB_ENV'], 'a') as destination:
+              for key, value in environment.items():
+                  destination.write(f'{key}={value}\n')
+          PY
+          python3 scripts/ios-smoke/prepare_auth.py prepare --directory "$RUNNER_TEMP/ios-auth-private"
+      - name: Compile pinned PostgreSQL and Timescale in private runner storage
+        run: bash scripts/ios-smoke/database.sh start
+      - name: Bootstrap real isolated API and create only the fixture accounts
+        run: |
+          pnpm db:bootstrap
+          pnpm db:infra
+          pnpm db:infra
+          pnpm db:provision-runtime
+          hypertable=$(PGPASSWORD="$IOS_DB_PASSWORD" "$IOS_DB_ROOT/pg16/bin/psql" -X -h 127.0.0.1 -p 5436 -U predioon -d predioon -At -v ON_ERROR_STOP=1 -c "select count(*)=1 from timescaledb_information.hypertables where hypertable_schema='public' and hypertable_name='telemetry'")
+          test "$hypertable" = t
+          pnpm --filter @predioon/api exec tsx ../../scripts/android-auth-smoke/fixture.mts create "$IOS_AUTH_PRIVATE/fixture.json"
+          python3 scripts/ios-smoke/prepare_auth.py runner --directory "$IOS_AUTH_PRIVATE" --fixture "$IOS_AUTH_PRIVATE/fixture.json"
+      - name: Build both locally signed Release simulator applications
+        env:
+          BUNDLE_GEMFILE: ${{ github.workspace }}/apps/resident-mobile/Gemfile
+        run: |
+          for item in resident-mobile:PredioONMorador operations-mobile:PredioONOperacao; do
+            app=${item%%:*}
+            scheme=${item#*:}
+            (cd "apps/$app/ios" && bundle exec pod install)
+            xcodebuild -workspace "apps/$app/ios/$scheme.xcworkspace" -scheme "$scheme" -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath "$IOS_AUTH_PRIVATE/build-$app" CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- build > "$IOS_AUTH_PRIVATE/build-$app.log" 2>&1
+          done
+          BUNDLE_GEMFILE="$GITHUB_WORKSPACE/apps/resident-mobile/Gemfile" bundle exec ruby scripts/ios-smoke/project.rb "$IOS_AUTH_PRIVATE"
+      - name: Start real API and existing restricted HTTPS proxy
+        run: |
+          pnpm --filter @predioon/api exec tsx src/server.ts > "$IOS_AUTH_PRIVATE/api.log" 2>&1 &
+          echo $! > "$IOS_AUTH_PRIVATE/api.pid"
+          python3 scripts/android-password-smoke/password_proxy.py --tls "$IOS_AUTH_PRIVATE/tls" > "$IOS_AUTH_PRIVATE/proxy.log" 2>&1 &
+          echo $! > "$IOS_AUTH_PRIVATE/proxy.pid"
+          curl --fail --retry 30 --retry-connrefused --retry-delay 1 --max-time 3 http://127.0.0.1:3000/health/ready
+          curl --fail --cacert "$IOS_AUTH_PRIVATE/tls/ca.pem" https://127.0.0.1:3443/health
+      - name: Execute real XCUITest journey with both coinstalled releases
+        id: journey
+        run: >-
+          python3 -B scripts/ios-smoke/run_auth.py --private "$IOS_AUTH_PRIVATE"
+          --resident "$IOS_AUTH_PRIVATE/build-resident-mobile/Build/Products/Release-iphonesimulator/PredioONMorador.app"
+          --operations "$IOS_AUTH_PRIVATE/build-operations-mobile/Build/Products/Release-iphonesimulator/PredioONOperacao.app"
+      - name: Remove fixture records and stop only the owned disposable cluster
+        if: always()
+        run: |
+          cleanup_failed=0
+          if test -n "${IOS_AUTH_PRIVATE:-}" && test -f "$IOS_AUTH_PRIVATE/fixture.json"; then
+            pnpm --filter @predioon/api exec tsx ../../scripts/android-auth-smoke/fixture.mts cleanup "$IOS_AUTH_PRIVATE/fixture.json" || cleanup_failed=1
+          fi
+          bash scripts/ios-smoke/database.sh stop || cleanup_failed=1
+          exit "$cleanup_failed"
+      - name: Export only approved native images and closed JSON schemas
+        if: always() && steps.journey.outputs.evidence-ready == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-authenticated-${{ github.run_id }}
+          path: .local/ios-auth/evidence/
+          include-hidden-files: false
+          if-no-files-found: warn
+          retention-days: 7
