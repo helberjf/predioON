@@ -35,6 +35,19 @@ class SnapshotTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 checked_config(CONFIG.replace(old, new), SETTINGS)
 
+    def test_sdk_absolute_image_path_is_normalized_but_another_image_directory_is_refused(self):
+        with tempfile.TemporaryDirectory() as directory:
+            sdk = Path(directory) / "sdk"
+            image = sdk / "system-images/android-35/google_apis/x86_64"
+            image.mkdir(parents=True)
+            relative = "system-images/android-35/google_apis/x86_64/"
+            absolute = CONFIG.replace(relative, str(image) + "/")
+            self.assertEqual(checked_config(absolute, SETTINGS, sdk), checked_config(CONFIG, SETTINGS, sdk))
+            for wrong in [sdk / "system-images/android-35/default/x86_64", Path(directory) / "foreign/google_apis/x86_64"]:
+                wrong.mkdir(parents=True)
+                with self.assertRaisesRegex(ValueError, "image.sysdir.1"):
+                    checked_config(CONFIG.replace(relative, str(wrong) + "/"), SETTINGS, sdk)
+
     def test_seal_requires_healthy_proof_and_snapshot_files_and_verifies_every_cached_byte(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

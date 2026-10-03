@@ -10,7 +10,7 @@ import time
 from clean_avd import ROOT, Device, check_clean_environment, installed_metadata, properties, require_health
 
 
-def checked_config(source, settings):
+def checked_config(source, settings, sdk=None):
     # The action appends CPU/RAM even when avdmanager already wrote them. Keep
     # its explicit final value, then write each key once before starting QEMU.
     values = {}
@@ -23,8 +23,18 @@ def checked_config(source, settings):
             raise ValueError("Invalid or ambiguous AVD configuration")
         values[key] = value
     expected = {"abi.type": settings["abi"], "hw.cpu.arch": settings["abi"], "hw.cpu.ncore": str(settings["cores"]), "hw.device.name": settings["profile"], "tag.id": settings["target"], "target": "android-" + str(settings["apiLevel"]), "image.sysdir.1": f"system-images/android-{settings['apiLevel']}/{settings['target']}/{settings['abi']}/"}
-    if any(values.get(key) != value for key, value in expected.items()) or values.get("hw.ramSize") not in {str(settings["ramMiB"]), str(settings["ramMiB"]) + "M"}:
-        raise ValueError("Actual AVD configuration does not match the fingerprint")
+    if sdk is not None:
+        root = sdk.resolve(strict=True)
+        image = (root / expected["image.sysdir.1"]).resolve(strict=True)
+        actual = (root / values.get("image.sysdir.1", "")).resolve()
+        if not image.is_relative_to(root) or actual != image:
+            raise ValueError("Actual AVD configuration mismatch: image.sysdir.1")
+        values["image.sysdir.1"] = expected["image.sysdir.1"]
+    mismatches = [key for key, value in expected.items() if values.get(key) != value]
+    if values.get("hw.ramSize") not in {str(settings["ramMiB"]), str(settings["ramMiB"]) + "M"}:
+        mismatches.append("hw.ramSize")
+    if mismatches:
+        raise ValueError("Actual AVD configuration mismatch: " + ", ".join(mismatches))
     values["hw.ramSize"] = str(settings["ramMiB"])
     return "".join(f"{key}={value}\n" for key, value in sorted(values.items()))
 
@@ -132,7 +142,16 @@ def main():
     settings = metadata["components"]["settings"]
     if args.action == "configure":
         config = avd / "config.ini"
-        config.write_text(checked_config(config.read_text(encoding="utf-8"), settings), encoding="utf-8")
+        source = config.read_text(encoding="utf-8")
+        args.evidence.mkdir(parents=True, exist_ok=True)
+        public_fields = {"abi.type", "hw.cpu.arch", "hw.cpu.ncore", "hw.device.name", "hw.ramSize", "image.sysdir.1", "tag.id", "target"}
+        effective = {}
+        for line in source.splitlines():
+            key, separator, value = line.partition("=")
+            if separator and key.strip() in public_fields:
+                effective[key.strip()] = value.strip()
+        (args.evidence / "avd-config.json").write_text(json.dumps(effective, indent=2), encoding="utf-8")
+        config.write_text(checked_config(source, settings, args.sdk), encoding="utf-8")
         return
     if args.action == "verify":
         verify_snapshot(args.avd_home, metadata, json.loads(args.manifest.read_text(encoding="utf-8")))

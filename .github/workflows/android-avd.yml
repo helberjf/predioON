@@ -33,6 +33,14 @@ jobs:
         with:
           packages: "platform-tools emulator system-images;android-35;google_apis;x86_64"
           log-accepted-android-sdk-licenses: false
+      - name: Generate a fresh host ADB identity outside cache paths
+        run: |
+          umask 077
+          mkdir -p "$HOME/.android"
+          test ! -e "$HOME/.android/adbkey"
+          test ! -e "$HOME/.android/adbkey.pub"
+          "$ANDROID_HOME/platform-tools/adb" keygen "$HOME/.android/adbkey"
+          test -s "$HOME/.android/adbkey.pub"
       - name: Test preparation contracts
         run: python3 -m unittest discover -s scripts/android-smoke -p 'test_*.py' -v
       - name: Fingerprint installed SDK and this runner
@@ -113,6 +121,14 @@ jobs:
         with:
           packages: "platform-tools emulator system-images;android-35;google_apis;x86_64"
           log-accepted-android-sdk-licenses: false
+      - name: Generate a fresh host ADB identity outside cache paths
+        run: |
+          umask 077
+          mkdir -p "$HOME/.android"
+          test ! -e "$HOME/.android/adbkey"
+          test ! -e "$HOME/.android/adbkey.pub"
+          "$ANDROID_HOME/platform-tools/adb" keygen "$HOME/.android/adbkey"
+          test -s "$HOME/.android/adbkey.pub"
       - name: Require compatible SDK and independent runner before restoring
         env:
           PREPARED_KEY: ${{ needs.prepare.outputs.cache-key }}
