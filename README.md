@@ -4,6 +4,8 @@ Plataforma para monitoramento e operação de condomínios, casas e imóveis com
 
 Para retomar o desenvolvimento nesta ou em outra máquina, leia [CONTINUIDADE.md](docs/CONTINUIDADE.md): estado atual, entregas verificadas, falhas abertas, próximos passos e recuperação dos rascunhos preservados. O plano de evolução ainda está em execução.
 
+As [imagens reais de Android, iOS e web](docs/IMAGENS_DOS_SISTEMAS.md) acompanham o clone, com commit de origem e hashes. A galeria HTML permite filtrar e ampliar as capturas.
+
 Para uma instalação real, comece pelo [manual de implantação e operação](docs/IMPLANTACAO_CONDOMINIO.md). Para executar a demonstração local, siga a seção [Instalação local](#instalação-local).
 
 O escopo do produto está no [PRD](docs/PRD.md) e o desenho técnico no [TDD](docs/TDD.md). A [arquitetura de produto aprovada em 27/09/2026](docs/superpowers/specs/2026-09-27-arquitetura-produto-design.md) define a evolução para quatro produtos — aplicativos **Morador** e **Operação** em React Native sem Expo, painel web do síndico e painel web administrativo — sobre a mesma plataforma modular e banco central. O andamento por etapa fica no [tracker de execução](docs/superpowers/plans/2026-09-27-product-execution.md). Este README descreve o que já está commitado nesta linha de código; ver [Evolução em andamento](#evolução-em-andamento).

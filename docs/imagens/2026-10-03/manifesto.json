@@ -1,0 +1,70 @@
+{
+  "publishedOn": "2026-10-03",
+  "purpose": "Reviewed real screenshots of progress, with synthetic demonstration data; not final demo videos",
+  "images": [
+    {
+      "file": "android-morador-avisos.png",
+      "sha256": "188d7a67e2cc44ae65991c29fc9853a44289415e70302fc661adacfec9bbbd60",
+      "width": 1080,
+      "height": 2400,
+      "sourceCommit": "f62294935cc3005b5bc1bd287831bf48a2fb1276",
+      "sourceRun": null
+    },
+    {
+      "file": "android-morador-reservas.png",
+      "sha256": "e4f39f74dbff69ee3e0e8f8e148c5fb294872d18f19d915b8f58b18ee13288df",
+      "width": 1080,
+      "height": 2400,
+      "sourceCommit": "42f2130ac35fc15043c3b4f0fc8d1dbda7b06a24",
+      "sourceRun": "https://github.com/helberjf/predioON/actions/runs/36975943695"
+    },
+    {
+      "file": "android-operacao-resumo.png",
+      "sha256": "3db92d47ec64cff9ce313c2b131f8a67badd37a2f0cfec3eea24cc4b937c03c4",
+      "width": 1080,
+      "height": 2400,
+      "sourceCommit": "f62294935cc3005b5bc1bd287831bf48a2fb1276",
+      "sourceRun": null
+    },
+    {
+      "file": "web-administracao.png",
+      "sha256": "7637c6c617b128ea9886e69ea02bc0f4317873e15c47dfe9337077b87a081556",
+      "width": 1440,
+      "height": 1312,
+      "sourceCommit": "5eda20e9778593ead30a2334a494570e6720eddb",
+      "sourceRun": null
+    },
+    {
+      "file": "web-sindico.png",
+      "sha256": "b0143415e90b3569c5f9426c26f960f3cd2b12b940820ee6bb9d509931bc8b42",
+      "width": 1440,
+      "height": 1474,
+      "sourceCommit": "5eda20e9778593ead30a2334a494570e6720eddb",
+      "sourceRun": null
+    },
+    {
+      "file": "web-morador.png",
+      "sha256": "81a95d97b0468f63d58b566537fb26dc1ade466e1648947ad32f2a6e8d211d17",
+      "width": 1440,
+      "height": 1793,
+      "sourceCommit": "5eda20e9778593ead30a2334a494570e6720eddb",
+      "sourceRun": null
+    },
+    {
+      "file": "ios-morador-entrada.png",
+      "sha256": "7dfcbeebeeee966d08f9c7a9f2d4886487ccc253a8f970f84e9c08bb826008ef",
+      "width": 1206,
+      "height": 2622,
+      "sourceCommit": "b4726b97c7a1384d836ec84a8c265fe002bd951e",
+      "sourceRun": "https://github.com/helberjf/predioON/actions/runs/37017848643"
+    },
+    {
+      "file": "ios-operacao-entrada.png",
+      "sha256": "8865ae7aa58c69c8cbe4b3d9a20f58db7ab32b81c856f45d4c3ee0b8a032f97b",
+      "width": 1206,
+      "height": 2622,
+      "sourceCommit": "b4726b97c7a1384d836ec84a8c265fe002bd951e",
+      "sourceRun": "https://github.com/helberjf/predioON/actions/runs/37017848643"
+    }
+  ]
+}

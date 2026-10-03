@@ -1,6 +1,6 @@
 # Continuidade do Prédio ON
 
-Atualizado em **02/10/2026**, horário de São Paulo. Este é o ponto de retomada em outro computador ou outra sessão. **O plano completo ainda não terminou.** Resultados de uma versão não aprovam automaticamente mudanças posteriores.
+Atualizado em **03/10/2026**, horário de São Paulo. Este é o ponto de retomada em outro computador ou outra sessão. **O plano completo ainda não terminou.** Resultados de uma versão não aprovam automaticamente mudanças posteriores.
 
 Repositório: <https://github.com/helberjf/predioON>. Linha de trabalho autorizada: `main`. A plataforma **`96b5f4b`** passou no CI, incluindo **633/633 testes de API**; o CI de plataforma de **`b4726b9`** também terminou aprovado. O AccessPanel **`aec9f41`** está publicado. A matriz ampliada usando os portais compilados passou **174/174 localmente e 174/174 no CI de `80c9798`**, em Chromium, Firefox e WebKit, sem retries. **Os dois apps iOS abriram e reabriram o formulário corretamente em simulador**, com quatro capturas inspecionadas em `b4726b9`; as jornadas autenticadas iOS continuam pendentes. As migrations publicadas terminam em **035**. A **036** está em rascunho recuperável; a **037** tem somente plano, sem implementação.
 
@@ -13,6 +13,7 @@ Repositório: <https://github.com/helberjf/predioON>. Linha de trabalho autoriza
 - Manter sugestões em [MELHORIAS_E_EVOLUCOES.md](MELHORIAS_E_EVOLUCOES.md).
 - **Não reiniciar o computador nesta sessão.** Nenhum reboot foi executado pelo agente. Reiniciar um processo de teste não é reiniciar o computador.
 - Ao terminar, abrir os três portais e os apps Morador/Operação neste computador e entregar cinco gravações completas, separadas, com dados fictícios. Também foram solicitadas imagens de Android, iOS e web durante o andamento.
+- **Incluir as imagens conferidas nos commits**, com origem e limites identificados. Desde03/10, as oito capturas e a galeria estão em [IMAGENS_DOS_SISTEMAS.md](IMAGENS_DOS_SISTEMAS.md), dentro do clone.
 
 ## 2. Estado das etapas
 
@@ -179,11 +180,11 @@ Banco/backup: seguir [BACKUP_E_RESTAURACAO.md](BACKUP_E_RESTAURACAO.md), incluin
 
 ## 8. O que não acompanha o clone
 
-`.local`, `work`, toolchains, containers, volumes Docker, `.env`, tokens, keystores, artefatos nativos e capturas/vídeos não ficam no Git. O patch contém somente código, testes, workflow e planos, sem esses arquivos. Recriar bancos descartáveis pelos scripts; não é necessário transportar os volumes desta máquina.
+`.local`, `work`, toolchains, containers, volumes Docker, `.env`, tokens, keystores, artefatos nativos, evidências brutas e vídeos não ficam no Git. As **capturas conferidas agora são versionadas** em docs/imagens, conforme o pedido do proprietário; o [manifesto](imagens/2026-10-03/manifesto.json) identifica origem, dimensões e SHA-256. O patch de código contém somente código, testes, workflow e planos. Recriar bancos descartáveis pelos scripts; não é necessário transportar os volumes desta máquina.
 
 Os artefatos de CI têm retenção curta (em geral 3–7 dias): baixar evidências importantes enquanto disponíveis e guardar fora do repositório. Nesta máquina os entregáveis ficam na pasta `outputs` ao lado do clone. A galeria contém **oito imagens reais**: três Android (Morador/avisos, Morador/reservas e Operação/resumo), três web (Administração, Síndico e Morador) e duas iOS (entrada de Morador/Operação). As imagens web usam a UI de5eda20e e banco fictício; Android contém os commits descritos na galeria; iOS corresponde ao novo processo de cada app em b4726b9. As oito imagens carregaram, filtros e ampliação passaram em Chromium sem erro de página. Nenhum dos cinco vídeos finais foi produzido.
 
-O pacote local `outputs/PREDIO_ON_CONTINUIDADE.zip` reúne uma cópia deste documento, sugestões, instruções de backup, patch/manifesto e galeria com as capturas. Seus 19 arquivos têm integridade conferida, incluindo os hashes iOS e do patch. A galeria extraída também passou nos testes sem servidor local. Para transportar o trabalho, salvar esse pacote fora desta máquina. A fonte publicada e os rascunhos de código estão preservados no GitHub; a galeria e o ZIP não são enviados ao Git.
+O pacote local `outputs/PREDIO_ON_CONTINUIDADE.zip` reúne uma cópia deste documento, sugestões, instruções de backup, patch/manifesto e galeria com as capturas. Seus19 arquivos têm integridade conferida, incluindo os hashes iOS e do patch. A galeria extraída também passou nos testes sem servidor local. Para transportar o trabalho, salvar esse pacote fora desta máquina. Fonte publicada, rascunhos recuperáveis, galeria e imagens estão preservados no GitHub; o ZIP permanece fora do Git.
 
 Credenciais de produção, certificados Apple/Android, FCM/APNs, domínio/TLS público e controladores físicos não foram configurados/homologados como parte do aceite atual. Essa lista não impede continuar implementando e testando localmente; define quais resultados não podem ser afirmados ainda.
 

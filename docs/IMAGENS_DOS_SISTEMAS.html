@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Prédio ON · Prévia dos sistemas</title>
+<style>
+  :root { color-scheme: light; font-family: system-ui, sans-serif; color: #18364c; background: #eef4f7; }
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  header { padding: 38px max(24px, calc((100vw - 1200px)/2)); background: #102c3d; color: #fff; }
+  header b { color: #32d5ad; letter-spacing: .08em; font-size: 14px; }
+  h1 { font-size: clamp(28px, 4vw, 42px); margin: 12px 0; }
+  header p { max-width: 820px; line-height: 1.6; color: #d2e3ec; }
+  main { max-width: 1248px; margin: auto; padding: 24px; }
+  nav { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 24px; }
+  button { font: inherit; border: 1px solid #b8cbd5; border-radius: 24px; padding: 9px 18px; cursor: pointer; background: #fff; color: #18364c; }
+  button[aria-pressed=true] { color: #fff; background: #147e69; border-color: #147e69; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(300px,1fr)); gap: 22px; align-items: start; }
+  article { border: 1px solid #d6e2e9; border-radius: 16px; overflow: hidden; background: white; }
+  article[hidden] { display: none; }
+  .caption { padding: 20px; }
+  .label { color: #147e69; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+  h2 { margin: 8px 0; font-size: 22px; }
+  p { line-height: 1.5; }
+  article p { font-size: 14px; color: #566f80; margin: 8px 0 0; }
+  .shot { border: 0; border-radius: 0; padding: 0; width: 100%; background: #e8eff3; display: block; }
+  .shot img { width: 100%; height: 450px; object-fit: contain; display: block; }
+  a { color: #096f98; text-underline-offset: 3px; }
+  .note { padding: 20px; background: #fff8e9; border: 1px solid #eed8a9; border-radius: 14px; margin-top: 24px; line-height: 1.6; }
+  details { margin-top: 14px; font-size: 13px; }
+  summary { cursor: pointer; }
+  dialog { border: 0; border-radius: 12px; padding: 16px; max-width: 96vw; max-height: 96vh; }
+  dialog::backdrop { background: #071826dd; }
+  dialog .bar { display: flex; justify-content: space-between; gap: 20px; align-items: center; margin-bottom: 12px; }
+  dialog img { display: block; max-width: 90vw; max-height: 80vh; object-fit: contain; }
+  footer { margin: 30px 0 12px; font-size: 14px; color: #566f80; }
+</style>
+<header>
+  <b>PRÉDIO ON · EM DESENVOLVIMENTO</b>
+  <h1>Prévia dos aplicativos e portais</h1>
+  <p>Capturas reais de emuladores e navegadores, com dados fictícios de teste. Clique em uma imagem para ampliar. Estas imagens mostram o andamento; as demonstrações completas em vídeo ainda fazem parte das próximas entregas.</p>
+</header>
+<main>
+  <nav aria-label="Filtrar plataforma">
+    <button data-filter="all" aria-pressed="true">Todos</button>
+    <button data-filter="android" aria-pressed="false">Android</button>
+    <button data-filter="ios" aria-pressed="false">iOS</button>
+    <button data-filter="web" aria-pressed="false">Web</button>
+  </nav>
+  <div class="grid">
+    <article data-platform="android">
+      <button class="shot" aria-label="Ampliar Android Morador, avisos"><img src="imagens/2026-10-03/android-morador-avisos.png" alt="Tela real de avisos do Prédio ON Morador no Android"></button>
+      <div class="caption"><span class="label">Android · aplicativo nativo</span><h2>Morador · Avisos</h2><p>Conta e condomínio fictícios. Captura em emulador do commit f622949.</p></div>
+    </article>
+    <article data-platform="android">
+      <button class="shot" aria-label="Ampliar Android Morador, reservas"><img src="imagens/2026-10-03/android-morador-reservas.png" alt="Reserva confirmada no aplicativo Android Morador"></button>
+      <div class="caption"><span class="label">Android · aplicativo nativo</span><h2>Morador · Reservas</h2><p>Reserva criada no banco real de teste. Commit42f2130: percurso de 23 fases aprovado.</p><details><summary>Origem</summary><a href="https://github.com/helberjf/predioON/actions/runs/36975943695">Execução Android de reservas</a></details></div>
+    </article>
+    <article data-platform="android">
+      <button class="shot" aria-label="Ampliar Android Operação"><img src="imagens/2026-10-03/android-operacao-resumo.png" alt="Resumo de operação em emulador Android"></button>
+      <div class="caption"><span class="label">Android · aplicativo nativo</span><h2>Operação · Resumo</h2><p>Monitoramento com dados fictícios. Captura do commit f622949; a regressão nativa atual de domínios ainda exige correções.</p></div>
+    </article>
+    <article data-platform="web">
+      <button class="shot" aria-label="Ampliar portal de administração"><img src="imagens/2026-10-03/web-administracao.png" alt="Dashboard real da administração web"></button>
+      <div class="caption"><span class="label">Web · administração</span><h2>Visão da plataforma</h2><p>Resumo agregado e navegação administrativa. Os condomínios E2E e os totais pertencem ao banco descartável de testes.</p></div>
+    </article>
+    <article data-platform="web">
+      <button class="shot" aria-label="Ampliar portal do síndico"><img src="imagens/2026-10-03/web-sindico.png" alt="Dashboard real do portal do síndico"></button>
+      <div class="caption"><span class="label">Web · condomínio</span><h2>Painel do síndico</h2><p>Avisos, equipamentos e módulos do condomínio. A falta de telemetria aparece como ausência de leitura, sem valores inventados.</p></div>
+    </article>
+    <article data-platform="web">
+      <button class="shot" aria-label="Ampliar portal do morador"><img src="imagens/2026-10-03/web-morador.png" alt="Página inicial real do portal web do morador"></button>
+      <div class="caption"><span class="label">Web · morador</span><h2>Portal do morador</h2><p>Atalhos e informações de convivência. Esta é a interface web responsiva; os aplicativos nativos têm capturas próprias.</p></div>
+    </article>
+    <article data-platform="ios">
+      <button class="shot" aria-label="Ampliar iOS Operação, tela de entrada"><img src="imagens/2026-10-03/ios-operacao-entrada.png" alt="Formulário real de entrada do aplicativo Operação em simulador iOS"></button>
+      <div class="caption"><span class="label">iOS · aplicativo nativo</span><h2>Operação · Entrada</h2><p>Tela real em iPhone 16 Pro, iOS 18.5, commit b4726b9. Abertura e novo processo aprovados, com imagens inspecionadas. Percursos autenticados ainda pendentes.</p><details><summary>Origem</summary><a href="https://github.com/helberjf/predioON/actions/runs/37017848643">Execução iOS aprovada</a></details></div>
+    </article>
+    <article data-platform="ios">
+      <button class="shot" aria-label="Ampliar iOS Morador, tela de entrada"><img src="imagens/2026-10-03/ios-morador-entrada.png" alt="Formulário real de entrada do aplicativo Morador em simulador iOS"></button>
+      <div class="caption"><span class="label">iOS · aplicativo nativo</span><h2>Morador · Entrada</h2><p>Tela real em iPhone 16 Pro, iOS 18.5, commit b4726b9. Abertura e novo processo aprovados, sem erro de configuração ou Keychain. Login e uso dos módulos ainda precisam de teste nativo.</p><details><summary>Origem</summary><a href="https://github.com/helberjf/predioON/actions/runs/37017848643">Execução iOS aprovada</a></details></div>
+    </article>
+  </div>
+  <div class="note">A plataforma035 passou no CI, incluindo <strong>633 testes de API</strong>. A matriz dos portais compilados passou <strong>174/174 localmente e no GitHub</strong>, sem retries. As capturas web correspondem à interface de5eda20e; os apps iOS demonstram o formulário em b4726b9. O estado atual e as jornadas ainda pendentes estão no documento de continuidade.</div>
+  <footer>Estado detalhado, pendências e instruções para outro computador: <a href="https://github.com/helberjf/predioON/blob/main/docs/CONTINUIDADE.md">CONTINUIDADE.md no GitHub</a>.</footer>
+</main>
+<dialog aria-label="Imagem ampliada"><div class="bar"><a id="original" href="#" target="_blank" rel="noopener">Abrir imagem original</a><button id="close">Fechar</button></div><img id="large" alt=""></dialog>
+<script>
+  const dialog = document.querySelector('dialog');
+  document.querySelectorAll('[data-filter]').forEach(button => button.addEventListener('click', () => {
+    document.querySelectorAll('[data-filter]').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+    document.querySelectorAll('article').forEach(card => card.hidden = button.dataset.filter !== 'all' && card.dataset.platform !== button.dataset.filter);
+  }));
+  document.querySelectorAll('.shot').forEach(button => button.addEventListener('click', () => {
+    const source = button.querySelector('img');
+    document.querySelector('#large').src = source.src;
+    document.querySelector('#large').alt = source.alt;
+    document.querySelector('#original').href = source.src;
+    dialog.showModal();
+  }));
+  document.querySelector('#close').addEventListener('click', () => dialog.close());
+</script>
+</html>
