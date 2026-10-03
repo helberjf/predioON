@@ -14,6 +14,8 @@ Estes itens já pertencem à evolução prevista. Não devem ser apresentados co
 
 Estado consolidado em [CONTINUIDADE.md](CONTINUIDADE.md). Cookies web/CSRF, coordenação entre abas e gestão das próprias sessões já foram implementados e testados. O executor de migrations com checksum/lock/no-op e a restauração local real até037 também estão entregues; implantação e recuperação do ambiente de produção continuam pendentes. Esses itens saíram da lista de implementações a iniciar e devem permanecer na regressão.
 
+Progresso038 em03/10: outbox/worker de webhook, produtores atômicos, role própria e restauração em outro cluster estão implementados como candidato recuperável, com SQL54, worker36 Linux, ingestão123 e backup2 aprovados. Ainda faltam regressão API integrada, correção de fixture/provisionamento global, publicação do conjunto e novos jobs CI; [guia e limites](NOTIFICACOES_DURAVEIS.md). Não fecha inbox, privilégio mínimo da ingestão inteira, retenção/replay ou idempotência do provedor. Android1f concluiu domínios16/20 e senha29/29 com avisos Fabric residuais; iOS passou TLS/banco após correções oficiais e ainda precisa executar a jornada nativa completa.
+
 | Prioridade | Trabalho | Resultado esperado | Critério de aceite |
 |---|---|---|---|
 | P0 | Concluir autorização por capacidade nos domínios restantes | Acesso depende da concessão atual ao condomínio e ao recurso | HTTP e SQL negativos; revogação, expiração, equipe inativa e troca de condomínio sem vazamentos; nenhum privilégio global implícito sobre dados privados |

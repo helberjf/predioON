@@ -1,6 +1,6 @@
 # Entrega durável de alertas — primeiro incremento da etapa3
 
-Estado: desenho e critérios de aceite, sem implementação nem SQL038 publicado. Executar após aceitar/publicar identidade037. Base: [arquitetura aprovada](../specs/2026-09-27-arquitetura-produto-design.md) e [tracker](2026-09-27-product-execution.md). Não encerra inbox, scheduler, automações, comandos separados, push móvel ou credenciais de todas as cargas.
+Estado em03/10: candidato implementado e recuperável por patch/hash em [CONTINUIDADE](../../CONTINUIDADE.md), sem SQL038/worker publicados como release integrada. SQL54, worker36 Linux, ingestão123 e backup2 reais passaram; integral API e fixture de credencial ainda em verificação. [Guia operacional do candidato](../../NOTIFICACOES_DURAVEIS.md). Base: [arquitetura aprovada](../specs/2026-09-27-arquitetura-produto-design.md) e [tracker](2026-09-27-product-execution.md). Não encerra inbox, scheduler, automações, comandos separados, push móvel ou credenciais de todas as cargas.
 
 ## Problema observado na fonte
 

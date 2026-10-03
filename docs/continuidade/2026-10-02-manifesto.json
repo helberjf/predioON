@@ -1,13 +1,246 @@
 {
-  "baseCommit": "9f3206231f93c8d9354275686033496470c6d974",
+  "baseCommit": "a9eb62ecff1d685616bb80c30f1b59fe7866e4c8",
   "capturedOn": "2026-10-03",
   "state": "Drafts: restore for review, not approved product changes",
   "patch": "2026-10-02-em-andamento.patch",
-  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-  "files": [],
+  "sha256": "26614d7ef5477232aec4f8efd5bda85ed46d36131405359dbb9e4391f101cee3",
+  "files": [
+    {
+      "path": "apps/api/test/features-lifecycle.test.ts",
+      "sha256LF": "829161153155f2b4b68ba98aad65ac65bf258179ec4f05bed1199829f39a19f5"
+    },
+    {
+      "path": ".env.example",
+      "sha256LF": "e181857907ae24b3d09e68ce0065f55d64fba5718b1c958f294f4032e6533604"
+    },
+    {
+      "path": ".github/workflows/android-auth.yml",
+      "sha256LF": "d4ad4258d0b5ef2a3dde9e32678ab1e124e19cce641e31f660e9677b4fd73857"
+    },
+    {
+      "path": ".github/workflows/android-domains.yml",
+      "sha256LF": "eb9b4ec9613664456153109f06e84137719bd081f562ae9454dcb25bc1f83f1a"
+    },
+    {
+      "path": ".github/workflows/android-reservations.yml",
+      "sha256LF": "568dbe459b39b659891089714b80fcc4b2b25fb3a67d8f66604b19c6f021c45b"
+    },
+    {
+      "path": ".github/workflows/browser.yml",
+      "sha256LF": "15d2642a4c55642c93b8a73c04ad20bde40a6708d81f6a099746b87f805ee159"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256LF": "05c59c1f79dc9c5a57333cbb5d301616ebc6a7b6b91246110d368eb4b903dc96"
+    },
+    {
+      "path": "docs/CREDENCIAIS_BANCO.md",
+      "sha256LF": "42cef3e216b0b02af6edf4076ccddd92fb74d4cd9b47e726ed5ca16aad5c29a4"
+    },
+    {
+      "path": "docs/DEPLOY.md",
+      "sha256LF": "8addcace34f995bab3c6aeaf65a2b8c9e1550636398e6638f7ac5b1350d45aa5"
+    },
+    {
+      "path": "e2e/README.md",
+      "sha256LF": "e05ccc2f5c93087e31b7ac71c86d549bd044c72fa44885fd504397cf3858242d"
+    },
+    {
+      "path": "infrastructure/.env.prod.example",
+      "sha256LF": "393a0c14680261e4460ef82e04240a07ebea97d180cd785f11a6d596c6f23aac"
+    },
+    {
+      "path": "infrastructure/Dockerfile.node",
+      "sha256LF": "5d8b34733df700b309082135c878af21314f026ba119dd5210c17cbf058a6353"
+    },
+    {
+      "path": "infrastructure/docker-compose.prod.yml",
+      "sha256LF": "6549af59971e6666ac1a1827b4714058b5507ec4760fe96aa0a457a3f4f43f7b"
+    },
+    {
+      "path": "infrastructure/setup-prod.sh",
+      "sha256LF": "f2b4d15cba5d39360920f77474d7d6694c16ef60bdd9fea48931324478e8481a"
+    },
+    {
+      "path": "packages/api-client/test/boundaries.test.ts",
+      "sha256LF": "dae945461db14a3af37054ed97c2adf72946bd655182cec28f87871a984c72de"
+    },
+    {
+      "path": "packages/db/package.json",
+      "sha256LF": "9962bac12351c565f7c48e670fa604b95500aa17fdf552caf157f37cc866ef05"
+    },
+    {
+      "path": "packages/db/src/infrastructure-migrations.ts",
+      "sha256LF": "b9f7277f6bfac3f942fb9d1f2c4d65513cd9e832f9f998211ff0a846a63747ec"
+    },
+    {
+      "path": "packages/db/src/provision-runtime-roles.ts",
+      "sha256LF": "fb07825d2ad60b66a39202033fa11422728915005eaf2347d1937cb2288674ba"
+    },
+    {
+      "path": "packages/db/src/runtime-connection.ts",
+      "sha256LF": "1e76fdead254635581fb710d3ea21a3e686f1068af497781b9c5a37abbf77b39"
+    },
+    {
+      "path": "packages/db/src/runtime-role-credentials.ts",
+      "sha256LF": "1c16c2e34a80aae2cacbf62e1aa38d5aad1a5f8a026a863aa595d76e91e8795a"
+    },
+    {
+      "path": "packages/db/src/notifications.ts",
+      "sha256LF": "c2af5bf454e21ce2e581bca8688f34beefc399112c5da49918b0e4e6ec6cdfcc"
+    },
+    {
+      "path": "packages/db/test/infrastructure-migrations.test.ts",
+      "sha256LF": "dde07ac2300eea321716cd151cc785cb98e51bf7e1a68cd0e4e5b3149aecb2b1"
+    },
+    {
+      "path": "packages/db/test/runtime-connection.test.ts",
+      "sha256LF": "1f427c0f006651a7d50afe1c848120f8b71444ede6e02de3ddc8a896f554d5cc"
+    },
+    {
+      "path": "packages/db/test/runtime-provisioning.test.ts",
+      "sha256LF": "2ee271e2feef9bdcf53b3471a20ef89a289c8769f70fd9588d657448fb8432ee"
+    },
+    {
+      "path": "packages/db/test/deployment-contract.test.ts",
+      "sha256LF": "249b70da075273119691d2325fd7eb9055ae379bc1b3944770571e98ed4b4a47"
+    },
+    {
+      "path": "scripts/check-boundaries.mjs",
+      "sha256LF": "573cb36f6fdf3a76cff4b03c1992e0129352d2235f9359cf94df8e3439149f29"
+    },
+    {
+      "path": "scripts/test-production-proxy.mjs",
+      "sha256LF": "2fff820f3ea38983ebdbc4323537058cd1c934e10ba772b00e742b810cb11ae0"
+    },
+    {
+      "path": "services/ingest/src/analytics/usage.ts",
+      "sha256LF": "0da4c72fe9441557b68cc3b40c2351121e56e01647d44433d712b83ccb7e0701"
+    },
+    {
+      "path": "services/ingest/src/notify/index.ts",
+      "sha256LF": "22a76e934d8a5c1042db667c851617c244c549152dcc94e731e18ff53dc295b1"
+    },
+    {
+      "path": "services/ingest/src/offline-sweeper.ts",
+      "sha256LF": "c920905db657c0777d7509898055b111d828fab3ff29658f0c3544790d868136"
+    },
+    {
+      "path": "services/ingest/src/pipeline/telemetry.ts",
+      "sha256LF": "e83c43870f4456111b877dcee69e27de775bfae66ceace4b8429e02e5c9d3284"
+    },
+    {
+      "path": "services/ingest/src/rules/evaluate.ts",
+      "sha256LF": "47d4b99181da873d8479956d26c61ef8c008e7ebd9d69c1554348a94504eb7d4"
+    },
+    {
+      "path": "services/ingest/test/feature-pause.test.ts",
+      "sha256LF": "f2efa114214ec7f50b708f731c49ce41c8a7f1bdff622633b61ab90f6b1f8836"
+    },
+    {
+      "path": "services/ingest/test/outbox-producers.integration.test.ts",
+      "sha256LF": "5803cde36c5b440a3676586dd4c7a8e9ebdf457446a0ca0c205afee900709043"
+    },
+    {
+      "path": "services/notifications/package.json",
+      "sha256LF": "a6e32e393ef9d14f25c6d4183c96687396ce2c3c777928fe02a125e4867f0ca4"
+    },
+    {
+      "path": "services/notifications/tsconfig.json",
+      "sha256LF": "a3072f732006819647e22d5ce6f0de9048f80328cb66f51dc227fb562c17961e"
+    },
+    {
+      "path": "services/notifications/tsconfig.build.json",
+      "sha256LF": "71c5cb6ddfb2f9321baf2291dde766affe7d40f46118381d2341c9b75ca0c644"
+    },
+    {
+      "path": "services/notifications/src/configuration.ts",
+      "sha256LF": "30a1725aeba06689e2b7ce934020aadb03d96c14911b38b981f96c04cfac54be"
+    },
+    {
+      "path": "services/notifications/src/transport.ts",
+      "sha256LF": "4f400ba95e11a600e7fbb9e8419d094a462597a58636d1efdfaa30af52f67a5e"
+    },
+    {
+      "path": "services/notifications/src/protocol.ts",
+      "sha256LF": "622d025112b68ff6d71f940c95bad6ea26b61ac76462f25a6999fb6387ea3fc4"
+    },
+    {
+      "path": "services/notifications/src/database.ts",
+      "sha256LF": "93c08e82258716b5ad07a869f61d58342340a7ace4a81b1301fb1a3c2868a705"
+    },
+    {
+      "path": "services/notifications/src/heartbeat.ts",
+      "sha256LF": "eebf542fcf5b6c962f5908009646a3b087ef24d75d97f791b5236690bea25b0f"
+    },
+    {
+      "path": "services/notifications/src/loop.ts",
+      "sha256LF": "f5ebc133b15b15f062b1d0b71ff12ceb6c9e3c448c78cd03ade857960cc25ac3"
+    },
+    {
+      "path": "services/notifications/src/health.ts",
+      "sha256LF": "8ab43c421c39d41c1be25b14a5483e79f223c791934e6d220fb0b7325837c9f7"
+    },
+    {
+      "path": "services/notifications/src/index.ts",
+      "sha256LF": "735f322bfd268d75a223fe77fe18eade603d4489d04d3b9d712368b02547f28c"
+    },
+    {
+      "path": "services/notifications/test/protocol.test.ts",
+      "sha256LF": "dcc36a652bf84e8346c368d2d708d0a52f18ebe4c90d1632d170eabda3cb665f"
+    },
+    {
+      "path": "services/notifications/test/loop.test.ts",
+      "sha256LF": "f043e09d42c8c0dc956626a1e9dd46410e4d6b69a727d1b5a529b65a21e458e2"
+    },
+    {
+      "path": "services/notifications/test/database.integration.test.ts",
+      "sha256LF": "c925519888361144e98a6b43aa48485211f417f937c3c691780c04c055498c53"
+    },
+    {
+      "path": "services/notifications/test/startup.test.ts",
+      "sha256LF": "0a9d218f4fb0e2b38a936b8034ddd683bd95f6fe7e1c5d2050f7b87dbfaa6902"
+    },
+    {
+      "path": "services/notifications/test/tsconfig.json",
+      "sha256LF": "cde326ff82bacb99bf20d6437950f42dfe3af6f9c912df76ad4c3af47b79d4dd"
+    },
+    {
+      "path": ".github/workflows/ios-auth.yml",
+      "sha256LF": "2732ad784666860954229bd9cef0d57a1828dfa3cd844d967aac3e62254c31c4"
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "sha256LF": "699b11a6c5fbd19923f5020724e357217dacf97f319c6b36e2220e0eb6997698"
+    },
+    {
+      "path": "infrastructure/038-durable-alert-delivery.sql",
+      "sha256LF": "65c1b502621ceebc82021c9c94648de55e9ff9c63907237dd81866ce44f8c3c7"
+    },
+    {
+      "path": "packages/db/test/notification-delivery.test.ts",
+      "sha256LF": "56c0268355ea3f7d31dcbeb64a4cf990f1701704ba241200f63fade84b934e92"
+    },
+    {
+      "path": ".github/workflows/android-password.yml",
+      "sha256LF": "7c50d53443ff69e95ef80e8a60f932a6521cc3c58dbf5c293c939e6f6cacefbb"
+    },
+    {
+      "path": "docs/MIGRATIONS.md",
+      "sha256LF": "e0a537ee370e692446804ae9b593c33d3b3a9c9d0768cde914cd9d3fc368ef11"
+    },
+    {
+      "path": "docs/BACKUP_E_RESTAURACAO.md",
+      "sha256LF": "25dc8faf08244ab0b2f3f8246353548eacca637d1044854d6413146b9dfae0f6"
+    },
+    {
+      "path": "packages/db/test/backup-restore.test.ts",
+      "sha256LF": "6c12cda8665a316d204b45f100b6bb790246e45e1a122c8208aaace2a375f94f"
+    }
+  ],
   "restoreCheck": {
     "passed": true,
-    "filesVerified": 0,
+    "filesVerified": 58,
     "method": "git apply to archived base, compare SHA-256 with normalized LF"
   }
 }
