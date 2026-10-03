@@ -44,7 +44,7 @@ function AuditWorkspace({ buildingId }: { buildingId?: string }) {
               <p className="break-words text-sm font-medium text-slate-800">{log.action.replaceAll("_", " ")}</p>
               <Badge tone={log.scopeKind === "PLATFORM" ? "info" : "neutral"}>{log.scopeKind === "PLATFORM" ? "Plataforma" : "Condomínio"}</Badge>
               <dl className="space-y-1 break-words text-xs text-slate-500">
-                <div><dt className="inline">Responsável: </dt><dd className="inline">{log.userId ?? (log.actorType === "GATEWAY" ? "Controlador" : "Sistema")}</dd></div>
+                <div><dt className="inline">Responsável: </dt><dd className="inline">{log.userId ?? (log.actorType === "USER" ? "Conta não identificada" : log.actorType === "GATEWAY" ? "Controlador" : "Sistema")}</dd></div>
                 <div><dt className="inline">Recurso: </dt><dd className="inline">{log.resourceType}{log.resourceId ? ` · ${log.resourceId}` : ""}</dd></div>
                 {log.buildingId && <div><dt className="inline">Condomínio: </dt><dd className="inline">{log.buildingId}</dd></div>}
               </dl>

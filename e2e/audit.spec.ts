@@ -89,6 +89,9 @@ test("auditoria global não inclui histórico local, desconhecido ou campos priv
     await expect(page.locator("body")).not.toContainText(secret);
   }
   await expect(page.getByText(f.global, { exact: false })).toBeVisible();
+  const unassigned = page.getByRole("article", { name: "Registro de auditoria" }).filter({ hasText: f.global });
+  await expect(unassigned).toContainText("Responsável: Conta não identificada");
+  await expect(unassigned).not.toContainText("Responsável: Sistema");
   if (info.project.name === "chromium") await page.screenshot({ path: info.outputPath("audit-global.png"), fullPage: true });
 }));
 
