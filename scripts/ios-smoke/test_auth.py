@@ -3,7 +3,10 @@ import importlib.util
 import json
 from pathlib import Path
 import random
+import shutil
 import struct
+import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -48,6 +51,99 @@ class ConfigurationTests(unittest.TestCase):
             for path in [root, root.parent / "personal", root / ".." / "personal"]:
                 with self.assertRaises(ValueError):
                     prepare.disposable_path(path, good)
+
+
+class OpenSSLSelectionTests(unittest.TestCase):
+    def executable(self, root):
+        binary = root / "openssl"
+        binary.write_text("fixture")
+        binary.chmod(0o755)
+        return binary.resolve()
+
+    def responses(self, version="OpenSSL 3.0.13 30 Jan 2024"):
+        def respond(arguments, **_kwargs):
+            if arguments[1:] == ["version"]:
+                return subprocess.CompletedProcess(arguments, 0, version, "")
+            return subprocess.CompletedProcess(arguments, 0, "", "-verify_ip -CAfile -addext -extfile -req")
+        return respond
+
+    def test_exact_executable_is_used_for_version_and_required_capabilities(self):
+        prepare = load("prepare_auth")
+        with tempfile.TemporaryDirectory() as temporary:
+            binary = self.executable(Path(temporary))
+            with patch.object(prepare.subprocess, "run", side_effect=self.responses()) as run:
+                tool = prepare.choose_openssl(binary)
+            self.assertEqual(tool["version"], "3.0.13")
+            self.assertEqual(tool["binary"], str(binary))
+            self.assertEqual([call.args[0][0] for call in run.call_args_list], [str(binary)] * 4)
+
+    def test_missing_or_relative_executable_never_falls_back_to_path(self):
+        prepare = load("prepare_auth")
+        with tempfile.TemporaryDirectory() as temporary:
+            with patch.object(prepare.subprocess, "run") as run:
+                for binary in [None, Path("openssl"), Path("missing/openssl"), Path(temporary) / "missing"]:
+                    with self.assertRaises(ValueError):
+                        prepare.choose_openssl(binary)
+                run.assert_not_called()
+
+    def test_libressl_old_or_future_openssl_are_rejected_without_echoing_output(self):
+        prepare = load("prepare_auth")
+        with tempfile.TemporaryDirectory() as temporary:
+            binary = self.executable(Path(temporary))
+            for version in ["LibreSSL 3.3.6 SENTINEL_SECRET", "OpenSSL 1.1.1 SENTINEL_SECRET", "OpenSSL 4.0.0 SENTINEL_SECRET", "unexpected SENTINEL_SECRET"]:
+                with patch.object(prepare.subprocess, "run", side_effect=self.responses(version)):
+                    with self.assertRaises(RuntimeError) as failure:
+                        prepare.choose_openssl(binary)
+                self.assertNotIn("SENTINEL_SECRET", str(failure.exception))
+
+    def test_missing_verify_ip_or_addext_is_terminal(self):
+        prepare = load("prepare_auth")
+        with tempfile.TemporaryDirectory() as temporary:
+            binary = self.executable(Path(temporary))
+            for flags in ["-CAfile -addext -extfile -req", "-CAfile -verify_ip -extfile -req"]:
+                def response(arguments, **_kwargs):
+                    return subprocess.CompletedProcess(arguments, 0, "OpenSSL 3.0.13" if arguments[1] == "version" else "", flags)
+                with patch.object(prepare.subprocess, "run", side_effect=response), self.assertRaises(RuntimeError):
+                    prepare.choose_openssl(binary)
+
+    def test_tls_failure_reports_category_stage_and_code_without_raw_stderr(self):
+        prepare = load("prepare_auth")
+        failure = subprocess.CalledProcessError(2, ["/explicit/openssl", "verify", "-CAfile", "private"],
+                                               stderr=b"verify: Unknown option -verify_ip SENTINEL_SECRET")
+        message = prepare.tls_failure(failure, "3.0.13")
+        self.assertIn("verify", message)
+        self.assertIn("unsupported-option", message)
+        self.assertIn("exit=2", message)
+        self.assertNotIn("SENTINEL_SECRET", message)
+        self.assertNotIn("/explicit", message)
+
+    def test_real_tls_keeps_ip_ca_and_chain_verification(self):
+        prepare = load("prepare_auth")
+        if sys.platform == "darwin":
+            binary = Path(subprocess.check_output(["brew", "--prefix", "openssl@3"], text=True).strip()) / "bin/openssl"
+        else:
+            selected = shutil.which("openssl")
+            if sys.platform == "win32" and not selected:
+                self.skipTest("OpenSSL is not installed in the Windows host")
+            self.assertIsNotNone(selected, "Linux TLS verification requires real OpenSSL")
+            binary = Path(selected)
+        tool = prepare.choose_openssl(binary)
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            actual_run = subprocess.run
+            with patch.object(prepare.subprocess, "run", wraps=actual_run) as commands:
+                ca = prepare.create_ios_certificates(directory / "tls", tool)
+            self.assertEqual(len(commands.call_args_list), 5)
+            self.assertEqual([call.args[0][0] for call in commands.call_args_list], [tool["binary"]] * 5)
+            for endpoint in ["10.0.2.2", "127.0.0.1"]:
+                verified = subprocess.run([tool["binary"], "verify", "-CAfile", str(ca), "-verify_ip", endpoint, str(directory / "tls/server.pem")], capture_output=True)
+                self.assertEqual(verified.returncode, 0)
+            for endpoint in ["127.0.0.2", "192.0.2.1"]:
+                rejected = subprocess.run([tool["binary"], "verify", "-CAfile", str(ca), "-verify_ip", endpoint, str(directory / "tls/server.pem")], capture_output=True)
+                self.assertNotEqual(rejected.returncode, 0)
+            other_ca = prepare.create_ios_certificates(directory / "other", tool)
+            rejected = subprocess.run([tool["binary"], "verify", "-CAfile", str(other_ca), "-verify_ip", "127.0.0.1", str(directory / "tls/server.pem")], capture_output=True)
+            self.assertNotEqual(rejected.returncode, 0)
 
 
 class ExportTests(unittest.TestCase):

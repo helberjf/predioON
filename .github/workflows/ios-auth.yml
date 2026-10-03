@@ -67,7 +67,9 @@ jobs:
               for key, value in environment.items():
                   destination.write(f'{key}={value}\n')
           PY
-          python3 scripts/ios-smoke/prepare_auth.py prepare --directory "$RUNNER_TEMP/ios-auth-private"
+          openssl_prefix=$(brew --prefix openssl@3)
+          test -x "$openssl_prefix/bin/openssl"
+          python3 scripts/ios-smoke/prepare_auth.py prepare --directory "$RUNNER_TEMP/ios-auth-private" --openssl "$openssl_prefix/bin/openssl"
       - name: Compile pinned PostgreSQL and Timescale in private runner storage
         run: bash scripts/ios-smoke/database.sh start
       - name: Bootstrap real isolated API and create only the fixture accounts

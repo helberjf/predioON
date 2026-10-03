@@ -26,12 +26,12 @@ def configure_manifest(source):
     return re.sub(r"<application\s", '<application android:networkSecurityConfig="@xml/ci_auth_network"\n      ', source, count=1)
 
 
-def create_certificates(directory):
+def create_certificates(directory, openssl_binary="openssl"):
     directory.mkdir(parents=True, exist_ok=True)
     if any(directory.iterdir()):
         raise ValueError("TLS directory must be new and empty")
     def openssl(*args):
-        subprocess.run(["openssl", *map(str, args)], check=True, capture_output=True, timeout=60)
+        subprocess.run([str(openssl_binary), *map(str, args)], check=True, capture_output=True, timeout=60)
     ca_key, ca = directory / "ca.key", directory / "ca.pem"
     key, csr, cert = directory / "server.key", directory / "server.csr", directory / "server.pem"
     openssl("req", "-x509", "-newkey", "rsa:2048", "-nodes", "-sha256", "-days", "1",
