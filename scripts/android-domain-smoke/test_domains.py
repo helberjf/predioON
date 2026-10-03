@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import shutil
 import ssl
+import subprocess
 import tempfile
 import threading
 from unittest.mock import patch
@@ -30,6 +31,164 @@ def page(*labels, button=None, enabled="true"):
 
 
 class DomainAssertions(unittest.TestCase):
+    def statement_device(self, output):
+        fixture = {"forbidden": ["PRIVATE"], "accounts": {"operations-mobile": {"buildingName": BUILDING}}}
+        return DomainDevice("unused", "operations-mobile", output, fixture, "FixturePassword123")
+
+    def statement_page(self):
+        source = ET.fromstring(page("Prestação de contas", "Published statement", button="Ver lançamentos (1)"))
+        for node in source.iter("node"):
+            if node.get("text") == "Published statement":
+                node.set("bounds", "[10,100][500,160]")
+        return ET.tostring(source, encoding="unicode")
+
+    def test_financial_heading_and_loader_cannot_approve_the_statement_or_trigger_a_tap(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            device = self.statement_device(output)
+            with patch.object(device, "assert_no_crash"), patch.object(device, "hierarchy", return_value=page("Prestação de contas", "Carregando")) as observe, patch.object(device, "scroll") as scroll, patch.object(device, "screen") as capture, patch.object(device, "adb") as command, patch("run_domains.time.sleep"):
+                with self.assertRaisesRegex(AssertionError, "statement"):
+                    device.wait_statement("finance", "Published statement")
+                self.assertEqual(observe.call_count, 9)
+                self.assertEqual(scroll.call_count, 8)
+                capture.assert_not_called()
+                command.assert_not_called()
+                self.assertEqual(device.steps, [])
+                self.assertEqual(list(output.iterdir()), [])
+
+    def test_financial_phase_requires_visible_published_title_and_enabled_entry_control(self):
+        good = self.statement_page()
+        hidden = good.replace('[10,100][500,160]', '[0,0][0,0]')
+        disabled = good.replace('enabled="true"', 'enabled="false"')
+        for earlier in [page("Prestação de contas", "Carregando"), hidden, disabled]:
+            with tempfile.TemporaryDirectory() as directory:
+                output = Path(directory)
+                device = self.statement_device(output)
+                with patch.object(device, "assert_no_crash"), patch.object(device, "hierarchy", side_effect=[earlier, good]), patch.object(device, "scroll") as scroll, patch.object(device, "screen") as capture, patch.object(device, "adb") as command, patch("run_domains.time.sleep"):
+                    device.wait_statement("finance", "Published statement")
+                    scroll.assert_called_once_with()
+                    capture.assert_called_once_with("finance")
+                    command.assert_not_called()
+                    self.assertEqual(device.steps, [{"phase": "finance", "passed": True}])
+                    self.assertEqual((output / "finance.xml").read_text(encoding="utf-8"), good)
+
+    def test_financial_privacy_failure_is_terminal_before_any_scroll_or_approved_capture(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            device = self.statement_device(output)
+            with patch.object(device, "assert_no_crash"), patch.object(device, "hierarchy", side_effect=[page("PRIVATE"), self.statement_page()]) as observe, patch.object(device, "scroll") as scroll, patch.object(device, "screen") as capture, patch("run_domains.time.sleep"):
+                with self.assertRaisesRegex(PrivacyViolation, "Private neighbor"):
+                    device.wait_statement("finance", "Published statement")
+                observe.assert_called_once_with()
+                scroll.assert_not_called()
+                capture.assert_not_called()
+                self.assertEqual(device.steps, [])
+                self.assertEqual(list(output.iterdir()), [])
+
+    def test_financial_incomplete_observation_retries_and_captures_only_the_ready_statement(self):
+        good = self.statement_page()
+        for earlier in [AssertionError("UIAutomator did not produce a hierarchy: null root node"),
+                        "<hierarchy>", good.replace(BUILDING, ""), "<hierarchy />"]:
+            with self.subTest(observation=repr(earlier)), tempfile.TemporaryDirectory() as directory:
+                output = Path(directory)
+                device = self.statement_device(output)
+                with patch.object(device, "assert_no_crash") as diagnose, patch.object(device, "hierarchy", side_effect=[earlier, good]) as observe, patch.object(device, "scroll") as scroll, patch.object(device, "screen") as capture, patch.object(device, "adb") as command, patch("run_domains.time.sleep") as sleep:
+                    device.wait_statement("finance", "Published statement")
+                    self.assertEqual(diagnose.call_count, 2)
+                    self.assertEqual(observe.call_count, 2)
+                    scroll.assert_called_once_with()
+                    sleep.assert_called_once_with(0.5)
+                    capture.assert_called_once_with("finance")
+                    command.assert_not_called()
+                    self.assertEqual(device.steps, [{"phase": "finance", "passed": True}])
+                    self.assertEqual((output / "finance.xml").read_text(encoding="utf-8"), good)
+
+    def test_financial_incomplete_observation_expires_without_approving_the_phase(self):
+        for incomplete, error in [(AssertionError("null root node"), AssertionError),
+                                  ("<hierarchy>", ET.ParseError),
+                                  (self.statement_page().replace(BUILDING, ""), AssertionError)]:
+            with self.subTest(observation=repr(incomplete)), tempfile.TemporaryDirectory() as directory:
+                output = Path(directory)
+                device = self.statement_device(output)
+                with patch.object(device, "assert_no_crash") as diagnose, patch.object(device, "hierarchy", side_effect=[incomplete] * 9) as observe, patch.object(device, "scroll") as scroll, patch.object(device, "screen") as capture, patch.object(device, "adb") as command, patch("run_domains.time.sleep") as sleep:
+                    with self.assertRaises(error):
+                        device.wait_statement("finance", "Published statement")
+                    self.assertEqual(diagnose.call_count, 9)
+                    self.assertEqual(observe.call_count, 9)
+                    self.assertEqual(scroll.call_count, 8)
+                    self.assertEqual(sleep.call_count, 8)
+                    capture.assert_not_called()
+                    command.assert_not_called()
+                    self.assertEqual(device.steps, [])
+                    self.assertEqual(list(output.iterdir()), [])
+
+    def test_financial_credentials_failure_is_terminal_even_in_incomplete_xml(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            device = self.statement_device(output)
+            with patch.object(device, "assert_no_crash"), patch.object(device, "hierarchy", side_effect=["<hierarchy>" + device.password, self.statement_page()]) as observe, patch.object(device, "scroll") as scroll, patch.object(device, "screen") as capture, patch.object(device, "adb") as command, patch("run_domains.time.sleep") as sleep:
+                with self.assertRaisesRegex(RuntimeError, "Credentials leaked"):
+                    device.wait_statement("finance", "Published statement")
+                observe.assert_called_once_with()
+                scroll.assert_not_called()
+                sleep.assert_not_called()
+                capture.assert_not_called()
+                command.assert_not_called()
+                self.assertEqual(device.steps, [])
+                self.assertEqual(list(output.iterdir()), [])
+
+    def test_financial_crash_failure_is_terminal_before_observing_the_screen(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            device = self.statement_device(output)
+            failure = AssertionError("Application crash or ANR found in logcat")
+            with patch.object(device, "assert_no_crash", side_effect=failure) as diagnose, patch.object(device, "hierarchy") as observe, patch.object(device, "scroll") as scroll, patch.object(device, "screen") as capture, patch.object(device, "adb") as command, patch("run_domains.time.sleep") as sleep:
+                with self.assertRaises(AssertionError) as raised:
+                    device.wait_statement("finance", "Published statement")
+                self.assertIs(raised.exception, failure)
+                diagnose.assert_called_once_with()
+                observe.assert_not_called()
+                scroll.assert_not_called()
+                sleep.assert_not_called()
+                capture.assert_not_called()
+                command.assert_not_called()
+                self.assertEqual(device.steps, [])
+                self.assertEqual(list(output.iterdir()), [])
+
+    def test_financial_adb_failure_or_timeout_is_terminal_before_retrying_the_dump(self):
+        for failure in [RuntimeError("adb shell uiautomator failed (exit 1)"),
+                        subprocess.TimeoutExpired(["adb", "shell", "uiautomator"], 20)]:
+            with self.subTest(failure=type(failure).__name__), tempfile.TemporaryDirectory() as directory:
+                output = Path(directory)
+                device = self.statement_device(output)
+                with patch.object(device, "assert_no_crash"), patch.object(device, "hierarchy", wraps=device.hierarchy) as observe, patch.object(device, "scroll") as scroll, patch.object(device, "screen") as capture, patch.object(device, "adb", side_effect=failure) as command, patch("run_domains.time.sleep") as sleep:
+                    with self.assertRaises(type(failure)) as raised:
+                        device.wait_statement("finance", "Published statement")
+                    self.assertIs(raised.exception, failure)
+                    observe.assert_called_once_with()
+                    command.assert_called_once_with("shell", "uiautomator", "dump", "/sdcard/predioon-smoke.xml", timeout=20, record_hierarchy=True)
+                    scroll.assert_not_called()
+                    sleep.assert_not_called()
+                    capture.assert_not_called()
+                    self.assertEqual(device.steps, [])
+                    self.assertEqual(list(output.iterdir()), [])
+
+    def test_financial_adb_scroll_failure_is_terminal_without_observing_again(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            device = self.statement_device(output)
+            failure = RuntimeError("adb shell input failed (exit 1)")
+            with patch.object(device, "assert_no_crash"), patch.object(device, "hierarchy", side_effect=[page("Prestação de contas", "Carregando"), self.statement_page()]) as observe, patch.object(device, "screen") as capture, patch.object(device, "adb", side_effect=["Physical size: 1080x2400", failure]) as command, patch("run_domains.time.sleep") as sleep:
+                with self.assertRaises(RuntimeError) as raised:
+                    device.wait_statement("finance", "Published statement")
+                self.assertIs(raised.exception, failure)
+                observe.assert_called_once_with()
+                self.assertEqual(command.call_count, 2)
+                sleep.assert_not_called()
+                capture.assert_not_called()
+                self.assertEqual(device.steps, [])
+                self.assertEqual(list(output.iterdir()), [])
+
     def test_comment_waits_for_submission_confirmation_before_scrolling_and_never_resends(self):
         fixture = {"forbidden": [], "accounts": {"operations-mobile": {"buildingName": BUILDING}}}
         device = DomainDevice("unused", "operations-mobile", Path("unused"), fixture, "FixturePassword123")

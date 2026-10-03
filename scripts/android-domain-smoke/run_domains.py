@@ -7,6 +7,7 @@ import re
 import subprocess
 import sys
 import time
+import xml.etree.ElementTree as ET
 
 from assertions import ROOT, PrivacyViolation, action_node, assert_snapshot, inspect_domain
 sys.path.insert(0, str(ROOT / "scripts/android-auth-smoke"))
@@ -37,6 +38,32 @@ class DomainDevice(AuthDevice):
         if redact(source, self.password) != source:
             raise RuntimeError("Credentials leaked into the UI hierarchy")
         return inspect_domain(source, self.package, self.account["buildingName"], (), self.forbidden_labels())
+
+    def wait_statement(self, phase, title):
+        # Keep the existing nine observations/eight scrolls. A static heading
+        # is not evidence that the asynchronous published report has rendered.
+        for attempt in range(9):
+            self.assert_no_crash()
+            try:
+                source = self.hierarchy()
+                if redact(source, self.password) != source:
+                    raise RuntimeError("Credentials leaked into the UI hierarchy")
+                nodes = inspect_domain(source, self.package, self.account["buildingName"], (), self.forbidden_labels())
+                report = one(nodes, lambda n: n.get("class") == "android.widget.TextView" and n.get("text") == title, "published statement " + title)
+                center(report)
+                action_node(nodes, "Ver lançamentos (1)")
+            except PrivacyViolation:
+                raise
+            except (AssertionError, ET.ParseError):
+                if attempt == 8:
+                    raise
+                self.scroll()
+                time.sleep(0.5)
+            else:
+                self.screen(phase)
+                (self.output / f"{phase}.xml").write_text(source, encoding="utf-8")
+                self.steps.append({"phase": phase, "passed": True})
+                return
 
     def viewport(self):
         result = self.adb("shell", "wm", "size")
@@ -185,7 +212,7 @@ def run(devices, apks, fixture_file, output):
     resident.enter_building("02-enter")
     resident.wait_domain("03-notices", [labels["notice"]])
     resident.tab("Transparência")
-    resident.wait_domain("04-finance", ["Prestação de contas"])
+    resident.wait_statement("04-finance", labels["report"])
     resident.tap("Ver lançamentos (1)")
     # The expanded entry can be below the fold; scroll only until it is visible.
     resident.scroll()

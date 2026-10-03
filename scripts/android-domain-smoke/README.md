@@ -1,4 +1,4 @@
-# Domínios na interface Android — 02/10/2026
+# Domínios na interface Android — 03/10/2026
 
 Este recorte exercita a UI real de Morador e Operação contra API HTTP/PostgreSQL isolados. É separado do [E2E de sessão](../android-auth-smoke/README.md): não substitui seus testes de persistência/rotação. O workflow `android-domains.yml` compila dois APKs release x86_64 em checkout efêmero, instala ambos em emulador API 35 e usa UIAutomator/ADB para interagir com os controles existentes. Não há respostas simuladas no percurso nativo.
 
@@ -52,7 +52,11 @@ Confiar na CA adicional continua restrito ao APK gerado no checkout descartável
 
 ## Validação local e comandos
 
-Os testes foram escritos antes da implementação do módulo de assertions (o primeiro RED registrou o módulo ainda inexistente). A suíte atual possui sete testes: allowlist de método/rota, tenant/conteúdo, controles nativos, prova de persistência, recusa de aparelho físico, recusa imediata de conteúdo privado e transporte TLS real. Este último sobe backend HTTP e dois proxies HTTPS locais, confirma que o proxy padrão recusa PATCH, que a política de domínios encaminha o PATCH autorizado com corpo/tipo corretos e que nenhum proxy encaminha o comando físico. A suíte autenticada também deve passar após a extensão opcional do proxy, incluindo TLS real com OpenSSL.
+Os testes foram escritos antes da implementação do módulo de assertions (o primeiro RED registrou o módulo ainda inexistente). A suíte atual possui 21 testes, incluindo allowlist de método/rota, tenant/conteúdo, controles nativos, prova de persistência, recusa de aparelho físico, confirmação de comentários, rolagem de campos, espera financeira, recusa imediata de conteúdo privado e transporte TLS real. Este último sobe backend HTTP e dois proxies HTTPS locais, confirma que o proxy padrão recusa PATCH, que a política de domínios encaminha o PATCH autorizado com corpo/tipo corretos e que nenhum proxy encaminha o comando físico. A suíte autenticada também deve passar após a extensão opcional do proxy, incluindo TLS real com OpenSSL.
+
+A fase `04-finance` só é aprovada quando o título fictício publicado e o controle nativo habilitado `Ver lançamentos (1)` estão visíveis; o cabeçalho estático `Prestação de contas` com `Carregando` não basta. A busca admite até nove observações e oito rolagens. Dump incompleto, XML inválido e cabeçalho ainda ausente são observações transitórias; privacidade, credenciais expostas, crash/ANR e falhas de ADB encerram a etapa imediatamente. A captura aprovada e o toque de expansão acontecem apenas após essa validação.
+
+Em 03/10/2026, a repetição das observações transitórias teve RED com seis falhas e um erro antes da correção. Após o ajuste, passaram 21/21 testes em Linux, incluindo TLS/OpenSSL real. No Windows passaram 20 testes, com um skip explícito pela ausência de OpenSSL. Essa validação aprova o harness; não demonstra que a falha `MissingViewState` do app foi corrigida nem substitui uma nova jornada nativa.
 
 O teste `test_fixture.mts` inicia o servidor real em porta aleatória, cria dados isolados e valida os contratos do roteiro: descoberta/features, financeiro publicado, avisos, autoria, criação/comentário, resumo031, sensor exato, reconhecimento, gestão exata, recusa dos vizinhos e revogação. Ele não controla emulador. A configuração TypeScript usa os tipos Node do workspace da API, sem globais React Native.
 
