@@ -2,7 +2,7 @@
 
 Publicadas em **03/10/2026**. Estas capturas foram conferidas em execuções reais e usam dados fictícios. Cada imagem mantém o commit de origem; a data de publicação não altera a versão demonstrada. O plano completo e os cinco vídeos finais continuam pendentes, conforme [CONTINUIDADE.md](CONTINUIDADE.md).
 
-As quinze imagens e a [galeria HTML](IMAGENS_DOS_SISTEMAS.html) agora acompanham o clone. Abra a galeria no navegador para filtrar e ampliar. O [manifesto](imagens/2026-10-03/manifesto.json) registra dimensões, SHA-256 e origem.
+As dezessete imagens e a [galeria HTML](IMAGENS_DOS_SISTEMAS.html) agora acompanham o clone. Abra a galeria no navegador para filtrar e ampliar. O [manifesto](imagens/2026-10-03/manifesto.json) registra dimensões, SHA-256 e origem.
 
 ## Android — Morador: avisos
 
@@ -93,3 +93,15 @@ Fonte037 [057722b](https://github.com/helberjf/predioON/commit/057722bd61d346651
 Fonte037 [057722b](https://github.com/helberjf/predioON/commit/057722bd61d3466516e5eb0eec8527c485fdd5b9), com23 arquivos comparados por SHA-256 LF. Formulário real com campos vazios protegidos, confirmação e cancelamento. API/PostgreSQL reais, contas fictícias isoladas e captura revisada; não é gravação final. A matriz funcional separada passou222/222 nos três motores, sem retries. No Morador, a rolagem nativa deixa o formulário inteiro acima da navegação fixa; nenhum elemento foi removido ou alterado para a imagem.
 
 ![Web — Morador · Segurança da conta](imagens/2026-10-03/web-senha-morador.png)
+
+## Web — Síndico · Prestação publicada
+
+Captura manual real no navegador desta máquina, API e banco demonstrativo com37 migrations. Rascunho privado e publicação foram verificados entre Síndico e Morador; saldo inicial R$123,45 menos despesa R$23,45 resultou R$100,00. Dados exclusivamente fictícios, sem pagamento real. Fonte [580a236](https://github.com/helberjf/predioON/commit/580a23608f4f79df3f9728946be4bfdb993155bb), com198 arquivos de runtime comparados ao commit e hashes dos bundles no [registro](imagens/2026-10-03/web-finance-manual-evidence.json). O screenshot retornou JPEG; bytes preservados, sem conversão ou edição. Viewport real1280×720, captura da página inteira; não é teste de390px nem app nativo.
+
+![Web — Síndico · Prestação publicada](imagens/2026-10-03/web-financeiro-sindico.jpg)
+
+## Web — Morador · Prestação publicada
+
+Captura manual real no navegador desta máquina, API e banco demonstrativo com37 migrations. Rascunho privado e publicação foram verificados entre Síndico e Morador; saldo inicial R$123,45 menos despesa R$23,45 resultou R$100,00. Dados exclusivamente fictícios, sem pagamento real. Fonte [580a236](https://github.com/helberjf/predioON/commit/580a23608f4f79df3f9728946be4bfdb993155bb), com198 arquivos de runtime comparados ao commit e hashes dos bundles no [registro](imagens/2026-10-03/web-finance-manual-evidence.json). O screenshot retornou JPEG; bytes preservados, sem conversão ou edição. Viewport real1280×720, captura da página inteira; não é teste de390px nem app nativo.
+
+![Web — Morador · Prestação publicada](imagens/2026-10-03/web-financeiro-morador.jpg)

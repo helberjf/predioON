@@ -150,6 +150,30 @@
       "sourceEvidence": "web-password-evidence.json",
       "capturePassed": true,
       "limit": "Formulário real com campos vazios protegidos, confirmação e cancelamento. API/PostgreSQL reais, contas fictícias isoladas e captura revisada; não é gravação final."
+    },
+    {
+      "file": "web-financeiro-sindico.jpg",
+      "sha256": "a37e199464e60c9687d5adcc81d117cfd6955c90b7ed8b45995353a4d5fe073e",
+      "width": 1264,
+      "height": 1168,
+      "sourceCommit": "580a23608f4f79df3f9728946be4bfdb993155bb",
+      "sourceRun": null,
+      "evidence": "web-finance-manual-evidence.json",
+      "format": "JPEG returned by browser screenshot API, copied without image conversion or editing",
+      "reviewed": true,
+      "scope": "Manual synthetic financial draft/publication/read QA; not native app, video or production homologation"
+    },
+    {
+      "file": "web-financeiro-morador.jpg",
+      "sha256": "dbc849ca264bb14997c247bf2474c16daa939e0afe57faba7da44d3abedf0c75",
+      "width": 1264,
+      "height": 1211,
+      "sourceCommit": "580a23608f4f79df3f9728946be4bfdb993155bb",
+      "sourceRun": null,
+      "evidence": "web-finance-manual-evidence.json",
+      "format": "JPEG returned by browser screenshot API, copied without image conversion or editing",
+      "reviewed": true,
+      "scope": "Manual synthetic financial draft/publication/read QA; not native app, video or production homologation"
     }
   ]
 }

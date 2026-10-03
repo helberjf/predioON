@@ -2,7 +2,7 @@
 
 Atualizado em **03/10/2026**, horário de São Paulo. Leia este arquivo primeiro ao retomar em outro computador. **O plano completo ainda não terminou e não há aceite para produção.** O computador não foi reiniciado.
 
-Repositório: <https://github.com/helberjf/predioON>. Linha autorizada: **main**. As migrations **001–037 estão publicadas**. Troca de senha, cliente, três portais, dois apps e roteiro Android foram enviados em `5929348`/057722b/cc6660a. A galeria possui **15 imagens reais versionadas**, incluindo três telas de segurança web em `3035245`. **Não reaplicar patches antigos de037: esse código já está na main.**
+Repositório: <https://github.com/helberjf/predioON>. Linha autorizada: **main**. As migrations **001–037 estão publicadas**. Troca de senha, cliente, três portais, dois apps e roteiro Android foram enviados em `5929348`/057722b/cc6660a. A galeria possui **17 imagens reais versionadas**, incluindo três telas de segurança web em `3035245`. **Não reaplicar patches antigos de037: esse código já está na main.**
 
 API 037 passou **697/697** em integral Linux própria e no [CI 5929348](https://github.com/helberjf/predioON/actions/runs/37153986387). Cliente 59, banco 26 com restauração real de 44 tabelas/37 migrations e ingestão 83 também passaram nesse CI. A matriz dos portais compilados passou **222/222** localmente e no [CI 3035245](https://github.com/helberjf/predioON/actions/runs/37154429632), Chromium/Firefox/WebKit, sem retries. UI 89 e mobile 72 passaram antes dos incrementos nativos seguintes. Não somar dirigidos para criar uma integral.
 
@@ -19,7 +19,7 @@ O checkpoint abaixo foi esvaziado: todos os rascunhos de senha, navegação Andr
 - Manter sugestões em [MELHORIAS_E_EVOLUCOES.md](MELHORIAS_E_EVOLUCOES.md).
 - **Não reiniciar o computador nesta sessão.** Nenhum reboot foi executado pelo agente. Reiniciar um processo de teste não é reiniciar o computador.
 - Ao terminar, abrir os três portais e os apps Morador/Operação neste computador e entregar cinco gravações completas, separadas, com dados fictícios. Também foram solicitadas imagens de Android, iOS e web durante o andamento.
-- **Incluir as imagens conferidas nos commits**, com origem e limites identificados. Desde 03/10, as quinze capturas e a galeria estão em [IMAGENS_DOS_SISTEMAS.md](IMAGENS_DOS_SISTEMAS.md), dentro do clone.
+- **Incluir as imagens conferidas nos commits**, com origem e limites identificados. Desde 03/10, as dezessete capturas e a galeria estão em [IMAGENS_DOS_SISTEMAS.md](IMAGENS_DOS_SISTEMAS.md), dentro do clone.
 
 ## 2. Estado das etapas
 
@@ -125,6 +125,8 @@ Atualização de03/10: [plataforma2af9b9e](https://github.com/helberjf/predioON/
 - As15 imagens tiveram hashes e referências estáticas conferidos. As3 novas capturas web são viewport real, campos vazios e screenshot do app, sem esconder elementos. A galeria8765 continua bloqueada por preferência salva do navegador; não houve contorno. O aceite antigo de10 imagens não se estende às15 atuais.
 - Administração5173, síndico5174 e Morador5175 foram abertos nesta máquina com dados fictícios e compilação do recorte037; navegação/login/formulário/cancelamento inspecionados, consoles sem erros. A tentativa de redimensionar IAB não mudou viewport real1280x720; responsividade320/390 foi comprovada pelo Playwright, não por essa tentativa manual.
 
+QA manual adicional: diretório, busca e catálogo de reservas conferidos. Prestação fictícia criada com saldo R$123,45/despesa R$23,45/final R$100,00; rascunho ausente no Morador, publicação presente, lançamento expandido nos dois perfis e consoles sem erros. Duas capturas JPEG originais adicionadas; 17 hashes/referências conferidos, sem aceite de navegador da galeria. Registro de fonte/bundles em imagens/2026-10-03/web-finance-manual-evidence.json. Não representa cobertura manual integral nem pagamento real.
+
 ## 5. Checkpoint atual
 
 O [manifesto](continuidade/2026-10-02-manifesto.json) registra **0 drafts**, base **9f3206231f93c8d9354275686033496470c6d974**. O [patch](continuidade/2026-10-02-em-andamento.patch) está intencionalmente vazio: SHA-256 **e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855**. A base arquivada foi conferida. **Não executar git apply nesse arquivo vazio.**
@@ -189,7 +191,7 @@ Banco/backup: seguir [BACKUP_E_RESTAURACAO.md](BACKUP_E_RESTAURACAO.md), incluin
 
 ## 8. Transferência, imagens e dependências externas
 
-Código publicado, documentação, checkpoint, galeria e **15 imagens reais** estão no GitHub. São 5 Android, 8 web e 2 entradas iOS; versões, fases e limites estão no [manifesto](imagens/2026-10-03/manifesto.json) e em [IMAGENS_DOS_SISTEMAS.md](IMAGENS_DOS_SISTEMAS.md). Capturas de fases aprovadas de uma jornada falha são identificadas; não representam aceite de toda a jornada. O navegador da galeria atual está bloqueado e não foi contornado.
+Código publicado, documentação, checkpoint, galeria e **17 imagens reais** estão no GitHub. São 5 Android, 10 web e 2 entradas iOS; versões, fases e limites estão no [manifesto](imagens/2026-10-03/manifesto.json) e em [IMAGENS_DOS_SISTEMAS.md](IMAGENS_DOS_SISTEMAS.md). Capturas de fases aprovadas de uma jornada falha são identificadas; não representam aceite de toda a jornada. O navegador da galeria atual está bloqueado e não foi contornado.
 
 `.local`, `work`, toolchains, containers/volumes, .env, tokens, keystores, evidências brutas e vídeos não ficam no Git. Nesta máquina, outputs ao lado do clone contém o pacote PREDIO_ON_CONTINUIDADE.zip com MDs, patch/manifesto e galeria/imagens. O manifesto do ZIP registra a versão publicada ao empacotar, hashes e quantidade real de drafts; confira-o antes de transportar. Recrie bancos descartáveis pelos scripts; não é necessário transportar volumes. Artefatos de CI têm retenção curta: guardar evidências sanitizadas importantes enquanto disponíveis.
 
