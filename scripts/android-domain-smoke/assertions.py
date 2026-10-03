@@ -25,11 +25,16 @@ def allows(method, path):
                 (method == "POST" and re.fullmatch(rf"/alerts/{UUID}/acknowledge", path)))
 
 
-def inspect_domain(source, package, building, required=(), forbidden=()):
+def inspect_domain(source, package, building, required=(), forbidden=(), forbidden_actions=()):
     nodes = parse_nodes(source, package)
     # Privacy is checked even while the expected next screen is still loading.
     if any(secret in node.get(field, "") for secret in forbidden for node in nodes for field in ["text", "content-desc"]):
         raise PrivacyViolation("Private neighbor, draft, revoked resource or wrong tenant is visible")
+    # Navigation is a native action, not a substring of a legitimate heading.
+    # A disabled/offscreen forbidden action is still an unauthorized control.
+    if any(node.get("class") == "android.widget.Button" and matches(node, label)
+           for label in forbidden_actions for node in nodes):
+        raise PrivacyViolation("Forbidden native domain action is present")
     for label in [building, *required]:
         if not any(matches(node, label) for node in nodes):
             raise AssertionError(f"Expected current domain label is absent: {label}")
@@ -41,6 +46,30 @@ def action_node(nodes, label):
                and node.get("enabled") == "true" and node.get("clickable") == "true", "enabled " + label)
     center(button)  # A native node without visible bounds cannot be tapped safely.
     return button
+
+
+def assert_background_activity(source, package, home_component):
+    """Require the API35 activity dump's own STOPPED record, never a neighbor's."""
+    def normalized(component):
+        owner, activity = component.split("/", 1)
+        return owner + "/" + (owner + activity if activity.startswith(".") else activity)
+
+    headers = list(re.finditer(r"(?m)^[ \t]*\* Hist\s+#\d+:\s*ActivityRecord\{[^}\r\n]*\}", source))
+    records = []
+    for index, header in enumerate(headers):
+        component = re.search(r"\bu\d+\s+([A-Za-z0-9_.]+/[A-Za-z0-9_.$]+)\s", header.group())
+        if component:
+            end = headers[index + 1].start() if index + 1 < len(headers) else len(source)
+            body = source[header.end():end]
+            state = re.search(r"(?m)^[ \t]*(?:mState|state)=([A-Z_]+)(?:\s|$)", body)
+            records.append((normalized(component.group(1)), state.group(1) if state else None))
+    own = [state for component, state in records if component == normalized(package + "/.MainActivity")]
+    home = normalized(home_component)
+    home_states = [state for component, state in records if component == home]
+    resumed = [normalized(component) for component in re.findall(
+        r"(?m)^[ \t]*topResumedActivity=ActivityRecord\{[^}\r\n]*\bu\d+\s+([A-Za-z0-9_.]+/[A-Za-z0-9_.$]+)\s", source)]
+    if own != ["STOPPED"] or home_states != ["RESUMED"] or not resumed or any(component != home for component in resumed):
+        raise AssertionError("Own MainActivity is not STOPPED behind the resolved resumed HOME")
 
 
 def assert_snapshot(snapshot, phase):

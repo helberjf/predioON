@@ -1,5 +1,6 @@
 """Interact with actual native domain UI and verify changes in the isolated real database."""
 import argparse
+from datetime import datetime, timezone
 import json
 import os
 from pathlib import Path
@@ -9,34 +10,89 @@ import sys
 import time
 import xml.etree.ElementTree as ET
 
-from assertions import ROOT, PrivacyViolation, action_node, assert_snapshot, inspect_domain
+from assertions import ROOT, PrivacyViolation, action_node, assert_background_activity, assert_snapshot, inspect_domain
 sys.path.insert(0, str(ROOT / "scripts/android-auth-smoke"))
 from run_auth import APPS, AuthDevice, center, inspect_login, matches, one, redact
+from run import crash_evidence, parse_nodes
 
 TABS = {"resident-mobile": ["Avisos", "Solicitações", "Transparência"],
         "operations-mobile": ["Resumo", "Alertas", "Sensores", "Solicitações"]}
 
 
 class DomainDevice(AuthDevice):
+    def __init__(self, serial, app, output, fixture, password):
+        super().__init__(serial, app, output, fixture, password)
+        self.preflight_passed = False
+        self.security_failed = False
+        self.security_failure = None
+        self.resume_observations = []
+
+    def record_security_failure(self, kind):
+        if not self.security_failed:
+            self.security_failure = {"kind": kind, "observedAt": datetime.now(timezone.utc).isoformat()}
+        self.security_failed = True
+
     def forbidden_labels(self):
         return self.fixture["forbidden"] + [value for app, account in self.fixture["accounts"].items()
             if app != self.app for key, value in account.items() if key in {"name", "email", "buildingName", "productTitle"}]
 
-    def wait_domain(self, phase, required=(), forbidden=()):
-        def inspect(source):
+    def check_observation_security(self, source):
+        if redact(source, self.password) != source:
+            self.record_security_failure("credential-exposure")
+            raise RuntimeError("Credentials leaked into the UI hierarchy")
+        root = ET.fromstring(source)
+        nodes = [node for node in root.iter("node") if node.get("package") == self.package]
+        if any(secret in node.get(field, "") for secret in self.forbidden_labels()
+               for node in nodes for field in ["text", "content-desc"]):
+            self.record_security_failure("private-domain-content")
+            raise PrivacyViolation("Private neighbor, draft, revoked resource or wrong tenant is visible")
+
+    def hierarchy(self):
+        source = super().hierarchy()
+        # Covers inherited profile/login and final collection, including a
+        # wrong/incomplete expected screen. Never export a rejected hierarchy.
+        self.check_observation_security(source)
+        return source
+
+    def wait_for(self, phase, inspect):
+        deadline, error = time.monotonic() + 60, "Expected domain screen did not render"
+        while time.monotonic() < deadline:
+            self.assert_no_crash()
             try:
-                return inspect_domain(source, self.package, self.account["buildingName"], required,
-                                      self.forbidden_labels() + list(forbidden))
-            except PrivacyViolation as error:
-                # A privacy failure is terminal, not an eventually consistent view.
-                raise RuntimeError(str(error)) from None
-        return self.wait_for(phase, inspect)
+                source = self.hierarchy()
+                self.check_observation_security(source)
+                result = inspect(source)
+            except PrivacyViolation as cause:
+                self.record_security_failure("forbidden-domain-action" if str(cause) == "Forbidden native domain action is present" else "private-domain-content")
+                raise RuntimeError(str(cause)) from None
+            except (AssertionError, ET.ParseError) as cause:
+                if "Android system dialog" in str(cause):
+                    raise RuntimeError("Android system dialog blocks domain verification") from None
+                error = str(cause)
+                time.sleep(1)
+            else:
+                (self.output / f"{phase}.xml").write_text(source, encoding="utf-8")
+                self.screen(phase)
+                self.steps.append({"phase": phase, "passed": True})
+                return result
+        raise AssertionError(f"{phase}: {error}")
+
+    def wait_domain(self, phase, required=(), forbidden=(), forbidden_actions=()):
+        return self.wait_for(phase, lambda source: inspect_domain(
+            source, self.package, self.account["buildingName"], required,
+            self.forbidden_labels() + list(forbidden), forbidden_actions))
+
+    def collect(self):
+        if not self.preflight_passed or self.security_failed:
+            return
+        super().collect()
+        if self.security_failed:
+            raise RuntimeError("Security failure during final observation; further collection is blocked")
 
     def nodes(self):
         self.assert_no_crash()
         source = self.hierarchy()
-        if redact(source, self.password) != source:
-            raise RuntimeError("Credentials leaked into the UI hierarchy")
+        self.check_observation_security(source)
         return inspect_domain(source, self.package, self.account["buildingName"], (), self.forbidden_labels())
 
     def wait_statement(self, phase, title):
@@ -46,13 +102,13 @@ class DomainDevice(AuthDevice):
             self.assert_no_crash()
             try:
                 source = self.hierarchy()
-                if redact(source, self.password) != source:
-                    raise RuntimeError("Credentials leaked into the UI hierarchy")
+                self.check_observation_security(source)
                 nodes = inspect_domain(source, self.package, self.account["buildingName"], (), self.forbidden_labels())
                 report = one(nodes, lambda n: n.get("class") == "android.widget.TextView" and n.get("text") == title, "published statement " + title)
                 center(report)
                 action_node(nodes, "Ver lançamentos (1)")
             except PrivacyViolation:
+                self.record_security_failure("private-domain-content")
                 raise
             except (AssertionError, ET.ParseError):
                 if attempt == 8:
@@ -156,8 +212,78 @@ class DomainDevice(AuthDevice):
         self.adb("shell", "input", "tap", *center(button))
         self.wait_domain(phase + "-building", ["Trocar"])
 
-    def resume(self):
+    def resume(self, before_launch=None):
+        if self.adb("shell", "getprop", "ro.kernel.qemu").strip() != "1":
+            raise AssertionError("Domain resume requires a disposable emulator")
+        if self.adb("shell", "getprop", "sys.boot_completed").strip() != "1":
+            raise AssertionError("Emulator has not finished booting")
         self.adb("shell", "input", "keyevent", "KEYCODE_HOME")
+        # An immediate launch can coalesce HOME and foreground, missing AppState.
+        # Confirm two visible observations of the current resolved HOME before
+        # launching the existing process; never use force-stop for this check.
+        deadline, stable, previous_home = time.monotonic() + 90, 0, None
+        for attempt in range(9):
+            if time.monotonic() >= deadline:
+                break
+            self.assert_no_crash()
+            observation = {"number": attempt + 1, "observedAt": datetime.now(timezone.utc).isoformat(),
+                           "homeResolved": False, "homeVisible": False, "appStopped": False}
+            self.resume_observations.append(observation)
+            try:
+                resolved = self.adb("shell", "cmd", "package", "resolve-activity", "--brief", "-a", "android.intent.action.MAIN", "-c", "android.intent.category.HOME")
+                components = [line.strip() for line in resolved.splitlines()
+                              if re.fullmatch(r"[A-Za-z0-9_.]+/[A-Za-z0-9_.$]+", line.strip())]
+                if len(components) != 1:
+                    raise AssertionError("Disposable emulator has no unambiguous HOME activity")
+                component = components[0]
+                observation["homeResolved"] = True
+                home_package = component.split("/")[0]
+                crash = self.adb("logcat", "-b", "crash", "-d")
+                main = self.adb("logcat", "-d", "-v", "threadtime")
+                exits = self.adb("shell", "dumpsys", "activity", "exit-info", home_package)
+                if crash_evidence(home_package, crash, main, exits):
+                    raise RuntimeError("Resolved HOME has a crash or ANR")
+                source = self.hierarchy()
+                self.check_observation_security(source)
+                nodes = parse_nodes(source, home_package)
+                visible = False
+                for node in nodes:
+                    try:
+                        center(node)
+                    except AssertionError:
+                        continue
+                    visible = True
+                    break
+                if not visible:
+                    raise AssertionError("Resolved HOME has no visible native area")
+                observation["homeVisible"] = True
+                activities = self.adb("shell", "dumpsys", "activity", "activities")
+                if redact(activities, self.password) != activities:
+                    self.record_security_failure("credential-exposure")
+                    raise RuntimeError("Credentials leaked into the activity metadata")
+                assert_background_activity(activities, self.package, component)
+                observation["appStopped"] = True
+            except PrivacyViolation as cause:
+                self.record_security_failure("private-domain-content")
+                raise RuntimeError(str(cause)) from None
+            except (AssertionError, ET.ParseError) as cause:
+                if "Android system dialog" in str(cause):
+                    raise RuntimeError("Android system dialog blocks HOME verification") from None
+                stable, previous_home = 0, None
+            else:
+                stable = stable + 1 if component == previous_home else 1
+                previous_home = component
+                if stable == 2:
+                    break
+            if attempt < 8:
+                time.sleep(1)
+        else:
+            raise AssertionError("Disposable emulator HOME did not become observable before resume")
+        if stable != 2 or time.monotonic() >= deadline:
+            raise AssertionError("Disposable emulator HOME did not become observable before resume")
+        if before_launch:
+            before_launch()
+        self.assert_no_crash()  # Do not turn a background process death into a cold-start pass.
         self.launch()
 
     def exit_building(self, phase):
@@ -198,6 +324,10 @@ def run(devices, apks, fixture_file, output):
     labels = resident.fixture["labels"]
     if resident.adb("shell", "getprop", "ro.kernel.qemu").strip() != "1":
         raise AssertionError("Domain verification requires a disposable emulator")
+    if any(device.serial != resident.serial for device in devices):
+        raise AssertionError("Domain verification requires one guarded emulator")
+    for device in devices:
+        device.preflight_passed = True
     if resident.adb("shell", "getprop", "sys.boot_completed").strip() != "1":
         raise AssertionError("Emulator has not finished booting")
     resident.wait_environment_ready()
@@ -240,7 +370,7 @@ def run(devices, apks, fixture_file, output):
     operator.tap("Reconhecer")
     operator.wait_domain("06-acknowledged", ["Alerta reconhecido."])
     operator.tab("Solicitações")
-    operator.wait_domain("07-ticket", [labels["operatorTicket"]], ["Nova solicitação"])
+    operator.wait_domain("07-ticket", [labels["operatorTicket"]], forbidden_actions=["Nova solicitação"])
     operator.tap("Acompanhar conversa")
     operator.wait_domain("08-conversation", [labels["operatorTicket"]])
     operator.tap("Iniciar")
@@ -250,22 +380,21 @@ def run(devices, apks, fixture_file, output):
 
     operator.tab("Sensores")
     operator.wait_domain("11-before-device-revoke", [labels["device"]])
-    fixture_action(fixture_file, "revoke", "device")
-    operator.resume()
-    operator.wait_domain("12-device-revoked", ["Somente chamados concedidos ao seu perfil."], [labels["device"], labels["alert"], "Sensores", "Alertas"])
+    operator.resume(lambda: fixture_action(fixture_file, "revoke", "device"))
+    operator.wait_domain("12-device-revoked", ["Somente chamados concedidos ao seu perfil."],
+                         [labels["device"], labels["alert"]], forbidden_actions=["Sensores", "Alertas"])
     prove(fixture_file, output, "device-revoked")
     operator.tab("Solicitações")
     operator.tap("Acompanhar conversa")
     operator.wait_domain("13-before-ticket-revoke", [labels["operatorTicket"]])
-    fixture_action(fixture_file, "revoke", "ticket")
-    operator.resume()
-    operator.wait_domain("14-ticket-revoked", ["Prédio fora do seu escopo"], [labels["operatorTicket"], "Concluir", "Nova mensagem"])
+    operator.resume(lambda: fixture_action(fixture_file, "revoke", "ticket"))
+    operator.wait_domain("14-ticket-revoked", ["Prédio fora do seu escopo"], [labels["operatorTicket"], "Nova mensagem"],
+                         forbidden_actions=["Concluir"])
 
     resident.launch()
     resident.tab("Transparência")
     resident.wait_domain("09-before-finance-revoke", ["Prestação de contas"])
-    fixture_action(fixture_file, "revoke", "finance")
-    resident.resume()
+    resident.resume(lambda: fixture_action(fixture_file, "revoke", "finance"))
     resident.wait_domain("10-finance-revoked", ["Informes da gestão"], ["Prestação de contas", labels["report"], labels["entry"]])
     prove(fixture_file, output, "final")
     for device in devices:
@@ -300,10 +429,26 @@ def main():
         report["error"] = redact(str(error), password)
         raise SystemExit("Native domain verification failed; inspect sanitized evidence") from None
     finally:
+        collection_failed = False
         for device in devices:
-            device.collect()
+            # Both products share the emulator. A rejected screen from either
+            # product forbids collecting the other product's foreground too.
+            if any(candidate.security_failed for candidate in devices):
+                break
+            if device.preflight_passed:
+                try:
+                    device.collect()
+                except Exception:
+                    report["passed"] = False
+                    report.setdefault("error", "Final diagnostics failed; no further collection")
+                    collection_failed = True
+                    break
+        report["backgroundObservations"] = {device.app: device.resume_observations for device in devices}
+        report["securityFailures"] = {device.app: device.security_failure for device in devices if device.security_failed}
         (args.artifacts / "result.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
         print(json.dumps(report, ensure_ascii=False))
+        if collection_failed:
+            raise SystemExit("Native domain final diagnostics failed; inspect sanitized evidence") from None
 
 
 if __name__ == "__main__":

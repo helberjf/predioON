@@ -10,9 +10,10 @@ import subprocess
 import tempfile
 import threading
 from unittest.mock import patch
+import assertions
 
 from assertions import PrivacyViolation, allows, inspect_domain, action_node, assert_snapshot
-from run_domains import DomainDevice, run
+from run_domains import APPS, DomainDevice, main, run
 from proxy import make_handler
 from tls import create_certificates
 
@@ -31,6 +32,123 @@ def page(*labels, button=None, enabled="true"):
 
 
 class DomainAssertions(unittest.TestCase):
+    def test_revoked_navigation_accepts_empty_summary_headings_without_resource_actions(self):
+        source = page("Somente chamados concedidos ao seu perfil.", "Alertas em aberto", "Alertas recentes", "Nenhum alerta no seu escopo.", button="Solicitações")
+        inspect_domain(source, PACKAGE, BUILDING, ["Somente chamados concedidos ao seu perfil."], ["Private sensor", "Private alert"], forbidden_actions=["Sensores", "Alertas"])
+
+    def test_forbidden_navigation_requires_exact_native_button_even_when_disabled(self):
+        for label in ["Sensores", "Alertas"]:
+            for enabled in ["true", "false"]:
+                for field in ["text", "content-desc"]:
+                    root = ET.fromstring(page("Loading"))
+                    ET.SubElement(root, "node", {"package": PACKAGE, "class": "android.widget.Button", field: label, "enabled": enabled, "clickable": "false", "bounds": "[0,0][0,0]"})
+                    with self.subTest(label=label, enabled=enabled, field=field), self.assertRaises(PrivacyViolation):
+                        inspect_domain(ET.tostring(root, encoding="unicode"), PACKAGE, BUILDING, ["Expected later"], [], forbidden_actions=[label])
+        inspect_domain(page("Alertas", "Sensores", button="Alertas recentes"), PACKAGE, BUILDING, [], [], forbidden_actions=["Alertas", "Sensores"])
+
+    def test_private_data_remains_substring_terminal_independently_of_navigation_labels(self):
+        for field in ["text", "content-desc"]:
+            root = ET.fromstring(page("Loading"))
+            ET.SubElement(root, "node", {"package": PACKAGE, "class": "android.widget.TextView", field: "prefix PRIVATE suffix"})
+            with self.subTest(field=field), self.assertRaises(PrivacyViolation):
+                inspect_domain(ET.tostring(root, encoding="unicode"), PACKAGE, BUILDING, ["Expected later"], ["PRIVATE"], forbidden_actions=["Alertas"])
+
+    def test_revoked_action_and_private_data_stop_observation_without_capture_or_retry(self):
+        for denied in [page("Loading", button="Alertas", enabled="false"), page("prefix PRIVATE suffix")]:
+            with self.subTest(source=denied), tempfile.TemporaryDirectory() as directory:
+                output = Path(directory)
+                device = self.statement_device(output)
+                with patch.object(device, "assert_no_crash"), patch.object(device, "hierarchy", side_effect=[denied, page("Allowed")]) as observe, patch.object(device, "screen") as capture, patch("run_domains.time.sleep") as sleep:
+                    with self.assertRaises(RuntimeError):
+                        device.wait_domain("revoke", ["Allowed"], [], forbidden_actions=["Alertas"])
+                    observe.assert_called_once_with()
+                    sleep.assert_not_called()
+                    capture.assert_not_called()
+                    self.assertTrue(device.security_failed)
+                    self.assertEqual(list(output.iterdir()), [])
+
+    def test_credentials_in_incomplete_domain_observation_are_terminal_without_retry(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            device = self.statement_device(output)
+            with patch.object(device, "assert_no_crash"), patch.object(device, "hierarchy", side_effect=["<hierarchy>" + device.password, page("Allowed")]) as observe, patch.object(device, "screen") as capture, patch("run_domains.time.sleep") as sleep:
+                with self.assertRaisesRegex(RuntimeError, "Credentials leaked"):
+                    device.wait_domain("credentials", ["Allowed"])
+                observe.assert_called_once_with()
+                sleep.assert_not_called()
+                capture.assert_not_called()
+                self.assertTrue(device.security_failed)
+                first = dict(device.security_failure)
+                self.assertEqual(first["kind"], "credential-exposure")
+                self.assertRegex(first["observedAt"], r"\+00:00$")
+                self.assertEqual(set(first), {"kind", "observedAt"})
+                device.record_security_failure("private-domain-content")
+                self.assertEqual(device.security_failure, first)
+                self.assertEqual(list(output.iterdir()), [])
+
+    def test_collection_stops_after_security_failure_without_any_new_device_observation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            device = self.statement_device(output)
+            device.preflight_passed = True
+            device.security_failed = True
+            with patch.object(device, "adb") as command, patch.object(device, "hierarchy") as observe, patch.object(device, "screen") as capture:
+                device.collect()
+                command.assert_not_called()
+                observe.assert_not_called()
+                capture.assert_not_called()
+                self.assertEqual(list(output.iterdir()), [])
+
+    def test_shared_emulator_security_failure_blocks_collection_of_both_apps(self):
+        for failed_index in [0, 1]:
+            with self.subTest(failed_app=failed_index), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                fixture = root / "fixture.json"
+                fixture.write_text(json.dumps({"forbidden": [], "accounts": {app: {"buildingName": BUILDING} for app in APPS}}), encoding="utf-8")
+                def deny(devices, *_args):
+                    for device in devices:
+                        device.preflight_passed = True
+                    devices[failed_index].security_failed = True
+                    raise RuntimeError("Private domain content is visible")
+                argv = ["run_domains.py", "--fixture", str(fixture), "--apks", str(root / "apks"), "--artifacts", str(root / "output")]
+                with patch("run_domains.sys.argv", argv), patch.dict("run_domains.os.environ", {"ANDROID_AUTH_PASSWORD": "FixturePassword123"}), patch("run_domains.run", side_effect=deny), patch.object(DomainDevice, "collect") as collect, patch("builtins.print"):
+                    with self.assertRaises(SystemExit):
+                        main()
+                    collect.assert_not_called()
+                    self.assertFalse(json.loads((root / "output/result.json").read_text(encoding="utf-8"))["passed"])
+
+    def test_main_physical_guard_denial_never_collects_or_captures_device_content(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            fixture = root / "fixture.json"
+            fixture.write_text(json.dumps({"labels": {}, "forbidden": [], "accounts": {app: {"buildingName": BUILDING} for app in APPS}}), encoding="utf-8")
+            argv = ["run_domains.py", "--fixture", str(fixture), "--apks", str(root / "apks"), "--artifacts", str(root / "output")]
+            with patch("run_domains.sys.argv", argv), patch.dict("run_domains.os.environ", {"ANDROID_AUTH_PASSWORD": "FixturePassword123"}), patch.object(DomainDevice, "adb", return_value="0") as command, patch.object(DomainDevice, "collect") as collect, patch("builtins.print"):
+                with self.assertRaises(SystemExit):
+                    main()
+                command.assert_called_once_with("shell", "getprop", "ro.kernel.qemu")
+                collect.assert_not_called()
+
+    def test_security_discovered_in_final_collection_rejects_success_and_blocks_other_app(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            fixture = root / "fixture.json"
+            fixture.write_text(json.dumps({"forbidden": [], "accounts": {app: {"buildingName": BUILDING} for app in APPS}}), encoding="utf-8")
+            def ready(devices, *_args):
+                for device in devices:
+                    device.preflight_passed = True
+            def late_denial(device):
+                device.record_security_failure("private-domain-content")
+            argv = ["run_domains.py", "--fixture", str(fixture), "--apks", str(root / "apks"), "--artifacts", str(root / "output")]
+            with patch("run_domains.sys.argv", argv), patch.dict("run_domains.os.environ", {"ANDROID_AUTH_PASSWORD": "FixturePassword123"}), patch("run_domains.run", side_effect=ready), patch("run_domains.AuthDevice.collect", autospec=True, side_effect=late_denial) as collect, patch("builtins.print"):
+                with self.assertRaises(SystemExit):
+                    main()
+                collect.assert_called_once()
+                report = json.loads((root / "output/result.json").read_text(encoding="utf-8"))
+                self.assertFalse(report["passed"])
+                self.assertEqual(len(report["securityFailures"]), 1)
+                self.assertEqual(report["securityFailures"]["resident-mobile"]["kind"], "private-domain-content")
+
     def statement_device(self, output):
         fixture = {"forbidden": ["PRIVATE"], "accounts": {"operations-mobile": {"buildingName": BUILDING}}}
         return DomainDevice("unused", "operations-mobile", output, fixture, "FixturePassword123")
@@ -368,6 +486,244 @@ class DomainAssertions(unittest.TestCase):
                            ("neighborStatus", "DONE"), ("ticketGrantActive", True), ("alertStatus", "OPEN")]:
             with self.assertRaises(AssertionError):
                 assert_snapshot({**snapshot, key: value}, "final")
+
+
+class ResumeAssertions(unittest.TestCase):
+    HOME = "com.google.android.apps.nexuslauncher"
+    COMPONENT = HOME + "/.NexusLauncherActivity"
+
+    def device(self, output):
+        fixture = {"forbidden": ["PRIVATE"], "accounts": {"operations-mobile": {"buildingName": BUILDING}}}
+        return DomainDevice("emulator-5554", "operations-mobile", output, fixture, "FixturePassword123")
+
+    def home_page(self, bounds="[0,0][1080,2400]"):
+        root = ET.Element("hierarchy")
+        ET.SubElement(root, "node", {"package": self.HOME, "class": "android.widget.FrameLayout", "bounds": bounds})
+        return ET.tostring(root, encoding="unicode")
+
+    def activities(self, state="STOPPED", package=PACKAGE, component=None):
+        return (f"    topResumedActivity=ActivityRecord{{abc u0 {component or self.COMPONENT} t1}}\n"
+                f"    * Hist  #0: ActivityRecord{{abc u0 {component or self.COMPONENT} t1}}\n"
+                "      state=RESUMED delayedResume=false\n"
+                f"    * Hist  #1: ActivityRecord{{def u0 {package}/.MainActivity t2}}\n"
+                f"      state={state} delayedResume=false\n")
+
+    def adb_reply(self, events, qemu="1", boot="1", resolution=None, crash="", failure=None, activities=None):
+        def reply(*args, **kwargs):
+            events.append(("adb", args))
+            if failure and args == failure[0]:
+                raise failure[1]
+            if args == ("shell", "getprop", "ro.kernel.qemu"):
+                return qemu
+            if args == ("shell", "getprop", "sys.boot_completed"):
+                return boot
+            if args[:4] == ("shell", "cmd", "package", "resolve-activity"):
+                return resolution() if resolution else self.COMPONENT
+            if args == ("logcat", "-d", "-v", "threadtime"):
+                return crash
+            if args == ("shell", "dumpsys", "activity", "activities"):
+                return activities() if activities else self.activities()
+            return ""
+        return reply
+
+    def test_resume_launches_only_after_two_visible_resolved_home_observations(self):
+        with tempfile.TemporaryDirectory() as directory:
+            device = self.device(Path(directory))
+            events, sources = [], iter([page("Resumo"), self.home_page(), self.home_page()])
+            def observe():
+                source = next(sources)
+                events.append(("observe", source))
+                return source
+            with patch.object(device, "adb", side_effect=self.adb_reply(events)), patch.object(device, "assert_no_crash"), patch.object(device, "hierarchy", side_effect=observe), patch.object(device, "launch", side_effect=lambda: events.append(("launch",))) as launch, patch.object(device, "screen") as capture, patch("run_domains.time.sleep", side_effect=lambda seconds: events.append(("sleep", seconds))), patch("run_domains.time.monotonic", return_value=0):
+                device.resume()
+                launch.assert_called_once_with()
+                capture.assert_not_called()
+                observed = [item[1] for item in events if item[0] == "observe"]
+                self.assertEqual(observed, [page("Resumo"), self.home_page(), self.home_page()])
+                self.assertEqual(events[-1], ("launch",))
+                self.assertEqual(sum(item[0] == "sleep" for item in events), 2)
+                self.assertFalse(any(item[0] == "adb" and "force-stop" in item[1] for item in events))
+
+    def test_resume_refuses_physical_or_unbooted_device_before_home_and_launch(self):
+        for qemu, boot, calls in [("0", "1", 1), ("1", "0", 2)]:
+            with self.subTest(qemu=qemu, boot=boot), tempfile.TemporaryDirectory() as directory:
+                device, events = self.device(Path(directory)), []
+                with patch.object(device, "adb", side_effect=self.adb_reply(events, qemu, boot)) as command, patch.object(device, "assert_no_crash") as diagnose, patch.object(device, "hierarchy") as observe, patch.object(device, "launch") as launch:
+                    with self.assertRaises(AssertionError):
+                        device.resume()
+                    self.assertEqual(command.call_count, calls)
+                    diagnose.assert_not_called()
+                    observe.assert_not_called()
+                    launch.assert_not_called()
+
+    def test_resume_waits_for_incomplete_or_wrong_xml_without_capturing_it(self):
+        for incomplete in ["<hierarchy>", AssertionError("null root node"), self.home_page("[0,0][0,0]")]:
+            with self.subTest(observation=repr(incomplete)), tempfile.TemporaryDirectory() as directory:
+                device, events = self.device(Path(directory)), []
+                with patch.object(device, "adb", side_effect=self.adb_reply(events)), patch.object(device, "assert_no_crash"), patch.object(device, "hierarchy", side_effect=[incomplete, self.home_page(), self.home_page()]) as observe, patch.object(device, "launch") as launch, patch.object(device, "screen") as capture, patch("run_domains.time.sleep") as sleep, patch("run_domains.time.monotonic", return_value=0):
+                    device.resume()
+                    self.assertEqual(observe.call_count, 3)
+                    self.assertEqual(sleep.call_count, 2)
+                    launch.assert_called_once_with()
+                    capture.assert_not_called()
+                    self.assertEqual(list(Path(directory).iterdir()), [])
+
+    def test_resume_expires_after_nine_wrong_observations_without_launching(self):
+        with tempfile.TemporaryDirectory() as directory:
+            device, events = self.device(Path(directory)), []
+            with patch.object(device, "adb", side_effect=self.adb_reply(events)), patch.object(device, "assert_no_crash"), patch.object(device, "hierarchy", return_value=page("Resumo")) as observe, patch.object(device, "launch") as launch, patch.object(device, "screen") as capture, patch("run_domains.time.sleep") as sleep, patch("run_domains.time.monotonic", return_value=0):
+                with self.assertRaisesRegex(AssertionError, "HOME"):
+                    device.resume()
+                self.assertEqual(observe.call_count, 9)
+                self.assertEqual(sleep.call_count, 8)
+                launch.assert_not_called()
+                capture.assert_not_called()
+
+    def test_resume_requires_the_same_home_identity_for_both_ready_observations(self):
+        with tempfile.TemporaryDirectory() as directory:
+            device, events = self.device(Path(directory)), []
+            resolutions = iter(["com.android.launcher3/.Launcher", self.COMPONENT, self.COMPONENT])
+            states = iter([self.activities(component="com.android.launcher3/.Launcher"), self.activities(), self.activities()])
+            other = self.home_page().replace(self.HOME, "com.android.launcher3")
+            with patch.object(device, "adb", side_effect=self.adb_reply(events, resolution=lambda: next(resolutions), activities=lambda: next(states))), patch.object(device, "assert_no_crash"), patch.object(device, "hierarchy", side_effect=[other, self.home_page(), self.home_page()]) as observe, patch.object(device, "launch") as launch, patch("run_domains.time.sleep") as sleep, patch("run_domains.time.monotonic", return_value=0):
+                device.resume()
+                self.assertEqual(observe.call_count, 3)
+                self.assertEqual(sleep.call_count, 2)
+                launch.assert_called_once_with()
+
+    def test_resume_adb_failure_or_timeout_never_retries_or_launches(self):
+        home = ("shell", "input", "keyevent", "KEYCODE_HOME")
+        resolve = ("shell", "cmd", "package", "resolve-activity", "--brief", "-a", "android.intent.action.MAIN", "-c", "android.intent.category.HOME")
+        for target in [home, resolve]:
+            for failure in [RuntimeError("ADB failed"), subprocess.TimeoutExpired(["adb"], 20)]:
+                with self.subTest(target=target, failure=type(failure).__name__), tempfile.TemporaryDirectory() as directory:
+                    device, events = self.device(Path(directory)), []
+                    with patch.object(device, "adb", side_effect=self.adb_reply(events, failure=(target, failure))), patch.object(device, "assert_no_crash"), patch.object(device, "hierarchy") as observe, patch.object(device, "launch") as launch, patch("run_domains.time.sleep") as sleep:
+                        with self.assertRaises(type(failure)) as raised:
+                            device.resume()
+                        self.assertIs(raised.exception, failure)
+                        self.assertEqual(sum(item == ("adb", target) for item in events), 1)
+                        observe.assert_not_called()
+                        launch.assert_not_called()
+                        sleep.assert_not_called()
+
+    def test_resume_home_anr_and_system_dialog_are_terminal_before_launch(self):
+        root = ET.fromstring(self.home_page())
+        ET.SubElement(root, "node", {"package": "android", "resource-id": "android:id/alertTitle", "text": "Pixel Launcher isn't responding"})
+        for crash, source in [("ANR in " + self.HOME, self.home_page()), ("", ET.tostring(root, encoding="unicode"))]:
+            with self.subTest(crash=crash), tempfile.TemporaryDirectory() as directory:
+                device, events = self.device(Path(directory)), []
+                with patch.object(device, "adb", side_effect=self.adb_reply(events, crash=crash)), patch.object(device, "assert_no_crash"), patch.object(device, "hierarchy", return_value=source) as observe, patch.object(device, "launch") as launch, patch.object(device, "screen") as capture, patch("run_domains.time.sleep") as sleep:
+                    with self.assertRaises(RuntimeError):
+                        device.resume()
+                    self.assertLessEqual(observe.call_count, 1)
+                    launch.assert_not_called()
+                    capture.assert_not_called()
+                    sleep.assert_not_called()
+
+    def test_resume_app_crash_credentials_and_private_data_are_terminal(self):
+        for source, crash in [(self.home_page(), AssertionError("Application crash or ANR")), ("<hierarchy>FixturePassword123", None), (page("prefix PRIVATE suffix"), None)]:
+            with self.subTest(source=source, crash=crash), tempfile.TemporaryDirectory() as directory:
+                device, events = self.device(Path(directory)), []
+                with patch.object(device, "adb", side_effect=self.adb_reply(events)), patch.object(device, "assert_no_crash", side_effect=crash), patch.object(device, "hierarchy", side_effect=[source, self.home_page()]) as observe, patch.object(device, "launch") as launch, patch.object(device, "screen") as capture, patch("run_domains.time.sleep") as sleep:
+                    with self.assertRaises((RuntimeError, AssertionError)):
+                        device.resume()
+                    self.assertLessEqual(observe.call_count, 1)
+                    launch.assert_not_called()
+                    capture.assert_not_called()
+                    sleep.assert_not_called()
+                    if not crash:
+                        self.assertTrue(device.security_failed)
+
+    def test_background_proof_requires_own_stopped_record_and_resumed_resolved_home(self):
+        assertions.assert_background_activity(self.activities(), PACKAGE, self.COMPONENT)
+        expanded = self.activities().replace(self.COMPONENT, self.HOME + "/" + self.HOME + ".NexusLauncherActivity")
+        assertions.assert_background_activity(expanded, PACKAGE, self.COMPONENT)
+        for unsafe in [self.activities("RESUMED"), self.activities("PAUSED"), self.activities("STOPPING"),
+                       self.activities(package="com.predioon.other"), self.activities(component=PACKAGE + "/.MainActivity"),
+                       self.activities() + f"    * Hist  #2: ActivityRecord{{ghi u0 {PACKAGE}/.MainActivity t3}}\n      state=RESUMED\n",
+                       "ActivityRecord{" + PACKAGE + "/.MainActivity}\nstate=STOPPED"]:
+            with self.subTest(activities=unsafe), self.assertRaises(AssertionError):
+                assertions.assert_background_activity(unsafe, PACKAGE, self.COMPONENT)
+
+    def test_revoke_callback_occurs_after_background_proof_and_before_single_launch(self):
+        with tempfile.TemporaryDirectory() as directory:
+            device, events = self.device(Path(directory)), []
+            with patch.object(device, "adb", side_effect=self.adb_reply(events)), patch.object(device, "assert_no_crash"), patch.object(device, "hierarchy", return_value=self.home_page()), patch.object(device, "launch", side_effect=lambda: events.append(("launch",))) as launch, patch("run_domains.time.sleep"), patch("run_domains.time.monotonic", return_value=0):
+                device.resume(lambda: events.append(("revoke",)))
+                self.assertEqual(events[-2:], [("revoke",), ("launch",)])
+                self.assertEqual(sum(item == ("adb", ("shell", "dumpsys", "activity", "activities")) for item in events), 2)
+                launch.assert_called_once_with()
+
+    def test_visible_home_without_own_stopped_activity_cannot_revoke_or_launch(self):
+        for states in [iter([self.activities("RESUMED"), self.activities(), self.activities()]), None]:
+            with self.subTest(eventually_stopped=bool(states)), tempfile.TemporaryDirectory() as directory:
+                device, events = self.device(Path(directory)), []
+                def activity():
+                    return next(states) if states else self.activities("PAUSED")
+                with patch.object(device, "adb", side_effect=self.adb_reply(events, activities=activity)), patch.object(device, "assert_no_crash"), patch.object(device, "hierarchy", return_value=self.home_page()) as observe, patch.object(device, "launch") as launch, patch("run_domains.time.sleep") as sleep, patch("run_domains.time.monotonic", return_value=0):
+                    callback = unittest.mock.Mock()
+                    if states:
+                        device.resume(callback)
+                        self.assertEqual(observe.call_count, 3)
+                        callback.assert_called_once_with()
+                        launch.assert_called_once_with()
+                    else:
+                        with self.assertRaisesRegex(AssertionError, "HOME"):
+                            device.resume(callback)
+                        self.assertEqual(observe.call_count, 9)
+                        self.assertEqual(sleep.call_count, 8)
+                        callback.assert_not_called()
+                        launch.assert_not_called()
+
+    def test_revoke_failure_after_confirmed_background_never_launches_or_retries(self):
+        with tempfile.TemporaryDirectory() as directory:
+            device, events = self.device(Path(directory)), []
+            failure = RuntimeError("Fixture revocation failed")
+            with patch.object(device, "adb", side_effect=self.adb_reply(events)), patch.object(device, "assert_no_crash"), patch.object(device, "hierarchy", return_value=self.home_page()), patch.object(device, "launch") as launch, patch.object(device, "screen") as capture, patch("run_domains.time.sleep"), patch("run_domains.time.monotonic", return_value=0):
+                callback = unittest.mock.Mock(side_effect=failure)
+                with self.assertRaises(RuntimeError) as raised:
+                    device.resume(callback)
+                self.assertIs(raised.exception, failure)
+                callback.assert_called_once_with()
+                launch.assert_not_called()
+                capture.assert_not_called()
+
+    def test_background_activity_adb_failure_blocks_revocation_and_launch(self):
+        with tempfile.TemporaryDirectory() as directory:
+            device, events = self.device(Path(directory)), []
+            target = ("shell", "dumpsys", "activity", "activities")
+            failure = subprocess.TimeoutExpired(["adb"], 20)
+            with patch.object(device, "adb", side_effect=self.adb_reply(events, failure=(target, failure))), patch.object(device, "assert_no_crash"), patch.object(device, "hierarchy", return_value=self.home_page()), patch.object(device, "launch") as launch, patch("run_domains.time.sleep") as sleep:
+                callback = unittest.mock.Mock()
+                with self.assertRaises(subprocess.TimeoutExpired) as raised:
+                    device.resume(callback)
+                self.assertIs(raised.exception, failure)
+                callback.assert_not_called()
+                launch.assert_not_called()
+                sleep.assert_not_called()
+
+    def test_background_deadline_expires_before_revocation_or_launch_even_after_ready_reads(self):
+        with tempfile.TemporaryDirectory() as directory:
+            device, events = self.device(Path(directory)), []
+            with patch.object(device, "adb", side_effect=self.adb_reply(events)), patch.object(device, "assert_no_crash"), patch.object(device, "hierarchy", return_value=self.home_page()), patch.object(device, "launch") as launch, patch("run_domains.time.sleep"), patch("run_domains.time.monotonic", side_effect=[0, 0, 0, 90]):
+                callback = unittest.mock.Mock()
+                with self.assertRaisesRegex(AssertionError, "HOME"):
+                    device.resume(callback)
+                callback.assert_not_called()
+                launch.assert_not_called()
+
+    def test_app_crash_during_revocation_prevents_restarting_a_new_process(self):
+        with tempfile.TemporaryDirectory() as directory:
+            device, events = self.device(Path(directory)), []
+            failure = AssertionError("Application process stopped unexpectedly")
+            with patch.object(device, "adb", side_effect=self.adb_reply(events)), patch.object(device, "assert_no_crash", side_effect=[None, None, failure]), patch.object(device, "hierarchy", return_value=self.home_page()), patch.object(device, "launch") as launch, patch("run_domains.time.sleep"), patch("run_domains.time.monotonic", return_value=0):
+                callback = unittest.mock.Mock()
+                with self.assertRaises(AssertionError) as raised:
+                    device.resume(callback)
+                self.assertIs(raised.exception, failure)
+                callback.assert_called_once_with()
+                launch.assert_not_called()
 
 
 if __name__ == "__main__":
