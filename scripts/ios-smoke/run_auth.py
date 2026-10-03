@@ -189,8 +189,8 @@ def safe_json(filename, payload):
             if not isinstance(item, dict) or set(item) != {"app", "bundleId", "mode", "sha256"} or item["app"] != app or item["bundleId"] != APPS[app] or item["mode"] != "Release" or not sha(item["sha256"]):
                 raise SecurityViolation("Unexpected build metadata fields")
     elif filename == "database-source.json":
-        if payload != {"postgres": "16.4", "timescale": "2.17.2",
-                       "postgresSha256": "971766d645aa73e93b9ef4e3be44201b4f45b5477095b049125403f9f3386d6f",
+        if payload != {"postgres": "16.15", "timescale": "2.17.2",
+                       "postgresSha256": "c1575341fa7bd40f5274ea465b34390f4dc64cdd0770af327005caaeb9f6b7ed",
                        "timescaleSha256": "85dd01deaa0728f95d117c1a75ca0cbf78f3301e6ab2b98bebe5f7c95b793acb"}:
             raise SecurityViolation("Unexpected database source metadata")
     elif filename == "result.json":

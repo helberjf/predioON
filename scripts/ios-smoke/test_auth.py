@@ -262,9 +262,25 @@ class ExportTests(unittest.TestCase):
 
 
 class SourceContractTests(unittest.TestCase):
+    def test_database_evidence_accepts_only_the_verified_maintenance_sources(self):
+        run = load("run_auth")
+        pinned = {"postgres": "16.15", "timescale": "2.17.2",
+                  "postgresSha256": "c1575341fa7bd40f5274ea465b34390f4dc64cdd0770af327005caaeb9f6b7ed",
+                  "timescaleSha256": "85dd01deaa0728f95d117c1a75ca0cbf78f3301e6ab2b98bebe5f7c95b793acb"}
+        run.safe_json("database-source.json", pinned)
+        for invalid in [
+            {**pinned, "postgres": "16.4"},
+            {**pinned, "postgresSha256": "971766d645aa73e93b9ef4e3be44201b4f45b5477095b049125403f9f3386d6f"},
+            {**pinned, "postgresSha256": "a" * 64},
+            {**pinned, "timescale": "2.17.3"},
+            {**pinned, "privateLog": "SENTINEL_SECRET"},
+        ]:
+            with self.subTest(fields=list(invalid)), self.assertRaises(run.SecurityViolation):
+                run.safe_json("database-source.json", invalid)
+
     def test_database_is_pinned_and_scoped(self):
         source = (BASE / "database.sh").read_text()
-        for literal in ["971766d645aa73e93b9ef4e3be44201b4f45b5477095b049125403f9f3386d6f", "85dd01deaa0728f95d117c1a75ca0cbf78f3301e6ab2b98bebe5f7c95b793acb", "contrib/btree_gist", "127.0.0.1", "RUNNER_TEMP"]:
+        for literal in ["c1575341fa7bd40f5274ea465b34390f4dc64cdd0770af327005caaeb9f6b7ed", "85dd01deaa0728f95d117c1a75ca0cbf78f3301e6ab2b98bebe5f7c95b793acb", "contrib/btree_gist", "127.0.0.1", "RUNNER_TEMP"]:
             self.assertIn(literal, source)
         self.assertNotIn("sudo", source)
 

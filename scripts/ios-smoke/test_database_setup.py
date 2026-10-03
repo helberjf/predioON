@@ -140,7 +140,7 @@ elif tool == 'shasum':
 elif tool == 'tar':
     directory = Path(args[args.index('-C') + 1])
     if '-xjf' in args:
-        source = directory / 'postgresql-16.4'
+        source = directory / 'postgresql-16.15'
         source.mkdir()
         (source / 'configure').symlink_to(Path(sys.argv[0]).parent / 'postgres-configure')
     else:

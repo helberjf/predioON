@@ -35,9 +35,9 @@ run_build_step() {
     return "$code"
   fi
 }
-pg_sha=971766d645aa73e93b9ef4e3be44201b4f45b5477095b049125403f9f3386d6f
+pg_sha=c1575341fa7bd40f5274ea465b34390f4dc64cdd0770af327005caaeb9f6b7ed
 ts_sha=85dd01deaa0728f95d117c1a75ca0cbf78f3301e6ab2b98bebe5f7c95b793acb
-curl --fail --location --retry 3 --max-time 180 https://ftp.postgresql.org/pub/source/v16.4/postgresql-16.4.tar.bz2 -o "$cluster_root/postgresql.tar.bz2"
+curl --fail --location --retry 3 --max-time 180 https://ftp.postgresql.org/pub/source/v16.15/postgresql-16.15.tar.bz2 -o "$cluster_root/postgresql.tar.bz2"
 curl --fail --location --retry 3 --max-time 180 https://codeload.github.com/timescale/timescaledb/tar.gz/b359d26de186ea43f93c28c08cd1b8c6449c91bd -o "$cluster_root/timescaledb.tar.gz"
 printf '%s  %s\n' "$pg_sha" "$cluster_root/postgresql.tar.bz2" | shasum -a 256 -c -
 printf '%s  %s\n' "$ts_sha" "$cluster_root/timescaledb.tar.gz" | shasum -a 256 -c -
@@ -45,7 +45,7 @@ tar -xjf "$cluster_root/postgresql.tar.bz2" -C "$cluster_root"
 mkdir "$cluster_root/timescale"
 tar -xzf "$cluster_root/timescaledb.tar.gz" --strip-components=1 -C "$cluster_root/timescale"
 openssl_prefix=$(brew --prefix openssl@3)
-cd "$cluster_root/postgresql-16.4"
+cd "$cluster_root/postgresql-16.15"
 run_build_step postgres-configure configure.log ./configure --prefix="$cluster_root/pg16" --with-ssl=openssl --with-includes="$openssl_prefix/include" --with-libraries="$openssl_prefix/lib" --without-icu --without-readline
 run_build_step postgres-build postgres-build.log make -j2
 run_build_step postgres-install postgres-install.log make install
@@ -69,6 +69,6 @@ export PGPASSWORD="$IOS_DB_PASSWORD"
 "$cluster_root/pg16/bin/createdb" -h 127.0.0.1 -p 5436 -U predioon predioon
 "$cluster_root/pg16/bin/psql" -X -h 127.0.0.1 -p 5436 -U predioon -d predioon -v ON_ERROR_STOP=1 -c 'CREATE EXTENSION timescaledb; CREATE EXTENSION btree_gist;'
 actual=$("$cluster_root/pg16/bin/psql" -X -h 127.0.0.1 -p 5436 -U predioon -d predioon -At -v ON_ERROR_STOP=1 -c "select current_setting('server_version_num') || ':' || extversion from pg_extension where extname='timescaledb'")
-[[ "$actual" == '160004:2.17.2' ]] || { echo 'Pinned database version mismatch' >&2; exit 1; }
-printf '{"postgres":"16.4","timescale":"2.17.2","postgresSha256":"%s","timescaleSha256":"%s"}\n' "$pg_sha" "$ts_sha" > "$cluster_root/source-versions.json"
+[[ "$actual" == '160015:2.17.2' ]] || { echo 'Pinned database version mismatch' >&2; exit 1; }
+printf '{"postgres":"16.15","timescale":"2.17.2","postgresSha256":"%s","timescaleSha256":"%s"}\n' "$pg_sha" "$ts_sha" > "$cluster_root/source-versions.json"
 echo 'Pinned disposable PostgreSQL/Timescale cluster ready on loopback:5436'
