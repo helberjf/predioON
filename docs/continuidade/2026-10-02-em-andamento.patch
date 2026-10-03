@@ -1,3 +1,74 @@
+diff --git a/README.md b/README.md
+index 6612d73..29b5d6a 100644
+--- a/README.md
++++ b/README.md
+@@ -308,7 +308,7 @@ A evolução de `codex/product-platform` foi integrada à `main` em 01/10/2026.
+ | 2A | Sessões com rotação atômica, famílias de refresh e JWT Ed25519 com `kid`; migração `013-sessions.sql` | Concluída |
+ | 2B.1 | Fundação de RBAC e tenancy: catálogo de permissões, concessões, unidades, equipes e suporte temporário; migração `014-rbac-tenancy.sql`; rotas `/v1/tenancy` e `/v1/authorization` | Concluída |
+ | 2B.2 | Credenciais restritas da API, separando identidade e autorização do broker; migração `015-api-runtime-roles.sql` | Integrada |
+-| 2B.3 | Capacidades para condomínios, equipamentos, telemetria, alertas, monitoramento, eventos, dashboards, avisos, chamados, reservas, contas e regras; migrations 016–032 | Parcial; estacionamento, atuação e administração ainda em migração |
++| 2B.3 | Capacidades dos domínios operacionais, estacionamento033 e acesso físico034; auditoria036 | Parcial; administrativos legados e consumidores ainda têm pendências. Estado e validações em [Continuidade](docs/CONTINUIDADE.md). |
+ | 2B.4 | Seleção de condomínio, gestão de unidades/equipes/vínculos e diretório mínimo por capacidade (025) | Integrada; regressão executada pela CI |
+ | 5 | Apps Morador e Operação, sessão em Keychain/Keystore e fluxos existentes da API | Incremento integrado; publicação e módulos novos pendentes |
+ | 2C | Cookies HttpOnly/CSRF nos três portais, access em memória e coordenação entre abas | Integrado; MFA, convites, recuperação e limites de tentativas pendentes |
+@@ -339,6 +339,7 @@ Para produção, siga [DEPLOY](docs/DEPLOY.md): segredos exclusivos, conexão re
+ | Monitoramento | [Consumo e análise](docs/CONSUMO_E_ANALISE.md) · [Sensores](docs/SENSORES.md) |
+ | Operação | [Acessos](docs/ACESSOS.md) · [Vagas e avisos](docs/VAGAS_AVISOS.md) |
+ | Atendimento e gestão | [Suporte remoto](docs/SUPORTE_REMOTO.md) · [Gestão transparente](docs/GESTAO_TRANSPARENTE.md) |
++| Histórico e privacidade | [Auditoria por capacidades](docs/AUDITORIA.md) |
+ | Hardware e MQTT | [Hardware/software](docs/HARDWARE_SOFTWARE.md) · [Contrato e entrega para Helber](docs/ENTREGA_HELBER.md) · [Teste MQTT](docs/TESTE_MQTT.md) |
+ | Banco e arquitetura | [Modelo de dados](docs/DATABASE_MODEL.md) · [Preparação do banco](docs/DATABASE_SETUP.md) · [Plano técnico](docs/PLANO_TOTAL.md) |
+ | Evolução | [Próximos passos](docs/NEXT_STEPS.md) |
+diff --git a/apps/admin-web/src/pages/Audit.tsx b/apps/admin-web/src/pages/Audit.tsx
+index 81e7e11..7591154 100644
+--- a/apps/admin-web/src/pages/Audit.tsx
++++ b/apps/admin-web/src/pages/Audit.tsx
+@@ -1,43 +1,5 @@
+-import { Card, EmptyState, formatDateTime, useResource } from "@predioon/ui";
+-
+-type AuditRow = {
+-  id: string;
+-  buildingId: string | null;
+-  userId: string | null;
+-  actorType: string;
+-  action: string;
+-  resourceType: string;
+-  resourceId: string | null;
+-  createdAt: string;
+-};
++import { AuditPanel } from "@predioon/ui";
+ 
+ export function Audit() {
+-  const logs = useResource<{ items: AuditRow[] }>("/audit?limit=100");
+-
+-  return (
+-    <>
+-      <h1 className="text-2xl font-bold text-slate-900">Auditoria</h1>
+-      <Card title="Ações registradas" subtitle="Quem mudou o quê, e quando">
+-        {logs.data?.items.length ? (
+-          <ul className="divide-y divide-slate-100">
+-            {logs.data.items.map((log) => (
+-              <li key={log.id} className="flex items-center justify-between gap-4 py-3">
+-                <div className="min-w-0">
+-                  <p className="text-sm font-medium text-slate-800">{log.action}</p>
+-                  <p className="truncate text-xs text-slate-400">
+-                    {log.actorType} · {log.userId ?? "sistema"} · {log.resourceType}
+-                    {log.resourceId ? `:${log.resourceId}` : ""}
+-                    {log.buildingId ? ` · ${log.buildingId}` : ""}
+-                  </p>
+-                </div>
+-                <p className="shrink-0 text-xs text-slate-400">{formatDateTime(log.createdAt)}</p>
+-              </li>
+-            ))}
+-          </ul>
+-        ) : (
+-          <EmptyState text={logs.error ?? "Nenhum registro de auditoria."} />
+-        )}
+-      </Card>
+-    </>
+-  );
++  return <AuditPanel />;
+ }
 diff --git a/apps/api/src/modules/audit/routes.ts b/apps/api/src/modules/audit/routes.ts
 index 100f9f8..1b60901 100644
 --- a/apps/api/src/modules/audit/routes.ts
@@ -58,7 +129,7 @@ index 100f9f8..1b60901 100644
    res.json({ items: rows, limit, offset });
  });
 diff --git a/apps/api/src/modules/users/routes.ts b/apps/api/src/modules/users/routes.ts
-index 639c18e..bebebad 100644
+index 639c18e..c046d38 100644
 --- a/apps/api/src/modules/users/routes.ts
 +++ b/apps/api/src/modules/users/routes.ts
 @@ -139,11 +139,8 @@ usersRouter.delete("/memberships/:membershipId", async (req, res) => {
@@ -75,14 +146,16 @@ index 639c18e..bebebad 100644
      await recordAudit(tx, req, {
        buildingId: current.buildingId,
        userId: auth.userId,
-@@ -151,6 +148,10 @@ usersRouter.delete("/memberships/:membershipId", async (req, res) => {
+@@ -151,6 +148,12 @@ usersRouter.delete("/memberships/:membershipId", async (req, res) => {
        resourceType: "membership",
        resourceId: current.id,
      });
-+    await tx
++    const changed = await tx
 +      .update(memberships)
 +      .set({ active: false, endsAt: new Date(), updatedAt: new Date() })
-+      .where(and(eq(memberships.id, current.id)));
++      .where(and(eq(memberships.id, current.id)))
++      .returning({ id: memberships.id });
++    if (changed.length !== 1) throw conflict("O vínculo mudou durante a revogação. Atualize e tente novamente.");
    });
  
    res.status(204).end();
@@ -99,6 +172,46 @@ index 4e0dff7..1d080bf 100644
        assert.equal(hiddenAudit.length, 0, "histórico técnico não vaza pela auditoria geral");
        await assert.rejects(withUserContext({ userId, role: "PLATFORM_ADMIN" }, tx => tx.execute(sql`insert into support_hosts (building_id,display_name,anydesk_id) values (${other},'Malicioso','999999999')`)));
      }
+diff --git a/apps/building-web/src/App.tsx b/apps/building-web/src/App.tsx
+index a62ee3a..186d78a 100644
+--- a/apps/building-web/src/App.tsx
++++ b/apps/building-web/src/App.tsx
+@@ -1,6 +1,6 @@
+ import { useEffect } from "react";
+ import { Navigate, Route, Routes } from "react-router-dom";
+-import { AccessPanel, BuildingScopeProvider, BuildingScopeFeedback, FeatureProvider, FeatureContent, LoginScreen, MonitoringPanel, ParkingPanel, SessionsPanel, TenancyPanel, TransparencyPanel, useAuth, useBuildingScope, useResource } from "@predioon/ui";
++import { AccessPanel, AuditPanel, BuildingScopeProvider, BuildingScopeFeedback, FeatureProvider, FeatureContent, LoginScreen, MonitoringPanel, ParkingPanel, SessionsPanel, TenancyPanel, TransparencyPanel, useAuth, useBuildingScope, useResource } from "@predioon/ui";
+ import { Shell } from "./layout/Shell.js";
+ import { Dashboard } from "./pages/Dashboard.js";
+ import { Water } from "./pages/Water.js";
+@@ -52,6 +52,7 @@ function BuildingApp() {
+         <Route path="/areas" element={<FeatureContent path="/areas"><Areas buildingId={buildingId} canManage={can("reservations:manage") && can("common-areas:read")} /></FeatureContent>} />
+         <Route path="/unidades-equipes" element={<TenancyPanel buildingId={buildingId} />} />
+         <Route path="/sessoes" element={<SessionsPanel />} />
++        <Route path="/auditoria" element={<AuditPanel buildingId={buildingId} />} />
+         <Route path="*" element={<Navigate to="/" replace />} />
+       </Routes>
+     </Shell></FeatureProvider>
+diff --git a/apps/building-web/src/layout/Shell.tsx b/apps/building-web/src/layout/Shell.tsx
+index 25c0f40..ffd6d45 100644
+--- a/apps/building-web/src/layout/Shell.tsx
++++ b/apps/building-web/src/layout/Shell.tsx
+@@ -1,6 +1,6 @@
+ import type { ReactNode } from "react";
+ import { Link, useLocation } from "react-router-dom";
+-import { AlertTriangle, CalendarDays, Car, ChartNoAxesCombined, Cpu, DoorOpen, Droplets, House, Megaphone, Monitor, ShieldCheck, SlidersHorizontal, Wrench, Zap } from "lucide-react";
++import { AlertTriangle, CalendarDays, Car, ChartNoAxesCombined, Cpu, DoorOpen, Droplets, House, Megaphone, Monitor, ScrollText, ShieldCheck, SlidersHorizontal, Wrench, Zap } from "lucide-react";
+ import { BuildingSelector, DashboardFrame, useFeatures, useAuth, useBuildingScope, useResource } from "@predioon/ui";
+ const LINKS = [
+   { to: "/", label: "Início", icon: House },
+@@ -19,6 +19,7 @@ const LINKS = [
+   { to: "/unidades-equipes", label: "Unidades e equipes", icon: House },
+   { to: "/regras", label: "Regras de alerta", icon: SlidersHorizontal },
+   { to: "/sessoes", label: "Minhas sessões", icon: Monitor },
++  { to: "/auditoria", label: "Histórico de atividades", icon: ScrollText },
+ ];
+ export function Shell({ children }: { children: ReactNode }) {
+   const { user, signOut } = useAuth();
 diff --git a/packages/contracts/src/index.ts b/packages/contracts/src/index.ts
 index 6108a02..dd3cc9b 100644
 --- a/packages/contracts/src/index.ts
@@ -122,6 +235,65 @@ index 6477d44..e4c75e1 100644
      action: text("action").notNull(),
      resourceType: text("resource_type").notNull(),
      resourceId: text("resource_id"),
+diff --git a/packages/db/test/backup-restore.test.ts b/packages/db/test/backup-restore.test.ts
+index 13dbf65..8d8284f 100644
+--- a/packages/db/test/backup-restore.test.ts
++++ b/packages/db/test/backup-restore.test.ts
+@@ -49,6 +49,16 @@ it('restores a real Timescale archive with data, migration history and restricte
+     await source`insert into financial_reports(building_id,month,title,summary,opening_balance_cents,created_by,published_by,published_at)
+       values('restore-a','2026-10','Published fixture','Financial fixture',12345,'restore-reader','restore-reader',clock_timestamp()-interval '1 minute'),
+             ('restore-b','2026-10','Foreign fixture','Private foreign finance',99999,'restore-neighbor','restore-neighbor',clock_timestamp()-interval '1 minute')`;
++    await source`insert into users(id,email,name) values('restore-global-auditor','restore-global@example.invalid','Global audit reader')`;
++    await source`insert into roles(key,scope,label) values('RESTORE_AUDIT_LOCAL','BUILDING','Recovery local audit')`;
++    await source`insert into role_permissions(role_key,permission_key) values('RESTORE_AUDIT_LOCAL','audit:read')`;
++    await source`insert into role_bindings(user_id,building_id,role_key) values('restore-reader','restore-a','RESTORE_AUDIT_LOCAL')`;
++    await source`insert into role_bindings(user_id,role_key) values('restore-global-auditor','PLATFORM_ADMIN')`;
++    await source`insert into audit_logs(building_id,user_id,action,resource_type,resource_id,metadata,ip_address,user_agent)
++      values('restore-a','restore-reader','DEVICE_UPDATED','device','restore-sensor','{"private":"recovery fixture"}','192.0.2.1','Private fixture'),
++            ('restore-b','restore-neighbor','DEVICE_UPDATED','device','restore-foreign','{}','192.0.2.2','Foreign fixture'),
++            (null,'restore-reader','ORGANIZATION_CREATED','organization','restore-org','{}',null,null),
++            (null,'restore-reader','DEVICE_UPDATED','device','restore-unclassified','{}',null,null)`;
+     async function snapshot(client:postgres.Sql){
+       const tables=await client`select tablename from pg_tables where schemaname='public' order by tablename`;
+       const data=[];
+@@ -87,7 +97,17 @@ it('restores a real Timescale archive with data, migration history and restricte
+       assert.deepEqual((await tx`select opening_balance_cents::text cents from financial_reports`).map(row=>row.cents),['12345']);
+       assert.equal((await tx`select * from telemetry`).length,0,'resident cannot read raw telemetry after restoration');
+       assert.deepEqual((await tx`select numeric_value from app_published_water_levels('restore-a')`).map(row=>row.numeric_value),[73]);
++      assert.deepEqual((await tx`select resource_id from audit_logs`).map(row=>row.resource_id),['restore-sensor'],'only the explicitly granted local audit survives recovery');
+     });
++    await target.begin(async tx=>{
++      await tx`set local role predioon_app`;
++      await tx`select set_config('app.user_id','restore-global-auditor',true),set_config('app.role','RESIDENT',true)`;
++      assert.deepEqual((await tx`select resource_id from audit_logs`).map(row=>row.resource_id),['restore-org'],'global audit grant does not expose local or unclassified history');
++    });
++    for(const column of ['metadata','ip_address','user_agent']){
++      await assert.rejects(target.begin(async tx=>{await tx`set local role predioon_app`;await tx.unsafe(`select ${column} from audit_logs`);}),error=>(error as {code?:string}).code==='42501');
++    }
++    await assert.rejects(target.begin(async tx=>{await tx`set local role predioon_app`;await tx`delete from audit_logs`;}),error=>(error as {code?:string}).code==='42501');
+     await assert.rejects(target.begin(async tx=>{await tx`set local role predioon_app`;await tx`delete from financial_reports`;}),error=>(error as {code?:string}).code==='42501');
+     await target`update role_bindings set active=false where user_id='restore-reader'`;
+     await target.begin(async tx=>{
+@@ -96,9 +116,19 @@ it('restores a real Timescale archive with data, migration history and restricte
+       assert.equal((await tx`select id from occurrences`).length,0);
+       assert.equal((await tx`select id from financial_reports`).length,0);
+       assert.equal((await tx`select * from app_published_water_levels('restore-a')`).length,0);
++      assert.equal((await tx`select id from audit_logs`).length,0,'revocation is effective without rewriting the restored history');
+     });
+     await target`insert into telemetry(event_id,building_id,device_id,metric,value,numeric_value,time) values('restore-after','restore-a','restore-sensor','water_level_percent','74'::jsonb,74,clock_timestamp()+interval '1 second')`;
+     assert.equal(Number((await source`select count(*) as n from telemetry`)[0]!.n),2,'restored writes never touch the source');
++    await assert.rejects(target`update audit_logs set scope_kind='PLATFORM' where resource_id='restore-sensor'`,error=>(error as {code?:string}).code==='42501');
++    await target`delete from buildings where id='restore-a'`;
++    const [retained]=await target`select building_id,scope_kind,scope_building_id from audit_logs where resource_id='restore-sensor'`;
++    assert.deepEqual(retained,{building_id:null,scope_kind:'BUILDING',scope_building_id:'restore-a'});
++    await target.begin(async tx=>{
++      await tx`set local role predioon_app`;
++      await tx`select set_config('app.user_id','restore-global-auditor',true),set_config('app.role','PLATFORM_ADMIN',true)`;
++      assert.deepEqual((await tx`select resource_id from audit_logs`).map(row=>row.resource_id),['restore-org'],'deleting a tenant after restore does not promote its audit to global');
++    });
+     t.diagnostic(`Custom archive and serial restore verified in ${Date.now()-started}ms: ${expected.data.length} public tables, ${migrations.length} migrations, multiple telemetry chunks, policies, ACLs, helpers and real RLS.`);
+   }catch(error){
+     failed=true;throw error;
 diff --git a/packages/shared/src/rbac.ts b/packages/shared/src/rbac.ts
 index 9233cf5..bd4edb2 100644
 --- a/packages/shared/src/rbac.ts
@@ -146,183 +318,24 @@ index 9233cf5..bd4edb2 100644
    MAINTENANCE_MANAGER: ["parking:read", "finance:read-published", "reservations:create-own", "reservations:read-own", "reservations:cancel-own", "reservations:read-calendar", "common-areas:read", "buildings:read", "notices:read", "occurrences:create-own", "occurrences:read-own", "occurrences:manage", "telemetry:read", "telemetry:read-published", "alerts:read", "alerts:acknowledge", "alerts:resolve", "work-orders:read-assigned", "work-orders:assign", "work-orders:update-assigned", "devices:read", "automations:read", "teams:read", "units:read"],
    MAINTENANCE: ["parking:read", "finance:read-published", "reservations:create-own", "reservations:read-own", "reservations:cancel-own", "reservations:read-calendar", "common-areas:read", "buildings:read", "notices:read", "occurrences:create-own", "occurrences:read-own", "telemetry:read", "telemetry:read-published", "alerts:read", "alerts:acknowledge", "work-orders:read-assigned", "work-orders:update-assigned", "devices:read", "automations:read", "units:read"],
    RESIDENT: ["gates:read", "commands:request", "commands:read-own", "parking:read", "finance:read-published", "reservations:create-own", "reservations:read-own", "reservations:cancel-own", "reservations:read-calendar", "buildings:read", "notices:read", "occurrences:create-own", "occurrences:read-own", "telemetry:read-published", "units:read", "common-areas:read"],
-diff --git a/.github/workflows/android-avd.yml b/.github/workflows/android-avd.yml
-new file mode 100644
-index 0000000..38063da
---- /dev/null
-+++ b/.github/workflows/android-avd.yml
-@@ -0,0 +1,165 @@
-+name: Android clean snapshot verification
-+
-+on:
-+  push:
-+    branches: [main]
-+    paths:
-+      - "scripts/android-smoke/**"
-+      - ".github/workflows/android-avd.yml"
-+  workflow_dispatch:
-+
-+permissions:
-+  contents: read
-+
-+concurrency:
-+  group: android-clean-avd-${{ github.ref }}
-+  cancel-in-progress: false
-+
-+# No repository dependencies, database, app build, fixture or credential is
-+# created in either job. Cache save exists only in the clean preparation job.
-+jobs:
-+  prepare:
-+    runs-on: ubuntu-latest
-+    timeout-minutes: 40
-+    outputs:
-+      cache-key: ${{ steps.metadata.outputs.key }}
-+    steps:
-+      - uses: actions/checkout@v4
-+      - uses: actions/setup-java@v4
-+        with:
-+          distribution: temurin
-+          java-version: "17"
-+      - uses: android-actions/setup-android@v3
-+        with:
-+          packages: "platform-tools emulator system-images;android-35;google_apis;x86_64"
-+          log-accepted-android-sdk-licenses: false
-+      - name: Test preparation contracts
-+        run: python3 -m unittest discover -s scripts/android-smoke -p 'test_*.py' -v
-+      - name: Fingerprint installed SDK and this runner
-+        id: metadata
-+        run: |
-+          mkdir -p .local/android-avd "$HOME/.android/avd"
-+          key=$(python3 scripts/android-smoke/clean_avd.py metadata --sdk "$ANDROID_HOME" --metadata .local/android-avd/current.json)
-+          echo "key=$key" >> "$GITHUB_OUTPUT"
-+      - name: Restore only this exact clean AVD
-+        id: cache
-+        uses: actions/cache/restore@v4
-+        with:
-+          path: |
-+            ~/.android/avd/predioon-clean.avd
-+            ~/.android/avd/predioon-clean.ini
-+            ~/.android/avd/predioon-clean-manifest.json
-+          key: ${{ steps.metadata.outputs.key }}
-+      - name: Enable KVM on the disposable runner
-+        if: steps.cache.outputs.cache-hit != 'true'
-+        run: |
-+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-+          sudo udevadm control --reload-rules
-+          sudo udevadm trigger --name-match=kvm
-+      - name: Create and validate clean HOME before saving any snapshot
-+        if: steps.cache.outputs.cache-hit != 'true'
-+        uses: reactivecircus/android-emulator-runner@v2
-+        with:
-+          api-level: 35
-+          target: google_apis
-+          arch: x86_64
-+          profile: pixel_6
-+          avd-name: predioon-clean
-+          cores: 4
-+          ram-size: 4096M
-+          force-avd-creation: true
-+          disable-animations: true
-+          emulator-boot-timeout: 600
-+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot-load -noaudio -no-boot-anim -camera-back none -camera-front none -timezone Etc/UTC
-+          pre-emulator-launch-script: python3 scripts/android-smoke/avd_snapshot.py configure --sdk "$ANDROID_HOME" --metadata .local/android-avd/current.json --avd-home "$HOME/.android/avd" --manifest "$HOME/.android/avd/predioon-clean-manifest.json" --evidence .local/android-avd/preparation
-+          script: python3 scripts/android-smoke/avd_snapshot.py boot --sdk "$ANDROID_HOME" --metadata .local/android-avd/current.json --avd-home "$HOME/.android/avd" --manifest "$HOME/.android/avd/predioon-clean-manifest.json" --evidence .local/android-avd/preparation
-+      - name: Seal stopped snapshot bytes after healthy preparation
-+        if: steps.cache.outputs.cache-hit != 'true'
-+        run: python3 scripts/android-smoke/avd_snapshot.py seal --sdk "$ANDROID_HOME" --metadata .local/android-avd/current.json --avd-home "$HOME/.android/avd" --manifest "$HOME/.android/avd/predioon-clean-manifest.json" --evidence .local/android-avd/preparation
-+      - name: Save clean AVD immediately, with no post-job recache
-+        if: steps.cache.outputs.cache-hit != 'true'
-+        uses: actions/cache/save@v4
-+        with:
-+          path: |
-+            ~/.android/avd/predioon-clean.avd
-+            ~/.android/avd/predioon-clean.ini
-+            ~/.android/avd/predioon-clean-manifest.json
-+          key: ${{ steps.metadata.outputs.key }}
-+      - name: Verify prepared or previously sealed clean contents
-+        run: |
-+          python3 scripts/android-smoke/avd_snapshot.py verify --sdk "$ANDROID_HOME" --metadata .local/android-avd/current.json --avd-home "$HOME/.android/avd" --manifest "$HOME/.android/avd/predioon-clean-manifest.json" --evidence .local/android-avd/preparation
-+          cp "$HOME/.android/avd/predioon-clean-manifest.json" .local/android-avd/manifest.json
-+      - name: Preserve preparation evidence without AVD disks or ADB keys
-+        if: always()
-+        uses: actions/upload-artifact@v4
-+        with:
-+          name: android-avd-preparation-${{ github.run_id }}
-+          path: .local/android-avd/
-+          include-hidden-files: true
-+          if-no-files-found: warn
-+          retention-days: 7
-+
-+  restore:
-+    needs: prepare
-+    runs-on: ubuntu-latest
-+    timeout-minutes: 30
-+    steps:
-+      - uses: actions/checkout@v4
-+      - uses: actions/setup-java@v4
-+        with:
-+          distribution: temurin
-+          java-version: "17"
-+      - uses: android-actions/setup-android@v3
-+        with:
-+          packages: "platform-tools emulator system-images;android-35;google_apis;x86_64"
-+          log-accepted-android-sdk-licenses: false
-+      - name: Require compatible SDK and independent runner before restoring
-+        env:
-+          PREPARED_KEY: ${{ needs.prepare.outputs.cache-key }}
-+        run: |
-+          mkdir -p .local/android-avd "$HOME/.android/avd"
-+          current_key=$(python3 scripts/android-smoke/clean_avd.py metadata --sdk "$ANDROID_HOME" --metadata .local/android-avd/current.json)
-+          test "$current_key" = "$PREPARED_KEY" || { echo 'Independent runner or SDK is incompatible with the prepared fingerprint'; exit 1; }
-+      - name: Restore exact sealed cache without host ADB keys
-+        uses: actions/cache/restore@v4
-+        with:
-+          path: |
-+            ~/.android/avd/predioon-clean.avd
-+            ~/.android/avd/predioon-clean.ini
-+            ~/.android/avd/predioon-clean-manifest.json
-+          key: ${{ needs.prepare.outputs.cache-key }}
-+          fail-on-cache-miss: true
-+      - name: Verify bytes before the emulator can modify userdata
-+        run: |
-+          python3 scripts/android-smoke/avd_snapshot.py verify --sdk "$ANDROID_HOME" --metadata .local/android-avd/current.json --avd-home "$HOME/.android/avd" --manifest "$HOME/.android/avd/predioon-clean-manifest.json" --evidence .local/android-avd/restoration
-+          cp "$HOME/.android/avd/predioon-clean-manifest.json" .local/android-avd/manifest.json
-+      - name: Enable KVM on the independent runner
-+        run: |
-+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-+          sudo udevadm control --reload-rules
-+          sudo udevadm trigger --name-match=kvm
-+      - name: Prove snapshot restoration with fresh ADB and healthy HOME
-+        uses: reactivecircus/android-emulator-runner@v2
-+        with:
-+          api-level: 35
-+          target: google_apis
-+          arch: x86_64
-+          profile: pixel_6
-+          avd-name: predioon-clean
-+          cores: 4
-+          ram-size: 4096M
-+          force-avd-creation: false
-+          disable-animations: true
-+          emulator-boot-timeout: 600
-+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot-save -noaudio -no-boot-anim -camera-back none -camera-front none -timezone Etc/UTC
-+          pre-emulator-launch-script: python3 scripts/android-smoke/avd_snapshot.py configure --sdk "$ANDROID_HOME" --metadata .local/android-avd/current.json --avd-home "$HOME/.android/avd" --manifest "$HOME/.android/avd/predioon-clean-manifest.json" --evidence .local/android-avd/restoration
-+          script: python3 scripts/android-smoke/avd_snapshot.py boot --restored --sdk "$ANDROID_HOME" --metadata .local/android-avd/current.json --avd-home "$HOME/.android/avd" --manifest "$HOME/.android/avd/predioon-clean-manifest.json" --evidence .local/android-avd/restoration
-+      - name: Preserve restoration evidence, never save mutated AVD state
-+        if: always()
-+        uses: actions/upload-artifact@v4
-+        with:
-+          name: android-avd-restoration-${{ github.run_id }}
-+          path: .local/android-avd/
-+          include-hidden-files: true
-+          if-no-files-found: warn
-+          retention-days: 7
+diff --git a/packages/ui/src/index.ts b/packages/ui/src/index.ts
+index f5f4a29..8d756f9 100644
+--- a/packages/ui/src/index.ts
++++ b/packages/ui/src/index.ts
+@@ -14,6 +14,7 @@ export * from "./components/primitives.js";
+ export * from "./components/fields.js";
+ export * from "./components/login.js";
+ export * from "./components/sessions-panel.js";
++export * from "./components/audit-panel.js";
+ export * from "./components/water-tank.js";
+ export * from "./assets.js";
+ export * from "./components/dashboard-frame.js";
 diff --git a/apps/api/test/audit-capabilities.test.ts b/apps/api/test/audit-capabilities.test.ts
 new file mode 100644
-index 0000000..ae74edf
+index 0000000..8fb4513
 --- /dev/null
 +++ b/apps/api/test/audit-capabilities.test.ts
-@@ -0,0 +1,294 @@
+@@ -0,0 +1,309 @@
 +import assert from "node:assert/strict";
 +import { randomUUID } from "node:crypto";
 +import { readFile } from "node:fs/promises";
@@ -616,18 +629,119 @@ index 0000000..ae74edf
 +      await sqlClient.unsafe(`drop function if exists ${name}()`);
 +    }
 +  }));
++  it("a silently refused membership mutation cannot commit an audit or claim revocation", async () => fixture(async f => {
++    const [membership]=await sqlClient`select id from memberships where building_id=${f.a} and user_id=${f.ids.legacy}`;
++    const name=`audit_ignore_${randomUUID().replaceAll('-','')}`;
++    await sqlClient.unsafe(`create function ${name}() returns trigger language plpgsql as $$ begin if NEW.id='${membership!.id}'::uuid then return null; end if; return NEW; end $$`);
++    try {
++      await sqlClient.unsafe(`create trigger ${name} before update on memberships for each row execute function ${name}()`);
++      const response=await f.request(f.ids.legacy,`/users/memberships/${membership!.id}`,{method:'DELETE'});
++      assert.equal(response.status,409);
++      assert.equal((await sqlClient`select active from memberships where id=${membership!.id}`)[0]!.active,true);
++      assert.equal((await sqlClient`select id from audit_logs where user_id=${f.ids.legacy} and action='MEMBERSHIP_REVOKED'`).length,0);
++    } finally {
++      await sqlClient.unsafe(`drop trigger if exists ${name} on memberships`);
++      await sqlClient.unsafe(`drop function if exists ${name}()`);
++    }
++  }));
 +});
+diff --git a/docs/AUDITORIA.md b/docs/AUDITORIA.md
+new file mode 100644
+index 0000000..7941a38
+--- /dev/null
++++ b/docs/AUDITORIA.md
+@@ -0,0 +1,80 @@
++# Histórico de atividades e auditoria
++
++Este documento descreve a implementação036. O estado de publicação, resultados completos e pendências do produto ficam em [CONTINUIDADE.md](CONTINUIDADE.md).
++
++## Usar a tela
++
++Na administração ou no portal do condomínio, abra **Histórico de atividades**. No portal do condomínio, a seleção de Condomínio em uso determina o filtro. A administração mostra a união dos escopos explicitamente concedidos à conta.
++
++A tela apresenta até25 registros por página, do mais recente ao mais antigo. **Página anterior** e **Próxima página** consultam outras páginas; **Atualizar histórico** volta à primeira página. A consulta também é atualizada ao retornar à janela e a cada30 segundos. Atualizações simultâneas são agrupadas, sem descartar uma consulta lenta.
++
++Carregamento, erro e ausência de registros têm estados distintos. **Tentar novamente** consulta o servidor outra vez. Um403 significa ausência da capacidade de consultar aquele escopo; não significa que o histórico inteiro está vazio. A troca de conta ou condomínio desmonta a lista anterior. Respostas atrasadas não podem preencher a lista da nova identidade.
++
++## Quem pode consultar
++
++| Concessão vigente | Leitura permitida |
++| --- | --- |
++| `audit:read-platform` global | Registros classificados comoPLATFORM. Não inclui automaticamente os registros privados dos condomínios. |
++| `audit:read` amplo no condomínio | Histórico associado ao tenant original autorizado, incluindo o evento global que o provisionou. |
++| `audit:read` em recurso exato | Registros do recurso concreto, ainda existente e pertencente àquele condomínio. Não inclui vizinhos nem recursos removidos. |
++| Permissões operacionais sem auditoria | Não permitem consultar auditoria por inferência. |
++
++Na primeira instalação, o catálogo concede a leitura local aBUILDING_ADMIN e a global aPLATFORM_ADMIN. O catálogo pode ser alterado ou desativado depois; reaplicar a migration não recria permissões/grants removidos nem os reativa. Suporte diagnóstico e morador não recebem leitura de auditoria implicitamente.
++
++Concessões pessoais/equipes, vigência, revogação, conta, papel, permissão, organização e condomínio são avaliados no banco. A leitura pelo mesmo token deixa de funcionar após uma revogação aplicável. Um papel enviado no contexto ou uma informação antiga de membership no token não substitui a autoridade vigente. Para navegar pelo seletor do portal, a conta também precisa conseguir descobrir o condomínio por uma concessão adequada de `buildings:read`; a descoberta não concede auditoria.
++
++## Contrato HTTP
++
++`GET /audit` exige uma sessão autenticada e autoridade atual. Parâmetros:
++
++| Parâmetro | Regra |
++| --- | --- |
++| `buildingId` | Opcional; texto não vazio, até128 caracteres; filtra o tenant original. |
++| `limit` | Inteiro de1 a200; padrão50. A interface usa25. |
++| `offset` | Inteiro não negativo; padrão0. |
++
++Exemplo de consulta: `/audit?buildingId=bld_demo&limit=25&offset=0`.
++
++```json
++{
++  "items": [
++    {
++      "id": "00000000-0000-4000-8000-000000000001",
++      "buildingId": "bld_demo",
++      "scopeKind": "BUILDING",
++      "userId": "user_demo",
++      "actorType": "USER",
++      "action": "DEVICE_UPDATED",
++      "resourceType": "device",
++      "resourceId": "device_demo",
++      "createdAt": "2026-10-03T12:00:00.000Z"
++    }
++  ],
++  "limit": 25,
++  "offset": 0
++}
++```
++
++O DTO tem somente os nove campos do exemplo. `buildingId`, `userId` e `resourceId` podem serNULL; `actorType` também admiteSYSTEM eGATEWAY. A projeção não contém metadata, IP ou user-agent. As respostas aprovadas têm `Cache-Control: no-store`. A consulta rejeita parâmetros inválidos com400 e falta de capacidade com403; uma consulta autorizada sem registros retorna200 com `items: []`.
++
++A ordenação é `created_at DESC, id DESC`, garantindo desempate estável entre timestamps iguais. A paginação poroffset conserva o contrato existente; inserções concorrentes podem mudar a posição entre consultas. Para percorrer um histórico que mudou, use Atualizar histórico. Esta implementação não fornece um snapshot imutável nem um cursor de exportação.
++
++## Escopo persistido e privacidade
++
++`scope_kind` distinguePLATFORM, BUILDING eLEGACY_UNKNOWN. `scope_building_id` guarda o tenant original semFK. O banco deriva os dois campos na inserção e impede sua alteração posterior. A remoção daFK de apresentação `building_id` não transforma um evento local em global nem apaga seu tenant original.
++
++Registros antigos sem tenant comprovado ficamLEGACY_UNKNOWN e não aparecem na projeção. A migration não reconstrói autoridade a partir de metadata ou da identidade de um administrador. Recursos removidos podem conservar histórico para leitores amplos de um condomínio ainda autorizado; a remoção do próprio condomínio não cria uma nova concessão para consultar seus registros.
++
++A API restringe candidatos pelos grants atuais e o PostgreSQL aplicaRLS a cada linha, incluindo o recurso exato. O runtime pode selecionar somente as colunas públicas; SELECT direto dos campos privados e UPDATE/DELETE são negados. Payloads antigos continuam armazenados para o proprietário administrativo. Um futuro detalhamento precisa de política própria de campos por ação.
++
++## Escrita e revogação
++
++Leitura de auditoria não concede escrita. Produtores migrados conservam suas provas específicas, incluindo acesso físico034. O fallback legado aceita somente os pares finitos de ação/recurso definidos na migration, com autoridade vigente e entidade real no mesmo tenant. Uma policy restritiva adicional comprova os produtores globais. A matriz completa está no [plano036](superpowers/plans/2026-10-02-audit-capabilities.md).
++
++Na revogação do próprio último vínculo administrativo legado, o registro é inserido antes de remover a autoridade, dentro da mesma transação. `UPDATE ... RETURNING` deve confirmar uma alteração. Se o banco recusar silenciosamente a mutação, a API retorna409 e reverte o registro; falhas na auditoria ou na mutação revertem ambas. O registro não pode declarar uma revogação que não ocorreu.
++
++## Instalação e verificação
++
++Use o runner de [migrations](MIGRATIONS.md) e as credenciais restritas, sem seed/reset em dados reais. Depois da instalação, confira ledger/checksums com `pnpm db:infra --check`. O ensaio de [backup/restauração](BACKUP_E_RESTAURACAO.md) verifica o histórico036, policies, ACLs de coluna, helpers, revogação, campos privados e retenção do escopo depois de remover aFK.
++
++Os casos HTTP/RLS estão em `apps/api/test/audit-capabilities.test.ts`; os cinco cenários do consumidor estão em `e2e/audit.spec.ts`. Execute-os somente em banco descartável preparado. A suíte Playwright usa API real, três motores e bundles compilados; confira os resultados exatos emContinuidade. O processamento durável, outros administrativos legados, apps nativos e os vídeos completos continuam sujeitos às etapas restantes do produto.
 diff --git a/docs/superpowers/plans/2026-10-02-audit-capabilities.md b/docs/superpowers/plans/2026-10-02-audit-capabilities.md
 new file mode 100644
-index 0000000..fe95186
+index 0000000..0f037d5
 --- /dev/null
 +++ b/docs/superpowers/plans/2026-10-02-audit-capabilities.md
-@@ -0,0 +1,90 @@
+@@ -0,0 +1,104 @@
 +# Auditoria por capacidades — migration 036
 +
-+Estado: draft SQL/HTTP aplicado somente no snapshot isolado5435, com 68 testes dirigidos e de regressão aprovados. Nenhuma036 entrou no runtime compartilhado ou ledger. Este recorte integra a etapa2B.3 e não encerra a migração dos demais domínios.
++Estado em 03/10: implementação SQL/HTTP e consumidor web no checkout, ainda aguardando publicação. O teste adicional de mutação silenciosamente recusada passou após reproduzir o defeito; o lote dirigido atual passou 36/36. Banco/restauração passou 26/26, com 44 tabelas e 36 migrations recuperadas. Os cinco cenários web passaram 15/15 e a matriz integral passou 189/189 em Chromium, Firefox e WebKit, usando API, PostgreSQL e bundles compilados. A regressão completa da API está em nova execução com dependências completas; os resultados históricos abaixo não a substituem. Este recorte integra a etapa 2B.3 e não encerra a migração dos demais domínios.
 +
-+## Fronteira atual
++## Fronteira antes da implementação
 +
 +`GET /audit` usa papel legado, memberships do token e SELECT de todas as colunas. A policy de leitura 001 aceita administração global como acesso a todos os eventos privados. `audit_logs.building_id` tem FK `ON DELETE SET NULL`: sua ausência não prova escopo global. A interface administrativa atual ainda confunde carregamento, erro e lista vazia e limita a consulta aos primeiros 100 registros.
 +
@@ -694,9 +808,9 @@ index 0000000..fe95186
 +## Aceite
 +
 +- [x] RED documentado; desenho aprovado em princípio pelo agente principal, com exigências incorporadas na matriz de classificação.
-+- [ ] Migration036 isolada e testes HTTP/RLS negativos verdes.
-+- [ ] Consumidor web e Playwright dirigidos verdes.
-+- [ ] Duas revisões, regressão apropriada e evidência exata antes do checkpoint.
++- [x] Migration036 isolada e testes HTTP/RLS negativos verdes.
++- [x] Consumidor web e Playwright dirigidos verdes.
++- [ ] Revisões de escopo e de ACLs/produtores, regressões completas e evidência exata antes da publicação.
 +
 +## Evidência inicial
 +
@@ -713,6 +827,20 @@ index 0000000..fe95186
 +A primeira instalação também foi executada sobre banco publicado 035 em uma transação descartável: ambas as permissões e os dois grants padrão surgiram corretamente. O rollback restaurou 035, com ausência de scope_kind conferida. Esse ensaio não atualizou nenhum banco real.
 +
 +O rascunho continua fora da runtime publicada e está preservado no patch de continuidade. Permanecem pendentes consumidor web, Playwright, revisão integral de ACLs/produtores, backup/restauração com 036 e regressão completa antes de publicar o domínio. Os resultados dirigidos não encerram esses itens.
++
++## Implementação e verificações de03/10
++
++`AuditPanel` é compartilhado entre administração e gestão do condomínio, com páginas de25 registros, ordenação do servidor, carregamento, erro/retry, vazio autorizado, atualização e descarte por conta/condomínio. O filtro e a autoridade vêm da API; o consumidor não usa comparações ordinais de papel. A rota do condomínio é `/auditoria` e aparece como Histórico de atividades na navegação.
++
++O novo teste de revogação instalou um trigger exclusivo que retornaNULL sem alterar o vínculo. Antes da correção a rota respondeu204 e deixou auditoria de uma ação não realizada. Agora exige uma linha em `UPDATE ... RETURNING`; a ausência retorna409 e reverte tanto o registro como a mutação. O lote25 de auditoria mais tenancy/lifecycle passou36/36, sem skips. Logs: work/audit036-ignored-revoke-red.log e work/audit036-api-directed-final.log.
++
++O backup customizado foi restaurado serialmente em outro banco criado pelo teste, com conferência de todas as tabelas, ledger, policies, owners, ACLs de tabela/coluna e definições dos helpers. A leitura local/global, revogação, campos privados, imutabilidade e exclusão da FK foram exercitadas no destino. Após corrigir duas fixtures incompatíveis com as restrições reais de papéis, a suite completa passou26/26, sem skips. Nenhuma restrição de produção foi flexibilizada. Log: work/audit036-db-verified.log.
++
++Playwright passou15/15 nos bundles compilados: projeção mínima e privacidade global; paginação com timestamps iguais e viewport390px; concessão exata, revogação e vazio; falha/retry e troca de condomínio; logout/login de outra conta no mesmo documento com uma resposta antiga retida. O harness consome uma cópia da resposta real atrasada e comprova seu resourceId antes de conferir a ausência na tela. O cliente rejeita uma resposta de outra identidade antes de consumir JSON; aguardar o stream não utilizado com `Response.finished()` bloqueava o Chromium. Não foi acrescentado retry, espera arbitrária ou orçamento maior. Log: work/audit036-web-final.log.
++
++As regressões finais usam bancos separados: API5444 com preparação e seed equivalentes ao CI, navegador5443 e banco/restauração5442. A primeira integral da API foi interrompida porque seu banco sem seed não continha bld_001 nem a conta demonstrativa exigida por testes existentes; não conta como execução aprovada. A fonte congelada contém16 arquivos do recorte, com todos os SHA-256 conferidos contra o volume Linux. Manifesto local: work/audit036-final-source.json. As oito imagens anteriores já foram publicadas emccda38c; capturas positivas deste consumidor serão acrescentadas depois da publicação.
++
++A matriz completa posterior passou **189/189**, sem retries, em26 minutos; log work/audit036-web-full.log. A integral da API5444 terminou **642/645**, com duas falhas de import por ausência de dependências da ingestão e uma interrupção do stream após seu prazo de45 segundos, durante a execução simultânea do navegador. Uma cópia nova foi criada com dependências completas, `pnpm install --frozen-lockfile --offline`, fonte conferida por16 hashes e banco novo5445 com seed. A nova integral executa sem disputa com Playwright. Nenhum prazo ou assert foi alterado; o resultado anterior continua registrado como falha, sem determinar sozinho a causa da interrupção do stream.
 diff --git a/docs/superpowers/plans/2026-10-02-password-change.md b/docs/superpowers/plans/2026-10-02-password-change.md
 new file mode 100644
 index 0000000..96f28b4
@@ -747,6 +875,227 @@ index 0000000..96f28b4
 +5. Integrar formulário nos três portais e dois apps. Limpar campos ao sair, preservar geração de identidade e encerrar a sessão somente após sucesso confirmado. Verificar Playwright e jornada Android separadamente, sem apresentar contrato HTTP como teste visual.
 +
 +Referências de projeto: [OWASP Authentication Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html) para confirmação da senha e nova autenticação; [PostgreSQL 16 — locks explícitos](https://www.postgresql.org/docs/16/explicit-locking.html) para aquisição consistente e revalidação após espera. Essas referências orientam o desenho; aprovação depende dos testes do projeto.
+diff --git a/e2e/audit.spec.ts b/e2e/audit.spec.ts
+new file mode 100644
+index 0000000..0084145
+--- /dev/null
++++ b/e2e/audit.spec.ts
+@@ -0,0 +1,215 @@
++import { randomUUID } from "node:crypto";
++import type { AuditPage } from "../packages/contracts/src/audit";
++import { expect, test, type APIRequestContext, type Page } from "./fixtures";
++import { ADMIN_URL, API_URL, BUILDING_URL } from "./environment";
++import { adminFixtures, enterCredentials, signIn, signOut } from "./helpers";
++import { withFixtureDatabase } from "./database";
++
++async function withAuditFixture(request: APIRequestContext, run: (f: {
++  a: { id: string; name: string }; b: { id: string; name: string };
++  manager: { id: string; email: string }; other: { id: string; email: string };
++  delegate: { id: string; email: string }; role: string;
++  local: string; foreign: string; global: string; unknown: string;
++}) => Promise<void>) {
++  const f = await adminFixtures(request);
++  const a = await f.createBuilding("AuditA"), b = await f.createBuilding("AuditB");
++  const manager = await f.person("AuditorLocal"), other = await f.person("AuditorOutro"), delegate = await f.person("AuditorExato");
++  const users = [manager.id, other.id, delegate.id], role = `E2E_AUDIT_${f.suffix}`;
++  const local = `AUDIT_LOCAL_${f.suffix}`, foreign = `AUDIT_FOREIGN_${f.suffix}`, global = `audit-global-${f.suffix}`, unknown = `audit-unknown-${f.suffix}`;
++  try {
++    await f.membership(manager, a, "BUILDING_ADMIN");
++    await f.membership(other, b, "BUILDING_ADMIN");
++    await withFixtureDatabase(async sql => sql.begin(async tx => {
++      await tx`insert into roles(key,scope,label) values(${role},'BUILDING','E2E exact audit reader')`;
++      await tx`insert into role_permissions(role_key,permission_key) values(${role},'audit:read'),(${role},'buildings:read')`;
++      await tx`insert into devices(id,building_id,name,type) values(${local},${a.id},'E2E audit target','WATER_LEVEL_SENSOR'),(${foreign},${b.id},'E2E foreign audit target','WATER_LEVEL_SENSOR')`;
++      await tx`insert into role_bindings(user_id,building_id,role_key,resource_type,resource_id) values(${delegate.id},${a.id},${role},'device',${local})`;
++      await tx`insert into audit_logs(building_id,action,resource_type,resource_id,metadata,ip_address,user_agent,created_at)
++        values(${a.id},${local},'device',${local},'{"secret":"private payload"}','192.0.2.9','Confidential fixture',clock_timestamp()+interval '5 minutes'),
++              (${b.id},${foreign},'device',${foreign},'{}',null,null,clock_timestamp()+interval '5 minutes'),
++              (null,'USER_CREATED','user',${global},'{}',null,null,clock_timestamp()+interval '5 minutes'),
++              (null,'DEVICE_UPDATED','device',${unknown},'{}',null,null,clock_timestamp()+interval '5 minutes')`;
++    }));
++    await run({ a, b, manager, other, delegate, role, local, foreign, global, unknown });
++  } finally {
++    await withFixtureDatabase(async sql => sql.begin(async tx => {
++      await tx`delete from audit_logs where scope_building_id in (${a.id},${b.id}) or resource_id in (${global},${unknown}) or user_id in ${tx(users)} or (resource_type='user' and resource_id in ${tx(users)})`;
++      await tx`delete from buildings where id in (${a.id},${b.id})`;
++      await tx`delete from users where id in ${tx(users)}`;
++      await tx`delete from roles where key=${role}`;
++    }));
++  }
++}
++
++async function openAudit(page: Page, origin: string, buildingId?: string) {
++  const response = page.waitForResponse(r => {
++    const url = new URL(r.url());
++    return url.origin === API_URL && url.pathname === "/audit" && (!buildingId || url.searchParams.get("buildingId") === buildingId);
++  });
++  await page.goto(`${origin}/auditoria`);
++  return response;
++}
++const renderedAction = (value: string) => value.replaceAll("_", " ");
++
++async function observeAuditDelivery(page: Page, buildingId: string) {
++  await page.evaluate(({ origin, buildingId }) => {
++    const state = window as typeof window & { auditDelivery?: string[] };
++    const original = window.fetch.bind(window);
++    // After an identity change the client correctly rejects at the headers,
++    // before reading JSON. Consume a clone in the harness so the test proves
++    // delivery of the real old body without waiting for an unused stream.
++    window.fetch = async (...args) => {
++      const response = await original(...args);
++      const url = new URL(response.url);
++      if (url.origin === origin && url.pathname === "/audit" && url.searchParams.get("buildingId") === buildingId) {
++        const body = await response.clone().json() as { items: { resourceId: string | null }[] };
++        state.auditDelivery = body.items.flatMap(row => row.resourceId ? [row.resourceId] : []);
++      }
++      return response;
++    };
++  }, { origin: API_URL, buildingId });
++  return async (resourceId: string) => {
++    await expect.poll(() => page.evaluate(() => (window as typeof window & { auditDelivery?: string[] }).auditDelivery)).toContain(resourceId);
++  };
++}
++
++test("auditoria global não inclui histórico local, desconhecido ou campos privados", async ({ page, request }, info) => withAuditFixture(request, async f => {
++  await signIn(page, ADMIN_URL, "admin@predioon.local");
++  const response = await openAudit(page, ADMIN_URL);
++  expect(response.status()).toBe(200);
++  expect(response.headers()["cache-control"]).toBe("no-store");
++  const data = await response.json() as AuditPage;
++  expect(data.items.some(row => row.resourceId === f.global)).toBe(true);
++  for (const row of data.items) {
++    expect(row.scopeKind).toBe("PLATFORM");
++    expect(Object.keys(row).sort()).toEqual(["id", "buildingId", "scopeKind", "userId", "actorType", "action", "resourceType", "resourceId", "createdAt"].sort());
++  }
++  for (const secret of [f.local, f.foreign, f.unknown, "private payload", "192.0.2.9", "Confidential fixture"]) {
++    expect(JSON.stringify(data)).not.toContain(secret);
++    await expect(page.locator("body")).not.toContainText(secret);
++  }
++  await expect(page.getByText(f.global, { exact: false })).toBeVisible();
++  if (info.project.name === "chromium") await page.screenshot({ path: info.outputPath("audit-global.png"), fullPage: true });
++}));
++
++test("auditoria local pagina timestamps iguais sem repetir registros e atualiza a primeira página", async ({ page, request }, info) => withAuditFixture(request, async f => {
++  const rows = Array.from({ length: 28 }, (_, i) => ({ id: randomUUID(), action: `AUDIT_PAGE_${f.a.id}_${i}` }));
++  await withFixtureDatabase(async sql => {
++    await sql`delete from audit_logs where scope_building_id=${f.a.id}`;
++    const timestamp = new Date(Date.now() + 300_000).toISOString();
++    for (const row of rows) await sql`insert into audit_logs(id,building_id,action,resource_type,resource_id,created_at) values(${row.id},${f.a.id},${row.action},'device',${f.local},${timestamp})`;
++  });
++  const expected = [...rows].sort((a, b) => b.id.localeCompare(a.id));
++  await page.setViewportSize({ width: 390, height: 844 });
++  await signIn(page, BUILDING_URL, f.manager.email);
++  const first = await openAudit(page, BUILDING_URL, f.a.id);
++  expect(first.status()).toBe(200);
++  expect((await first.json() as AuditPage).items.map(row => row.id)).toEqual(expected.slice(0, 25).map(row => row.id));
++  await expect(page.getByRole("article", { name: "Registro de auditoria" })).toHaveCount(25);
++  const next = page.waitForResponse(r => new URL(r.url()).pathname === "/audit" && new URL(r.url()).searchParams.get("offset") === "25");
++  await page.getByRole("button", { name: "Próxima página", exact: true }).click();
++  const second = await next;
++  expect(second.status()).toBe(200);
++  expect((await second.json() as AuditPage).items.map(row => row.id)).toEqual(expected.slice(25).map(row => row.id));
++  await expect(page.getByRole("article", { name: "Registro de auditoria" })).toHaveCount(3);
++  await expect(page.getByRole("button", { name: "Próxima página", exact: true })).toBeDisabled();
++  await page.getByRole("button", { name: "Atualizar histórico", exact: true }).click();
++  await expect(page.getByText("Página 1", { exact: true })).toBeVisible();
++  await expect(page.getByRole("article", { name: "Registro de auditoria" })).toHaveCount(25);
++  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
++  if (info.project.name === "chromium") await page.screenshot({ path: info.outputPath("audit-local.png"), fullPage: true });
++}));
++
++test("auditoria exata não lê o vizinho, remove dados após revogação e distingue vazio autorizado", async ({ page, request }) => withAuditFixture(request, async f => {
++  await signIn(page, BUILDING_URL, f.delegate.email);
++  const loaded = await openAudit(page, BUILDING_URL, f.a.id);
++  expect(loaded.status()).toBe(200);
++  expect((await loaded.json() as AuditPage).items.map(row => row.resourceId)).toEqual([f.local]);
++  await expect(page.getByText(renderedAction(f.local), { exact: true })).toBeVisible();
++  await expect(page.locator("body")).not.toContainText(f.foreign);
++  await withFixtureDatabase(sql => sql`delete from role_permissions where role_key=${f.role} and permission_key='audit:read'`);
++  const denied = page.waitForResponse(r => new URL(r.url()).pathname === "/audit");
++  await page.getByRole("button", { name: "Atualizar histórico", exact: true }).click();
++  expect((await denied).status()).toBe(403);
++  await expect(page.getByRole("alert")).toContainText("Sem permissão");
++  await expect(page.getByRole("article", { name: "Registro de auditoria" })).toHaveCount(0);
++  await expect(page.locator("body")).not.toContainText(renderedAction(f.local));
++  await withFixtureDatabase(async sql => sql.begin(async tx => {
++    await tx`insert into role_permissions(role_key,permission_key) values(${f.role},'audit:read')`;
++    await tx`delete from audit_logs where scope_building_id=${f.a.id}`;
++  }));
++  const retry = page.waitForResponse(r => new URL(r.url()).pathname === "/audit");
++  await page.getByRole("button", { name: "Tentar novamente", exact: true }).click();
++  expect((await retry).status()).toBe(200);
++  await expect(page.getByText("Nenhum registro disponível neste escopo.", { exact: true })).toBeVisible();
++  await expect(page.getByRole("alert")).toHaveCount(0);
++}));
++
++test("auditoria recupera falha e descarta resposta atrasada ao trocar condomínio", async ({ page, request }) => withAuditFixture(request, async f => {
++  await withFixtureDatabase(sql => sql`insert into memberships(user_id,building_id,role) values(${f.manager.id},${f.b.id},'BUILDING_ADMIN')`);
++  await signIn(page, BUILDING_URL, f.manager.email);
++  await page.getByLabel("Condomínio em uso", { exact: true }).selectOption(f.a.id);
++  let fail = true, hold = false, release!: () => void, observed!: () => void;
++  const held = new Promise<void>(resolve => { observed = resolve; });
++  const barrier = new Promise<void>(resolve => { release = resolve; });
++  await page.route(`${API_URL}/audit?**`, async route => {
++    if (new URL(route.request().url()).searchParams.get("buildingId") !== f.a.id) return route.continue();
++    if (fail) { fail = false; return route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: { code: "UNAVAILABLE", message: "Histórico temporariamente indisponível" } }) }); }
++    if (!hold) return route.continue();
++    hold = false;
++    const actual = await route.fetch();
++    observed();
++    await barrier;
++    await route.fulfill({ response: actual });
++  });
++  try {
++    expect((await openAudit(page, BUILDING_URL, f.a.id)).status()).toBe(503);
++    await expect(page.getByRole("button", { name: "Tentar novamente", exact: true })).toBeVisible();
++    await expect(page.locator("body")).not.toContainText("Nenhum registro disponível");
++    await page.getByRole("button", { name: "Tentar novamente", exact: true }).click();
++    await expect(page.getByText(renderedAction(f.local), { exact: true })).toBeVisible();
++    const delivered = await observeAuditDelivery(page, f.a.id);
++    hold = true;
++    await page.getByRole("button", { name: "Atualizar histórico", exact: true }).click();
++    await held;
++    await page.getByLabel("Condomínio em uso", { exact: true }).selectOption(f.b.id);
++    await expect(page.getByText(renderedAction(f.foreign), { exact: true })).toBeVisible();
++    release();
++    await delivered(f.local);
++    await expect(page.getByText(renderedAction(f.local), { exact: true })).toHaveCount(0);
++    await expect(page.getByText(renderedAction(f.foreign), { exact: true })).toBeVisible();
++  } finally { release(); }
++}));
++
++test("auditoria atrasada da conta anterior não aparece após sair e entrar com outra conta", async ({ page, request }) => withAuditFixture(request, async f => {
++  await signIn(page, BUILDING_URL, f.manager.email);
++  expect((await openAudit(page, BUILDING_URL, f.a.id)).status()).toBe(200);
++  await expect(page.getByText(renderedAction(f.local), { exact: true })).toBeVisible();
++  let release!: () => void, observed!: () => void, heldOnce = false;
++  const held = new Promise<void>(resolve => { observed = resolve; });
++  const barrier = new Promise<void>(resolve => { release = resolve; });
++  await page.route(`${API_URL}/audit?**`, async route => {
++    if (heldOnce || new URL(route.request().url()).searchParams.get("buildingId") !== f.a.id) return route.continue();
++    heldOnce = true;
++    const actual = await route.fetch();
++    observed();
++    await barrier;
++    await route.fulfill({ response: actual });
++  });
++  try {
++    const delivered = await observeAuditDelivery(page, f.a.id);
++    await page.getByRole("button", { name: "Atualizar histórico", exact: true }).click();
++    await held;
++    await signOut(page);
++    // Stay in the same document: a full page.goto aborts the old response and
++    // would never exercise an in-flight account change in the React provider.
++    const nextAccount = page.waitForResponse(r => new URL(r.url()).pathname === "/audit" && new URL(r.url()).searchParams.get("buildingId") === f.b.id);
++    await enterCredentials(page, f.other.email);
++    expect((await nextAccount).status()).toBe(200);
++    await expect(page.getByText(renderedAction(f.foreign), { exact: true })).toBeVisible();
++    release();
++    await delivered(f.local);
++    await expect(page.getByText(renderedAction(f.local), { exact: true })).toHaveCount(0);
++    await expect(page.getByText(renderedAction(f.foreign), { exact: true })).toBeVisible();
++  } finally { release(); }
++}));
 diff --git a/infrastructure/036-audit-capabilities.sql b/infrastructure/036-audit-capabilities.sql
 new file mode 100644
 index 0000000..b3b2975
@@ -1005,294 +1354,71 @@ index 0000000..525a293
 +};
 +
 +export type AuditPage = { items: AuditEntry[]; limit: number; offset: number };
-diff --git a/scripts/android-smoke/avd_snapshot.py b/scripts/android-smoke/avd_snapshot.py
+diff --git a/packages/ui/src/components/audit-panel.tsx b/packages/ui/src/components/audit-panel.tsx
 new file mode 100644
-index 0000000..c51cf15
+index 0000000..9db704d
 --- /dev/null
-+++ b/scripts/android-smoke/avd_snapshot.py
-@@ -0,0 +1,190 @@
-+"""Validate a clean AVD snapshot and prove restoration; never copy ADB keys or app state."""
-+import argparse
-+import hashlib
-+import json
-+import os
-+from pathlib import Path
-+import re
-+import time
++++ b/packages/ui/src/components/audit-panel.tsx
+@@ -0,0 +1,62 @@
++import { useEffect, useState } from "react";
++import type { AuditPage } from "@predioon/contracts";
++import { useAuth } from "../auth.js";
++import { formatDateTime } from "../format.js";
++import { useResource } from "../use-resource.js";
++import { Badge, Button, Card, PageHeading, ResourceFeedback } from "./primitives.js";
 +
-+from clean_avd import ROOT, Device, check_clean_environment, installed_metadata, properties, require_health
++const PAGE_SIZE = 25;
 +
++/** The API and RLS decide which platform, tenant and exact-resource rows exist
++ * in this view. Never infer audit access from an operational role or inventory. */
++export function AuditPanel({ buildingId }: { buildingId?: string }) {
++  const { user } = useAuth();
++  return user ? <AuditWorkspace key={JSON.stringify([user.id, buildingId ?? null])} buildingId={buildingId} /> : null;
++}
 +
-+def checked_config(source, settings):
-+    # The action appends CPU/RAM even when avdmanager already wrote them. Keep
-+    # its explicit final value, then write each key once before starting QEMU.
-+    values = {}
-+    for line in source.splitlines():
-+        if not line.strip() or line.lstrip().startswith("#"):
-+            continue
-+        key, separator, value = line.partition("=")
-+        key, value = key.strip(), value.strip()
-+        if not separator or not key or (key in values and key not in {"hw.cpu.ncore", "hw.ramSize"}):
-+            raise ValueError("Invalid or ambiguous AVD configuration")
-+        values[key] = value
-+    expected = {"abi.type": settings["abi"], "hw.cpu.arch": settings["abi"], "hw.cpu.ncore": str(settings["cores"]), "hw.device.name": settings["profile"], "tag.id": settings["target"], "target": "android-" + str(settings["apiLevel"]), "image.sysdir.1": f"system-images/android-{settings['apiLevel']}/{settings['target']}/{settings['abi']}/"}
-+    if any(values.get(key) != value for key, value in expected.items()) or values.get("hw.ramSize") not in {str(settings["ramMiB"]), str(settings["ramMiB"]) + "M"}:
-+        raise ValueError("Actual AVD configuration does not match the fingerprint")
-+    values["hw.ramSize"] = str(settings["ramMiB"])
-+    return "".join(f"{key}={value}\n" for key, value in sorted(values.items()))
++function AuditWorkspace({ buildingId }: { buildingId?: string }) {
++  const [offset, setOffset] = useState(0);
++  const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String(offset) });
++  if (buildingId) params.set("buildingId", buildingId);
++  const logs = useResource<AuditPage>(`/audit?${params}`);
 +
++  useEffect(() => {
++    window.addEventListener("focus", logs.reload);
++    const timer = setInterval(logs.reload, 30_000);
++    return () => { window.removeEventListener("focus", logs.reload); clearInterval(timer); };
++  }, [logs.reload]);
 +
-+def avd_paths(home, metadata):
-+    home = home.resolve(strict=True)
-+    name = metadata["components"]["settings"]["avdName"]
-+    if not re.fullmatch(r"[a-z0-9-]+", name):
-+        raise ValueError("Unexpected AVD name")
-+    avd, ini = home / (name + ".avd"), home / (name + ".ini")
-+    if avd.is_symlink() or ini.is_symlink() or not avd.is_dir() or not ini.is_file():
-+        raise ValueError("Expected a regular AVD directory and pointer")
-+    pointer = properties(ini.read_text(encoding="utf-8"))
-+    if Path(pointer.get("path", "")).resolve() != avd or pointer.get("target") != "android-" + str(metadata["components"]["settings"]["apiLevel"]):
-+        raise ValueError("AVD pointer path or target is inconsistent")
-+    return home, avd, ini
-+
-+
-+def digest(path):
-+    value = hashlib.sha256()
-+    with path.open("rb") as source:
-+        for chunk in iter(lambda: source.read(4 * 1024 * 1024), b""):
-+            value.update(chunk)
-+    return value.hexdigest()
-+
-+
-+def inventory(home, avd, ini):
-+    files = {}
-+    for path in [ini, *sorted(avd.rglob("*"))]:
-+        if path.is_symlink() or not path.resolve().is_relative_to(home):
-+            raise ValueError("Cache contents contain an unsafe path")
-+        if path.is_dir():
-+            continue
-+        if not path.is_file():
-+            raise ValueError("Cache contents contain a non-regular file")
-+        files[path.relative_to(home).as_posix()] = {"bytes": path.stat().st_size, "sha256": digest(path)}
-+    return files
-+
-+
-+def require_boot_identity(value):
-+    if not isinstance(value, dict) or not re.fullmatch(r"[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}", value.get("bootId", "")) or not re.fullmatch(r"[0-9a-f]{64}", value.get("adbPublicKeySha256", "")):
-+        raise ValueError("Missing guest boot or public ADB identity evidence")
-+
-+
-+def seal_snapshot(home, metadata, health):
-+    require_health(health, metadata)
-+    require_boot_identity(health)
-+    home, avd, ini = avd_paths(home, metadata)
-+    config = (avd / "config.ini").read_text(encoding="utf-8")
-+    checked_config(config, metadata["components"]["settings"])
-+    for name in ["snapshot.pb", "ram.img"]:
-+        snapshot = avd / "snapshots/default_boot" / name
-+        if not snapshot.is_file() or snapshot.stat().st_size == 0:
-+            raise ValueError("Completed default_boot snapshot is missing or empty")
-+    return {"metadata": metadata, "health": health, "files": inventory(home, avd, ini)}
-+
-+
-+def verify_snapshot(home, metadata, manifest):
-+    if manifest.get("metadata") != metadata:
-+        raise ValueError("Snapshot fingerprint differs from current SDK, runner or settings")
-+    current = seal_snapshot(home, metadata, manifest.get("health", {}))
-+    if manifest.get("files") != current["files"]:
-+        raise ValueError("Snapshot contents differ from the sealed clean AVD")
-+
-+
-+def require_restored_boot(current, saved):
-+    require_boot_identity(current)
-+    require_boot_identity(saved)
-+    if current["bootId"] != saved["bootId"]:
-+        raise ValueError("Guest boot ID changed: a cache hit did not restore the saved kernel")
-+    if current["adbPublicKeySha256"] == saved["adbPublicKeySha256"]:
-+        raise ValueError("Restore verification requires a fresh host ADB identity")
-+
-+
-+def qemu_running(name):
-+    for process in Path("/proc").iterdir():
-+        if not process.name.isdecimal():
-+            continue
-+        try:
-+            args = (process / "cmdline").read_bytes().split(b"\0")
-+        except (FileNotFoundError, PermissionError, ProcessLookupError):
-+            continue
-+        if args and (b"qemu-system" in args[0] or Path(os.fsdecode(args[0])).name == "emulator"):
-+            if b"-avd" in args and args[args.index(b"-avd") + 1:][:1] == [name.encode()]:
-+                return True
-+    return False
-+
-+
-+def main():
-+    parser = argparse.ArgumentParser(description=__doc__)
-+    parser.add_argument("action", choices=["configure", "boot", "seal", "verify"])
-+    parser.add_argument("--sdk", type=Path, required=True)
-+    parser.add_argument("--metadata", type=Path, required=True)
-+    parser.add_argument("--avd-home", type=Path, required=True)
-+    parser.add_argument("--manifest", type=Path, required=True)
-+    parser.add_argument("--evidence", type=Path, required=True)
-+    parser.add_argument("--restored", action="store_true")
-+    args = parser.parse_args()
-+    if os.environ.get("CI") != "true" or os.environ.get("ANDROID_AUTH_PASSWORD"):
-+        raise SystemExit("Snapshot verification is restricted to clean disposable CI before credentials")
-+    metadata = installed_metadata(args.sdk)
-+    if json.loads(args.metadata.read_text(encoding="utf-8")) != metadata:
-+        raise SystemExit("SDK/runner changed after the cache fingerprint was computed")
-+    _, avd, _ = avd_paths(args.avd_home, metadata)
-+    settings = metadata["components"]["settings"]
-+    if args.action == "configure":
-+        config = avd / "config.ini"
-+        config.write_text(checked_config(config.read_text(encoding="utf-8"), settings), encoding="utf-8")
-+        return
-+    if args.action == "verify":
-+        verify_snapshot(args.avd_home, metadata, json.loads(args.manifest.read_text(encoding="utf-8")))
-+        print("Exact clean snapshot inventory verified before launch")
-+        return
-+    args.evidence.mkdir(parents=True, exist_ok=True)
-+    health_path = args.evidence / "clean-health.json"
-+    if args.action == "seal":
-+        deadline = time.monotonic() + 60
-+        while qemu_running(settings["avdName"]):
-+            if time.monotonic() >= deadline:
-+                raise SystemExit("Emulator did not stop; live userdata must never be cached")
-+            time.sleep(0.5)
-+        manifest = seal_snapshot(args.avd_home, metadata, json.loads(health_path.read_text(encoding="utf-8")))
-+        args.manifest.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
-+        print("Stopped clean snapshot sealed; no cache save was performed by the helper")
-+        return
-+    device = Device("emulator-5554", "resident-mobile", args.evidence)
-+    report = {"passed": False, "cacheKey": metadata["cacheKey"]}
-+    try:
-+        report = check_clean_environment(device, metadata, ROOT)
-+        hardware = properties((avd / "hardware-qemu.ini").read_text(encoding="utf-8"))
-+        expected = {"hw.cpu.arch": settings["abi"], "hw.cpu.ncore": str(settings["cores"]), "hw.ramSize": str(settings["ramMiB"]), "hw.device.name": settings["profile"]}
-+        if any(hardware.get(key) != value for key, value in expected.items()) or hardware.get("hw.gpu.mode") not in {"swiftshader", "swiftshader_indirect"}:
-+            raise ValueError("Running QEMU hardware differs from the expected CPU, RAM, profile or renderer")
-+        report["hardware"] = {**expected, "hw.gpu.mode": hardware["hw.gpu.mode"]}
-+        report["bootId"] = device.adb("shell", "cat", "/proc/sys/kernel/random/boot_id").strip()
-+        # Only the public key digest is evidence. The host private key is neither
-+        # read by this script nor included in any cache/artifact path.
-+        public_key = Path(os.environ["HOME"]) / ".android/adbkey.pub"
-+        report["adbPublicKeySha256"] = digest(public_key)
-+        require_boot_identity(report)
-+        if args.restored:
-+            manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
-+            require_restored_boot(report, manifest["health"])
-+        report["snapshotRestored"] = args.restored
-+    except Exception as error:
-+        report["passed"] = False
-+        report["error"] = str(error)
-+        raise SystemExit("Clean snapshot boot failed; inspect preparation evidence") from None
-+    finally:
-+        try:
-+            if getattr(device, "clean_diagnostics_allowed", False):
-+                device.collect()
-+        except Exception:
-+            report["passed"] = False
-+            report["error"] = "Could not collect clean snapshot diagnostics"
-+            raise
-+        finally:
-+            health_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
-+    print("Clean AVD boot verified" + (" with preserved kernel and fresh host ADB identity" if args.restored else ""))
-+
-+
-+if __name__ == "__main__":
-+    main()
-diff --git a/scripts/android-smoke/test_avd_snapshot.py b/scripts/android-smoke/test_avd_snapshot.py
-new file mode 100644
-index 0000000..d6cda01
---- /dev/null
-+++ b/scripts/android-smoke/test_avd_snapshot.py
-@@ -0,0 +1,89 @@
-+import copy
-+import json
-+from pathlib import Path
-+import tempfile
-+import unittest
-+
-+from avd_snapshot import checked_config, seal_snapshot, verify_snapshot, require_restored_boot
-+from clean_avd import SETTINGS, build_metadata
-+from test_clean_avd import EMULATOR, IMAGE, HOST
-+
-+CONFIG = "abi.type=x86_64\nhw.cpu.arch=x86_64\nhw.cpu.ncore=2\nhw.cpu.ncore=4\nhw.ramSize=2048\nhw.ramSize=4096M\nhw.device.name=pixel_6\nimage.sysdir.1=system-images/android-35/google_apis/x86_64/\ntag.id=google_apis\ntarget=android-35\n"
-+BOOT = "11111111-1111-4111-8111-111111111111"
-+
-+
-+class SnapshotTests(unittest.TestCase):
-+    def fixture(self, root):
-+        metadata = build_metadata(EMULATOR, IMAGE, HOST, SETTINGS)
-+        avd = root / "predioon-clean.avd"
-+        snapshots = avd / "snapshots/default_boot"
-+        snapshots.mkdir(parents=True)
-+        (avd / "config.ini").write_text(checked_config(CONFIG, SETTINGS))
-+        (snapshots / "snapshot.pb").write_bytes(b"snapshot test metadata")
-+        (snapshots / "ram.img").write_bytes(b"snapshot test RAM")
-+        (avd / "userdata-qemu.img.qcow2").write_bytes(b"clean image")
-+        (root / "predioon-clean.ini").write_text(f"path={avd}\ntarget=android-35\n")
-+        health = {"passed": True, "cacheKey": metadata["cacheKey"], "checks": {"emulator": True, "bootCompleted": True, "timezone": "Etc/UTC", "homeComponent": "com.android.launcher/.Launcher", "stableObservations": 2, "productPackagesAbsent": True, "diagnosticsClean": True}, "bootId": BOOT, "adbPublicKeySha256": "a" * 64}
-+        return metadata, avd, health
-+
-+    def test_action_duplicate_cpu_ram_entries_are_canonicalized_but_wrong_effective_config_is_refused(self):
-+        canonical = checked_config(CONFIG, SETTINGS)
-+        self.assertEqual(canonical.count("hw.cpu.ncore="), 1)
-+        self.assertEqual(canonical.count("hw.ramSize="), 1)
-+        self.assertEqual(checked_config(canonical, SETTINGS), canonical)
-+        for old, new in [("hw.cpu.ncore=4", "hw.cpu.ncore=2"), ("4096M", "2048M"), ("pixel_6", "pixel_7"), ("image.sysdir.1=system-images/", "image.sysdir.1=../system-images/"), ("tag.id=google_apis", "tag.id=default")]:
-+            with self.assertRaises(ValueError):
-+                checked_config(CONFIG.replace(old, new), SETTINGS)
-+
-+    def test_seal_requires_healthy_proof_and_snapshot_files_and_verifies_every_cached_byte(self):
-+        with tempfile.TemporaryDirectory() as directory:
-+            root = Path(directory)
-+            metadata, avd, health = self.fixture(root)
-+            manifest = seal_snapshot(root, metadata, health)
-+            verify_snapshot(root, metadata, manifest)
-+            (avd / "userdata-qemu.img.qcow2").write_bytes(b"changed data")
-+            with self.assertRaisesRegex(ValueError, "contents"):
-+                verify_snapshot(root, metadata, manifest)
-+            for invalid in [{**health, "passed": False}, {**health, "cacheKey": "other"}]:
-+                with self.assertRaises(ValueError):
-+                    seal_snapshot(root, metadata, invalid)
-+            (avd / "snapshots/default_boot/snapshot.pb").unlink()
-+            with self.assertRaisesRegex(ValueError, "snapshot"):
-+                seal_snapshot(root, metadata, health)
-+
-+    def test_extra_files_and_redirected_avd_paths_are_never_treated_as_the_cached_clean_avd(self):
-+        with tempfile.TemporaryDirectory() as directory:
-+            root = Path(directory)
-+            metadata, avd, health = self.fixture(root)
-+            manifest = seal_snapshot(root, metadata, health)
-+            (avd / "extra.txt").write_text("not in clean manifest")
-+            with self.assertRaises(ValueError):
-+                verify_snapshot(root, metadata, manifest)
-+            (root / "predioon-clean.ini").write_text("path=/outside/another.avd\ntarget=android-35\n")
-+            with self.assertRaisesRegex(ValueError, "path"):
-+                seal_snapshot(root, metadata, health)
-+
-+    def test_restore_requires_same_guest_boot_and_new_host_adb_identity(self):
-+        original = {"bootId": BOOT, "adbPublicKeySha256": "a" * 64}
-+        restored = {"bootId": BOOT, "adbPublicKeySha256": "b" * 64}
-+        require_restored_boot(restored, original)
-+        for change in [{"bootId": "22222222-2222-4222-8222-222222222222"}, {"adbPublicKeySha256": "a" * 64}, {"adbPublicKeySha256": "bad"}, {"bootId": ""}]:
-+            with self.assertRaises(ValueError):
-+                require_restored_boot({**restored, **change}, original)
-+
-+    def test_manifest_from_other_sdk_runner_or_settings_is_rejected(self):
-+        with tempfile.TemporaryDirectory() as directory:
-+            root = Path(directory)
-+            metadata, _, health = self.fixture(root)
-+            manifest = seal_snapshot(root, metadata, health)
-+            changed = build_metadata(EMULATOR, IMAGE, {**HOST, "cpu": "another CPU"}, SETTINGS)
-+            with self.assertRaises(ValueError):
-+                verify_snapshot(root, changed, manifest)
-+            malformed = copy.deepcopy(manifest)
-+            malformed["health"]["checks"]["diagnosticsClean"] = False
-+            with self.assertRaises(ValueError):
-+                verify_snapshot(root, metadata, malformed)
-+
-+
-+if __name__ == "__main__":
-+    unittest.main()
++  const refresh = () => {
++    if (offset) setOffset(0);
++    else logs.reload();
++  };
++  const ready = !logs.loading && !logs.error && logs.data;
++  return <div className="space-y-5">
++    <PageHeading title="Histórico de atividades"
++      description={buildingId ? "Registros autorizados do condomínio em uso." : "Registros disponíveis nas suas concessões atuais."}
++      action={<Button variant="secondary" disabled={logs.loading} onClick={refresh}>Atualizar histórico</Button>} />
++    <Card title="Ações registradas" subtitle="Mais recentes primeiro; cada página contém até 25 registros">
++      <p className="mb-4 text-sm text-slate-600">A lista mostra somente os escopos autorizados para sua conta. Uma página vazia não representa o histórico de toda a plataforma.</p>
++      {!ready ? <ResourceFeedback resource={logs} emptyText="Nenhum registro disponível." />
++        : logs.data!.items.length ? <ul className="divide-y divide-slate-100">{logs.data!.items.map(log => <li key={log.id}>
++          <article aria-label="Registro de auditoria" className="flex flex-wrap items-start justify-between gap-3 py-4">
++            <div className="min-w-0 flex-1 space-y-2">
++              <p className="break-words text-sm font-medium text-slate-800">{log.action.replaceAll("_", " ")}</p>
++              <Badge tone={log.scopeKind === "PLATFORM" ? "info" : "neutral"}>{log.scopeKind === "PLATFORM" ? "Plataforma" : "Condomínio"}</Badge>
++              <dl className="space-y-1 break-words text-xs text-slate-500">
++                <div><dt className="inline">Responsável: </dt><dd className="inline">{log.userId ?? (log.actorType === "GATEWAY" ? "Controlador" : "Sistema")}</dd></div>
++                <div><dt className="inline">Recurso: </dt><dd className="inline">{log.resourceType}{log.resourceId ? ` · ${log.resourceId}` : ""}</dd></div>
++                {log.buildingId && <div><dt className="inline">Condomínio: </dt><dd className="inline">{log.buildingId}</dd></div>}
++              </dl>
++            </div>
++            <time dateTime={log.createdAt} className="text-xs text-slate-500">{formatDateTime(log.createdAt)}</time>
++          </article>
++        </li>)}</ul> : <p role="status" className="py-8 text-center text-sm text-slate-500">{offset ? "Não há registros nesta página." : "Nenhum registro disponível neste escopo."}</p>}
++      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4" aria-label="Paginação do histórico">
++        <Button variant="secondary" disabled={logs.loading || offset === 0} onClick={() => setOffset(value => Math.max(0, value - PAGE_SIZE))}>Página anterior</Button>
++        <p role="status" className="text-sm text-slate-500">Página {Math.floor(offset / PAGE_SIZE) + 1}</p>
++        <Button variant="secondary" disabled={!ready || logs.data!.items.length < PAGE_SIZE} onClick={() => setOffset(value => value + PAGE_SIZE)}>Próxima página</Button>
++      </div>
++    </Card>
++  </div>;
++}

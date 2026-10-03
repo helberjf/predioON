@@ -1,12 +1,17 @@
 {
-  "baseCommit": "ab928a83c9ff2d3680a41ee444ac91af7ef9e4fa",
+  "baseCommit": "4bbe231bc6613c9dc57ae9ace678986ab635a885",
+  "capturedOn": "2026-10-03",
   "state": "Drafts: restore for review, not approved product changes",
   "patch": "2026-10-02-em-andamento.patch",
-  "sha256": "f89272721b269986b804628dc227daf8fe02348cbfbbdbcb3b9151d8735ce49d",
+  "sha256": "284a91ff2cc975ecdeb73e24c367522882200dd20bff993f1745b0acc7b4a2da",
   "files": [
     {
-      "path": ".github/workflows/android-avd.yml",
-      "sha256LF": "7ecc6b8e0c62b4248afe6de2ec308df7c19b218871243e526d1ed136a91d813f"
+      "path": "README.md",
+      "sha256LF": "337de9a50318e515e10833b0c660de74007298a4441ea15b3da8519ccbf2ad23"
+    },
+    {
+      "path": "apps/admin-web/src/pages/Audit.tsx",
+      "sha256LF": "14c929b4ad917d11bc30c6c8c575451357b32292bf418e948f9851f248c492bf"
     },
     {
       "path": "apps/api/src/modules/audit/routes.ts",
@@ -14,23 +19,39 @@
     },
     {
       "path": "apps/api/src/modules/users/routes.ts",
-      "sha256LF": "afb3b69b6b4cb004c421f7a58f142a7b15cf4b9d90a9b427b37eecebdf2b2c6c"
+      "sha256LF": "908168746b0e832c08d156f506028ffcaf52cf8c4f6d1b303877e5a63b72be0a"
     },
     {
       "path": "apps/api/test/audit-capabilities.test.ts",
-      "sha256LF": "6b8509e96ebeaa15fd7d4489118e077d653ae614b95c26b0c4699a666074ca75"
+      "sha256LF": "04eec16d7d8b5411755b4f996abafa23c08fa0e9ea0b653c58b54bab28b1e106"
     },
     {
       "path": "apps/api/test/support.test.ts",
       "sha256LF": "5b8e2ce02463fb11b1e1444d33a477d96452b3ba1bad26d6fcf9604c790bde8a"
     },
     {
+      "path": "apps/building-web/src/App.tsx",
+      "sha256LF": "84202e2b4db3baae7b9718bdd103b2386b52369a30a24d6d1f623d733e24f0b3"
+    },
+    {
+      "path": "apps/building-web/src/layout/Shell.tsx",
+      "sha256LF": "60bd081ec0a9881d5fba0c37008b0e57582c1ce8d03fcda142e5996d43ce068f"
+    },
+    {
+      "path": "docs/AUDITORIA.md",
+      "sha256LF": "0edda2f44f36425cea70d863ae239403cd77ac4ad83fec12622b3311fe0dbb17"
+    },
+    {
       "path": "docs/superpowers/plans/2026-10-02-audit-capabilities.md",
-      "sha256LF": "4c5a1a08f1e04388df027ff5571cac9233b2b9a5bc5caa9f48df4a4de70cbeb5"
+      "sha256LF": "1ae6ab4c822e7325d85a6ed933d942d93202eb8a539df6ac787a796b28ae9101"
     },
     {
       "path": "docs/superpowers/plans/2026-10-02-password-change.md",
       "sha256LF": "41a0d900e844bdb7f4ea357110ae7193a3610cc98617ea48d0cc041a11c49764"
+    },
+    {
+      "path": "e2e/audit.spec.ts",
+      "sha256LF": "bd224cede51f462623df54a052255826e96143130238e56abbd11c383ee9c2e8"
     },
     {
       "path": "infrastructure/036-audit-capabilities.sql",
@@ -49,21 +70,25 @@
       "sha256LF": "6a1fe8633dab14b5c70cc99ba6102aea0e8bde2c893b4c976a4a6f1c0c565821"
     },
     {
+      "path": "packages/db/test/backup-restore.test.ts",
+      "sha256LF": "366ca1fa5fc7dd2a17bd838855da17289fe5aed7bf84e61857df244ccd983678"
+    },
+    {
       "path": "packages/shared/src/rbac.ts",
       "sha256LF": "bcddbe1e04f22b94a91323310e94fa4541803bdd60eec9218b06efd8e0cd590c"
     },
     {
-      "path": "scripts/android-smoke/avd_snapshot.py",
-      "sha256LF": "c673fb22be93e750c7448a14caac2bcf925f07f7554ceb8d61e598cfcdcd4f19"
+      "path": "packages/ui/src/components/audit-panel.tsx",
+      "sha256LF": "e744b72bb39efb6128125c4c5af90e2b00df60703bec58d0eac3a8dd19c1211c"
     },
     {
-      "path": "scripts/android-smoke/test_avd_snapshot.py",
-      "sha256LF": "421376aa1dc5d0a5facfd4f30f0c07a80ead786664e51a42727029b7df631ba6"
+      "path": "packages/ui/src/index.ts",
+      "sha256LF": "c8efe104d044bb23867f078aeed5d7bef0f23936bbdbf3b25cdb9cb1e7c9a547"
     }
   ],
   "restoreCheck": {
     "passed": true,
-    "filesVerified": 14,
+    "filesVerified": 20,
     "method": "git apply to archived base, compare SHA-256 with normalized LF"
   }
 }
