@@ -89,6 +89,34 @@
       "sourceArtifact": "audit-local.png",
       "testedSourceComparison": "16 arquivos conferidos contra o commit com normalizacao LF",
       "limit": "Histórico local com25 registros por página e viewport390px. É o portal web responsivo, com API036 real; não é uma captura nativa de Android ou iOS."
+    },
+    {
+      "file": "android-morador-financeiro.png",
+      "sha256": "e573a616d6206e31fc828d62448cee57ea1db4166c4d5cef1ffc71b16656bbdd",
+      "width": 1080,
+      "height": 2400,
+      "sourceCommit": "8408a5dcdcc87e97ddb39e4fa71051fa621483c0",
+      "sourceRun": "https://github.com/helberjf/predioON/actions/runs/37130882267",
+      "sourceArtifactId": 11276742968,
+      "sourceArtifact": "resident-mobile/04-finance.png",
+      "phasePassed": true,
+      "journeyPassed": false,
+      "apkSha256": "af6aabd59c246658c04ceb8f09494da5325278e42e7e3ad6ec9757700eed93a6",
+      "limit": "Prestação publicada com total e acesso aos lançamentos. Fase04 aprovada; percurso completo falhou mais tarde na revogação da Operação."
+    },
+    {
+      "file": "android-operacao-alerta-reconhecido.png",
+      "sha256": "4d1f103ab5c27a66174d5619dbf4ec788b4fc8a9e00be61696570825cb25080b",
+      "width": 1080,
+      "height": 2400,
+      "sourceCommit": "8408a5dcdcc87e97ddb39e4fa71051fa621483c0",
+      "sourceRun": "https://github.com/helberjf/predioON/actions/runs/37130882267",
+      "sourceArtifactId": 11276742968,
+      "sourceArtifact": "operations-mobile/06-acknowledged.png",
+      "phasePassed": true,
+      "journeyPassed": false,
+      "apkSha256": "16a2f23a2d8bbe143e719d72bf139f737fb4136bd7618a9439250bca454ff910",
+      "limit": "Reconhecimento confirmado na interface e nas provas de ações do banco. Fase06 aprovada; percurso completo falhou mais tarde na verificação de conteúdo revogado."
     }
   ]
 }

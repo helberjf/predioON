@@ -2,7 +2,7 @@
 
 Publicadas em **03/10/2026**. Estas capturas foram conferidas em execuções reais e usam dados fictícios. Cada imagem mantém o commit de origem; a data de publicação não altera a versão demonstrada. O plano completo e os cinco vídeos finais continuam pendentes, conforme [CONTINUIDADE.md](CONTINUIDADE.md).
 
-As dez imagens e a [galeria HTML](IMAGENS_DOS_SISTEMAS.html) agora acompanham o clone. Abra a galeria no navegador para filtrar e ampliar. O [manifesto](imagens/2026-10-03/manifesto.json) registra dimensões, SHA-256 e origem.
+As doze imagens e a [galeria HTML](IMAGENS_DOS_SISTEMAS.html) agora acompanham o clone. Abra a galeria no navegador para filtrar e ampliar. O [manifesto](imagens/2026-10-03/manifesto.json) registra dimensões, SHA-256 e origem.
 
 ## Android — Morador: avisos
 
@@ -63,3 +63,15 @@ Origem: [`c2871f0`](https://github.com/helberjf/predioON/commit/c2871f0b1fd9c903
 Origem: [`c2871f0`](https://github.com/helberjf/predioON/commit/c2871f0b1fd9c9039bb5240100b256841df8bd12). Histórico local com25 registros por página e viewport390px. É o portal web responsivo, com API036 real; não é uma captura nativa de Android ou iOS. A fonte dos16 arquivos testados foi conferida contra este commit; a captura local precedeu sua publicação, com os mesmos arquivos.
 
 ![Web — Auditoria do condomínio](imagens/2026-10-03/web-auditoria-condominio.png)
+
+## Android — Morador · Contas publicadas
+
+Origem: [8408a5d](https://github.com/helberjf/predioON/actions/runs/37130882267), artefato11276742968, APK release x86_64 com API/PostgreSQL reais e dados fictícios. Prestação publicada com total e acesso aos lançamentos. Fase04 aprovada; percurso completo falhou mais tarde na revogação da Operação. Esta captura parcial não homologa toda a jornada nem aparelho físico.
+
+![Android — Morador · Contas publicadas](imagens/2026-10-03/android-morador-financeiro.png)
+
+## Android — Operação · Alerta reconhecido
+
+Origem: [8408a5d](https://github.com/helberjf/predioON/actions/runs/37130882267), artefato11276742968, APK release x86_64 com API/PostgreSQL reais e dados fictícios. Reconhecimento confirmado na interface e nas provas de ações do banco. Fase06 aprovada; percurso completo falhou mais tarde na verificação de conteúdo revogado. Esta captura parcial não homologa toda a jornada nem aparelho físico.
+
+![Android — Operação · Alerta reconhecido](imagens/2026-10-03/android-operacao-alerta-reconhecido.png)
