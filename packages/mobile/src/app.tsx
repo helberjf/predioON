@@ -37,6 +37,7 @@ import { readOperationsAccess, readResidentAccess } from "./authorization.ts";
 import { Alerts, Overview, Readings } from "./operations.tsx";
 import { Notices, Reservations, Tickets, Transparency } from "./resident.tsx";
 import { Access } from "./access.tsx";
+import { Account } from "./account.tsx";
 import {
   createAccessIntentStore,
   type AccessIntentStore,
@@ -116,6 +117,7 @@ function ConnectedApp({
   const [bootError, setBootError] = useState<string | null>(null);
   const [retry, setRetry] = useState(0);
   const [selected, setSelected] = useState<Building | null>(null);
+  const [accountOpen, setAccountOpen] = useState(false);
   const accessIntents = useMemo(
     () => createAccessIntentStore(createNativeRequestId),
     [user?.id],
@@ -137,6 +139,7 @@ function ConnectedApp({
           accessRef.current.invalidate();
           setUser(null);
           setSelected(null);
+          setAccountOpen(false);
         },
       }),
     [baseUrl, storage],
@@ -174,6 +177,7 @@ function ConnectedApp({
     accessRef.current.invalidate();
     setUser(null);
     setSelected(null);
+    setAccountOpen(false);
     setBootError(null);
     try {
       await api.logout();
@@ -227,6 +231,7 @@ function ConnectedApp({
         }}
         signedIn={(profile) => {
           setSelected(null);
+          setAccountOpen(false);
           setUser(profile);
         }}
       />
@@ -246,13 +251,21 @@ function ConnectedApp({
           <Text numberOfLines={1} style={[styles.muted, { flex: 1 }]}>
             {user.name}
           </Text>
+          <Button label="Minha conta" secondary onPress={() => setAccountOpen(true)} />
           <Button label="Sair" secondary onPress={() => void signOut()} />
         </View>
         <Text numberOfLines={1} style={styles.muted}>
           {user.email}
         </Text>
       </View>
-      {selected ? (
+      {accountOpen ? (
+        <Account
+          key={user.id}
+          api={api}
+          user={user}
+          close={() => setAccountOpen(false)}
+        />
+      ) : selected ? (
         <BuildingApp
           key={`${user.id}:${selected.id}`}
           {...{ api, product, user, accessIntents }}
