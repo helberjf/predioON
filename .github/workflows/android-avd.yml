@@ -1,0 +1,165 @@
+name: Android clean snapshot verification
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/android-smoke/**"
+      - ".github/workflows/android-avd.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-clean-avd-${{ github.ref }}
+  cancel-in-progress: false
+
+# No repository dependencies, database, app build, fixture or credential is
+# created in either job. Cache save exists only in the clean preparation job.
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    outputs:
+      cache-key: ${{ steps.metadata.outputs.key }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: "platform-tools emulator system-images;android-35;google_apis;x86_64"
+          log-accepted-android-sdk-licenses: false
+      - name: Test preparation contracts
+        run: python3 -m unittest discover -s scripts/android-smoke -p 'test_*.py' -v
+      - name: Fingerprint installed SDK and this runner
+        id: metadata
+        run: |
+          mkdir -p .local/android-avd "$HOME/.android/avd"
+          key=$(python3 scripts/android-smoke/clean_avd.py metadata --sdk "$ANDROID_HOME" --metadata .local/android-avd/current.json)
+          echo "key=$key" >> "$GITHUB_OUTPUT"
+      - name: Restore only this exact clean AVD
+        id: cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.android/avd/predioon-clean.avd
+            ~/.android/avd/predioon-clean.ini
+            ~/.android/avd/predioon-clean-manifest.json
+          key: ${{ steps.metadata.outputs.key }}
+      - name: Enable KVM on the disposable runner
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Create and validate clean HOME before saving any snapshot
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          avd-name: predioon-clean
+          cores: 4
+          ram-size: 4096M
+          force-avd-creation: true
+          disable-animations: true
+          emulator-boot-timeout: 600
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot-load -noaudio -no-boot-anim -camera-back none -camera-front none -timezone Etc/UTC
+          pre-emulator-launch-script: python3 scripts/android-smoke/avd_snapshot.py configure --sdk "$ANDROID_HOME" --metadata .local/android-avd/current.json --avd-home "$HOME/.android/avd" --manifest "$HOME/.android/avd/predioon-clean-manifest.json" --evidence .local/android-avd/preparation
+          script: python3 scripts/android-smoke/avd_snapshot.py boot --sdk "$ANDROID_HOME" --metadata .local/android-avd/current.json --avd-home "$HOME/.android/avd" --manifest "$HOME/.android/avd/predioon-clean-manifest.json" --evidence .local/android-avd/preparation
+      - name: Seal stopped snapshot bytes after healthy preparation
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: python3 scripts/android-smoke/avd_snapshot.py seal --sdk "$ANDROID_HOME" --metadata .local/android-avd/current.json --avd-home "$HOME/.android/avd" --manifest "$HOME/.android/avd/predioon-clean-manifest.json" --evidence .local/android-avd/preparation
+      - name: Save clean AVD immediately, with no post-job recache
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.android/avd/predioon-clean.avd
+            ~/.android/avd/predioon-clean.ini
+            ~/.android/avd/predioon-clean-manifest.json
+          key: ${{ steps.metadata.outputs.key }}
+      - name: Verify prepared or previously sealed clean contents
+        run: |
+          python3 scripts/android-smoke/avd_snapshot.py verify --sdk "$ANDROID_HOME" --metadata .local/android-avd/current.json --avd-home "$HOME/.android/avd" --manifest "$HOME/.android/avd/predioon-clean-manifest.json" --evidence .local/android-avd/preparation
+          cp "$HOME/.android/avd/predioon-clean-manifest.json" .local/android-avd/manifest.json
+      - name: Preserve preparation evidence without AVD disks or ADB keys
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-avd-preparation-${{ github.run_id }}
+          path: .local/android-avd/
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7
+
+  restore:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: "platform-tools emulator system-images;android-35;google_apis;x86_64"
+          log-accepted-android-sdk-licenses: false
+      - name: Require compatible SDK and independent runner before restoring
+        env:
+          PREPARED_KEY: ${{ needs.prepare.outputs.cache-key }}
+        run: |
+          mkdir -p .local/android-avd "$HOME/.android/avd"
+          current_key=$(python3 scripts/android-smoke/clean_avd.py metadata --sdk "$ANDROID_HOME" --metadata .local/android-avd/current.json)
+          test "$current_key" = "$PREPARED_KEY" || { echo 'Independent runner or SDK is incompatible with the prepared fingerprint'; exit 1; }
+      - name: Restore exact sealed cache without host ADB keys
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.android/avd/predioon-clean.avd
+            ~/.android/avd/predioon-clean.ini
+            ~/.android/avd/predioon-clean-manifest.json
+          key: ${{ needs.prepare.outputs.cache-key }}
+          fail-on-cache-miss: true
+      - name: Verify bytes before the emulator can modify userdata
+        run: |
+          python3 scripts/android-smoke/avd_snapshot.py verify --sdk "$ANDROID_HOME" --metadata .local/android-avd/current.json --avd-home "$HOME/.android/avd" --manifest "$HOME/.android/avd/predioon-clean-manifest.json" --evidence .local/android-avd/restoration
+          cp "$HOME/.android/avd/predioon-clean-manifest.json" .local/android-avd/manifest.json
+      - name: Enable KVM on the independent runner
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Prove snapshot restoration with fresh ADB and healthy HOME
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          avd-name: predioon-clean
+          cores: 4
+          ram-size: 4096M
+          force-avd-creation: false
+          disable-animations: true
+          emulator-boot-timeout: 600
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot-save -noaudio -no-boot-anim -camera-back none -camera-front none -timezone Etc/UTC
+          pre-emulator-launch-script: python3 scripts/android-smoke/avd_snapshot.py configure --sdk "$ANDROID_HOME" --metadata .local/android-avd/current.json --avd-home "$HOME/.android/avd" --manifest "$HOME/.android/avd/predioon-clean-manifest.json" --evidence .local/android-avd/restoration
+          script: python3 scripts/android-smoke/avd_snapshot.py boot --restored --sdk "$ANDROID_HOME" --metadata .local/android-avd/current.json --avd-home "$HOME/.android/avd" --manifest "$HOME/.android/avd/predioon-clean-manifest.json" --evidence .local/android-avd/restoration
+      - name: Preserve restoration evidence, never save mutated AVD state
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-avd-restoration-${{ github.run_id }}
+          path: .local/android-avd/
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7

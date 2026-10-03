@@ -2,6 +2,18 @@
 
 O workflow [android-smoke.yml](../../.github/workflows/android-smoke.yml) verifica o início de execução dos dois produtos em emulador Android API 35, arquitetura x86_64. A existência do workflow não constitui evidência de aprovação: conferir o resultado de cada app e os artefatos do respectivo commit.
 
+## Verificação de snapshot limpo
+
+O workflow [android-avd.yml](../../.github/workflows/android-avd.yml) prepara um AVD sem aplicativos, fixtures ou credenciais e tenta restaurá-lo em um segundo runner. Ele ainda não modifica os percursos autenticados. Os contratos do verificador têm 37 testes locais; a aprovação da restauração nativa depende da execução desse workflow.
+
+A chave exige as mesmas revisões instaladas do SDK/emulador, imagem do runner, CPU e configurações do AVD. Um runner incompatível falha antes da restauração; não há chave parcial ou fallback que aceite um snapshot diferente. O helper confere a configuração efetiva e o hardware do QEMU, além de HOME estável, ausência dos pacotes do produto, fuso UTC e diagnóstico sem crash/ANR.
+
+A action acrescenta CPU/RAM à configuração. O [hook anterior ao lançamento](https://github.com/ReactiveCircus/android-emulator-runner/blob/v2/action.yml) normaliza essas entradas e rejeita valores efetivos incompatíveis. Depois da preparação, a action encerra o emulador; o helper aguarda sua saída antes de conferir snapshot/RAM e calcular o inventário de bytes. O cache é salvo imediatamente nessa etapa limpa, antes de qualquer instalação ou login.
+
+Somente a pasta do AVD, seu arquivo ini e o manifesto são incluídos no cache. As chaves ADB do host ficam fora desses caminhos; a evidência registra apenas o hash da chave pública. Antes do segundo lançamento, cada arquivo é conferido contra o inventário. A restauração exige o mesmo boot_id do kernel convidado e uma nova identidade ADB do host. O segundo job usa `-no-snapshot-save` e não salva seu estado alterado de volta no cache.
+
+Os artefatos de diagnóstico ficam em `.local/android-avd` no runner. Não contêm discos do AVD ou chaves privadas. Os scripts recusam ambiente fora do CI descartável e credenciais/preparação de apps presentes. Um cache hit, sozinho, não comprova a restauração nem a saúde do Android. Depois de uma execução nativa aprovada, ainda falta integrar esse preparo às jornadas dos aplicativos e resolver a falha financeira documentada.
+
 ## O que é executado
 
 1. Instala as dependências fixadas no lockfile e executa os testes do próprio verificador.
