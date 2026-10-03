@@ -2,9 +2,9 @@
 
 Atualizado em **03/10/2026**, horário de São Paulo. Este é o ponto de retomada em outro computador ou outra sessão. **O plano completo ainda não terminou.** Resultados de uma versão não aprovam automaticamente mudanças posteriores.
 
-Repositório: <https://github.com/helberjf/predioON>. Linha autorizada: `main`. Último incremento de código publicado: **8408a5d**, espera financeira Android com conteúdo efetivamente renderizado, 21/21 testes Linux/TLS e 20 aprovados +1 skip OpenSSL no Windows; autenticação8/8 e harness comum39/39 Linux. Não é correção nativa de MissingViewState.
+Repositório: <https://github.com/helberjf/predioON>. Linha autorizada: `main`. Produto publicado até a migration 036. O incremento Android financeiro `8408a5d` e o checkpoint `2af9b9e` foram enviados. O CI da fonte 2af9b9e passou API 658, banco 26, cliente 48, ingestão 83, UI 83, mobile 59 e navegador 189; isso não inclui o código037 em revisão.
 
-A fonte publicada **cacbd9d** passou no CI completo: API658, banco26, cliente48, ingestão83, UI83, mobile59, dois contratos móveis1/1 e Playwright189/189, sem skips ou retries. As dez imagens reais continuam versionadas. O novo incremento **senha037** está implementado em rascunhos de API/cliente/web/mobile e em revisão independente; **não está aprovado nem publicado como produto**. Há **30 arquivos recuperáveis** no checkpoint descrito abaixo. As migrations de produto publicadas ainda terminam em036. Android continua com falhas nativas conhecidas e iOS com jornadas autenticadas pendentes.
+A troca de senha037 tem revisão independente, dirigidos de autenticação63/63, cliente59/59, banco26/26 com restauração real, UI89/89 e mobile72/72. A primeira matriz web passou213/213 nos três motores. API integral Windows691/695 e Linux694/695 continuam registradas como falhas; o prazo global de um teste SSE está sendo corrigido após medição isolada. Uma revisão posterior do web gerou verificações adicionais de dispensar erro e ponteiro/teclado responsivo, ainda em execução. Há **37 arquivos EM REVISÃO recuperáveis**, incluindo as correções finais de segurança e a documentação, sobre a base indicada abaixo. Nenhuma destas provas aprova runtime Android/iOS, implantação pública ou conclusão do plano total.
 
 ## 1. Instruções permanentes do proprietário
 
@@ -97,22 +97,25 @@ O CI da fonte **cacbd9d** foi conferido em 03/10: [plataforma37099724611](https:
 
 O [ensaio de snapshot db5dcbc](https://github.com/helberjf/predioON/actions/runs/37098757001) falhou com ANR do Pixel Launcher antes de instalar qualquer app; o job de restauração foi pulado e nenhum cache foi salvo. Os dois ensaios anteriores também falharam; identidade ADB e alvo do config.ini foram corrigidos com RED/39 testes Windows/Linux, mas não resolvem por si a saúde do Android. Evidências locais: work/android-avd-first-evidence, second-evidence e third-evidence; detalhes em scripts/android-smoke/README.md. Não foi afirmada causa comum com a falha financeira dos apps. A correção de rótulo17f9e47 passou15/15 dirigidos, depois da integral189 do consumidorc2871f0; a fonte posterior exige essa distinção.
 
+
+Atualização de03/10: [plataforma2af9b9e](https://github.com/helberjf/predioON/actions/runs/37139264754) e [navegador2af9b9e](https://github.com/helberjf/predioON/actions/runs/37139264735) aprovados na fonte publicada036. Plataforma8408a5d falhou um caso de cookie; o run posterior passou, sem determinar a causa dessa falha isolada. No [Android domínios8408a5d](https://github.com/helberjf/predioON/actions/runs/37130882267), artefato11276742968, Morador passou13 fases e Operação16; a verificação terminal de conteúdo revogado falhou após retomar. XML final já mostra menus reduzidos, mas isso não apaga a primeira negativa nem explica a transição; logs mantêm MissingViewState. [Reservas8408a5d](https://github.com/helberjf/predioON/actions/runs/37130882266) falhou no Pixel Launcher antes de instalar o app. Não afirmar aceite nativo completo.
+
+Execuções locais037: API Linux694/695,15,1min (work/password037-api-linux-full.log); web213/213,14,9min (work/password037-web-full-213.log); banco26/26 (work/password037-db-full-verified.log). São suites distintas, sem somar dirigidos como integral. O acesso da galeria127.0.0.1:8765 continua recusado por preferência salva do navegador, mesmo com escrita/rede liberadas; não foi contornado.
+
 ## 5. Rascunhos recuperáveis
 
-O [patch](continuidade/2026-10-02-em-andamento.patch) contém **30 arquivos** capturados sobre **8408a5dcdcc87e97ddb39e4fa71051fa621483c0**. O [manifesto](continuidade/2026-10-02-manifesto.json) registra os caminhos exatos, SHA-256 e hashes de conteúdo normalizado para LF. A aplicação real sobre uma cópia limpa dessa base e os 30 hashes foram conferidos. SHA-256 do patch: **3ab1474251eb5a0247d98f82d774248b7e799d1a69a6bf6d93ce58e2e71678c9**.
+O [patch](continuidade/2026-10-02-em-andamento.patch) contém **37 arquivos** sobre **2af9b9e4ef9eab51ece84abcb67f2c4bfed037ea**, com SHA-256 **4cb7dc138ebd3b8008e6183d9eacb0ade3afc6fb1efe06875334246213ce8149**. O [manifesto](continuidade/2026-10-02-manifesto.json) lista os caminhos/hashes LF. A aplicação em cópia limpa da base e os 37 hashes foram conferidos. Não reaplicar sobre estes rascunhos já presentes; se main avançar, recuperar em checkout isolado da base exata. Checkpoints anteriores de30 arquivos ou menos são fotografias históricas e não contêm todas as correções finais.
 
-Esse checkpoint é uma fotografia **EM REVISÃO**, não uma release. Os rascunhos já existem nesta máquina e podem avançar depois da captura; não reaplicar o patch sobre eles. Checkpoints anteriores de1/14/20/24 arquivos são históricos e não devem ser aplicados sobre código já publicado. A tentativa removeClippedSubviews=false foi retirada após revisão indicar provável ausência de efeito; não está neste patch. O harness financeiro já publicado em8408a5d também não está no patch.
-
-| Grupo de rascunhos | Estado na captura | Próximo aceite |
+| Grupo | Estado desta captura | Próximo aceite |
 | --- | --- | --- |
-| API/SQL037/contratos | Troca própria de senha, locks conta→família→geração, confirmação da senha atual e revogação de famílias; dirigidos iniciais executados. Revisão encontrou gaps de trigger, refresh e Unicode, ainda em correção. | RED/GREEN dos achados, revisão independente, regressão integral API e restauração037 antes de publicar. |
-| Cliente HTTP | Fachadas native/web para troca de senha; dirigidos executados. Falha de limpeza de storage após204 ainda em revisão. | Confirmação204, geração da identidade, falha de rede sem repetir mutação e descarte de resposta antiga; preservar bloqueio local após revogação. |
-| Web | Formulário comum em Minhas sessões dos três portais; UI89/89 e tipos dirigidos; 24 casos Playwright preparados. | Executar browsers com API/PostgreSQL reais, integral posterior e conferir capturas da versão publicada. |
-| Apps RN | Minha conta nos dois apps; controlador/lifecycle, UI protegida; mobile71/71, tipos e quatro bundles Android/iOS. | Jornada nativa Android e inspeção de imagens; runtime/autenticação iOS continuam pendentes. |
-| Android senha | Workflow e roteiro separados, allowlist mínima e prova de revogação/isolamento; Python9/9 Linux/TLS. Revisão do fluxo ainda em andamento. | Corrigir achados, executar ambos APKs contra API real e conferir banco/logs/capturas, sem declarar bundles como runtime. |
-| Plano037 | Plano Markdown preservado junto do código em construção. | Atualizar para a implementação final e seus resultados; MFA/convites/recuperação permanecem outros recortes. |
+| API/SQL037 e cliente | Gaps de triggers imediatos, refresh, Unicode e falha de armazenamento corrigidos; duas revisões independentes sem bloqueador. Autenticação63/63, cliente59/59. | Nova integral API após ajustar o prazo de observação SSE; conferir fonte congelada e publicar. |
+| Banco e documentação | Restore real44 tabelas/37 migrations;26/26 sem skips. TROCA_DE_SENHA, MIGRATIONS e BACKUP atualizados no recorte. | Versionar junto da implementação aceita; plano total segue aberto. |
+| Web | UI89/89; integral213/213 antes das verificações adicionais. Dispensar erro passou nos três motores na fonte anterior; envio indevido não foi reproduzido. Tipo do botão explícito e testes responsivos adicionados. | Dirigido ampliado e nova integral da fonte final; esperar sessão carregada e conferir capturas. |
+| Mobile | Minha conta nos dois apps, controlador72/72, tipos e quatro bundles Android/iOS. | Publicar após API; executar APKs reais e jornadas iOS separadamente. |
+| Android senha | Verificador16/16 Linux/TLS; privacidade/credenciais terminais antes de prontidão, preflight e coleta restritos. | Executar workflow e inspecionar resultados, banco, logs e imagens. |
+| Fixture SSE | Medição isolada: preparação scoped26,57s; observações individuais0,25–4,44s. Timer global45s expirava durante preparação. Ajuste para orçamento por observação em andamento. | Provar preparação longa e marcador ausente, dirigido e integral; sem retries nem mudança de autorização. |
 
-Os números dirigidos acima identificam o estado do trabalho, não aprovam a fonte final nem substituem integrais. Novas alterações requerem seus próprios resultados. Logs de trabalho e bancos não acompanham o patch.
+É uma fotografia de desenvolvimento, **não uma release**. O código pode avançar depois dela. Logs, bancos e evidências brutas não acompanham o patch. Detalhes do recorte e rollout estão em [TROCA_DE_SENHA.md](TROCA_DE_SENHA.md).
 
 ## 6. Retomar em outro computador
 
@@ -140,10 +143,10 @@ git diff --check
 git status --short
 ```
 
-SHA-256 esperado: `3ab1474251eb5a0247d98f82d774248b7e799d1a69a6bf6d93ce58e2e71678c9`. Se a main avançou e `--check` falhar, não forçar, sobrescrever arquivos ou reaplicar trechos às cegas. Abra uma cópia de trabalho na base exata e aplique nela, preservando o clone atual:
+SHA-256 esperado: `4cb7dc138ebd3b8008e6183d9eacb0ade3afc6fb1efe06875334246213ce8149`. Se a main avançou e `--check` falhar, não forçar, sobrescrever arquivos ou reaplicar trechos às cegas. Abra uma cópia de trabalho na base exata e aplique nela, preservando o clone atual:
 
 ```powershell
-git worktree add --detach ../predioON-checkpoint 8408a5dcdcc87e97ddb39e4fa71051fa621483c0
+git worktree add --detach ../predioON-checkpoint 2af9b9e4ef9eab51ece84abcb67f2c4bfed037ea
 git -C ../predioON-checkpoint apply --check ../predioON/docs/continuidade/2026-10-02-em-andamento.patch
 git -C ../predioON-checkpoint apply ../predioON/docs/continuidade/2026-10-02-em-andamento.patch
 ```
@@ -210,10 +213,10 @@ Banco/backup: seguir [BACKUP_E_RESTAURACAO.md](BACKUP_E_RESTAURACAO.md), incluin
 
 Os artefatos de CI têm retenção curta (em geral 3–7 dias): baixar evidências importantes enquanto disponíveis e guardar fora do repositório. Nesta máquina os entregáveis ficam em `outputs` ao lado do clone. A galeria contém **dez imagens reais**: três Android, cinco web e duas iOS. Os três dashboards web são de5eda20e; as duas capturas de auditoria correspondem aos16 arquivos testados e publicados emc2871f0, conferidos contra esse commit com normalização LF. As imagens nativas conservam as versões/origens descritas no manifesto. As dez imagens, filtros e ampliação passaram em Chromium sem erro de página. Nenhum dos cinco vídeos finais foi produzido.
 
-O pacote local `outputs/PREDIO_ON_CONTINUIDADE.zip` reúne MDs, patch/manifesto, galeria e dez capturas. Seus22 arquivos têm integridade conferida, incluindo hashes das imagens e do patch. A galeria extraída também é verificada sem servidor local. Para transportar o trabalho, salvar esse pacote fora desta máquina. Fonte publicada, checkpoint de30 rascunhos, galeria e imagens estão no GitHub; ZIP, banco e evidências brutas permanecem fora do Git.
+O pacote local `outputs/PREDIO_ON_CONTINUIDADE.zip` reúne MDs, patch/manifesto, galeria e dez capturas. Seus22 arquivos têm integridade conferida, incluindo hashes das imagens e do patch. A galeria extraída também é verificada sem servidor local. Para transportar o trabalho, salvar esse pacote fora desta máquina. Fonte publicada, checkpoint de37 rascunhos, galeria e imagens estão no GitHub; ZIP, banco e evidências brutas permanecem fora do Git.
 
 Credenciais de produção, certificados Apple/Android, FCM/APNs, domínio/TLS público e controladores físicos não foram configurados/homologados como parte do aceite atual. Essa lista não impede continuar implementando e testando localmente; define quais resultados não podem ser afirmados ainda.
 
 ## 9. Prompt sugerido para a próxima sessão
 
-> Continue o Prédio ON pela main. Leia docs/CONTINUIDADE.md, arquitetura e tracker. O checkpoint preserva 30 arquivos037 EM REVISÃO sobre 8408a5dcdcc87e97ddb39e4fa71051fa621483c0; confirme SHA/aplicação antes de recuperar. Fonte cacbd9d passou CI API658/banco26/Playwright189, e8408a5d publicou harness financeiro21Linux/TLS. Código037 API/cliente/web/mobile e jornadaAndroid precisam fechar os achados de revisão, executar integrais reais e runtime nativo antes de publicar. Há dez imagens versionadas. Android conserva falhas de launcher/Fabric; iOS autenticado está pendente. Faça Conventional Commits e push main por incremento verificado, incluindo imagens conferidas. Não reinicie o computador. MFA/convites/recuperação, processamento durável, novos módulos, operação, documentação final, abertura dos cinco sistemas e cinco vídeos ainda precisam ser concluídos.
+> Continue o Prédio ON pela main. Leia CONTINUIDADE, arquitetura e tracker. Há 37 arquivos037 EM REVISÃO no checkpoint sobre 2af9b9e4ef9eab51ece84abcb67f2c4bfed037ea, SHA 4cb7dc138ebd3b8008e6183d9eacb0ade3afc6fb1efe06875334246213ce8149; confira aplicação/hashes antes de recuperar. Dirigidos auth63, cliente59, banco26, UI89, mobile72 aprovados; web integral213 passou antes da revisão adicional. Integral API694/695 falhou pelo prazo global SSE medido; feche o ajuste por observação e nova integral, depois publique API/cliente, web e mobile em Conventional Commits com push main. Execute workflow Android senha e investigue revogação nativa/Fabric/launcher, sem enfraquecer privacidade. iOS autenticado, MFA/convites/recuperação, etapa3 durável, novos módulos, operação, documentação final e cinco vídeos permanecem pendentes. Imagens reais devem acompanhar commits após inspeção. Não reinicie o computador e não contorne o bloqueio salvo da galeria.

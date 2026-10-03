@@ -77,12 +77,12 @@ index a4f5097..cf7c4cf 100644
    const { refreshToken } = req.body as z.infer<typeof RefreshSchema>;
    const session = await refreshSession(refreshToken, {
 diff --git a/apps/api/src/auth/service.ts b/apps/api/src/auth/service.ts
-index 0747434..a3b3ceb 100644
+index 0747434..fdf9ba3 100644
 --- a/apps/api/src/auth/service.ts
 +++ b/apps/api/src/auth/service.ts
-@@ -1,9 +1,9 @@
+@@ -1,14 +1,32 @@
 -import { and, desc, eq, gt, isNull, lte, or, sql } from "drizzle-orm";
-+import { and, asc, desc, eq, gt, isNull, lte, or, sql } from "drizzle-orm";
++import { and, asc, desc, eq, gt, inArray, isNull, lte, or, sql } from "drizzle-orm";
  import { buildings, memberships, organizations, refreshTokens, sessions, users } from "@predioon/db/runtime";
  import { identityDb as db } from "@predioon/db/identity";
  import type { Role } from "@predioon/shared";
@@ -93,7 +93,30 @@ index 0747434..a3b3ceb 100644
  import { createRefreshToken, hashRefreshToken, refreshTokenExpiry, signAccessToken, type AccessTokenClaims } from "./tokens.js";
  
  type ClientMeta = { userAgent?: string | null; ipAddress?: string | null };
-@@ -54,6 +54,9 @@ export async function login(email: string, password: string, meta: ClientMeta):
+ export type Identity = { userId: string; name: string; email: string; role: Role; memberships: Array<{ buildingId: string; role: "BUILDING_ADMIN" | "RESIDENT" }> };
+ export type SessionTokens = { accessToken: string; refreshToken: string; identity: Identity; expiresAt: Date };
++type IdentityTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
++
++async function revokeLockedFamilies(tx: IdentityTransaction, families: Array<{ id: string; userId: string }>, reason: string): Promise<void> {
++  if (!families.length) return;
++  const [clock] = await tx.execute<{ now: Date }>(sql`select clock_timestamp() as now`);
++  const revokedAt = new Date(clock!.now), ids = families.map(family => family.id), owners = new Map(families.map(family => [family.id, family.userId]));
++  const correct = (rows: Array<typeof sessions.$inferSelect>) => rows.length === families.length && rows.every(row => owners.get(row.id) === row.userId
++    && row.revokedAt?.getTime() === revokedAt.getTime() && row.revokedReason === reason);
++  const changed = await tx.update(sessions).set({ revokedAt, revokedReason: reason }).where(and(inArray(sessions.id, ids), isNull(sessions.revokedAt))).returning();
++  if (!correct(changed)) throw new Error("Session revocation was not persisted");
++  const persisted = await tx.select().from(sessions).where(inArray(sessions.id, ids));
++  if (!correct(persisted)) throw new Error("Session revocation was not persisted");
++}
++
++function sessionPersistenceFailure(error: unknown): never {
++  if (error instanceof HttpError) throw error;
++  throw new HttpError(503, "Não foi possível encerrar a sessão. Tente novamente em instantes.");
++}
+ 
+ function effectiveRole(isPlatformAdmin: boolean, links: Identity["memberships"]): Role {
+   if (isPlatformAdmin) return "PLATFORM_ADMIN";
+@@ -54,6 +72,9 @@ export async function login(email: string, password: string, meta: ClientMeta):
    const expiresAt = refreshTokenExpiry();
    const { token, tokenHash } = createRefreshToken();
    const [session] = await db.transaction(async tx => {
@@ -103,7 +126,7 @@ index 0747434..a3b3ceb 100644
      const created = await tx.insert(sessions).values({ userId: user.id, expiresAt,
        userAgent: meta.userAgent ?? null, ipAddress: meta.ipAddress ?? null }).returning({ id: sessions.id });
      await tx.insert(refreshTokens).values({ userId: user.id, sessionId: created[0]!.id,
-@@ -63,36 +66,40 @@ export async function login(email: string, password: string, meta: ClientMeta):
+@@ -63,50 +84,99 @@ export async function login(email: string, password: string, meta: ClientMeta):
    return issueTokens(user.id, session!.id, token, expiresAt);
  }
  
@@ -121,12 +144,18 @@ index 0747434..a3b3ceb 100644
 -    if (!family || family.revokedAt || family.expiresAt.getTime() <= Date.now()) return null;
 -    const [account] = await tx.execute<{ active: boolean }>(sql`select identity_lock_account_active(${family.userId}) as active`);
 +    if (!family || family.userId !== known.userId || family.revokedAt) return null;
++    async function revokeFamily(reason: string, revokedAt: Date) {
++      const changed = await tx.update(sessions).set({ revokedAt, revokedReason: reason }).where(eq(sessions.id, family!.id)).returning();
++      if (changed.length !== 1 || changed[0]!.revokedAt?.getTime() !== revokedAt.getTime() || changed[0]!.revokedReason !== reason) throw new Error("Session revocation was not persisted");
++      const [persisted] = await tx.select().from(sessions).where(eq(sessions.id, family!.id)).limit(1);
++      if (persisted?.revokedAt?.getTime() !== revokedAt.getTime() || persisted.revokedReason !== reason) throw new Error("Session revocation was not persisted");
++    }
 +    const [observed] = await tx.execute<{ now: Date }>(sql`select clock_timestamp() as now`);
 +    const now = new Date(observed!.now);
 +    if (family.expiresAt.getTime() <= now.getTime()) return null;
      if (!account?.active) {
 -      await tx.update(sessions).set({ revokedAt: new Date(), revokedReason: "ACCOUNT_INACTIVE" }).where(eq(sessions.id, family.id));
-+      await tx.update(sessions).set({ revokedAt: now, revokedReason: "ACCOUNT_INACTIVE" }).where(eq(sessions.id, family.id));
++      await revokeFamily("ACCOUNT_INACTIVE", now);
        return null;
      }
 -    const [stored] = await tx.select().from(refreshTokens).where(eq(refreshTokens.id, known.id)).limit(1);
@@ -134,7 +163,7 @@ index 0747434..a3b3ceb 100644
      if (!stored || stored.sessionId !== family.id || stored.userId !== family.userId) return null;
      if (stored.revokedAt) {
 -      await tx.update(sessions).set({ revokedAt: new Date(), revokedReason: "REPLAY" }).where(eq(sessions.id, family.id));
-+      await tx.update(sessions).set({ revokedAt: now, revokedReason: "REPLAY" }).where(eq(sessions.id, family.id));
++      await revokeFamily("REPLAY", now);
        return null;
      }
 -    if (stored.expiresAt.getTime() <= Date.now()) {
@@ -142,21 +171,39 @@ index 0747434..a3b3ceb 100644
 +    const [evaluated] = await tx.execute<{ now: Date }>(sql`select clock_timestamp() as now`);
 +    const rotatedAt = new Date(evaluated!.now);
 +    if (stored.expiresAt.getTime() <= rotatedAt.getTime() || family.expiresAt.getTime() <= rotatedAt.getTime()) {
-+      await tx.update(sessions).set({ revokedAt: rotatedAt, revokedReason: "EXPIRED" }).where(eq(sessions.id, family.id));
++      await revokeFamily("EXPIRED", rotatedAt);
        return null;
      }
 -    const now = new Date();
 -    await tx.update(refreshTokens).set({ revokedAt: now, replacedByHash: successor.tokenHash }).where(eq(refreshTokens.id, stored.id));
-+    await tx.update(refreshTokens).set({ revokedAt: rotatedAt, replacedByHash: successor.tokenHash }).where(eq(refreshTokens.id, stored.id));
-     await tx.insert(refreshTokens).values({ userId: family.userId, sessionId: family.id,
+-    await tx.insert(refreshTokens).values({ userId: family.userId, sessionId: family.id,
++    const consumed = await tx.update(refreshTokens).set({ revokedAt: rotatedAt, replacedByHash: successor.tokenHash }).where(eq(refreshTokens.id, stored.id)).returning();
++    const validConsumption = (row: typeof stored | undefined) => row?.id === stored.id && row.sessionId === family.id && row.userId === family.userId
++      && row.revokedAt?.getTime() === rotatedAt.getTime() && row.replacedByHash === successor.tokenHash;
++    if (consumed.length !== 1 || !validConsumption(consumed[0])) throw new Error("Refresh generation was not consumed");
++    const created = await tx.insert(refreshTokens).values({ userId: family.userId, sessionId: family.id,
        tokenHash: successor.tokenHash, expiresAt: family.expiresAt,
-       userAgent: meta.userAgent ?? null, ipAddress: meta.ipAddress ?? null });
+-      userAgent: meta.userAgent ?? null, ipAddress: meta.ipAddress ?? null });
 -    await tx.update(sessions).set({ lastUsedAt: now, userAgent: meta.userAgent ?? family.userAgent,
-+    await tx.update(sessions).set({ lastUsedAt: rotatedAt, userAgent: meta.userAgent ?? family.userAgent,
-       ipAddress: meta.ipAddress ?? family.ipAddress }).where(eq(sessions.id, family.id));
+-      ipAddress: meta.ipAddress ?? family.ipAddress }).where(eq(sessions.id, family.id));
++      userAgent: meta.userAgent ?? null, ipAddress: meta.ipAddress ?? null }).returning();
++    const validSuccessor = (row: typeof stored | undefined) => row?.userId === family.userId && row.sessionId === family.id
++      && row.tokenHash === successor.tokenHash && row.expiresAt.getTime() === family.expiresAt.getTime() && !row.revokedAt;
++    if (created.length !== 1 || !validSuccessor(created[0])) throw new Error("Refresh successor was not persisted");
++    const updated = await tx.update(sessions).set({ lastUsedAt: rotatedAt, userAgent: meta.userAgent ?? family.userAgent,
++      ipAddress: meta.ipAddress ?? family.ipAddress }).where(eq(sessions.id, family.id)).returning();
++    const validFamily = (row: typeof family | undefined) => row?.id === family.id && row.userId === family.userId && !row.revokedAt
++      && row.expiresAt.getTime() === family.expiresAt.getTime() && row.lastUsedAt.getTime() === rotatedAt.getTime();
++    if (updated.length !== 1 || !validFamily(updated[0])) throw new Error("Refresh family was not persisted");
++    // AFTER triggers can rewrite a row after RETURNING captures its value.
++    const [persistedConsumption] = await tx.select().from(refreshTokens).where(eq(refreshTokens.id, stored.id)).limit(1);
++    const [persistedSuccessor] = await tx.select().from(refreshTokens).where(eq(refreshTokens.id, created[0]!.id)).limit(1);
++    const [persistedFamily] = await tx.select().from(sessions).where(eq(sessions.id, family.id)).limit(1);
++    if (!validConsumption(persistedConsumption) || !validSuccessor(persistedSuccessor) || !validFamily(persistedFamily)) throw new Error("Refresh rotation was not persisted");
      return { userId: family.userId, sessionId: family.id, expiresAt: family.expiresAt };
-   });
-@@ -100,6 +107,29 @@ export async function refreshSession(presentedToken: string, meta: ClientMeta):
+-  });
++  }).catch(() => { throw new HttpError(503, "Renovação temporariamente indisponível. Tente novamente em instantes."); });
+   if (!outcome) throw unauthorized("Sessão expirada ou reutilizada");
    return issueTokens(outcome.userId, outcome.sessionId, successor.token, outcome.expiresAt);
  }
  
@@ -185,8 +232,34 @@ index 0747434..a3b3ceb 100644
 +
  /** Logout accepts any known generation, including one consumed by rotation. */
  export async function revokeSession(presentedToken: string): Promise<void> {
-   const [known] = await db.select({ sessionId: refreshTokens.sessionId }).from(refreshTokens)
-@@ -127,6 +157,12 @@ export async function revokeSessionById(userId: string, sessionId: string): Prom
+-  const [known] = await db.select({ sessionId: refreshTokens.sessionId }).from(refreshTokens)
++  const [known] = await db.select({ sessionId: refreshTokens.sessionId, userId: refreshTokens.userId }).from(refreshTokens)
+     .where(eq(refreshTokens.tokenHash, hashRefreshToken(presentedToken))).limit(1);
+   if (!known?.sessionId) return;
+-  await db.update(sessions).set({ revokedAt: new Date(), revokedReason: "LOGOUT" })
+-    .where(and(eq(sessions.id, known.sessionId), isNull(sessions.revokedAt)));
++  await db.transaction(async tx => {
++    const family = await tx.select().from(sessions).where(and(eq(sessions.id, known.sessionId!), eq(sessions.userId, known.userId), isNull(sessions.revokedAt))).for("update");
++    await revokeLockedFamilies(tx, family, "LOGOUT");
++  }).catch(sessionPersistenceFailure);
+ }
+ 
+ export async function listSessions(userId: string, currentSessionId: string) {
+@@ -119,14 +189,22 @@ export async function listSessions(userId: string, currentSessionId: string) {
+ }
+ 
+ export async function revokeSessionById(userId: string, sessionId: string): Promise<void> {
+-  const [own] = await db.select({ id: sessions.id }).from(sessions)
+-    .where(and(eq(sessions.id, sessionId), eq(sessions.userId, userId))).limit(1);
+-  if (!own) throw notFound();
+-  await db.update(sessions).set({ revokedAt: new Date(), revokedReason: "USER_REVOKED" })
+-    .where(and(eq(sessions.id, sessionId), eq(sessions.userId, userId), isNull(sessions.revokedAt)));
++  await db.transaction(async tx => {
++    const [own] = await tx.select().from(sessions).where(and(eq(sessions.id, sessionId), eq(sessions.userId, userId))).for("update").limit(1);
++    if (!own) throw notFound();
++    if (own.revokedAt) return;
++    await revokeLockedFamilies(tx, [own], "USER_REVOKED");
++  }).catch(sessionPersistenceFailure);
  }
  
  export async function revokeAllSessions(userId: string): Promise<void> {
@@ -195,11 +268,12 @@ index 0747434..a3b3ceb 100644
 +  await db.transaction(async tx => {
 +    const [account] = await tx.execute<{ active: boolean }>(sql`select identity_lock_account_active(${userId}) as active`);
 +    if (!account?.active) throw unauthorized("Usuário inativo ou inexistente");
-+    await tx.select({ id: sessions.id }).from(sessions)
++    const families = await tx.select().from(sessions)
 +      .where(and(eq(sessions.userId, userId), isNull(sessions.revokedAt))).orderBy(asc(sessions.id)).for("update");
-+    await tx.update(sessions).set({ revokedAt: sql`clock_timestamp()`, revokedReason: "REVOKE_ALL" })
-+      .where(and(eq(sessions.userId, userId), isNull(sessions.revokedAt)));
-+  });
++    await revokeLockedFamilies(tx, families, "REVOKE_ALL");
++    const [remaining] = await tx.select({ id: sessions.id }).from(sessions).where(and(eq(sessions.userId, userId), isNull(sessions.revokedAt))).limit(1);
++    if (remaining) throw new Error("All-session revocation was not persisted");
++  }).catch(sessionPersistenceFailure);
  }
 diff --git a/apps/api/src/auth/web-routes.ts b/apps/api/src/auth/web-routes.ts
 index 93d2d88..9362fb6 100644
@@ -233,8 +307,50 @@ index 93d2d88..9362fb6 100644
  webAuthRouter.post('/refresh',validateBody(z.object({}).strict()),async(req,res)=>{
    const policy=cookiePolicy(req);
    const token=refreshCookie(req,policy.name);
+diff --git a/apps/api/test/web-sessions.test.ts b/apps/api/test/web-sessions.test.ts
+index 8a491e0..c599200 100644
+--- a/apps/api/test/web-sessions.test.ts
++++ b/apps/api/test/web-sessions.test.ts
+@@ -178,7 +178,7 @@ describe('web cookies against real session storage', () => {
+       // insertion attempt; the original refresh row must roll back with it.
+       await sqlClient.unsafe(`create trigger ${trigger} before insert on refresh_tokens for each row execute function public.${fn}()`);
+       installed=true;
+-      const failed=await request('refresh',{}, {Cookie:session.cookie});assert.equal(failed.status,500);
++      const failed=await request('refresh',{}, {Cookie:session.cookie});assert.equal(failed.status,503);
+       assert.equal(failed.headers.get('set-cookie'),null);
+       await sqlClient.unsafe(`drop trigger ${trigger} on refresh_tokens`);installed=false;
+       const recovered=await request('refresh',{}, {Cookie:session.cookie});assert.equal(recovered.status,200);
+diff --git a/docs/BACKUP_E_RESTAURACAO.md b/docs/BACKUP_E_RESTAURACAO.md
+index 82d1954..4278c6a 100644
+--- a/docs/BACKUP_E_RESTAURACAO.md
++++ b/docs/BACKUP_E_RESTAURACAO.md
+@@ -10,6 +10,8 @@ A execução dirigida da restauração levou aproximadamente19 segundos, incluin
+ 
+ ## Executar o ensaio
+ 
++O recorte037 também foi ensaiado em 03/10/2026: suíte completa **26/26 sem skips**, com as flags reais, em21,4 segundos; log work/password037-db-full-verified.log. O dump/restauração dirigido passou1/1 em5,4 segundos, verificando **44 tabelas e37 migrations**. O helper privado de troca de senha restaurado ficou inacessível a app/broker, a identidade continuou sem UPDATE direto em users e a transição autorizada alterou o hash/revogou duas famílias sem afetar o peer nem a origem. Hashes dessa fixture SQL não exercitam Argon2; a confirmação criptográfica é testada na API. A evidência036 acima permanece histórica e não foi somada à037 para formar outra integral.
++
+ Requer Node 24, pnpm 10.17.1, Docker e container PostgreSQL/Timescale de teste. A URL administrativa e o container devem identificar o mesmo cluster; o teste compara seu identificador físico antes de criar bancos. Exemplo PowerShell para o ambiente descartável desta sessão:
+ 
+ ```powershell
+diff --git a/docs/MIGRATIONS.md b/docs/MIGRATIONS.md
+index b606331..86830ff 100644
+--- a/docs/MIGRATIONS.md
++++ b/docs/MIGRATIONS.md
+@@ -185,3 +185,11 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/test-start-local
+ ```
+ 
+ Ele cobre retomada de infraestrutura parada, bloqueio por pendência/legado, falha de infraestrutura, setup sem seed implícito e seed explicitamente pedido. Esse teste não instala dependências, não executa Docker nem altera banco real. A suíte PostgreSQL deve ser executada separadamente. Ao terminar, encerre somente os containers descartáveis identificados para esse ensaio e remova as variáveis do terminal ou feche esse terminal antes de voltar à instalação habitual.
++
++## Release de identidade037
++
++`037-password-change.sql` acrescenta o helper privado de troca da própria senha. Não concede UPDATE direto em users nem EXECUTE a app/broker. ACL/owner/search_path e persistência efetiva das transições são verificados em testes; as famílias são revogadas junto da alteração da credencial. Consulte [TROCA_DE_SENHA.md](TROCA_DE_SENHA.md) para contrato, locks e limites.
++
++A release da API muda a serialização de login/refresh/revogação. Coordenar todas as instâncias: pausar tráfego de identidade, encerrar workers antigos, aplicar037 com credencial administrativa, iniciar a release nova completa e conferir prontidão/login/refresh/troca antes de reabrir o tráfego. Não operar um rollout misturando a lógica antiga de locks/hash com o endpoint novo. Seed/reset não são passos de atualização de produção.
++
++O ensaio de037 passou26/26 testes de banco com as flags reais, incluindo dump/restauração serial de44 tabelas e37 migrations. O helper restaurado alterou apenas sua conta, revogou duas famílias e preservou outro usuário e a origem. Logs locais work/password037-db-full-verified.log e work/password037-backup-directed.log. Isso comprova o recorte lógico/ACL do teste descartável; aceite de implantação real e operação permanece no plano maior.
 diff --git a/packages/api-client/src/engine.ts b/packages/api-client/src/engine.ts
-index a1d856c..ce22814 100644
+index a1d856c..555d657 100644
 --- a/packages/api-client/src/engine.ts
 +++ b/packages/api-client/src/engine.ts
 @@ -1,4 +1,4 @@
@@ -260,7 +376,50 @@ index a1d856c..ce22814 100644
      credentials(session: S): C;
      ignoreLogoutFailure: boolean;
    };
-@@ -169,6 +170,41 @@ export function createBearerClient<C extends { accessToken: string }, S extends
+@@ -33,6 +34,7 @@ type Options<C extends { accessToken: string }, S extends C> = {
+ export function createBearerClient<C extends { accessToken: string }, S extends C>(options: Options<C, S>) {
+   const baseUrl = options.baseUrl.replace(/\/+$/, "");
+   let version = 0;
++  let locallySignedOut = false;
+   let storageQueue: Promise<unknown> = Promise.resolve();
+   let refreshInFlight: { version: number; promise: Promise<void> } | null = null;
+   const direct: AuthGate = operation => operation();
+@@ -47,18 +49,24 @@ export function createBearerClient<C extends { accessToken: string }, S extends
+     if (version !== expected) throw new ApiError(0, "A sessão mudou. Tente novamente.", "SESSION_CHANGED");
+   }
+   async function readTokens(expected: number): Promise<C | null> {
++    assertCurrent(expected);
++    if (locallySignedOut) return null;
+     const tokens = await stored(async () => { assertCurrent(expected); return options.storage.getTokens(); });
+     assertCurrent(expected);
+-    return tokens;
++    return locallySignedOut ? null : tokens;
+   }
+   async function saveTokens(session: S, expected: number): Promise<void> {
+     await stored(async () => { assertCurrent(expected); await options.storage.setTokens(options.protocol.credentials(session)); });
+     assertCurrent(expected);
++    locallySignedOut = false;
+   }
+   async function loseSession(expected: number): Promise<void> {
+     assertCurrent(expected);
+     const clearedVersion = ++version;
+-    await stored(async () => { assertCurrent(clearedVersion); await options.storage.clearTokens(); });
++    locallySignedOut = true;
++    // Revoked credentials must be unusable even when Keychain/Keystore refuses
++    // deletion. Identity callbacks and later reads cannot depend on that IO.
++    await stored(async () => { assertCurrent(clearedVersion); await options.storage.clearTokens(); }).catch(() => undefined);
+     assertCurrent(clearedVersion);
+     options.onAuthLost?.();
+   }
+@@ -133,6 +141,7 @@ export function createBearerClient<C extends { accessToken: string }, S extends
+   }
+   function refreshSession(expected: number): Promise<void> {
+     assertCurrent(expected);
++    if (locallySignedOut) return Promise.reject(new ApiError(401, "Entre novamente para continuar."));
+     if (refreshInFlight?.version === expected) return refreshInFlight.promise;
+     const promise = renewSession(expected).finally(() => { if (refreshInFlight?.promise === promise) refreshInFlight = null; });
+     refreshInFlight = { version: expected, promise };
+@@ -169,13 +178,55 @@ export function createBearerClient<C extends { accessToken: string }, S extends
      patch: <T>(path: string, body: unknown) => request<T>(path, { ...json(body), method: "PATCH" }),
      delete: <T>(path: string) => request<T>(path, { method: "DELETE" }),
      invalidateSession(): void { version++; },
@@ -297,11 +456,33 @@ index a1d856c..ce22814 100644
 +        throw error;
 +      }
 +      assertCurrent(expected);
-+      await loseSession(expected);
++      try { await loseSession(expected); }
++      catch (error) {
++        // A tombstone/storage failure after confirmed204 cannot turn the
++        // committed change into a retry. A newer identity still wins.
++        if (version !== expected + 1 || error instanceof ApiError && error.code === "SESSION_CHANGED") throw error;
++      }
 +    },
      async restore(): Promise<C | null> {
        const expected = version;
++      if (locallySignedOut) return null;
        await refreshSession(expected);
+       return readTokens(expected);
+     },
+     async login(email: string, password: string): Promise<S> {
+       const expected = ++version;
++      locallySignedOut = true;
+       const gate = options.authGate?.("login") ?? direct;
+       await stored(async () => { assertCurrent(expected); await options.storage.clearTokens(); });
+       return gate(() => authDeadline(async signal => {
+@@ -192,6 +243,7 @@ export function createBearerClient<C extends { accessToken: string }, S extends
+     },
+     async logout(): Promise<void> {
+       const expected = ++version;
++      locallySignedOut = true;
+       const gate = options.authGate?.("logout") ?? direct;
+       const tokens = await stored(async () => {
+         assertCurrent(expected);
 diff --git a/packages/api-client/src/index.ts b/packages/api-client/src/index.ts
 index 8a8f7d1..400c72b 100644
 --- a/packages/api-client/src/index.ts
@@ -324,10 +505,17 @@ index 8a8f7d1..400c72b 100644
        ignoreLogoutFailure: true,
      },
 diff --git a/packages/api-client/src/web-client.ts b/packages/api-client/src/web-client.ts
-index ddb5de3..27641d4 100644
+index ddb5de3..394ed69 100644
 --- a/packages/api-client/src/web-client.ts
 +++ b/packages/api-client/src/web-client.ts
-@@ -46,6 +46,7 @@ export function createWebApiClient(options: WebApiClientOptions) {
+@@ -40,12 +40,13 @@ export function createWebApiClient(options: WebApiClientOptions) {
+     },
+     assertSession: () => coordinator.assertCurrent(),
+     authGate: operation => coordinator.gate(operation),
+-    onAuthLost: () => { session = null; coordinator.blockSession(); options.onAuthLost?.(); },
++    onAuthLost: () => { session = null; try { coordinator.blockSession(); } finally { options.onAuthLost?.(); } },
+     protocol: {
+       beforeLogin: () => webRequest("logout"),
        login: (email, password) => webRequest("login", { email, password }),
        refresh: () => coordinator.blocked() ? null : webRequest("refresh"),
        logout: () => webRequest("logout"),
@@ -336,10 +524,34 @@ index ddb5de3..27641d4 100644
        ignoreLogoutFailure: false,
      },
 diff --git a/packages/api-client/test/web-client.test.ts b/packages/api-client/test/web-client.test.ts
-index 501e5e7..7ab804b 100644
+index 501e5e7..88dabe5 100644
 --- a/packages/api-client/test/web-client.test.ts
 +++ b/packages/api-client/test/web-client.test.ts
-@@ -89,6 +89,45 @@ it("web login revokes previous cookie, keeps access only in memory and scopes cr
+@@ -16,6 +16,7 @@ function world() {
+   let sequence = 0, queue: Promise<unknown> = Promise.resolve(), cookie: string | null = null, revision = 0;
+   let notifications = true, offline = false, active = 0, peak = 0;
+   let failActivation = false;
++  let failBlocking = false;
+   const calls: Array<{ path: string; init: RequestInit }> = [];
+   let intercept: ((path: string, init: RequestInit) => Promise<Response | null>) | null = null;
+   const fetcher: typeof fetch = async (input, init = {}) => {
+@@ -48,6 +49,7 @@ function world() {
+       namespace,
+       storage: { getItem: key => values.get(key) ?? null, setItem: (key, value) => {
+         if (failActivation && JSON.parse(value).blocked === false) throw new Error("Storage unavailable");
++        if (failBlocking && JSON.parse(value).blocked === true) throw new Error("Storage unavailable");
+         values.set(key, value);
+       }, removeItem: key => { values.delete(key); } },
+       locks: supported ? { request: <T>(_key: string, run: () => Promise<T>): Promise<T> => {
+@@ -65,6 +67,7 @@ function world() {
+   return { tab, calls, values, peak: () => peak, cookie: () => cookie, revision: () => revision,
+     offline(value: boolean) { offline = value; }, notifications(value: boolean) { notifications = value; },
+     failActivation(value: boolean) { failActivation = value; },
++    failBlocking(value: boolean) { failBlocking = value; },
+     intercept(value: typeof intercept) { intercept = value; }, setCookie(value: string) { cookie = value; revision++; },
+   };
+ }
+@@ -89,6 +92,57 @@ it("web login revokes previous cookie, keeps access only in memory and scopes cr
    tab.close();
  });
  
@@ -382,6 +594,18 @@ index 501e5e7..7ab804b 100644
 +  } finally { a.close(); }
 +});
 +
++it("confirmed web replacement clears memory and invokes identity loss even when tombstone storage refuses writes", async () => {
++  const fixture = world(), a = fixture.tab();
++  fixture.intercept(async path => path === "/auth/web/password" ? new Response(null, { status: 204 }) : null);
++  try {
++    await a.api.login("accountA", "password"); fixture.failBlocking(true);
++    await a.api.changePassword({ currentPassword: "old", newPassword: "new" });
++    assert.equal(a.api.accessToken(), null); assert.equal(a.state().lost, 1);
++    assert.equal(await a.api.restore(), null, "a failed persisted tombstone cannot restore the locally closed identity");
++    assert.equal(fixture.calls.at(-1)?.path, "/auth/web/password");
++  } finally { a.close(); }
++});
++
  it("reload restores identity solely through the HttpOnly cookie and serializes two tabs' rotations", async () => {
    const fixture = world(), first = fixture.tab();
    await first.api.login("resident", "password"); first.close();
@@ -411,6 +635,57 @@ index dd3cc9b..080d6ea 100644
  } from "./auth.js";
  export type * from "./tenancy.js";
  export type * from "./overview.js";
+diff --git a/packages/db/test/backup-restore.test.ts b/packages/db/test/backup-restore.test.ts
+index 8d8284f..367a49d 100644
+--- a/packages/db/test/backup-restore.test.ts
++++ b/packages/db/test/backup-restore.test.ts
+@@ -38,6 +38,12 @@ it('restores a real Timescale archive with data, migration history and restricte
+     await source`insert into organizations(id,name,slug) values('restore-org','Recovery fixture','restore-org')`;
+     await source`insert into buildings(id,organization_id,name,code) values('restore-a','restore-org','Restore A','A'),('restore-b','restore-org','Restore B','B')`;
+     await source`insert into users(id,email,name) values('restore-reader','restore-reader@example.invalid','Recovery reader'),('restore-neighbor','restore-neighbor@example.invalid','Recovery neighbor')`;
++    // This fixture exercises the SQL transition after restore, not Argon2.
++    // The trusted identity service supplies the encoded hash in production.
++    const previousHash='$argon2id$recovery-observed-fixture',replacementHash='$argon2id$recovery-replacement-fixture';
++    const ownSession=randomUUID(),otherSession=randomUUID(),peerSession=randomUUID();
++    await source`insert into users(id,email,name,password_hash) values('restore-password','restore-password@example.invalid','Recovery password owner',${previousHash})`;
++    await source`insert into sessions(id,user_id,expires_at) values(${ownSession},'restore-password',clock_timestamp()+interval '2 hours'),(${otherSession},'restore-password',clock_timestamp()+interval '2 hours'),(${peerSession},'restore-neighbor',clock_timestamp()+interval '2 hours')`;
+     await source`insert into role_bindings(user_id,building_id,role_key) values('restore-reader','restore-a','RESIDENT')`;
+     await source`insert into devices(id,building_id,name,type) values('restore-sensor','restore-a','Recovery sensor','WATER_LEVEL_SENSOR')`;
+     await source`insert into telemetry(event_id,building_id,device_id,metric,value,numeric_value,time)
+@@ -88,6 +94,33 @@ it('restores a real Timescale archive with data, migration history and restricte
+     const history=await checkInfrastructure(target,migrations);
+     assert.deepEqual(history,[]);
+     assert.deepEqual(await applyInfrastructure(target,migrations),[],'restored ledger is valid without replaying privileges');
++    for(const role of ['predioon_app','predioon_broker_auth']){
++      await assert.rejects(target.begin(async tx=>{
++        await tx.unsafe(`set local role ${role}`);
++        await tx`select identity_replace_password('restore-password',${ownSession}::uuid,${previousHash},${replacementHash})`;
++      }),error=>(error as {code?:string}).code==='42501','non-identity runtime cannot replace a credential after recovery');
++    }
++    await assert.rejects(target.begin(async tx=>{
++      await tx`set local role predioon_identity`;
++      await tx`update users set password_hash=${replacementHash} where id='restore-password'`;
++    }),error=>(error as {code?:string}).code==='42501','identity runtime retains no direct credential UPDATE');
++    await target.begin(async tx=>{
++      await tx`set local role predioon_identity`;
++      const [result]=await tx`select identity_replace_password('restore-password',${ownSession}::uuid,${previousHash},${replacementHash}) as replaced`;
++      assert.equal(result!.replaced,true,'restored private helper can change its own active credential');
++    });
++    assert.equal((await target`select password_hash from users where id='restore-password'`)[0]!.password_hash,replacementHash);
++    const changedFamilies=await target`select revoked_at,revoked_reason from sessions where user_id='restore-password'`;
++    assert.equal(changedFamilies.length,2);
++    assert.ok(changedFamilies.every(row=>row.revoked_at!==null&&row.revoked_reason==='PASSWORD_CHANGED'),'every restored family is revoked atomically');
++    assert.equal((await target`select revoked_at from sessions where id=${peerSession}`)[0]!.revoked_at,null,'foreign restored account stays active');
++    assert.equal((await source`select password_hash from users where id='restore-password'`)[0]!.password_hash,previousHash,'replacement never writes into the backup source');
++    assert.ok((await source`select revoked_at from sessions where user_id='restore-password'`).every(row=>row.revoked_at===null),'source sessions stay active');
++    await target.begin(async tx=>{
++      await tx`set local role predioon_identity`;
++      const [result]=await tx`select identity_replace_password('restore-password',${ownSession}::uuid,${previousHash},${replacementHash}) as replaced`;
++      assert.equal(result!.replaced,false,'recovered helper cannot reuse a replaced hash and revoked family');
++    });
+     const [chunks]=await target`select count(*)::integer n from timescaledb_information.chunks where hypertable_name='telemetry'`;
+     assert.ok(chunks!.n>=2,'historical and recent telemetry chunks both survive');
+     await target.begin(async tx=>{
 diff --git a/packages/mobile/src/app.tsx b/packages/mobile/src/app.tsx
 index b7c1f2a..7198b52 100644
 --- a/packages/mobile/src/app.tsx
@@ -478,6 +753,19 @@ index b7c1f2a..7198b52 100644
          <BuildingApp
            key={`${user.id}:${selected.id}`}
            {...{ api, product, user, accessIntents }}
+diff --git a/packages/ui/src/components/primitives.tsx b/packages/ui/src/components/primitives.tsx
+index 8c90f3a..e51ba8e 100644
+--- a/packages/ui/src/components/primitives.tsx
++++ b/packages/ui/src/components/primitives.tsx
+@@ -163,7 +163,7 @@ export function ErrorBanner({ message, onDismiss }: { message: string; onDismiss
+     <div role="alert" className="flex items-start justify-between gap-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+       <span>{message}</span>
+       {onDismiss && (
+-        <button aria-label="Fechar mensagem" onClick={onDismiss} className="font-bold text-rose-500">
++        <button type="button" aria-label="Fechar mensagem" onClick={onDismiss} className="font-bold text-rose-500">
+           ×
+         </button>
+       )}
 diff --git a/packages/ui/src/components/sessions-panel.tsx b/packages/ui/src/components/sessions-panel.tsx
 index 1466c22..5dd43f1 100644
 --- a/packages/ui/src/components/sessions-panel.tsx
@@ -655,23 +943,25 @@ index 0000000..9706ed5
 +          retention-days: 7
 diff --git a/apps/api/src/auth/password-change-schema.ts b/apps/api/src/auth/password-change-schema.ts
 new file mode 100644
-index 0000000..3990695
+index 0000000..065c31c
 --- /dev/null
 +++ b/apps/api/src/auth/password-change-schema.ts
-@@ -0,0 +1,7 @@
+@@ -0,0 +1,9 @@
 +import { z } from "zod";
 +
 +const boundedPassword = z.string().min(1).refine(value => Buffer.byteLength(value, "utf8") <= 1024, "Senha excede 1024 bytes");
 +export const PasswordChangeSchema = z.object({
 +  currentPassword: boundedPassword,
-+  newPassword: boundedPassword.refine(value => [...value].length >= 15, "A nova senha precisa de pelo menos 15 caracteres"),
++  newPassword: boundedPassword
++    .refine(value => !/[\uD800-\uDFFF]/u.test(value), "A nova senha contém Unicode inválido")
++    .refine(value => [...value].length >= 15, "A nova senha precisa de pelo menos 15 caracteres"),
 +}).strict();
 diff --git a/apps/api/test/password-change.test.ts b/apps/api/test/password-change.test.ts
 new file mode 100644
-index 0000000..d95d4e6
+index 0000000..47d7bed
 --- /dev/null
 +++ b/apps/api/test/password-change.test.ts
-@@ -0,0 +1,384 @@
+@@ -0,0 +1,468 @@
 +import assert from "node:assert/strict";
 +import { after, before, describe, it } from "node:test";
 +import { randomUUID } from "node:crypto";
@@ -698,6 +988,17 @@ index 0000000..d95d4e6
 +    const id = `password-${randomUUID()}`, email = `${id}@example.invalid`, hash = await hashPassword(originalPassword);
 +    const keys = loginBudgetKeys(config.authRateLimitKey, email, "127.0.0.1");
 +    try {
++      // Other test files use this same socket bucket. Wait for normal refill
++      // before fixture setup; never reset admission or retry the behavior under
++      // assertion. Deliberate429 assertions still observe the first response.
++      const deadline = Date.now() + 60_000;
++      for (;;) {
++        const [network] = await sqlClient`select least(300,tokens+greatest(0,extract(epoch from clock_timestamp()-updated_at))*5)>=20 ready
++          from auth_login_buckets where scope='network' and key_hash=${keys.network}`;
++        if (!network || network.ready) break;
++        assert.ok(Date.now() < deadline, "Shared fixture network admission did not refill");
++        await setTimeout(200);
++      }
 +      await sqlClient`insert into users(id,name,email,password_hash) values(${id},'Password fixture',${email},${hash})`;
 +      const session = await login(server.url, email, originalPassword);
 +      await run({ id, email, hash, token: session.accessToken, refresh: session.refreshToken, sid: decodeJwt(session.accessToken).sid as string });
@@ -765,6 +1066,7 @@ index 0000000..d95d4e6
 +      { currentPassword: "é".repeat(513), newPassword: nextPassword }, { currentPassword, newPassword: "é".repeat(513) },
 +      { currentPassword, newPassword: nextPassword, userId: "admin_demo" }, { currentPassword, newPassword: nextPassword, email: f.email },
 +      { currentPassword, newPassword: nextPassword, sessionId: f.sid },
++      { currentPassword, newPassword: "\ud800".repeat(15) },
 +    ]) assert.equal((await change(f.token, body)).status, 400);
 +    const oversized = await fetch(`${server.url}/auth/password`, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${f.token}` }, body: JSON.stringify({ currentPassword, newPassword: "x".repeat(9000) }) });
 +    assert.equal(oversized.status, 413);
@@ -918,8 +1220,8 @@ index 0000000..d95d4e6
 +    } finally { log.mock.restore(); }
 +  });
 +
-+  it("rejects distinct malformed UTF16 strings which represent the same UTF8 password bytes", async () => {
-+    const originalPassword = "\ud800".repeat(15), newPassword = "\ud801".repeat(15);
++  it("rejects a well-formed new string that represents the same UTF8 bytes as a legacy malformed password", async () => {
++    const originalPassword = "\ud800".repeat(15), newPassword = "\ufffd".repeat(15);
 +    assert.notEqual(originalPassword, newPassword); assert.deepEqual(Buffer.from(originalPassword), Buffer.from(newPassword));
 +    await fixture(async f => {
 +      const response = await change(f.token, { currentPassword: originalPassword, newPassword });
@@ -927,6 +1229,58 @@ index 0000000..d95d4e6
 +      assert.equal((await call(server.url, "/auth/me", { token: f.token })).status, 200);
 +    }, originalPassword);
 +  });
++
++  it("allows a legacy malformed current password to migrate to a different well-formed password", async () => {
++    const originalPassword = "\ud800".repeat(15);
++    await fixture(async f => {
++      const response = await change(f.token, { currentPassword: originalPassword, newPassword: nextPassword });
++      assert.equal(response.status, 204); assert.equal(await verifyPassword(nextPassword, (await stored(f.id)).hash), true);
++    }, originalPassword);
++  });
++
++  for (const table of ["users", "sessions"]) it(`rolls back replacement if an AFTER trigger rewrites persisted ${table}`, async () => fixture(async f => {
++    const suffix = randomUUID().replaceAll("-", ""), fn = `test_password_after_${suffix}`, trigger = `test_password_after_trigger_${suffix}`;
++    const field = table === "users" ? "id" : "user_id";
++    const mutation = table === "users" ? "UPDATE public.users SET password_hash=OLD.password_hash WHERE id=NEW.id;"
++      : "UPDATE public.sessions SET revoked_at=NULL WHERE id=NEW.id;";
++    await sqlClient.unsafe(`create function public.${fn}() returns trigger language plpgsql as $$ begin
++      if pg_trigger_depth()=1 AND NEW.${field}=TG_ARGV[0] then ${mutation} end if; return NEW; end $$`);
++    let installed = false;
++    try {
++      const [definition] = await sqlClient`select format('CREATE TRIGGER %I AFTER UPDATE ON %I FOR EACH ROW EXECUTE FUNCTION public.%I(%L)',${trigger}::text,${table}::text,${fn}::text,${f.id}::text) ddl`;
++      await sqlClient.unsafe(definition!.ddl as string); installed = true;
++      const before = await stored(f.id);
++      const response = await change(f.token); assert.equal(response.status, 503);
++      assert.deepEqual(await stored(f.id), before);
++    } finally { if (installed) await sqlClient.unsafe(`drop trigger ${trigger} on ${table}`); await sqlClient.unsafe(`drop function public.${fn}()`); }
++  }));
++
++  it("rolls back replacement if an AFTER trigger inserts another active family", async () => fixture(async f => {
++    const suffix = randomUUID().replaceAll("-", ""), fn = `test_password_insert_${suffix}`, trigger = `test_password_insert_trigger_${suffix}`;
++    await sqlClient.unsafe(`create function public.${fn}() returns trigger language plpgsql as $$ begin
++      if pg_trigger_depth()=1 AND NEW.id::text=TG_ARGV[0] then INSERT INTO public.sessions(user_id,expires_at) VALUES(NEW.user_id,NEW.expires_at); end if; return NEW; end $$`);
++    let installed = false;
++    try {
++      const [definition] = await sqlClient`select format('CREATE TRIGGER %I AFTER UPDATE ON public.sessions FOR EACH ROW EXECUTE FUNCTION public.%I(%L)',${trigger}::text,${fn}::text,${f.sid}::text) ddl`;
++      await sqlClient.unsafe(definition!.ddl as string); installed = true;
++      const before = await stored(f.id);
++      assert.equal((await change(f.token)).status, 503); assert.deepEqual(await stored(f.id), before);
++    } finally { if (installed) await sqlClient.unsafe(`drop trigger ${trigger} on sessions`); await sqlClient.unsafe(`drop function public.${fn}()`); }
++  }));
++
++  it("rolls back all-family revocation if an AFTER trigger inserts another active family", async () => fixture(async f => {
++    const suffix = randomUUID().replaceAll("-", ""), fn = `test_revoke_insert_${suffix}`, trigger = `test_revoke_insert_trigger_${suffix}`;
++    await sqlClient.unsafe(`create function public.${fn}() returns trigger language plpgsql as $$ begin
++      if pg_trigger_depth()=1 AND NEW.id::text=TG_ARGV[0] then INSERT INTO public.sessions(user_id,expires_at) VALUES(NEW.user_id,NEW.expires_at); end if; return NEW; end $$`);
++    let installed = false;
++    try {
++      const [definition] = await sqlClient`select format('CREATE TRIGGER %I AFTER UPDATE ON public.sessions FOR EACH ROW EXECUTE FUNCTION public.%I(%L)',${trigger}::text,${fn}::text,${f.sid}::text) ddl`;
++      await sqlClient.unsafe(definition!.ddl as string); installed = true;
++      const before = await stored(f.id);
++      assert.equal((await call(server.url, "/auth/sessions/revoke-all", { method: "POST", token: f.token })).status, 503);
++      assert.deepEqual(await stored(f.id), before);
++    } finally { if (installed) await sqlClient.unsafe(`drop trigger ${trigger} on sessions`); await sqlClient.unsafe(`drop function public.${fn}()`); }
++  }));
 +
 +  it("does not emit own credential changes into global or tenant audit storage", async () => fixture(async f => {
 +    const [before] = await sqlClient`select count(*)::int n from audit_logs where user_id=${f.id}`;
@@ -1004,6 +1358,26 @@ index 0000000..d95d4e6
 +    } finally { log.mock.restore(); }
 +  });
 +
++  for (const operation of ["logout", "own", "all"]) for (const mode of ["skip", "rewrite"]) it(`refuses false ${operation} revocation success with ${mode} behavior`, async () => fixture(async f => {
++    await login(server.url, f.email, currentPassword);
++    const suffix = randomUUID().replaceAll("-", ""), fn = `test_revoke_failure_${suffix}`, trigger = `test_revoke_trigger_${suffix}`;
++    await sqlClient.unsafe(`create function public.${fn}() returns trigger language plpgsql as $$ begin
++      if NEW.user_id=TG_ARGV[0] then ${mode === "skip" ? "return null;" : "NEW.revoked_at:=NULL;"} end if; return NEW; end $$`);
++    let installed = false;
++    const request = () => operation === "logout" ? call(server.url, "/auth/logout", { method: "POST", body: { refreshToken: f.refresh } })
++      : operation === "own" ? call(server.url, `/auth/sessions/${f.sid}`, { method: "DELETE", token: f.token })
++        : call(server.url, "/auth/sessions/revoke-all", { method: "POST", token: f.token });
++    try {
++      const [definition] = await sqlClient`select format('CREATE TRIGGER %I BEFORE UPDATE ON public.sessions FOR EACH ROW EXECUTE FUNCTION public.%I(%L)',${trigger}::text,${fn}::text,${f.id}::text) ddl`;
++      await sqlClient.unsafe(definition!.ddl as string); installed = true;
++      const before = await stored(f.id);
++      assert.equal((await request()).status, 503); assert.deepEqual(await stored(f.id), before);
++      assert.equal((await call(server.url, "/auth/me", { token: f.token })).status, 200);
++      await sqlClient.unsafe(`drop trigger ${trigger} on sessions`); installed = false;
++      assert.equal((await request()).status, 204);
++    } finally { if (installed) await sqlClient.unsafe(`drop trigger ${trigger} on sessions`); await sqlClient.unsafe(`drop function public.${fn}()`); }
++  }));
++
 +  it("reapplication removes accidental helper grants without granting direct account writes", async () => {
 +    await sqlClient`grant execute on function public.identity_replace_password(text,uuid,text,text) to PUBLIC,predioon_app,predioon_broker_auth`;
 +    const migration = await readFile(new URL("../../../infrastructure/037-password-change.sql", import.meta.url), "utf8");
@@ -1058,10 +1432,10 @@ index 0000000..d95d4e6
 +});
 diff --git a/infrastructure/037-password-change.sql b/infrastructure/037-password-change.sql
 new file mode 100644
-index 0000000..1d5fd91
+index 0000000..e2b091e
 --- /dev/null
 +++ b/infrastructure/037-password-change.sql
-@@ -0,0 +1,58 @@
+@@ -0,0 +1,59 @@
 +-- Own credential replacement. Account -> families is also the API login/refresh
 +-- order; no runtime receives direct UPDATE access to users.
 +CREATE OR REPLACE FUNCTION public.identity_replace_password(
@@ -1101,6 +1475,7 @@ index 0000000..1d5fd91
 +  -- Row count alone accepts a BEFORE trigger that rewrites NEW. Confirm exact
 +  -- persisted values, including changes made by AFTER triggers, before success.
 +  IF NOT EXISTS(SELECT 1 FROM public.users WHERE id=target_user_id AND active AND password_hash=replacement_hash)
++    OR EXISTS(SELECT 1 FROM public.sessions WHERE user_id=target_user_id AND revoked_at IS NULL)
 +    OR (SELECT count(*) FROM public.sessions WHERE user_id=target_user_id AND id=ANY(live_families)
 +      AND revoked_at=evaluated_at AND revoked_reason='PASSWORD_CHANGED')<>expected_families THEN
 +    RAISE EXCEPTION 'Credential replacement was not persisted' USING ERRCODE='40001';
@@ -1122,10 +1497,10 @@ index 0000000..1d5fd91
 +END $$;
 diff --git a/packages/api-client/test/password-change.test.ts b/packages/api-client/test/password-change.test.ts
 new file mode 100644
-index 0000000..e211331
+index 0000000..38b0551
 --- /dev/null
 +++ b/packages/api-client/test/password-change.test.ts
-@@ -0,0 +1,103 @@
+@@ -0,0 +1,140 @@
 +import assert from "node:assert/strict";
 +import { it } from "node:test";
 +import { ApiError, createApiClient, createWebApiClient } from "../src/index.ts";
@@ -1201,6 +1576,43 @@ index 0000000..e211331
 +  await sent.promise; await api.changePassword(body);
 +  response.resolve(Response.json({ private: "old-account" })); await privateRequest;
 +  assert.equal(await saved.getTokens(), null);
++});
++
++it("confirmed replacement closes the local identity even if secure-storage deletion fails, without retrying the password", async () => {
++  let saved: typeof credentials | null = { ...credentials }, lost = 0;
++  const sent: Array<{ path: string; bearer: string | null }> = [];
++  const api = createApiClient({ baseUrl: "https://api.example.test", onAuthLost: () => { lost++; }, storage: {
++    getTokens: async () => saved, setTokens: async value => { saved = value; }, clearTokens: async () => { throw new Error("Secure store unavailable"); },
++  }, fetch: async (url, init) => {
++    const path = new URL(String(url)).pathname;
++    sent.push({ path, bearer: new Headers(init?.headers).get("Authorization") });
++    return path === "/auth/password" ? new Response(null, { status: 204 }) : Response.json({ public: true });
++  } });
++  let failure: unknown;
++  try { await api.changePassword(body); } catch (error) { failure = error; }
++  await api.get("/public");
++  assert.equal(failure, undefined, "the server already confirmed replacement; an IO failure must not encourage another password submission");
++  assert.equal(lost, 1); assert.equal(sent.filter(call => call.path === "/auth/password").length, 1);
++  assert.equal(sent.at(-1)!.bearer, null, "revoked credentials retained by a broken store must be blocked locally");
++  assert.deepEqual(saved, credentials, "the injected store really refused deletion");
++});
++
++it("a failed deletion for confirmed accountA cannot clear accountB or invoke its identity-loss callback", async () => {
++  let saved: typeof credentials | null = { ...credentials }, clears = 0, lost = 0;
++  const clearing = deferred<void>(); let failDeletion!: (error: Error) => void;
++  const deletion = new Promise<void>((_resolve, reject) => { failDeletion = reject; });
++  const api = createApiClient({ baseUrl: "https://api.example.test", onAuthLost: () => { lost++; }, storage: {
++    getTokens: async () => saved, setTokens: async value => { saved = value; }, clearTokens: async () => {
++      if (!clears++) { clearing.resolve(); await deletion; } else saved = null;
++    },
++  }, fetch: async url => String(url).endsWith("/auth/password") ? new Response(null, { status: 204 })
++    : Response.json({ accessToken: "new-access", refreshToken: "new-refresh", user }),
++  });
++  const changing = assert.rejects(api.changePassword(body), (error: unknown) => error instanceof ApiError && error.code === "SESSION_CHANGED");
++  await clearing.promise;
++  const signingIn = api.login(user.email, "password"); failDeletion(new Error("Secure store unavailable"));
++  await changing; await signingIn;
++  assert.deepEqual(saved, { accessToken: "new-access", refreshToken: "new-refresh" }); assert.equal(lost, 0);
 +});
 +
 +it("web password replacement uses cookie/CSRF protocol under the common lock and blocks session restoration after success", async () => {
@@ -1328,10 +1740,10 @@ index 0000000..b780b5d
 +}
 diff --git a/packages/mobile/src/password-change.ts b/packages/mobile/src/password-change.ts
 new file mode 100644
-index 0000000..8712454
+index 0000000..613368f
 --- /dev/null
 +++ b/packages/mobile/src/password-change.ts
-@@ -0,0 +1,144 @@
+@@ -0,0 +1,153 @@
 +export type PasswordChangeFields = {
 +  currentPassword: string;
 +  newPassword: string;
@@ -1346,27 +1758,35 @@ index 0000000..8712454
 +  error: string | null;
 +};
 +
-+// Hermes does not require TextEncoder or String.isWellFormed. Reject isolated
-+// UTF-16 surrogates before encoding and count code points, not UTF-16 units.
++// Hermes does not require TextEncoder or String.isWellFormed. New credentials
++// reject isolated surrogates; old credentials retain their legacy UTF-8 bytes.
 +function passwordSize(value: string) {
 +  let characters = 0;
 +  let bytes = 0;
++  let wellFormed = true;
 +  for (const character of value) {
 +    characters++;
 +    const point = character.codePointAt(0)!;
 +    if (point >= 0xd800 && point <= 0xdfff)
-+      return { characters, bytes, wellFormed: false };
++      wellFormed = false;
 +    bytes += point <= 0x7f ? 1 : point <= 0x7ff ? 2 : point <= 0xffff ? 3 : 4;
 +  }
-+  return { characters, bytes, wellFormed: true };
++  return { characters, bytes, wellFormed };
++}
++
++function utf8Equivalent(value: string) {
++  let result = "";
++  for (const character of value) {
++    const point = character.codePointAt(0)!;
++    result += point >= 0xd800 && point <= 0xdfff ? "\ufffd" : character;
++  }
++  return result;
 +}
 +
 +export function passwordChangeValidation(fields: PasswordChangeFields) {
 +  if (!fields.currentPassword)
 +    return "Informe sua senha atual.";
 +  const currentSize = passwordSize(fields.currentPassword);
-+  if (!currentSize.wellFormed)
-+    return "A senha atual contém caracteres Unicode inválidos.";
 +  if (currentSize.bytes > 1024)
 +    return "A senha atual excede o limite de 1024 bytes.";
 +  const size = passwordSize(fields.newPassword);
@@ -1376,7 +1796,8 @@ index 0000000..8712454
 +    return "A nova senha precisa ter pelo menos 15 caracteres.";
 +  if (size.bytes > 1024)
 +    return "A nova senha excede o limite de 1024 bytes.";
-+  if (fields.currentPassword === fields.newPassword)
++  // Only comparison uses replacement bytes. Submit the original old string.
++  if (utf8Equivalent(fields.currentPassword) === fields.newPassword)
 +    return "Escolha uma senha diferente da atual.";
 +  if (!passwordSize(fields.confirmation).wellFormed)
 +    return "A confirmação contém caracteres Unicode inválidos.";
@@ -1478,10 +1899,10 @@ index 0000000..8712454
 +}
 diff --git a/packages/mobile/test/password-change.test.ts b/packages/mobile/test/password-change.test.ts
 new file mode 100644
-index 0000000..31aaeab
+index 0000000..43d322e
 --- /dev/null
 +++ b/packages/mobile/test/password-change.test.ts
-@@ -0,0 +1,203 @@
+@@ -0,0 +1,220 @@
 +import test from "node:test";
 +import assert from "node:assert/strict";
 +import {
@@ -1525,10 +1946,10 @@ index 0000000..31aaeab
 +  assert.match(passwordChangeValidation({ ...fields, currentPassword: "é".repeat(513) })!, /senha atual.*1024 bytes/);
 +});
 +
-+test("isolated high and low surrogates cannot become replacement bytes in either credential or confirmation", async () => {
++test("isolated high and low surrogates cannot become replacement bytes in new credential or confirmation", async () => {
 +  let requests = 0;
 +  for (const invalid of ["\ud800", "\udfff", "ok\ud800wrong", "\ud800\ud800", "\udfff\ud800"]) {
-+    for (const field of ["currentPassword", "newPassword", "confirmation"] as const) {
++    for (const field of ["newPassword", "confirmation"] as const) {
 +      const malformed = { ...fields, [field]: invalid + "a".repeat(16) };
 +      const controller = createPasswordChangeController(async () => { requests++; });
 +      for (const [name, value] of Object.entries(malformed))
@@ -1541,6 +1962,23 @@ index 0000000..31aaeab
 +  assert.equal(requests, 0);
 +  const paired = "😀".repeat(15);
 +  assert.equal(passwordChangeValidation({ ...fields, newPassword: paired, confirmation: paired }), null);
++});
++
++test("legacy current passwords retain malformed UTF-16 literally while enforcing their complete UTF-8 byte limit", async () => {
++  for (const currentPassword of ["\ud800old", "old\udfff", "\ud800\ud800\udfff"]) {
++    const received: PasswordChangeInput[] = [];
++    const controller = prepared(async (input) => { received.push(input); });
++    controller.setField("currentPassword", currentPassword);
++    await controller.submit();
++    assert.deepEqual(received, [{ currentPassword, newPassword: fields.newPassword }]);
++    assert.deepEqual(controller.snapshot(), empty);
++  }
++  assert.equal(Buffer.byteLength("\ud800" + "a".repeat(1022), "utf8"), 1025);
++  assert.match(passwordChangeValidation({ ...fields, currentPassword: "\ud800" + "a".repeat(1022) })!, /1024 bytes/);
++  const currentPassword = "\ud800" + "a".repeat(16);
++  const newPassword = "\ufffd" + "a".repeat(16);
++  assert.deepEqual(Buffer.from(currentPassword), Buffer.from(newPassword));
++  assert.match(passwordChangeValidation({ currentPassword, newPassword, confirmation: newPassword })!, /diferente da atual/);
 +});
 +
 +test("empty current password, reuse, and literal mismatch are rejected before HTTP", async () => {
@@ -1758,7 +2196,7 @@ index 0000000..6b6ae18
 +}
 diff --git a/packages/ui/src/password-change-state.ts b/packages/ui/src/password-change-state.ts
 new file mode 100644
-index 0000000..aff74ae
+index 0000000..9f581ae
 --- /dev/null
 +++ b/packages/ui/src/password-change-state.ts
 @@ -0,0 +1,33 @@
@@ -1778,7 +2216,7 @@ index 0000000..aff74ae
 +
 +/** Keep passwords literal: spaces and Unicode are part of the credential. */
 +export function passwordChangeValidation(currentPassword: string, newPassword: string, confirmation: string): string | null {
-+  if (![currentPassword, newPassword, confirmation].every(validUnicode)) return "Informe senhas com caracteres Unicode válidos.";
++  if (![newPassword, confirmation].every(validUnicode)) return "Informe uma nova senha com caracteres Unicode válidos.";
 +  if (!currentPassword) return "Informe sua senha atual.";
 +  if (new TextEncoder().encode(currentPassword).length > 1024) return "A senha atual ultrapassa o limite de 1024 bytes.";
 +  if (Array.from(newPassword).length < 15) return "A nova senha precisa ter pelo menos 15 caracteres.";
@@ -1797,7 +2235,7 @@ index 0000000..aff74ae
 +}
 diff --git a/packages/ui/test/password-change-state.test.ts b/packages/ui/test/password-change-state.test.ts
 new file mode 100644
-index 0000000..61a6218
+index 0000000..797a82c
 --- /dev/null
 +++ b/packages/ui/test/password-change-state.test.ts
 @@ -0,0 +1,54 @@
@@ -1837,7 +2275,7 @@ index 0000000..61a6218
 +test("isolated UTF-16 surrogates cannot become replacement credentials, while valid astral pairs remain literal", () => {
 +  const next = "  senha🔐nova🔑literal🧩  ";
 +  for (const malformed of ["\ud800", "\udbff", "\udc00", "\udfff", "\udc00\ud800", "\ud800x"]) {
-+    assert.match(passwordChangeValidation(`old${malformed}`, next, next)!, /Unicode válidos/);
++    assert.equal(passwordChangeValidation(`old${malformed}`, next, next), null, "legacy current credentials stay verifiable");
 +    assert.match(passwordChangeValidation("old", next + malformed, next + malformed)!, /Unicode válidos/);
 +    assert.match(passwordChangeValidation("old", next, next + malformed)!, /Unicode válidos/);
 +  }
@@ -1857,13 +2295,14 @@ index 0000000..61a6218
 +});
 diff --git a/e2e/password-change.spec.ts b/e2e/password-change.spec.ts
 new file mode 100644
-index 0000000..5e05b07
+index 0000000..6c891a6
 --- /dev/null
 +++ b/e2e/password-change.spec.ts
-@@ -0,0 +1,197 @@
+@@ -0,0 +1,301 @@
 +import { demoAccountEmail, expect, test, type Page } from "./fixtures";
 +import { ADMIN_URL, API_URL, BUILDING_URL, DEMO_PASSWORD, RESIDENT_URL } from "./environment";
 +import { signIn } from "./helpers";
++import type { AuthUser, SessionView } from "../packages/contracts/src/auth";
 +
 +// Each test gets separate users with real Argon2 seed hashes, normal admission
 +// and PostgreSQL families; the fixture never edits the shared seed credential.
@@ -1897,7 +2336,8 @@ index 0000000..5e05b07
 +  { kind: "building", origin: BUILDING_URL, seed: "sindico@predioon.local" },
 +  { kind: "resident", origin: RESIDENT_URL, seed: "morador@predioon.local" },
 +] as const) {
-+  test(`senha: ${portal.kind} confirma a troca literal e revoga navegador, aba e dispositivo`, async ({ page, context, request }) => {
++  test(`senha: ${portal.kind} confirma a troca literal e revoga navegador, aba e dispositivo`, async ({ page, context, request }, testInfo) => {
++    if (testInfo.project.name === "chromium" && portal.kind === "resident") await page.setViewportSize({ width: 390, height: 844 });
 +    const email = demoAccountEmail(portal.seed);
 +    const native = await request.post(`${API_URL}/auth/login`, {
 +      headers: { "User-Agent": "Senha dispositivo nativo E2E" }, data: { email, password: DEMO_PASSWORD },
@@ -1909,6 +2349,8 @@ index 0000000..5e05b07
 +    await peer.goto(portal.origin);
 +    await expect(peer.getByRole("navigation")).toBeVisible();
 +    await openPasswordForm(page, portal.kind);
++    await expect(page.getByRole("article", { name: "Sessão deste navegador", exact: true }).getByText("Ativa", { exact: true })).toBeVisible();
++    if (testInfo.project.name === "chromium") await page.screenshot({ path: testInfo.outputPath(`password-${portal.kind}.png`), fullPage: true });
 +    await fillPasswords(page);
 +    const changed = page.waitForResponse(res => res.url() === endpoint && res.request().method() === "POST");
 +    await form(page).getByRole("button", { name: "Confirmar troca e sair", exact: true }).click();
@@ -1929,6 +2371,76 @@ index 0000000..5e05b07
 +    await expect(page.getByRole("navigation")).toBeVisible();
 +  });
 +}
++
++for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 568 }]) {
++  test(`senha: morador usa ponteiro e teclado sem obstrução em ${viewport.width}px`, async ({ page }) => {
++    await page.setViewportSize(viewport);
++    await signIn(page, RESIDENT_URL, "morador@predioon.local");
++    await openPasswordForm(page, "resident");
++    const navigation = page.getByRole("navigation", { name: "Navegação do morador", exact: true });
++    const submissions: string[] = [];
++    page.on("request", req => { if (req.url() === endpoint && req.method() === "POST") submissions.push(req.url()); });
++    // Scroll with the pointer before clicking; .fill() alone bypasses hit testing.
++    for (const label of ["Senha atual", "Nova senha", "Confirmar nova senha"]) {
++      const input = form(page).getByLabel(label, { exact: true });
++      const initial = await input.boundingBox();
++      expect(initial).not.toBeNull();
++      await page.mouse.move(viewport.width / 2, viewport.height / 2);
++      await page.mouse.wheel(0, initial!.y + initial!.height / 2 - viewport.height / 2);
++      await expect.poll(async () => {
++        const box = await input.boundingBox(), nav = await navigation.boundingBox();
++        return Boolean(box && nav && box.y >= 0 && box.y + box.height < nav.y);
++      }).toBe(true);
++      await expect(input).toBeVisible();
++      // The normal click performs an actual pointer hit-test; never force it.
++      await input.click();
++      await expect(input).toBeFocused();
++      await page.keyboard.type("rascunho");
++      await expect(input).toHaveValue("rascunho");
++    }
++    await page.keyboard.press("Shift+Tab");
++    await expect(form(page).getByLabel("Nova senha", { exact: true })).toBeFocused();
++    await page.keyboard.press("Shift+Tab");
++    await expect(form(page).getByLabel("Senha atual", { exact: true })).toBeFocused();
++    for (const label of ["Nova senha", "Confirmar nova senha"]) {
++      await page.keyboard.press("Tab");
++      await expect(form(page).getByLabel(label, { exact: true })).toBeFocused();
++    }
++    await page.keyboard.press("Tab");
++    await expect(form(page).getByRole("button", { name: "Confirmar troca e sair", exact: true })).toBeFocused();
++    await page.keyboard.press("Tab");
++    await expect(form(page).getByRole("button", { name: "Cancelar alteração", exact: true })).toBeFocused();
++    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
++    await page.keyboard.press("Enter");
++    await expect(form(page)).toHaveCount(0);
++    await page.getByRole("button", { name: "Alterar senha", exact: true }).click();
++    for (const label of ["Senha atual", "Nova senha", "Confirmar nova senha"]) await expect(form(page).getByLabel(label, { exact: true })).toHaveValue("");
++    expect(submissions).toEqual([]);
++  });
++}
++
++test("senha: dispensar erro não confirma uma alteração válida nem encerra a sessão", async ({ page, request }) => {
++  await signIn(page, RESIDENT_URL, "morador@predioon.local");
++  await openPasswordForm(page, "resident");
++  await fillPasswords(page, "Senha atual incorreta");
++  const rejected = page.waitForResponse(res => res.url() === endpoint && res.request().method() === "POST");
++  await form(page).getByRole("button", { name: "Confirmar troca e sair", exact: true }).click();
++  expect((await rejected).status()).toBe(400);
++  await expect(form(page).getByRole("alert")).toBeVisible();
++  await fillPasswords(page);
++  const submissions: string[] = [];
++  page.on("request", req => { if (req.url() === endpoint && req.method() === "POST") submissions.push(req.url()); });
++  // A default submit button inside the form must not turn dismissal into confirmation.
++  await form(page).getByRole("button", { name: "Fechar mensagem", exact: true }).click();
++  await expect(form(page).getByRole("alert")).toHaveCount(0);
++  await expect(form(page).getByLabel("Senha atual", { exact: true })).toHaveValue(DEMO_PASSWORD);
++  await expect(form(page).getByLabel("Nova senha", { exact: true })).toHaveValue(newPassword);
++  await expect(form(page).getByLabel("Confirmar nova senha", { exact: true })).toHaveValue(newPassword);
++  await expect(page.getByRole("article", { name: "Sessão deste navegador", exact: true }).getByText("Ativa", { exact: true })).toBeVisible();
++  expect(submissions).toEqual([]);
++  // Real reauthentication with the original credential proves it was not changed.
++  expect((await request.post(`${API_URL}/auth/login`, { data: { email: demoAccountEmail("morador@predioon.local"), password: DEMO_PASSWORD } })).status()).toBe(200);
++});
 +
 +test("senha: validação Unicode, confirmação e cancelar não enviam credenciais", async ({ page }) => {
 +  await signIn(page, BUILDING_URL, "sindico@predioon.local");
@@ -2024,7 +2536,9 @@ index 0000000..5e05b07
 +});
 +
 +test("senha: resposta da conta anterior não encerra a nova autenticação", async ({ page }) => {
++  const initialLogin = page.waitForResponse(res => res.url() === `${API_URL}/auth/web/login` && res.request().method() === "POST");
 +  await signIn(page, BUILDING_URL, "sindico@predioon.local");
++  const initialUser = (await (await initialLogin).json() as { user: AuthUser }).user;
 +  await openPasswordForm(page, "building");
 +  await fillPasswords(page);
 +  let release!: () => void, arrived!: () => void;
@@ -2044,7 +2558,8 @@ index 0000000..5e05b07
 +    await intercepted;
 +    await page.getByRole("button", { name: "Sair da conta", exact: true }).click();
 +    await expect(page.getByLabel("E-mail", { exact: true })).toBeVisible();
-+    await page.getByLabel("E-mail", { exact: true }).fill(demoAccountEmail("morador@predioon.local"));
++    const replacementEmail = demoAccountEmail("morador@predioon.local");
++    await page.getByLabel("E-mail", { exact: true }).fill(replacementEmail);
 +    await page.getByLabel("Senha", { exact: true }).fill(DEMO_PASSWORD);
 +    const loggedIn = page.waitForResponse(res => res.url() === `${API_URL}/auth/web/login` && res.request().method() === "POST");
 +    await page.getByRole("button", { name: "Entrar", exact: true }).click();
@@ -2052,18 +2567,45 @@ index 0000000..5e05b07
 +    const delivered = page.waitForResponse(res => res.url() === endpoint && res.request().method() === "POST");
 +    release();
 +    expect((await delivered).status()).toBe(204);
-+    expect((await loggedIn).status()).toBe(200);
-+    await expect(page.getByRole("heading", { name: "Olá, Morador!", exact: true })).toBeVisible();
++    const replacementLogin = await loggedIn;
++    expect(replacementLogin.status()).toBe(200);
++    const replacementUser = (await replacementLogin.json() as { user: AuthUser }).user;
++    expect(replacementUser.email).toBe(replacementEmail);
++    expect(replacementUser.id).not.toBe(initialUser.id);
++    // A successful login preserves /sessoes. The greeting belongs to /, so
++    // assert the current identity and its real active session on this route.
++    await expect(page).toHaveURL(new URL("/sessoes", BUILDING_URL).href);
++    await expect(page.getByRole("banner").getByText(replacementUser.name, { exact: true })).toBeVisible();
++    await expect(page.getByRole("banner").getByText(initialUser.name, { exact: true })).toHaveCount(0);
++    await expect(page.getByRole("article", { name: "Sessão deste navegador", exact: true }).getByText("Ativa", { exact: true })).toBeVisible();
++    await expect(page.getByLabel("E-mail", { exact: true })).toHaveCount(0);
++    const restored = page.waitForResponse(res => res.url() === `${API_URL}/auth/web/refresh` && res.request().method() === "POST");
 +    await page.reload();
-+    await expect(page.getByRole("heading", { name: "Olá, Morador!", exact: true })).toBeVisible();
++    const restoredResponse = await restored;
++    expect(restoredResponse.status()).toBe(200);
++    expect((await restoredResponse.json() as { user: AuthUser }).user).toMatchObject({ id: replacementUser.id, email: replacementEmail });
++    await expect(page).toHaveURL(new URL("/sessoes", BUILDING_URL).href);
++    await expect(page.getByRole("banner").getByText(replacementUser.name, { exact: true })).toBeVisible();
++    const sessionResponse = page.waitForResponse(async res => {
++      if (res.url() !== `${API_URL}/auth/sessions` || res.request().method() !== "GET" || res.status() !== 200) return false;
++      const body = await res.json() as { items: SessionView[] };
++      return body.items.some(row => row.userId === replacementUser.id && row.current && !row.revokedAt);
++    });
++    await page.getByRole("button", { name: "Atualizar sessões", exact: true }).click();
++    const currentSessions = await (await sessionResponse).json() as { items: SessionView[] };
++    expect(currentSessions.items.every(row => row.userId === replacementUser.id)).toBe(true);
++    expect(currentSessions.items.some(row => row.current && !row.revokedAt)).toBe(true);
++    await expect(page.getByRole("article", { name: "Sessão deste navegador", exact: true }).getByText("Ativa", { exact: true })).toBeVisible();
++    await page.getByRole("button", { name: "Alterar senha", exact: true }).click();
++    for (const label of ["Senha atual", "Nova senha", "Confirmar nova senha"]) await expect(form(page).getByLabel(label, { exact: true })).toHaveValue("");
 +  } finally { release(); await page.unrouteAll({ behavior: "wait" }); }
 +});
 diff --git a/scripts/android-password-smoke/run_password.py b/scripts/android-password-smoke/run_password.py
 new file mode 100644
-index 0000000..3bd84e5
+index 0000000..c94448a
 --- /dev/null
 +++ b/scripts/android-password-smoke/run_password.py
-@@ -0,0 +1,283 @@
+@@ -0,0 +1,320 @@
 +"""Verify own-password change in two coinstalled releases against an isolated real API."""
 +import argparse
 +import json
@@ -2078,6 +2620,10 @@ index 0000000..3bd84e5
 +sys.path.insert(0, str(ROOT / "scripts/android-auth-smoke"))
 +from run_auth import AuthDevice, database_snapshot, redact
 +from run import APPS, center, inspect_login, matches, one, parse_nodes
++
++
++class SecurityViolation(RuntimeError):
++    """A privacy or secure-input failure cannot be repaired by another observation."""
 +
 +
 +def sanitize(source, old_password, new_password):
@@ -2096,26 +2642,41 @@ index 0000000..3bd84e5
 +            "rotations": 0, "logouts": logouts, "live_refresh_tokens": active}
 +
 +
-+def inspect_account(source, app, fixture):
++def inspect_identity_security(source, app, fixture):
 +    nodes = parse_nodes(source, APPS[app][0])
++    # Security is checked before eventual rendering. A missing own label must
++    # never hide another account or an unprotected password input.
++    for other_app, other in fixture["accounts"].items():
++        if other_app != app and any(matches(node, value) for node in nodes for value in [other["email"], other["name"], other["buildingName"]]):
++            raise SecurityViolation("Another product identity is visible on the password form")
++    for node in nodes:
++        if node.get("class") == "android.widget.EditText" and any(matches(node, label) for label in ["Senha", "Senha atual", "Nova senha", "Confirmar nova senha"]):
++            if node.get("password") != "true":
++                raise SecurityViolation("Password change input is not secure in Android accessibility")
++    return nodes
++
++
++def inspect_account(source, app, fixture):
++    nodes = inspect_identity_security(source, app, fixture)
 +    account = fixture["accounts"][app]
 +    for label in [account["productTitle"], account["name"], account["email"]]:
 +        if not any(matches(node, label) for node in nodes):
 +            raise AssertionError(f"Expected own account identity is absent: {label}")
-+    for other_app, other in fixture["accounts"].items():
-+        if other_app != app and any(matches(node, value) for node in nodes for value in [other["email"], other["name"]]):
-+            raise RuntimeError("Another product identity is visible on the password form")
-+    for node in nodes:
-+        if node.get("class") == "android.widget.EditText" and any(matches(node, label) for label in ["Senha atual", "Nova senha", "Confirmar nova senha"]):
-+            if node.get("password") != "true":
-+                raise RuntimeError("Password change input is not secure in Android accessibility")
 +    return nodes
++
++
++def inspect_own_profile(source, app, fixture):
++    from run_auth import inspect_profile
++    inspect_identity_security(source, app, fixture)
++    return inspect_profile(source, app, fixture)
 +
 +
 +class PasswordDevice(AuthDevice):
 +    def __init__(self, serial, app, output, fixture, old_password, new_password):
 +        super().__init__(serial, app, output, fixture, old_password)
 +        self.new_password = new_password
++        self.preflight_passed = False
++        self.security_failed = False
 +
 +    def clean(self, source):
 +        return sanitize(source, self.password, self.new_password)
@@ -2127,8 +2688,12 @@ index 0000000..3bd84e5
 +            try:
 +                source = self.hierarchy()
 +                if self.clean(source) != source:
-+                    raise RuntimeError("Credentials leaked into the password UI hierarchy")
++                    raise SecurityViolation("Credentials leaked into the password UI hierarchy")
++                inspect_identity_security(source, self.app, self.fixture)
 +                result = inspect(source)
++            except SecurityViolation:
++                self.security_failed = True
++                raise
 +            except (AssertionError, ET.ParseError) as cause:
 +                error = str(cause)
 +                time.sleep(1)
@@ -2138,6 +2703,9 @@ index 0000000..3bd84e5
 +                self.steps.append({"phase": phase, "passed": True})
 +                return result
 +        raise AssertionError(f"{phase}: {error}")
++
++    def profile(self, phase):
++        return self.wait_for(phase, lambda source: inspect_own_profile(source, self.app, self.fixture))
 +
 +    def login_password(self, phase, password, rejected=False):
 +        fields = self.wait_for(phase + "-blank", lambda source: inspect_login(source, self.app))
@@ -2169,11 +2737,14 @@ index 0000000..3bd84e5
 +            try:
 +                source = self.hierarchy()
 +                if self.clean(source) != source:
-+                    raise RuntimeError("Credentials leaked into the password UI hierarchy")
++                    raise SecurityViolation("Credentials leaked into the password UI hierarchy")
 +                nodes = inspect_account(source, self.app, self.fixture)
 +                target = one(nodes, lambda node: matches(node, label) and node.get("class") == ("android.widget.EditText" if field else "android.widget.Button") and node.get("enabled") == "true", label)
 +                center(target)
 +                return target
++            except SecurityViolation:
++                self.security_failed = True
++                raise
 +            except (AssertionError, ET.ParseError):
 +                if attempt == 8:
 +                    raise
@@ -2182,8 +2753,7 @@ index 0000000..3bd84e5
 +
 +    def open_account(self, phase):
 +        def own_button(source):
-+            from run_auth import inspect_profile
-+            inspect_profile(source, self.app, self.fixture)
++            inspect_own_profile(source, self.app, self.fixture)
 +            return one(parse_nodes(source, self.package), lambda node: matches(node, "Minha conta") and node.get("class") == "android.widget.Button" and node.get("enabled") == "true", "own account button")
 +        button = self.wait_for(phase + "-before", own_button)
 +        self.adb("shell", "input", "tap", *center(button))
@@ -2230,6 +2800,8 @@ index 0000000..3bd84e5
 +        self.profile(phase)
 +
 +    def collect(self):
++        if not self.preflight_passed or self.security_failed:
++            return
 +        details = {"attempts": self.environment_attempts, "lastHierarchyCommand": self.last_hierarchy_output}
 +        (self.output / "environment-readiness.json").write_text(self.clean(json.dumps(details, ensure_ascii=False, indent=2)), encoding="utf-8")
 +        if self.last_adb_failure:
@@ -2244,6 +2816,7 @@ index 0000000..3bd84e5
 +        try:
 +            source = self.hierarchy()
 +            clean = self.clean(source)
++            inspect_identity_security(source, self.app, self.fixture)
 +            (self.output / "final.xml").write_text(clean, encoding="utf-8")
 +            if clean == source:
 +                self.screen("final")
@@ -2269,9 +2842,11 @@ index 0000000..3bd84e5
 +        raise AssertionError("Password journey requires a disposable emulator")
 +    if first.adb("shell", "getprop", "sys.boot_completed").strip() != "1":
 +        raise AssertionError("Emulator has not finished booting")
-+    first.wait_environment_ready()
 +    states = {device.app: "empty" for device in devices}
 +    verify(fixture_file, states, output, "empty")
++    for device in devices:
++        device.preflight_passed = True
++    first.wait_environment_ready()
 +    for device in devices:
 +        device.adb("install", "-r", str(apks / device.app / "verification.apk"), timeout=120)
 +        device.adb("shell", "pm", "clear", device.package)
@@ -2339,8 +2914,12 @@ index 0000000..3bd84e5
 +        report["error"] = sanitize(str(cause), old, new)
 +        raise SystemExit("Android password journey failed; see sanitized result.json") from None
 +    finally:
-+        for device in devices:
-+            device.collect()
++        # Both products share the same selected emulator. The unaffected app's
++        # collector would still inspect the screen that caused its peer to fail.
++        if not any(device.security_failed for device in devices):
++            for device in devices:
++                if device.preflight_passed:
++                    device.collect()
 +        (args.artifacts / "result.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
 +        print(json.dumps(report, ensure_ascii=False))
 +
@@ -2416,11 +2995,12 @@ index 0000000..7e859dc
 +    main()
 diff --git a/scripts/android-password-smoke/test_password.py b/scripts/android-password-smoke/test_password.py
 new file mode 100644
-index 0000000..f13bec2
+index 0000000..8492326
 --- /dev/null
 +++ b/scripts/android-password-smoke/test_password.py
-@@ -0,0 +1,169 @@
+@@ -0,0 +1,309 @@
 +import http.client
++import argparse
 +from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 +import json
 +from pathlib import Path
@@ -2429,10 +3009,10 @@ index 0000000..f13bec2
 +import tempfile
 +import threading
 +import unittest
-+from unittest.mock import patch
++from unittest.mock import Mock, patch
 +import xml.etree.ElementTree as ET
 +
-+from run_password import APPS, PasswordDevice, expected_sessions, inspect_account, run, sanitize, verify
++from run_password import APPS, PasswordDevice, SecurityViolation, expected_sessions, inspect_account, main, run, sanitize, verify
 +from password_proxy import PASSWORD_ALLOWED, handler
 +from tls import create_certificates
 +
@@ -2458,6 +3038,20 @@ index 0000000..f13bec2
 +    return ET.tostring(root, encoding="unicode")
 +
 +
++def profile(app="resident-mobile"):
++    root = ET.fromstring(account(app))
++    for node in list(root):
++        if node.get("class") == "android.widget.EditText":
++            root.remove(node)
++    for label in ["Escolha o condomínio", "Sair"]:
++        ET.SubElement(root, "node", {"package": APPS[app][0], "class": "android.widget.Button" if label == "Sair" else "android.widget.TextView", "text": label,
++                                     "enabled": "true", "bounds": "[20,200][400,260]"})
++    next(node for node in root if node.get("text") == "Minha conta").set("class", "android.widget.Button")
++    next(node for node in root if node.get("text") == "Minha conta").set("enabled", "true")
++    next(node for node in root if node.get("text") == "Minha conta").set("bounds", "[20,200][400,260]")
++    return ET.tostring(root, encoding="unicode")
++
++
 +class PasswordAssertions(unittest.TestCase):
 +    def test_password_account_checks_own_identity_and_visible_input_security(self):
 +        for app in APPS:
@@ -2472,6 +3066,130 @@ index 0000000..f13bec2
 +        source = account().replace("</hierarchy>", '<node package="com.predioon.resident" text="operations-mobile@test.invalid" /></hierarchy>')
 +        with self.assertRaisesRegex(RuntimeError, "Another product"):
 +            inspect_account(source, "resident-mobile", fixture())
++
++    def test_missing_own_labels_cannot_hide_first_observation_security_violation(self):
++        missing = account().replace("Person resident-mobile", "missing-own-label")
++        unsafe_sources = [
++            missing.replace("</hierarchy>", '<node package="com.predioon.resident" text="operations-mobile@test.invalid" /></hierarchy>'),
++            missing.replace('password="true"', 'password="false"', 1),
++        ]
++        for source in unsafe_sources:
++            for control in [False, True]:
++                with self.subTest(control=control, privacy="operations-mobile@test.invalid" in source), tempfile.TemporaryDirectory() as folder:
++                    device = PasswordDevice("unused", "resident-mobile", Path(folder), fixture(), OLD, NEW)
++                    device.preflight_passed = True
++                    with patch.object(device, "assert_no_crash"), patch.object(device, "hierarchy", side_effect=[source, account()]) as hierarchy, patch.object(device, "screen") as screen, patch.object(device, "scroll") as scroll, patch.object(device, "adb") as adb, patch("run_password.time.sleep"):
++                        with self.assertRaises(RuntimeError):
++                            if control:
++                                device.control("Nova senha", field=True)
++                            else:
++                                device.wait_for("unsafe", lambda value: inspect_account(value, device.app, device.fixture))
++                        device.collect()
++                        hierarchy.assert_called_once()
++                        screen.assert_not_called()
++                        scroll.assert_not_called()
++                        adb.assert_not_called()
++                    self.assertEqual(device.steps, [])
++                    self.assertTrue(device.security_failed)
++                    self.assertEqual(list(Path(folder).iterdir()), [])
++
++    def test_profile_and_account_entry_reject_peer_identity_before_retrying_missing_own_labels(self):
++        unsafe = profile().replace("Person resident-mobile", "missing-own-label").replace("</hierarchy>", '<node package="com.predioon.resident" text="operations-mobile@test.invalid" /></hierarchy>')
++        for action in ["profile", "open_account"]:
++            with self.subTest(action=action), tempfile.TemporaryDirectory() as folder:
++                device = PasswordDevice("unused", "resident-mobile", Path(folder), fixture(), OLD, NEW)
++                device.preflight_passed = True
++                with patch.object(device, "assert_no_crash"), patch.object(device, "hierarchy", side_effect=[unsafe, profile()]) as hierarchy, patch.object(device, "screen") as screen, patch.object(device, "adb") as adb, patch("run_password.time.sleep"):
++                    with self.assertRaisesRegex(RuntimeError, "Another product"):
++                        getattr(device, action)("unsafe")
++                    device.collect()
++                    hierarchy.assert_called_once()
++                    screen.assert_not_called()
++                    adb.assert_not_called()
++                self.assertEqual(device.steps, [])
++                self.assertEqual(list(Path(folder).iterdir()), [])
++
++    def test_peer_building_alone_is_terminal_before_a_clean_profile_can_be_approved(self):
++        unsafe = profile().replace("</hierarchy>", '<node package="com.predioon.resident" text="Building operations-mobile" /></hierarchy>')
++        with tempfile.TemporaryDirectory() as folder:
++            device = PasswordDevice("unused", "resident-mobile", Path(folder), fixture(), OLD, NEW)
++            device.preflight_passed = True
++            with patch.object(device, "assert_no_crash"), patch.object(device, "hierarchy", side_effect=[unsafe, profile()]) as hierarchy, patch.object(device, "screen") as screen, patch.object(device, "adb") as adb, patch("run_password.time.sleep"):
++                with self.assertRaisesRegex(RuntimeError, "Another product"):
++                    device.profile("unsafe-peer-building")
++                device.collect()
++                hierarchy.assert_called_once()
++                screen.assert_not_called()
++                adb.assert_not_called()
++            self.assertEqual(device.steps, [])
++            self.assertTrue(device.security_failed)
++            self.assertEqual(list(Path(folder).iterdir()), [])
++
++    def test_collect_before_preflight_cannot_read_any_device_surface(self):
++        with tempfile.TemporaryDirectory() as folder:
++            device = PasswordDevice("personal-device", "resident-mobile", Path(folder), fixture(), OLD, NEW)
++            with patch.object(device, "adb") as adb, patch.object(device, "hierarchy") as hierarchy, patch.object(device, "screen") as screen:
++                device.collect()
++                adb.assert_not_called()
++                hierarchy.assert_not_called()
++                screen.assert_not_called()
++            self.assertEqual(list(Path(folder).iterdir()), [])
++
++    def test_main_terminal_security_failure_cannot_collect_even_after_preflight(self):
++        for failed in [(True, False), (False, True)]:
++            with self.subTest(failed=failed), tempfile.TemporaryDirectory() as folder:
++                directory = Path(folder)
++                fixture_path = directory / "fixture.json"
++                fixture_path.write_text(json.dumps(fixture()), encoding="utf-8")
++                args = argparse.Namespace(serial="emulator-5554", fixture=fixture_path, apks=directory, artifacts=directory / "evidence")
++                devices = [Mock(app=app, steps=[], preflight_passed=True, security_failed=failed[index]) for index, app in enumerate(APPS)]
++                with patch("run_password.argparse.ArgumentParser.parse_args", return_value=args), patch("run_password.PasswordDevice", side_effect=devices), patch.dict("run_password.os.environ", {"ANDROID_AUTH_PASSWORD": OLD, "ANDROID_PASSWORD_NEW": NEW}), patch("run_password.run", side_effect=SecurityViolation("Another product identity is visible")):
++                    with self.assertRaisesRegex(SystemExit, "Android password journey failed"):
++                        main()
++                for device in devices:
++                    device.collect.assert_not_called()
++                    device.adb.assert_not_called()
++                result = json.loads((args.artifacts / "result.json").read_text(encoding="utf-8"))
++                self.assertFalse(result["passed"])
++                self.assertIn("Another product", result["error"])
++
++    def test_main_refuses_physical_device_without_final_diagnostics(self):
++        with tempfile.TemporaryDirectory() as folder:
++            directory = Path(folder)
++            fixture_path = directory / "fixture.json"
++            fixture_path.write_text(json.dumps(fixture()), encoding="utf-8")
++            args = argparse.Namespace(serial="personal-device", fixture=fixture_path, apks=directory, artifacts=directory / "evidence")
++            devices = [Mock(app=app, steps=[], preflight_passed=False, security_failed=False) for app in APPS]
++            devices[0].adb.return_value = "0"
++            with patch("run_password.argparse.ArgumentParser.parse_args", return_value=args), patch("run_password.PasswordDevice", side_effect=devices), patch.dict("run_password.os.environ", {"ANDROID_AUTH_PASSWORD": OLD, "ANDROID_PASSWORD_NEW": NEW}), patch("run_password.verify") as snapshot:
++                with self.assertRaisesRegex(SystemExit, "Android password journey failed"):
++                    main()
++            devices[0].adb.assert_called_once_with("shell", "getprop", "ro.kernel.qemu")
++            devices[1].adb.assert_not_called()
++            snapshot.assert_not_called()
++            for device in devices:
++                device.collect.assert_not_called()
++                device.wait_environment_ready.assert_not_called()
++            result = json.loads((args.artifacts / "result.json").read_text(encoding="utf-8"))
++            self.assertFalse(result["passed"])
++            self.assertIn("disposable emulator", result["error"])
++
++    def test_failed_disposable_database_guard_cannot_read_environment_or_final_device_diagnostics(self):
++        with tempfile.TemporaryDirectory() as folder:
++            directory = Path(folder)
++            fixture_path = directory / "fixture.json"
++            fixture_path.write_text(json.dumps(fixture()), encoding="utf-8")
++            args = argparse.Namespace(serial="emulator-5554", fixture=fixture_path, apks=directory, artifacts=directory / "evidence")
++            devices = [Mock(app=app, steps=[], preflight_passed=False, security_failed=False) for app in APPS]
++            devices[0].adb.return_value = "1"
++            with patch("run_password.argparse.ArgumentParser.parse_args", return_value=args), patch("run_password.PasswordDevice", side_effect=devices), patch.dict("run_password.os.environ", {"ANDROID_AUTH_PASSWORD": OLD, "ANDROID_PASSWORD_NEW": NEW}), patch("run_password.verify", side_effect=AssertionError("Disposable loopback database guard failed")):
++                with self.assertRaisesRegex(SystemExit, "Android password journey failed"):
++                    main()
++            self.assertEqual(devices[0].adb.call_count, 2)
++            devices[1].adb.assert_not_called()
++            for device in devices:
++                device.collect.assert_not_called()
++                device.wait_environment_ready.assert_not_called()
 +
 +    def test_physical_device_is_refused_before_install_or_database_operation(self):
 +        class Physical:
@@ -2536,6 +3254,7 @@ index 0000000..f13bec2
 +    def test_final_diagnostics_redact_new_credential_and_omit_screenshot_if_exposed(self):
 +        with tempfile.TemporaryDirectory() as folder:
 +            device = PasswordDevice("unused", "resident-mobile", Path(folder), fixture(), OLD, NEW)
++            device.preflight_passed = True
 +            device.last_adb_failure = {"stderr": NEW, "stdout": OLD}
 +            device.last_hierarchy_output = {"stdout": NEW}
 +            source = account().replace("</hierarchy>", f'<node text="{NEW}" /></hierarchy>')
@@ -2589,15 +3308,166 @@ index 0000000..f13bec2
 +
 +if __name__ == "__main__":
 +    unittest.main()
+diff --git a/scripts/android-password-smoke/README.md b/scripts/android-password-smoke/README.md
+new file mode 100644
+index 0000000..78fcb5a
+--- /dev/null
++++ b/scripts/android-password-smoke/README.md
+@@ -0,0 +1,58 @@
++# Jornada Android de troca da própria senha
++
++Este roteiro testa a tela real **Minha conta → Trocar minha senha** dos APKs de distribuição de Morador e Operação, instalados juntos em um emulador descartável. Ele usa a API real por HTTPS e confere metadados das sessões no PostgreSQL. O workflow dedicado é [`android-password.yml`](../../.github/workflows/android-password.yml); a jornada de autenticação anterior não foi alterada.
++
++## Sequência e evidências
++
++1. Confere o emulador, o término do boot e o banco local explicitamente descartável. Exige que as duas contas exclusivas do ensaio ainda não tenham sessões.
++2. Instala os dois APKs e entra com as credenciais temporárias de cada conta. O banco deve mostrar uma família ativa por conta.
++3. Abre a conta própria e verifica os três campos como entradas protegidas na árvore nativa do Android.
++4. Envia uma senha atual incorreta. Exige o erro na tela e comprova que as famílias das duas contas permanecem ativas.
++5. Sai da tela, retorna e confere separadamente que os três campos estão vazios, rolando quando necessário.
++6. Confirma a troca com a senha atual correta e uma nova senha contendo espaços no início e no fim. Exige o retorno à entrada e a revogação no banco, sem classificar a troca como logout manual.
++7. Abre o outro aplicativo e comprova que sua conta continua no estado esperado. Os snapshots sempre incluem as duas contas.
++8. Encerra somente o processo do app em teste, abre novamente e exige a entrada vazia; isso verifica a remoção da credencial persistida após a confirmação.
++9. Tenta a senha antiga e exige a negativa da API. Em novo processo, entra com a nova senha literal e encerra a sessão normalmente.
++10. Repete a troca no segundo app e verifica que o primeiro permanece desconectado.
++
++Cada conta usa cinco admissões: entrada inicial, tentativa de troca incorreta, troca correta, entrada antiga recusada e entrada nova aceita. O limite persistente real é preservado: capacidade de 20 admissões por conta, reposição durante 900 segundos, conforme a migration 035. Nenhum limiar, janela ou desafio é relaxado pelo ensaio.
++
++No final, cada conta deve ter duas famílias criadas, nenhuma ativa, dois refresh tokens, nenhuma rotação e um logout manual. Esta jornada nativa possui uma família ativa por conta antes da troca. A revogação concorrente de várias famílias da mesma conta é responsabilidade dos testes de API e SQL, além desta verificação visual.
++
++## Proteções do ensaio
++
++- O guard de `ro.kernel.qemu` precede instalação, limpeza de dados e leitura de diagnósticos. A fixture também exige `ANDROID_AUTH_DISPOSABLE_DB=1`, banco em loopback e IDs exclusivos validados pelo adaptador existente.
++- Se o preflight falhar, o driver publica apenas o resultado sanitizado. Não coleta `logcat`, árvore nativa ou captura de tela de um aparelho recusado.
++- Vazamento de credencial, nome/e-mail/condomínio do outro app ou campo de senha desprotegido termina a jornada na primeira observação. Essas falhas não são convertidas em tentativas de renderização. Nenhum dos dois coletores é chamado depois de uma violação, pois os dois produtos compartilham o mesmo serial do emulador.
++- Somente falhas transitórias de disponibilidade e XML podem ser observadas novamente, dentro de limites definidos. Uma ação de envio nunca é repetida para esperar sua resposta.
++- O proxy acrescenta somente `POST /auth/password` à allowlist de autenticação existente. Abertura de portões, outras alterações de domínio e rotas de recuperação não são permitidas.
++- A CA e as chaves são temporárias e só entram nos APKs de verificação do checkout descartável. Os APKs continuam com cleartext negado. Chaves, senhas, tokens, arquivos da fixture e APKs não são publicados como artefatos.
++
++## Executar e interpretar
++
++O workflow cria o banco, as contas, os certificados e os APKs de verificação, inicia API e proxy e executa:
++
++```sh
++python3 scripts/android-password-smoke/run_password.py \
++  --fixture .local/android-password/fixture.json \
++  --apks .local/android-password \
++  --artifacts .local/android-password/evidence
++```
++
++As credenciais chegam pelas variáveis temporárias `ANDROID_AUTH_PASSWORD` e `ANDROID_PASSWORD_NEW`, mascaradas no GitHub Actions. Não forneça credenciais de produção. O driver exige uma nova senha ASCII distinta com espaços externos; a entrada via ADB usa lotes limitados e nunca tenta reparar ou reaplicar texto perdido.
++
++O artefato `android-password-change-<run_id>` contém identificação e hash dos APKs, `result.json`, fases PNG/XML, snapshots das sessões e diagnósticos sanitizados. Só um `result.json` com `passed: true`, todas as fases e metadados corretos confirma esta jornada. Um build aprovado ou uma captura isolada não substitui a conclusão do roteiro.
++
++Os testes do próprio verificador são executados assim:
++
++```sh
++python3 -B -m unittest discover -s scripts/android-password-smoke -p 'test_*.py' -v
++```
++
++O teste TLS real exige OpenSSL; sem ele, a suíte registra explicitamente um skip. O workflow Linux instala o ambiente com OpenSSL e exige também os testes compartilhados de autenticação e confiança.
++
++## Limites da prova
++
++Testes unitários do controlador móvel conferem Unicode, limites de bytes, senhas antigas verificáveis, comparação dos bytes equivalentes, literalidade, envio único e isolamento de ciclo de vida. Eles não executam a interface nativa. Esta jornada entra por ADB usando ASCII; a entrada de emoji pelo teclado deve ser homologada separadamente.
++
++Bundles Metro Android/iOS conferem compilação do JavaScript dos dois produtos. Eles não comprovam a execução nativa de Android ou iOS. O resultado desta jornada Android não deve ser apresentado como homologação iOS, assinatura de loja, push APNs/FCM, aparelhos físicos, implantação pública ou conclusão do plano completo.
+diff --git a/docs/TROCA_DE_SENHA.md b/docs/TROCA_DE_SENHA.md
+new file mode 100644
+index 0000000..2f5090e
+--- /dev/null
++++ b/docs/TROCA_DE_SENHA.md
+@@ -0,0 +1,71 @@
++# Troca da própria senha e encerramento das sessões
++
++Este documento descreve o incremento de identidade037. MFA, recuperação de senha e convites continuam recortes separados do plano do produto. A troca exige uma sessão autenticada atual e confirmação da senha existente; não é um mecanismo de recuperação de conta.
++
++## Comportamento
++
++Uma troca confirmada altera a credencial da própria conta e encerra todas as suas famílias de sessão, inclusive a atual, em uma única transação. Os outros portais, abas e aplicativos precisam entrar novamente. As permissões e os dados do condomínio permanecem associados à conta.
++
++Senha atual incorreta, corpo inválido, falta de autenticação, conta inativa, sessão revogada/expirada, limite de tentativas ou falha de persistência não podem confirmar uma troca parcial. O servidor determina a conta e a família pela autenticação; o corpo não aceita identificadores de usuário, condomínio, e-mail ou sessão.
++
++As senhas são literais: espaços são preservados e não se aplica normalização Unicode nem regra de composição por letras/números/símbolos. A nova senha precisa de pelo menos15 pontos de código Unicode, deve ter Unicode bem formado e pode ocupar até1024 bytes UTF-8. A senha atual precisa ser não vazia e ocupar até1024 bytes; credenciais legadas continuam verificáveis. A comparação de reuso considera os bytes efetivos UTF-8, impedindo substituir a mesma credencial por outra representação de uma string antiga malformada.
++
++## Contrato HTTP
++
++| Cliente | Rota | Requisitos |
++| --- | --- | --- |
++| Nativo | `POST /auth/password` | Bearer da família atual e JSON estrito. |
++| Web | `POST /auth/web/password` | Bearer atual, Origin permitido, `X-Predioon-Web: 1`, Content-Type JSON e política web existente. |
++
++Corpo, com tamanho total limitado a8KiB antes de Argon2:
++
++```json
++{
++  "currentPassword": "senha atual literal",
++  "newPassword": "nova senha literal de pelo menos 15 caracteres"
++}
++```
++
++| Resposta | Significado |
++| --- | --- |
++| `204` | Credencial e revogação de todas as famílias confirmadas. Sem corpo nem tokens novos. |
++| `400` | Corpo/requisitos inválidos, senha atual incorreta ou reuso de credencial. |
++| `401` | Identidade/família deixou de ser válida ou a confirmação perdeu uma corrida. |
++| `403` | Política de origem/cabeçalhos do cliente web recusada. |
++| `413` | Corpo excede o limite anterior ao KDF. |
++| `429` | Admissão persistente por conta/rede esgotada; respeitar Retry-After. |
++| `503` | Admissão ou confirmação persistente não pôde ser concluída com segurança. |
++
++O endpoint compartilha a admissão persistente de login035, usando o e-mail autenticado obtido do banco. Tentativa com senha incorreta consome o orçamento; sucesso não zera o consumo. A política não é enfraquecida para fixtures ou apps. A resposta não expõe hash, senha, metadados de sessão ou detalhe interno de falha.
++
++Na rota web, o cookie de refresh só é apagado depois de confirmar a troca. Rejeição de CSRF ou senha incorreta não encerra a sessão por si. Eventos de senha não são enviados à auditoria global da plataforma: o armazenamento de eventos de segurança da própria conta permanece outro recorte explícito.
++
++## Transação e autorização
++
++Argon2 verifica a senha e prepara o novo hash antes de adquirir locks de negócio. A transação compara novamente o hash observado e a conta ativa. Login não pode criar uma família depois de uma troca com uma verificação antiga de senha. Refresh não pode reabrir a família revogada nem conservar uma geração consumida enquanto cria a sucessora.
++
++A ordem das operações que precisam dos três recursos é conta → família → geração de refresh. Famílias de revogação coletiva são travadas em ordem estável por ID. Uma revogação individual não tenta adquirir a conta depois de segurar sua única família. Expiração é reavaliada usando tempo do banco depois de esperar locks.
++
++A migration037 cria o helper privado `identity_replace_password`. O papel de identidade tem EXECUTE nesse helper e continua sem UPDATE direto da credencial em users. Os demais runtimes não recebem essa capacidade. Owner, ACLs e search_path permanecem controlados na aplicação/reaplicação. O helper confere a família própria atual e revalida conta/hash após os locks.
++
++As escritas confirmam valores efetivamente persistidos, além da quantidade de linhas. Ignorar um UPDATE, devolver valores antigos num BEFORE, reescrever num AFTER imediato ou inserir uma família ativa indevida faz a operação falhar e reverter a transação. Refresh e revogações também confirmam suas transições. Triggers de constraint diferidos até o commit não fazem parte das migrations atuais nem do aceite desse mecanismo.
++
++## Cliente HTTP e formulários
++
++As fachadas web/nativa oferecem `changePassword({currentPassword,newPassword})`. Exigem204 para considerar sucesso. Não repetem a mutação após falha de transporte; uma resposta desconhecida não significa que o servidor desfez a troca. Se a confirmação se perdeu, tentar entrar com a nova senha permite determinar o estado da conta.
++
++Uma401 permite renovar uma credencial expirada e uma única nova tentativa, preservando a geração da identidade. A coordenação web libera o lock de cookies antes da renovação e revalida a conta ao readquirir o lock. Uma resposta antiga da contaA nunca encerra a contaB que entrou depois.
++
++Após204, o cliente bloqueia a identidade local antes de apagar armazenamento. Falha de Keychain/storage não torna os tokens revogados novamente utilizáveis nem converte o sucesso em sugestão de repetir a alteração. A coordenação entre abas mantém o encerramento mesmo se a persistência local da tombstone falhar.
++
++O formulário web fica em Minhas sessões, incluindo Perfil do morador. Os apps compartilham Minha conta → Trocar minha senha. Campos de senha são protegidos; confirmação é validada localmente e não é enviada à API. O envio duplo é bloqueado, mensagens não reproduzem o corpo de erro do servidor e campos são limpos ao enviar/cancelar/sair/trocar identidade. Os apps também limpam campos ao ir para segundo plano. Erros de senha atual/rede/429 preservam a identidade até existir sucesso confirmado ou perda real de autenticação.
++
++## Implantação e testes
++
++O SQL037 é um arquivo novo depois de036. Depois de publicado/aplicado, ele deve permanecer imutável. Não editar checksum nem apagar ledger de um banco real. Bootstrap e seed continuam restritos à instalação descartável documentada em [MIGRATIONS.md](MIGRATIONS.md).
++
++Para implantar esse recorte, coordenar a atualização de todas as instâncias da API: a versão antiga não oferece as revalidações/ordem de locks da037. Pausar o tráfego de identidade, encerrar os workers antigos, aplicar migrations com credencial administrativa e iniciar a release nova completa antes de reabrir o tráfego. Conferir prontidão e smoke de login/refresh/troca. Servir os portais e bundles compatíveis. A migração do schema isoladamente não comprova compatibilidade entre workers antigos e novos.
++
++Evidências dirigidas da implementação:63/63 testes reais de autenticação/sessões/cookies e59/59 do cliente, sem skips; revisão independente dos locks, persistência e falhas de armazenamento. A suíte de banco037 passou26/26 com dump/restauração real:44 tabelas,37 migrations, helpers/ACLs e revogação de famílias no destino sem modificar a origem. UI89/89, mobile72/72, tipos e bundles são provas separadas. **Regressão integral da API, Playwright da fonte final e jornadas nativas ainda precisam de conclusão/conferência para o aceite completo.** Resultados atualizados ficam em [CONTINUIDADE.md](CONTINUIDADE.md).
++
++O roteiro [Android senha](../scripts/android-password-smoke/README.md) usa APKs release, API/PostgreSQL reais, TLS restrito, emulador descartável, provas de revogação e isolamento entre produtos. Unitários do roteiro não equivalem a executar os APKs. Compilar bundles iOS também não homologa autenticação, Keychain, segundo plano ou uma instalação em aparelho.
 diff --git a/docs/superpowers/plans/2026-10-02-password-change.md b/docs/superpowers/plans/2026-10-02-password-change.md
 new file mode 100644
-index 0000000..96f28b4
+index 0000000..db64f29
 --- /dev/null
 +++ b/docs/superpowers/plans/2026-10-02-password-change.md
-@@ -0,0 +1,28 @@
+@@ -0,0 +1,38 @@
 +# Troca da própria senha e serialização de credenciais
 +
-+Recorte planejado da identidade 2C. Estado inicial: ainda sem implementação ou aceite. A migration 037 está reservada; 036 pertence à auditoria.
++Recorte da identidade 2C, implementado em revisão em 03/10/2026. A migration 037 implementa a troca; 036 pertence à auditoria. O comportamento final e a implantação estão documentados em [TROCA_DE_SENHA.md](../../TROCA_DE_SENHA.md).
++
++## Estado de validação
++
++- API/autenticação: 63/63 dirigidos, incluindo corridas observadas por locks, efeitos de triggers imediatos, rollback e cookies. Cliente HTTP: 59/59, incluindo falha de armazenamento após204 e identidade substituída. As duas leituras independentes não encontraram bloqueador remanescente nessas fontes.
++- Banco: 26/26, sem skips, com dump/restauração real de44 tabelas e37 migrations; ACLs/helper e revogação no destino não alteram a origem.
++- Regressão API: Windows691/695 e Linux694/695, preservadas como execuções falhas. No Linux, o prazo global de45s de uma jornada SSE incluía26,57s de preparação SQL e leituras individuais de0,25–4,44s; o teste está sendo ajustado para limitar cada observação, sem relaxar a autorização ou esconder evento perdido. Novo integral ainda pendente.
++- Web: UI89/89; primeira integral Playwright213/213, três motores, sem retries, em14,9min. A revisão posterior identificou o tipo implícito do botão de dispensar erro; reprodução/correção e testes de ponteiro/teclado responsivo estão em andamento. A integral anterior não aprova essas alterações posteriores.
++- Mobile: 72/72, tipos dos dois apps e quatro bundles Android/iOS. Novo verificador Android: 16/16 em Linux com TLS real; execução dos APKs da senha ainda pendente. Bundles e unitários não equivalem a runtime nativo.
++
++MFA, recuperação, convites, runtime iOS autenticado e o plano integral do produto continuam abertos. Resultados e próximos passos atuais estão em [CONTINUIDADE.md](../../CONTINUIDADE.md).
 +
 +## Comportamento
 +
