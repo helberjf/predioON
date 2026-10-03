@@ -65,6 +65,30 @@
       "height": 2622,
       "sourceCommit": "b4726b97c7a1384d836ec84a8c265fe002bd951e",
       "sourceRun": "https://github.com/helberjf/predioON/actions/runs/37017848643"
+    },
+    {
+      "file": "web-auditoria-global.png",
+      "sha256": "58efb24988fc94560633a13b410ea5f88a83c57757f50ad8fffa7133b60ce5cf",
+      "width": 1440,
+      "height": 1267,
+      "sourceCommit": "c2871f0b1fd9c9039bb5240100b256841df8bd12",
+      "sourceRun": null,
+      "execution": "Local Linux Playwright1.63.0, Chromium, API/PostgreSQL reais, bundles compilados;15/15 dirigidos aprovados",
+      "sourceArtifact": "audit-global.png",
+      "testedSourceComparison": "16 arquivos conferidos contra o commit com normalizacao LF",
+      "limit": "Histórico autorizado da plataforma, sem metadata, IP ou user-agent. Captura real de Chromium com API036 e banco descartável; dados fictícios."
+    },
+    {
+      "file": "web-auditoria-condominio.png",
+      "sha256": "488116a44551a19b05e90930df8982d187dbeea699e65c0d583d9444e0cf7263",
+      "width": 390,
+      "height": 5234,
+      "sourceCommit": "c2871f0b1fd9c9039bb5240100b256841df8bd12",
+      "sourceRun": null,
+      "execution": "Local Linux Playwright1.63.0, Chromium, API/PostgreSQL reais, bundles compilados;15/15 dirigidos aprovados",
+      "sourceArtifact": "audit-local.png",
+      "testedSourceComparison": "16 arquivos conferidos contra o commit com normalizacao LF",
+      "limit": "Histórico local com25 registros por página e viewport390px. É o portal web responsivo, com API036 real; não é uma captura nativa de Android ou iOS."
     }
   ]
 }

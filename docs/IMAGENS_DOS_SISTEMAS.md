@@ -2,7 +2,7 @@
 
 Publicadas em **03/10/2026**. Estas capturas foram conferidas em execuções reais e usam dados fictícios. Cada imagem mantém o commit de origem; a data de publicação não altera a versão demonstrada. O plano completo e os cinco vídeos finais continuam pendentes, conforme [CONTINUIDADE.md](CONTINUIDADE.md).
 
-As oito imagens e a [galeria HTML](IMAGENS_DOS_SISTEMAS.html) agora acompanham o clone. Abra a galeria no navegador para filtrar e ampliar. O [manifesto](imagens/2026-10-03/manifesto.json) registra dimensões, SHA-256 e origem.
+As dez imagens e a [galeria HTML](IMAGENS_DOS_SISTEMAS.html) agora acompanham o clone. Abra a galeria no navegador para filtrar e ampliar. O [manifesto](imagens/2026-10-03/manifesto.json) registra dimensões, SHA-256 e origem.
 
 ## Android — Morador: avisos
 
@@ -51,3 +51,15 @@ Origem: [`b4726b9`](https://github.com/helberjf/predioON/commit/b4726b97c7a1384d
 Origem: [`b4726b9`](https://github.com/helberjf/predioON/commit/b4726b97c7a1384d836ec84a8c265fe002bd951e). Inicialização e novo processo em iPhone 16 Pro/iOS 18.5; login e jornadas autenticadas ainda pendentes.
 
 ![iOS — Operação: entrada](imagens/2026-10-03/ios-operacao-entrada.png)
+
+## Web — Auditoria global
+
+Origem: [`c2871f0`](https://github.com/helberjf/predioON/commit/c2871f0b1fd9c9039bb5240100b256841df8bd12). Histórico autorizado da plataforma, sem metadata, IP ou user-agent. Captura real de Chromium com API036 e banco descartável; dados fictícios. A fonte dos16 arquivos testados foi conferida contra este commit; a captura local precedeu sua publicação, com os mesmos arquivos.
+
+![Web — Auditoria global](imagens/2026-10-03/web-auditoria-global.png)
+
+## Web — Auditoria do condomínio
+
+Origem: [`c2871f0`](https://github.com/helberjf/predioON/commit/c2871f0b1fd9c9039bb5240100b256841df8bd12). Histórico local com25 registros por página e viewport390px. É o portal web responsivo, com API036 real; não é uma captura nativa de Android ou iOS. A fonte dos16 arquivos testados foi conferida contra este commit; a captura local precedeu sua publicação, com os mesmos arquivos.
+
+![Web — Auditoria do condomínio](imagens/2026-10-03/web-auditoria-condominio.png)

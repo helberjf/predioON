@@ -80,8 +80,16 @@
       <button class="shot" aria-label="Ampliar iOS Morador, tela de entrada"><img src="imagens/2026-10-03/ios-morador-entrada.png" alt="Formulário real de entrada do aplicativo Morador em simulador iOS"></button>
       <div class="caption"><span class="label">iOS · aplicativo nativo</span><h2>Morador · Entrada</h2><p>Tela real em iPhone 16 Pro, iOS 18.5, commit b4726b9. Abertura e novo processo aprovados, sem erro de configuração ou Keychain. Login e uso dos módulos ainda precisam de teste nativo.</p><details><summary>Origem</summary><a href="https://github.com/helberjf/predioON/actions/runs/37017848643">Execução iOS aprovada</a></details></div>
     </article>
+    <article data-platform="web">
+      <button class="shot" aria-label="Ampliar Web — Auditoria global"><img src="imagens/2026-10-03/web-auditoria-global.png" alt="Web — Auditoria global"></button>
+      <div class="caption"><span class="label">Web · histórico de atividades</span><h2>Auditoria global</h2><p>Histórico autorizado da plataforma, sem metadata, IP ou user-agent. Captura real de Chromium com API036 e banco descartável; dados fictícios.</p><details><summary>Origem</summary><a href="https://github.com/helberjf/predioON/commit/c2871f0b1fd9c9039bb5240100b256841df8bd12">Fonte c2871f0, testada localmente</a></details></div>
+    </article>
+    <article data-platform="web">
+      <button class="shot" aria-label="Ampliar Web — Auditoria do condomínio"><img src="imagens/2026-10-03/web-auditoria-condominio.png" alt="Web — Auditoria do condomínio"></button>
+      <div class="caption"><span class="label">Web · histórico de atividades</span><h2>Auditoria do condomínio</h2><p>Histórico local com25 registros por página e viewport390px. É o portal web responsivo, com API036 real; não é uma captura nativa de Android ou iOS.</p><details><summary>Origem</summary><a href="https://github.com/helberjf/predioON/commit/c2871f0b1fd9c9039bb5240100b256841df8bd12">Fonte c2871f0, testada localmente</a></details></div>
+    </article>
   </div>
-  <div class="note">A plataforma035 passou no CI, incluindo <strong>633 testes de API</strong>. A matriz dos portais compilados passou <strong>174/174 localmente e no GitHub</strong>, sem retries. As capturas web correspondem à interface de5eda20e; os apps iOS demonstram o formulário em b4726b9. O estado atual e as jornadas ainda pendentes estão no documento de continuidade.</div>
+  <div class="note">Auditoria036 e consumidor publicados: <strong>658/658 testes de API,26/26 de banco e189/189 Playwright locais</strong>, sem skips/retries. O CI da nova fonte precisa ser conferido. As capturas anteriores conservam sua versão; iOS mostra somente inicialização em b4726b9. O plano completo e os cinco vídeos ainda não terminaram. Consulte Continuidade para o estado atual.</div>
   <footer>Estado detalhado, pendências e instruções para outro computador: <a href="https://github.com/helberjf/predioON/blob/main/docs/CONTINUIDADE.md">CONTINUIDADE.md no GitHub</a>.</footer>
 </main>
 <dialog aria-label="Imagem ampliada"><div class="bar"><a id="original" href="#" target="_blank" rel="noopener">Abrir imagem original</a><button id="close">Fechar</button></div><img id="large" alt=""></dialog>
