@@ -2,11 +2,12 @@ import { Router } from "express";
 import { z } from "zod";
 import { validateBody } from "../http/validate.js";
 import { authenticate, currentAuth } from "./middleware.js";
-import { listSessions, login, refreshSession, revokeAllSessions, revokeSession, revokeSessionById } from "./service.js";
+import { changePassword, listSessions, login, refreshSession, revokeAllSessions, revokeSession, revokeSessionById } from "./service.js";
 import type { SessionTokens } from "./service.js";
 import { webAuthRouter } from "./web-routes.js";
 import { LoginSchema } from "./login-schema.js";
-import { admitLogin } from "./login-budget.js";
+import { admitLogin, admitPasswordChange } from "./login-budget.js";
+import { PasswordChangeSchema } from "./password-change-schema.js";
 
 export const authRouter = Router();
 authRouter.use((_req, res, next) => { res.setHeader("Cache-Control", "no-store"); next(); });
@@ -35,6 +36,12 @@ authRouter.post("/login", validateBody(LoginSchema), admitLogin, async (req, res
     ipAddress: req.ip,
   });
   res.json(sessionResponse(session));
+});
+
+authRouter.post("/password", authenticate, validateBody(PasswordChangeSchema), admitPasswordChange, async (req, res) => {
+  const auth = currentAuth(req);
+  await changePassword(auth.userId, auth.sessionId, req.body.currentPassword, req.body.newPassword);
+  res.status(204).end();
 });
 
 authRouter.post("/refresh", validateBody(RefreshSchema), async (req, res) => {

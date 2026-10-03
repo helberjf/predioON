@@ -3,7 +3,7 @@
 export * from "@predioon/shared";
 export type {
   ApiErrorResponse, AuthRole, AuthUser, LoginRequest, LogoutRequest,
-  MeResponse, RefreshRequest, Session, SessionMembership, SessionTokens,
+  MeResponse, PasswordChangeRequest, RefreshRequest, Session, SessionMembership, SessionTokens,
 } from "./auth.js";
 export type * from "./tenancy.js";
 export type * from "./overview.js";

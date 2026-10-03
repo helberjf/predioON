@@ -10,6 +10,8 @@ A execução dirigida da restauração levou aproximadamente19 segundos, incluin
 
 ## Executar o ensaio
 
+O recorte037 também foi ensaiado em 03/10/2026: suíte completa **26/26 sem skips**, com as flags reais, em21,4 segundos; log work/password037-db-full-verified.log. O dump/restauração dirigido passou1/1 em5,4 segundos, verificando **44 tabelas e37 migrations**. O helper privado de troca de senha restaurado ficou inacessível a app/broker, a identidade continuou sem UPDATE direto em users e a transição autorizada alterou o hash/revogou duas famílias sem afetar o peer nem a origem. Hashes dessa fixture SQL não exercitam Argon2; a confirmação criptográfica é testada na API. A evidência036 acima permanece histórica e não foi somada à037 para formar outra integral.
+
 Requer Node 24, pnpm 10.17.1, Docker e container PostgreSQL/Timescale de teste. A URL administrativa e o container devem identificar o mesmo cluster; o teste compara seu identificador físico antes de criar bancos. Exemplo PowerShell para o ambiente descartável desta sessão:
 
 ```powershell

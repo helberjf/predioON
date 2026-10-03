@@ -52,7 +52,7 @@ Os painéis precisam do servidor Vite; não abra os arquivos `index.html` direta
 - **Banco:** PostgreSQL 16 com TimescaleDB, Drizzle ORM e políticas de acesso por linha (RLS).
 - **IoT:** EMQX e serviço de ingestão Node.js com mqtt.js.
 - **Interfaces:** React 19, Vite 7, Tailwind CSS e componentes compartilhados em `packages/ui`.
-- **Autenticação:** JWT, senhas com Argon2 e refresh tokens rotativos; autorização por perfil e vínculo com o condomínio.
+- **Autenticação:** JWT Ed25519, senhas com Argon2, famílias de refresh rotativas e limites persistentes por conta/rede. A [troca da própria senha](docs/TROCA_DE_SENHA.md) confirma a senha atual e encerra todas as sessões da conta atomicamente.
 
 ```text
 Sensores / gateway / simulador
@@ -311,7 +311,7 @@ A evolução de `codex/product-platform` foi integrada à `main` em 01/10/2026. 
 | 2B.3 | Capacidades dos domínios operacionais, estacionamento033 e acesso físico034; auditoria036 | Parcial; administrativos legados e consumidores ainda têm pendências. Estado e validações em [Continuidade](docs/CONTINUIDADE.md). |
 | 2B.4 | Seleção de condomínio, gestão de unidades/equipes/vínculos e diretório mínimo por capacidade (025) | Integrada; regressão executada pela CI |
 | 5 | Apps Morador e Operação, sessão em Keychain/Keystore e fluxos existentes da API | Incremento integrado; publicação e módulos novos pendentes |
-| 2C | Cookies HttpOnly/CSRF nos três portais, access em memória e coordenação entre abas | Integrado; MFA, convites, recuperação e limites de tentativas pendentes |
+| 2C | Cookies HttpOnly/CSRF, access em memória, coordenação entre abas, limites persistentes035 e troca da própria senha037 | Incrementos integrados; MFA, convites, recuperação e homologação nativa continuam pendentes |
 | 3, 4 e 6 | Processamento durável (inbox/outbox/workers), ativos e ordens de serviço, automações, planos/assinaturas e operação revisada | Pendentes; entregas operacionais parciais registradas no tracker |
 
 Evidências e números de teste por etapa ficam no [tracker de execução](docs/superpowers/plans/2026-09-27-product-execution.md). Os débitos técnicos conhecidos, incluindo a fronteira entre confirmação MQTT e commit, estão em [TDD, seção 18](docs/TDD.md#18-débitos-técnicos-e-riscos-de-implementação).
@@ -340,6 +340,7 @@ Para produção, siga [DEPLOY](docs/DEPLOY.md): segredos exclusivos, conexão re
 | Operação | [Acessos](docs/ACESSOS.md) · [Vagas e avisos](docs/VAGAS_AVISOS.md) |
 | Atendimento e gestão | [Suporte remoto](docs/SUPORTE_REMOTO.md) · [Gestão transparente](docs/GESTAO_TRANSPARENTE.md) |
 | Histórico e privacidade | [Auditoria por capacidades](docs/AUDITORIA.md) |
+| Identidade e encerramento de sessões | [Troca da própria senha037](docs/TROCA_DE_SENHA.md) |
 | Hardware e MQTT | [Hardware/software](docs/HARDWARE_SOFTWARE.md) · [Contrato e entrega para Helber](docs/ENTREGA_HELBER.md) · [Teste MQTT](docs/TESTE_MQTT.md) |
 | Banco e arquitetura | [Modelo de dados](docs/DATABASE_MODEL.md) · [Preparação do banco](docs/DATABASE_SETUP.md) · [Plano técnico](docs/PLANO_TOTAL.md) |
 | Evolução | [Próximos passos](docs/NEXT_STEPS.md) |

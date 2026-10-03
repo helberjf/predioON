@@ -1,4 +1,4 @@
-import type { ApiErrorResponse } from "@predioon/contracts/auth";
+import type { ApiErrorResponse, PasswordChangeRequest } from "@predioon/contracts/auth";
 import { ApiError } from "#errors";
 
 export type CredentialStorage<C> = {
@@ -6,7 +6,7 @@ export type CredentialStorage<C> = {
   setTokens(tokens: C): Promise<void>;
   clearTokens(): Promise<void>;
 };
-export type AuthOperation = "login" | "refresh" | "logout";
+export type AuthOperation = "login" | "refresh" | "logout" | "password";
 type AuthRequest = { path: string; init: RequestInit };
 export type AuthGate = <T>(operation: () => Promise<T>) => Promise<T>;
 type Options<C extends { accessToken: string }, S extends C> = {
@@ -24,6 +24,7 @@ type Options<C extends { accessToken: string }, S extends C> = {
     beforeLogin?: () => AuthRequest;
     refresh(tokens: C | null): AuthRequest | null;
     logout(tokens: C | null): AuthRequest | null;
+    password(body: PasswordChangeRequest): AuthRequest;
     credentials(session: S): C;
     ignoreLogoutFailure: boolean;
   };
@@ -33,6 +34,7 @@ type Options<C extends { accessToken: string }, S extends C> = {
 export function createBearerClient<C extends { accessToken: string }, S extends C>(options: Options<C, S>) {
   const baseUrl = options.baseUrl.replace(/\/+$/, "");
   let version = 0;
+  let locallySignedOut = false;
   let storageQueue: Promise<unknown> = Promise.resolve();
   let refreshInFlight: { version: number; promise: Promise<void> } | null = null;
   const direct: AuthGate = operation => operation();
@@ -47,18 +49,24 @@ export function createBearerClient<C extends { accessToken: string }, S extends 
     if (version !== expected) throw new ApiError(0, "A sessão mudou. Tente novamente.", "SESSION_CHANGED");
   }
   async function readTokens(expected: number): Promise<C | null> {
+    assertCurrent(expected);
+    if (locallySignedOut) return null;
     const tokens = await stored(async () => { assertCurrent(expected); return options.storage.getTokens(); });
     assertCurrent(expected);
-    return tokens;
+    return locallySignedOut ? null : tokens;
   }
   async function saveTokens(session: S, expected: number): Promise<void> {
     await stored(async () => { assertCurrent(expected); await options.storage.setTokens(options.protocol.credentials(session)); });
     assertCurrent(expected);
+    locallySignedOut = false;
   }
   async function loseSession(expected: number): Promise<void> {
     assertCurrent(expected);
     const clearedVersion = ++version;
-    await stored(async () => { assertCurrent(clearedVersion); await options.storage.clearTokens(); });
+    locallySignedOut = true;
+    // Revoked credentials must be unusable even when Keychain/Keystore refuses
+    // deletion. Identity callbacks and later reads cannot depend on that IO.
+    await stored(async () => { assertCurrent(clearedVersion); await options.storage.clearTokens(); }).catch(() => undefined);
     assertCurrent(clearedVersion);
     options.onAuthLost?.();
   }
@@ -133,6 +141,7 @@ export function createBearerClient<C extends { accessToken: string }, S extends 
   }
   function refreshSession(expected: number): Promise<void> {
     assertCurrent(expected);
+    if (locallySignedOut) return Promise.reject(new ApiError(401, "Entre novamente para continuar."));
     if (refreshInFlight?.version === expected) return refreshInFlight.promise;
     const promise = renewSession(expected).finally(() => { if (refreshInFlight?.promise === promise) refreshInFlight = null; });
     refreshInFlight = { version: expected, promise };
@@ -169,13 +178,55 @@ export function createBearerClient<C extends { accessToken: string }, S extends 
     patch: <T>(path: string, body: unknown) => request<T>(path, { ...json(body), method: "PATCH" }),
     delete: <T>(path: string) => request<T>(path, { method: "DELETE" }),
     invalidateSession(): void { version++; },
+    /** A confirmed change revokes all server families. Invalidate this exact
+     * identity only after204; delayed success must never clear a newer login. */
+    async changePassword(body: PasswordChangeRequest): Promise<void> {
+      const expected = version;
+      const perform = () => {
+        const gate = options.authGate?.("password") ?? direct;
+        return gate(() => authDeadline(async signal => {
+          const tokens = await readTokens(expected);
+          if (!tokens?.accessToken) throw new ApiError(401, "Entre novamente para continuar.");
+          const request = options.protocol.password(body);
+          const headers = new Headers(request.init.headers);
+          headers.set("Authorization", `Bearer ${tokens.accessToken}`);
+          return checkedAuth({ ...request, init: { ...request.init, headers } }, expected, signal);
+        }));
+      };
+      let response = await perform();
+      if (response.status === 401) {
+        await response.body?.cancel();
+        // Release the web cookie lock before renewing, then revalidate the
+        // caller's generation when reacquiring it for the single retry.
+        await refreshSession(expected);
+        response = await perform();
+      }
+      if (response.status !== 204) {
+        if (response.ok) await response.body?.cancel();
+        const error = response.ok
+          ? new ApiError(response.status, "A API não confirmou a alteração da senha.", "INVALID_RESPONSE")
+          : await responseError(response);
+        assertCurrent(expected);
+        if (response.status === 401) await loseSession(expected);
+        throw error;
+      }
+      assertCurrent(expected);
+      try { await loseSession(expected); }
+      catch (error) {
+        // A tombstone/storage failure after confirmed204 cannot turn the
+        // committed change into a retry. A newer identity still wins.
+        if (version !== expected + 1 || error instanceof ApiError && error.code === "SESSION_CHANGED") throw error;
+      }
+    },
     async restore(): Promise<C | null> {
       const expected = version;
+      if (locallySignedOut) return null;
       await refreshSession(expected);
       return readTokens(expected);
     },
     async login(email: string, password: string): Promise<S> {
       const expected = ++version;
+      locallySignedOut = true;
       const gate = options.authGate?.("login") ?? direct;
       await stored(async () => { assertCurrent(expected); await options.storage.clearTokens(); });
       return gate(() => authDeadline(async signal => {
@@ -192,6 +243,7 @@ export function createBearerClient<C extends { accessToken: string }, S extends 
     },
     async logout(): Promise<void> {
       const expected = ++version;
+      locallySignedOut = true;
       const gate = options.authGate?.("logout") ?? direct;
       const tokens = await stored(async () => {
         assertCurrent(expected);

@@ -16,6 +16,7 @@ function world() {
   let sequence = 0, queue: Promise<unknown> = Promise.resolve(), cookie: string | null = null, revision = 0;
   let notifications = true, offline = false, active = 0, peak = 0;
   let failActivation = false;
+  let failBlocking = false;
   const calls: Array<{ path: string; init: RequestInit }> = [];
   let intercept: ((path: string, init: RequestInit) => Promise<Response | null>) | null = null;
   const fetcher: typeof fetch = async (input, init = {}) => {
@@ -48,6 +49,7 @@ function world() {
       namespace,
       storage: { getItem: key => values.get(key) ?? null, setItem: (key, value) => {
         if (failActivation && JSON.parse(value).blocked === false) throw new Error("Storage unavailable");
+        if (failBlocking && JSON.parse(value).blocked === true) throw new Error("Storage unavailable");
         values.set(key, value);
       }, removeItem: key => { values.delete(key); } },
       locks: supported ? { request: <T>(_key: string, run: () => Promise<T>): Promise<T> => {
@@ -65,6 +67,7 @@ function world() {
   return { tab, calls, values, peak: () => peak, cookie: () => cookie, revision: () => revision,
     offline(value: boolean) { offline = value; }, notifications(value: boolean) { notifications = value; },
     failActivation(value: boolean) { failActivation = value; },
+    failBlocking(value: boolean) { failBlocking = value; },
     intercept(value: typeof intercept) { intercept = value; }, setCookie(value: string) { cookie = value; revision++; },
   };
 }
@@ -87,6 +90,57 @@ it("web login revokes previous cookie, keeps access only in memory and scopes cr
   assert.equal(fixture.values.size, 1);
   assert.deepEqual(Object.keys(JSON.parse([...fixture.values.values()][0]!)).sort(), ["blocked", "epoch"]);
   tab.close();
+});
+
+it("a web password response cannot clear a newer tab's login intent and cookie operations stay ordered", async () => {
+  const fixture = world(), a = fixture.tab(), b = fixture.tab();
+  const started = deferred<void>(), response = deferred<Response>();
+  fixture.intercept(async path => {
+    if (path === "/auth/web/password") { started.resolve(); return response.promise; }
+    return null;
+  });
+  try {
+    await a.api.login("accountA", "password");
+    const changing = assert.rejects(a.api.changePassword({ currentPassword: "old", newPassword: "new" }), changed);
+    await started.promise;
+    const signingIn = b.api.login("accountB", "password");
+    await tick();
+    assert.equal(fixture.calls.at(-1)?.path, "/auth/web/password", "the new cookie login must wait for the old mutation response");
+    response.resolve(new Response(null, { status: 204 }));
+    await changing; await signingIn;
+    assert.deepEqual(await b.api.get("/private"), { owner: "accountB" });
+    assert.equal(fixture.cookie(), "accountB"); assert.equal(b.api.accessToken(), `accountB:${fixture.revision()}`);
+    assert.deepEqual(fixture.calls.slice(-4).map(call => call.path), ["/auth/web/password", "/auth/web/logout", "/auth/web/login", "/private"]);
+  } finally { a.close(); b.close(); }
+});
+
+it("web password retry renews expired access outside the cookie lock and tombstones the confirmed change", async () => {
+  const fixture = world(), a = fixture.tab(); let attempts = 0;
+  fixture.intercept(async (path, init) => {
+    if (path !== "/auth/web/password") return null;
+    assert.equal(init.credentials, "include"); assert.equal(new Headers(init.headers).get("X-Predioon-Web"), "1");
+    assert.equal(new Headers(init.headers).get("Authorization"), `Bearer accountA:${fixture.revision()}`);
+    return attempts++ ? new Response(null, { status: 204 }) : expired();
+  });
+  try {
+    await a.api.login("accountA", "password");
+    await a.api.changePassword({ currentPassword: "old", newPassword: "new" });
+    assert.deepEqual(fixture.calls.slice(-3).map(call => call.path), ["/auth/web/password", "/auth/web/refresh", "/auth/web/password"]);
+    assert.equal(a.api.accessToken(), null); assert.equal(await a.api.restore(), null);
+    assert.equal(a.state().lost, 1);
+  } finally { a.close(); }
+});
+
+it("confirmed web replacement clears memory and invokes identity loss even when tombstone storage refuses writes", async () => {
+  const fixture = world(), a = fixture.tab();
+  fixture.intercept(async path => path === "/auth/web/password" ? new Response(null, { status: 204 }) : null);
+  try {
+    await a.api.login("accountA", "password"); fixture.failBlocking(true);
+    await a.api.changePassword({ currentPassword: "old", newPassword: "new" });
+    assert.equal(a.api.accessToken(), null); assert.equal(a.state().lost, 1);
+    assert.equal(await a.api.restore(), null, "a failed persisted tombstone cannot restore the locally closed identity");
+    assert.equal(fixture.calls.at(-1)?.path, "/auth/web/password");
+  } finally { a.close(); }
 });
 
 it("reload restores identity solely through the HttpOnly cookie and serializes two tabs' rotations", async () => {

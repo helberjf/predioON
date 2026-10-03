@@ -178,7 +178,7 @@ describe('web cookies against real session storage', () => {
       // insertion attempt; the original refresh row must roll back with it.
       await sqlClient.unsafe(`create trigger ${trigger} before insert on refresh_tokens for each row execute function public.${fn}()`);
       installed=true;
-      const failed=await request('refresh',{}, {Cookie:session.cookie});assert.equal(failed.status,500);
+      const failed=await request('refresh',{}, {Cookie:session.cookie});assert.equal(failed.status,503);
       assert.equal(failed.headers.get('set-cookie'),null);
       await sqlClient.unsafe(`drop trigger ${trigger} on refresh_tokens`);installed=false;
       const recovered=await request('refresh',{}, {Cookie:session.cookie});assert.equal(recovered.status,200);

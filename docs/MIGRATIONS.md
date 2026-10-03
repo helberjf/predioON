@@ -185,3 +185,11 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/test-start-local
 ```
 
 Ele cobre retomada de infraestrutura parada, bloqueio por pendência/legado, falha de infraestrutura, setup sem seed implícito e seed explicitamente pedido. Esse teste não instala dependências, não executa Docker nem altera banco real. A suíte PostgreSQL deve ser executada separadamente. Ao terminar, encerre somente os containers descartáveis identificados para esse ensaio e remova as variáveis do terminal ou feche esse terminal antes de voltar à instalação habitual.
+
+## Release de identidade037
+
+`037-password-change.sql` acrescenta o helper privado de troca da própria senha. Não concede UPDATE direto em users nem EXECUTE a app/broker. ACL/owner/search_path e persistência efetiva das transições são verificados em testes; as famílias são revogadas junto da alteração da credencial. Consulte [TROCA_DE_SENHA.md](TROCA_DE_SENHA.md) para contrato, locks e limites.
+
+A release da API muda a serialização de login/refresh/revogação. Coordenar todas as instâncias: pausar tráfego de identidade, encerrar workers antigos, aplicar037 com credencial administrativa, iniciar a release nova completa e conferir prontidão/login/refresh/troca antes de reabrir o tráfego. Não operar um rollout misturando a lógica antiga de locks/hash com o endpoint novo. Seed/reset não são passos de atualização de produção.
+
+O ensaio de037 passou26/26 testes de banco com as flags reais, incluindo dump/restauração serial de44 tabelas e37 migrations. O helper restaurado alterou apenas sua conta, revogou duas famílias e preservou outro usuário e a origem. Logs locais work/password037-db-full-verified.log e work/password037-backup-directed.log. Isso comprova o recorte lógico/ACL do teste descartável; aceite de implantação real e operação permanece no plano maior.

@@ -38,6 +38,12 @@ it('restores a real Timescale archive with data, migration history and restricte
     await source`insert into organizations(id,name,slug) values('restore-org','Recovery fixture','restore-org')`;
     await source`insert into buildings(id,organization_id,name,code) values('restore-a','restore-org','Restore A','A'),('restore-b','restore-org','Restore B','B')`;
     await source`insert into users(id,email,name) values('restore-reader','restore-reader@example.invalid','Recovery reader'),('restore-neighbor','restore-neighbor@example.invalid','Recovery neighbor')`;
+    // This fixture exercises the SQL transition after restore, not Argon2.
+    // The trusted identity service supplies the encoded hash in production.
+    const previousHash='$argon2id$recovery-observed-fixture',replacementHash='$argon2id$recovery-replacement-fixture';
+    const ownSession=randomUUID(),otherSession=randomUUID(),peerSession=randomUUID();
+    await source`insert into users(id,email,name,password_hash) values('restore-password','restore-password@example.invalid','Recovery password owner',${previousHash})`;
+    await source`insert into sessions(id,user_id,expires_at) values(${ownSession},'restore-password',clock_timestamp()+interval '2 hours'),(${otherSession},'restore-password',clock_timestamp()+interval '2 hours'),(${peerSession},'restore-neighbor',clock_timestamp()+interval '2 hours')`;
     await source`insert into role_bindings(user_id,building_id,role_key) values('restore-reader','restore-a','RESIDENT')`;
     await source`insert into devices(id,building_id,name,type) values('restore-sensor','restore-a','Recovery sensor','WATER_LEVEL_SENSOR')`;
     await source`insert into telemetry(event_id,building_id,device_id,metric,value,numeric_value,time)
@@ -88,6 +94,33 @@ it('restores a real Timescale archive with data, migration history and restricte
     const history=await checkInfrastructure(target,migrations);
     assert.deepEqual(history,[]);
     assert.deepEqual(await applyInfrastructure(target,migrations),[],'restored ledger is valid without replaying privileges');
+    for(const role of ['predioon_app','predioon_broker_auth']){
+      await assert.rejects(target.begin(async tx=>{
+        await tx.unsafe(`set local role ${role}`);
+        await tx`select identity_replace_password('restore-password',${ownSession}::uuid,${previousHash},${replacementHash})`;
+      }),error=>(error as {code?:string}).code==='42501','non-identity runtime cannot replace a credential after recovery');
+    }
+    await assert.rejects(target.begin(async tx=>{
+      await tx`set local role predioon_identity`;
+      await tx`update users set password_hash=${replacementHash} where id='restore-password'`;
+    }),error=>(error as {code?:string}).code==='42501','identity runtime retains no direct credential UPDATE');
+    await target.begin(async tx=>{
+      await tx`set local role predioon_identity`;
+      const [result]=await tx`select identity_replace_password('restore-password',${ownSession}::uuid,${previousHash},${replacementHash}) as replaced`;
+      assert.equal(result!.replaced,true,'restored private helper can change its own active credential');
+    });
+    assert.equal((await target`select password_hash from users where id='restore-password'`)[0]!.password_hash,replacementHash);
+    const changedFamilies=await target`select revoked_at,revoked_reason from sessions where user_id='restore-password'`;
+    assert.equal(changedFamilies.length,2);
+    assert.ok(changedFamilies.every(row=>row.revoked_at!==null&&row.revoked_reason==='PASSWORD_CHANGED'),'every restored family is revoked atomically');
+    assert.equal((await target`select revoked_at from sessions where id=${peerSession}`)[0]!.revoked_at,null,'foreign restored account stays active');
+    assert.equal((await source`select password_hash from users where id='restore-password'`)[0]!.password_hash,previousHash,'replacement never writes into the backup source');
+    assert.ok((await source`select revoked_at from sessions where user_id='restore-password'`).every(row=>row.revoked_at===null),'source sessions stay active');
+    await target.begin(async tx=>{
+      await tx`set local role predioon_identity`;
+      const [result]=await tx`select identity_replace_password('restore-password',${ownSession}::uuid,${previousHash},${replacementHash}) as replaced`;
+      assert.equal(result!.replaced,false,'recovered helper cannot reuse a replaced hash and revoked family');
+    });
     const [chunks]=await target`select count(*)::integer n from timescaledb_information.chunks where hypertable_name='telemetry'`;
     assert.ok(chunks!.n>=2,'historical and recent telemetry chunks both survive');
     await target.begin(async tx=>{

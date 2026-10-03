@@ -34,7 +34,7 @@ export const app = express();
 app.set("trust proxy", config.trustedProxyCidrs.length ? config.trustedProxyCidrs : false);
 
 app.use(cors({ origin: config.corsOrigins, credentials: true }));
-app.use(["/auth/login", "/auth/web/login"], express.json({ limit: "8kb" }));
+app.use(["/auth/login", "/auth/web/login", "/auth/password", "/auth/web/password"], express.json({ limit: "8kb" }));
 app.use(express.json({ limit: "1mb" }));
 
 app.get("/", (_req, res) => res.json({ name: "Prédio ON API", version: 1 }));

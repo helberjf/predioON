@@ -5,9 +5,11 @@ import type { WebSession } from '@predioon/contracts/auth';
 import { config } from '../config.js';
 import { HttpError, badRequest, forbidden, unauthorized } from '../http/errors.js';
 import { validateBody } from '../http/validate.js';
-import { login, refreshSession, revokeSession, type SessionTokens } from './service.js';
+import { changePassword, login, refreshSession, revokeSession, type SessionTokens } from './service.js';
 import { LoginSchema } from './login-schema.js';
-import { admitLogin } from './login-budget.js';
+import { admitLogin, admitPasswordChange } from './login-budget.js';
+import { PasswordChangeSchema } from './password-change-schema.js';
+import { authenticate, currentAuth } from './middleware.js';
 
 export const webAuthRouter=Router();
 
@@ -56,6 +58,13 @@ webAuthRouter.post('/login',validateBody(LoginSchema),admitLogin,async(req,res)=
   res.cookie(policy.name,session.refreshToken,{...policy.options,expires:session.expiresAt,
     maxAge:Math.max(0,session.expiresAt.getTime()-Date.now())});
   res.json(publicSession(session));
+});
+
+webAuthRouter.post('/password',authenticate,validateBody(PasswordChangeSchema),admitPasswordChange,async(req,res)=>{
+  const policy=cookiePolicy(req),auth=currentAuth(req);
+  await changePassword(auth.userId,auth.sessionId,req.body.currentPassword,req.body.newPassword);
+  res.clearCookie(policy.name,policy.options);
+  res.status(204).end();
 });
 
 webAuthRouter.post('/refresh',validateBody(z.object({}).strict()),async(req,res)=>{

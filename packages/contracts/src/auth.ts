@@ -19,6 +19,8 @@ export type Session = SessionTokens & { user: AuthUser };
 /** Browser renewal credentials are delivered only in an HttpOnly cookie. */
 export type WebSession = { accessToken: string; user: AuthUser };
 export type LoginRequest = { email: string; password: string };
+/** The authenticated account/session are server-derived, never body selectors. */
+export type PasswordChangeRequest = { currentPassword: string; newPassword: string };
 export type RefreshRequest = { refreshToken: string };
 export type LogoutRequest = RefreshRequest;
 export type MeResponse = AuthUser;

@@ -3,7 +3,7 @@ import type { ReservationAvailabilityQuery } from "@predioon/contracts";
 import { createBearerClient, type CredentialStorage } from "#engine";
 
 export { ApiError, type ApiErrorCode } from "#errors";
-export type { Session, SessionTokens, WebSession } from "@predioon/contracts/auth";
+export type { PasswordChangeRequest, Session, SessionTokens, WebSession } from "@predioon/contracts/auth";
 export { createWebApiClient, type WebApiClient, type WebApiClientOptions, type WebSessionCoordinator } from "#web-client";
 
 /** Shared by web/native callers; values can never become extra query parameters. */
@@ -32,6 +32,7 @@ export function createApiClient(options: ApiClientOptions) {
       login: (email, password) => authRequest("/auth/login", { email, password }),
       refresh: tokens => tokens?.refreshToken ? authRequest("/auth/refresh", { refreshToken: tokens.refreshToken }) : null,
       logout: tokens => tokens?.refreshToken ? authRequest("/auth/logout", { refreshToken: tokens.refreshToken }) : null,
+      password: body => authRequest("/auth/password", body),
       credentials: session => ({ accessToken: session.accessToken, refreshToken: session.refreshToken }),
       ignoreLogoutFailure: true,
     },

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
+import { setTimeout as delay } from "node:timers/promises";
 import { mkdir, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { after, before, describe, it } from "node:test";
@@ -56,39 +57,78 @@ describe("022 live equipment status and feature invalidation capabilities", () =
       await sqlClient`delete from users where id in ${sqlClient(f.ids)}`;
     }
   }
-  async function stream<T>(f: Fixture, user: string, run: (s: { batch: (events: Record<string,unknown>[]) => Promise<Record<string,unknown>[]>; reader: ReadableStreamDefaultReader<Uint8Array>; marker: () => Promise<Record<string,unknown>> }) => Promise<T>, queryToken = false, timeoutMs = 20_000): Promise<T> {
-    const controller = new AbortController(), timer = setTimeout(()=>controller.abort(),timeoutMs);
-    let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+  async function boundedSseObservation<R>(controller: AbortController, timeoutMs: number, operation: () => Promise<R>): Promise<R> {
+    const timer = setTimeout(()=>controller.abort(),timeoutMs);
     try {
-      const token = f.tokens.get(user)!;
-      const response = await fetch(`${server.url}/events/stream${queryToken?'?access_token='+encodeURIComponent(token):''}`,{headers:queryToken?{}:{Authorization:`Bearer ${token}`},signal:controller.signal});
-      assert.equal(response.status,200);
-      reader = response.body!.getReader();
-      const decoder = new TextDecoder(); let pending = '';
-      async function frame(): Promise<string> {
-        while (!pending.includes('\n\n')) {
-          const next = await reader!.read(); assert.equal(next.done,false,'SSE closed before bounded marker');
-          pending += decoder.decode(next.value,{stream:true});
-        }
-        const end = pending.indexOf('\n\n'), next = pending.slice(0,end); pending = pending.slice(end+2); return next;
+      const result = await operation();
+      controller.signal.throwIfAborted();
+      return result;
+    } finally { clearTimeout(timer); }
+  }
+  async function stream<T>(f: Fixture, user: string, run: (s: { batch: (events: Record<string,unknown>[], includeMarker?: boolean) => Promise<Record<string,unknown>[]>; read: () => Promise<ReadableStreamReadResult<Uint8Array>>; marker: () => Promise<Record<string,unknown>> }) => Promise<T>, queryToken = false, timeoutMs = 20_000): Promise<T> {
+    const controller = new AbortController();
+    let observing = false;
+    let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+    const decoder = new TextDecoder(); let pending = '';
+    // A missing frame stays bounded. Preparation SQL between observations must
+    // not consume the next observation's deadline or reopen the same stream.
+    async function observe<R>(operation: () => Promise<R>): Promise<R> {
+      assert.equal(observing,false,'SSE observations must be sequential');
+      observing = true;
+      try { return await boundedSseObservation(controller,timeoutMs,operation); }
+      finally { observing=false; }
+    }
+    async function frame(): Promise<string> {
+      while (!pending.includes('\n\n')) {
+        const next = await reader!.read(); assert.equal(next.done,false,'SSE closed before bounded marker');
+        pending += decoder.decode(next.value,{stream:true});
       }
-      assert.equal(await frame(),'retry: 5000');
+      const end = pending.indexOf('\n\n'), next = pending.slice(0,end); pending = pending.slice(end+2); return next;
+    }
+    try {
+      await observe(async () => {
+        const token = f.tokens.get(user)!;
+        const response = await fetch(`${server.url}/events/stream${queryToken?'?access_token='+encodeURIComponent(token):''}`,{headers:queryToken?{}:{Authorization:`Bearer ${token}`},signal:controller.signal});
+        assert.equal(response.status,200);
+        reader = response.body!.getReader();
+        assert.equal(await frame(),'retry: 5000');
+      });
       async function nextEvent() {
         for (;;) { const data = (await frame()).split('\n').find(line=>line.startsWith('data: ')); if (data) return JSON.parse(data.slice(6)) as Record<string,unknown>; }
       }
-      async function marker() {
-        await sqlClient`select pg_notify('predioon_events',${JSON.stringify({...f.marker('*'),metadata:'private',status:'forged'})})`;
-        return nextEvent();
+      function marker() {
+        return observe(async () => {
+          await sqlClient`select pg_notify('predioon_events',${JSON.stringify({...f.marker('*'),metadata:'private',status:'forged'})})`;
+          return nextEvent();
+        });
       }
-      async function batch(events: Record<string,unknown>[]) {
-        for (const event of events) await sqlClient`select pg_notify('predioon_events',${JSON.stringify(event)})`;
-        await sqlClient`select pg_notify('predioon_events',${JSON.stringify(f.marker('*'))})`;
-        const result: Record<string,unknown>[] = [];
-        for (;;) { const event = await nextEvent(); if (event.kind==='features-changed' && event.buildingId==='*') return result; result.push(event); }
+      function batch(events: Record<string,unknown>[], includeMarker = true) {
+        return observe(async () => {
+          for (const event of events) await sqlClient`select pg_notify('predioon_events',${JSON.stringify(event)})`;
+          if (includeMarker) await sqlClient`select pg_notify('predioon_events',${JSON.stringify(f.marker('*'))})`;
+          const result: Record<string,unknown>[] = [];
+          for (;;) { const event = await nextEvent(); if (event.kind==='features-changed' && event.buildingId==='*') return result; result.push(event); }
+        });
       }
-      return await run({batch,reader,marker});
-    } finally { clearTimeout(timer); controller.abort(); await reader?.cancel().catch(()=>undefined); }
+      return await run({batch,read:()=>observe(()=>reader!.read()),marker});
+    } finally { controller.abort(); await reader?.cancel().catch(()=>undefined); }
   }
+  it("rejects an uncancellable producer completing with a buffered frame after its deadline", async () => {
+    const controller = new AbortController();
+    await assert.rejects(boundedSseObservation(controller,20,async () => {
+      await delay(60);
+      return 'already buffered SSE frame';
+    }),error => error instanceof DOMException && error.name === "AbortError");
+  });
+  it("bounds each SSE observation while preserving the same stream across fixture preparation", async () => fixture(async f => {
+    await stream(f,f.scoped,async s => {
+      await delay(2700);
+      assert.deepEqual(await s.batch([]),[]);
+    },false,2500);
+    // A dropped marker must still fail instead of waiting for a heartbeat forever.
+    await assert.rejects(stream(f,f.scoped,s => s.batch([],false),false,2500),
+      error => error instanceof DOMException && error.name === "AbortError");
+  }));
   const events = (f: Fixture) => [f.device(),f.device({deviceId:f.d2,status:'OFFLINE'}),f.gw()];
   const supportGrant = (f: Fixture, resourceType: string | null, resourceId: string | null) => sqlClient`insert into support_grants(building_id,support_user_id,capability,resource_type,resource_id,reason,expires_at,granted_by) values(${f.a},${f.support},'devices:read',${resourceType},${resourceId},'022 diagnosis',clock_timestamp()+interval '1 hour',${f.platform}) returning id`;
 
@@ -251,7 +291,7 @@ describe("022 live equipment status and feature invalidation capabilities", () =
         assert.deepEqual(await s.batch([f.device(),f.marker()]),[f.marker()]);
         await resume('ELECTRICAL'); await state('ENERGY_CONSUMPTION',false);
         t.diagnostic(`Equipment-only mixed ANY pause/resume verified after ${Math.round(performance.now()-started)}ms`);
-      },false,45_000);
+      });
       await sqlClient`update role_bindings set resource_id=${f.db} where id=${f.scopedBinding}`;
       const rows = await as(f.scoped,tx=>tx.execute(sql`select * from building_feature_settings where building_id=${f.a}`)); assert.equal(rows.length,0);
       await stream(f,f.scoped,async s=>assert.deepEqual(await s.batch([f.device(),f.marker()]),[]));
@@ -325,7 +365,7 @@ describe("022 live equipment status and feature invalidation capabilities", () =
       if (user===f.direct) await sqlClient`update sessions set revoked_at=clock_timestamp() where id=${decodeJwt(f.tokens.get(user)!).sid as string}`;
       else await sqlClient`update users set active=false where id=${user}`;
       await sqlClient`select pg_notify('predioon_events',${JSON.stringify(f.device())})`;
-      assert.equal((await s.reader.read()).done,true);
+      assert.equal((await s.read()).done,true);
     });
   }));
   it("exposes only stable owner-controlled classification and feature authorization helpers", async () => fixture(async f => {

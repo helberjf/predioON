@@ -3,6 +3,7 @@ import { identitySqlClient } from "@predioon/db/identity";
 import { config } from "../config.js";
 import { HttpError } from "../http/errors.js";
 import { loginBudgetKeys } from "./login-budget-keys.js";
+import { currentAuth } from "./middleware.js";
 
 /** A short committed transaction ends before credentials or Argon2 are read. */
 export async function takeLoginBudget(email: string, address: string | null | undefined): Promise<number> {
@@ -23,12 +24,17 @@ export async function takeLoginBudget(email: string, address: string | null | un
 }
 
 /** Mount only after the login schema and, for web, the origin/CSRF checks. */
-export const admitLogin: RequestHandler = async (req, res, next) => {
-  const retryAfter = await takeLoginBudget(req.body.email, req.ip);
+function admission(email: (req: Parameters<RequestHandler>[0]) => string): RequestHandler {
+ return async (req, res, next) => {
+  const retryAfter = await takeLoginBudget(email(req), req.ip);
   if (retryAfter > 0) {
     res.setHeader("Retry-After", String(retryAfter));
     res.status(429).json({ error: "Muitas tentativas de entrada. Aguarde e tente novamente." });
     return;
   }
   next();
-};
+ };
+}
+export const admitLogin = admission(req => req.body.email);
+/** Identity is authenticated before this middleware; no body field selects the bucket. */
+export const admitPasswordChange = admission(req => currentAuth(req).email);
