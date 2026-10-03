@@ -163,7 +163,7 @@ export function ErrorBanner({ message, onDismiss }: { message: string; onDismiss
     <div role="alert" className="flex items-start justify-between gap-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
       <span>{message}</span>
       {onDismiss && (
-        <button aria-label="Fechar mensagem" onClick={onDismiss} className="font-bold text-rose-500">
+        <button type="button" aria-label="Fechar mensagem" onClick={onDismiss} className="font-bold text-rose-500">
           ×
         </button>
       )}

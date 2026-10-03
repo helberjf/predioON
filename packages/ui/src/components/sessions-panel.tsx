@@ -5,13 +5,14 @@ import { useAuth } from "../auth.js";
 import { formatDateTime } from "../format.js";
 import { useResource } from "../use-resource.js";
 import { Badge, Button, Card, ErrorBanner, ResourceFeedback } from "./primitives.js";
+import { PasswordChangePanel } from "./password-change-panel.js";
 
 const active = (session: SessionView) => !session.revokedAt && new Date(session.expiresAt).getTime() > Date.now();
 
 /** The server always selects and revokes sessions belonging to the current user. */
 export function SessionsPanel() {
   const { user } = useAuth();
-  return user ? <SessionsWorkspace key={user.id} /> : null;
+  return user ? <div key={user.id} className="space-y-6"><PasswordChangePanel /><SessionsWorkspace /></div> : null;
 }
 
 function SessionsWorkspace() {
