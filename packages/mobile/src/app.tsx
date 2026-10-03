@@ -33,6 +33,7 @@ import {
 } from "./scope.ts";
 import type { Building, List } from "./models.ts";
 import { useReadResource, useResource } from "./resource.ts";
+import { BuildingScreen } from "./building-screen.tsx";
 import { readOperationsAccess, readResidentAccess } from "./authorization.ts";
 import { Alerts, Overview, Readings } from "./operations.tsx";
 import { Notices, Reservations, Tickets, Transparency } from "./resident.tsx";
@@ -496,11 +497,7 @@ function BuildingApp({
           </ScrollView>
         )}
       </View>
-      <ScrollView
-        key={current ?? "permissions"}
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={styles.page}
-      >
+      <BuildingScreen screen={current ?? null}>
         <Feedback<unknown>
           resource={product === "operations" ? operationsAccess : authorization}
         />
@@ -549,7 +546,7 @@ function BuildingApp({
             )}
           </>
         )}
-      </ScrollView>
+      </BuildingScreen>
     </KeyboardAvoidingView>
   );
 }
