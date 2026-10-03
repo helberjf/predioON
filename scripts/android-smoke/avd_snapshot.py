@@ -22,7 +22,11 @@ def checked_config(source, settings, sdk=None):
         if not separator or not key or (key in values and key not in {"hw.cpu.ncore", "hw.ramSize"}):
             raise ValueError("Invalid or ambiguous AVD configuration")
         values[key] = value
-    expected = {"abi.type": settings["abi"], "hw.cpu.arch": settings["abi"], "hw.cpu.ncore": str(settings["cores"]), "hw.device.name": settings["profile"], "tag.id": settings["target"], "target": "android-" + str(settings["apiLevel"]), "image.sysdir.1": f"system-images/android-{settings['apiLevel']}/{settings['target']}/{settings['abi']}/"}
+    expected = {"abi.type": settings["abi"], "hw.cpu.arch": settings["abi"], "hw.cpu.ncore": str(settings["cores"]), "hw.device.name": settings["profile"], "tag.id": settings["target"], "image.sysdir.1": f"system-images/android-{settings['apiLevel']}/{settings['target']}/{settings['abi']}/"}
+    # The current SDK stores target in the AVD pointer, checked by avd_paths.
+    # Older versions repeat it in config.ini; a present value must still match.
+    if "target" in values:
+        expected["target"] = "android-" + str(settings["apiLevel"])
     if sdk is not None:
         root = sdk.resolve(strict=True)
         image = (root / expected["image.sysdir.1"]).resolve(strict=True)

@@ -48,6 +48,20 @@ class SnapshotTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "image.sysdir.1"):
                     checked_config(CONFIG.replace(relative, str(wrong) + "/"), SETTINGS, sdk)
 
+    def test_target_can_be_absent_from_config_but_the_avd_pointer_still_proves_api_level(self):
+        without_target = CONFIG.replace("target=android-35\n", "")
+        self.assertNotIn("target=", checked_config(without_target, SETTINGS))
+        with self.assertRaisesRegex(ValueError, "target"):
+            checked_config(CONFIG.replace("target=android-35", "target=android-34"), SETTINGS)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            metadata, avd, health = self.fixture(root)
+            (avd / "config.ini").write_text(checked_config(without_target, SETTINGS))
+            seal_snapshot(root, metadata, health)
+            (root / "predioon-clean.ini").write_text(f"path={avd}\ntarget=android-34\n")
+            with self.assertRaisesRegex(ValueError, "target"):
+                seal_snapshot(root, metadata, health)
+
     def test_seal_requires_healthy_proof_and_snapshot_files_and_verifies_every_cached_byte(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
