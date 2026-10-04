@@ -33,12 +33,16 @@ class LoopbackFixtureHTTPServer(ThreadingHTTPServer):
 
 class ReadinessTests(unittest.TestCase):
     def test_loopback_fixture_never_uses_reverse_dns_before_listening(self):
-        with patch.object(socket, "getfqdn", side_effect=AssertionError("Loopback fixture must not wait for reverse DNS")) as reverse:
+        with patch.object(socket, "getfqdn", side_effect=AssertionError("Loopback fixture must not wait for reverse DNS")) as reverse, \
+             patch.object(socket.socket, "getsockopt", side_effect=OSError(42, "Protocol not available")) as unsupported:
             with LoopbackFixtureHTTPServer(("127.0.0.1", 0), BaseHTTPRequestHandler) as server:
                 self.assertEqual(server.server_name, "localhost")
                 self.assertEqual(server.server_port, server.server_address[1])
-                self.assertEqual(server.socket.getsockopt(socket.SOL_SOCKET, socket.SO_ACCEPTCONN), 1)
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
+                    client.settimeout(.5)
+                    client.connect(server.server_address)
             reverse.assert_not_called()
+            unsupported.assert_not_called()
 
     def test_delayed_readiness_is_bounded_without_mutating_retry(self):
         instant = [0.0]
