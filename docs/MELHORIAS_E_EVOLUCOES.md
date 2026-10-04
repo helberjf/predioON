@@ -50,6 +50,8 @@ Apple629 observado: startup dos dois produtos passou; auth passou89/89 host e am
 
 Duas PNGs originais02-new-process iOS629 foram revistas visualmente e versionadas; galeria31(9Android/16web/6iOS), preservando29 registros anteriores. São prova de entrada/startup, sem aprovação autenticada; [origem e limites](evidencias/ios-6298065.json).
 
+0674c78 publicou diagnóstico Android pré-PID e primeira rejeição imediata:86/86Linux+45/45domínios,85+1/44+1Windows, revisão independente/450schemas e comandos/tempos intactos; [prova](evidencias/android-preflight-diagnostic-0674c78.json). Próximo aceite continua nos gates nativos e jornadas completas, sem reclassificação dos artefatos anteriores.
+
 | Prioridade | Trabalho | Resultado esperado | Critério de aceite |
 |---|---|---|---|
 | P0 | Concluir autorização por capacidade nos domínios restantes | Acesso depende da concessão atual ao condomínio e ao recurso | HTTP e SQL negativos; revogação, expiração, equipe inativa e troca de condomínio sem vazamentos; nenhum privilégio global implícito sobre dados privados |

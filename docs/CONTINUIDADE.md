@@ -72,6 +72,12 @@ O agente principal reconferiu **oito hashes Git, três metadados REST oficiais a
 
 As duas PNGs originais de **02-new-process** da fonte6298065, Morador e Operação, foram incluídas no clone após revisão visual pelo agente principal: formulário E-mail/Senha vazio, produto correto, sem erro ou identidade privada. Bytes1206×2622 e hashes originais foram conferidos contra os dois ZIPs oficiais; os29 registros anteriores ficaram iguais. **Galeria atual31:9Android/16web/6iOS**. [Imagens](IMAGENS_DOS_SISTEMAS.md) e [prova de inicialização e bloqueio autenticado](evidencias/ios-6298065.json). São capturas de inicialização aprovadas; o auth629 continua reprovado em runner-build/nonzero-exit70 e sem checkpoints aprovados. Continuam pendentes as14POSTs, Keychain/famílias, domínios iOS, aparelhos, produção e cinco vídeos. Nenhum reboot executado.
 
+### Diagnóstico Android pré-PID e primeira rejeição publicados em0674c78
+
+**0674c78** publicou somente seis arquivos do harness. O campo opcional `preflightDiagnostic` contém estágio/categoria de conjuntos fechados, exclusivamente em falha anterior ao PID e sem primeira negativa registrada. Emulador/HOME/instalação/snapshot exigem zero marcadores; abertura admite só o prefixo real0–3 de startup, e bind exige três. Sucesso, PID vinculado, primeira negativa, outras fases/ordens/categorias e campos extras recusam o suplemento. Relatórios antigos permanecem compatíveis; estágio é fronteira observada, sem atribuição de causa histórica.
+
+O renderer agora registra privacidade/credencial imediatamente e conserva a primeira rejeição nas duas ordens, bloqueando o gesto/coleta posterior. Comandos, tempos, guards, apps, dependências e workflows foram preservados. RED em86 métodos registrou20 falhas incluindo subtests e4 erros da interface ausente; GREEN **86/86 Linux com TLS real**, Windows **85+1skip OpenSSL**; domínios **45/45 Linux/44+1skip Windows**. Revisão independente repetiu RED/integrais e verificou41 definições,450 combinações fechadas,14 rejeições de tipos e6 ordens de primeira negativa. Root reconferiu os seis blobs publicados, freeze/ZIP/logs e repetiu os86/45 casos Windows. [Prova sanitizada](evidencias/android-preflight-diagnostic-0674c78.json). Não somar suites/subtests como uma integral nem tratar host como aceite Fabric. Conferir os dois próximos CIs na fonte0674, mantendo critérios nativos. Nenhum reboot executado.
+
 ## 1. Instruções permanentes do proprietário
 
 - Continuar até concluir as implementações dos apps e websites, testes e evolução descritos na arquitetura aprovada.

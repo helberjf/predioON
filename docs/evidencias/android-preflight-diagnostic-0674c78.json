@@ -1,0 +1,287 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "0674c78211d99bb9bdaa6b7f9bc94999332b3d48",
+  "date": "2026-10-04",
+  "sourceFiles": [
+    {
+      "path": "scripts/android-renderer-smoke/run_renderer.py",
+      "sha256GitLF": "7a677c47d22005db3585fa6a8c342ffe9b7f1c78a54f4f37e6a4b1d22ab6c071",
+      "bytesGitLF": 13654
+    },
+    {
+      "path": "scripts/android-renderer-smoke/run_domains_prefix.py",
+      "sha256GitLF": "626aa88092a11071354b3c8305104f7acb0d89da8e6514a266988c2d682bd314",
+      "bytesGitLF": 14590
+    },
+    {
+      "path": "scripts/android-renderer-smoke/monitor.py",
+      "sha256GitLF": "ad1ce8edd7498a22704c35278be97654cdf019f42bc480fc5ecd62f927e4aaa7",
+      "bytesGitLF": 12678
+    },
+    {
+      "path": "scripts/android-renderer-smoke/test_renderer.py",
+      "sha256GitLF": "f421af2303738fe469d789d10b781781e8f298c9c803e5d23f3cdb949ddd64be",
+      "bytesGitLF": 35183
+    },
+    {
+      "path": "scripts/android-renderer-smoke/test_domains_prefix.py",
+      "sha256GitLF": "de02025c95862fb20c90c0228aa8ac5a3660cabc1e0219acc5ea498617091a25",
+      "bytesGitLF": 31344
+    },
+    {
+      "path": "scripts/android-renderer-smoke/README.md",
+      "sha256GitLF": "0239cca1fefe9a868a114b50d0331f99def4d6afbac904918ec718babafe57c1",
+      "bytesGitLF": 18815
+    }
+  ],
+  "status": "published-host-approved-native-pending",
+  "contract": {
+    "optionalField": "preflightDiagnostic",
+    "exactKeys": [
+      "stage",
+      "category"
+    ],
+    "categoriesByStage": {
+      "emulator-check": [
+        "adb-failed",
+        "configuration-rejected",
+        "diagnostic-stream-failed",
+        "harness-failed"
+      ],
+      "home-readiness": [
+        "adb-failed",
+        "credential-exposure",
+        "harness-failed",
+        "privacy-rejected",
+        "ui-incomplete"
+      ],
+      "apk-install": [
+        "adb-failed",
+        "harness-failed"
+      ],
+      "initial-snapshot": [
+        "fixture-rejected",
+        "harness-failed",
+        "ui-incomplete"
+      ],
+      "app-launch": [
+        "adb-failed",
+        "configuration-rejected",
+        "diagnostic-stream-failed",
+        "harness-failed",
+        "ui-incomplete"
+      ],
+      "pid-bind": [
+        "adb-failed",
+        "configuration-rejected",
+        "harness-failed",
+        "process-changed"
+      ]
+    },
+    "requiresFailedResult": true,
+    "requiresPidNull": true,
+    "requiresFirstFailureNull": true,
+    "requiresDomainSnapshotUnchangedFalse": true,
+    "categoryMustMatchPrimary": true,
+    "startupMarkerPrefixLimit": 3,
+    "pidBindRequiresThreeStartupMarkers": true,
+    "otherPreflightStagesRequireZeroMarkers": true,
+    "oldReportsAndSuccessSchemaPreserved": true
+  },
+  "tests": {
+    "linuxRendererPrefix": {
+      "total": 86,
+      "passed": 86,
+      "skips": 0,
+      "realTLS": true
+    },
+    "windowsRendererPrefix": {
+      "total": 86,
+      "passed": 85,
+      "skips": 1
+    },
+    "linuxDomains": {
+      "total": 45,
+      "passed": 45,
+      "skips": 0,
+      "realTLS": true
+    },
+    "windowsDomains": {
+      "total": 45,
+      "passed": 44,
+      "skips": 1
+    },
+    "red": {
+      "totalMethods": 86,
+      "failureRecordsIncludingSubtests": 20,
+      "errorsForMissingInterface": 4,
+      "linuxSkips": 0,
+      "windowsSkips": 1
+    },
+    "rootWindows": [
+      {
+        "scope": "renderer-prefix",
+        "total": 86,
+        "passed": 85,
+        "skips": 1,
+        "seconds": 1.626,
+        "sha256": "0247c1223bd6523558d381b17c28a20d7f0e643647ebf74b8d1edfed3f9a4689",
+        "bytes": 13281,
+        "skipReason": "OpenSSL unavailable on Windows"
+      },
+      {
+        "scope": "domains",
+        "total": 45,
+        "passed": 44,
+        "skips": 1,
+        "seconds": 0.484,
+        "sha256": "f6d95c9503d828faa8ed6230f068b198ee3a2518fe1570fb99440c2fd92b0c43",
+        "bytes": 8448,
+        "skipReason": "OpenSSL unavailable on Windows"
+      }
+    ]
+  },
+  "independentReview": {
+    "decision": "approved",
+    "blockers": [],
+    "sha256": "99c681b2a7147802d55cba34180eed4973cac967fc01b4e042b30e4b7374b9a4",
+    "unchangedDefinitionsVerified": 41,
+    "originalPublicValidationPrefixVerified": true,
+    "commandsTimersGuardsUnchanged": true,
+    "protocolMatrix": {
+      "matrixCases": 450,
+      "acceptedClosedPairs": 38,
+      "rejectedPairs": 412,
+      "typedDiagnosticRejections": 14,
+      "firstNegativeCasesBothRunners": 6,
+      "nativeExecution": false,
+      "repoEdits": false
+    },
+    "actionlint": {
+      "semanticPassed": true,
+      "shellcheck": false,
+      "pyflakes": false
+    }
+  },
+  "frozenSourceArchive": {
+    "bytes": 33855,
+    "sha256": "ecda60a68a65febb6f2714af25226b83d7afd23159c127ecd545ad1b1fde7620",
+    "memberCount": 6
+  },
+  "testLogHashes": [
+    {
+      "scope": "implementation",
+      "check": "renderer-red-windows",
+      "bytes": 36672,
+      "sha256": "9f26f26e47a2fe17b141eb9104c6d153b858373bfb8e0d567205ebd5d16e05a3",
+      "totalMethods": 86,
+      "status": "FAILED (failures=20, errors=4, skipped=1)"
+    },
+    {
+      "scope": "implementation",
+      "check": "renderer-red-linux",
+      "bytes": 35259,
+      "sha256": "7e9d2328d13133ab9cd5e1d229d4b5e4dbac988759cd99f36c29e9efa7910572",
+      "totalMethods": 86,
+      "status": "FAILED (failures=20, errors=4)"
+    },
+    {
+      "scope": "implementation",
+      "check": "renderer-green-windows",
+      "bytes": 13281,
+      "sha256": "7dc35932bc579140a3d8e69a50a7fe46845ad792bd7278f629c15a9f1510596c",
+      "totalMethods": 86,
+      "status": "OK (skipped=1)"
+    },
+    {
+      "scope": "implementation",
+      "check": "renderer-green-linux",
+      "bytes": 13447,
+      "sha256": "4fd592115a79815f35c656e42bd345a228be7bbe493c30798fd5de8534f50d25",
+      "totalMethods": 86,
+      "status": "OK"
+    },
+    {
+      "scope": "implementation",
+      "check": "domains-green-windows",
+      "bytes": 8448,
+      "sha256": "d008a30d83dde25cecca43b15790d86a06c6a4aa11204b8989ae4f62503f3662",
+      "totalMethods": 45,
+      "status": "OK (skipped=1)"
+    },
+    {
+      "scope": "implementation",
+      "check": "domains-green-linux",
+      "bytes": 8477,
+      "sha256": "4a91824592c2e1c653f5c942b37b7dd2566f698bbb4855cb51dd21623b3334e6",
+      "totalMethods": 45,
+      "status": "OK"
+    },
+    {
+      "scope": "independent",
+      "check": "renderer-green-linux",
+      "bytes": 13447,
+      "sha256": "af14c6e34061c39625e20fd74d670faa89360fc3a71c97a812df00593ccbc3c4",
+      "totalMethods": 86,
+      "status": "OK"
+    },
+    {
+      "scope": "independent",
+      "check": "renderer-green-windows",
+      "bytes": 13281,
+      "sha256": "555458f78a178bb157b9f04a8875a1f5415f9d04ee66497d3a19d260dd896f31",
+      "totalMethods": 86,
+      "status": "OK (skipped=1)"
+    },
+    {
+      "scope": "independent",
+      "check": "renderer-red-linux",
+      "bytes": 35259,
+      "sha256": "99d6e00899953dfcc4dfcff8e13678e6ebc65b9b155d4b45457536433c0579a3",
+      "totalMethods": 86,
+      "status": "FAILED (failures=20, errors=4)"
+    },
+    {
+      "scope": "independent",
+      "check": "renderer-red-windows",
+      "bytes": 36780,
+      "sha256": "cec8916eed479c933b954a35db9bbc14782dc4249826238324488f48d823b02f",
+      "totalMethods": 86,
+      "status": "FAILED (failures=20, errors=4, skipped=1)"
+    },
+    {
+      "scope": "independent",
+      "check": "domains-green-linux",
+      "bytes": 8477,
+      "sha256": "0f0d74b13129258867f20abf234f079e6ba017ccca1c3b6201845fd3db8e6fc3",
+      "totalMethods": 45,
+      "status": "OK"
+    },
+    {
+      "scope": "independent",
+      "check": "domains-green-windows",
+      "bytes": 8448,
+      "sha256": "219b8d9c49b350a3e09393fb4ba9d0f31f03265b350c296c1fd0e5d1acdee1f2",
+      "totalMethods": 45,
+      "status": "OK (skipped=1)"
+    }
+  ],
+  "firstRejectionPreserved": {
+    "securityRecordedImmediately": true,
+    "securityThenRenderer": true,
+    "rendererThenSecurity": true,
+    "subsequentGesturesAndCollectionBlocked": true
+  },
+  "nativeAccepted": false,
+  "productionAccepted": false,
+  "limits": [
+    "Host tests validate the diagnostic and fail-closed harness, not Fabric or app functionality.",
+    "Six stage labels identify observation boundaries, not the detailed cause; historical reports are not assigned a new stage.",
+    "Apps, dependencies, workflows, native commands, deadlines, retries, guards and public success criteria remain unchanged.",
+    "The renderer records security immediately and preserves its first monitor rejection, including both orderings.",
+    "Windows skips OpenSSL explicitly; Linux executes real HTTPS/TLS. Test suites and subtests are not added to fabricate one integral.",
+    "A false domainSnapshotUnchanged means final verification was not approved; it does not establish mutation.",
+    "No private command arguments, logs, paths, credentials, UI trees or screenshots are present in the diagnostic.",
+    "Native gates, complete blocked journeys, physical devices, production and final videos remain pending."
+  ]
+}
