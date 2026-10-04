@@ -313,6 +313,76 @@
       "reviewed": true,
       "scope": "Partial manual synthetic reservation QA in demo037; no native app, video or production acceptance",
       "sourceLimit": "Seven source roots are unchanged from the prior source audit; running API commit and browser served bundles remain unverified."
+    },
+    {
+      "file": "android-morador-reserva-confirmada-a34346b.png",
+      "sha256": "850c783bb50ee15f58b4b369b3847235ecb2a2a44245d9c1f41b91dbdab5840e",
+      "width": 1080,
+      "height": 2400,
+      "sourceCommit": "a34346b7ec7f0d09d1449a2e24e5b122e4971a5d",
+      "sourceRun": "https://github.com/helberjf/predioON/actions/runs/37239139329",
+      "sourceArtifactId": 11317006586,
+      "sourceArtifactSha256": "3f1d84abcb25ddd49b213a7b3e4a64a157d491f04f145716b24e70c1d55c7943",
+      "sourceArtifact": "evidence/resident-mobile/09-confirmed.png",
+      "sourcePhase": "09-confirmed",
+      "phasePassed": true,
+      "journeyPassed": true,
+      "apkSha256": "e6d5c4a92ca791921e06a01cb6dadfad9af4731caa56e62fae78f05c9ecbc157",
+      "evidence": "../../evidencias/android-a34346b.json",
+      "databaseSnapshot": {
+        "phase": "confirmed",
+        "artifactMember": "evidence/database-confirmed.json",
+        "sha256": "6ab9fe976a63edc2b89e79c62a9cd8b1c941332c52273739c6dc5a5ba0fbb99a",
+        "counts": {
+          "ownTotal": 1,
+          "ownConfirmed": 1,
+          "ownPending": 0,
+          "ownCancelled": 0,
+          "createdAudits": 1,
+          "cancelledAudits": 0,
+          "neighborStatus": "CANCELLED",
+          "calendarGrantsActive": 2,
+          "foreignStatus": "CONFIRMED"
+        }
+      },
+      "format": "Original native emulator Release PNG, copied byte-for-byte from verified official artifact",
+      "reviewed": true,
+      "limit": "Functional native reservation phase and matching closed DB snapshot, original PNG visually reviewed by root. Native renderer A/B was blocked before PID; physical-device, production and final-video acceptance remain pending."
+    },
+    {
+      "file": "android-morador-reserva-cancelada-a34346b.png",
+      "sha256": "113b83622e8ba1caed2aefd9c7c4ca8c3d805f5276dc15a98cbb1bb2f6887444",
+      "width": 1080,
+      "height": 2400,
+      "sourceCommit": "a34346b7ec7f0d09d1449a2e24e5b122e4971a5d",
+      "sourceRun": "https://github.com/helberjf/predioON/actions/runs/37239139329",
+      "sourceArtifactId": 11317006586,
+      "sourceArtifactSha256": "3f1d84abcb25ddd49b213a7b3e4a64a157d491f04f145716b24e70c1d55c7943",
+      "sourceArtifact": "evidence/resident-mobile/13-cancelled.png",
+      "sourcePhase": "13-cancelled",
+      "phasePassed": true,
+      "journeyPassed": true,
+      "apkSha256": "e6d5c4a92ca791921e06a01cb6dadfad9af4731caa56e62fae78f05c9ecbc157",
+      "evidence": "../../evidencias/android-a34346b.json",
+      "databaseSnapshot": {
+        "phase": "cancelled",
+        "artifactMember": "evidence/database-cancelled.json",
+        "sha256": "3d07df3e9e1eb43e2a1640112c28c00428511c22d8ac1a5ff427f44edc081d85",
+        "counts": {
+          "ownTotal": 1,
+          "ownConfirmed": 0,
+          "ownPending": 0,
+          "ownCancelled": 1,
+          "createdAudits": 1,
+          "cancelledAudits": 1,
+          "neighborStatus": "CANCELLED",
+          "calendarGrantsActive": 2,
+          "foreignStatus": "CONFIRMED"
+        }
+      },
+      "format": "Original native emulator Release PNG, copied byte-for-byte from verified official artifact",
+      "reviewed": true,
+      "limit": "Functional native reservation phase and matching closed DB snapshot, original PNG visually reviewed by root. Native renderer A/B was blocked before PID; physical-device, production and final-video acceptance remain pending."
     }
   ]
 }

@@ -1,0 +1,1243 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "a34346b7ec7f0d09d1449a2e24e5b122e4971a5d",
+  "nativeRedBaseline": "1414f020542628988e9796ac2ad960fb3db2a8d9",
+  "frozenAuditSha256": "37e1a98f7e4cdc85e79f038ed9caeab0ac08c9bf3abdea714e30984eb89943e0",
+  "sourceFiles": [
+    {
+      "path": "scripts/android-renderer-smoke/run_domains_prefix.py",
+      "sha256GitLF": "4750869ce8e37bbed29123bef5e77806a2a60bf4eddee8877e55ed4ae59b44e1",
+      "bytesGitLF": 14036,
+      "matchesNativeRedBaseline": true
+    },
+    {
+      "path": "scripts/android-renderer-smoke/test_domains_prefix.py",
+      "sha256GitLF": "db66f0b9b16780e8c343feb5939d5d0382a984ab8bd53f82d6d5036969232b3c",
+      "bytesGitLF": 25967,
+      "matchesNativeRedBaseline": true
+    },
+    {
+      "path": "scripts/android-renderer-smoke/README.md",
+      "sha256GitLF": "802c0750841d0416f285670475b6af8850fe22f75b5f68919e6e6c8182984f56",
+      "bytesGitLF": 15241,
+      "matchesNativeRedBaseline": true
+    },
+    {
+      "path": ".github/workflows/android-renderer-prefix.yml",
+      "sha256GitLF": "a74d71dc66d871af8663da295a4c1ba64e40eaefcf38942b78544945d8fe3475",
+      "bytesGitLF": 7399,
+      "matchesNativeRedBaseline": true
+    },
+    {
+      "path": "scripts/android-renderer-smoke/monitor.py",
+      "sha256GitLF": "9bf160b49c2daed2d4fc1f3924c2141a95185cbff4c78518f3580997b0df84a3",
+      "bytesGitLF": 10737,
+      "matchesNativeRedBaseline": true
+    },
+    {
+      "path": "scripts/android-renderer-smoke/run_renderer.py",
+      "sha256GitLF": "5484c4413cd8b0972e3f71bb7df14311eb06a9850d2a4353b68c3f04cf9e1eab",
+      "bytesGitLF": 12720,
+      "matchesNativeRedBaseline": true
+    },
+    {
+      "path": "scripts/android-renderer-smoke/policy.py",
+      "sha256GitLF": "fbc437ce0fe2c828e7e98f123961cb78c007fecd4c733ada0f72d07a118526d0",
+      "bytesGitLF": 480,
+      "matchesNativeRedBaseline": true
+    },
+    {
+      "path": "scripts/android-renderer-smoke/proxy_renderer.py",
+      "sha256GitLF": "58a3aa1089ce6eb3d25bae4725b6ea85c795180cd491216581daa4e9a9bccaf3",
+      "bytesGitLF": 917,
+      "matchesNativeRedBaseline": true
+    },
+    {
+      "path": "scripts/android-renderer-smoke/services.py",
+      "sha256GitLF": "bd56ca25915887e6cf0194e84415cb1f18979be4b202dd2666cc2753af11083f",
+      "bytesGitLF": 3158,
+      "matchesNativeRedBaseline": true
+    },
+    {
+      "path": "scripts/android-domain-smoke/assertions.py",
+      "sha256GitLF": "7137a9d3634c7f36ba658eac984a01d171901d6f66a05c37b96b47f867255418",
+      "bytesGitLF": 5158,
+      "matchesNativeRedBaseline": true
+    },
+    {
+      "path": "scripts/android-domain-smoke/run_domains.py",
+      "sha256GitLF": "c12fcc1e88689338f0be2eb98887c24939b83a5c59b7475533dd8c5e4de0647e",
+      "bytesGitLF": 22286,
+      "matchesNativeRedBaseline": true
+    },
+    {
+      "path": "scripts/android-auth-smoke/run_auth.py",
+      "sha256GitLF": "5c5870fb0818443acee29d0e720124dbb1ae9a78f63f25634b72563949a3c87e",
+      "bytesGitLF": 11576,
+      "matchesNativeRedBaseline": true
+    },
+    {
+      "path": "scripts/android-smoke/run.py",
+      "sha256GitLF": "d8b500dac1874b734b891b693c71dd3a71766765add5d889de5af5984d56f68b",
+      "bytesGitLF": 15250,
+      "matchesNativeRedBaseline": true
+    },
+    {
+      "path": ".github/workflows/android-renderer.yml",
+      "sha256GitLF": "eeff5f10f423ff41c982111ed18b7eddfcfebda19092d11198f89a11df68cbdd",
+      "bytesGitLF": 7262,
+      "matchesNativeRedBaseline": true
+    },
+    {
+      "path": "packages/mobile/src/building-screen.tsx",
+      "sha256GitLF": "507fc4bd67b58cb808c2e7dcec05e8665375d3c2186140a18a45022c6d5f7f97",
+      "bytesGitLF": 1357,
+      "matchesNativeRedBaseline": false
+    },
+    {
+      "path": "packages/mobile/test/building-screen.test.ts",
+      "sha256GitLF": "05815bad06c3fb283f9c58f801a1e2409fc34d50fd7420d6b6e8534092d16d4c",
+      "bytesGitLF": 15206,
+      "matchesNativeRedBaseline": false
+    },
+    {
+      "path": "packages/mobile/test/fixtures/native-screen-host.mjs",
+      "sha256GitLF": "dd5cb7971382b0076e100c74c09e4eb4b8e83e955ed16a106e8a603a1e9e6f2f",
+      "bytesGitLF": 1652,
+      "matchesNativeRedBaseline": false
+    }
+  ],
+  "unchangedBaselineGateFiles": 14,
+  "artifactsVerified": 8,
+  "workflowResults": [
+    {
+      "runId": 37239139279,
+      "name": "Browser workflows",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "runAttempt": 1,
+      "url": "https://github.com/helberjf/predioON/actions/runs/37239139279"
+    },
+    {
+      "runId": 37239139257,
+      "name": "Platform verification",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "runAttempt": 1,
+      "url": "https://github.com/helberjf/predioON/actions/runs/37239139257"
+    },
+    {
+      "runId": 37239139250,
+      "name": "Native Android verification",
+      "status": "completed",
+      "conclusion": "success",
+      "runAttempt": 1,
+      "url": "https://github.com/helberjf/predioON/actions/runs/37239139250"
+    },
+    {
+      "runId": 37239139230,
+      "name": "Android resident renderer regression",
+      "status": "completed",
+      "conclusion": "failure",
+      "runAttempt": 1,
+      "url": "https://github.com/helberjf/predioON/actions/runs/37239139230"
+    },
+    {
+      "runId": 37239139281,
+      "name": "Android emulator smoke",
+      "status": "completed",
+      "conclusion": "failure",
+      "runAttempt": 1,
+      "url": "https://github.com/helberjf/predioON/actions/runs/37239139281"
+    },
+    {
+      "runId": 37239139239,
+      "name": "Android resident domain prefix renderer regression",
+      "status": "completed",
+      "conclusion": "failure",
+      "runAttempt": 1,
+      "url": "https://github.com/helberjf/predioON/actions/runs/37239139239"
+    },
+    {
+      "runId": 37239139333,
+      "name": "Native iOS verification",
+      "status": "completed",
+      "conclusion": "failure",
+      "runAttempt": 1,
+      "url": "https://github.com/helberjf/predioON/actions/runs/37239139333"
+    },
+    {
+      "runId": 37239139255,
+      "name": "Android native domains",
+      "status": "completed",
+      "conclusion": "failure",
+      "runAttempt": 1,
+      "url": "https://github.com/helberjf/predioON/actions/runs/37239139255"
+    },
+    {
+      "runId": 37239139342,
+      "name": "iOS authenticated identity and password",
+      "status": "completed",
+      "conclusion": "failure",
+      "runAttempt": 1,
+      "url": "https://github.com/helberjf/predioON/actions/runs/37239139342"
+    },
+    {
+      "runId": 37239139274,
+      "name": "Android own password change",
+      "status": "completed",
+      "conclusion": "failure",
+      "runAttempt": 1,
+      "url": "https://github.com/helberjf/predioON/actions/runs/37239139274"
+    },
+    {
+      "runId": 37239139253,
+      "name": "Android authenticated sessions",
+      "status": "completed",
+      "conclusion": "success",
+      "runAttempt": 1,
+      "url": "https://github.com/helberjf/predioON/actions/runs/37239139253"
+    },
+    {
+      "runId": 37239139329,
+      "name": "Android native reservations",
+      "status": "completed",
+      "conclusion": "success",
+      "runAttempt": 1,
+      "url": "https://github.com/helberjf/predioON/actions/runs/37239139329"
+    }
+  ],
+  "journeys": [
+    {
+      "journey": "renderer",
+      "runId": 37239139230,
+      "runUrl": "https://github.com/helberjf/predioON/actions/runs/37239139230",
+      "artifact": {
+        "id": 11317125359,
+        "bytes": 415,
+        "sha256": "6b925a53b3b4a8e7c16c1bc2d8c01f7f0571ebf9d1880fb11f6c2fd24a13de5d",
+        "officialDigestVerified": true
+      },
+      "hostTests": [
+        {
+          "tests": 59,
+          "failures": 0,
+          "skipped": 0,
+          "durationSeconds": 1.44
+        },
+        {
+          "tests": 45,
+          "failures": 0,
+          "skipped": 0,
+          "durationSeconds": 1.849
+        }
+      ],
+      "candidateNativeABAccepted": false,
+      "passed": false,
+      "category": "ui-incomplete",
+      "appMonitorBound": false,
+      "pid": null,
+      "markerCount": 0,
+      "completedPhases": [],
+      "firstFailure": null,
+      "candidateTransitionObserved": false,
+      "causeEstablished": false
+    },
+    {
+      "journey": "prefix",
+      "runId": 37239139239,
+      "runUrl": "https://github.com/helberjf/predioON/actions/runs/37239139239",
+      "artifact": {
+        "id": 11316708394,
+        "bytes": 416,
+        "sha256": "eab2932be7c63d29e045fc7c58c667a5e87c2f6246b2d131aa7349244a79525f",
+        "officialDigestVerified": true
+      },
+      "hostTests": [
+        {
+          "tests": 59,
+          "failures": 0,
+          "skipped": 0,
+          "durationSeconds": 1.963
+        },
+        {
+          "tests": 45,
+          "failures": 0,
+          "skipped": 0,
+          "durationSeconds": 1.906
+        }
+      ],
+      "candidateNativeABAccepted": false,
+      "passed": false,
+      "category": "ui-incomplete",
+      "appMonitorBound": false,
+      "pid": null,
+      "markerCount": 0,
+      "completedPhases": [],
+      "firstFailure": null,
+      "candidateTransitionObserved": false,
+      "causeEstablished": false
+    },
+    {
+      "journey": "auth",
+      "runId": 37239139253,
+      "runUrl": "https://github.com/helberjf/predioON/actions/runs/37239139253",
+      "artifact": {
+        "id": 11316747610,
+        "bytes": 4680670,
+        "sha256": "09b69a3426af5b97a360bf0de7687cf11fa2de73cf0bb9f7deaca9d905adb4d6",
+        "officialDigestVerified": true
+      },
+      "hostTests": [
+        {
+          "tests": 39,
+          "failures": 0,
+          "skipped": 0,
+          "durationSeconds": 0.036
+        },
+        {
+          "tests": 11,
+          "failures": 0,
+          "skipped": 0,
+          "durationSeconds": 2.375
+        }
+      ],
+      "candidateNativeABAccepted": false,
+      "passed": true,
+      "failureCategory": null,
+      "beforeAppInstallation": false,
+      "environment": {
+        "resident-mobile": {
+          "attemptCount": 4,
+          "readyObservations": 3,
+          "errorCategories": {
+            "unclassified-private-error": 1
+          },
+          "finalWindowCategory": "no-recognized-system-dialog",
+          "causeEstablished": false
+        },
+        "operations-mobile": {
+          "attemptCount": 0,
+          "readyObservations": 0,
+          "errorCategories": {},
+          "finalWindowCategory": "no-recognized-system-dialog",
+          "causeEstablished": false
+        }
+      },
+      "apkMetadata": [
+        {
+          "app": "resident-mobile",
+          "apkSha256": "b7d707f0213e5ee46042f7c383fdfca2a9e3d6b71622c414f789121820b7514d",
+          "mode": "release",
+          "architecture": "x86_64",
+          "sourceCommit": "a34346b7ec7f0d09d1449a2e24e5b122e4971a5d"
+        },
+        {
+          "app": "operations-mobile",
+          "apkSha256": "7823b305dc34f7e6e48f0f35eb6e7f4304d0c14821ba97b53c1fe2e01163b1db",
+          "mode": "release",
+          "architecture": "x86_64",
+          "sourceCommit": "a34346b7ec7f0d09d1449a2e24e5b122e4971a5d"
+        }
+      ],
+      "observations": {
+        "resident-mobile": {
+          "count": 19,
+          "phases": [
+            "01-invalid-blank",
+            "01-invalid-email",
+            "01-invalid-ready",
+            "01-invalid-rejected",
+            "02-login-blank",
+            "02-login-email",
+            "02-login-ready",
+            "02-login-authenticated",
+            "03-resume",
+            "04-restored",
+            "05-logout-before",
+            "05-logout",
+            "06-logout-persisted",
+            "07-relogin-blank",
+            "07-relogin-email",
+            "07-relogin-ready",
+            "07-relogin-authenticated",
+            "08-final-logout-before",
+            "08-final-logout"
+          ]
+        },
+        "operations-mobile": {
+          "count": 21,
+          "phases": [
+            "01-invalid-blank",
+            "01-invalid-email",
+            "01-invalid-ready",
+            "01-invalid-rejected",
+            "02-peer-isolation",
+            "02-login-blank",
+            "02-login-email",
+            "02-login-ready",
+            "02-login-authenticated",
+            "03-resume",
+            "04-restored",
+            "05-peer-still-authenticated",
+            "05-logout-before",
+            "05-logout",
+            "06-logout-persisted",
+            "07-relogin-blank",
+            "07-relogin-email",
+            "07-relogin-ready",
+            "07-relogin-authenticated",
+            "08-final-logout-before",
+            "08-final-logout"
+          ]
+        }
+      },
+      "databaseEvidence": {
+        "count": 13,
+        "allSnapshotsMatchExpected": true,
+        "snapshots": [
+          {
+            "phase": "empty",
+            "sha256": "d4984b6821bf31b5294d814995c9a63d9d0a5a153897820197ca826b4f2db876",
+            "counts": {
+              "resident-mobile": {
+                "sessions": 0,
+                "active_sessions": 0,
+                "refresh_tokens": 0,
+                "rotations": 0,
+                "logouts": 0,
+                "live_refresh_tokens": 0
+              },
+              "operations-mobile": {
+                "sessions": 0,
+                "active_sessions": 0,
+                "refresh_tokens": 0,
+                "rotations": 0,
+                "logouts": 0,
+                "live_refresh_tokens": 0
+              }
+            }
+          },
+          {
+            "phase": "invalid-resident-mobile",
+            "sha256": "d4984b6821bf31b5294d814995c9a63d9d0a5a153897820197ca826b4f2db876",
+            "counts": {
+              "resident-mobile": {
+                "sessions": 0,
+                "active_sessions": 0,
+                "refresh_tokens": 0,
+                "rotations": 0,
+                "logouts": 0,
+                "live_refresh_tokens": 0
+              },
+              "operations-mobile": {
+                "sessions": 0,
+                "active_sessions": 0,
+                "refresh_tokens": 0,
+                "rotations": 0,
+                "logouts": 0,
+                "live_refresh_tokens": 0
+              }
+            }
+          },
+          {
+            "phase": "invalid-operations-mobile",
+            "sha256": "d4984b6821bf31b5294d814995c9a63d9d0a5a153897820197ca826b4f2db876",
+            "counts": {
+              "resident-mobile": {
+                "sessions": 0,
+                "active_sessions": 0,
+                "refresh_tokens": 0,
+                "rotations": 0,
+                "logouts": 0,
+                "live_refresh_tokens": 0
+              },
+              "operations-mobile": {
+                "sessions": 0,
+                "active_sessions": 0,
+                "refresh_tokens": 0,
+                "rotations": 0,
+                "logouts": 0,
+                "live_refresh_tokens": 0
+              }
+            }
+          },
+          {
+            "phase": "first-login",
+            "sha256": "c7cfba8f3fa3237ff1622e83eca8f3abab2b157777c708f545409f32e55a3f29",
+            "counts": {
+              "resident-mobile": {
+                "sessions": 1,
+                "active_sessions": 1,
+                "refresh_tokens": 1,
+                "rotations": 0,
+                "logouts": 0,
+                "live_refresh_tokens": 1
+              },
+              "operations-mobile": {
+                "sessions": 0,
+                "active_sessions": 0,
+                "refresh_tokens": 0,
+                "rotations": 0,
+                "logouts": 0,
+                "live_refresh_tokens": 0
+              }
+            }
+          },
+          {
+            "phase": "both-login",
+            "sha256": "7ffb2e7dfd4f864a4d4edd05c0b7d88d080689788059a15756c8d0be68e77e75",
+            "counts": {
+              "resident-mobile": {
+                "sessions": 1,
+                "active_sessions": 1,
+                "refresh_tokens": 1,
+                "rotations": 0,
+                "logouts": 0,
+                "live_refresh_tokens": 1
+              },
+              "operations-mobile": {
+                "sessions": 1,
+                "active_sessions": 1,
+                "refresh_tokens": 1,
+                "rotations": 0,
+                "logouts": 0,
+                "live_refresh_tokens": 1
+              }
+            }
+          },
+          {
+            "phase": "restored-resident-mobile",
+            "sha256": "215fbf622fcee38f2ad78992018782d8392d3b6e8bcf038d7b086c5f68a95650",
+            "counts": {
+              "resident-mobile": {
+                "sessions": 1,
+                "active_sessions": 1,
+                "refresh_tokens": 2,
+                "rotations": 1,
+                "logouts": 0,
+                "live_refresh_tokens": 1
+              },
+              "operations-mobile": {
+                "sessions": 1,
+                "active_sessions": 1,
+                "refresh_tokens": 1,
+                "rotations": 0,
+                "logouts": 0,
+                "live_refresh_tokens": 1
+              }
+            }
+          },
+          {
+            "phase": "restored-operations-mobile",
+            "sha256": "d19e6f36656089ed45f9afbf1826b675c32cd1f6bee8405edc65a4e6706f47d1",
+            "counts": {
+              "resident-mobile": {
+                "sessions": 1,
+                "active_sessions": 1,
+                "refresh_tokens": 2,
+                "rotations": 1,
+                "logouts": 0,
+                "live_refresh_tokens": 1
+              },
+              "operations-mobile": {
+                "sessions": 1,
+                "active_sessions": 1,
+                "refresh_tokens": 2,
+                "rotations": 1,
+                "logouts": 0,
+                "live_refresh_tokens": 1
+              }
+            }
+          },
+          {
+            "phase": "first-logout",
+            "sha256": "d8aad1be04648eb43a11531053f588f7347841abb028a4bd256e519254fb3fbe",
+            "counts": {
+              "resident-mobile": {
+                "sessions": 1,
+                "active_sessions": 0,
+                "refresh_tokens": 2,
+                "rotations": 1,
+                "logouts": 1,
+                "live_refresh_tokens": 0
+              },
+              "operations-mobile": {
+                "sessions": 1,
+                "active_sessions": 1,
+                "refresh_tokens": 2,
+                "rotations": 1,
+                "logouts": 0,
+                "live_refresh_tokens": 1
+              }
+            }
+          },
+          {
+            "phase": "both-logout",
+            "sha256": "d7b2211dcb39250343b36190bd66ea163890d109e04b1776803e91221c1543df",
+            "counts": {
+              "resident-mobile": {
+                "sessions": 1,
+                "active_sessions": 0,
+                "refresh_tokens": 2,
+                "rotations": 1,
+                "logouts": 1,
+                "live_refresh_tokens": 0
+              },
+              "operations-mobile": {
+                "sessions": 1,
+                "active_sessions": 0,
+                "refresh_tokens": 2,
+                "rotations": 1,
+                "logouts": 1,
+                "live_refresh_tokens": 0
+              }
+            }
+          },
+          {
+            "phase": "relogin-resident-mobile",
+            "sha256": "b20a9c6e6965d87b8afb81a3a337303273d4be6fcc31e64b7cc994e4506f23cf",
+            "counts": {
+              "resident-mobile": {
+                "sessions": 2,
+                "active_sessions": 1,
+                "refresh_tokens": 3,
+                "rotations": 1,
+                "logouts": 1,
+                "live_refresh_tokens": 1
+              },
+              "operations-mobile": {
+                "sessions": 1,
+                "active_sessions": 0,
+                "refresh_tokens": 2,
+                "rotations": 1,
+                "logouts": 1,
+                "live_refresh_tokens": 0
+              }
+            }
+          },
+          {
+            "phase": "final-logout-resident-mobile",
+            "sha256": "7e33db9c2689716450b2441207cc056d57cfb9f667c71cb10ea9d6d940cb12d9",
+            "counts": {
+              "resident-mobile": {
+                "sessions": 2,
+                "active_sessions": 0,
+                "refresh_tokens": 3,
+                "rotations": 1,
+                "logouts": 2,
+                "live_refresh_tokens": 0
+              },
+              "operations-mobile": {
+                "sessions": 1,
+                "active_sessions": 0,
+                "refresh_tokens": 2,
+                "rotations": 1,
+                "logouts": 1,
+                "live_refresh_tokens": 0
+              }
+            }
+          },
+          {
+            "phase": "relogin-operations-mobile",
+            "sha256": "a1798a2e826e0c2952e58602dcf0addbe712b018b8fa66d4831b96085220e880",
+            "counts": {
+              "resident-mobile": {
+                "sessions": 2,
+                "active_sessions": 0,
+                "refresh_tokens": 3,
+                "rotations": 1,
+                "logouts": 2,
+                "live_refresh_tokens": 0
+              },
+              "operations-mobile": {
+                "sessions": 2,
+                "active_sessions": 1,
+                "refresh_tokens": 3,
+                "rotations": 1,
+                "logouts": 1,
+                "live_refresh_tokens": 1
+              }
+            }
+          },
+          {
+            "phase": "final-logout-operations-mobile",
+            "sha256": "c63ef4f20cfc98d3ab82994a09c8bad40d5a4955f30415ce937bdfcb876a3b00",
+            "counts": {
+              "resident-mobile": {
+                "sessions": 2,
+                "active_sessions": 0,
+                "refresh_tokens": 3,
+                "rotations": 1,
+                "logouts": 2,
+                "live_refresh_tokens": 0
+              },
+              "operations-mobile": {
+                "sessions": 2,
+                "active_sessions": 0,
+                "refresh_tokens": 3,
+                "rotations": 1,
+                "logouts": 2,
+                "live_refresh_tokens": 0
+              }
+            }
+          }
+        ]
+      },
+      "retainedRendererBuffers": {
+        "count": 4,
+        "recognizedUniqueRecords": 0,
+        "continuousMonitoringProven": false,
+        "rawLogsExported": false
+      }
+    },
+    {
+      "journey": "domains",
+      "runId": 37239139255,
+      "runUrl": "https://github.com/helberjf/predioON/actions/runs/37239139255",
+      "artifact": {
+        "id": 11317285628,
+        "bytes": 2333153,
+        "sha256": "8a4a5db25c80ad45f36d6216df467be642100db384c7f6c8b8dfebe5b8b706d2",
+        "officialDigestVerified": true
+      },
+      "hostTests": [
+        {
+          "tests": 39,
+          "failures": 0,
+          "skipped": 0,
+          "durationSeconds": 0.046
+        },
+        {
+          "tests": 11,
+          "failures": 0,
+          "skipped": 0,
+          "durationSeconds": 2.81
+        },
+        {
+          "tests": 45,
+          "failures": 0,
+          "skipped": 0,
+          "durationSeconds": 1.867
+        }
+      ],
+      "candidateNativeABAccepted": false,
+      "passed": false,
+      "failureCategory": "emulator-system-dialog",
+      "beforeAppInstallation": true,
+      "environment": {
+        "resident-mobile": {
+          "attemptCount": 1,
+          "readyObservations": 0,
+          "errorCategories": {
+            "emulator-system-dialog": 1
+          },
+          "finalWindowCategory": "launcher-anr",
+          "causeEstablished": false
+        },
+        "operations-mobile": {
+          "attemptCount": 0,
+          "readyObservations": 0,
+          "errorCategories": {},
+          "finalWindowCategory": "launcher-anr",
+          "causeEstablished": false
+        }
+      },
+      "apkMetadata": [
+        {
+          "app": "resident-mobile",
+          "apkSha256": "6620e882a9b0419815cb14d0eac0221372bd9b8f7a2ba3187e9ca107017bd2fc",
+          "mode": "release",
+          "architecture": "x86_64",
+          "sourceCommit": "a34346b7ec7f0d09d1449a2e24e5b122e4971a5d"
+        },
+        {
+          "app": "operations-mobile",
+          "apkSha256": "339f2d147cd9c2049456605353b8e3be8e3381bddb9d5ea1ec4f00d2818e62fa",
+          "mode": "release",
+          "architecture": "x86_64",
+          "sourceCommit": "a34346b7ec7f0d09d1449a2e24e5b122e4971a5d"
+        }
+      ],
+      "observations": {
+        "resident-mobile": {
+          "count": 0,
+          "phases": []
+        },
+        "operations-mobile": {
+          "count": 0,
+          "phases": []
+        }
+      },
+      "causeEstablished": false,
+      "retainedRendererBuffers": {
+        "count": 4,
+        "recognizedUniqueRecords": 0,
+        "continuousMonitoringProven": false,
+        "rawLogsExported": false
+      }
+    },
+    {
+      "journey": "password",
+      "runId": 37239139274,
+      "runUrl": "https://github.com/helberjf/predioON/actions/runs/37239139274",
+      "artifact": {
+        "id": 11316851003,
+        "bytes": 1364053,
+        "sha256": "c31b78894248416acf721fd4c2afc2b53f6f11392fc74fd64134f17cb4150cf8",
+        "officialDigestVerified": true
+      },
+      "hostTests": [
+        {
+          "tests": 39,
+          "failures": 0,
+          "skipped": 0,
+          "durationSeconds": 0.063
+        },
+        {
+          "tests": 11,
+          "failures": 0,
+          "skipped": 0,
+          "durationSeconds": 3.053
+        },
+        {
+          "tests": 16,
+          "failures": 0,
+          "skipped": 0,
+          "durationSeconds": 1.717
+        }
+      ],
+      "candidateNativeABAccepted": false,
+      "passed": false,
+      "failureCategory": "emulator-system-dialog",
+      "beforeAppInstallation": true,
+      "environment": {
+        "resident-mobile": {
+          "attemptCount": 1,
+          "readyObservations": 0,
+          "errorCategories": {
+            "emulator-system-dialog": 1
+          },
+          "finalWindowCategory": null,
+          "causeEstablished": false
+        },
+        "operations-mobile": {
+          "attemptCount": 0,
+          "readyObservations": 0,
+          "errorCategories": {},
+          "finalWindowCategory": null,
+          "causeEstablished": false
+        }
+      },
+      "apkMetadata": [
+        {
+          "app": "resident-mobile",
+          "apkSha256": "c57b8b404949e248023c5cf09dfd0eb301bca734b9239e897151d35bd55b674b",
+          "mode": "release",
+          "architecture": "x86_64",
+          "sourceCommit": "a34346b7ec7f0d09d1449a2e24e5b122e4971a5d"
+        },
+        {
+          "app": "operations-mobile",
+          "apkSha256": "34b0d7d8ff4b88fbf68fa20e2f1985e0a3bea5b9d92867740245c14e42a8da10",
+          "mode": "release",
+          "architecture": "x86_64",
+          "sourceCommit": "a34346b7ec7f0d09d1449a2e24e5b122e4971a5d"
+        }
+      ],
+      "observations": {
+        "resident-mobile": {
+          "count": 0,
+          "phases": []
+        },
+        "operations-mobile": {
+          "count": 0,
+          "phases": []
+        }
+      },
+      "causeEstablished": false,
+      "retainedRendererBuffers": {
+        "count": 4,
+        "recognizedUniqueRecords": 0,
+        "continuousMonitoringProven": false,
+        "rawLogsExported": false
+      }
+    },
+    {
+      "journey": "reservations",
+      "runId": 37239139329,
+      "runUrl": "https://github.com/helberjf/predioON/actions/runs/37239139329",
+      "artifact": {
+        "id": 11317006586,
+        "bytes": 3348706,
+        "sha256": "3f1d84abcb25ddd49b213a7b3e4a64a157d491f04f145716b24e70c1d55c7943",
+        "officialDigestVerified": true
+      },
+      "hostTests": [
+        {
+          "tests": 39,
+          "failures": 0,
+          "skipped": 0,
+          "durationSeconds": 0.058
+        },
+        {
+          "tests": 11,
+          "failures": 0,
+          "skipped": 0,
+          "durationSeconds": 3.262
+        },
+        {
+          "tests": 45,
+          "failures": 0,
+          "skipped": 0,
+          "durationSeconds": 2.147
+        },
+        {
+          "tests": 9,
+          "failures": 0,
+          "skipped": 0,
+          "durationSeconds": 2.305
+        }
+      ],
+      "candidateNativeABAccepted": false,
+      "passed": true,
+      "failureCategory": null,
+      "beforeAppInstallation": false,
+      "environment": {
+        "resident-mobile": null
+      },
+      "apkMetadata": [
+        {
+          "app": "resident-mobile",
+          "apkSha256": "e6d5c4a92ca791921e06a01cb6dadfad9af4731caa56e62fae78f05c9ecbc157",
+          "mode": "release",
+          "architecture": "x86_64",
+          "sourceCommit": "a34346b7ec7f0d09d1449a2e24e5b122e4971a5d"
+        }
+      ],
+      "observations": {
+        "resident-mobile": {
+          "count": 23,
+          "phases": [
+            "01-login-blank",
+            "01-login-email",
+            "01-login-ready",
+            "01-login-authenticated",
+            "02-enter-profile",
+            "02-enter-building",
+            "03-reservations",
+            "04-occupied-private",
+            "05-other-area-empty",
+            "06-original-area-occupied",
+            "07-conflict",
+            "08-neighbor-released",
+            "09-confirmed",
+            "10-cancel-dialog-back",
+            "11-back-keeps-reservation",
+            "12-cancel-dialog-confirm",
+            "13-cancelled",
+            "14-own-cancel-releases-interval",
+            "15-approval-area-empty",
+            "16-pending",
+            "17-before-revocation",
+            "18-calendar-revoked",
+            "19-logout"
+          ]
+        }
+      },
+      "databaseEvidence": {
+        "count": 8,
+        "allSnapshotsMatchExpected": true,
+        "snapshots": [
+          {
+            "phase": "initial",
+            "sha256": "8f5a2ad3a9016afa65c88f7eece843d2b8daef050d0bf6229abfda9499b8ed25",
+            "counts": {
+              "ownTotal": 0,
+              "ownConfirmed": 0,
+              "ownPending": 0,
+              "ownCancelled": 0,
+              "createdAudits": 0,
+              "cancelledAudits": 0,
+              "neighborStatus": "CONFIRMED",
+              "calendarGrantsActive": 2,
+              "foreignStatus": "CONFIRMED"
+            }
+          },
+          {
+            "phase": "conflict",
+            "sha256": "8f5a2ad3a9016afa65c88f7eece843d2b8daef050d0bf6229abfda9499b8ed25",
+            "counts": {
+              "ownTotal": 0,
+              "ownConfirmed": 0,
+              "ownPending": 0,
+              "ownCancelled": 0,
+              "createdAudits": 0,
+              "cancelledAudits": 0,
+              "neighborStatus": "CONFIRMED",
+              "calendarGrantsActive": 2,
+              "foreignStatus": "CONFIRMED"
+            }
+          },
+          {
+            "phase": "released",
+            "sha256": "9734d35e7b59fa1cd22e2f1f720d34ab4d519e1525b6c7cfda93f25364f46802",
+            "counts": {
+              "ownTotal": 0,
+              "ownConfirmed": 0,
+              "ownPending": 0,
+              "ownCancelled": 0,
+              "createdAudits": 0,
+              "cancelledAudits": 0,
+              "neighborStatus": "CANCELLED",
+              "calendarGrantsActive": 2,
+              "foreignStatus": "CONFIRMED"
+            }
+          },
+          {
+            "phase": "confirmed",
+            "sha256": "6ab9fe976a63edc2b89e79c62a9cd8b1c941332c52273739c6dc5a5ba0fbb99a",
+            "counts": {
+              "ownTotal": 1,
+              "ownConfirmed": 1,
+              "ownPending": 0,
+              "ownCancelled": 0,
+              "createdAudits": 1,
+              "cancelledAudits": 0,
+              "neighborStatus": "CANCELLED",
+              "calendarGrantsActive": 2,
+              "foreignStatus": "CONFIRMED"
+            }
+          },
+          {
+            "phase": "back",
+            "sha256": "6ab9fe976a63edc2b89e79c62a9cd8b1c941332c52273739c6dc5a5ba0fbb99a",
+            "counts": {
+              "ownTotal": 1,
+              "ownConfirmed": 1,
+              "ownPending": 0,
+              "ownCancelled": 0,
+              "createdAudits": 1,
+              "cancelledAudits": 0,
+              "neighborStatus": "CANCELLED",
+              "calendarGrantsActive": 2,
+              "foreignStatus": "CONFIRMED"
+            }
+          },
+          {
+            "phase": "cancelled",
+            "sha256": "3d07df3e9e1eb43e2a1640112c28c00428511c22d8ac1a5ff427f44edc081d85",
+            "counts": {
+              "ownTotal": 1,
+              "ownConfirmed": 0,
+              "ownPending": 0,
+              "ownCancelled": 1,
+              "createdAudits": 1,
+              "cancelledAudits": 1,
+              "neighborStatus": "CANCELLED",
+              "calendarGrantsActive": 2,
+              "foreignStatus": "CONFIRMED"
+            }
+          },
+          {
+            "phase": "pending",
+            "sha256": "603439ab226765c0ddf2bb407ae3bc3cba70713af4a1b8e4dce378764b91bf2d",
+            "counts": {
+              "ownTotal": 2,
+              "ownConfirmed": 0,
+              "ownPending": 1,
+              "ownCancelled": 1,
+              "createdAudits": 2,
+              "cancelledAudits": 1,
+              "neighborStatus": "CANCELLED",
+              "calendarGrantsActive": 2,
+              "foreignStatus": "CONFIRMED"
+            }
+          },
+          {
+            "phase": "revoked",
+            "sha256": "4fe1ca262445a73473eacd00976c47369c8401664ec3d1f3817b09000ad978e9",
+            "counts": {
+              "ownTotal": 2,
+              "ownConfirmed": 0,
+              "ownPending": 1,
+              "ownCancelled": 1,
+              "createdAudits": 2,
+              "cancelledAudits": 1,
+              "neighborStatus": "CANCELLED",
+              "calendarGrantsActive": 0,
+              "foreignStatus": "CONFIRMED"
+            }
+          }
+        ]
+      },
+      "retainedRendererBuffers": {
+        "count": 0,
+        "recognizedUniqueRecords": 0,
+        "continuousMonitoringProven": false,
+        "rawLogsExported": false
+      }
+    },
+    {
+      "journey": "smoke-resident",
+      "runId": 37239139281,
+      "runUrl": "https://github.com/helberjf/predioON/actions/runs/37239139281",
+      "artifact": {
+        "id": 11317180219,
+        "bytes": 1185633,
+        "sha256": "3e285b23447ddabfe80efbbc2507d4e040dbe61044e6ec0ded11ad5e2928d53a",
+        "officialDigestVerified": true
+      },
+      "hostTests": [
+        {
+          "tests": 39,
+          "failures": 0,
+          "skipped": 0,
+          "durationSeconds": 0.059
+        }
+      ],
+      "candidateNativeABAccepted": false,
+      "passed": false,
+      "failureCategory": "emulator-system-dialog",
+      "beforeAppInstallation": true,
+      "environment": {
+        "resident-mobile": {
+          "attemptCount": 2,
+          "readyObservations": 0,
+          "errorCategories": {
+            "unclassified-private-error": 1,
+            "emulator-system-dialog": 1
+          },
+          "finalWindowCategory": "launcher-anr",
+          "causeEstablished": false
+        }
+      },
+      "apkMetadata": [
+        {
+          "app": "resident-mobile",
+          "apkSha256": "dd1809e74db28cfc7d8aff38d7868333aaf30f725af08997efc15fe17bb5459c",
+          "mode": "release",
+          "architecture": "x86_64",
+          "sourceCommit": "a34346b7ec7f0d09d1449a2e24e5b122e4971a5d"
+        }
+      ],
+      "observations": {
+        "resident-mobile": {
+          "count": 0,
+          "phases": []
+        }
+      },
+      "causeEstablished": false,
+      "retainedRendererBuffers": {
+        "count": 2,
+        "recognizedUniqueRecords": 0,
+        "continuousMonitoringProven": false,
+        "rawLogsExported": false
+      }
+    },
+    {
+      "journey": "smoke-operations",
+      "runId": 37239139281,
+      "runUrl": "https://github.com/helberjf/predioON/actions/runs/37239139281",
+      "artifact": {
+        "id": 11317400405,
+        "bytes": 1149833,
+        "sha256": "f2a1e99e13f73eb6da26a246964e8ca9fb8f10a3c8329cc8d18dc57472a20841",
+        "officialDigestVerified": true
+      },
+      "hostTests": [
+        {
+          "tests": 39,
+          "failures": 0,
+          "skipped": 0,
+          "durationSeconds": 0.059
+        }
+      ],
+      "candidateNativeABAccepted": false,
+      "passed": false,
+      "failureCategory": "emulator-system-dialog",
+      "beforeAppInstallation": true,
+      "environment": {
+        "operations-mobile": {
+          "attemptCount": 1,
+          "readyObservations": 0,
+          "errorCategories": {
+            "emulator-system-dialog": 1
+          },
+          "finalWindowCategory": "launcher-anr",
+          "causeEstablished": false
+        }
+      },
+      "apkMetadata": [
+        {
+          "app": "operations-mobile",
+          "apkSha256": "41720ff5a2fdc33ec95b36f5f1a4bde0155eb09dc9d73cb15b3fa69e830e642e",
+          "mode": "release",
+          "architecture": "x86_64",
+          "sourceCommit": "a34346b7ec7f0d09d1449a2e24e5b122e4971a5d"
+        }
+      ],
+      "observations": {
+        "operations-mobile": {
+          "count": 0,
+          "phases": []
+        }
+      },
+      "causeEstablished": false,
+      "retainedRendererBuffers": {
+        "count": 2,
+        "recognizedUniqueRecords": 0,
+        "continuousMonitoringProven": false,
+        "rawLogsExported": false
+      }
+    }
+  ],
+  "iosStatusOnly": [
+    {
+      "runId": 37239139342,
+      "jobId": 111544119716,
+      "name": "authenticated",
+      "conclusion": "failure",
+      "artifactAudited": false,
+      "nativeJourneyAccepted": false,
+      "scope": "REST status metadata only"
+    },
+    {
+      "runId": 37239139333,
+      "jobId": 111544119444,
+      "name": "ios (operations-mobile, PredioONOperacao)",
+      "conclusion": "success",
+      "artifactAudited": false,
+      "nativeJourneyAccepted": false,
+      "scope": "REST status metadata only"
+    },
+    {
+      "runId": 37239139333,
+      "jobId": 111544119547,
+      "name": "ios (resident-mobile, PredioONMorador)",
+      "conclusion": "failure",
+      "artifactAudited": false,
+      "nativeJourneyAccepted": false,
+      "scope": "REST status metadata only"
+    }
+  ],
+  "candidateNativeABAccepted": false,
+  "productionAccepted": false,
+  "verification": {
+    "gitSourceHashes": 17,
+    "officialArtifactMetadataAndZipDigests": 8,
+    "authSessionSnapshots": 13,
+    "reservationSnapshots": 8,
+    "rawPrivatePathsLogsTreesCredentialsExported": false
+  },
+  "limits": [
+    "Auth19/21 and reservations23 passed independently of the blocked renderer A/B, with13/8 closed DB snapshots verified.",
+    "Both renderer gates failed ui-incomplete before PID/markers; stable View behavior was not exercised by those observations.",
+    "Domains/password/two startup smokes stopped on a system dialog before installation; retained domains/smoke windows identify launcher ANR, without an established cause.",
+    "Zero recognized records in retained buffers is not continuous renderer monitoring or proof that intermittent warnings are fixed.",
+    "APK hashes are CI metadata; APK bytes were not independently downloaded or hashed. Build success alone is not native acceptance.",
+    "iOS is REST status metadata only. Platform and Browser workflows were cancelled and are not green.",
+    "No raw job/native logs, private paths, screenshots, trees, credentials or xcresult are exported. Selected screenshots require separate visual approval.",
+    "Native A/B, full domains/password journeys, physical devices, deployment and final videos remain pending."
+  ]
+}

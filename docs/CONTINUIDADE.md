@@ -2,7 +2,7 @@
 
 Atualizado em **04/10/2026**, horário de São Paulo. Leia este arquivo primeiro ao retomar em outro computador. **O plano completo ainda não terminou e não há aceite para produção.** O computador não foi reiniciado.
 
-Repositório: <https://github.com/helberjf/predioON>. Linha autorizada: **main**. As migrations **001–038 estão publicadas nesta linha**. Troca de senha, cliente, três portais, dois apps e roteiro Android foram enviados em `5929348`/057722b/cc6660a. A galeria possui **27 imagens reais versionadas**, incluindo três telas de segurança web, duas financeiras e duas de segurança Android. **Não reaplicar patches antigos de037: esse código já está na main.**
+Repositório: <https://github.com/helberjf/predioON>. Linha autorizada: **main**. As migrations **001–038 estão publicadas nesta linha**. Troca de senha, cliente, três portais, dois apps e roteiro Android foram enviados em `5929348`/057722b/cc6660a. A galeria possui **29 imagens reais versionadas**, incluindo três telas de segurança web, duas financeiras e duas de segurança Android. **Não reaplicar patches antigos de037: esse código já está na main.**
 
 API 037 passou **697/697** em integral Linux própria e no [CI 5929348](https://github.com/helberjf/predioON/actions/runs/37153986387). A [plataforma1f7bd3d](https://github.com/helberjf/predioON/actions/runs/37157034876), com logs conferidos, passou API697, banco26 com restauração real de44 tabelas/37 migrations, cliente59, ingestão83, UI89 e mobile75, sem skips. A matriz dos portais compilados passou **222/222** localmente e no [CI3035245](https://github.com/helberjf/predioON/actions/runs/37154429632), Chromium/Firefox/WebKit, sem retries. Os runs de [plataforma580a236](https://github.com/helberjf/predioON/actions/runs/37157346061) e [navegador580a236](https://github.com/helberjf/predioON/actions/runs/37157346059) também terminaram com sucesso; seus totais não foram extraídos novamente. Não somar dirigidos para criar uma integral.
 
@@ -52,6 +52,14 @@ O resultado reprovado agora pode incluir **failureDiagnostic** com estágio expl
 
 REDs de estágio ausente e latch foram preservados. Integral **89/89 Linux,zero skips**, Windows **80 aprovados/9 skips explícitos**; testes incluem processo real exit23,timeout,executável ausente e schemas inválidos. Revisão independente conferiu104 combinações/18 negativas; o agente principal repetiu a integral no Linux39,533s/Windows4,352s e verificou ZIP, hashes dos logs e três blobs Git. [Prova e limites](evidencias/ios-native-diagnostic-6298065.json). É diagnóstico de host: o novo CI Apple ainda deve localizar o bloqueio ou comprovar as14POSTs, famílias/Keychain, snapshots e imagens. Não explica retroativamente b676 nem homologa os apps. Preparação anterior ao try e falha no exportador seguem fora desse campo. Nenhum reboot executado.
 
+### Auditoria Android a343 concluída e duas capturas nativas publicadas
+
+Na fonte exata **a34346b7ec7f0d09d1449a2e24e5b122e4971a5d**, autenticação passou **19 observações Morador e21 Operação**, com **13 snapshots de sessões/famílias** iguais aos estados esperados, incluindo refresh, logout e novo login. Reservas passou **23 observações Morador** e **oito snapshots DB**, incluindo conflito, confirmação, cancelamento, aprovação pendente e revogação, com isolamento da reserva de outro condomínio. O agente principal reconferiu17 fontes Git,14 gates idênticos ao RED1414, oito metadados REST oficiais recém-obtidos, digests e CRC dos oito ZIPs; a prova pública reconstrói os13/8 snapshots por estados fechados. [Prova completa da fonte](evidencias/android-a34346b.json).
+
+Domínios, senha e os dois smokes Android pararam por **diálogo do sistema antes da instalação**, zero fases funcionais. Em domínios/smokes, a janela final retida identifica ANR do launcher, sem causa interna estabelecida. Renderer e prefixo ficaram **ui-incomplete antes do PID, zero marcadores**, sem exercer a troca da View. Builds Android passaram, mas isso não aprova jornadas. Plataforma/browser dessa fonte foram cancelados; não substituir os verdes anteriores por um aceite inexistente. Buffers retidos não constituem monitoramento contínuo nem solução dos avisos históricos. Metadados iOS dessa fonte têm somente escopo REST; a investigação629 é separada.
+
+Duas PNGs originais de reservas, fases **09-confirmed e13-cancelled**, foram extraídas do artefato oficial11317006586 e incluídas no clone. O agente principal revisou visualmente ambas: dados fictícios, produto correto, confirmação com controle de cancelamento e cancelamento com controle removido. Bytes, SHA-256, dimensões1080×2400 e snapshots confirmed/cancelled foram conferidos. **Galeria atual29:9Android/16web/4iOS**, preservando os27 registros anteriores. [Imagens e limites](IMAGENS_DOS_SISTEMAS.md). A comparação nativa do renderer, jornadas bloqueadas, aparelhos físicos, produção, documentação final e cinco vídeos continuam pendentes. Nenhum reboot executado.
+
 ## 1. Instruções permanentes do proprietário
 
 - Continuar até concluir as implementações dos apps e websites, testes e evolução descritos na arquitetura aprovada.
@@ -61,7 +69,7 @@ REDs de estágio ausente e latch foram preservados. Integral **89/89 Linux,zero 
 - Manter sugestões em [MELHORIAS_E_EVOLUCOES.md](MELHORIAS_E_EVOLUCOES.md).
 - **Não reiniciar o computador nesta sessão.** Nenhum reboot foi executado pelo agente. Reiniciar um processo de teste não é reiniciar o computador.
 - Ao terminar, abrir os três portais e os apps Morador/Operação neste computador e entregar cinco gravações completas, separadas, com dados fictícios. Também foram solicitadas imagens de Android, iOS e web durante o andamento.
-- **Incluir as imagens conferidas nos commits**, com origem e limites identificados. Desde 03/10, as capturas e a galeria, hoje com27imagens, estão em [IMAGENS_DOS_SISTEMAS.md](IMAGENS_DOS_SISTEMAS.md), dentro do clone.
+- **Incluir as imagens conferidas nos commits**, com origem e limites identificados. Desde 03/10, as capturas e a galeria, hoje com29imagens, estão em [IMAGENS_DOS_SISTEMAS.md](IMAGENS_DOS_SISTEMAS.md), dentro do clone.
 
 ## 2. Estado das etapas
 
@@ -283,7 +291,7 @@ Banco/backup: seguir [BACKUP_E_RESTAURACAO.md](BACKUP_E_RESTAURACAO.md), incluin
 
 ## 8. Transferência, imagens e dependências externas
 
-Código publicado, documentação, checkpoint, galeria e **27 imagens reais** estão no GitHub. São 7 Android, 16 web e 4 entradas iOS; duas entradas iOS são históricas e duas vêm do novo processo Release deb20b1; versões, fases e limites estão no [manifesto](imagens/2026-10-03/manifesto.json) e em [IMAGENS_DOS_SISTEMAS.md](IMAGENS_DOS_SISTEMAS.md). Capturas de fases aprovadas de uma jornada falha são identificadas; não representam aceite de toda a jornada. O navegador da galeria atual está bloqueado e não foi contornado.
+Código publicado, documentação, checkpoint, galeria e **29 imagens reais** estão no GitHub. São 9 Android, 16 web e 4 entradas iOS; duas entradas iOS são históricas e duas vêm do novo processo Release deb20b1; versões, fases e limites estão no [manifesto](imagens/2026-10-03/manifesto.json) e em [IMAGENS_DOS_SISTEMAS.md](IMAGENS_DOS_SISTEMAS.md). Capturas de fases aprovadas de uma jornada falha são identificadas; não representam aceite de toda a jornada. O navegador da galeria atual está bloqueado e não foi contornado.
 
 `.local`, `work`, toolchains, containers/volumes, .env, tokens, keystores, evidências brutas e vídeos não ficam no Git. Nesta máquina, outputs ao lado do clone contém o pacote PREDIO_ON_CONTINUIDADE.zip com MDs, patch/manifesto e galeria/imagens. O manifesto do ZIP registra a versão publicada ao empacotar, hashes e quantidade real de drafts; confira-o antes de transportar. Recrie bancos descartáveis pelos scripts; não é necessário transportar volumes. Artefatos de CI têm retenção curta: guardar evidências sanitizadas importantes enquanto disponíveis.
 

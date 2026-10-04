@@ -2,7 +2,7 @@
 
 Publicadas em **03/10/2026**, atualizadas em **04/10/2026**. Estas capturas foram conferidas em execuções reais e usam dados fictícios. Cada imagem mantém a origem comprovada, inclusive commit nulo quando o runtime não foi atestado; a data de publicação não altera a versão demonstrada. O plano completo e os cinco vídeos finais continuam pendentes, conforme [CONTINUIDADE.md](CONTINUIDADE.md).
 
-As **27 imagens — 7 Android, 16 web e 4 iOS** — e a [galeria HTML](IMAGENS_DOS_SISTEMAS.html) acompanham o clone. As quatro iOS incluem duas capturas históricas de b4726b9 e duas de novo processo Release em deb20b1; todas mostram somente entrada. Abra a galeria no navegador para filtrar e ampliar. O [manifesto](imagens/2026-10-03/manifesto.json) registra dimensões, SHA-256 e origem. As referências desta atualização foram conferidas estaticamente; o acesso ao servidor local 8765 continua bloqueado, sem novo aceite dos controles no navegador.
+As **29 imagens — 9 Android, 16 web e 4 iOS** — e a [galeria HTML](IMAGENS_DOS_SISTEMAS.html) acompanham o clone. As quatro iOS incluem duas capturas históricas de b4726b9 e duas de novo processo Release em deb20b1; todas mostram somente entrada. Abra a galeria no navegador para filtrar e ampliar. O [manifesto](imagens/2026-10-03/manifesto.json) registra dimensões, SHA-256 e origem. As referências desta atualização foram conferidas estaticamente; o acesso ao servidor local 8765 continua bloqueado, sem novo aceite dos controles no navegador.
 
 ## Android — Morador: avisos
 
@@ -165,3 +165,15 @@ A gestão aprovou a reserva; ela saiu da fila de pendências e apareceu como con
 O próprio Morador cancelou a reserva confirmada. O botão de cancelamento desapareceu e as filas de pendências/confirmadas da gestão ficaram vazias após recarregar. Dados fictícios, QA manual parcial em demo037. API em execução e bundles servidos sem commit comprovado; fontes e hashes locais comparados no registro. JPEG original, sem edição. Não comprova todos os conflitos, privacidade de terceiros, apps nativos, produção ou vídeo. [Registro e limites](imagens/2026-10-03/web-reservations-manual-evidence.json).
 
 ![Web — Morador · Reserva cancelada](imagens/2026-10-03/web-morador-reserva-cancelada.jpg)
+
+## Android — Morador · Reserva confirmada · a34346b
+
+Reserva própria confirmada na fase09-confirmed, após criação pelo Morador. Snapshot confirmed: uma própria CONFIRMED, um registro de criação, nenhuma própria cancelada. APK Release x86_64, API/PostgreSQL/HTTPS reais e dados fictícios. Fonte a34346b, run37239139329, artefato11317006586. Jornada de reservas23 observações e oito snapshots do banco conferidos; PNG original extraído sem edição e revisado visualmente. Estas fases funcionais não aprovam a comparação do renderer: os dois gates da candidata pararam antes do PID. Homologação física, produção e vídeos finais continuam pendentes. [Prova fechada, hashes e limites](evidencias/android-a34346b.json). SHA da imagem: `850c783bb50ee15f58b4b369b3847235ecb2a2a44245d9c1f41b91dbdab5840e`.
+
+![Android — Morador · Reserva confirmada · a34346b](imagens/2026-10-03/android-morador-reserva-confirmada-a34346b.png)
+
+## Android — Morador · Reserva cancelada · a34346b
+
+Reserva própria cancelada na fase13-cancelled. Snapshot cancelled: uma própria CANCELLED, nenhuma própria CONFIRMED e um registro de cancelamento; a reserva de outro condomínio mantém CONFIRMED. APK Release x86_64, API/PostgreSQL/HTTPS reais e dados fictícios. Fonte a34346b, run37239139329, artefato11317006586. Jornada de reservas23 observações e oito snapshots do banco conferidos; PNG original extraído sem edição e revisado visualmente. Estas fases funcionais não aprovam a comparação do renderer: os dois gates da candidata pararam antes do PID. Homologação física, produção e vídeos finais continuam pendentes. [Prova fechada, hashes e limites](evidencias/android-a34346b.json). SHA da imagem: `113b83622e8ba1caed2aefd9c7c4ca8c3d805f5276dc15a98cbb1bb2f6887444`.
+
+![Android — Morador · Reserva cancelada · a34346b](imagens/2026-10-03/android-morador-reserva-cancelada-a34346b.png)
