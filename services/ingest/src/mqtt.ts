@@ -3,7 +3,9 @@ import { readFileSync } from "node:fs";
 import { ACCESS_ACK_TOPIC, GATEWAY_STATUS_TOPIC, TELEMETRY_TOPIC, WATER_TELEMETRY_TOPIC } from "@predioon/shared";
 import { config } from "./config.js";
 
-export type MessageHandler = (topic: string, payload: Buffer) => Promise<void>;
+/** Delivery facts from the received packet, not a publisher identity or event key. */
+export type MessageMetadata = Readonly<{ qos: 0 | 1 | 2; retain: boolean; dup: boolean }>;
+export type MessageHandler = (topic: string, payload: Buffer, metadata: MessageMetadata) => Promise<void>;
 
 export function connectIngest(onMessage: MessageHandler): mqtt.MqttClient {
   const client = mqtt.connect(config.MQTT_URL, {
@@ -39,7 +41,10 @@ export function connectIngest(onMessage: MessageHandler): mqtt.MqttClient {
     const isCurrent = () => stream === client.stream && !stream.destroyed && !client.disconnecting;
     const delivery = processing.then(async () => {
       if (!isCurrent()) return false;
-      await onMessage(packet.topic, Buffer.isBuffer(packet.payload) ? packet.payload : Buffer.from(packet.payload));
+      // Subscription QoS cannot upgrade a QoS0 publication. Retained replay is
+      // also distinct from a live reading; messageId is not a durable event key.
+      const metadata: MessageMetadata = Object.freeze({ qos: packet.qos, retain: packet.retain === true, dup: packet.dup === true });
+      await onMessage(packet.topic, Buffer.isBuffer(packet.payload) ? packet.payload : Buffer.from(packet.payload), metadata);
       return isCurrent();
     });
     processing = delivery.then(() => undefined, () => undefined);

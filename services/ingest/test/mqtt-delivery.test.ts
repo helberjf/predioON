@@ -39,7 +39,7 @@ async function fixture(t: TestContext) {
   config.MQTT_CLIENT_ID = `ingest-test-${randomUUID()}`;
   const clients: MqttClient[] = [];
   const acknowledged: string[] = [];
-  broker.on("ack", packet => { if (packet.topic === topic) acknowledged.push(packet.payload.toString()); });
+  broker.on("ack", packet => { if (packet?.topic === topic) acknowledged.push(packet.payload.toString()); });
   t.mock.method(console, "log", () => undefined);
   t.mock.method(console, "warn", () => undefined);
   t.mock.method(console, "error", () => undefined);
@@ -51,7 +51,7 @@ async function fixture(t: TestContext) {
   });
   return {
     broker, acknowledged, url: config.MQTT_URL, clientId: config.MQTT_CLIENT_ID,
-    async connect(handler: (topic: string, payload: Buffer) => Promise<void>) {
+    async connect(handler: Parameters<typeof connectIngest>[0]) {
       const client = connectIngest(handler);
       clients.push(client);
       client.options.reconnectPeriod = 30;
@@ -60,11 +60,44 @@ async function fixture(t: TestContext) {
       await until(() => subscribed, "subscription");
       return client;
     },
-    publish(payload: string, target = topic) {
-      return new Promise<void>((resolve, reject) => broker.publish({ cmd: "publish", qos: 1, retain: false, topic: target, payload: Buffer.from(payload) }, error => error ? reject(error) : resolve()));
+    publish(payload: string, target = topic, delivery: { qos?: 0 | 1; retain?: boolean } = {}) {
+      return new Promise<void>((resolve, reject) => broker.publish({ cmd: "publish", qos: delivery.qos ?? 1, retain: delivery.retain ?? false, topic: target, payload: Buffer.from(payload) }, error => error ? reject(error) : resolve()));
     },
   };
 }
+
+it("exposes the delivered QoS without treating a QoS0 publication as QoS1", { timeout: 10_000 }, async t => {
+  const f = await fixture(t);
+  const received: Array<{ value: string; metadata: unknown }> = [];
+  await f.connect(async (_topic, payload, metadata) => {
+    received.push({ value: payload.toString(), metadata });
+  });
+  await f.publish("best-effort", topic, { qos: 0 });
+  await f.publish("acknowledged", topic, { qos: 1 });
+  await until(() => received.length === 2, "both delivered QoS values");
+  assert.deepEqual(received, [
+    { value: "best-effort", metadata: { qos: 0, retain: false, dup: false } },
+    { value: "acknowledged", metadata: { qos: 1, retain: false, dup: false } },
+  ]);
+  assert.equal(Object.isFrozen(received[0].metadata), true);
+  assert.equal(Object.isFrozen(received[1].metadata), true);
+});
+
+it("identifies retained replay separately from a live telemetry publication", { timeout: 10_000 }, async t => {
+  const f = await fixture(t);
+  await f.publish("retained-sample", topic, { qos: 1, retain: true });
+  const received: Array<{ value: string; metadata: unknown }> = [];
+  await f.connect(async (_topic, payload, metadata) => {
+    received.push({ value: payload.toString(), metadata });
+  });
+  await until(() => received.length === 1, "retained replay");
+  await f.publish("live-sample");
+  await until(() => received.length === 2, "live publication after replay");
+  assert.deepEqual(received, [
+    { value: "retained-sample", metadata: { qos: 1, retain: true, dup: false } },
+    { value: "live-sample", metadata: { qos: 1, retain: false, dup: false } },
+  ]);
+});
 
 it("delays QoS1 PUBACK until processing completes and applies backpressure", { timeout: 10_000 }, async t => {
   const f = await fixture(t), first = deferred();
