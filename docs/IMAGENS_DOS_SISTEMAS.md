@@ -2,7 +2,7 @@
 
 Publicadas em **03/10/2026**, atualizadas em **04/10/2026**. Estas capturas foram conferidas em execuções reais e usam dados fictícios. Cada imagem mantém o commit de origem; a data de publicação não altera a versão demonstrada. O plano completo e os cinco vídeos finais continuam pendentes, conforme [CONTINUIDADE.md](CONTINUIDADE.md).
 
-As **21 imagens — 7 Android, 10 web e 4 iOS** — e a [galeria HTML](IMAGENS_DOS_SISTEMAS.html) acompanham o clone. As quatro iOS incluem duas capturas históricas de b4726b9 e duas de novo processo Release em deb20b1; todas mostram somente entrada. Abra a galeria no navegador para filtrar e ampliar. O [manifesto](imagens/2026-10-03/manifesto.json) registra dimensões, SHA-256 e origem. As referências desta atualização foram conferidas estaticamente; o acesso ao servidor local 8765 continua bloqueado, sem novo aceite dos controles no navegador.
+As **24 imagens — 7 Android, 13 web e 4 iOS** — e a [galeria HTML](IMAGENS_DOS_SISTEMAS.html) acompanham o clone. As quatro iOS incluem duas capturas históricas de b4726b9 e duas de novo processo Release em deb20b1; todas mostram somente entrada. Abra a galeria no navegador para filtrar e ampliar. O [manifesto](imagens/2026-10-03/manifesto.json) registra dimensões, SHA-256 e origem. As referências desta atualização foram conferidas estaticamente; o acesso ao servidor local 8765 continua bloqueado, sem novo aceite dos controles no navegador.
 
 ## Android — Morador: avisos
 
@@ -129,3 +129,21 @@ Origem: [deb20b1, startup 37210946972](https://github.com/helberjf/predioON/acti
 Origem: [deb20b1, startup 37210946972](https://github.com/helberjf/predioON/actions/runs/37210946972), artefato 11306851591, fase `02-new-process`. Build Release assinado localmente para simulador iOS 18.5/SDK18.5. Primeira abertura, sobrevivência de 15 s, encerramento e abertura com outro PID foram conferidos; formulário com E-mail/Senha vazios e Entrar. Os 73/73 testes host deste job, digest do ZIP, resultado e duas imagens de origem foram verificados. Esta é a captura original do segundo processo, copiada sem edição; [registro público dos hashes e limites](evidencias/ios-deb20b1.json). Comprova entrada/inicialização, sem login, restauração de sessão pelo Keychain, XCTest ou domínios. O ensaio autenticado da mesma fonte falhou na instalação dos Pods, antes de prontidão HTTPS/XCTest.
 
 ![iOS — Operação · Novo processo Release · Entrada](imagens/2026-10-03/ios-operacao-startup-deb20b1.png)
+
+## Web — Morador · Chamado criado
+
+Formulário vazio bloqueado pela validação required do navegador; chamado fictício #1000 criado pelo Morador com prioridade Baixa, categoria Outros e histórico Abertura. QA manual parcial em navegador desta máquina, com Morador Demo/Condomínio Piloto e banco demonstrativo de 37 migrations. As fontes das sete raízes comparadas são idênticas entre 580a236 e 1414f020; os bundles JS atuais de dist diferem da prova histórica de 580a236. Hashes atuais, comparação e ações observadas estão no registro. O commit carregado pelo processo API e os bytes efetivamente servidos ao navegador não foram comprovados; esta captura não demonstra runtime038, apps nativos, produção, cobertura completa ou vídeo. JPEG original, sem edição ou conversão. [Registro e limites](imagens/2026-10-03/web-occurrences-manual-evidence.json).
+
+![Web — Morador · Chamado criado](imagens/2026-10-03/web-morador-chamado-criado.jpg)
+
+## Web — Síndico · Chamado resolvido
+
+Resposta ao chamado fictício #1000 enviada pelo Síndico e estado resolvido conferido no portal do condomínio. QA manual parcial em navegador desta máquina, com Morador Demo/Condomínio Piloto e banco demonstrativo de 37 migrations. As fontes das sete raízes comparadas são idênticas entre 580a236 e 1414f020; os bundles JS atuais de dist diferem da prova histórica de 580a236. Hashes atuais, comparação e ações observadas estão no registro. O commit carregado pelo processo API e os bytes efetivamente servidos ao navegador não foram comprovados; esta captura não demonstra runtime038, apps nativos, produção, cobertura completa ou vídeo. JPEG original, sem edição ou conversão. [Registro e limites](imagens/2026-10-03/web-occurrences-manual-evidence.json).
+
+![Web — Síndico · Chamado resolvido](imagens/2026-10-03/web-sindico-chamado-resolvido.jpg)
+
+## Web — Morador · Chamado resolvido
+
+Após atualização no Morador, o chamado fictício #1000 aparece resolvido. Resposta e histórico de resolução também foram conferidos. QA manual parcial em navegador desta máquina, com Morador Demo/Condomínio Piloto e banco demonstrativo de 37 migrations. As fontes das sete raízes comparadas são idênticas entre 580a236 e 1414f020; os bundles JS atuais de dist diferem da prova histórica de 580a236. Hashes atuais, comparação e ações observadas estão no registro. O commit carregado pelo processo API e os bytes efetivamente servidos ao navegador não foram comprovados; esta captura não demonstra runtime038, apps nativos, produção, cobertura completa ou vídeo. JPEG original, sem edição ou conversão. [Registro e limites](imagens/2026-10-03/web-occurrences-manual-evidence.json).
+
+![Web — Morador · Chamado resolvido](imagens/2026-10-03/web-morador-chamado-resolvido.jpg)

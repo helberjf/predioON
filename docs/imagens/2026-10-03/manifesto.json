@@ -223,6 +223,51 @@
       "sourcePhase": "02-new-process",
       "evidence": "../../evidencias/ios-deb20b1.json",
       "scope": "Empty login form after native Release new process launch; authenticated journey not approved"
+    },
+    {
+      "file": "web-morador-chamado-criado.jpg",
+      "sha256": "a700854af0aca1bd7843bab76a89fef71b1c2ca4863b331f33089cde6e6e0814",
+      "width": 1264,
+      "height": 904,
+      "sourceCommit": null,
+      "sourceReferenceCommit": "580a23608f4f79df3f9728946be4bfdb993155bb",
+      "comparedSourceCommit": "1414f020542628988e9796ac2ad960fb3db2a8d9",
+      "sourceRun": null,
+      "evidence": "web-occurrences-manual-evidence.json",
+      "format": "JPEG returned by browser screenshot API, copied without image conversion or editing",
+      "reviewed": true,
+      "scope": "Partial manual synthetic ticket QA in demo037; no native app, video or production acceptance",
+      "sourceLimit": "Compared sources are identical; current dist JS differs from historical 580a236 bundles. Browser served bytes and running API commit are not proven."
+    },
+    {
+      "file": "web-sindico-chamado-resolvido.jpg",
+      "sha256": "6c309732a90ef72f596e8077e14b16d336e586773890c0dc7a2f56f4d9e10498",
+      "width": 1264,
+      "height": 1620,
+      "sourceCommit": null,
+      "sourceReferenceCommit": "580a23608f4f79df3f9728946be4bfdb993155bb",
+      "comparedSourceCommit": "1414f020542628988e9796ac2ad960fb3db2a8d9",
+      "sourceRun": null,
+      "evidence": "web-occurrences-manual-evidence.json",
+      "format": "JPEG returned by browser screenshot API, copied without image conversion or editing",
+      "reviewed": true,
+      "scope": "Partial manual synthetic ticket QA in demo037; no native app, video or production acceptance",
+      "sourceLimit": "Compared sources are identical; current dist JS differs from historical 580a236 bundles. Browser served bytes and running API commit are not proven."
+    },
+    {
+      "file": "web-morador-chamado-resolvido.jpg",
+      "sha256": "d9530f27a8c87719998f6c5598a5887de9a9f0dc41af158b0abc0693d2ce6b3b",
+      "width": 1264,
+      "height": 1543,
+      "sourceCommit": null,
+      "sourceReferenceCommit": "580a23608f4f79df3f9728946be4bfdb993155bb",
+      "comparedSourceCommit": "1414f020542628988e9796ac2ad960fb3db2a8d9",
+      "sourceRun": null,
+      "evidence": "web-occurrences-manual-evidence.json",
+      "format": "JPEG returned by browser screenshot API, copied without image conversion or editing",
+      "reviewed": true,
+      "scope": "Partial manual synthetic ticket QA in demo037; no native app, video or production acceptance",
+      "sourceLimit": "Compared sources are identical; current dist JS differs from historical 580a236 bundles. Browser served bytes and running API commit are not proven."
     }
   ]
 }
