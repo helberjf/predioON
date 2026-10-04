@@ -100,7 +100,7 @@ jobs:
           python3 scripts/android-password-smoke/password_proxy.py --tls "$IOS_AUTH_PRIVATE/tls" > "$IOS_AUTH_PRIVATE/proxy.log" 2>&1 &
           echo $! > "$IOS_AUTH_PRIVATE/proxy.pid"
           curl --fail --retry 30 --retry-connrefused --retry-delay 1 --max-time 3 http://127.0.0.1:3000/health/ready
-          curl --fail --cacert "$IOS_AUTH_PRIVATE/tls/ca.pem" https://127.0.0.1:3443/health
+          python3 -B scripts/ios-smoke/wait_https_proxy.py --private "$IOS_AUTH_PRIVATE"
       - name: Execute real XCUITest journey with both coinstalled releases
         id: journey
         run: >-
