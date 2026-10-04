@@ -43,6 +43,28 @@ class LoopbackFixtureHTTPServer(ThreadingHTTPServer):
 
 
 class ReadinessTests(unittest.TestCase):
+    def assert_header_deadline(self, diagnostics):
+        observed = diagnostics.snapshot()["lastProbe"]
+        self.assertEqual(observed["stage"], "headers")
+        self.assertEqual(observed["outcome"], "deadline")
+        # Watchdog shutdown reaches HTTPException on Linux or OSError on
+        # macOS. Both must keep the same strict stage and deadline outcome.
+        self.assertIn(observed["errno"], {"none", "other"})
+
+    def test_header_socket_error_after_watchdog_remains_deadline(self):
+        diagnostics = readiness.ProbeDiagnostics()
+        with patch.object(readiness, "DeadlineHTTPSConnection") as build:
+            def interrupted():
+                build.call_args.kwargs["expired"].set()
+                raise OSError(errno.EBADF, SECRET)
+            build.return_value.getresponse.side_effect = interrupted
+            self.assertFalse(readiness.probe(None, .2, diagnostics))
+            build.return_value.request.assert_called_once_with("GET", "/health")
+            build.return_value.close.assert_called_once()
+        self.assert_header_deadline(diagnostics)
+        self.assertEqual(diagnostics.snapshot()["lastProbe"]["errno"], "other")
+        self.assertNotIn(SECRET, str(diagnostics.snapshot()))
+
     def test_real_password_proxy_process_has_verified_health_and_closed_startup_journal(self):
         run_auth = ios_auth_runner()
         if sys.platform == "darwin":
@@ -303,7 +325,7 @@ class ReadinessTests(unittest.TestCase):
                         readiness.wait_for_proxy(ca, lambda: True, budget=.2, interval=.05, diagnostics=diagnostics)
                     self.assertLess(time.monotonic() - started, .8)
                     self.assertEqual(PartialStatus.observed, [("GET", "/health")])
-                    self.assertEqual(diagnostics.snapshot()["lastProbe"], {"stage": "headers", "outcome": "deadline", "errno": "none"})
+                    self.assert_header_deadline(diagnostics)
                 finally:
                     server.shutdown()
                     thread.join(timeout=3)
