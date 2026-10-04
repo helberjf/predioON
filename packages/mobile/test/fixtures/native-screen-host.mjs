@@ -5,7 +5,15 @@ let nextInstance = 0;
 export const Platform = { OS: "android" };
 export const AppState = {
   currentState: "active",
-  addEventListener() { return { remove() {} }; },
+  addEventListener() {
+    const instance = ++nextInstance;
+    events.push({ kind: "listener-add", instance });
+    let active = true;
+    return { remove() {
+      if (active) events.push({ kind: "listener-remove", instance });
+      active = false;
+    } };
+  },
 };
 export function resetHost(os) {
   Platform.OS = os;
@@ -23,7 +31,14 @@ export const ScrollView = React.forwardRef(function InstrumentedScrollView(props
   }, [instance]);
   return React.createElement("NativeScrollView", { ...props, instance }, props.children);
 });
-export const View = "NativeView";
+export function View(props) {
+  const [instance] = React.useState(() => ++nextInstance);
+  React.useEffect(() => {
+    events.push({ kind: "view-mount", instance });
+    return () => { events.push({ kind: "view-unmount", instance }); };
+  }, [instance]);
+  return React.createElement("NativeView", { ...props, instance }, props.children);
+}
 export const Text = "NativeText";
 export const Pressable = "NativePressable";
 export const TextInput = "NativeTextInput";

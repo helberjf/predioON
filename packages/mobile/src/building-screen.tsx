@@ -26,10 +26,10 @@ export function BuildingScreen({
       contentContainerStyle={android ? undefined : styles.page}
     >
       {android ? (
-        // Replace the domain, including its pollers/form state, without
-        // flattening that boundary into the stable native scroll container.
-        <View key={domain} collapsable={false} style={styles.page}>
-          {children}
+        // Keep the native parent stable while replacing the React domain,
+        // including its pollers and form state, at the keyed fragment.
+        <View collapsable={false} style={styles.page}>
+          <React.Fragment key={domain}>{children}</React.Fragment>
         </View>
       ) : children}
     </ScrollView>
