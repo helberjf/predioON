@@ -89,7 +89,7 @@ jobs:
           for item in resident-mobile:PredioONMorador operations-mobile:PredioONOperacao; do
             app=${item%%:*}
             scheme=${item#*:}
-            (cd "apps/$app/ios" && bundle exec pod install)
+            (cd "apps/$app/ios" && bundle exec ruby "$GITHUB_WORKSPACE/scripts/ios-smoke/pod_path_probe.rb" install)
             xcodebuild -workspace "apps/$app/ios/$scheme.xcworkspace" -scheme "$scheme" -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath "$IOS_AUTH_PRIVATE/build-$app" CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=- build > "$IOS_AUTH_PRIVATE/build-$app.log" 2>&1
           done
           BUNDLE_GEMFILE="$GITHUB_WORKSPACE/apps/resident-mobile/Gemfile" bundle exec ruby scripts/ios-smoke/project.rb "$IOS_AUTH_PRIVATE"
