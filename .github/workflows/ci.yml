@@ -116,9 +116,7 @@ jobs:
           --health-interval 5s --health-timeout 5s --health-retries 20
     env:
       TEST_MIGRATIONS_DATABASE_URL: postgres://predioon:predioon@localhost:5436/predioon
-      TEST_BACKUP_CONTAINER: ${{ job.services.origin.id }}
       TEST_BACKUP_RESTORE_DATABASE_URL: postgres://predioon:predioon@localhost:5437/predioon
-      TEST_BACKUP_RESTORE_CONTAINER: ${{ job.services.recovery.id }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -128,6 +126,9 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Same-cluster and independent-cluster Timescale backup recovery
+        env:
+          TEST_BACKUP_CONTAINER: ${{ job.services.origin.id }}
+          TEST_BACKUP_RESTORE_CONTAINER: ${{ job.services.recovery.id }}
         run: pnpm --filter @predioon/db exec node --import tsx --test --test-concurrency=1 test/backup-restore.test.ts
 
   notifications:
