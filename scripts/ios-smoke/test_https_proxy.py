@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import shutil
 import socket
+import socketserver
 import ssl
 import subprocess
 import sys
@@ -21,7 +22,24 @@ from prepare_auth import choose_openssl, create_ios_certificates
 SECRET = "SENTINEL_PRIVATE_PROXY_PASSWORD"
 
 
+class LoopbackFixtureHTTPServer(ThreadingHTTPServer):
+    def server_bind(self):
+        # HTTPServer resolves a reverse DNS name between bind and listen.
+        # This numeric loopback fixture must start independently of DNS.
+        socketserver.TCPServer.server_bind(self)
+        self.server_name = "localhost"
+        self.server_port = self.server_address[1]
+
+
 class ReadinessTests(unittest.TestCase):
+    def test_loopback_fixture_never_uses_reverse_dns_before_listening(self):
+        with patch.object(socket, "getfqdn", side_effect=AssertionError("Loopback fixture must not wait for reverse DNS")) as reverse:
+            with LoopbackFixtureHTTPServer(("127.0.0.1", 0), BaseHTTPRequestHandler) as server:
+                self.assertEqual(server.server_name, "localhost")
+                self.assertEqual(server.server_port, server.server_address[1])
+                self.assertEqual(server.socket.getsockopt(socket.SOL_SOCKET, socket.SO_ACCEPTCONN), 1)
+            reverse.assert_not_called()
+
     def test_delayed_readiness_is_bounded_without_mutating_retry(self):
         instant = [0.0]
         calls = []
@@ -187,7 +205,7 @@ class ReadinessTests(unittest.TestCase):
             holder = []
             def start():
                 time.sleep(.3)
-                server = ThreadingHTTPServer(("127.0.0.1", 3443), Handler)
+                server = LoopbackFixtureHTTPServer(("127.0.0.1", 3443), Handler)
                 server.socket = context.wrap_socket(server.socket, server_side=True)
                 holder.append(server)
                 server.serve_forever(poll_interval=.02)
