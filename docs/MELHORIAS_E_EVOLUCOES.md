@@ -38,6 +38,8 @@ Portabilidade das imagens: os registros históricos [web](imagens/2026-10-03/web
 
 3abb76a publicou três capturas originais, levando a galeria a24 itens. Criação/validação, resposta, três transições de estado, filtros e leitura própria pelo Morador passaram no navegador, com consoles sem erros. [Prova e limites de fonte/runtime](imagens/2026-10-03/web-occurrences-manual-evidence.json): demo037, manual parcial, sem aprovação nativa/produção/vídeos. b6761fd publicou o observer dos Pods: 18/152 Ruby e duas reproduções independentes, resolver/bootstrap/exit preservados; o CI37237681193 falhou no XCTest antes do primeiro checkpoint:73/73 host, dois builds e HTTPS aprovados, zero fases/imagens/POSTs aprovados. Os dois Pods não observaram NUL, mas isso não explica o erro histórico; [prova sanitizada](evidencias/ios-auth-b6761fd.json), causa/subestágio nativo a investigar nos logs privados. Não confundir GC forçado com causa Apple nem builds com jornada aprovada.
 
+**Android a34346b** publicou a View nativa estável com Fragment por domínio: RED6/3falhas eGREEN6/6, integral78/78 Windows/Linux, tipos/fronteiras e revisão independente. [Prova](evidencias/android-stable-view-a34346b.json). Os testes host preservam descarte de estado privado; falta aceite Fabric nos dois gates e nas jornadas completas. Não tratar a hipótese de lifecycle como causa confirmada.
+
 | Prioridade | Trabalho | Resultado esperado | Critério de aceite |
 |---|---|---|---|
 | P0 | Concluir autorização por capacidade nos domínios restantes | Acesso depende da concessão atual ao condomínio e ao recurso | HTTP e SQL negativos; revogação, expiração, equipe inativa e troca de condomínio sem vazamentos; nenhum privilégio global implícito sobre dados privados |

@@ -34,6 +34,12 @@ Os dois CIs nativos dessa fonte **reproduziram `renderer-missing-view-state` ao 
 
 **3abb76a** publicou três JPEGs originais do QA manual de chamados: formulário vazio bloqueado pelo required do navegador, chamado sintético #1000 criado com prioridade Baixa/categoria Outros, histórico Abertura, resposta da gestão, estados Aberto→Em análise→Em execução→Concluído e leitura da resposta/conclusão pelo próprio Morador. A fila de abertos excluiu o concluído; o filtro de todos o recuperou nos dois perfis. Controles de gestão ficaram ausentes na visão do Morador e os consoles capturados dos dois portais não registraram erros. Capturas originais foram revistas visualmente, com bytes/hash/PIL/dimensões e referências conferidos: **galeria24, 7 Android/13web/4iOS**. [Prova e limites](imagens/2026-10-03/web-occurrences-manual-evidence.json). Essa jornada usa a demonstração sintética037; as sete raízes de fontes comparadas são idênticas entre580a236 e1414f02, mas os JS de dist diferem da prova antiga. Processo API e bytes efetivamente servidos ao navegador não receberam atribuição de commit sem prova. Não é validação de runtime038, cobertura manual integral, apps nativos, produção ou vídeo. O bloqueio da galeria8765 não foi contornado.
 
+### Candidata Android publicada após os dois REDs nativos
+
+**a34346b** mantém a View Android não colapsável estável e transfere a chave do domínio para um Fragment React interno. A troca continua desmontando pollers, formulários e dados privados; ScrollView, scrollTo, iOS, timers, guards e dependências ficaram iguais. RED com produto anterior e fixture instrumentada produziu **3 falhas de estabilidade em6casos** no Windows/Linux; a candidata passou **6/6 dirigidos e78/78 móveis**, zero skips, tipos e fronteiras. Revisão independente repetiu o RED Linux e78/78 nos dois sistemas; o agente principal repetiu78/78/tipos/fronteiras e verificou os três hashes Git, ZIP e logs de freeze. [Prova sanitizada](evidencias/android-stable-view-a34346b.json).
+
+**Aceite nativo pendente.** Testes React não comprovam Fabric nem a causa dos MissingViewState. Conferir na fonte exata a34346b os dois gates nativos e as jornadas completas, preservando negativas/privacidade/tempos; não fechar os avisos históricos a partir dos testes host. Nenhum reboot executado.
+
 ## 1. Instruções permanentes do proprietário
 
 - Continuar até concluir as implementações dos apps e websites, testes e evolução descritos na arquitetura aprovada.
@@ -43,7 +49,7 @@ Os dois CIs nativos dessa fonte **reproduziram `renderer-missing-view-state` ao 
 - Manter sugestões em [MELHORIAS_E_EVOLUCOES.md](MELHORIAS_E_EVOLUCOES.md).
 - **Não reiniciar o computador nesta sessão.** Nenhum reboot foi executado pelo agente. Reiniciar um processo de teste não é reiniciar o computador.
 - Ao terminar, abrir os três portais e os apps Morador/Operação neste computador e entregar cinco gravações completas, separadas, com dados fictícios. Também foram solicitadas imagens de Android, iOS e web durante o andamento.
-- **Incluir as imagens conferidas nos commits**, com origem e limites identificados. Desde 03/10, as 21 capturas e a galeria estão em [IMAGENS_DOS_SISTEMAS.md](IMAGENS_DOS_SISTEMAS.md), dentro do clone.
+- **Incluir as imagens conferidas nos commits**, com origem e limites identificados. Desde 03/10, as capturas e a galeria, hoje com24imagens, estão em [IMAGENS_DOS_SISTEMAS.md](IMAGENS_DOS_SISTEMAS.md), dentro do clone.
 
 ## 2. Estado das etapas
 

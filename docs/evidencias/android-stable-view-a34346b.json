@@ -1,0 +1,227 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "a34346b7ec7f0d09d1449a2e24e5b122e4971a5d",
+  "date": "2026-10-04",
+  "status": "source-and-host-approved-native-validation-pending",
+  "baselineNativeFailureCommit": "1414f020542628988e9796ac2ad960fb3db2a8d9",
+  "sourceFiles": [
+    {
+      "path": "packages/mobile/src/building-screen.tsx",
+      "bytesGitLF": 1357,
+      "sha256GitLF": "507fc4bd67b58cb808c2e7dcec05e8665375d3c2186140a18a45022c6d5f7f97"
+    },
+    {
+      "path": "packages/mobile/test/building-screen.test.ts",
+      "bytesGitLF": 15206,
+      "sha256GitLF": "05815bad06c3fb283f9c58f801a1e2409fc34d50fd7420d6b6e8534092d16d4c"
+    },
+    {
+      "path": "packages/mobile/test/fixtures/native-screen-host.mjs",
+      "bytesGitLF": 1652,
+      "sha256GitLF": "dd5cb7971382b0076e100c74c09e4eb4b8e83e955ed16a106e8a603a1e9e6f2f"
+    }
+  ],
+  "change": {
+    "androidScrollView": "unchanged-stable",
+    "androidNonCollapsableView": "stable-without-domain-key",
+    "domainLifecycleBoundary": "keyed-React-Fragment",
+    "iosBehavior": "unchanged",
+    "guardsTimersDependencies": "unchanged"
+  },
+  "checks": [
+    {
+      "name": "android-stable-view-red-final-windows",
+      "logBytes": 4495,
+      "logSha256": "3d7c28950782b01cb7ecd7f2bfbf5ed9ec867be191b26c3710a8b8bb1f5010ef",
+      "exitCode": 1,
+      "summary": {
+        "tests": 6,
+        "pass": 3,
+        "fail": 3,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "durationMs": 1226.6466
+    },
+    {
+      "name": "android-stable-view-red-final-linux",
+      "logBytes": 4182,
+      "logSha256": "41144e2a76d9d7811debc7c91c792d840632ab39fb1dc8aa77c6f02f65535e71",
+      "exitCode": 1,
+      "summary": {
+        "tests": 6,
+        "pass": 3,
+        "fail": 3,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "durationMs": 1541.8372
+    },
+    {
+      "name": "android-stable-view-green-final-windows",
+      "logBytes": 1235,
+      "logSha256": "cee1eee0d6e7229848bbddaf1b009c56dbb60fa176d688f225ec5812b3e6d84b",
+      "exitCode": 0,
+      "summary": {
+        "tests": 6,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "durationMs": 1457.0975
+    },
+    {
+      "name": "android-stable-view-green-final-linux",
+      "logBytes": 1248,
+      "logSha256": "9a86e7ad890460a409abced97600f38967d236753a31180ed26c059e9bebee0d",
+      "exitCode": 0,
+      "summary": {
+        "tests": 6,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "durationMs": 1598.677929
+    },
+    {
+      "name": "android-stable-view-mobile-full-final-windows",
+      "logBytes": 8610,
+      "logSha256": "9a0f4eae8c30a689a4a91f3aef8a7e758bbc96092913a4a91ff58d0d041e1d20",
+      "exitCode": 0,
+      "summary": {
+        "tests": 78,
+        "pass": 78,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "durationMs": 1279.3309
+    },
+    {
+      "name": "android-stable-view-mobile-full-linux",
+      "logBytes": 8562,
+      "logSha256": "265434a4620f955e24986cb7d77f04a3c100f0c9314140a3b724e3972e61a0dd",
+      "exitCode": 0,
+      "summary": {
+        "tests": 78,
+        "pass": 78,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "durationMs": 1651.326548
+    },
+    {
+      "name": "android-stable-view-types-final-windows",
+      "logBytes": 172,
+      "logSha256": "5466ba6f124dbfee6fe4a09957170809fdbbab93c9771de5986ebdc0d836d801",
+      "exitCode": 0
+    },
+    {
+      "name": "android-stable-view-types-linux",
+      "logBytes": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exitCode": 0
+    },
+    {
+      "name": "android-stable-view-boundaries-windows",
+      "logBytes": 214,
+      "logSha256": "12bcaa8f86f4a18a2afc4bad7d4c706ef41a96e5cb2df4bab05098abdcac4724",
+      "exitCode": 0
+    },
+    {
+      "name": "root-independent-mobile-windows",
+      "logBytes": 8614,
+      "logSha256": "ea8058f16dc81c7aed7db0cf4b2087f59da36bcd08412d77b38013153b3e7b56",
+      "exitCode": 0,
+      "summary": {
+        "tests": 78,
+        "pass": 78,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "name": "root-independent-mobile-types-windows",
+      "logBytes": 172,
+      "logSha256": "5466ba6f124dbfee6fe4a09957170809fdbbab93c9771de5986ebdc0d836d801",
+      "exitCode": 0
+    },
+    {
+      "name": "root-independent-workspace-boundaries-windows",
+      "logBytes": 214,
+      "logSha256": "12bcaa8f86f4a18a2afc4bad7d4c706ef41a96e5cb2df4bab05098abdcac4724",
+      "exitCode": 0
+    }
+  ],
+  "runtime": {
+    "windows": {
+      "node": "24.19.0"
+    },
+    "linux": {
+      "node": "24.21.0",
+      "image": "predioon-notifications:role038-final",
+      "imageId": "sha256:1f075613791207127c789e1608b7d2b5cccbccc063c9c0e86ac0d01f5a9dcaeb",
+      "network": "none",
+      "sourceMountsReadOnly": true,
+      "dependencyVolume": "predioon-notification038-browser-source",
+      "currentSourceOverlays": [
+        "packages/mobile/src",
+        "packages/mobile/test",
+        "packages/api-client/src",
+        "packages/contracts/src"
+      ]
+    },
+    "react": "19.2.3",
+    "reactTestRenderer": "19.2.3",
+    "typescript": "5.9.3"
+  },
+  "independentReview": {
+    "sourceHashesMatched": true,
+    "windowsMobile": {
+      "tests": 78,
+      "pass": 78,
+      "fail": 0,
+      "skipped": 0
+    },
+    "linuxMobile": {
+      "tests": 78,
+      "pass": 78,
+      "fail": 0,
+      "skipped": 0
+    },
+    "linuxBaselineDirectedRed": {
+      "tests": 6,
+      "pass": 3,
+      "fail": 3,
+      "skipped": 0
+    },
+    "typecheck": true,
+    "diffcheck": true
+  },
+  "verifiedBehavior": [
+    "native-host-View-instance-retained-across-domains-in-React-instrumentation",
+    "domain-drafts-and-poll-listeners-disposed",
+    "late-results-from-old-domain-user-and-building-discarded",
+    "same-domain-refresh-retains-draft-and-scroll",
+    "permission-null-discards-private-domain-state",
+    "ios-existing-container-remount-preserved"
+  ],
+  "nativeAcceptance": false,
+  "limits": [
+    "Host React instrumentation does not prove Fabric tags, native rendering or the cause of MissingViewState.",
+    "Native renderer and original domain prefix must be rerun on this exact source with unchanged negative/privacy/timing gates.",
+    "Full native domains, auth, password and reservations remain required; no physical-device or production acceptance.",
+    "Historical renderer warnings and native failures are preserved, not suppressed or closed by this source change."
+  ]
+}
