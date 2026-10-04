@@ -218,6 +218,10 @@ Operação e limites em [NOTIFICACOES_DURAVEIS.md](NOTIFICACOES_DURAVEIS.md). In
 
 ## 5. Checkpoint atual
 
+Checkpoint capturado em04/10 sobre **7821371ca1d0c9b575bff2b544451fc0042f01fe**, após publicar a candidata Android, diagnóstico iOS e imagens/QA web. **Zero rascunhos, patch de0bytes**, SHA-256 **e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855**. A base foi arquivada e reaberta; [manifesto](continuidade/2026-10-02-manifesto.json) confere o estado vazio. **Não aplicar o patch vazio: clonar/atualizar a main.** Isso preserva o código publicado, sem aprovar as jornadas nativas pendentes. Trabalho posterior deve atualizar este checkpoint antes de ser transportado.
+
+Próxima execução: conferir CI iOS6298065 com diagnóstico por estágio e preparar o diagnóstico pré-PID Android, preservando as falhas1414/a343 e os mesmos guards/tempos. Autenticação/reservas Android a343 estão sob auditoria final; domínios/senha/startup e renderer não têm aceite integral. Depois seguem administrativos/RBAC, identidade2C, inbox proposta039, novos módulos, push, aparelhos, produção, documentação final e cinco vídeos. Nenhum reboot executado.
+
 O SQL038, worker, produtores, credencial, implantação/CI e testes agora estão integrados nesta linha. **O patch58 histórico de038 é obsoleto: não reaplicar sobre a main.** O próximo checkpoint registra somente trabalho ainda não publicado, com base exata e hashes/restauração conferidos. Clonar a main recupera o código integrado. Nunca aplicar038 isoladamente nem misturar versões de produtores/worker/SQL. O pacote não contém banco, credenciais, SDKs ou evidências brutas; recriar ambientes descartáveis.
 
 ## 6. Preparação e testes
