@@ -52,6 +52,8 @@ Duas PNGs originais02-new-process iOS629 foram revistas visualmente e versionada
 
 0674c78 publicou diagnóstico Android pré-PID e primeira rejeição imediata:86/86Linux+45/45domínios,85+1/44+1Windows, revisão independente/450schemas e comandos/tempos intactos; [prova](evidencias/android-preflight-diagnostic-0674c78.json). Próximo aceite continua nos gates nativos e jornadas completas, sem reclassificação dos artefatos anteriores.
 
+Dois gates nativos Android0674 foram aprovados (8 fases/78 e28 marcadores), com domínio inalterado, ZIPs/digests/esquemas e18 fontes conferidos; [prova](evidencias/android-0674c78.json). Próximo trabalho: concluir jornadas completas bloqueadas antes da instalação e investigar a intermitência, mantendo os REDs históricos e testes em aparelhos.
+
 | Prioridade | Trabalho | Resultado esperado | Critério de aceite |
 |---|---|---|---|
 | P0 | Concluir autorização por capacidade nos domínios restantes | Acesso depende da concessão atual ao condomínio e ao recurso | HTTP e SQL negativos; revogação, expiração, equipe inativa e troca de condomínio sem vazamentos; nenhum privilégio global implícito sobre dados privados |
