@@ -10,7 +10,9 @@ CATEGORIES = {"passed", "renderer-missing-view-state", "renderer-remove-view-at"
               "credential-exposure", "crash-or-anr", "adb-failed", "ui-incomplete", "fixture-rejected",
               "configuration-rejected", "harness-failed"}
 EPOCH = r"[0-9]{10}\.[0-9]{3,6}"
-LOG = re.compile(rf"^\s*({EPOCH})\s+([0-9]+)\s+([0-9]+)\s+([VDIWEF])\s+(\S+):\s?(.*)$")
+# liblog pads short tags to eight columns before the separator. Keep the tag
+# token (including React Native's internal colons) distinct from that padding.
+LOG = re.compile(rf"^\s*({EPOCH})\s+([0-9]+)\s+([0-9]+)\s+([VDIWEF])\s+(\S+)[ \t]*:\s?(.*)$")
 
 
 class RendererFailure(RuntimeError):

@@ -4,6 +4,8 @@ Este recorte procura reproduzir os avisos nativos do commit `1f7bd3d`: 12 evento
 
 **Estado:** harness e testes de host implementados. A execução nativa deste workflow ainda é necessária. Um resultado verde em Python não demonstra ausência de SoftExceptions no APK nem aprovação completa dos apps.
 
+A primeira execução nativa [f96b0ae / 37166294051](https://github.com/helberjf/predioON/actions/runs/37166294051) compilou/assinou o APK, preparou banco/API/HTTPS e abriu o processo, mas parou no startup com `log-format-rejected`, antes do login. Isso é uma falha do gate, sem reprodução de Fabric. O artefato fechado11289593712 contém somente `result.json`; não inclui a linha privada rejeitada. A revisão identificou que a expressão do parser não aceitava espaços de apresentação entre tags curtas e `:`, previstos por `%-8.*s` no [liblog do Android](https://android.googlesource.com/platform/system/logging/+/refs/heads/main/liblog/logprint.cpp). O caso negativo foi reproduzido no host e o parser passou a reconhecer esse padding, mantendo rejeição de linha malformada e todos os sinais terminais. Sem a linha privada, não se atribui a causa exata daquele run ao padding; a nova execução nativa permanece necessária.
+
 ## Execução isolada
 
 `.github/workflows/android-renderer.yml` cria PostgreSQL 16/TimescaleDB 2.17.2 exclusivo do job, aplica o ledger e provisiona as quatro contas runtime. Reutiliza a fixture sintética transacional de `android-domain-smoke`, incluindo vizinhos proibidos e dados financeiros publicados/rascunhos. O JSON de fixture e a senha aleatória ficam privados; o mascaramento do console não é usado como autorização para publicar arquivos brutos.

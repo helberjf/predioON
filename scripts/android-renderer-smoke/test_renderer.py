@@ -53,8 +53,17 @@ class RendererTests(unittest.TestCase):
         self.assertIsNone(classify("--------- beginning of main\n", PID))
         self.assertIsNone(classify(line("\tat SurfaceMountingManager.removeViewAt(SurfaceMountingManager.kt:485)"), PID))
 
+    def test_epoch_display_padding_does_not_reject_native_tags(self):
+        # liblog renders tags with %-8.*s, so short tags have spaces before ':'.
+        for tag in ["libc    ", "resolv  ", "art     "]:
+            with self.subTest(tag=tag):
+                self.assertIsNone(classify(line("ordinary native diagnostic", tag=tag), PID))
+        self.assertEqual(classify(line("Unhandled SoftException", tag="unknown:SurfaceMountingManager:MissingViewState  "), PID),
+                         {"category": "renderer-missing-view-state", "deviceTime": "1791065526.176"})
+
     def test_invalid_format_is_not_a_clean_diagnostic(self):
-        for source in [SECRET, "NaN 3540 3540 E unknown:SurfaceMountingManager: MissingViewState", "1791065526.176 3540 E malformed"]:
+        for source in [SECRET, "NaN 3540 3540 E unknown:SurfaceMountingManager: MissingViewState", "1791065526.176 3540 E malformed",
+                       "1791065526.176 3540 3540 E         : no tag"]:
             with self.assertRaisesRegex(RendererFailure, "log-format-rejected"):
                 classify(source, PID)
 
