@@ -2,7 +2,7 @@
 
 Atualizado em **04/10/2026**, horário de São Paulo. Leia este arquivo primeiro ao retomar em outro computador. **O plano completo ainda não terminou e não há aceite para produção.** O computador não foi reiniciado.
 
-Repositório: <https://github.com/helberjf/predioON>. Linha autorizada: **main**. As migrations **001–038 estão publicadas nesta linha**. Troca de senha, cliente, três portais, dois apps e roteiro Android foram enviados em `5929348`/057722b/cc6660a. A galeria possui **29 imagens reais versionadas**, incluindo três telas de segurança web, duas financeiras e duas de segurança Android. **Não reaplicar patches antigos de037: esse código já está na main.**
+Repositório: <https://github.com/helberjf/predioON>. Linha autorizada: **main**. As migrations **001–038 estão publicadas nesta linha**. Troca de senha, cliente, três portais, dois apps e roteiro Android foram enviados em `5929348`/057722b/cc6660a. A galeria possui **31 imagens reais versionadas**, incluindo três telas de segurança web, duas financeiras e duas de segurança Android. **Não reaplicar patches antigos de037: esse código já está na main.**
 
 API 037 passou **697/697** em integral Linux própria e no [CI 5929348](https://github.com/helberjf/predioON/actions/runs/37153986387). A [plataforma1f7bd3d](https://github.com/helberjf/predioON/actions/runs/37157034876), com logs conferidos, passou API697, banco26 com restauração real de44 tabelas/37 migrations, cliente59, ingestão83, UI89 e mobile75, sem skips. A matriz dos portais compilados passou **222/222** localmente e no [CI3035245](https://github.com/helberjf/predioON/actions/runs/37154429632), Chromium/Firefox/WebKit, sem retries. Os runs de [plataforma580a236](https://github.com/helberjf/predioON/actions/runs/37157346061) e [navegador580a236](https://github.com/helberjf/predioON/actions/runs/37157346059) também terminaram com sucesso; seus totais não foram extraídos novamente. Não somar dirigidos para criar uma integral.
 
@@ -68,6 +68,10 @@ O [autenticado37240428231](https://github.com/helberjf/predioON/actions/runs/372
 
 O agente principal reconferiu **oito hashes Git, três metadados REST oficiais atuais, digests/CRC dos três ZIPs, schemas autenticados e quatro PNGs**. Não baixou os binários compilados nem leu/extraiu application.log/OCR bruto. [Prova fechada e limites](evidencias/ios-6298065.json). Continuam pendentes as14POSTs, assertivas XCTest, famílias/Keychain, snapshots autenticados, aparelhos físicos, produção e vídeos finais. Nenhum reboot executado.
 
+### Duas novas imagens de entrada iOS629 versionadas
+
+As duas PNGs originais de **02-new-process** da fonte6298065, Morador e Operação, foram incluídas no clone após revisão visual pelo agente principal: formulário E-mail/Senha vazio, produto correto, sem erro ou identidade privada. Bytes1206×2622 e hashes originais foram conferidos contra os dois ZIPs oficiais; os29 registros anteriores ficaram iguais. **Galeria atual31:9Android/16web/6iOS**. [Imagens](IMAGENS_DOS_SISTEMAS.md) e [prova de inicialização e bloqueio autenticado](evidencias/ios-6298065.json). São capturas de inicialização aprovadas; o auth629 continua reprovado em runner-build/nonzero-exit70 e sem checkpoints aprovados. Continuam pendentes as14POSTs, Keychain/famílias, domínios iOS, aparelhos, produção e cinco vídeos. Nenhum reboot executado.
+
 ## 1. Instruções permanentes do proprietário
 
 - Continuar até concluir as implementações dos apps e websites, testes e evolução descritos na arquitetura aprovada.
@@ -77,7 +81,7 @@ O agente principal reconferiu **oito hashes Git, três metadados REST oficiais a
 - Manter sugestões em [MELHORIAS_E_EVOLUCOES.md](MELHORIAS_E_EVOLUCOES.md).
 - **Não reiniciar o computador nesta sessão.** Nenhum reboot foi executado pelo agente. Reiniciar um processo de teste não é reiniciar o computador.
 - Ao terminar, abrir os três portais e os apps Morador/Operação neste computador e entregar cinco gravações completas, separadas, com dados fictícios. Também foram solicitadas imagens de Android, iOS e web durante o andamento.
-- **Incluir as imagens conferidas nos commits**, com origem e limites identificados. Desde 03/10, as capturas e a galeria, hoje com29imagens, estão em [IMAGENS_DOS_SISTEMAS.md](IMAGENS_DOS_SISTEMAS.md), dentro do clone.
+- **Incluir as imagens conferidas nos commits**, com origem e limites identificados. Desde 03/10, as capturas e a galeria, hoje com31imagens, estão em [IMAGENS_DOS_SISTEMAS.md](IMAGENS_DOS_SISTEMAS.md), dentro do clone.
 
 ## 2. Estado das etapas
 
@@ -299,7 +303,7 @@ Banco/backup: seguir [BACKUP_E_RESTAURACAO.md](BACKUP_E_RESTAURACAO.md), incluin
 
 ## 8. Transferência, imagens e dependências externas
 
-Código publicado, documentação, checkpoint, galeria e **29 imagens reais** estão no GitHub. São 9 Android, 16 web e 4 entradas iOS; duas entradas iOS são históricas e duas vêm do novo processo Release deb20b1; versões, fases e limites estão no [manifesto](imagens/2026-10-03/manifesto.json) e em [IMAGENS_DOS_SISTEMAS.md](IMAGENS_DOS_SISTEMAS.md). Capturas de fases aprovadas de uma jornada falha são identificadas; não representam aceite de toda a jornada. O navegador da galeria atual está bloqueado e não foi contornado.
+Código publicado, documentação, checkpoint, galeria e **31 imagens reais** estão no GitHub. São 9 Android, 16 web e 6 entradas iOS; duas entradas iOS são históricas, duas vêm do novo processo Release deb20b1 e duas de6298065; versões, fases e limites estão no [manifesto](imagens/2026-10-03/manifesto.json) e em [IMAGENS_DOS_SISTEMAS.md](IMAGENS_DOS_SISTEMAS.md). Capturas de fases aprovadas de uma jornada falha são identificadas; não representam aceite de toda a jornada. O navegador da galeria atual está bloqueado e não foi contornado.
 
 `.local`, `work`, toolchains, containers/volumes, .env, tokens, keystores, evidências brutas e vídeos não ficam no Git. Nesta máquina, outputs ao lado do clone contém o pacote PREDIO_ON_CONTINUIDADE.zip com MDs, patch/manifesto e galeria/imagens. O manifesto do ZIP registra a versão publicada ao empacotar, hashes e quantidade real de drafts; confira-o antes de transportar. Recrie bancos descartáveis pelos scripts; não é necessário transportar volumes. Artefatos de CI têm retenção curta: guardar evidências sanitizadas importantes enquanto disponíveis.
 

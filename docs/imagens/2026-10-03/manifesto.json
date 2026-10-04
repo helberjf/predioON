@@ -383,6 +383,40 @@
       "format": "Original native emulator Release PNG, copied byte-for-byte from verified official artifact",
       "reviewed": true,
       "limit": "Functional native reservation phase and matching closed DB snapshot, original PNG visually reviewed by root. Native renderer A/B was blocked before PID; physical-device, production and final-video acceptance remain pending."
+    },
+    {
+      "file": "ios-morador-startup-6298065.png",
+      "sha256": "112088c3265815a23a574612f6d9217e3bf8bcf3b4e51a8452b56b6d6ceb9fc2",
+      "width": 1206,
+      "height": 2622,
+      "sourceCommit": "629806581457750cff893f35f25ca19eb017aba4",
+      "sourceRun": "https://github.com/helberjf/predioON/actions/runs/37240428244",
+      "sourceArtifactId": 11316892273,
+      "sourceArtifactSha256": "72cc901736830e0fa8bf61745ef5af8476ce4c84e9adb80237ffca262cf1fdc6",
+      "sourceArtifact": "02-new-process.png",
+      "sourcePhase": "02-new-process",
+      "binarySha256Reported": "ec0a8adbcc811b0acf797e061ebe8be66698b99db0e5520bb6e1065453c94ad1",
+      "evidence": "../../evidencias/ios-6298065.json",
+      "reviewed": true,
+      "scope": "Original empty login form after a new locally signed iOS Release process; no authenticated journey acceptance",
+      "limit": "Startup only. Auth629 failed at runner-build/nonzero-exit/70 before test-without-building; no approved checkpoints, Keychain/family/14POST or production acceptance."
+    },
+    {
+      "file": "ios-operacao-startup-6298065.png",
+      "sha256": "72a79bfcc778c5370b3548f7d7ae3e284a3fae65ffe32c68126ee29053fa786d",
+      "width": 1206,
+      "height": 2622,
+      "sourceCommit": "629806581457750cff893f35f25ca19eb017aba4",
+      "sourceRun": "https://github.com/helberjf/predioON/actions/runs/37240428244",
+      "sourceArtifactId": 11317101666,
+      "sourceArtifactSha256": "a9fd94f42f32a28c7913f0de83bc2b977a8137a6ac83647eeec0be19b4758f30",
+      "sourceArtifact": "02-new-process.png",
+      "sourcePhase": "02-new-process",
+      "binarySha256Reported": "cbe9bdf910673be88ca484fa980d658d5699e90a1788addafd7b7b8259295f35",
+      "evidence": "../../evidencias/ios-6298065.json",
+      "reviewed": true,
+      "scope": "Original empty login form after a new locally signed iOS Release process; no authenticated journey acceptance",
+      "limit": "Startup only. Auth629 failed at runner-build/nonzero-exit/70 before test-without-building; no approved checkpoints, Keychain/family/14POST or production acceptance."
     }
   ]
 }

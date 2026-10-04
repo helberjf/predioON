@@ -2,7 +2,7 @@
 
 Publicadas em **03/10/2026**, atualizadas em **04/10/2026**. Estas capturas foram conferidas em execuções reais e usam dados fictícios. Cada imagem mantém a origem comprovada, inclusive commit nulo quando o runtime não foi atestado; a data de publicação não altera a versão demonstrada. O plano completo e os cinco vídeos finais continuam pendentes, conforme [CONTINUIDADE.md](CONTINUIDADE.md).
 
-As **29 imagens — 9 Android, 16 web e 4 iOS** — e a [galeria HTML](IMAGENS_DOS_SISTEMAS.html) acompanham o clone. As quatro iOS incluem duas capturas históricas de b4726b9 e duas de novo processo Release em deb20b1; todas mostram somente entrada. Abra a galeria no navegador para filtrar e ampliar. O [manifesto](imagens/2026-10-03/manifesto.json) registra dimensões, SHA-256 e origem. As referências desta atualização foram conferidas estaticamente; o acesso ao servidor local 8765 continua bloqueado, sem novo aceite dos controles no navegador.
+As **31 imagens — 9 Android, 16 web e 6 iOS** — e a [galeria HTML](IMAGENS_DOS_SISTEMAS.html) acompanham o clone. As seis iOS incluem duas capturas históricas de b4726b9, duas de novo processo Release em deb20b1 e duas em6298065; todas mostram somente entrada. Abra a galeria no navegador para filtrar e ampliar. O [manifesto](imagens/2026-10-03/manifesto.json) registra dimensões, SHA-256 e origem. As referências desta atualização foram conferidas estaticamente; o acesso ao servidor local 8765 continua bloqueado, sem novo aceite dos controles no navegador.
 
 ## Android — Morador: avisos
 
@@ -177,3 +177,15 @@ Reserva própria confirmada na fase09-confirmed, após criação pelo Morador. S
 Reserva própria cancelada na fase13-cancelled. Snapshot cancelled: uma própria CANCELLED, nenhuma própria CONFIRMED e um registro de cancelamento; a reserva de outro condomínio mantém CONFIRMED. APK Release x86_64, API/PostgreSQL/HTTPS reais e dados fictícios. Fonte a34346b, run37239139329, artefato11317006586. Jornada de reservas23 observações e oito snapshots do banco conferidos; PNG original extraído sem edição e revisado visualmente. Estas fases funcionais não aprovam a comparação do renderer: os dois gates da candidata pararam antes do PID. Homologação física, produção e vídeos finais continuam pendentes. [Prova fechada, hashes e limites](evidencias/android-a34346b.json). SHA da imagem: `113b83622e8ba1caed2aefd9c7c4ca8c3d805f5276dc15a98cbb1bb2f6887444`.
 
 ![Android — Morador · Reserva cancelada · a34346b](imagens/2026-10-03/android-morador-reserva-cancelada-a34346b.png)
+
+## iOS — Morador · Novo processo Release · 6298065
+
+Formulário E-mail/Senha vazio no segundo processo Release, simulador iOS18.5/SDK18.5. Abertura, sobrevivência e novo processo dos dois produtos conferidos. PNG original da fase02-new-process, copiada sem edição e revisada visualmente pelo agente principal. Fonte6298065, startup37240428244; a execução autenticada37240428231 falhou no build do runner, diagnostic runner-build/nonzero-exit/70, antes de test-without-building. Entrada não aprova login, Keychain/famílias,14POSTs, domínios, distribuição, aparelhos físicos ou produção; zero checkpoints aprovados não prova ausência de pedidos antes da falha. Artefato11316892273; [prova fechada e hashes](evidencias/ios-6298065.json).
+
+![iOS — Morador · Novo processo Release · 6298065](imagens/2026-10-03/ios-morador-startup-6298065.png)
+
+## iOS — Operação · Novo processo Release · 6298065
+
+Formulário E-mail/Senha vazio no segundo processo Release, simulador iOS18.5/SDK18.5. Abertura, sobrevivência e novo processo dos dois produtos conferidos. PNG original da fase02-new-process, copiada sem edição e revisada visualmente pelo agente principal. Fonte6298065, startup37240428244; a execução autenticada37240428231 falhou no build do runner, diagnostic runner-build/nonzero-exit/70, antes de test-without-building. Entrada não aprova login, Keychain/famílias,14POSTs, domínios, distribuição, aparelhos físicos ou produção; zero checkpoints aprovados não prova ausência de pedidos antes da falha. Artefato11317101666; [prova fechada e hashes](evidencias/ios-6298065.json).
+
+![iOS — Operação · Novo processo Release · 6298065](imagens/2026-10-03/ios-operacao-startup-6298065.png)
