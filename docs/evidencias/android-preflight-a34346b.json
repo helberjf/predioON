@@ -1,0 +1,228 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "a34346b7ec7f0d09d1449a2e24e5b122e4971a5d",
+  "results": [
+    {
+      "journey": "renderer",
+      "runId": 37239139230,
+      "jobId": 111544118938,
+      "appMonitorBound": false,
+      "passed": false,
+      "category": "ui-incomplete",
+      "pid": null,
+      "markerCount": 0,
+      "completedPhases": [],
+      "firstFailure": null,
+      "artifactId": 11317125359,
+      "artifactBytes": 415,
+      "artifactSha256": "6b925a53b3b4a8e7c16c1bc2d8c01f7f0571ebf9d1880fb11f6c2fd24a13de5d",
+      "artifactDigestVerified": true,
+      "artifactEntries": [
+        "result.json"
+      ],
+      "closedReportReconstructionVerified": true,
+      "source": {
+        "commit": "a34346b7ec7f0d09d1449a2e24e5b122e4971a5d",
+        "apkSha256": "7401dfbce2ae6bb3fc1cdfbfae2e39a6f822f54f76167aba3b7a683e789d27d3",
+        "reactNative": "0.87.1",
+        "androidApi": 35,
+        "abi": "x86_64"
+      },
+      "hostTests": [
+        {
+          "tests": 59,
+          "seconds": 1.44,
+          "failures": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 45,
+          "seconds": 1.849,
+          "failures": 0,
+          "skipped": 0
+        }
+      ],
+      "rawNativeOperationOrUiAvailable": false,
+      "causeEstablished": false,
+      "closedResult": {
+        "schema": 1,
+        "app": "resident-mobile",
+        "passed": false,
+        "category": "ui-incomplete",
+        "pid": null,
+        "markers": [],
+        "firstFailure": null,
+        "domainSnapshotUnchanged": false,
+        "source": {
+          "commit": "a34346b7ec7f0d09d1449a2e24e5b122e4971a5d",
+          "apkSha256": "7401dfbce2ae6bb3fc1cdfbfae2e39a6f822f54f76167aba3b7a683e789d27d3",
+          "reactNative": "0.87.1",
+          "androidApi": 35,
+          "abi": "x86_64"
+        }
+      }
+    },
+    {
+      "journey": "prefix",
+      "runId": 37239139239,
+      "jobId": 111544118970,
+      "appMonitorBound": false,
+      "passed": false,
+      "category": "ui-incomplete",
+      "pid": null,
+      "markerCount": 0,
+      "completedPhases": [],
+      "firstFailure": null,
+      "artifactId": 11316708394,
+      "artifactBytes": 416,
+      "artifactSha256": "eab2932be7c63d29e045fc7c58c667a5e87c2f6246b2d131aa7349244a79525f",
+      "artifactDigestVerified": true,
+      "artifactEntries": [
+        "result.json"
+      ],
+      "closedReportReconstructionVerified": true,
+      "source": {
+        "commit": "a34346b7ec7f0d09d1449a2e24e5b122e4971a5d",
+        "apkSha256": "770b947e1651881fc91f92c58e65b3508afeb6747323681228a4c77200f221c3",
+        "reactNative": "0.87.1",
+        "androidApi": 35,
+        "abi": "x86_64"
+      },
+      "hostTests": [
+        {
+          "tests": 59,
+          "seconds": 1.963,
+          "failures": 0,
+          "skipped": 0
+        },
+        {
+          "tests": 45,
+          "seconds": 1.906,
+          "failures": 0,
+          "skipped": 0
+        }
+      ],
+      "rawNativeOperationOrUiAvailable": false,
+      "causeEstablished": false,
+      "closedResult": {
+        "schema": 1,
+        "app": "resident-mobile",
+        "passed": false,
+        "category": "ui-incomplete",
+        "pid": null,
+        "markers": [],
+        "firstFailure": null,
+        "domainSnapshotUnchanged": false,
+        "source": {
+          "commit": "a34346b7ec7f0d09d1449a2e24e5b122e4971a5d",
+          "apkSha256": "770b947e1651881fc91f92c58e65b3508afeb6747323681228a4c77200f221c3",
+          "reactNative": "0.87.1",
+          "androidApi": 35,
+          "abi": "x86_64"
+        }
+      }
+    }
+  ],
+  "limits": [
+    "Both candidate gates failed before their first completed phase/PID binding; the stable View candidate was not exercised by these renderer observations.",
+    "ui-incomplete collapses pre-startup AssertionError cases; the closed results/job logs do not identify which assertion failed.",
+    "HOME readiness or the initial fixture snapshot are possible pre-startup assertion boundaries; neither is asserted as the confirmed cause.",
+    "domainSnapshotUnchanged=false does not prove a mutation; final verification was not reached.",
+    "No raw native lines, UI trees, screenshots, credentials or APK bytes are included in this summary.",
+    "No rerun, workflow dispatch, timeout/guard change or product edit occurred during this audit."
+  ],
+  "sourceFiles": [
+    {
+      "path": "scripts/android-renderer-smoke/run_domains_prefix.py",
+      "sha256GitLF": "4750869ce8e37bbed29123bef5e77806a2a60bf4eddee8877e55ed4ae59b44e1",
+      "matchesNativeRedBaseline": true
+    },
+    {
+      "path": "scripts/android-renderer-smoke/test_domains_prefix.py",
+      "sha256GitLF": "db66f0b9b16780e8c343feb5939d5d0382a984ab8bd53f82d6d5036969232b3c",
+      "matchesNativeRedBaseline": true
+    },
+    {
+      "path": "scripts/android-renderer-smoke/README.md",
+      "sha256GitLF": "802c0750841d0416f285670475b6af8850fe22f75b5f68919e6e6c8182984f56",
+      "matchesNativeRedBaseline": true
+    },
+    {
+      "path": ".github/workflows/android-renderer-prefix.yml",
+      "sha256GitLF": "a74d71dc66d871af8663da295a4c1ba64e40eaefcf38942b78544945d8fe3475",
+      "matchesNativeRedBaseline": true
+    },
+    {
+      "path": "scripts/android-renderer-smoke/monitor.py",
+      "sha256GitLF": "9bf160b49c2daed2d4fc1f3924c2141a95185cbff4c78518f3580997b0df84a3",
+      "matchesNativeRedBaseline": true
+    },
+    {
+      "path": "scripts/android-renderer-smoke/run_renderer.py",
+      "sha256GitLF": "5484c4413cd8b0972e3f71bb7df14311eb06a9850d2a4353b68c3f04cf9e1eab",
+      "matchesNativeRedBaseline": true
+    },
+    {
+      "path": "scripts/android-renderer-smoke/policy.py",
+      "sha256GitLF": "fbc437ce0fe2c828e7e98f123961cb78c007fecd4c733ada0f72d07a118526d0",
+      "matchesNativeRedBaseline": true
+    },
+    {
+      "path": "scripts/android-renderer-smoke/proxy_renderer.py",
+      "sha256GitLF": "58a3aa1089ce6eb3d25bae4725b6ea85c795180cd491216581daa4e9a9bccaf3",
+      "matchesNativeRedBaseline": true
+    },
+    {
+      "path": "scripts/android-renderer-smoke/services.py",
+      "sha256GitLF": "bd56ca25915887e6cf0194e84415cb1f18979be4b202dd2666cc2753af11083f",
+      "matchesNativeRedBaseline": true
+    },
+    {
+      "path": "scripts/android-domain-smoke/assertions.py",
+      "sha256GitLF": "7137a9d3634c7f36ba658eac984a01d171901d6f66a05c37b96b47f867255418",
+      "matchesNativeRedBaseline": true
+    },
+    {
+      "path": "scripts/android-domain-smoke/run_domains.py",
+      "sha256GitLF": "c12fcc1e88689338f0be2eb98887c24939b83a5c59b7475533dd8c5e4de0647e",
+      "matchesNativeRedBaseline": true
+    },
+    {
+      "path": "scripts/android-auth-smoke/run_auth.py",
+      "sha256GitLF": "5c5870fb0818443acee29d0e720124dbb1ae9a78f63f25634b72563949a3c87e",
+      "matchesNativeRedBaseline": true
+    },
+    {
+      "path": "scripts/android-smoke/run.py",
+      "sha256GitLF": "d8b500dac1874b734b891b693c71dd3a71766765add5d889de5af5984d56f68b",
+      "matchesNativeRedBaseline": true
+    },
+    {
+      "path": ".github/workflows/android-renderer.yml",
+      "sha256GitLF": "eeff5f10f423ff41c982111ed18b7eddfcfebda19092d11198f89a11df68cbdd",
+      "matchesNativeRedBaseline": true
+    },
+    {
+      "path": "packages/mobile/src/building-screen.tsx",
+      "sha256GitLF": "507fc4bd67b58cb808c2e7dcec05e8665375d3c2186140a18a45022c6d5f7f97",
+      "matchesNativeRedBaseline": false
+    },
+    {
+      "path": "packages/mobile/test/building-screen.test.ts",
+      "sha256GitLF": "05815bad06c3fb283f9c58f801a1e2409fc34d50fd7420d6b6e8534092d16d4c",
+      "matchesNativeRedBaseline": false
+    },
+    {
+      "path": "packages/mobile/test/fixtures/native-screen-host.mjs",
+      "sha256GitLF": "dd5cb7971382b0076e100c74c09e4eb4b8e83e955ed16a106e8a603a1e9e6f2f",
+      "matchesNativeRedBaseline": false
+    }
+  ],
+  "rootVerification": {
+    "officialArtifactMetadata": true,
+    "zipDigestBytesAndExactMembers": true,
+    "closedReportsReconstructed": true,
+    "gitSourceHashesVerified": 17,
+    "unchangedNativeGateFilesVerified": 14
+  }
+}

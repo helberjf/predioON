@@ -2,7 +2,7 @@
 
 Atualizado em **04/10/2026**, horário de São Paulo. Leia este arquivo primeiro ao retomar em outro computador. **O plano completo ainda não terminou e não há aceite para produção.** O computador não foi reiniciado.
 
-Repositório: <https://github.com/helberjf/predioON>. Linha autorizada: **main**. As migrations **001–038 estão publicadas nesta linha**. Troca de senha, cliente, três portais, dois apps e roteiro Android foram enviados em `5929348`/057722b/cc6660a. A galeria possui **24 imagens reais versionadas**, incluindo três telas de segurança web, duas financeiras e duas de segurança Android. **Não reaplicar patches antigos de037: esse código já está na main.**
+Repositório: <https://github.com/helberjf/predioON>. Linha autorizada: **main**. As migrations **001–038 estão publicadas nesta linha**. Troca de senha, cliente, três portais, dois apps e roteiro Android foram enviados em `5929348`/057722b/cc6660a. A galeria possui **27 imagens reais versionadas**, incluindo três telas de segurança web, duas financeiras e duas de segurança Android. **Não reaplicar patches antigos de037: esse código já está na main.**
 
 API 037 passou **697/697** em integral Linux própria e no [CI 5929348](https://github.com/helberjf/predioON/actions/runs/37153986387). A [plataforma1f7bd3d](https://github.com/helberjf/predioON/actions/runs/37157034876), com logs conferidos, passou API697, banco26 com restauração real de44 tabelas/37 migrations, cliente59, ingestão83, UI89 e mobile75, sem skips. A matriz dos portais compilados passou **222/222** localmente e no [CI3035245](https://github.com/helberjf/predioON/actions/runs/37154429632), Chromium/Firefox/WebKit, sem retries. Os runs de [plataforma580a236](https://github.com/helberjf/predioON/actions/runs/37157346061) e [navegador580a236](https://github.com/helberjf/predioON/actions/runs/37157346059) também terminaram com sucesso; seus totais não foram extraídos novamente. Não somar dirigidos para criar uma integral.
 
@@ -40,6 +40,12 @@ Os dois CIs nativos dessa fonte **reproduziram `renderer-missing-view-state` ao 
 
 **Aceite nativo pendente.** Testes React não comprovam Fabric nem a causa dos MissingViewState. Conferir na fonte exata a34346b os dois gates nativos e as jornadas completas, preservando negativas/privacidade/tempos; não fechar os avisos históricos a partir dos testes host. Nenhum reboot executado.
 
+### Resultados Android anteriores ao PID e QA manual de reservas
+
+Os dois gates da candidata **a34346b** terminaram reprovados antes do bind do PID: renderer37239139230 e prefixo37239139239, **ui-incomplete, zero marcadores/fases, firstFailure=null**. Cada host passou59/59+45/45 sem skips; dois ZIPs oficiais415/416bytes, membros únicosresult.json, digests e exportador foram reconferidos. Os14arquivos dos gates são idênticos ao RED1414. [Prova fechada](evidencias/android-preflight-a34346b.json). Esses runs **não exercitaram a troca da View** e não aprovam nem reproduzem Fabric nessa candidata. A assertiva concreta anterior ao PID não foi exportada; HOME e snapshot inicial são fronteiras possíveis, sem causa demonstrada. Preservar os gates/tempos e acrescentar somente diagnóstico fechado antes da próxima execução. Demais jornadas da fonte estão sob auditoria separada.
+
+**f701f07** publicou três JPEGs originais do QA manual de reservas. Morador criou uma reserva sintética de churrasqueira,15/11/2026,12–13h, com estado Pendente; a gestão aprovou, a fila de pendências ficou vazia e ambos os perfis conferiram Confirmada após recarregar. O próprio Morador cancelou: estado Cancelado, controle removido e filas da gestão vazias após recarregar. Formulário sem data ficou desabilitado, ocupação estava vazia e os dois consoles não registraram erros. Interação inicial de fill em data/hora não persistiu os valores; confirmação nativa por teclado preservou-os e concluiu a jornada, sem mudança no produto nem causa atribuída. [Prova e limites](imagens/2026-10-03/web-reservations-manual-evidence.json). Imagens revistas visualmente/PIL/hashes/referências; **galeria27:7Android/16web/4iOS**. Mantém demo037 e sourceCommit=null:170fingerprints locais e seis bundles rechecados, sete raízes Git iguais1414→a343; runtime API/bundles servidos não atestados. Não cobre conflitos/concorrência/privacidade de outros moradores, apps nativos, produção ou vídeo. Nenhum reboot executado.
+
 ## 1. Instruções permanentes do proprietário
 
 - Continuar até concluir as implementações dos apps e websites, testes e evolução descritos na arquitetura aprovada.
@@ -49,7 +55,7 @@ Os dois CIs nativos dessa fonte **reproduziram `renderer-missing-view-state` ao 
 - Manter sugestões em [MELHORIAS_E_EVOLUCOES.md](MELHORIAS_E_EVOLUCOES.md).
 - **Não reiniciar o computador nesta sessão.** Nenhum reboot foi executado pelo agente. Reiniciar um processo de teste não é reiniciar o computador.
 - Ao terminar, abrir os três portais e os apps Morador/Operação neste computador e entregar cinco gravações completas, separadas, com dados fictícios. Também foram solicitadas imagens de Android, iOS e web durante o andamento.
-- **Incluir as imagens conferidas nos commits**, com origem e limites identificados. Desde 03/10, as capturas e a galeria, hoje com24imagens, estão em [IMAGENS_DOS_SISTEMAS.md](IMAGENS_DOS_SISTEMAS.md), dentro do clone.
+- **Incluir as imagens conferidas nos commits**, com origem e limites identificados. Desde 03/10, as capturas e a galeria, hoje com27imagens, estão em [IMAGENS_DOS_SISTEMAS.md](IMAGENS_DOS_SISTEMAS.md), dentro do clone.
 
 ## 2. Estado das etapas
 
@@ -267,7 +273,7 @@ Banco/backup: seguir [BACKUP_E_RESTAURACAO.md](BACKUP_E_RESTAURACAO.md), incluin
 
 ## 8. Transferência, imagens e dependências externas
 
-Código publicado, documentação, checkpoint, galeria e **24 imagens reais** estão no GitHub. São 7 Android, 13 web e 4 entradas iOS; duas entradas iOS são históricas e duas vêm do novo processo Release deb20b1; versões, fases e limites estão no [manifesto](imagens/2026-10-03/manifesto.json) e em [IMAGENS_DOS_SISTEMAS.md](IMAGENS_DOS_SISTEMAS.md). Capturas de fases aprovadas de uma jornada falha são identificadas; não representam aceite de toda a jornada. O navegador da galeria atual está bloqueado e não foi contornado.
+Código publicado, documentação, checkpoint, galeria e **27 imagens reais** estão no GitHub. São 7 Android, 16 web e 4 entradas iOS; duas entradas iOS são históricas e duas vêm do novo processo Release deb20b1; versões, fases e limites estão no [manifesto](imagens/2026-10-03/manifesto.json) e em [IMAGENS_DOS_SISTEMAS.md](IMAGENS_DOS_SISTEMAS.md). Capturas de fases aprovadas de uma jornada falha são identificadas; não representam aceite de toda a jornada. O navegador da galeria atual está bloqueado e não foi contornado.
 
 `.local`, `work`, toolchains, containers/volumes, .env, tokens, keystores, evidências brutas e vídeos não ficam no Git. Nesta máquina, outputs ao lado do clone contém o pacote PREDIO_ON_CONTINUIDADE.zip com MDs, patch/manifesto e galeria/imagens. O manifesto do ZIP registra a versão publicada ao empacotar, hashes e quantidade real de drafts; confira-o antes de transportar. Recrie bancos descartáveis pelos scripts; não é necessário transportar volumes. Artefatos de CI têm retenção curta: guardar evidências sanitizadas importantes enquanto disponíveis.
 
