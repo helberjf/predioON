@@ -1,0 +1,274 @@
+{
+  "version": 1,
+  "source": "b6761fd0e421ac6d068ab5ebb1b989a5c2736430",
+  "runId": 37237681193,
+  "jobId": 111539967692,
+  "status": "completed",
+  "conclusion": "failure",
+  "url": "https://github.com/helberjf/predioON/actions/runs/37237681193",
+  "sourceFiles": [
+    {
+      "path": "scripts/ios-smoke/pod_path_probe.rb",
+      "sha256": "446975ad9659e6af1528058d2813320a0b1a0cc46924f9a4f956f7a9ddc4a56e"
+    },
+    {
+      "path": "scripts/ios-smoke/test_pod_path_probe.rb",
+      "sha256": "53127fcb8d5bc27506be8f7fb31f0edd3059e887dae9404c8843954c4a168168"
+    },
+    {
+      "path": ".github/workflows/ios-auth.yml",
+      "sha256": "9895ef170153f020c8b857a0235a64571da5e4658a61aa37398f35fa6c30ae8e"
+    },
+    {
+      "path": "scripts/ios-smoke/README.md",
+      "sha256": "7c293b6f297f7a3b3f48a12e7c1bb7d6380ad3486b3c32e6ce03bf5c44120a08"
+    },
+    {
+      "path": "scripts/ios-smoke/run_auth.py",
+      "sha256": "355c98a8e0202ae139d9d742222574b6f3df3f7b51bba1da0f7f072ad56bef17"
+    },
+    {
+      "path": "scripts/ios-smoke/AuthJourney.swift",
+      "sha256": "17624694466f96c2803467a2c345dd85f8209839898d62337fc936c8c37e153b"
+    },
+    {
+      "path": "scripts/ios-smoke/wait_https_proxy.py",
+      "sha256": "d01c56b552ef05b3e0ae2381ae897a593fa441a873682ec28810ef16b4cac9b7"
+    }
+  ],
+  "hostTests": {
+    "count": 73,
+    "seconds": 6.711,
+    "passed": true,
+    "skips": 0
+  },
+  "podProcesses": [
+    [
+      {
+        "lineBytes": 221,
+        "payload": {
+          "version": 1,
+          "stage": "start",
+          "gc": {
+            "stress": "false",
+            "autoCompact": false,
+            "collections": 19,
+            "compactions": 0
+          },
+          "versions": {
+            "ruby": "3.3.12",
+            "gems": {
+              "bundler": "2.5.22",
+              "cocoapods": "1.15.2",
+              "xcodeproj": "1.25.1"
+            }
+          }
+        }
+      },
+      {
+        "lineBytes": 308,
+        "payload": {
+          "version": 1,
+          "stage": "finish",
+          "termination": "returned",
+          "calls": 793,
+          "firstNulFailure": false,
+          "otherPathExceptions": 0,
+          "gc": {
+            "stress": "false",
+            "autoCompact": false,
+            "collections": 490,
+            "compactions": 0
+          },
+          "versions": {
+            "ruby": "3.3.12",
+            "gems": {
+              "bundler": "2.5.22",
+              "cocoapods": "1.15.2",
+              "xcodeproj": "1.25.1"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "lineBytes": 221,
+        "payload": {
+          "version": 1,
+          "stage": "start",
+          "gc": {
+            "stress": "false",
+            "autoCompact": false,
+            "collections": 19,
+            "compactions": 0
+          },
+          "versions": {
+            "ruby": "3.3.12",
+            "gems": {
+              "bundler": "2.5.22",
+              "cocoapods": "1.15.2",
+              "xcodeproj": "1.25.1"
+            }
+          }
+        }
+      },
+      {
+        "lineBytes": 308,
+        "payload": {
+          "version": 1,
+          "stage": "finish",
+          "termination": "returned",
+          "calls": 793,
+          "firstNulFailure": false,
+          "otherPathExceptions": 0,
+          "gc": {
+            "stress": "false",
+            "autoCompact": false,
+            "collections": 489,
+            "compactions": 0
+          },
+          "versions": {
+            "ruby": "3.3.12",
+            "gems": {
+              "bundler": "2.5.22",
+              "cocoapods": "1.15.2",
+              "xcodeproj": "1.25.1"
+            }
+          }
+        }
+      }
+    ]
+  ],
+  "firstFailedStep": {
+    "number": 13,
+    "name": "Execute real XCUITest journey with both coinstalled releases",
+    "startedAt": "2026-10-04T21:58:24Z",
+    "completedAt": "2026-10-04T22:02:05Z"
+  },
+  "completedStages": [
+    {
+      "number": 9,
+      "name": "Compile pinned PostgreSQL and Timescale in private runner storage",
+      "conclusion": "success"
+    },
+    {
+      "number": 10,
+      "name": "Bootstrap real isolated API and create only the fixture accounts",
+      "conclusion": "success"
+    },
+    {
+      "number": 11,
+      "name": "Build both locally signed Release simulator applications",
+      "conclusion": "success"
+    },
+    {
+      "number": 12,
+      "name": "Start real API and existing restricted HTTPS proxy",
+      "conclusion": "success"
+    },
+    {
+      "number": 13,
+      "name": "Execute real XCUITest journey with both coinstalled releases",
+      "conclusion": "failure"
+    },
+    {
+      "number": 14,
+      "name": "Remove fixture records and stop only the owned disposable cluster",
+      "conclusion": "success"
+    },
+    {
+      "number": 15,
+      "name": "Export only approved native images and closed JSON schemas",
+      "conclusion": "success"
+    }
+  ],
+  "artifact": {
+    "id": 11316148754,
+    "name": "ios-authenticated-37237681193",
+    "sha256": "806a170bd78ee35247c5d63b96a1e9b72da0fa9d564c53cd3200babe256087a2",
+    "officialDigestMatches": true,
+    "files": [
+      "builds.json",
+      "database-source.json",
+      "result.json"
+    ],
+    "bytes": 988
+  },
+  "result": {
+    "passed": false,
+    "scope": "two coinstalled iOS Release apps, real isolated HTTPS/API sessions, Keychain restore, password change and logout",
+    "commit": "b6761fd0e421ac6d068ab5ebb1b989a5c2736430",
+    "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-18-5",
+    "sdkVersion": "18.5",
+    "steps": [],
+    "failureKind": "native-journey-failed"
+  },
+  "builds": [
+    {
+      "app": "resident-mobile",
+      "bundleId": "com.predioon.resident",
+      "mode": "Release",
+      "sha256": "3271bc991b113383607ee8038dca4e7c63f5e3cb1e6d94bace549be84fa72289"
+    },
+    {
+      "app": "operations-mobile",
+      "bundleId": "com.predioon.operations",
+      "mode": "Release",
+      "sha256": "9457c8a9964209a2403b13acda240ebe8b7fdf32de1ea5d268aa7eedfcf526b7"
+    }
+  ],
+  "databaseSource": {
+    "postgres": "16.15",
+    "timescale": "2.17.2",
+    "postgresSha256": "c1575341fa7bd40f5274ea465b34390f4dc64cdd0770af327005caaeb9f6b7ed",
+    "timescaleSha256": "85dd01deaa0728f95d117c1a75ca0cbf78f3301e6ab2b98bebe5f7c95b793acb"
+  },
+  "approvedPhases": 0,
+  "approvedImages": 0,
+  "approvedPostActions": 0,
+  "nativeAuthenticatedApproved": false,
+  "limits": [
+    "No approved native checkpoint exists; exact native substage/cause is not present in the closed artifact.",
+    "The approved exporter excluded private XCTest/build logs and xcresult.",
+    "No application/proxy/dependency/GC change, CI rerun or commit/push was performed.",
+    "No current NUL failure was observed; this successful build does not establish the cause or permanent resolution of the historical Ruby failure.",
+    "Fourteen POST actions, session-family and Keychain proofs were not completed."
+  ],
+  "runMetadata": {
+    "id": 37237681193,
+    "head_sha": "b6761fd0e421ac6d068ab5ebb1b989a5c2736430",
+    "status": "completed",
+    "conclusion": "failure",
+    "run_attempt": 1,
+    "created_at": "2026-10-04T21:50:16Z",
+    "updated_at": "2026-10-04T22:02:18Z",
+    "html_url": "https://github.com/helberjf/predioON/actions/runs/37237681193"
+  },
+  "httpsReadiness": {
+    "stage": "https-proxy-readiness",
+    "category": "proxy_ready",
+    "exitCode": 0,
+    "attempts": 1,
+    "lastProbe": {
+      "stage": "body",
+      "outcome": "ready",
+      "errno": "none"
+    },
+    "proxyStartup": "serving"
+  },
+  "validation": {
+    "podClosedSchemas": true,
+    "maximumMarkersPerProcess": 3,
+    "maximumMarkerBytes": 2048,
+    "artifactClosedSchemas": true,
+    "artifactReportedShaMatchesRun": true,
+    "pngCount": 0
+  },
+  "rootVerification": {
+    "officialArtifactMetadata": true,
+    "zipDigestBytesExactMembers": true,
+    "exporterSchemasRevalidated": true,
+    "gitSourceHashesVerified": 7
+  }
+}
