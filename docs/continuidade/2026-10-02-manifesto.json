@@ -1,13 +1,38 @@
 {
-  "baseCommit": "7821371ca1d0c9b575bff2b544451fc0042f01fe",
+  "baseCommit": "87a7f0512c46ab34239dac25bd83d4305c6c56eb",
   "capturedOn": "2026-10-04",
-  "state": "No unpublished drafts in this checkpoint; use published main",
+  "state": "Drafts: restore for review, not approved product changes",
   "patch": "2026-10-02-em-andamento.patch",
-  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-  "files": [],
+  "sha256": "2813738213919a20e1245592338330bac7c9384468d7d3a480e8016209e06630",
+  "files": [
+    {
+      "path": "scripts/ios-smoke/README.md",
+      "sha256LF": "0f04404de53090dfed2d8919f9e15dac39b5161232137547ec70b2a71b7a39e2"
+    },
+    {
+      "path": "e2e/README.md",
+      "sha256LF": "e173ac04e4572b7e268de3f9a975b9b8606a9ec26cbc70a501aa0c36f314aa78"
+    },
+    {
+      "path": "scripts/ios-smoke/run_auth.py",
+      "sha256LF": "bfe820924513014bba793c390ad9502011fdc7034aa035c6c622a7197709d20d"
+    },
+    {
+      "path": "scripts/ios-smoke/test_auth.py",
+      "sha256LF": "cc85b6592ad24ee99367eb31ac36802183b32a5d1b6d3a59afa7ec5c4c16fcda"
+    },
+    {
+      "path": "e2e/menu-navigation.spec.ts",
+      "sha256LF": "157cd902a1c9a7dd72bd3846eb033994e36342e0c6300717120575cb3507d346"
+    },
+    {
+      "path": "packages/ui/src/components/dashboard-frame.tsx",
+      "sha256LF": "9e0ba282aa5cb9e0da91f12574fde53b1ec8b6df95e3a894d46511fa5b9b390f"
+    }
+  ],
   "restoreCheck": {
     "passed": true,
-    "filesVerified": 0,
+    "filesVerified": 6,
     "method": "git apply to archived base, compare SHA-256 with normalized LF"
   }
 }

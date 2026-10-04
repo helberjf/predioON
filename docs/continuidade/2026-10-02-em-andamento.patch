@@ -1,0 +1,716 @@
+diff --git a/e2e/README.md b/e2e/README.md
+index aedd0e2..e9b2601 100644
+--- a/e2e/README.md
++++ b/e2e/README.md
+@@ -18,6 +18,7 @@ A configuração inicia a API na porta 3100 e os portais nas portas 5273–5275.
+ Os cenários cobrem:
+ 
+ - Login real e inválido, validação HTML, dashboard, contas sem condomínio e recuperação do painel administrativo.
++- Menu móvel nos portais administrativo e do condomínio: foco inicial, ciclo de Tab/Shift+Tab, fundo inativo, fechamento por Escape/botão/fundo/navegação e transição para desktop sem modal oculto nem bloqueio de rolagem.
+ - Cookie HttpOnly e SameSite, access somente em memória, limpeza dos tokens legados e SSE com bearer no cabeçalho, sem credencial na URL.
+ - Restauração após reload, renovação simultânea em duas abas, propagação de logout/troca de conta, sessões independentes entre portais e revogação real de família.
+ - Logout sem rede permanece bloqueado após reload; login inválido não recupera a identidade antiga; ausência de Web Locks apresenta diagnóstico sem enviar autenticação.
+diff --git a/packages/ui/src/components/dashboard-frame.tsx b/packages/ui/src/components/dashboard-frame.tsx
+index 103baaf..756d93c 100644
+--- a/packages/ui/src/components/dashboard-frame.tsx
++++ b/packages/ui/src/components/dashboard-frame.tsx
+@@ -1,4 +1,4 @@
+-import { useEffect, useState, type ComponentType, type ReactNode } from "react";
++import { useEffect, useId, useRef, useState, type ComponentType, type KeyboardEvent, type ReactNode } from "react";
+ import { Bell, ChevronRight, LogOut, Menu, Search, MapPin, X } from "lucide-react";
+ import { Brand } from "./primitives.js";
+ import { buildingImage } from "../assets.js";
+@@ -15,30 +15,75 @@ type Props = {
+ export function DashboardFrame({ children, title, subtitle, userName, role, links, pathname, signOut, renderLink, navigationFeedback, navigationBusy = false }: Props) {
+   const [search, setSearch] = useState("");
+   const [menuOpen, setMenuOpen] = useState(false);
++  const menuId = useId();
++  const menuRef = useRef<HTMLDialogElement>(null);
++  const openerRef = useRef<HTMLButtonElement>(null);
++  const closeRef = useRef<HTMLButtonElement>(null);
++  const mainRef = useRef<HTMLElement>(null);
+   const initials = userName.split(" ").filter(Boolean).slice(0, 2).map(part => part[0]).join("");
+   const matches = links.filter(link => link.label.toLocaleLowerCase("pt-BR").includes(search.toLocaleLowerCase("pt-BR")));
+ 
+-  // Fecha o menu ao trocar de página: o clique no link já navegou.
++  // Also close on navigation that did not originate from a menu link.
+   useEffect(() => setMenuOpen(false), [pathname]);
+ 
+   useEffect(() => {
+-    if (!menuOpen) return;
+-    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") setMenuOpen(false); };
+-    document.addEventListener("keydown", onKey);
++    const menu = menuRef.current;
++    if (!menuOpen || !menu) return;
++    // Both portal themes use Tailwind's default lg breakpoint.
++    const desktop = window.matchMedia("(min-width: 1024px)");
++    if (desktop.matches) {
++      setMenuOpen(false);
++      return;
++    }
++    const opener = openerRef.current;
+     const previous = document.body.style.overflow;
++    const onDesktop = (event: MediaQueryListEvent) => {
++      if (event.matches) setMenuOpen(false);
++    };
++    // Native modality makes all other page content inert, including the skip link.
++    menu.showModal();
++    closeRef.current?.focus();
+     document.body.style.overflow = "hidden";
+-    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = previous; };
++    desktop.addEventListener("change", onDesktop);
++    return () => {
++      desktop.removeEventListener("change", onDesktop);
++      if (menu.open) menu.close();
++      document.body.style.overflow = previous;
++      // The mobile opener is hidden on desktop; leave focus in visible content.
++      const target = opener?.isConnected && opener.getClientRects().length ? opener : mainRef.current;
++      target?.focus({ preventScroll: true });
++    };
+   }, [menuOpen]);
+ 
++  const confineMenuFocus = (event: KeyboardEvent<HTMLDialogElement>) => {
++    if (event.key !== "Tab" || event.altKey || event.ctrlKey || event.metaKey) return;
++    const items = Array.from(event.currentTarget.querySelectorAll<HTMLElement>(
++      'a[href], button, input, select, textarea, [tabindex]',
++    )).filter(item => item.tabIndex >= 0 && !item.matches(":disabled") && item.getClientRects().length);
++    const first = items[0];
++    const last = items[items.length - 1];
++    if (!first || !last) return;
++    const active = document.activeElement;
++    if (event.shiftKey && (active === first || !event.currentTarget.contains(active))) {
++      event.preventDefault();
++      last.focus();
++    } else if (!event.shiftKey && (active === last || !event.currentTarget.contains(active))) {
++      event.preventDefault();
++      first.focus();
++    }
++  };
++
+   const nav = () => links.map(({ to, label, icon: Icon }) => <div key={to}>{renderLink(to, <><Icon size={20}/><span>{label}</span><ChevronRight size={14} className="ml-auto opacity-40"/></>, cls("flex h-11 items-center gap-3 rounded-md px-3 text-[13px] transition", pathname === to ? "bg-[#0b5155] font-semibold text-[#33d6a4]" : "text-slate-200 hover:bg-white/5 hover:text-white"))}</div>);
+ 
+   // Mesma coluna escura serve à barra fixa do desktop e ao painel deslizante do celular.
+   const sidebar = (onClose?: () => void) => <>
+     <div className="flex items-start justify-between px-5 pb-6 pt-5">
+       <Brand dark/>
+-      {onClose && <button aria-label="Fechar menu" onClick={onClose} className="-mr-1 rounded-md p-2 text-slate-300 hover:bg-white/10"><X size={20}/></button>}
++      {onClose && <button ref={closeRef} aria-label="Fechar menu" onClick={onClose} className="-mr-1 rounded-md p-2 text-slate-300 hover:bg-white/10"><X size={20}/></button>}
+     </div>
+-    <nav aria-label="Menu principal" aria-busy={navigationBusy} className="space-y-1 px-3">{navigationFeedback ?? nav()}</nav>
++    <nav aria-label="Menu principal" aria-busy={navigationBusy} className="space-y-1 px-3" onClick={event => {
++      if (event.target instanceof Element && event.target.closest("a[href]")) onClose?.();
++    }}>{navigationFeedback ?? nav()}</nav>
+     <div className="relative mt-5 min-h-32 flex-1 overflow-hidden" aria-hidden="true">
+       <img src={buildingImage} alt="" className="absolute inset-0 h-full w-full object-cover object-center opacity-65"/>
+       <div className="absolute inset-0 bg-gradient-to-b from-[#0c202e] via-transparent to-[#0c202e]"/>
+@@ -55,18 +100,26 @@ export function DashboardFrame({ children, title, subtitle, userName, role, link
+ 
+     <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col overflow-y-auto bg-[#0c202e] lg:flex">{sidebar()}</aside>
+ 
+-    {menuOpen && <div className="fixed inset-0 z-40 lg:hidden">
++    {menuOpen && <dialog
++      ref={menuRef}
++      id={menuId}
++      aria-modal="true"
++      aria-label="Menu principal"
++      onCancel={event => { event.preventDefault(); setMenuOpen(false); }}
++      onKeyDown={confineMenuFocus}
++      className="fixed inset-0 m-0 h-full max-h-none w-full max-w-none border-0 bg-transparent p-0 backdrop:bg-transparent"
++    >
+       <div className="absolute inset-0 bg-slate-900/60" onClick={() => setMenuOpen(false)} aria-hidden="true"/>
+-      <div role="dialog" aria-modal="true" aria-label="Menu principal" className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col overflow-y-auto bg-[#0c202e] shadow-2xl">
++      <div className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col overflow-y-auto bg-[#0c202e] shadow-2xl">
+         {sidebar(() => setMenuOpen(false))}
+       </div>
+-    </div>}
++    </dialog>}
+ 
+     <div className="lg:pl-60">
+       <header className="relative z-20 border-b border-slate-200/70 bg-[#fafdff]">
+         <div className="flex min-h-[72px] items-center justify-between gap-4 px-4 md:px-6">
+           <div className="flex min-w-0 items-center gap-3">
+-            <button aria-label="Abrir menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(true)} className="-ml-1 rounded-lg p-2 text-[#183a58] hover:bg-slate-100 lg:hidden"><Menu size={22}/></button>
++            <button ref={openerRef} aria-label="Abrir menu" aria-haspopup="dialog" aria-controls={menuOpen ? menuId : undefined} aria-expanded={menuOpen} onClick={() => setMenuOpen(true)} className="-ml-1 rounded-lg p-2 text-[#183a58] hover:bg-slate-100 lg:hidden"><Menu size={22}/></button>
+             <div className="min-w-0">
+               <div className="lg:hidden"><Brand compact/></div>
+               <p className="hidden truncate text-[17px] font-bold tracking-tight text-[#142f50] lg:block">{title}</p>
+@@ -85,7 +138,7 @@ export function DashboardFrame({ children, title, subtitle, userName, role, link
+         </div>
+         <p className="border-t border-slate-200/70 px-4 py-2.5 text-[13px] font-semibold text-[#142f50] lg:hidden">{title}</p>
+       </header>
+-      <main id="conteudo" className="mx-auto max-w-[1680px] space-y-4 p-4 md:p-5">{children}</main>
++      <main ref={mainRef} id="conteudo" tabIndex={-1} className="mx-auto max-w-[1680px] space-y-4 p-4 md:p-5">{children}</main>
+       <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200/70 bg-white px-6 py-5 text-[11px] text-slate-500"><div><strong className="text-[#18304e]">Prédio ON</strong><p className="mt-1">Tecnologia a serviço do seu condomínio.</p></div><span>{role} · Seu prédio, sempre conectado.</span></footer>
+     </div>
+   </div>;
+diff --git a/scripts/ios-smoke/README.md b/scripts/ios-smoke/README.md
+index f45a898..f487fe7 100644
+--- a/scripts/ios-smoke/README.md
++++ b/scripts/ios-smoke/README.md
+@@ -87,7 +87,7 @@ Arquivos publicáveis: `result.json`, `builds.json`, `database-source.json` e pa
+ 
+ Uma falha anterior ao primeiro checkpoint pode produzir `steps=[]` sem identificar o comando que falhou. O run [b6761fd/37237681193](https://github.com/helberjf/predioON/actions/runs/37237681193) teve ambos os builds e a prontidão HTTPS aprovados, mas exportou somente `native-journey-failed`. A saída privada do runner não estava no artefato; portanto não foi possível distinguir boot, instalação, compilação ou teste inicial. Este diagnóstico acrescenta observabilidade para uma execução futura; não atribui causa àquela falha nem aprova a jornada Apple.
+ 
+-[run_auth.py](run_auth.py) pode acrescentar `failureDiagnostic` ao `result.json` reprovado, com exatamente três campos:
++[run_auth.py](run_auth.py) pode acrescentar `failureDiagnostic` ao `result.json` reprovado, com três campos obrigatórios:
+ 
+ ```json
+ {"stage":"runner-build","category":"nonzero-exit","exitCode":65}
+@@ -95,13 +95,23 @@ Uma falha anterior ao primeiro checkpoint pode produzir `steps=[]` sem identific
+ 
+ O estágio vem de uma constante no ponto da operação, sem interpretar paths ou argumentos. Os valores permitidos são `simulator-create`, `simulator-boot`, `certificate-install`, `resident-install`, `operations-install`, `coordinator-init`, `runner-build`, `runner-plist`, `runner-ats-check`, `runner-test`, `journey-finish-check`, `simulator-shutdown` e `simulator-delete`. As categorias são `nonzero-exit`, `timed-out`, `unavailable` e `verification-failed`; esta última indica uma falha de verificação/host naquele estágio, sem afirmar sua causa nativa.
+ 
++Somente `runner-build/nonzero-exit` pode incluir o par opcional `errorSignals` e `signalScanLimited`:
++
++```json
++{"stage":"runner-build","category":"nonzero-exit","exitCode":70,"errorSignals":["destination-selection"],"signalScanLimited":false}
++```
++
++Os sinais permitidos, nesta ordem fixa, são `destination-selection`, `sdk-availability`, `scheme-configuration` e `compiler-error`; múltiplos sinais podem coexistir, sem duplicatas ou ordem causal. `unclassified` aparece sozinho quando nenhum marcador permitido é reconhecido. Cada sinal representa somente um padrão restrito de erro no texto já capturado; não estabelece a causa do Xcode nem autoriza uma correção automática. O [run 6298065/37240428231](https://github.com/helberjf/predioON/actions/runs/37240428231) observou `runner-build/nonzero-exit/70`, antes de chamar `test-without-building`, mas não exportou esse suplemento. Seu motivo interno continua desconhecido; a classificação nova não reinterpreta essa execução nem falhas anteriores.
++
++A flag interna de observação é habilitada apenas na chamada existente de `build-for-testing`. A análise usa stdout/stderr já capturados, sem novas ferramentas, leitura de logs ou arquivo adicional. Examina somente as primeiras e últimas 65.536 posições por stream, desconsidera fragmentos cortados nas bordas e ignora linhas acima de 8.192 posições. `signalScanLimited` é bool exato e indica conteúdo omitido ou linha longa; `unclassified` em uma análise limitada não prova ausência de erro fora dessas janelas. Campos, mensagens, símbolos, linha/coluna, paths, argv, ambiente e versões não são copiados para o resultado. A captura privada original permanece igual; os limites restringem a análise, sem mudar os buffers do subprocesso.
++
+ `exitCode` aceita somente inteiro não zero entre −255 e 255, ou `null`; códigos negativos preservam a representação de sinal do subprocesso POSIX. Timeout, comando indisponível e falha de verificação exigem `null`. Um status de processo fora desse intervalo também vira `null`, sem inventar outro código. O diagnóstico não inclui mensagem da exceção, assertiva livre, argv, paths, ambiente, stdout/stderr, identidade de simulador, dados de tela ou `xcresult`; também não inventa totais XCTest.
+ 
+-A primeira falha é fixada antes da coleta. Uma falha posterior de limpeza não substitui seu estágio; se o próprio coletor falhar, o erro original permanece e uma falha posterior não passa a ser apresentada como a primeira. Rejeições de segurança ou fase continuam primárias e omitem esse diagnóstico suplementar. O primeiro `securityFailure` mantém precedência sobre o término do processo ou uma categoria posterior de fase. Um resultado aprovado não pode conter `failureDiagnostic`, e o diagnóstico nunca acrescenta checkpoint ou imagem. O exportador recusa campos, tipos, enums e códigos fora do contrato antes de criar a pasta pública.
++A primeira falha é fixada antes da coleta. Uma falha posterior de limpeza não substitui seu estágio; se o próprio coletor falhar, o erro original permanece e uma falha posterior não passa a ser apresentada como a primeira. Falha ou retorno inválido do classificador omite somente o par de sinais e conserva o erro e diagnóstico base. Rejeições de segurança ou fase continuam primárias e omitem esse diagnóstico suplementar. O primeiro `securityFailure` mantém precedência sobre o término do processo ou uma categoria posterior de fase. Um resultado aprovado não pode conter `failureDiagnostic`, e o diagnóstico nunca acrescenta checkpoint ou imagem. O exportador recusa campos, tipos, enums e códigos fora do contrato antes de criar a pasta pública. O par opcional é indivisível, tem lista de 1–4 valores com ordem fixa, exige bool estrito e não pode aparecer em outro estágio/categoria, sucesso ou negativa primária.
+ 
+ A cobertura limita-se aos estágios enumerados dentro da execução e à limpeza do simulador. As validações iniciais de produto/assinatura/SDK, falhas do próprio exportador e encerramento do servidor do coordenador podem impedir a exportação sem produzir esse campo. As chamadas, captura privada dos subprocessos, TLS, certificado, origem, prazos, ausência de retries, Swift, sequência de 14 POST e gates de banco/imagens permanecem iguais.
+ 
+-Os testes de host injetam falhas nos pontos reais do fluxo de boot, instalação dos dois produtos, `build-for-testing` e `test-without-building`, incluindo primeira negativa, cleanup posterior e falha do coletor. Também executam processos Python reais com sucesso, exit não zero, timeout e executável ausente, sem executar Xcode ou simulador. Esses ensaios verificam o diagnóstico e a fronteira de publicação; uma nova jornada nativa Apple continua necessária.
++Os testes de host injetam falhas nos pontos reais do fluxo de boot, instalação dos dois produtos, `build-for-testing` e `test-without-building`, incluindo primeira negativa, cleanup posterior e falha do coletor. Também executam processos Python reais com sucesso, exit não zero, timeout e executável ausente, sem executar Xcode ou simulador. O suplemento cobre cada enum, múltiplos streams, textos desconhecidos, comandos/linhas de código que não são marcadores de erro, conteúdo omitido, linhas longas e fragmentos cortados. A chamada real do fluxo exige a flag somente no build e preserva o gate quando cleanup também falha; o processo controlado confirma execução única, argumentos, prazo, captura privada, exit e ausência de segredo no suplemento. O exportador recusa tipos/enums/caps, ordem/duplicatas, campo incompleto, `unclassified` combinado, outro estágio/categoria, sucesso e negativas primárias. Esses ensaios verificam o diagnóstico e a fronteira de publicação; uma nova jornada nativa Apple continua necessária.
+ 
+ ## Verificação local deste incremento
+ 
+diff --git a/scripts/ios-smoke/run_auth.py b/scripts/ios-smoke/run_auth.py
+index 3bdc323..9327978 100644
+--- a/scripts/ios-smoke/run_auth.py
++++ b/scripts/ios-smoke/run_auth.py
+@@ -42,14 +42,37 @@ DIAGNOSTIC_STAGES = frozenset({"simulator-create", "simulator-boot", "certificat
+     "resident-install", "operations-install", "coordinator-init", "runner-build", "runner-plist",
+     "runner-ats-check", "runner-test", "journey-finish-check", "simulator-shutdown", "simulator-delete"})
+ DIAGNOSTIC_CATEGORIES = frozenset({"nonzero-exit", "timed-out", "unavailable", "verification-failed"})
++BUILD_ERROR_SIGNALS = ("destination-selection", "sdk-availability", "scheme-configuration", "compiler-error")
++BUILD_SIGNAL_PATTERNS = (
++    re.compile(r"^xcodebuild: error: (?:Unable to find a destination matching\b|Found no destinations for the scheme\b)"),
++    re.compile(r"^xcodebuild: error: SDK .+ cannot be located\.?$"),
++    re.compile(r"^xcodebuild: error: (?:Scheme .+ is not currently configured for the test action\.?|"
++               r"The (?:project|workspace) named .+ does not contain a scheme named .+)\s*$"),
++    re.compile(r'''^[^\s"'<>:=][^"'<>:=\r\n]*\.swift:[0-9]{1,9}:[0-9]{1,9}: error: .+$'''),
++)
+ 
+ 
+ class SecurityViolation(RuntimeError):
+     pass
+ 
+ 
++def safe_build_error_signals(payload):
++    if not isinstance(payload, dict) or set(payload) != {"errorSignals", "signalScanLimited"}:
++        raise SecurityViolation("Unexpected build signal fields")
++    signals, limited = payload["errorSignals"], payload["signalScanLimited"]
++    if type(limited) is not bool or not isinstance(signals, list) or not 1 <= len(signals) <= 4:
++        raise SecurityViolation("Unexpected build signal values")
++    if any(not isinstance(signal, str) or signal not in (*BUILD_ERROR_SIGNALS, "unclassified") for signal in signals):
++        raise SecurityViolation("Unexpected build signal category")
++    if signals != ["unclassified"] and signals != [signal for signal in BUILD_ERROR_SIGNALS if signal in signals]:
++        raise SecurityViolation("Unexpected build signal order or duplication")
++    return payload
++
++
+ def safe_failure_diagnostic(payload):
+-    if not isinstance(payload, dict) or set(payload) != {"stage", "category", "exitCode"}:
++    required = {"stage", "category", "exitCode"}
++    optional = {"errorSignals", "signalScanLimited"}
++    if not isinstance(payload, dict) or set(payload) not in (required, required | optional):
+         raise SecurityViolation("Unexpected failure diagnostic fields")
+     stage, category, code = payload["stage"], payload["category"], payload["exitCode"]
+     if not isinstance(stage, str) or stage not in DIAGNOSTIC_STAGES or not isinstance(category, str) or category not in DIAGNOSTIC_CATEGORIES:
+@@ -58,6 +81,10 @@ def safe_failure_diagnostic(payload):
+         raise SecurityViolation("Unexpected failure diagnostic exit code")
+     if category != "nonzero-exit" and code is not None:
+         raise SecurityViolation("Unexpected exit code for diagnostic category")
++    if optional <= set(payload):
++        if stage != "runner-build" or category != "nonzero-exit":
++            raise SecurityViolation("Build signals require a returned runner build failure")
++        safe_build_error_signals({key: payload[key] for key in optional})
+     return payload
+ 
+ 
+@@ -86,7 +113,13 @@ class FailureDiagnostic:
+                 try:
+                     category = error.category if isinstance(error, PrivateCommandFailure) else "verification-failed"
+                     code = error.exit_code if isinstance(error, PrivateCommandFailure) else None
+-                    self.first = dict(safe_failure_diagnostic({"stage": name, "category": category, "exitCode": code}))
++                    payload = {"stage": name, "category": category, "exitCode": code}
++                    if name == "runner-build" and category == "nonzero-exit":
++                        try:
++                            payload.update(safe_build_error_signals(getattr(error, "build_signals", None)))
++                        except Exception:
++                            pass
++                    self.first = dict(safe_failure_diagnostic(payload))
+                 except Exception:
+                     pass
+             raise
+@@ -327,7 +360,37 @@ def owned_simulator(value, created):
+     return canonical
+ 
+ 
+-def command(*arguments, timeout=60, private_log=None):
++def runner_build_error_signals(stdout, stderr):
++    """Classify bounded captured text, never return text or a claimed cause."""
++    found = set()
++    limited = False
++    for stream in (stdout, stderr):
++        if not isinstance(stream, str):
++            raise ValueError("Captured build output must be text")
++        if len(stream) > 131072:
++            limited = True
++            first, last = stream[:65536].splitlines(), stream[-65536:].splitlines()
++            # Clipped fragments cannot manufacture an error at a window edge.
++            if first and stream[65535] not in "\r\n":
++                first.pop()
++            if last and stream[-65537] not in "\r\n":
++                last.pop(0)
++            windows = (first, last)
++        else:
++            windows = (stream.splitlines(),)
++        for lines in windows:
++            for line in lines:
++                if len(line) > 8192:
++                    limited = True
++                    continue
++                for signal, pattern in zip(BUILD_ERROR_SIGNALS, BUILD_SIGNAL_PATTERNS):
++                    if pattern.match(line):
++                        found.add(signal)
++    return {"errorSignals": [signal for signal in BUILD_ERROR_SIGNALS if signal in found] or ["unclassified"],
++            "signalScanLimited": limited}
++
++
++def command(*arguments, timeout=60, private_log=None, observe_build_signals=False):
+     try:
+         result = subprocess.run(arguments, capture_output=True, text=True, timeout=timeout)
+     except subprocess.TimeoutExpired:
+@@ -340,7 +403,13 @@ def command(*arguments, timeout=60, private_log=None):
+         # A failure can contain typeText/password/DSNs: never include stdout,
+         # stderr, command arguments or the original exception in public output.
+         code = result.returncode if type(result.returncode) is int and -255 <= result.returncode <= 255 else None
+-        raise PrivateCommandFailure("nonzero-exit", code, "Private verification command failed")
++        failure = PrivateCommandFailure("nonzero-exit", code, "Private verification command failed")
++        if observe_build_signals is True:
++            try:
++                failure.build_signals = dict(safe_build_error_signals(runner_build_error_signals(result.stdout, result.stderr)))
++            except Exception:
++                pass
++        raise failure
+     return result.stdout.strip()
+ 
+ 
+@@ -584,7 +653,8 @@ def run(private, output, resident, operations):
+                   "CODE_SIGNING_ALLOWED=YES", "CODE_SIGN_IDENTITY=-", "-parallel-testing-enabled", "NO",
+                   "-maximum-concurrent-test-simulator-destinations", "1"]
+         with diagnostic.stage("runner-build"):
+-            command(*common, "build-for-testing", timeout=240, private_log=private / "runner-build.log")
++            command(*common, "build-for-testing", timeout=240, private_log=private / "runner-build.log",
++                    observe_build_signals=True)
+         with diagnostic.stage("runner-plist"):
+             runner_info = private / "runner-build/Build/Products/Release-iphonesimulator/AuthJourney-Runner.app/Info.plist"
+             with runner_info.open("rb") as source:
+diff --git a/scripts/ios-smoke/test_auth.py b/scripts/ios-smoke/test_auth.py
+index 8367734..7bcba4f 100644
+--- a/scripts/ios-smoke/test_auth.py
++++ b/scripts/ios-smoke/test_auth.py
+@@ -263,7 +263,7 @@ class ExportTests(unittest.TestCase):
+ 
+ 
+ class NativeFailureDiagnosticTests(unittest.TestCase):
+-    def run_failure(self, failed_stage, *, cleanup_fails=False, rejection=None, outcome="nonzero-exit"):
++    def run_failure(self, failed_stage, *, cleanup_fails=False, rejection=None, outcome="nonzero-exit", build_message=None):
+         run = load("run_auth")
+         secret = "PrivateNativeDiagnosticSentinel123456"
+         with tempfile.TemporaryDirectory() as temporary, ExitStack() as patches:
+@@ -344,7 +344,8 @@ class NativeFailureDiagnosticTests(unittest.TestCase):
+                         raise subprocess.TimeoutExpired(arguments, options["timeout"], output=secret, stderr=secret)
+                     if outcome == "unavailable":
+                         raise OSError(secret)
+-                    return subprocess.CompletedProcess(arguments, 65, secret, secret)
++                    return subprocess.CompletedProcess(arguments, 65, secret,
++                                                       build_message if stage == "runner-build" and build_message is not None else secret)
+                 if cleanup_fails and stage in {"simulator-shutdown", "simulator-delete"}:
+                     return subprocess.CompletedProcess(arguments, 42, secret, secret)
+                 return subprocess.CompletedProcess(arguments, 0, stdout, "")
+@@ -386,7 +387,16 @@ class NativeFailureDiagnosticTests(unittest.TestCase):
+ 
+     def test_runner_build_failure_does_not_claim_xctest_started(self):
+         result, stages = self.run_failure("runner-build")
+-        self.assertEqual(result.get("failureDiagnostic"), {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 65})
++        self.assertEqual(result.get("failureDiagnostic"), {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 65,
++                                                         "errorSignals": ["unclassified"], "signalScanLimited": False})
++        self.assertNotIn("runner-test", stages)
++
++    def test_runner_build_call_explicitly_observes_signals_and_keeps_original_gate(self):
++        result, stages = self.run_failure("runner-build", build_message=RunnerBuildSignalTests.destination,
++                                          cleanup_fails=True)
++        self.assertEqual(result.get("failureDiagnostic"), {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 65,
++                                                         "errorSignals": ["destination-selection"], "signalScanLimited": False})
++        self.assertTrue(result["cleanupFailed"])
+         self.assertNotIn("runner-test", stages)
+ 
+     def test_runner_test_failure_is_distinct_from_build(self):
+@@ -396,7 +406,8 @@ class NativeFailureDiagnosticTests(unittest.TestCase):
+ 
+     def test_cleanup_cannot_overwrite_the_first_failure(self):
+         result, stages = self.run_failure("runner-build", cleanup_fails=True)
+-        self.assertEqual(result.get("failureDiagnostic"), {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 65})
++        self.assertEqual(result.get("failureDiagnostic"), {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 65,
++                                                         "errorSignals": ["unclassified"], "signalScanLimited": False})
+         self.assertTrue(result["cleanupFailed"])
+         self.assertEqual(stages[-2:], ["simulator-shutdown", "simulator-delete"])
+ 
+@@ -488,6 +499,169 @@ class NativeFailureDiagnosticTests(unittest.TestCase):
+                 self.assertEqual(diagnostic.first["exitCode"], expected)
+ 
+ 
++class RunnerBuildSignalTests(unittest.TestCase):
++    destination = "xcodebuild: error: Unable to find a destination matching the provided destination specifier:\n"
++    sdk = 'xcodebuild: error: SDK "PrivateSdkSentinel" cannot be located.\n'
++    scheme = "xcodebuild: error: Scheme PrivateSchemeSentinel is not currently configured for the test action.\n"
++    compiler = "/private/PrivatePathSentinel/AuthJourney.swift:12:3: error: PrivateCompilerSentinel\n"
++
++    def observe(self, run, stdout, stderr, *, flag=True, status=70):
++        diagnostic = run.FailureDiagnostic()
++        response = subprocess.CompletedProcess(["private-fixture"], status, stdout, stderr)
++        with patch.object(run.subprocess, "run", return_value=response) as process:
++            try:
++                with diagnostic.stage("runner-build"):
++                    run.command("private-fixture", observe_build_signals=flag)
++            except run.PrivateCommandFailure as error:
++                self.assertEqual(error.exit_code, status)
++                self.assertEqual(str(error), "Private verification command failed")
++            self.assertEqual(process.call_count, 1)
++        return diagnostic.first
++
++    def test_each_signal_uses_only_a_closed_enum(self):
++        run = load("run_auth")
++        for marker, expected in [(self.destination, "destination-selection"), (self.sdk, "sdk-availability"),
++                                 (self.scheme, "scheme-configuration"), (self.compiler, "compiler-error")]:
++            with self.subTest(signal=expected):
++                result = self.observe(run, "", marker)
++                self.assertEqual(result, {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 70,
++                                          "errorSignals": [expected], "signalScanLimited": False})
++                self.assertNotIn("Private", json.dumps(result))
++
++    def test_multiple_streams_are_deduplicated_and_sorted_without_causal_order(self):
++        run = load("run_auth")
++        result = self.observe(run, self.compiler + self.sdk + self.destination, self.scheme + self.destination)
++        self.assertEqual(result["errorSignals"], ["destination-selection", "sdk-availability", "scheme-configuration", "compiler-error"])
++        self.assertFalse(result["signalScanLimited"])
++
++    def test_unknown_empty_and_non_error_text_remain_unclassified(self):
++        run = load("run_auth")
++        for text in ["", "private generic failure\n", "Command line invocation: " + self.destination,
++                     'let text = "' + self.compiler.strip() + '"\n',
++                     self.compiler.replace(": error:", ": warning:"),
++                     "prefix " + self.sdk, " \t" + self.destination,
++                     "private-nul\x00 private-emoji🙂\n"]:
++            with self.subTest(text_index=len(text)):
++                result = self.observe(run, text, "")
++                self.assertEqual(result["errorSignals"], ["unclassified"])
++                self.assertFalse(result["signalScanLimited"])
++
++    def test_observer_is_opt_in_and_does_not_change_generic_commands(self):
++        run = load("run_auth")
++        with patch.object(run, "runner_build_error_signals", side_effect=AssertionError("observer must not run")):
++            for flag in [False, None, 1, "true"]:
++                with self.subTest(flag=type(flag).__name__):
++                    self.assertEqual(self.observe(run, "", self.destination, flag=flag),
++                                     {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 70})
++
++    def test_success_does_not_observe_even_when_the_flag_is_enabled(self):
++        run = load("run_auth")
++        with patch.object(run, "runner_build_error_signals", side_effect=AssertionError("observer must not run")):
++            self.assertIsNone(self.observe(run, self.destination, "", status=0))
++
++    def test_scan_first_and_last_windows_only_and_reports_omitted_middle(self):
++        run = load("run_auth")
++        text = self.destination + ("ordinary line\n" * 12000) + self.compiler
++        result = self.observe(run, text, self.sdk)
++        self.assertEqual(result["errorSignals"], ["destination-selection", "sdk-availability", "compiler-error"])
++        self.assertTrue(result["signalScanLimited"])
++        hidden = ("ordinary line\n" * 7000) + self.scheme + ("ordinary line\n" * 7000)
++        result = self.observe(run, hidden, "")
++        self.assertEqual(result["errorSignals"], ["unclassified"])
++        self.assertTrue(result["signalScanLimited"])
++
++    def test_line_length_boundary_and_clipped_fragments_cannot_create_signals(self):
++        run = load("run_auth")
++        prefix = "xcodebuild: error: Unable to find a destination matching "
++        for length, expected in [(8192, "destination-selection"), (8193, "unclassified")]:
++            with self.subTest(length=length):
++                result = self.observe(run, prefix + "x" * (length - len(prefix)) + "\n", "")
++                self.assertEqual(result["errorSignals"], [expected])
++                self.assertEqual(result["signalScanLimited"], length > 8192)
++        # The tail starts at a marker within a huge line, not at a real error line.
++        tail = self.destination + "x" * (65536 - len(self.destination))
++        result = self.observe(run, "x" * 100000 + tail, "")
++        self.assertEqual(result["errorSignals"], ["unclassified"])
++        self.assertTrue(result["signalScanLimited"])
++
++    def test_collector_failure_omits_only_the_supplement_and_keeps_first_failure(self):
++        run = load("run_auth")
++        diagnostic = run.FailureDiagnostic()
++        response = subprocess.CompletedProcess(["fixture"], 70, "private", self.destination)
++        original = []
++        with patch.object(run.subprocess, "run", return_value=response), \
++                patch.object(run, "runner_build_error_signals", side_effect=OSError("private observer failure")):
++            with self.assertRaises(run.PrivateCommandFailure) as observed:
++                with diagnostic.stage("runner-build"):
++                    try:
++                        run.command("fixture", observe_build_signals=True)
++                    except run.PrivateCommandFailure as error:
++                        original.append(error)
++                        raise
++        self.assertIs(observed.exception, original[0])
++        self.assertEqual(diagnostic.first, {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 70})
++        with self.assertRaises(RuntimeError):
++            with diagnostic.stage("simulator-delete"):
++                raise RuntimeError("private cleanup failure")
++        self.assertEqual(diagnostic.first["stage"], "runner-build")
++
++    def test_malformed_collector_payload_cannot_replace_the_base_diagnostic(self):
++        run = load("run_auth")
++        for payload in [None, [], {"errorSignals": ["private"], "signalScanLimited": False},
++                        {"errorSignals": ["compiler-error"], "signalScanLimited": False, "exitCode": 11}]:
++            with self.subTest(payload_type=type(payload).__name__), \
++                    patch.object(run, "runner_build_error_signals", return_value=payload):
++                self.assertEqual(self.observe(run, "", self.compiler),
++                                 {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 70})
++
++    def test_real_nonzero_process_keeps_capture_argv_exit_and_execution_count(self):
++        run = load("run_auth")
++        diagnostic = run.FailureDiagnostic()
++        code = "import sys; print('private stdout'); sys.stderr.write(sys.argv[1]); sys.exit(70)"
++        with tempfile.TemporaryDirectory() as temporary:
++            log = Path(temporary) / "private.log"
++            actual = run.subprocess.run
++            with patch.object(run.subprocess, "run", wraps=actual) as process, self.assertRaises(run.PrivateCommandFailure):
++                with diagnostic.stage("runner-build"):
++                    run.command(sys.executable, "-c", code, self.destination, timeout=5,
++                                private_log=log, observe_build_signals=True)
++            self.assertEqual(process.call_count, 1)
++            self.assertEqual(process.call_args.args[0], (sys.executable, "-c", code, self.destination))
++            self.assertEqual(process.call_args.kwargs, {"capture_output": True, "text": True, "timeout": 5})
++            self.assertEqual(log.read_text(), "private stdout\n" + self.destination)
++        self.assertEqual(diagnostic.first, {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 70,
++                                          "errorSignals": ["destination-selection"], "signalScanLimited": False})
++
++    def test_real_success_timeout_and_missing_executable_do_not_collect(self):
++        run = load("run_auth")
++        with tempfile.TemporaryDirectory() as temporary, \
++                patch.object(run, "runner_build_error_signals", side_effect=AssertionError("observer must not run")):
++            self.assertEqual(run.command(sys.executable, "-c", "print(' kept ')", timeout=5,
++                                         observe_build_signals=True), "kept")
++            for arguments, timeout, category in [
++                    ((sys.executable, "-c", "import time; time.sleep(60)"), 0.15, "timed-out"),
++                    ((str(Path(temporary) / "missing-executable"),), 5, "unavailable")]:
++                with self.subTest(category=category):
++                    diagnostic = run.FailureDiagnostic()
++                    with self.assertRaises(run.PrivateCommandFailure):
++                        with diagnostic.stage("runner-build"):
++                            run.command(*arguments, timeout=timeout, observe_build_signals=True)
++                    self.assertEqual(diagnostic.first, {"stage": "runner-build", "category": category, "exitCode": None})
++
++    def test_a_supplement_cannot_escape_its_runner_build_stage(self):
++        run = load("run_auth")
++        for stage in ["runner-test", "simulator-delete"]:
++            with self.subTest(stage=stage):
++                diagnostic = run.FailureDiagnostic()
++                error = run.PrivateCommandFailure("nonzero-exit", 70, "Private verification command failed")
++                error.build_signals = {"errorSignals": ["compiler-error"], "signalScanLimited": False}
++                with self.assertRaises(run.PrivateCommandFailure) as observed:
++                    with diagnostic.stage(stage):
++                        raise error
++                self.assertIs(observed.exception, error)
++                self.assertEqual(diagnostic.first, {"stage": stage, "category": "nonzero-exit", "exitCode": 70})
++
++
+ class FailureDiagnosticExportTests(unittest.TestCase):
+     def result(self, run, diagnostic):
+         return {"passed": False, "scope": run.SCOPE, "commit": "b" * 40,
+@@ -542,6 +716,65 @@ class FailureDiagnosticExportTests(unittest.TestCase):
+             with self.assertRaises(run.SecurityViolation):
+                 run.safe_json("result.json", invalid)
+ 
++    def test_optional_build_signals_are_exported_only_as_a_closed_pair(self):
++        run = load("run_auth")
++        for signals, limited in [(["destination-selection"], False), (["unclassified"], True),
++                                 (["destination-selection", "sdk-availability", "scheme-configuration", "compiler-error"], False)]:
++            with self.subTest(signals=signals), tempfile.TemporaryDirectory() as temporary:
++                diagnostic = {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 70,
++                              "errorSignals": signals, "signalScanLimited": limited}
++                private, public = Path(temporary) / "private", Path(temporary) / "public"
++                private.mkdir()
++                self.export(run, private, public, self.result(run, diagnostic))
++                self.assertEqual(json.loads((public / "result.json").read_text())["failureDiagnostic"], diagnostic)
++
++    def test_build_signal_schema_rejects_types_enums_caps_order_and_other_stages(self):
++        run = load("run_auth")
++        valid = {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 70,
++                 "errorSignals": ["destination-selection"], "signalScanLimited": False}
++        invalid = [{key: value for key, value in valid.items() if key != omitted}
++                   for omitted in ["errorSignals", "signalScanLimited"]]
++        invalid += [{**valid, "errorSignals": signals} for signals in [
++            None, "destination-selection", {}, (), [], [None], [True], [1], [[]],
++            ["PrivateExportSentinel123456"], ["destination-selection"] * 2,
++            ["compiler-error", "destination-selection"], ["unclassified", "compiler-error"],
++            ["destination-selection", "sdk-availability", "scheme-configuration", "compiler-error", "unclassified"]]]
++        invalid += [{**valid, "signalScanLimited": value} for value in [None, 0, 1, 0.0, "false", [], {}]]
++        invalid += [{**valid, "stage": stage} for stage in run.DIAGNOSTIC_STAGES if stage != "runner-build"]
++        invalid += [{**valid, "category": category, "exitCode": None}
++                    for category in run.DIAGNOSTIC_CATEGORIES if category != "nonzero-exit"]
++        invalid += [{**valid, "rawLine": "PrivateExportSentinel123456"}]
++        with tempfile.TemporaryDirectory() as temporary:
++            root = Path(temporary)
++            for index, diagnostic in enumerate(invalid):
++                with self.subTest(index=index):
++                    private, public = root / str(index), root / (str(index) + "-public")
++                    private.mkdir()
++                    with self.assertRaises(run.SecurityViolation):
++                        self.export(run, private, public, self.result(run, diagnostic))
++                    self.assertFalse(public.exists())
++
++    def test_build_signals_cannot_be_published_on_success_or_primary_rejection(self):
++        run = load("run_auth")
++        diagnostic = {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 70,
++                      "errorSignals": ["compiler-error"], "signalScanLimited": False}
++        original = self.result(run, diagnostic)
++        success = {**original, "passed": True,
++                   "steps": [{"app": app, "phase": phase, "passed": True} for app, phase in run.expected_order()]}
++        del success["failureKind"]
++        invalid = [success, {**original, "failureKind": "phase-rejected"},
++                   {**original, "failureKind": "security-rejection"},
++                   {**original, "securityFailure": {"kind": "private-identity", "observedAt": "2026-10-04T22:00:00Z"}}]
++        with tempfile.TemporaryDirectory() as temporary:
++            root = Path(temporary)
++            for index, result in enumerate(invalid):
++                with self.subTest(index=index):
++                    private, public = root / str(index), root / (str(index) + "-public")
++                    private.mkdir()
++                    with self.assertRaises(run.SecurityViolation):
++                        self.export(run, private, public, result)
++                    self.assertFalse(public.exists())
++
+ 
+ class SourceContractTests(unittest.TestCase):
+     def test_database_evidence_accepts_only_the_verified_maintenance_sources(self):
+diff --git a/e2e/menu-navigation.spec.ts b/e2e/menu-navigation.spec.ts
+new file mode 100644
+index 0000000..e0a796d
+--- /dev/null
++++ b/e2e/menu-navigation.spec.ts
+@@ -0,0 +1,106 @@
++import { expect, test, type Page } from "./fixtures";
++import { ADMIN_URL, BUILDING_URL } from "./environment";
++import { signIn } from "./helpers";
++
++const portals = [
++  { name: "administração", url: ADMIN_URL, email: "admin@predioon.local", home: "Dashboard" },
++  { name: "condomínio", url: BUILDING_URL, email: "sindico@predioon.local", home: "Início" },
++];
++
++const dialog = (page: Page) => page.getByRole("dialog", { name: "Menu principal", exact: true });
++const opener = (page: Page) => page.getByRole("button", { name: "Abrir menu", exact: true });
++const bodyOverflow = (page: Page) => page.evaluate(() => document.body.style.overflow);
++
++async function openMenu(page: Page, home: string) {
++  await opener(page).click();
++  await expect(dialog(page)).toBeVisible();
++  await expect(dialog(page).getByRole("link", { name: home, exact: true })).toBeVisible();
++}
++
++async function expectClosed(page: Page, overflow: string) {
++  await expect(page.getByRole("dialog", { name: "Menu principal", includeHidden: true })).toHaveCount(0);
++  await expect(opener(page)).toHaveAttribute("aria-expanded", "false");
++  await expect.poll(() => bodyOverflow(page)).toBe(overflow);
++  await expect(opener(page)).toBeFocused();
++}
++
++for (const portal of portals) {
++  test.describe(`Menu móvel — ${portal.name}`, () => {
++    test.use({ viewport: { width: 375, height: 812 } });
++
++    test("recebe o foco, confina Tab e Shift+Tab e impede foco no conteúdo de fundo", async ({ page }) => {
++      await signIn(page, portal.url, portal.email);
++      const backgroundAlert = page.getByRole("link", { name: "Ver alertas", exact: true });
++      // Capture the real background element before a modal removes it from the accessibility tree.
++      const backgroundHandle = await backgroundAlert.elementHandle();
++      expect(backgroundHandle).not.toBeNull();
++      await openMenu(page, portal.home);
++      const close = dialog(page).getByRole("button", { name: "Fechar menu", exact: true });
++      const logout = dialog(page).getByRole("button", { name: "Sair da conta", exact: true });
++      await expect(close).toBeFocused();
++
++      await backgroundHandle!.evaluate(element => (element as HTMLElement).focus());
++      await expect(close).toBeFocused();
++      await expect(page).toHaveURL(`${portal.url}/`);
++      await page.keyboard.press("Shift+Tab");
++      await expect(logout).toBeFocused();
++      await page.keyboard.press("Tab");
++      await expect(close).toBeFocused();
++
++      const stops = await dialog(page).getByRole("link").count() + 2;
++      for (const key of ["Tab", "Shift+Tab"]) {
++        for (let index = 0; index < stops; index++) {
++          await page.keyboard.press(key);
++          await expect.poll(() => dialog(page).evaluate(element => element.contains(document.activeElement))).toBe(true);
++        }
++        await expect(close).toBeFocused();
++      }
++      await page.keyboard.press("Escape");
++      await expect(opener(page)).toBeFocused();
++    });
++
++    test("devolve foco ao fechar por Escape, botão, fundo ou navegação inclusive para a página atual", async ({ page }) => {
++      await signIn(page, portal.url, portal.email);
++      const overflow = await bodyOverflow(page);
++      for (const method of ["escape", "button", "backdrop"] as const) {
++        await openMenu(page, portal.home);
++        await expect.poll(() => bodyOverflow(page)).toBe("hidden");
++        if (method === "escape") await page.keyboard.press("Escape");
++        if (method === "button") await dialog(page).getByRole("button", { name: "Fechar menu", exact: true }).click();
++        if (method === "backdrop") await page.mouse.click(371, 400);
++        await expectClosed(page, overflow);
++      }
++
++      await openMenu(page, portal.home);
++      await dialog(page).getByRole("link", { name: portal.home, exact: true }).click();
++      await expect(page).toHaveURL(`${portal.url}/`);
++      await expectClosed(page, overflow);
++      await openMenu(page, portal.home);
++      await dialog(page).getByRole("link", { name: "Minhas sessões", exact: true }).click();
++      await expect(page).toHaveURL(`${portal.url}/sessoes`);
++      await expectClosed(page, overflow);
++      await expect(page.getByRole("main")).toBeVisible();
++    });
++
++    test("passa ao desktop sem modal oculto nem bloqueio de rolagem e pode reabrir no celular", async ({ page }) => {
++      await signIn(page, portal.url, portal.email);
++      const overflow = await bodyOverflow(page);
++      await openMenu(page, portal.home);
++      await expect.poll(() => bodyOverflow(page)).toBe("hidden");
++      await page.setViewportSize({ width: 1280, height: 900 });
++      await expect(page.getByRole("dialog", { name: "Menu principal", includeHidden: true })).toHaveCount(0);
++      await expect.poll(() => bodyOverflow(page)).toBe(overflow);
++      await expect(opener(page)).toBeHidden();
++      await page.getByRole("navigation", { name: "Menu principal", exact: true })
++        .getByRole("link", { name: "Minhas sessões", exact: true }).click();
++      await expect(page).toHaveURL(`${portal.url}/sessoes`);
++
++      await page.setViewportSize({ width: 375, height: 812 });
++      await expect(opener(page)).toHaveAttribute("aria-expanded", "false");
++      await openMenu(page, portal.home);
++      await expect(dialog(page).getByRole("button", { name: "Fechar menu", exact: true })).toBeFocused();
++      await page.keyboard.press("Escape");
++      await expectClosed(page, overflow);
++    });
++  });
++}
