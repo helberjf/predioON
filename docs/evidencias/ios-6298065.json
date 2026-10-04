@@ -1,0 +1,458 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "629806581457750cff893f35f25ca19eb017aba4",
+  "date": "2026-10-04",
+  "sourceFiles": [
+    {
+      "path": ".github/workflows/ios-auth.yml",
+      "bytesGitLF": 6454,
+      "sha256GitLF": "9895ef170153f020c8b857a0235a64571da5e4658a61aa37398f35fa6c30ae8e"
+    },
+    {
+      "path": "scripts/ios-smoke/run_auth.py",
+      "bytesGitLF": 37237,
+      "sha256GitLF": "4453e8a8386640b5ca2db6fa9c31071d7804e32304346a15f5acba0310d22ab6"
+    },
+    {
+      "path": "scripts/ios-smoke/project.rb",
+      "bytesGitLF": 2190,
+      "sha256GitLF": "648cf00c386c17cf922c57faa5b85280eb121e5f9acba7af264b14cbfc8747c6"
+    },
+    {
+      "path": "scripts/ios-smoke/AuthJourney.swift",
+      "bytesGitLF": 14299,
+      "sha256GitLF": "17624694466f96c2803467a2c345dd85f8209839898d62337fc936c8c37e153b"
+    },
+    {
+      "path": "scripts/ios-smoke/pod_path_probe.rb",
+      "bytesGitLF": 7325,
+      "sha256GitLF": "446975ad9659e6af1528058d2813320a0b1a0cc46924f9a4f956f7a9ddc4a56e"
+    },
+    {
+      "path": ".github/workflows/ios.yml",
+      "bytesGitLF": 2903,
+      "sha256GitLF": "e6064e6452d7096ba2f76685887ca318c424efb414961925e7a6700f03db79bd"
+    },
+    {
+      "path": "scripts/ios-smoke/capture.py",
+      "bytesGitLF": 8765,
+      "sha256GitLF": "a2ad808d6ab3e2d84ee7aabf7e828d6e067e1031d389c177663763d99135a40d"
+    },
+    {
+      "path": "scripts/ios-smoke/inspect.swift",
+      "bytesGitLF": 1853,
+      "sha256GitLF": "3c02dbdc1ac63c7d60a5cbee26d252f756f42ce901850762042cbce3601ab0e3"
+    }
+  ],
+  "artifacts": [
+    {
+      "kind": "auth",
+      "id": 11317127213,
+      "runId": 37240428231,
+      "bytes": 1045,
+      "sha256": "0a477a0e0317cd1a02cb5118f2095ae4039155feb2e4a0ba1121d9ab7b61009e",
+      "officialDigestVerified": true,
+      "zipCRCVerified": true
+    },
+    {
+      "kind": "resident",
+      "id": 11316892273,
+      "runId": 37240428244,
+      "bytes": 232421,
+      "sha256": "72cc901736830e0fa8bf61745ef5af8476ce4c84e9adb80237ffca262cf1fdc6",
+      "officialDigestVerified": true,
+      "zipCRCVerified": true
+    },
+    {
+      "kind": "operations",
+      "id": 11317101666,
+      "runId": 37240428244,
+      "bytes": 229206,
+      "sha256": "a9fd94f42f32a28c7913f0de83bc2b977a8137a6ac83647eeec0be19b4758f30",
+      "officialDigestVerified": true,
+      "zipCRCVerified": true
+    }
+  ],
+  "auth": {
+    "runId": 37240428231,
+    "runMetadata": {
+      "id": 37240428231,
+      "head_sha": "629806581457750cff893f35f25ca19eb017aba4",
+      "status": "completed",
+      "conclusion": "failure",
+      "run_attempt": 1,
+      "created_at": "2026-10-04T22:32:49Z",
+      "updated_at": "2026-10-04T22:46:34Z",
+      "html_url": "https://github.com/helberjf/predioON/actions/runs/37240428231"
+    },
+    "jobId": 111547876075,
+    "firstFailedStep": {
+      "number": 13,
+      "name": "Execute real XCUITest journey with both coinstalled releases",
+      "started_at": "2026-10-04T22:41:01Z",
+      "completed_at": "2026-10-04T22:46:21Z"
+    },
+    "completedStages": [
+      {
+        "number": 7,
+        "name": "Verify host guards and exporter before preparing private runtime",
+        "conclusion": "success"
+      },
+      {
+        "number": 8,
+        "name": "Prepare ephemeral database credentials and fixed HTTPS app origin",
+        "conclusion": "success"
+      },
+      {
+        "number": 9,
+        "name": "Compile pinned PostgreSQL and Timescale in private runner storage",
+        "conclusion": "success"
+      },
+      {
+        "number": 10,
+        "name": "Bootstrap real isolated API and create only the fixture accounts",
+        "conclusion": "success"
+      },
+      {
+        "number": 11,
+        "name": "Build both locally signed Release simulator applications",
+        "conclusion": "success"
+      },
+      {
+        "number": 12,
+        "name": "Start real API and existing restricted HTTPS proxy",
+        "conclusion": "success"
+      },
+      {
+        "number": 13,
+        "name": "Execute real XCUITest journey with both coinstalled releases",
+        "conclusion": "failure"
+      },
+      {
+        "number": 14,
+        "name": "Remove fixture records and stop only the owned disposable cluster",
+        "conclusion": "success"
+      },
+      {
+        "number": 15,
+        "name": "Export only approved native images and closed JSON schemas",
+        "conclusion": "success"
+      }
+    ],
+    "result": {
+      "passed": false,
+      "scope": "two coinstalled iOS Release apps, real isolated HTTPS/API sessions, Keychain restore, password change and logout",
+      "commit": "629806581457750cff893f35f25ca19eb017aba4",
+      "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-18-5",
+      "sdkVersion": "18.5",
+      "steps": [],
+      "failureKind": "native-journey-failed",
+      "failureDiagnostic": {
+        "stage": "runner-build",
+        "category": "nonzero-exit",
+        "exitCode": 70
+      }
+    },
+    "builds": [
+      {
+        "app": "resident-mobile",
+        "bundleId": "com.predioon.resident",
+        "mode": "Release",
+        "sha256": "3271bc991b113383607ee8038dca4e7c63f5e3cb1e6d94bace549be84fa72289"
+      },
+      {
+        "app": "operations-mobile",
+        "bundleId": "com.predioon.operations",
+        "mode": "Release",
+        "sha256": "9457c8a9964209a2403b13acda240ebe8b7fdf32de1ea5d268aa7eedfcf526b7"
+      }
+    ],
+    "databaseSource": {
+      "postgres": "16.15",
+      "timescale": "2.17.2",
+      "postgresSha256": "c1575341fa7bd40f5274ea465b34390f4dc64cdd0770af327005caaeb9f6b7ed",
+      "timescaleSha256": "85dd01deaa0728f95d117c1a75ca0cbf78f3301e6ab2b98bebe5f7c95b793acb"
+    },
+    "hostTests": {
+      "passed": 89,
+      "failed": 0,
+      "skips": 0,
+      "seconds": 7.296
+    },
+    "podProcesses": [
+      [
+        {
+          "lineBytes": 221,
+          "payload": {
+            "version": 1,
+            "stage": "start",
+            "gc": {
+              "stress": "false",
+              "autoCompact": false,
+              "collections": 19,
+              "compactions": 0
+            },
+            "versions": {
+              "ruby": "3.3.12",
+              "gems": {
+                "bundler": "2.5.22",
+                "cocoapods": "1.15.2",
+                "xcodeproj": "1.25.1"
+              }
+            }
+          }
+        },
+        {
+          "lineBytes": 308,
+          "payload": {
+            "version": 1,
+            "stage": "finish",
+            "termination": "returned",
+            "calls": 793,
+            "firstNulFailure": false,
+            "otherPathExceptions": 0,
+            "gc": {
+              "stress": "false",
+              "autoCompact": false,
+              "collections": 468,
+              "compactions": 0
+            },
+            "versions": {
+              "ruby": "3.3.12",
+              "gems": {
+                "bundler": "2.5.22",
+                "cocoapods": "1.15.2",
+                "xcodeproj": "1.25.1"
+              }
+            }
+          }
+        }
+      ],
+      [
+        {
+          "lineBytes": 221,
+          "payload": {
+            "version": 1,
+            "stage": "start",
+            "gc": {
+              "stress": "false",
+              "autoCompact": false,
+              "collections": 19,
+              "compactions": 0
+            },
+            "versions": {
+              "ruby": "3.3.12",
+              "gems": {
+                "bundler": "2.5.22",
+                "cocoapods": "1.15.2",
+                "xcodeproj": "1.25.1"
+              }
+            }
+          }
+        },
+        {
+          "lineBytes": 308,
+          "payload": {
+            "version": 1,
+            "stage": "finish",
+            "termination": "returned",
+            "calls": 793,
+            "firstNulFailure": false,
+            "otherPathExceptions": 0,
+            "gc": {
+              "stress": "false",
+              "autoCompact": false,
+              "collections": 490,
+              "compactions": 0
+            },
+            "versions": {
+              "ruby": "3.3.12",
+              "gems": {
+                "bundler": "2.5.22",
+                "cocoapods": "1.15.2",
+                "xcodeproj": "1.25.1"
+              }
+            }
+          }
+        }
+      ]
+    ],
+    "httpsReadiness": {
+      "stage": "https-proxy-readiness",
+      "category": "proxy_ready",
+      "exitCode": 0,
+      "attempts": 1,
+      "lastProbe": {
+        "stage": "body",
+        "outcome": "ready",
+        "errno": "none"
+      },
+      "proxyStartup": "serving"
+    },
+    "logicalCommand": "xcodebuild build-for-testing",
+    "nativeTestInvocationReached": false,
+    "approvedPhases": 0,
+    "approvedPostActions": 0,
+    "firstNativeAssertion": null,
+    "nativeTestsExecutedByHarness": 0,
+    "approvedImages": 0,
+    "nativeAuthenticatedApproved": false,
+    "limits": [
+      "Failure diagnostic identifies the host stage and process outcome only, not the underlying Apple error.",
+      "No private runner log, stdout/stderr, xcresult, argv or environment is present in this closed artifact.",
+      "An empty steps array does not prove that no API request occurred before failure.",
+      "No historical failure is reclassified or approved by this result.",
+      "The runner-build diagnostic follows successful main-thread simulator boot/install/coordinator initialization. It does not prove app launch or availability of the coordinator to the native runner.",
+      "build-for-testing failed before the harness calls test-without-building; no first XCTest assertion is available. Exit70 alone does not identify its underlying error."
+    ]
+  },
+  "startup": {
+    "runId": 37240428244,
+    "runMetadata": {
+      "id": 37240428244,
+      "head_sha": "629806581457750cff893f35f25ca19eb017aba4",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "created_at": "2026-10-04T22:32:49Z",
+      "updated_at": "2026-10-04T22:40:59Z",
+      "html_url": "https://github.com/helberjf/predioON/actions/runs/37240428244"
+    },
+    "jobs": [
+      {
+        "id": 111547876202,
+        "name": "ios (resident-mobile, PredioONMorador)",
+        "conclusion": "success",
+        "captureStartedAt": "2026-10-04T22:36:09Z",
+        "captureCompletedAt": "2026-10-04T22:40:49Z"
+      },
+      {
+        "id": 111547876342,
+        "name": "ios (operations-mobile, PredioONOperacao)",
+        "conclusion": "success",
+        "captureStartedAt": "2026-10-04T22:35:36Z",
+        "captureCompletedAt": "2026-10-04T22:38:38Z"
+      }
+    ],
+    "scope": "Locally signed Release launch, process survival and new process launch with empty login form; no authenticated requests",
+    "startupJobsPassed": true,
+    "apps": [
+      {
+        "product": "resident-mobile",
+        "bundleId": "com.predioon.resident",
+        "artifactId": 11316892273,
+        "archiveSha256": "72cc901736830e0fa8bf61745ef5af8476ce4c84e9adb80237ffca262cf1fdc6",
+        "officialDigestMatches": true,
+        "binarySha256Reported": "ec0a8adbcc811b0acf797e061ebe8be66698b99db0e5520bb6e1065453c94ad1",
+        "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-18-5",
+        "sdkVersion": "18.5",
+        "phases": [
+          "simulator-signature-verified",
+          "simulator-booted",
+          "release-installed",
+          "01-first-launch",
+          "02-new-process"
+        ],
+        "launchSeconds": {
+          "01-first-launch": 24.281,
+          "02-new-process": 1.943
+        },
+        "images": [
+          {
+            "phase": "01-first-launch",
+            "file": "resident-mobile-01-first-launch.png",
+            "sha256": "ad0f8f89cf9a481893a799775c92ad246a56e873be640d199c181fc8c6211fc6",
+            "width": 1206,
+            "height": 2622,
+            "ocrRequiredMatched": true,
+            "visualReviewed": true
+          },
+          {
+            "phase": "02-new-process",
+            "file": "resident-mobile-02-new-process.png",
+            "sha256": "112088c3265815a23a574612f6d9217e3bf8bcf3b4e51a8452b56b6d6ceb9fc2",
+            "width": 1206,
+            "height": 2622,
+            "ocrRequiredMatched": true,
+            "visualReviewed": true
+          }
+        ]
+      },
+      {
+        "product": "operations-mobile",
+        "bundleId": "com.predioon.operations",
+        "artifactId": 11317101666,
+        "archiveSha256": "a9fd94f42f32a28c7913f0de83bc2b977a8137a6ac83647eeec0be19b4758f30",
+        "officialDigestMatches": true,
+        "binarySha256Reported": "cbe9bdf910673be88ca484fa980d658d5699e90a1788addafd7b7b8259295f35",
+        "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-18-5",
+        "sdkVersion": "18.5",
+        "phases": [
+          "simulator-signature-verified",
+          "simulator-booted",
+          "release-installed",
+          "01-first-launch",
+          "02-new-process"
+        ],
+        "launchSeconds": {
+          "01-first-launch": 29.338,
+          "02-new-process": 0.917
+        },
+        "images": [
+          {
+            "phase": "01-first-launch",
+            "file": "operations-mobile-01-first-launch.png",
+            "sha256": "86298db0ba5aa3e9e75869dbdaa3360336e0708dee7a39cafcf49983e1c953b2",
+            "width": 1206,
+            "height": 2622,
+            "ocrRequiredMatched": true,
+            "visualReviewed": true
+          },
+          {
+            "phase": "02-new-process",
+            "file": "operations-mobile-02-new-process.png",
+            "sha256": "72a79bfcc778c5370b3548f7d7ae3e284a3fae65ffe32c68126ee29053fa786d",
+            "width": 1206,
+            "height": 2622,
+            "ocrRequiredMatched": true,
+            "visualReviewed": true
+          }
+        ]
+      }
+    ],
+    "imagesApproved": 4,
+    "visualReviewPending": false,
+    "visualReview": {
+      "images": 4,
+      "productsCorrect": true,
+      "emailAndPasswordFieldsEmpty": true,
+      "noErrorOrPrivateIdentityVisible": true,
+      "scope": "Visual review of approved startup login screenshots only"
+    },
+    "limits": [
+      "Startup does not prove authenticated API/Keychain/password/domain flows or TestFlight distribution signing.",
+      "Only approved PNG images are extracted; application.log and raw OCR text stay unextracted in the private ZIP.",
+      "No compiled application artifact was downloaded."
+    ]
+  },
+  "rootVerification": {
+    "publishedGitSourceHashes": 8,
+    "freshOfficialArtifactMetadata": 3,
+    "zipDigestsAndCRC": 3,
+    "closedAuthSchemasRevalidated": true,
+    "fourOriginalPNGHashesDimensionsVerified": true,
+    "newProcessPNGsVisuallyReviewed": 2,
+    "applicationLogAndRawOCRNotReadOrExtracted": true,
+    "compiledAppsNotDownloaded": true
+  },
+  "nativeAuthenticatedApproved": false,
+  "productionAccepted": false,
+  "limits": [
+    "Startup passed for both products but is limited to locally signed Release launch/survival/relaunch with empty login form.",
+    "The auth failure is observed in runner-build, nonzero-exit70, before test-without-building. It does not identify the underlying Apple build error.",
+    "Zero approved checkpoints/POSTs is not a claim that no request occurred before the failure.",
+    "No historical failure is reclassified; the b676 native substage remains unknown.",
+    "Real XCTest assertions, fourteen POST actions, Keychain/families, authenticated snapshots, physical devices, distribution and final videos remain pending.",
+    "Only bounded closed metadata and selected original PNGs are public; no private log, argv, environment, raw OCR, tree, xcresult or credential is exported."
+  ]
+}

@@ -46,6 +46,8 @@ Os dois gates a343 falharam antes do PID, ui-incomplete/zero fases; [prova](evid
 
 Auditoria da fonte a343 concluída: autenticação19/21 com13 snapshots de famílias e reservas23 com8 snapshots DB aprovados; [prova fechada](evidencias/android-a34346b.json),17 hashes Git/oito ZIPs oficiais conferidos. Domínios/senha/smokes foram bloqueados antes da instalação por diálogo do sistema; renderer/prefixo antes do PID. Duas PNGs originais de confirmação/cancelamento foram revisadas e publicadas: galeria29,9Android/16web/4iOS. Ainda faltam gates nativos, jornadas bloqueadas, aparelhos, produção e vídeos.
 
+Apple629 observado: startup dos dois produtos passou; auth passou89/89 host e ambos builds/HTTPS, mas o executor falhou em runner-build/nonzero-exit70 antes dos testes nativos. [Prova](evidencias/ios-6298065.json). Investigar a causa de compilação com diagnóstico fechado;14POSTs, Keychain/famílias e imagens autenticadas continuam pendentes.
+
 | Prioridade | Trabalho | Resultado esperado | Critério de aceite |
 |---|---|---|---|
 | P0 | Concluir autorização por capacidade nos domínios restantes | Acesso depende da concessão atual ao condomínio e ao recurso | HTTP e SQL negativos; revogação, expiração, equipe inativa e troca de condomínio sem vazamentos; nenhum privilégio global implícito sobre dados privados |

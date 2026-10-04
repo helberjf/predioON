@@ -60,6 +60,14 @@ Domínios, senha e os dois smokes Android pararam por **diálogo do sistema ante
 
 Duas PNGs originais de reservas, fases **09-confirmed e13-cancelled**, foram extraídas do artefato oficial11317006586 e incluídas no clone. O agente principal revisou visualmente ambas: dados fictícios, produto correto, confirmação com controle de cancelamento e cancelamento com controle removido. Bytes, SHA-256, dimensões1080×2400 e snapshots confirmed/cancelled foram conferidos. **Galeria atual29:9Android/16web/4iOS**, preservando os27 registros anteriores. [Imagens e limites](IMAGENS_DOS_SISTEMAS.md). A comparação nativa do renderer, jornadas bloqueadas, aparelhos físicos, produção, documentação final e cinco vídeos continuam pendentes. Nenhum reboot executado.
 
+### Resultado Apple629: startup aprovado e compilação do executor autenticado bloqueada
+
+Na fonte exata **629806581457750cff893f35f25ca19eb017aba4**, o [startup37240428244](https://github.com/helberjf/predioON/actions/runs/37240428244) passou nos dois produtos: assinatura local, instalação Release, inicialização, sobrevivência e novo processo com formulário vazio. Quatro PNGs originais tiveram hash/dimensões/estrutura conferidos; duas imagens do novo processo receberam revisão visual do agente principal. Esse escopo não aprova requests autenticados, Keychain, senha ou distribuição.
+
+O [autenticado37240428231](https://github.com/helberjf/predioON/actions/runs/37240428231) passou **89/89 host Apple, zero skips,7,296s**, banco/fixture, ambos os builds, Pods793 chamadas por processo sem NUL e prontidão HTTPS em uma tentativa. O diagnóstico novo registrou **runner-build/nonzero-exit/70**: `xcodebuild build-for-testing` falhou antes de `test-without-building`. Resultado `steps=[]`, zero checkpoints/imagens/POSTs aprovados. **Exit70 identifica o resultado do processo, não sua causa Apple**; obter observação fechada do build sem divulgar logs privados. Não atribuir retroativamente esse subestágio ao b676 nem afirmar ausência de requests sem journal aprovado.
+
+O agente principal reconferiu **oito hashes Git, três metadados REST oficiais atuais, digests/CRC dos três ZIPs, schemas autenticados e quatro PNGs**. Não baixou os binários compilados nem leu/extraiu application.log/OCR bruto. [Prova fechada e limites](evidencias/ios-6298065.json). Continuam pendentes as14POSTs, assertivas XCTest, famílias/Keychain, snapshots autenticados, aparelhos físicos, produção e vídeos finais. Nenhum reboot executado.
+
 ## 1. Instruções permanentes do proprietário
 
 - Continuar até concluir as implementações dos apps e websites, testes e evolução descritos na arquitetura aprovada.
