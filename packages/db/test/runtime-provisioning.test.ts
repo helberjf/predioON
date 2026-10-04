@@ -7,12 +7,13 @@ const environment = {
   DATABASE_URL_APP: "postgres://predioon_app:app-secret@localhost:5436/predioon",
   DATABASE_URL_IDENTITY: "postgres://predioon_identity:identity-secret@localhost:5436/predioon",
   DATABASE_URL_BROKER_AUTH: "postgres://predioon_broker_auth:broker-secret@localhost:5436/predioon",
+  DATABASE_URL_NOTIFICATIONS: "postgres://predioon_notifications:notification-secret@localhost:5436/predioon",
 };
 
 test("reads only the expected roles and decodes passwords without altering their value", () => {
   const password = "secret:@/%'\\with spaces";
   const result = runtimeRoleCredentials({ ...environment, DATABASE_URL_IDENTITY: `postgres://predioon_identity:${encodeURIComponent(password)}@localhost:5436/predioon` });
-  assert.deepEqual(result.map(value => value.role), ["predioon_app", "predioon_identity", "predioon_broker_auth"]);
+  assert.deepEqual(result.map(value => value.role), ["predioon_app", "predioon_identity", "predioon_broker_auth", "predioon_notifications"]);
   assert.equal(result[1]!.password, password);
 });
 
@@ -42,5 +43,27 @@ test("configuration errors never echo a DSN or its password", () => {
 test("accepts postgres and postgresql URL aliases and the implicit PostgreSQL port", () => {
   const local = Object.fromEntries(Object.entries(environment).map(([key, value]) => [key, value.replace(":5436", "")]));
   local.DATABASE_URL_APP = local.DATABASE_URL_APP!.replace("postgres:", "postgresql:").replace("localhost/", "localhost:5432/");
-  assert.equal(runtimeRoleCredentials(local).length, 3);
+  assert.equal(runtimeRoleCredentials(local).length, 4);
+});
+
+test("requires the fourth role and rejects forged notification credentials before connecting", () => {
+  for (const invalid of [undefined, "", environment.DATABASE_URL, environment.DATABASE_URL_APP,
+    "postgres://predioon_notifications:secret@foreign:5436/predioon",
+    "postgres://predioon_notifications:secret@localhost:5436/other",
+    "postgres://predioon_notifications:secret@localhost:5437/predioon",
+    "postgres://predioon_notifications@localhost:5436/predioon"]) {
+    assert.throws(() => runtimeRoleCredentials({ ...environment, DATABASE_URL_NOTIFICATIONS: invalid }), /DATABASE_URL_NOTIFICATIONS/);
+  }
+});
+
+test("provisioning refuses role-changing startup parameters without exposing any credential", () => {
+  for (const key of Object.keys(environment)) {
+    for (const parameter of ["role=owner", "options=-c%20role%3Downer", "session_authorization=owner", "RoLe=owner"]) {
+      assert.throws(() => runtimeRoleCredentials({ ...environment, [key]: environment[key as keyof typeof environment] + "?" + parameter }), error => {
+        assert.ok(error instanceof Error && error.message.includes(key));
+        assert.ok(!error.message.includes("secret"));
+        return true;
+      });
+    }
+  }
 });

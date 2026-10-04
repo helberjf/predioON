@@ -1,6 +1,6 @@
 # Instalação — Prédio ON
 
-> Este roteiro corresponde aos serviços e scripts existentes. A [arquitetura de produto revisada](superpowers/specs/2026-09-27-arquitetura-produto-design.md) define a evolução restante. Credenciais restritas da API e migrations com ledger/checksum estão integradas ao fluxo de preparação. Adoção automática de banco legado sem ledger, credenciais restritas de ingestão, workers duráveis e operação integral ainda não estão concluídos. Uma VPS única não oferece alta disponibilidade contra perda do host.
+> Este roteiro corresponde aos serviços e scripts existentes. A [arquitetura de produto revisada](superpowers/specs/2026-09-27-arquitetura-produto-design.md) define a evolução restante. API, ledger/checksum e o primeiro worker restrito de webhook estão integrados ao fluxo de preparação da release 038, cujo aceite exige os testes reais correspondentes. Adoção automática de legado sem ledger, ingestão restrita, inbox, demais workers e operação integral ainda não estão concluídos. Uma VPS única não oferece alta disponibilidade contra perda do host.
 
 O roteiro completo, com resumo inicial, instalação de campo, primeira conta administrativa, operação e aceite, está no [manual de implantação em condomínio](IMPLANTACAO_CONDOMINIO.md). Este arquivo detalha a infraestrutura.
 
@@ -21,7 +21,7 @@ em [ENTREGA_HELBER.md](ENTREGA_HELBER.md).
 node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
 ```
 
-Configure `APP_DB_PASSWORD`, `IDENTITY_DB_PASSWORD` e `BROKER_AUTH_DB_PASSWORD` com senhas distintas. A senha proprietária `POSTGRES_PASSWORD` é usada no provisionamento e, durante a transição, na ingestão; ela não entra no ambiente do container da API.
+Configure `APP_DB_PASSWORD`, `IDENTITY_DB_PASSWORD`, `BROKER_AUTH_DB_PASSWORD` e `NOTIFICATIONS_DB_PASSWORD` com senhas distintas. A senha proprietária `POSTGRES_PASSWORD` é usada no provisionamento e, durante a transição, na ingestão; ela não entra no ambiente da API nem do worker. A API recebe somente suas três URLs. `notifications` recebe somente a URL de `predioon_notifications` e a configuração do destino do webhook, sem MQTT, chaves JWT ou credenciais de usuários.
 
 A API em produção exige `JWT_ACTIVE_KID`, `JWT_PRIVATE_KEY` Ed25519 e `JWT_PUBLIC_KEYS`, um objeto JSON que associa cada `kid` ao PEM público. Use um par persistente guardado no gerenciador de segredos; o par efêmero de desenvolvimento é recusado em produção. PEMs podem usar a sequência literal `\n`. O access token tem duração de cinco minutos e a sessão é consultada a cada requisição. A configuração anterior `JWT_SECRET` não é mais usada; a transição exige novo login. Consulte [autenticação](AUTENTICACAO.md).
 
@@ -46,7 +46,7 @@ docker compose -f infrastructure/docker-compose.prod.yml --env-file infrastructu
 
 O script sobe o banco, aguarda sua disponibilidade, cria o baseline somente em banco vazio e executa `db:infra` com `DATABASE_URL` administrativa. O runner valida a sequência completa de arquivos SQL, confere o histórico em `public.schema_migrations` e aplica apenas pendências. Um lock exclusivo do PostgreSQL serializa executores. A primeira instalação aplica o lote inteiro em uma transação; atualizações posteriores confirmam cada migration junto de sua entrada no ledger. A imagem da API inclui os arquivos SQL usados por esse executor.
 
-As senhas das roles restritas são provisionadas em uma etapa administrativa separada. A API usa `predioon_app` nas consultas com contexto do usuário, `predioon_identity` para autenticação e sessões e `predioon_broker_auth` para autorização do broker. Em instalação nova, as migrations criam essas roles sem login; `pnpm db:provision-runtime` habilita o login com as senhas configuradas. O processo HTTP não precisa de `DATABASE_URL`. O runner não interpreta `psql` genericamente: o arquivo legado 002 tem um adaptador revisado que não define senha padrão.
+As senhas das quatro roles restritas são provisionadas em uma etapa administrativa separada, após as migrations 015/038. A API usa `predioon_app`, `predioon_identity` e `predioon_broker_auth`; o worker usa `predioon_notifications`. As cinco URLs administrativas devem selecionar o mesmo servidor, porta e banco; todas são validadas antes de alterar credenciais. As novas roles começam sem login e o provisionamento o habilita. O SQL038 nunca contém senha nem faz backfill de alertas antigos. O processo HTTP e o worker não precisam de `DATABASE_URL`. O runner não interpreta `psql` genericamente: o arquivo legado 002 tem um adaptador revisado que não define senha padrão.
 
 A ingestão ainda usa a conexão administrativa interna. O banco vazio exige provisionar o primeiro administrador.
 Para um **piloto com dados demonstrativos**, preencher `SEED_PASSWORD` com senha exclusiva
@@ -56,6 +56,20 @@ e os sensores de demonstração; não representa um cadastro real do condomínio
 Para atualizar uma instalação **já acompanhada pelo ledger**, prepare backup recuperável e ensaie a release numa cópia isolada. Configure uma conexão administrativa para o banco correto e execute `pnpm db:infra --check`: saída 0 indica histórico compatível sem pendências; 2 lista migrations pendentes; 1 indica erro, executor concorrente ou incompatibilidade. Depois da revisão, execute novamente `setup-prod.sh` sem `--seed`, coordenando a parada/retomada dos processos conforme a compatibilidade da release. Confira prontidão, login, isolamento e ingestão antes de liberar o tráfego.
 
 Banco com dados/políticas antigas e sem ledger válido é **recusado antes de aplicar SQL**. Não há comando de adoção automática nesta versão. Não apagar dados nem inserir checksums manualmente para contornar a recusa: preservar backup, identificar a release instalada e preparar uma adoção específica validada em cópia. Arquivo já registrado que mudou também interrompe a execução. O fluxo atual não chama `drizzle-kit push --force`; essa ferramenta não substitui o histórico de atualização. Procedimentos completos de falha, retomada e limites estão em [MIGRATIONS.md](MIGRATIONS.md).
+
+## Rollout do webhook durável 038
+
+Antes de aplicar a 038, faça backup recuperável e ensaie a release completa num cluster separado. Configure `NOTIFICATIONS_DB_PASSWORD`; a ausência interrompe o setup antes de parar serviços ou tocar SQL. Confira todos os processos produtores da instalação, incluindo os que não pertencem ao Compose. Os produtores novos gravam alerta e outbox na mesma transação; não podem coexistir com uma versão que ainda envia diretamente o mesmo alerta.
+
+`setup-prod.sh` solicita parada de `ingest` e `notifications` com prazo de 30 segundos, e recusa a migration se o Compose ainda informar um desses containers ativo. Só depois inicia banco/baseline, aplica pendências do ledger, provisiona as quatro roles e inicia a release completa. O Node do container recebe SIGTERM como PID1; o worker encerra suas próprias tentativas/conexões. Essa verificação comprova a parada desses containers. Ela **não** comprova por si a drenagem de callbacks MQTT, a preservação da sessão/QoS no broker ou a ausência de produtores externos; essas condições precisam de observação operacional antes de liberar o rollout. Não pausar funcionalidades como buffer de implantação e não liberar uma mistura de transporte direto/outbox.
+
+O serviço `notifications` não publica portas. Seu healthcheck executa `src/health.ts` localmente e exige heartbeat recente do processo; a identidade restrita é verificada por tentativa. Heartbeat saudável não comprova que um provedor externo recebeu todas as entregas. Configure `ALERT_WEBHOOK_URL` para um endpoint HTTPS conhecido e valide resultados reais. Sem destino, a entrega termina em estado explícito `no_destination`, sem falsa confirmação e sem backlog ilimitado; configurar a URL posteriormente não ressuscita esses eventos.
+
+Inspecione estados/tentativas pela conexão administrativa em ambiente controlado, preservando dados privados. Falhas de rede, timeout, 429 e 5xx recebem backoff SQL limitado; negativas permanentes não ficam em retry infinito. O consumidor envia uma chave estável de idempotência. Sem contrato de deduplicação no provedor, queda após o efeito HTTP e antes da confirmação pode duplicar a entrega. Não existe retry de comandos físicos nesse worker.
+
+Para reverter o transporte, pare e confira primeiro o worker novo. Defina explicitamente o destino das entregas pendentes/terminais antes de habilitar um produtor antigo com envio direto; não reexecute filas cegamente. Rollback de código não desfaz schema/ledger e uma distribuição sem o arquivo 038 não passa na validação do histórico. Preserve os arquivos históricos e prepare uma release de rollback compatível; não apague entradas do ledger nem tabelas da outbox para fazê-la iniciar.
+
+O aceite deste incremento requer SQL/ACL/leases/pausa, worker com conexões e HTTP reais, todos os produtores, restore e regressões integrais da plataforma. Testes unitários, healthcheck ou sucesso de compilação sozinhos não liberam produção. Ingestão proprietária, inbox, scheduler, demais transportes e publicação nas lojas continuam sendo trabalhos separados.
 
 ## MQTT de produção
 

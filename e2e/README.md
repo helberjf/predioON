@@ -4,6 +4,8 @@ Os testes usam Chromium, Firefox e WebKit, a API do projeto e os bundles de prod
 
 Prepare um PostgreSQL/TimescaleDB **isolado e descartável**, com bootstrap, todas as migrations, credenciais restritas e seed de demonstração. Por padrão, a suíte usa `localhost:5436/predioon`; as variáveis `DATABASE_URL_APP`, `DATABASE_URL_IDENTITY` e `DATABASE_URL_BROKER_AUTH` podem selecionar outro banco local de teste. A configuração rejeita endereços de banco remotos. A única exceção de rede é o serviço literal `postgres:5432/predioon` dentro do job GitHub, com `GITHUB_ACTIONS=true` e `E2E_DATABASE_SERVICE=postgres`; owner e runtime precisam selecionar o mesmo alvo. Não execute contra dados reais.
 
+A preparação da release 038 exige também `DATABASE_URL_NOTIFICATIONS` para provisionar a quarta role no mesmo servidor/porta/banco, antes do seed. O browser continua usando somente as conexões da API. Testes SQL/worker de notificações pertencem a outro cluster: não defina `TEST_NOTIFICATION_DATABASE_URL` neste ambiente, pois eles alteram senhas de papéis globais. O workflow `browser.yml` fornece a quarta URL administrativa e conserva essa separação.
+
 ```powershell
 pnpm exec playwright install chromium firefox webkit
 pnpm test:e2e

@@ -155,6 +155,12 @@ it("runs the administrative CLI against the complete current release, then verif
     assert.match((await command()).stdout, /nenhuma migration reaplicada/);
     assert.match((await command("--check")).stdout, /nenhuma migration pendente/);
     assert.deepEqual(await client`select id,checksum,applied_at from schema_migrations order by id`, history);
+    for (const operation of ["select * from schema_migrations", "delete from schema_migrations", "insert into schema_migrations(id,checksum) values('999-forged','forged')"]) {
+      await assert.rejects(client.begin(async tx => {
+        await tx`set local role predioon_notifications`;
+        await tx.unsafe(operation);
+      }), error => (error as { code?: string }).code === "42501", "the fourth runtime cannot read or mutate the applied ledger");
+    }
     await bootstrap();
   });
 });

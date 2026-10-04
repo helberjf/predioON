@@ -1,6 +1,6 @@
 # Entrega durável de alertas — primeiro incremento da etapa3
 
-Estado em03/10: candidato implementado e recuperável por patch/hash em [CONTINUIDADE](../../CONTINUIDADE.md), sem SQL038/worker publicados como release integrada. SQL54, worker36 Linux, ingestão123 e backup2 reais passaram; integral API e fixture de credencial ainda em verificação. [Guia operacional do candidato](../../NOTIFICACOES_DURAVEIS.md). Base: [arquitetura aprovada](../specs/2026-09-27-arquitetura-produto-design.md) e [tracker](2026-09-27-product-execution.md). Não encerra inbox, scheduler, automações, comandos separados, push móvel ou credenciais de todas as cargas.
+Estado em03/10: SQL038/worker/produtores/credencial/implantação/testes integrados nesta linha; [CONTINUIDADE](../../CONTINUIDADE.md) conserva fonte/provas e pendências. SQL54, worker36 Linux, ingestão123 e backup2 reais passaram; API697/697 passou e a fixture de credencial foi corrigida preservandoNOLOGIN; Playwright222/222 também passou, três motores/0 retries; novo CI e operação real ainda pendentes. [Guia operacional do candidato](../../NOTIFICACOES_DURAVEIS.md). Base: [arquitetura aprovada](../specs/2026-09-27-arquitetura-produto-design.md) e [tracker](2026-09-27-product-execution.md). Não encerra inbox, scheduler, automações, comandos separados, push móvel ou credenciais de todas as cargas.
 
 ## Problema observado na fonte
 

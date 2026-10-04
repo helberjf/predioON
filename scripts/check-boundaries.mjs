@@ -9,7 +9,7 @@ const sourceExtension = /\.[cm]?[jt]sx?$/;
 const nodeBuildConfigs = new Set(["metro.config.js", "babel.config.js", "react-native.config.js"]);
 const packageName = specifier => specifier.startsWith("@") ? specifier.split("/").slice(0, 2).join("/") : specifier.split("/")[0];
 const publicPackages = new Set(["@predioon/ui", "@predioon/api-client", "@predioon/contracts", "@predioon/shared"]);
-const serverPackages = new Set(["@predioon/db", "@predioon/domain", "@predioon/runtime", "@predioon/api", "@predioon/ingest"]);
+const serverPackages = new Set(["@predioon/db", "@predioon/domain", "@predioon/runtime", "@predioon/api", "@predioon/ingest", "@predioon/notifications"]);
 const serverLibraries = new Set(["express", "mqtt", "drizzle-orm", "drizzle-kit", "pg", "postgres"]);
 const domainLibraries = new Set([...serverLibraries, "react", "react-dom", "react-native"]);
 const nodeBuiltins = new Set(builtinModules.map(name => name.replace(/^node:/, "")));
@@ -38,8 +38,8 @@ function imports(source) {
     tokens.push({ value, quoted: /^["'`]/.test(value) });
   }
   const specifiers = [];
-  const add = token => {
-    if (token?.quoted && !token.value.includes("${")) specifiers.push(token.value.slice(1, -1));
+  const add = (token, typeOnly = false) => {
+    if (token?.quoted && !token.value.includes("${")) specifiers.push({ specifier: token.value.slice(1, -1), typeOnly });
   };
   for (let index = 0; index < tokens.length; index++) {
     const token = tokens[index];
@@ -51,7 +51,7 @@ function imports(source) {
     for (let next = index + 1; next < tokens.length; next++) {
       const current = tokens[next];
       if ([";", "import", "export", "="].includes(current.value)) break;
-      if (current.value === "from") { add(tokens[next + 1]); break; }
+      if (current.value === "from") { add(tokens[next + 1], tokens[index + 1]?.value === "type"); break; }
     }
   }
   return specifiers;
@@ -70,7 +70,7 @@ export async function checkBoundaries(root) {
       catch (error) { if (error.code === "ENOENT") continue; throw error; }
       if (!manifest.name) continue;
       const server = group === "services" || (group === "apps" && /(^|[-/])(api|server)(-|$)/.test(manifest.name));
-      packages.set(manifest.name, { name: manifest.name, directory, manifest, server, client: (group === "apps" && !server) || publicPackages.has(manifest.name), edges: new Map() });
+      packages.set(manifest.name, { name: manifest.name, directory, manifest, server, client: (group === "apps" && !server) || publicPackages.has(manifest.name), edges: new Map(), typeOnlyEdges: new Set(), runtimeEdges: new Set() });
     }
   }
 
@@ -79,6 +79,7 @@ export async function checkBoundaries(root) {
   }
 
   const violations = new Set();
+  const fileImportEdges = new Map();
   const apiDatabaseEntrypoints = new Set(["@predioon/db/runtime", "@predioon/db/identity", "@predioon/db/broker-auth"]);
   for (const pkg of packages.values()) {
     const dependencies = { ...pkg.manifest.dependencies, ...pkg.manifest.peerDependencies, ...pkg.manifest.optionalDependencies };
@@ -87,7 +88,9 @@ export async function checkBoundaries(root) {
     for (const name of Object.keys(dependencies)) pkg.edges.set(name, `${relative(root, pkg.directory)}/package.json`);
     for (const file of await sourceFiles(pkg.directory)) {
       if (nodeBuildConfigs.has(relative(pkg.directory, file))) continue;
-      for (const specifier of imports(await readFile(file, "utf8"))) {
+      const sourceImports = imports(await readFile(file, "utf8"));
+      fileImportEdges.set(file, sourceImports);
+      for (const { specifier, typeOnly } of sourceImports) {
         if (pkg.client && specifier.startsWith(".") && nodeBuildConfigs.has(relative(pkg.directory, resolve(dirname(file), specifier)))) {
           violations.add(`Client build configuration imported at runtime: ${specifier} (${relative(root, file)})`);
         }
@@ -95,8 +98,72 @@ export async function checkBoundaries(root) {
         if (pkg.name === "@predioon/api" && target && packageName(target) === "@predioon/db" && !apiDatabaseEntrypoints.has(specifier)) {
           violations.add(`API owner boundary: ${specifier} (${relative(root, file)}); use a restricted database entrypoint`);
         }
-        if (target && packageName(target) !== pkg.name) pkg.edges.set(target, relative(root, file));
+        if (pkg.name === "@predioon/notifications" && target && packageName(target) === "@predioon/db" && specifier !== "@predioon/db/notifications") {
+          violations.add(`Notification database boundary: ${specifier} (${relative(root, file)}); use only @predioon/db/notifications`);
+        }
+        if (target && packageName(target) !== pkg.name) {
+          pkg.edges.set(target, relative(root, file));
+          (typeOnly ? pkg.typeOnlyEdges : pkg.runtimeEdges).add(target);
+        }
       }
+    }
+  }
+
+  const notifications = packages.get("@predioon/notifications");
+  if (notifications) {
+    const visited = new Set();
+    function inspectNotification(pkg, chain) {
+      if (visited.has(pkg.name)) return;
+      visited.add(pkg.name);
+      for (const [specifier, source] of pkg.edges) {
+        const name = packageName(specifier);
+        const target = packages.get(name);
+        const nextChain = [...chain, specifier];
+        // postgres.Sql types do not construct a second pool. Runtime imports
+        // remain forbidden, even if a later type import overwrites the edge.
+        if (name === "postgres" && !pkg.runtimeEdges.has(specifier) &&
+          (pkg.typeOnlyEdges.has(specifier) || source.endsWith("/package.json"))) continue;
+        // The declared direct workspace dependency is package metadata. Every
+        // actual source import still needs the dedicated public entrypoint.
+        if (name === "@predioon/db") {
+          if (specifier === "@predioon/db/notifications" ||
+            (pkg === notifications && specifier === "@predioon/db" && source.endsWith("/package.json"))) continue;
+          violations.add(`Notification database boundary: ${nextChain.join(" -> ")} (${source})`);
+        } else if (target?.server || serverPackages.has(name) || serverLibraries.has(name)) {
+          violations.add(`Notification service boundary: ${nextChain.join(" -> ")} (${source})`);
+        } else if (target) inspectNotification(target, nextChain);
+      }
+    }
+    inspectNotification(notifications, [notifications.name]);
+    // Follow the dedicated export itself: stopping at package metadata would
+    // miss an owner barrel imported indirectly by one of its relative helpers.
+    const database = packages.get("@predioon/db");
+    if (database) {
+      const administrativeFiles = new Set(["index.ts", "bootstrap.ts", "seed.ts", "apply-infrastructure.ts", "provision-runtime-roles.ts", "wait-db.ts"]
+        .map(name => join(database.directory, "src", name)));
+      const visitedFiles = new Set();
+      function inspectNotificationAdapter(file, chain) {
+        if (visitedFiles.has(file)) return;
+        visitedFiles.add(file);
+        if (administrativeFiles.has(file)) {
+          violations.add(`Notification owner boundary: ${chain.join(" -> ")}`);
+          return;
+        }
+        for (const { specifier } of fileImportEdges.get(file) ?? []) {
+          const nextChain = [...chain, specifier];
+          if (packageName(specifier) === "@predioon/db" && specifier !== "@predioon/db/notifications") {
+            violations.add(`Notification owner boundary: ${nextChain.join(" -> ")}`);
+          } else if (specifier.startsWith(".") || specifier.startsWith("/")) {
+            const base = resolve(dirname(file), specifier);
+            const target = [base, base.replace(/\.([cm]?)js$/, ".$1ts"), base + ".ts", join(base, "index.ts")]
+              .find(candidate => fileImportEdges.has(candidate));
+            if (target) inspectNotificationAdapter(target, nextChain);
+          } else if (packages.get(packageName(specifier))?.server || ["@predioon/api", "@predioon/ingest", "mqtt"].includes(packageName(specifier))) {
+            violations.add(`Notification service boundary: ${nextChain.join(" -> ")}`);
+          }
+        }
+      }
+      inspectNotificationAdapter(join(database.directory, "src/notifications.ts"), ["@predioon/db/notifications"]);
     }
   }
 

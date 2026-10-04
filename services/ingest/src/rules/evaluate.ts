@@ -1,6 +1,6 @@
 import { and, eq, gt, isNull, or } from "drizzle-orm";
 import { alertRules, alerts, type DbTransaction } from "@predioon/db";
-import type { AlertNotification } from "../notify/index.js";
+import { persistAlert, type AlertNotification, type PersistenceChecks } from "../notify/index.js";
 
 type Reading = { buildingId: string; deviceId: string; metric: string; value: number; time: Date };
 
@@ -20,7 +20,7 @@ export function matches(operator: string, current: number, threshold: number): b
  * Evaluates every enabled rule for the metric and creates the alerts that fire.
  * `cooldownSeconds` stops a sensor oscillating around the threshold from flooding the panel.
  */
-export async function evaluateRules(tx: DbTransaction, reading: Reading): Promise<AlertNotification[]> {
+export async function evaluateRules(tx: DbTransaction, reading: Reading, checks?: PersistenceChecks): Promise<AlertNotification[]> {
   const rules = await tx
     .select()
     .from(alertRules)
@@ -47,7 +47,7 @@ export async function evaluateRules(tx: DbTransaction, reading: Reading): Promis
     if (recent) continue;
 
     const message = rule.messageTemplate.replaceAll("{value}", String(reading.value));
-    const [inserted] = await tx.insert(alerts).values({
+    created.push(await persistAlert(tx, {
       buildingId: reading.buildingId,
       deviceId: reading.deviceId,
       ruleId: rule.id,
@@ -56,17 +56,7 @@ export async function evaluateRules(tx: DbTransaction, reading: Reading): Promis
       message,
       triggeredValue: reading.value,
       triggeredAt: reading.time,
-    }).returning({ id: alerts.id });
-
-    created.push({
-      alertId: inserted!.id,
-      buildingId: reading.buildingId,
-      deviceId: reading.deviceId,
-      severity: rule.severity,
-      type: rule.alertType,
-      message,
-      triggeredAt: reading.time.toISOString(),
-    });
+    }, checks));
   }
 
   return created;

@@ -42,13 +42,55 @@ function fixture() {
     for (const method of ["where", "innerJoin", "limit", "for", "orderBy", "onConflictDoNothing", "onConflictDoUpdate", "returning"]) query[method] = () => query;
     return query;
   };
+  const stored = new Map<string, any[]>();
+  const key = (value: any) => value.id ?? value.eventId ?? `${value.profileId}/${value.day ?? ""}`;
+  const persist = (name: string, value: any) => {
+    const previous = stored.get(name) ?? [], next = { ...value };
+    stored.set(name, [...previous.filter(row => key(row) !== key(next)), next]);
+    return next;
+  };
+  const matchesWhere = (row: any, condition: any) => {
+    if (!condition) return true;
+    const compiled = new PgDialect().sqlToQuery(condition);
+    return [...compiled.sql.matchAll(/"[a-z_]+"\."([a-z_]+)"\s*(=|>=|<=|>|<)\s*\$(\d+)/g)].every(match => {
+      const field = match[1]!.replace(/_([a-z])/g, (_: string, letter: string) => letter.toUpperCase());
+      if (!(field in row)) return true;
+      const left = row[field] instanceof Date ? row[field].toISOString() : row[field];
+      const parameter = compiled.params[Number(match[3]) - 1], right = parameter instanceof Date ? parameter.toISOString() : parameter;
+      return match[2] === "=" ? left === right : match[2] === ">=" ? left >= right : match[2] === "<=" ? left <= right : match[2] === ">" ? left > right : left < right;
+    });
+  };
   const tx: any = {
-    select: () => ({ from: (table: any) => chain(() => { const value = rows[getTableName(table)]; return typeof value === "function" ? value() : value ?? []; }) }),
-    insert: (table: any) => ({ values: (values: any) => chain(() => { writes.push({ table: getTableName(table), values }); return [{ id: "alert", ...values }]; }) }),
-    update: (table: any) => ({ set: (values: any) => chain(() => { updates.push({ table: getTableName(table), values }); return []; }) }),
+    select: () => ({ from: (table: any) => {
+      const name = getTableName(table); let condition: any;
+      const query = chain(() => {
+        const value = rows[name], originals = typeof value === "function" ? value() : value ?? [];
+        const records = [...originals.filter((row: any) => !(stored.get(name) ?? []).some(item => key(item) === key(row))), ...(stored.get(name) ?? [])];
+        if (!condition) return records;
+        // Point lookups and day bounds used by the source confirmations. Real
+        // SQL/RLS/concurrency semantics remain covered in the PostgreSQL suite.
+        return records.filter((row: any) => matchesWhere(row, condition));
+      });
+      query.where = (where: any) => { condition = where; return query; }; return query;
+    } }),
+    insert: (table: any) => ({ values: (values: any) => chain(() => { const name = getTableName(table); writes.push({ table: name, values }); return [persist(name, values)]; }) }),
+    update: (table: any) => ({ set: (values: any) => {
+      let condition: any;
+      const query = chain(() => {
+      const name = getTableName(table);
+      const originals = rows[name], targets = typeof originals === "function" ? originals() : originals ?? [];
+      const changed = targets.filter((row: any) => matchesWhere(row, condition));
+      if (changed.length) updates.push({ table: name, values });
+      return changed.map((row: any) => { Object.assign(row, values); return { ...row }; });
+      });
+      query.where = (where: any) => { condition = where; return query; }; return query;
+    } }),
     execute: async (query: any) => {
       const statement = new PgDialect().sqlToQuery(query).sql;
       statements.push(statement);
+      if (statement.includes("clock_timestamp")) return [{ evaluatedAt: new Date().toISOString() }];
+      if (statement.includes("notification_enqueue_alert")) return [{ eventId: "outbox-fixture" }];
+      if (statement.includes("jsonb_build_object")) return [{ snapshot: { fixture: true } }];
       if (statement.includes("app_mark_access_sent")) {
         // This fixture models the transaction boundary. Capability/clock/lock
         // decisions inside the transition are exercised against real Postgres
@@ -171,10 +213,9 @@ for (const scenario of ["AI paused", "incomplete training days"]) test(`${scenar
     maxGapSeconds: 3600, tariff: 1, adaptiveEnabled: true, minimumHistoryDays: 7, deviationPercent: 50,
     dailyLimit: 10, dailyCostLimit: null, continuousLimitMinutes: null }];
   const today = { profileId: "profile", day, quantity: 100, coveredSeconds: 86000, estimatedCost: 100, resets: 0, samples: 10, firstAt: now, lastAt: now, incomplete: false };
-  let dailyReads = 0;
-  state.rows.daily_usage = () => ++dailyReads <= 2 ? [today] : Array.from({ length: 7 }, (_, index) => ({
+  state.rows.daily_usage = [today, ...Array.from({ length: 7 }, (_, index) => ({
     ...today, day: new Date(Date.parse(`${day}T12:00:00Z`) - (index + 1) * 86400000).toISOString().slice(0, 10), quantity: 1, incomplete: scenario === "incomplete training days",
-  }));
+  }))];
   await accountUsage(state.tx, JSON.parse(message("energy_total_kwh").toString()), features);
   assert.deepEqual(state.writes.filter(row => row.table === "alerts").map(row => row.values.type), ["DAILY_ENERGY_LIMIT"]);
 });

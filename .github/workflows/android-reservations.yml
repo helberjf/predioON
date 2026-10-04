@@ -53,6 +53,7 @@ jobs:
       DATABASE_URL_APP: postgres://predioon_app:predioon_app@localhost:5436/predioon
       DATABASE_URL_IDENTITY: postgres://predioon_identity:predioon_identity@localhost:5436/predioon
       DATABASE_URL_BROKER_AUTH: postgres://predioon_broker_auth:predioon_broker_auth@localhost:5436/predioon
+      DATABASE_URL_NOTIFICATIONS: postgres://predioon_notifications:predioon_notifications@localhost:5436/predioon
       ANDROID_RESERVATION_DISPOSABLE_DB: "1"
     steps:
       - uses: actions/checkout@v4

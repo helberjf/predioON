@@ -34,6 +34,7 @@ jobs:
       DATABASE_URL_APP: postgres://predioon_app:predioon_app@localhost:5436/predioon
       DATABASE_URL_IDENTITY: postgres://predioon_identity:predioon_identity@localhost:5436/predioon
       DATABASE_URL_BROKER_AUTH: postgres://predioon_broker_auth:predioon_broker_auth@localhost:5436/predioon
+      DATABASE_URL_NOTIFICATIONS: postgres://predioon_notifications:predioon_notifications@localhost:5436/predioon
       TEST_MIGRATIONS_DATABASE_URL: postgres://predioon:predioon@localhost:5436/predioon
       RUN_ACCESS_DB_TESTS: '1'
       RUN_RBAC_DB_TESTS: '1'
@@ -59,8 +60,6 @@ jobs:
           pnpm db:seed
           pnpm db:bootstrap
       - name: Database migration and privilege tests
-        env:
-          TEST_BACKUP_CONTAINER: ${{ job.services.postgres.id }}
         run: pnpm --filter @predioon/db exec node --import tsx --test --test-concurrency=1 test/*.test.ts
       - name: Full platform regression
         run: pnpm test
@@ -82,6 +81,88 @@ jobs:
       - name: Validate production container builds
         run: |
           docker build -f infrastructure/Dockerfile.node --build-arg SERVICE=api -t predioon-api:test .
+          docker build -f infrastructure/Dockerfile.node --build-arg SERVICE=notifications -t predioon-notifications:test .
           docker build -f infrastructure/Dockerfile.web --build-arg VITE_API_URL=https://api.example.invalid -t predioon-web:test .
       - name: Verify production proxy isolation and forwarded headers
         run: node scripts/test-production-proxy.mjs
+
+  backup:
+    # Provisioning rotates cluster-wide role credentials. Both backup variants
+    # run alone, with a second fresh physical cluster for independent recovery.
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      origin:
+        image: timescale/timescaledb:2.17.2-pg16
+        env:
+          POSTGRES_USER: predioon
+          POSTGRES_PASSWORD: predioon
+          POSTGRES_DB: predioon
+          TIMESCALEDB_TELEMETRY: 'off'
+        ports: ['5436:5432']
+        options: >-
+          --health-cmd "pg_isready -U predioon -d predioon"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+      recovery:
+        image: timescale/timescaledb:2.17.2-pg16
+        env:
+          POSTGRES_USER: predioon
+          POSTGRES_PASSWORD: predioon
+          POSTGRES_DB: predioon
+          TIMESCALEDB_TELEMETRY: 'off'
+        ports: ['5437:5432']
+        options: >-
+          --health-cmd "pg_isready -U predioon -d predioon"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      TEST_MIGRATIONS_DATABASE_URL: postgres://predioon:predioon@localhost:5436/predioon
+      TEST_BACKUP_CONTAINER: ${{ job.services.origin.id }}
+      TEST_BACKUP_RESTORE_DATABASE_URL: postgres://predioon:predioon@localhost:5437/predioon
+      TEST_BACKUP_RESTORE_CONTAINER: ${{ job.services.recovery.id }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Same-cluster and independent-cluster Timescale backup recovery
+        run: pnpm --filter @predioon/db exec node --import tsx --test --test-concurrency=1 test/backup-restore.test.ts
+
+  notifications:
+    # These suites change cluster-wide runtime role passwords. Their fresh
+    # databases alone do not isolate them from API/browser test credentials.
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: timescale/timescaledb:2.17.2-pg16
+        env:
+          POSTGRES_USER: predioon
+          POSTGRES_PASSWORD: predioon
+          POSTGRES_DB: predioon
+          TIMESCALEDB_TELEMETRY: 'off'
+        ports: ['5436:5432']
+        options: >-
+          --health-cmd "pg_isready -U predioon -d predioon"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      TEST_NOTIFICATION_DATABASE_URL: postgres://predioon:predioon@localhost:5436/predioon
+      TEST_NOTIFICATION_PRODUCERS_DATABASE_URL: postgres://predioon:predioon@localhost:5436/predioon
+      TEST_NOTIFICATION_DISPOSABLE_DB: '1'
+      NODE_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Real SQL038 ACL, lease, generation and atomicity contracts
+        run: pnpm --filter @predioon/db exec node --import tsx --test --test-concurrency=1 test/notification-delivery.test.ts
+      - name: Complete worker host and real connection failure contracts
+        run: pnpm --filter @predioon/notifications test
+      - name: Real producer transaction and outbox atomicity contracts
+        run: pnpm --filter @predioon/ingest exec node --import tsx --test --test-concurrency=1 test/outbox-producers.integration.test.ts

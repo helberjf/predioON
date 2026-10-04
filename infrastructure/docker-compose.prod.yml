@@ -96,6 +96,7 @@ services:
       args:
         SERVICE: ingest
     restart: unless-stopped
+    stop_grace_period: 30s
     depends_on:
       db:
         condition: service_healthy
@@ -107,7 +108,29 @@ services:
       MQTT_CLIENT_ID: predioon-ingest
       GATEWAY_OFFLINE_TIMEOUT_SECONDS: 180
       DEVICE_OFFLINE_TIMEOUT_SECONDS: 600
+
+  notifications:
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile.node
+      args:
+        SERVICE: notifications
+    restart: unless-stopped
+    stop_grace_period: 30s
+    working_dir: /app/services/notifications
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL_NOTIFICATIONS: postgres://predioon_notifications:${NOTIFICATIONS_DB_PASSWORD:?defina NOTIFICATIONS_DB_PASSWORD}@db:5432/predioon
       ALERT_WEBHOOK_URL: ${ALERT_WEBHOOK_URL:-}
+    healthcheck:
+      test: ["CMD", "node", "--import", "tsx", "src/health.ts"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
 
   web:
     build:

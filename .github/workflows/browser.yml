@@ -42,6 +42,7 @@ jobs:
       DATABASE_URL_APP: postgres://predioon_app:predioon_app@postgres:5432/predioon
       DATABASE_URL_IDENTITY: postgres://predioon_identity:predioon_identity@postgres:5432/predioon
       DATABASE_URL_BROKER_AUTH: postgres://predioon_broker_auth:predioon_broker_auth@postgres:5432/predioon
+      DATABASE_URL_NOTIFICATIONS: postgres://predioon_notifications:predioon_notifications@postgres:5432/predioon
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

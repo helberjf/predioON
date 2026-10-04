@@ -1,11 +1,11 @@
 import { and, desc, eq, gte, lt } from "drizzle-orm";
 import { alerts, buildings, dailyUsage, monitoringProfiles, usageCursors, readFeatures, type DbTransaction } from "@predioon/db";
 import { advanceUsage, assessDeviation, dayBounds, dayKey, learnReference, kindFeature, USAGE_METRICS, USAGE_UNITS, type FeatureStates, type Telemetry } from "@predioon/shared";
-import type { AlertNotification } from "../notify/index.js";
+import { assertPersisted, persistAlert, type AlertNotification, type PersistenceChecks } from "../notify/index.js";
 import { permitsFeature } from "../features.js";
 
 /** Called under the sensor row lock, in the same transaction as the raw reading. */
-export async function accountUsage(tx: DbTransaction, reading: Telemetry, features?: FeatureStates): Promise<AlertNotification[]> {
+export async function accountUsage(tx: DbTransaction, reading: Telemetry, features?: FeatureStates, checks?: PersistenceChecks): Promise<AlertNotification[]> {
   if (!Object.values(USAGE_METRICS).includes(reading.metric as typeof USAGE_METRICS[keyof typeof USAGE_METRICS])) return [];
   const time = new Date(reading.timestamp);
   if (time.getTime() > Date.now() + 60_000) return [];
@@ -34,11 +34,25 @@ export async function accountUsage(tx: DbTransaction, reading: Telemetry, featur
         quantity: (old?.quantity ?? 0) + part.quantity, estimatedCost: cost,
         coveredSeconds: (old?.coveredSeconds ?? 0) + part.coveredSeconds, resets: (old?.resets ?? 0) + part.resets,
         samples: (old?.samples ?? 0) + 1, firstAt: old?.firstAt ?? part.firstAt, lastAt: part.lastAt };
-      await tx.insert(dailyUsage).values(values).onConflictDoUpdate({ target: [dailyUsage.profileId, dailyUsage.day], set: values });
+      const written = await tx.insert(dailyUsage).values(values).onConflictDoUpdate({ target: [dailyUsage.profileId, dailyUsage.day], set: values }).returning();
+      assertPersisted(written.length === 1 ? written[0] : undefined, values, "Daily usage");
+      const [persisted] = await tx.select().from(dailyUsage).where(and(eq(dailyUsage.profileId, profile.id), eq(dailyUsage.day, part.day))).limit(1);
+      assertPersisted(persisted, values, "Daily usage");
+      checks?.remember(`daily:${profile.id}:${part.day}`, async () => {
+        const [persisted] = await tx.select().from(dailyUsage).where(and(eq(dailyUsage.profileId, profile.id), eq(dailyUsage.day, part.day))).limit(1);
+        assertPersisted(persisted, values, "Daily usage");
+      });
     }
-    await tx.insert(usageCursors).values({ profileId: profile.id, buildingId: profile.buildingId,
-      lastAt: next.state.time, lastValue: Number(next.state.value), good: next.state.good, continuousSeconds: next.state.continuousSeconds })
-      .onConflictDoUpdate({ target: usageCursors.profileId, set: { lastAt: next.state.time, lastValue: Number(next.state.value), good: next.state.good, continuousSeconds: next.state.continuousSeconds } });
+    const cursorValues = { profileId: profile.id, buildingId: profile.buildingId,
+      lastAt: next.state.time, lastValue: Number(next.state.value), good: next.state.good, continuousSeconds: next.state.continuousSeconds };
+    const cursors = await tx.insert(usageCursors).values(cursorValues).onConflictDoUpdate({ target: usageCursors.profileId, set: cursorValues }).returning();
+    assertPersisted(cursors.length === 1 ? cursors[0] : undefined, cursorValues, "Usage cursor");
+    const [persistedCursor] = await tx.select().from(usageCursors).where(eq(usageCursors.profileId, profile.id)).limit(1);
+    assertPersisted(persistedCursor, cursorValues, "Usage cursor");
+    checks?.remember(`cursor:${profile.id}`, async () => {
+      const [persisted] = await tx.select().from(usageCursors).where(eq(usageCursors.profileId, profile.id)).limit(1);
+      assertPersisted(persisted, cursorValues, "Usage cursor");
+    });
 
     // Backfilled history trains the model, but must not page somebody about an old incident.
     if (reading.quality !== "GOOD" || Date.now() - time.getTime() > 300_000) continue;
@@ -48,8 +62,7 @@ export async function accountUsage(tx: DbTransaction, reading: Telemetry, featur
     async function emit(type: string, value: number, message: string) {
       const [existing] = await tx.select({ id: alerts.id }).from(alerts).where(and(eq(alerts.buildingId, profile.buildingId), eq(alerts.deviceId, profile.deviceId), eq(alerts.type, type), gte(alerts.triggeredAt, bounds.start), lt(alerts.triggeredAt, bounds.end))).limit(1);
       if (existing) return;
-      const [alert] = await tx.insert(alerts).values({ buildingId: profile.buildingId, deviceId: profile.deviceId, severity: "HIGH", type, message, triggeredValue: value, triggeredAt: time }).returning({ id: alerts.id });
-      notifications.push({ alertId: alert!.id, buildingId: profile.buildingId, deviceId: profile.deviceId, severity: "HIGH", type, message, triggeredAt: time.toISOString() });
+      notifications.push(await persistAlert(tx, { buildingId: profile.buildingId, deviceId: profile.deviceId, severity: "HIGH", type, message, triggeredValue: value, triggeredAt: time }, checks));
     }
     const label = { ENERGY: "Energia", WATER: "Água", PUMP: "Bomba" }[profile.kind], unit = USAGE_UNITS[profile.kind];
     if (profile.dailyLimit !== null && today.quantity > profile.dailyLimit) await emit(`DAILY_${profile.kind}_LIMIT`, today.quantity,

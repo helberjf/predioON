@@ -3,13 +3,14 @@ import { randomUUID } from "node:crypto";
 import { createServer } from "node:http";
 import { after, before, describe, it } from "node:test";
 import { and, eq } from "drizzle-orm";
-import { alerts, auditLogs, buildings, dailyUsage, db, devices, gateCommands, gates, gateways, organizations, parkingLots, sqlClient, telemetry, usageCursors } from "@predioon/db";
+import { alerts, auditLogs, buildings, dailyUsage, db, devices, gateCommands, gates, gateways, lockFeatures, organizations, parkingLots, sqlClient, telemetry, usageCursors } from "@predioon/db";
 import { closeAppDb } from "@predioon/db/runtime";
 import { accessTopic, dayKey, telemetryTopic } from "@predioon/shared";
 import { handleTelemetry } from "../../../services/ingest/src/pipeline/telemetry.js";
 import { dispatchAccessOnce, handleAccessAck } from "../../../services/ingest/src/access/dispatcher.js";
-import { notifyAlert } from "../../../services/ingest/src/notify/index.js";
-import { config } from "../../../services/ingest/src/config.js";
+import { persistAlert } from "../../../services/ingest/src/notify/index.js";
+import { notificationAttemptFactory } from "../../../services/notifications/src/database.js";
+import { runNotificationAttempt, type AttemptResult } from "../../../services/notifications/src/protocol.js";
 import { call, login, startTestServer } from "./helpers.js";
 
 describe("pause and resume through the real API, database and ingestion", () => {
@@ -150,22 +151,45 @@ describe("pause and resume through the real API, database and ingestion", () => 
     assert.equal((await db.select().from(gateCommands).where(eq(gateCommands.id, command!.id)))[0]!.status, "ACKNOWLEDGED");
   });
   it("alert delivery serializes with pause and old alerts are not delivered afterwards", async () => {
-    const [alert] = await db.insert(alerts).values({ buildingId, deviceId: meterId, type: "DAILY_ENERGY_LIMIT", severity: "HIGH", message: "Lifecycle alert", triggeredAt: new Date() }).returning();
+    const [alert, pending] = await db.transaction(async tx => {
+      await lockFeatures(tx);
+      const draft = { buildingId, deviceId: meterId, type: "DAILY_ENERGY_LIMIT", severity: "HIGH" as const, message: "Lifecycle alert" };
+      // Both real producer writes commit with their outbox. A permitted future
+      // timestamp must not escape cancellation while the first HTTP is held.
+      return [await persistAlert(tx, { ...draft, triggeredAt: new Date() }),
+        await persistAlert(tx, { ...draft, triggeredAt: new Date(Date.now() + 60_000) })];
+    });
     let entered!: () => void, finish!: () => void, deliveries = 0;
+    let started = false, receptionTimeout: ReturnType<typeof setTimeout> | undefined;
     const receiving = new Promise<void>(resolve => { entered = resolve; });
-    const webhook = createServer((req, res) => { req.resume(); deliveries++; finish = () => { res.writeHead(204); res.end(); }; entered(); });
+    const webhook = createServer((req, res) => { req.resume(); deliveries++; started = true; finish = () => { if (!res.writableEnded) { res.writeHead(204); res.end(); } }; entered(); });
     await new Promise<void>(resolve => webhook.listen(0, "127.0.0.1", resolve));
-    const port = (webhook.address() as { port: number }).port, previous = config.ALERT_WEBHOOK_URL;
-    config.ALERT_WEBHOOK_URL = `http://127.0.0.1:${port}`;
-    const notification = { alertId: alert!.id, buildingId, deviceId: meterId, severity: "HIGH", type: alert!.type, message: alert!.message, triggeredAt: alert!.triggeredAt.toISOString() };
+    const destination = `http://127.0.0.1:${(webhook.address() as { port: number }).port}`;
+    const shutdown = new AbortController(), open = notificationAttemptFactory();
+    let delivery: Promise<AttemptResult> | undefined;
     try {
-      const delivery = notifyAlert(notification); await receiving;
+      delivery = runNotificationAttempt(open, shutdown.signal, destination);
+      try {
+        await Promise.race([receiving, delivery.then(result => { if (!started) assert.fail(`Worker ended before HTTP: ${result}`); }),
+          new Promise<never>((_resolve, reject) => { receptionTimeout = setTimeout(() => reject(new Error("Worker did not begin HTTP within 10 seconds")), 10_000); })]);
+      } finally { clearTimeout(receptionTimeout); }
       const state = (await ok(`/features/buildings/${buildingId}`)).items.find((row: any) => row.key === "ENERGY_CONSUMPTION");
-      const change = ok(`/features/buildings/${buildingId}/ENERGY_CONSUMPTION`, "PUT", { enabled: false, version: state.version, reason: "Concorrência com entrega de alerta" });
-      try { await queuedChange(); } finally { finish(); }
-      await delivery; await change;
-      await notifyAlert(notification); assert.equal(deliveries, 1);
-    } finally { config.ALERT_WEBHOOK_URL = previous; webhook.closeAllConnections(); await new Promise<void>(resolve => webhook.close(() => resolve())); }
+      let completed = false;
+      const change = ok(`/features/buildings/${buildingId}/ENERGY_CONSUMPTION`, "PUT", { enabled: false, version: state.version, reason: "Concorrência com entrega de alerta" }).then(result => { completed = true; return result; });
+      try { await queuedChange(); assert.equal(completed, false); } finally { finish(); }
+      assert.equal(await delivery, "delivered"); await change;
+      const deliveryState = async (id: string) => (await sqlClient`select d.status from event_deliveries d join outbox_events e on e.id=d.event_id where e.alert_id=${id}::uuid`)[0]?.status;
+      assert.equal(await deliveryState(alert!.alertId), "delivered");
+      assert.equal(await deliveryState(pending!.alertId), "cancelled");
+      assert.equal(await runNotificationAttempt(open, shutdown.signal, destination), "empty");
+      await set("ENERGY_CONSUMPTION", true);
+      assert.equal(await runNotificationAttempt(open, shutdown.signal, destination), "empty");
+      assert.equal(await deliveryState(pending!.alertId), "cancelled");
+      assert.equal(deliveries, 1);
+    } finally {
+      clearTimeout(receptionTimeout); finish?.(); shutdown.abort(); await delivery;
+      webhook.closeAllConnections(); await new Promise<void>(resolve => webhook.close(() => resolve()));
+    }
   });
   it("support blocks new launches and keeps the result of an existing request recordable", async () => {
     await ok(`/support/${buildingId}`, "PUT", { displayName: "Test host", anydeskId: "123456789", enabled: true });

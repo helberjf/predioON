@@ -1,6 +1,6 @@
 # Prédio ON — gestão condominial e monitoramento IoT
 
-Plataforma para monitoramento e operação de condomínios, casas e imóveis comerciais. Reúne API, ingestão MQTT, PostgreSQL/TimescaleDB e três interfaces web: **administrador da plataforma**, **síndico** e **morador**.
+Plataforma para monitoramento e operação de condomínios, casas e imóveis comerciais. Reúne API, ingestão MQTT, worker de notificações, PostgreSQL/TimescaleDB, apps Morador/Operação e três interfaces web: **administrador da plataforma**, **síndico** e **morador**.
 
 Para retomar o desenvolvimento nesta ou em outra máquina, leia [CONTINUIDADE.md](docs/CONTINUIDADE.md): estado atual, entregas verificadas, falhas abertas, próximos passos e recuperação dos rascunhos preservados. O plano de evolução ainda está em execução.
 
@@ -17,6 +17,7 @@ O escopo do produto está no [PRD](docs/PRD.md) e o desenho técnico no [TDD](do
 | Monitoramento | Nível, volume e distância da caixa d'água; tensão, corrente e frequência das fases; estado da bomba; temperatura, gás, fumaça e vazamentos de água/esgoto. |
 | Consumo e análise | Consumo de água e energia, custo estimado por tarifa, tempo diário/contínuo de bomba, limites e análise estatística baseada no histórico válido. |
 | Alertas | Regras configuráveis, histórico, reconhecimento e acompanhamento de equipamentos sem comunicação. |
+| Entrega de alertas | Outbox atômica e worker restrito de webhook, recuperação por lease e chave de idempotência estável; [contrato, implantação e limites](docs/NOTIFICACOES_DURAVEIS.md). |
 | Portões e acessos | Cadastro de garagem e entrada de pedestres, permissões, solicitação de abertura, comando MQTT, confirmação do controlador e auditoria. |
 | Vagas | Capacidade, ocupação e disponibilidade separadas para carros e motos, com atualização manual ou por sensor e indicação de leitura antiga/desconhecida. |
 | Rotina | Avisos com programação e repetição semanal, reservas de áreas comuns, aprovação e tratamento de conflitos de horário. |
@@ -103,6 +104,8 @@ if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 ```
 
 O [`.env.example`](.env.example) contém os valores do Docker Compose local. O comando acima preserva um `.env` existente.
+
+Ao atualizar uma instalação local anterior à038, acrescente `DATABASE_URL_NOTIFICATIONS` ao `.env` existente conforme o exemplo, com a role `predioon_notifications` no mesmo banco. O provisionamento exige a conexão administrativa e quatro URLs restritas: app, identity, broker_auth e notifications. Encerrar produtores antigos antes de aplicar038 e iniciar somente a versão compatível; seguir [o guia de notificações](docs/NOTIFICACOES_DURAVEIS.md#implantação-e-rollback). Um destino vazio termina as entregas em `no_destination`; configurar webhook depois não reenvia esses alertas automaticamente.
 
 ### 2. Preparar infraestrutura e banco
 
@@ -206,7 +209,7 @@ Consulte [`.env.example`](.env.example) para os padrões locais e [DEPLOY](docs/
 
 ## Testes e verificações
 
-Use um banco **isolado e descartável**, separado dos dados de uso diário. A API/ingestão e simuladores desse ambiente devem estar parados durante a regressão. O [guia de migrations](docs/MIGRATIONS.md#testes-em-banco-isolado) descreve uma preparação reproduzível na porta 5439. No mesmo PowerShell, configure as quatro conexões para esse banco e habilite as duas famílias de testes de integração:
+Use um banco **isolado e descartável**, separado dos dados de uso diário. A API/ingestão, worker de notificações e simuladores desse ambiente devem estar parados durante a regressão. O [guia de migrations](docs/MIGRATIONS.md#testes-em-banco-isolado) descreve uma preparação reproduzível na porta 5439. No mesmo PowerShell, configure a conexão administrativa e as quatro restritas para esse banco e habilite as duas famílias de testes de integração:
 
 ```powershell
 $env:RUN_ACCESS_DB_TESTS = "1"
@@ -217,6 +220,8 @@ pnpm test
 ```
 
 `pnpm test` executa `@predioon/api-client`, `@predioon/ui`, `@predioon/mobile`, `@predioon/api` e `@predioon/ingest` em sequência. A suíte de banco é chamada separadamente acima; sua conexão administrativa precisa poder criar/remover bancos temporários. As verificações incluem sessão, autorização HTTP/RLS, contratos MQTT, telemetria, comandos, pausa/retomada e histórico de migrations. Testes ignorados por falta de variáveis não contam como validação dessas integrações. Os testes de acesso simulam controladores e não comprovam atuação de um portão físico.
+
+SQL038/worker e produtores têm suítes próprias, com cluster exclusivo e opt-in explícito, pois alteram roles globais. Seguir [MIGRATIONS](docs/MIGRATIONS.md#testes-em-banco-isolado) e o job `notifications` em [ci.yml](.github/workflows/ci.yml); não ligar essas variáveis no cluster da API/navegador. Backup também usa job separado, com dois clusters para restauração. `pnpm test` sozinho não executa a suíte própria do worker.
 
 Os fluxos de navegador usam `pnpm exec playwright install chromium firefox webkit` e `pnpm test:e2e`; siga [o guia E2E](e2e/README.md) para preparar o banco e evitar disputa com outros serviços. O comportamento do inicializador Windows pode ser testado sem executar Docker ou alterar banco: `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/test-start-local.ps1`. O parâmetro de política vale somente para esse processo de teste.
 
@@ -247,13 +252,14 @@ Os resultados de validações anteriores e os ensaios com broker local estão em
 | `pnpm db:push` | Ferramenta de desenvolvimento para schema; não é o mecanismo de atualização de instalação com histórico. |
 | `pnpm db:infra` | Usa `DATABASE_URL` administrativa; verifica checksums e aplica somente migrations pendentes, com ledger e lock. |
 | `pnpm db:infra --check` | Consulta baseline/histórico/pendências sem DDL; saída 0 = pronto, 2 = pendente, 1 = erro ou histórico incompatível. |
-| `pnpm db:provision-runtime` | Habilita login e configura as senhas das três roles restritas conforme as URLs do ambiente. |
+| `pnpm db:provision-runtime` | Habilita login e configura as senhas das quatro roles restritas conforme as URLs do ambiente. |
 | `pnpm db:seed` | Cadastra/complementa a demonstração e redefine a senha das contas demo. |
 | `pnpm --filter @predioon/admin-web dev` | Inicia apenas o painel administrador. |
 | `pnpm --filter @predioon/building-web dev` | Inicia apenas o painel do síndico. |
 | `pnpm --filter @predioon/resident-web dev` | Inicia apenas o portal do morador. |
 | `pnpm --filter @predioon/api dev` | Inicia apenas a API. |
 | `pnpm --filter @predioon/ingest dev` | Inicia apenas a ingestão MQTT. |
+| `pnpm --filter @predioon/notifications dev` | Inicia o worker restrito de webhook; exige SQL038 e sua própria URL de banco. |
 
 Para recriar uma demonstração descartável, pare os processos com `Ctrl+C` e execute:
 
@@ -270,7 +276,7 @@ pnpm dev
 | Sintoma | O que conferir |
 |---|---|
 | `docker` não é reconhecido ou o engine não responde | Instalação e inicialização do Docker Desktop; depois reabra o PowerShell e confira `docker compose version`. |
-| Porta `5434` ocupada | Ajuste a porta externa em `infrastructure/docker-compose.yml` e as quatro conexões `DATABASE_URL`, `DATABASE_URL_APP`, `DATABASE_URL_IDENTITY` e `DATABASE_URL_BROKER_AUTH` no `.env`. |
+| Porta `5434` ocupada | Ajuste a porta externa em `infrastructure/docker-compose.yml`, `DATABASE_URL` e as quatro URLs restritas no `.env`, incluindo `DATABASE_URL_NOTIFICATIONS`. |
 | Portas `3000`, `5173`, `5174` ou `5175` ocupadas | Libere as portas antes de iniciar. Se alterar os endereços, ajuste também `VITE_API_URL` e `CORS_ORIGINS`. |
 | Painel mostra “API indisponível” | Confira `/health/ready`, o terminal da API e se `pnpm setup:local` terminou sem erro. |
 | Painel abre, mas não mostra leituras atuais | Confira ingestão, broker e simulador; verifique cadastro do dispositivo e disponibilidade do recurso em **Funcionalidades**. |
@@ -312,6 +318,7 @@ A evolução de `codex/product-platform` foi integrada à `main` em 01/10/2026. 
 | 2B.4 | Seleção de condomínio, gestão de unidades/equipes/vínculos e diretório mínimo por capacidade (025) | Integrada; regressão executada pela CI |
 | 5 | Apps Morador e Operação, sessão em Keychain/Keystore e fluxos existentes da API | Incremento integrado; publicação e módulos novos pendentes |
 | 2C | Cookies HttpOnly/CSRF, access em memória, coordenação entre abas, limites persistentes035 e troca da própria senha037 | Incrementos integrados; MFA, convites, recuperação e homologação nativa continuam pendentes |
+| 3 — primeiro incremento | Outbox038, produtores atômicos, worker de webhook e role própria | Implementado/testado no recorte; inbox, demais workers, retenção/replay, push e rollout real ainda pendentes |
 | 3, 4 e 6 | Processamento durável (inbox/outbox/workers), ativos e ordens de serviço, automações, planos/assinaturas e operação revisada | Pendentes; entregas operacionais parciais registradas no tracker |
 
 Evidências e números de teste por etapa ficam no [tracker de execução](docs/superpowers/plans/2026-09-27-product-execution.md). Os débitos técnicos conhecidos, incluindo a fronteira entre confirmação MQTT e commit, estão em [TDD, seção 18](docs/TDD.md#18-débitos-técnicos-e-riscos-de-implementação).

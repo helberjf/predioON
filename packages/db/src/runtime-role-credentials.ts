@@ -1,7 +1,8 @@
-const runtimeRoles = {
+export const runtimeRoles = {
   DATABASE_URL_APP: "predioon_app",
   DATABASE_URL_IDENTITY: "predioon_identity",
   DATABASE_URL_BROKER_AUTH: "predioon_broker_auth",
+  DATABASE_URL_NOTIFICATIONS: "predioon_notifications",
 } as const;
 
 export type RuntimeRole = (typeof runtimeRoles)[keyof typeof runtimeRoles];
@@ -11,7 +12,10 @@ function parseConnection(environment: Record<string, string | undefined>, key: s
   try {
     const url = new URL(environment[key] ?? "");
     if (!["postgres:", "postgresql:"].includes(url.protocol) || !url.hostname || !url.username || !url.password || url.pathname.length < 2) throw new Error();
-    decodeURIComponent(url.username); decodeURIComponent(url.password);
+    for (const parameter of url.searchParams.keys()) {
+      if (["role", "options", "session_authorization"].includes(parameter.trim().toLowerCase())) throw new Error();
+    }
+    decodeURIComponent(url.username); decodeURIComponent(url.password); decodeURIComponent(url.pathname);
     return url;
   } catch { throw new Error(`${key}: conexão PostgreSQL inválida ou incompleta`); }
 }

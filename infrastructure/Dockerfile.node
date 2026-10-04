@@ -1,6 +1,6 @@
-# Imagem comum da API e do serviço de ingestão.
-# Escolha o serviço com --build-arg SERVICE=api|ingest.
-FROM node:22-slim AS base
+# Imagem comum da API, ingestão e worker restrito de notificações.
+# Escolha o serviço com --build-arg SERVICE=api|ingest|notifications.
+FROM node:24-slim AS base
 
 ARG SERVICE=api
 ENV SERVICE=${SERVICE}
@@ -20,14 +20,17 @@ COPY packages/db/package.json packages/db/
 COPY packages/ui/package.json packages/ui/
 COPY apps/api/package.json apps/api/
 COPY services/ingest/package.json services/ingest/
+COPY services/notifications/package.json services/notifications/
 
-RUN pnpm install --frozen-lockfile --filter @predioon/api --filter @predioon/ingest --filter @predioon/db --filter @predioon/shared
+RUN pnpm install --frozen-lockfile --filter @predioon/api --filter @predioon/ingest --filter @predioon/notifications --filter @predioon/db --filter @predioon/shared
 
 COPY packages ./packages
 COPY apps/api ./apps/api
 COPY services/ingest ./services/ingest
+COPY services/notifications ./services/notifications
 COPY infrastructure/*.sql ./infrastructure/
 
 # tsx executa o TypeScript direto: sem etapa de build, sem risco de o artefato
 # publicado divergir do código. O custo é alguns segundos a mais no start.
-CMD ["sh", "-c", "if [ \"$SERVICE\" = \"ingest\" ]; then pnpm --filter @predioon/ingest exec tsx src/index.ts; else pnpm --filter @predioon/api exec tsx src/server.ts; fi"]
+# Node recebe sinais como PID1; não há pnpm intermediário consumindo SIGTERM.
+CMD ["sh", "-c", "case \"$SERVICE\" in api) cd /app/apps/api && exec node --import tsx src/server.ts ;; ingest|notifications) cd \"/app/services/$SERVICE\" && exec node --import tsx src/index.ts ;; *) echo 'SERVICE inválido' >&2; exit 64 ;; esac"]

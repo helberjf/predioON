@@ -114,3 +114,58 @@ it("accepts the three restricted API entrypoints", async () => {
     "packages/db": { name: "@predioon/db" },
   }, async root => assert.deepEqual(await checkBoundaries(root), []));
 });
+
+it("accepts only the dedicated notification entrypoint in the worker", async () => {
+  await fixture({
+    "services/notifications": { name: "@predioon/notifications", source: "import '@predioon/db/notifications'; import type postgres from 'postgres';", dependencies: { "@predioon/db": "workspace:*", postgres: "3.4.9" } },
+    "packages/db": { name: "@predioon/db" },
+  }, async root => assert.deepEqual(await checkBoundaries(root), []));
+});
+
+it("blocks notification owner and other runtime imports through direct, relative and dynamic edges", async () => {
+  for (const source of ["import '@predioon/db';", "import '@predioon/db/runtime';", "import '@predioon/db/identity';",
+    "import '@predioon/db/broker-auth';", "import '@predioon/db/src/notifications.js';",
+    "import '../../../packages/db/src/index.js';", "const db = import('@predioon/db');", "import postgres from 'postgres';",
+    "const sql = require('postgres');", "const sql = import('postgres');", "import postgres from 'postgres'; import type SQL from 'postgres';"]) {
+    await fixture({
+      "services/notifications": { name: "@predioon/notifications", source },
+      "packages/db": { name: "@predioon/db" },
+    }, async root => assert.ok((await checkBoundaries(root)).some(message => /Notification.*boundary/.test(message)), source));
+  }
+});
+
+it("blocks notification transitive owner imports and dependencies on ingestion transports", async () => {
+  await fixture({
+    "services/notifications": { name: "@predioon/notifications", dependencies: { "@predioon/helper": "workspace:*", "@predioon/ingest": "workspace:*" } },
+    "packages/helper": { name: "@predioon/helper", source: "export * from '@predioon/db';" },
+    "packages/db": { name: "@predioon/db" },
+    "services/ingest": { name: "@predioon/ingest" },
+  }, async root => {
+    const messages = await checkBoundaries(root);
+    assert.ok(messages.some(message => /Notification.*helper.*db/.test(message)), messages.join("\n"));
+    assert.ok(messages.some(message => /Notification.*ingest/.test(message)), messages.join("\n"));
+  });
+});
+
+it("keeps notification helpers outside the API and browser entrypoints", async () => {
+  await fixture({
+    "apps/api": { name: "@predioon/api", source: "import '@predioon/db/notifications';" },
+    "apps/resident-web": { name: "@predioon/resident-web", source: "import '@predioon/db/notifications';" },
+    "packages/db": { name: "@predioon/db" },
+  }, async root => {
+    const messages = await checkBoundaries(root);
+    assert.ok(messages.some(message => /API.*owner/.test(message)));
+    assert.ok(messages.some(message => /Client.*db/.test(message)));
+  });
+});
+
+it("blocks a dedicated notification export that indirectly imports the owner barrel", async () => {
+  await fixture({
+    "services/notifications": { name: "@predioon/notifications", source: "import '@predioon/db/notifications';" },
+    "packages/db": { name: "@predioon/db" },
+  }, async root => {
+    await writeFile(join(root, "packages/db/src/notifications.ts"), "export * from './notification-helper.js';");
+    await writeFile(join(root, "packages/db/src/notification-helper.ts"), "export * from './index.js';");
+    assert.ok((await checkBoundaries(root)).some(message => /Notification.*owner.*notification-helper/.test(message)));
+  });
+});

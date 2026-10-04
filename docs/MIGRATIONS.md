@@ -10,7 +10,7 @@ Este documento descreve o executor presente no código. Ele prepara instalaçõe
 | `pnpm db:bootstrap` | Cria o baseline em banco vazio; valida e preserva baseline existente | Administrativa |
 | `pnpm db:infra --check` | Confere baseline, histórico, checksums e pendências, sem aplicar SQL de migration | Administrativa; somente consultas e lock de sessão |
 | `pnpm db:infra` | Aplica somente migrations pendentes e registra cada confirmação | Administrativa |
-| `pnpm db:provision-runtime` | Configura login/senha das três roles restritas conforme as URLs do ambiente | Administrativa |
+| `pnpm db:provision-runtime` | Configura login/senha das quatro roles restritas conforme as cinco URLs do ambiente | Administrativa |
 | `pnpm db:seed` | Cria/complementa demonstração e redefine senhas das contas demonstrativas | Administrativa; ambiente descartável |
 
 Todos os comandos resolvem o banco pelas variáveis de ambiente, com `.env` da raiz como configuração local. `db:infra` não escolhe um banco por nome de container nem ignora uma `DATABASE_URL` já definida no processo. Confira host, porta e nome do banco antes de uma operação administrativa. Não publique a URL completa nem senhas em logs ou chamados.
@@ -63,7 +63,7 @@ Cada arquivo aplicado precisa existir na release atual com o mesmo checksum. O h
 
 Comentários, espaços e outras alterações de conteúdo também mudam o checksum. Depois de publicada/aplicada, uma migration deve permanecer imutável. A correção segue em **novo arquivo numerado no fim da sequência**, com revisão e testes próprios.
 
-O ledger tem RLS sem policies de runtime. O runner revoga privilégios de `PUBLIC`, `predioon_app`, `predioon_identity` e `predioon_broker_auth`, inclusive depois de scripts legados que concedem permissões amplas sobre tabelas. A conta administrativa continua capaz de administrá-lo; portanto, proteger essa credencial é parte do controle de mudanças.
+O ledger tem RLS sem policies de runtime. O runner revoga privilégios de `PUBLIC`, `predioon_app`, `predioon_identity`, `predioon_broker_auth` e `predioon_notifications`, inclusive depois de scripts legados que concedem permissões amplas sobre tabelas. A conta administrativa continua capaz de administrá-lo; portanto, proteger essa credencial é parte do controle de mudanças.
 
 ### Compatibilidade do arquivo 002
 
@@ -150,8 +150,9 @@ Um banco demonstrativo descartável pode ser recriado somente quando seu proprie
 | `DATABASE_URL_APP` / `predioon_app` | Operações HTTP de negócio com contexto de usuário e RLS |
 | `DATABASE_URL_IDENTITY` / `predioon_identity` | Autenticação e sessões |
 | `DATABASE_URL_BROKER_AUTH` / `predioon_broker_auth` | Autenticação/autorização do broker |
+| `DATABASE_URL_NOTIFICATIONS` / `predioon_notifications` | Entrega de webhook através de funções restritas; sem tabelas ou credenciais diretas |
 
-As quatro URLs de provisionamento devem apontar ao mesmo servidor/banco e usar os papéis esperados. A API não recebe a conexão proprietária em produção. A separação da credencial da ingestão e dos futuros workers continua pendente no plano aprovado; não considerar todos os runtimes restritos por causa da separação da API.
+As cinco URLs de provisionamento devem apontar ao mesmo servidor, porta e banco e usar os papéis esperados. O comando valida owner e as quatro roles antes de conectar, sem compatibilidade opcional que omita notificações após a 038. API e worker não recebem a conexão proprietária em produção. A ingestão ainda usa owner; não considerar todos os runtimes restritos por causa deste worker. A 038 não reenvia alertas históricos. Seus produtores antigos precisam estar interrompidos antes da migration, com filas e sessão MQTT conferidas pelo operador; veja [DEPLOY.md](DEPLOY.md#rollout-do-webhook-durável-038).
 
 ## Testes em banco isolado
 
@@ -163,6 +164,7 @@ $env:DATABASE_URL = "postgres://predioon:predioon@localhost:5439/predioon"
 $env:DATABASE_URL_APP = "postgres://predioon_app:predioon_app@localhost:5439/predioon"
 $env:DATABASE_URL_IDENTITY = "postgres://predioon_identity:predioon_identity@localhost:5439/predioon"
 $env:DATABASE_URL_BROKER_AUTH = "postgres://predioon_broker_auth:predioon_broker_auth@localhost:5439/predioon"
+$env:DATABASE_URL_NOTIFICATIONS = "postgres://predioon_notifications:predioon_notifications@localhost:5439/predioon"
 pnpm db:wait
 pnpm db:bootstrap
 pnpm db:infra
@@ -177,6 +179,8 @@ pnpm test
 ```
 
 As senhas acima são apenas do container descartável local. `TEST_MIGRATIONS_DATABASE_URL` precisa permitir criar/remover bancos temporários. A suíte verifica instalação nova, concorrência, rollback, checksums, recusa de legado, preservação de grants, privilégio do ledger, consulta sem alterações e CLI da release atual. Os testes de aplicação não substituem verificação de equipamento físico.
+
+Os testes SQL038 e do worker usam `TEST_NOTIFICATION_DATABASE_URL`; o dirigido de produtores usa `TEST_NOTIFICATION_PRODUCERS_DATABASE_URL`. Configure também o opt-in `TEST_NOTIFICATION_DISPOSABLE_DB=1`, somente contra cluster próprio em loopback. Eles criam bancos com UUID, mas também alteram atributos/senhas de papéis globais; por isso **não** podem compartilhar o cluster da API, do browser, de outra suíte ou de uma instalação. O job `notifications` em `ci.yml` fornece esse isolamento e executa SQL, worker e o dirigido de produtores sequencialmente. Uma suíte sem essa configuração registra skip; não é aceite de notificações. Nunca ligar essas variáveis apontando para o exemplo da suíte geral acima enquanto ela estiver ativa. O dirigido de produtores não substitui a regressão integral da ingestão.
 
 O inicializador Windows possui teste isolado com ferramentas simuladas:
 

@@ -508,6 +508,25 @@ importers:
         specifier: ^5.0.0
         version: 5.9.3
 
+  services/notifications:
+    dependencies:
+      '@predioon/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      postgres:
+        specifier: 3.4.9
+        version: 3.4.9
+    devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.4
+      tsx:
+        specifier: ^4.0.0
+        version: 4.23.13
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
+
 packages:
 
   '@alloc/quick-lru@5.3.0':

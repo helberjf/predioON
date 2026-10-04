@@ -23,6 +23,15 @@ set +a
 
 COMPOSE=(docker compose -f infrastructure/docker-compose.prod.yml --env-file "$ENV_FILE")
 
+[ -n "${NOTIFICATIONS_DB_PASSWORD:-}" ] || { echo "Defina NOTIFICATIONS_DB_PASSWORD antes de aplicar a release 038."; exit 1; }
+
+echo "→ interrompendo produtores e worker anteriores antes das migrations"
+"${COMPOSE[@]}" stop --timeout 30 ingest notifications
+active_producers=$("${COMPOSE[@]}" ps --status running --quiet ingest notifications)
+if [ -n "$active_producers" ]; then echo "Produtor ou worker ainda ativo; nenhuma migration aplicada."; exit 1; fi
+# A parada dos containers é verificável. Ela não comprova drenagem MQTT ou a
+# ausência de produtores externos: confira o procedimento de rollout em DEPLOY.
+
 echo "→ subindo o banco"
 "${COMPOSE[@]}" up -d db
 
@@ -44,9 +53,10 @@ echo "→ verificando histórico e aplicando migrations pendentes"
   -e DATABASE_URL="postgres://predioon:${POSTGRES_PASSWORD}@db:5432/predioon" \
   api pnpm --filter @predioon/db db:infra
 
-echo "→ provisionando credenciais restritas da API"
+echo "→ provisionando as quatro credenciais restritas"
 "${COMPOSE[@]}" run --rm \
   -e DATABASE_URL="postgres://predioon:${POSTGRES_PASSWORD}@db:5432/predioon" \
+  -e DATABASE_URL_NOTIFICATIONS="postgres://predioon_notifications:${NOTIFICATIONS_DB_PASSWORD}@db:5432/predioon" \
   api pnpm --filter @predioon/db db:provision-runtime
 
 if [ "${1:-}" = "--seed" ]; then

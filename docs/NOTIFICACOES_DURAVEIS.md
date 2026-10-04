@@ -1,6 +1,6 @@
 # Notificações duráveis — incremento038
 
-Estado em03/10/2026: implementação candidata preservada no [checkpoint](CONTINUIDADE.md), ainda sem publicação integrada do SQL038/serviço na `main` ou implantação real. Restaurar o patch não significa aprovar a release. Este guia descreve o candidato e seus testes; confirmar o estado atualizado em `CONTINUIDADE.md` antes de executar.
+Estado em03/10/2026: SQL038, serviço, produtores, credencial, implantação/CI e testes integrados nesta linha. Os testes locais correspondentes passaram; conferir o novo CI pelo commit exato. Não houve implantação real nem aceite de produção. O patch038 histórico é obsoleto; usar a main e consultar [CONTINUIDADE](CONTINUIDADE.md) antes de executar.
 
 ## O que muda
 
@@ -76,12 +76,12 @@ Não usar o DSN do worker para contornar ACLs. Não publicar mensagens, fixtures
 
 O [guia de backup](BACKUP_E_RESTAURACAO.md) distingue preparação do banco/roles novos de restauração dos objetos pelo archive. Não transportar credenciais globais por `pg_dumpall`. O ensaio mantém os sete estados, witnesses, evento/chave, ACLs/RLS/owners e ledger38; aguarda a lease real, rejeita token antigo e recupera o trabalho usando novo backend.
 
-## Provas e aceite pendente
+## Provas e operação pendente
 
 - SQL038:54 testes reais, incluindo ACLs, leases, gerações, pausas, ANY/ALL e recusas/alterações imediatas por triggers; hash da migration conservado.
 - Produtores: integral123/123,40 próprios e83 regressões; queda antes/depois do commit, OFFLINE atômico, SSE falho, tipos JSONB e reconfirmação da origem/outbox antes do commit/ACK.
 - Backup:2/2 restaurações reais, incluindo outro cluster físico e reprovisionamento das quatro roles. O CI ganhou job separado com dois serviços de banco; a execução desse novo CI ainda está pendente.
-- Worker: suíte real de SQL/HTTP/processo, incluindo dois workers, conexão perdida, liberação recusada, SIGKILL e espera real20s para recuperação com a mesma chave. A revisão identificou heartbeat herdado e sua negativa foi reproduzida; conferir o resultado final corrigido em `CONTINUIDADE.md`.
-- Tipos dos15 workspaces, boundaries, imagem Node24, Compose, Caddy e contratos de rollout passaram no candidato. São provas locais; implantação pública, contrato de idempotência do destinatário e integral API038 ainda precisam de confirmação.
+- Worker: suíte real de SQL/HTTP/processo, incluindo dois workers, conexão perdida, liberação recusada, SIGKILL e espera real20s para recuperação com a mesma chave. Integral36/36 Linux, sem skips; a negativa do heartbeat herdado foi reproduzida e a correção passou no startup com o mesmo PID. Conferir logs/limites em `CONTINUIDADE.md`.
+- Tipos dos15 workspaces, boundaries, imagem Node24, Compose, Caddy e contratos de rollout passaram no candidato. A integral API038 também passou697/697,0 skips, em25min02s; Playwright222/222 em três motores/0 retries, cliente64/UI89/mobile75 e bancoLinux34+2 skips de backup passaram. São provas locais; implantação pública, contrato de idempotência do destinatário e novo CI ainda precisam de confirmação.
 
 Scripts usam bancos/clusters descartáveis explicitamente autorizados. As suítes que endurecem roles ou trocam senhas são isoladas das credenciais da API/navegador. Skips por falta de ambiente não representam teste executado. Evidências brutas/segredos permanecem fora do Git; o checkpoint contém somente fontes recuperáveis, com restauração/hash verificados.

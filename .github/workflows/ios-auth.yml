@@ -57,7 +57,7 @@ jobs:
           python3 - <<'PY'
           import os, secrets
           environment = {}
-          for variable, role in [('DATABASE_URL','predioon'), ('DATABASE_URL_APP','predioon_app'), ('DATABASE_URL_IDENTITY','predioon_identity'), ('DATABASE_URL_BROKER_AUTH','predioon_broker_auth')]:
+          for variable, role in [('DATABASE_URL','predioon'), ('DATABASE_URL_APP','predioon_app'), ('DATABASE_URL_IDENTITY','predioon_identity'), ('DATABASE_URL_BROKER_AUTH','predioon_broker_auth'), ('DATABASE_URL_NOTIFICATIONS','predioon_notifications')]:
               password = secrets.token_hex(24)
               print('::add-mask::' + password)
               environment[variable] = f'postgres://{role}:{password}@127.0.0.1:5436/predioon'
