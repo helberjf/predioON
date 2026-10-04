@@ -225,6 +225,8 @@ SQL038/worker e produtores têm suítes próprias, com cluster exclusivo e opt-i
 
 Os fluxos de navegador usam `pnpm exec playwright install chromium firefox webkit` e `pnpm test:e2e`; siga [o guia E2E](e2e/README.md) para preparar o banco e evitar disputa com outros serviços. O comportamento do inicializador Windows pode ser testado sem executar Docker ou alterar banco: `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/test-start-local.ps1`. O parâmetro de política vale somente para esse processo de teste.
 
+Mudanças em workflows têm [validação semântica independente](.github/workflows/workflow-validation.yml) com actionlint1.7.12 e checksum do archive fixado. Ela confere sintaxe, expressões e contextos disponíveis; parser YAML sozinho não detecta `job.services` ou `runner.temp` usados no nível incorreto. Para a mesma verificação local com actionlint instalado: `actionlint -shellcheck= -pyflakes=`. Esse recorte não verifica shell/Python nem substitui os testes dos serviços e as execuções nativas.
+
 Para verificar tipos e compilar, execute cada etapa após a anterior terminar:
 
 ```powershell
