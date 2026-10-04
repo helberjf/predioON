@@ -5,6 +5,8 @@ dist/
 *.log
 .DS_Store
 *.tsbuildinfo
+__pycache__/
+*.py[cod]
 predio-on-platform-v4.zip
 
 # segredos de produção

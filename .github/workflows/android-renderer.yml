@@ -1,0 +1,151 @@
+name: Android resident renderer regression
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "apps/resident-mobile/**"
+      - "apps/api/src/**"
+      - "packages/mobile/**"
+      - "packages/api-client/**"
+      - "packages/contracts/**"
+      - "packages/shared/**"
+      - "packages/db/src/**"
+      - "infrastructure/*.sql"
+      - "pnpm-lock.yaml"
+      - "scripts/android-smoke/**"
+      - "scripts/android-auth-smoke/**"
+      - "scripts/android-domain-smoke/**"
+      - "scripts/android-renderer-smoke/**"
+      - ".github/workflows/android-renderer.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-renderer-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  renderer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 80
+    services:
+      postgres:
+        image: timescale/timescaledb:2.17.2-pg16
+        env:
+          POSTGRES_USER: predioon
+          POSTGRES_PASSWORD: predioon
+          POSTGRES_DB: predioon
+          TIMESCALEDB_TELEMETRY: "off"
+        ports: ["5436:5432"]
+        options: >-
+          --health-cmd "pg_isready -U predioon -d predioon"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      NODE_ENV: test
+      API_PORT: "3000"
+      JWT_ACCESS_TTL_MINUTES: "30"
+      DATABASE_URL: postgres://predioon:predioon@localhost:5436/predioon
+      DATABASE_URL_APP: postgres://predioon_app:predioon_app@localhost:5436/predioon
+      DATABASE_URL_IDENTITY: postgres://predioon_identity:predioon_identity@localhost:5436/predioon
+      DATABASE_URL_BROKER_AUTH: postgres://predioon_broker_auth:predioon_broker_auth@localhost:5436/predioon
+      DATABASE_URL_NOTIFICATIONS: postgres://predioon_notifications:predioon_notifications@localhost:5436/predioon
+      ANDROID_DOMAIN_DISPOSABLE_DB: "1"
+      ANDROID_RENDERER_DISPOSABLE_DB: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: pnpm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: "platform-tools"
+          log-accepted-android-sdk-licenses: false
+      - run: pnpm install --frozen-lockfile
+      - name: Validate renderer gates and existing domain transport
+        run: |
+          python3 -B -m unittest discover -s scripts/android-renderer-smoke -p 'test_*.py' -v
+          python3 -B -m unittest discover -s scripts/android-domain-smoke -p 'test_*.py' -v
+      - name: Bootstrap this job's disposable database and fixture
+        run: |
+          pnpm db:bootstrap
+          pnpm db:infra
+          pnpm db:infra
+          pnpm db:provision-runtime
+          python3 - <<'PY'
+          import os, pathlib, secrets
+          stem = f"predioon-renderer-{os.environ['GITHUB_RUN_ID']}-{os.environ['GITHUB_RUN_ATTEMPT']}"
+          private = pathlib.Path(os.environ['RUNNER_TEMP']) / (stem + '-private')
+          public = pathlib.Path(os.environ['RUNNER_TEMP']) / (stem + '-public')
+          private.mkdir(mode=0o700)
+          password = secrets.token_hex(18)
+          print(f"::add-mask::{password}")
+          with open(os.environ['GITHUB_ENV'], 'a') as output:
+              output.write(f"ANDROID_AUTH_PASSWORD={password}\n")
+              output.write(f"ANDROID_RENDERER_PRIVATE={private}\n")
+              output.write(f"ANDROID_RENDERER_PUBLIC={public}\n")
+          PY
+      - name: Create the synthetic fixture and verification-only APK trust
+        run: |
+          pnpm --filter @predioon/api exec tsc --project ../../scripts/android-domain-smoke/tsconfig.json
+          pnpm --filter @predioon/api exec tsx ../../scripts/android-domain-smoke/fixture.mts create "$ANDROID_RENDERER_PRIVATE/fixture.json"
+          python3 scripts/android-auth-smoke/tls.py --output "$ANDROID_RENDERER_PRIVATE/tls"
+      - name: Compile and sign the resident release verification APK
+        run: |
+          (cd apps/resident-mobile/android && bash gradlew --no-daemon --refresh-dependencies :app:assembleRelease -PreactNativeArchitectures=x86_64)
+          python3 scripts/android-smoke/prepare.py sign --scenario auth --app resident-mobile --apk apps/resident-mobile/android/app/build/outputs/apk/release/app-release-unsigned.apk --output "$ANDROID_RENDERER_PRIVATE/resident-mobile/verification.apk"
+      - name: Start the real API and read-only HTTPS proxy
+        run: |
+          python3 -B scripts/android-renderer-smoke/services.py start --private "$ANDROID_RENDERER_PRIVATE"
+          if ! curl --silent --show-error --fail --noproxy '*' --retry 30 --retry-connrefused --retry-delay 1 --max-time 3 --output /dev/null http://127.0.0.1:3000/health/ready 2> "$ANDROID_RENDERER_PRIVATE/api-readiness.log"; then
+            echo '{"stage":"renderer-api-readiness","category":"readiness-failed"}'
+            exit 1
+          fi
+          if ! curl --silent --show-error --fail --noproxy '*' --retry 30 --retry-connrefused --retry-delay 1 --max-time 3 --cacert "$ANDROID_RENDERER_PRIVATE/tls/ca.pem" --output /dev/null https://127.0.0.1:3443/health 2> "$ANDROID_RENDERER_PRIVATE/proxy-readiness.log"; then
+            echo '{"stage":"renderer-proxy-readiness","category":"readiness-failed"}'
+            exit 1
+          fi
+      - name: Enable emulator hardware acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Fail at the first native renderer exception
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          cores: 4
+          ram-size: 4096M
+          force-avd-creation: true
+          disable-animations: true
+          emulator-boot-timeout: 600
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none -camera-front none
+          script: python3 -B scripts/android-renderer-smoke/run_renderer.py --private "$ANDROID_RENDERER_PRIVATE" --public "$ANDROID_RENDERER_PUBLIC"
+      - name: Stop only owned services and remove only this fixture
+        if: always()
+        run: |
+          if test -d "$ANDROID_RENDERER_PRIVATE"; then
+            python3 -B scripts/android-renderer-smoke/services.py stop --private "$ANDROID_RENDERER_PRIVATE"
+            if test -f "$ANDROID_RENDERER_PRIVATE/fixture.json"; then
+              pnpm --filter @predioon/api exec tsx ../../scripts/android-domain-smoke/fixture.mts cleanup "$ANDROID_RENDERER_PRIVATE/fixture.json" > "$ANDROID_RENDERER_PRIVATE/fixture-cleanup.log" 2>&1
+            fi
+          fi
+      - name: Publish only closed renderer metadata
+        if: always() && env.ANDROID_RENDERER_PUBLIC != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-renderer-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ env.ANDROID_RENDERER_PUBLIC }}/result.json
+          if-no-files-found: warn
+          retention-days: 7
