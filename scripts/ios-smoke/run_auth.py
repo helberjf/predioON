@@ -1,6 +1,7 @@
 """Own a disposable simulator and export only approved, secret-free evidence."""
 import argparse
 import base64
+from contextlib import contextmanager
 from datetime import datetime, timezone
 import hashlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -37,10 +38,58 @@ POST_ACTIONS = {"01-login": ("/auth/login", 200), "03-error-preserved": ("/auth/
                 "05-keychain-restored": ("/auth/refresh", 200), "06-password-changed": ("/auth/password", 204),
                 "09-old-rejected": ("/auth/login", 401), "10-new-literal-login": ("/auth/login", 200),
                 "11-logout": ("/auth/logout", 204)}
+DIAGNOSTIC_STAGES = frozenset({"simulator-create", "simulator-boot", "certificate-install",
+    "resident-install", "operations-install", "coordinator-init", "runner-build", "runner-plist",
+    "runner-ats-check", "runner-test", "journey-finish-check", "simulator-shutdown", "simulator-delete"})
+DIAGNOSTIC_CATEGORIES = frozenset({"nonzero-exit", "timed-out", "unavailable", "verification-failed"})
 
 
 class SecurityViolation(RuntimeError):
     pass
+
+
+def safe_failure_diagnostic(payload):
+    if not isinstance(payload, dict) or set(payload) != {"stage", "category", "exitCode"}:
+        raise SecurityViolation("Unexpected failure diagnostic fields")
+    stage, category, code = payload["stage"], payload["category"], payload["exitCode"]
+    if not isinstance(stage, str) or stage not in DIAGNOSTIC_STAGES or not isinstance(category, str) or category not in DIAGNOSTIC_CATEGORIES:
+        raise SecurityViolation("Unexpected failure diagnostic category")
+    if code is not None and (type(code) is not int or not -255 <= code <= 255 or code == 0):
+        raise SecurityViolation("Unexpected failure diagnostic exit code")
+    if category != "nonzero-exit" and code is not None:
+        raise SecurityViolation("Unexpected exit code for diagnostic category")
+    return payload
+
+
+class PrivateCommandFailure(RuntimeError):
+    def __init__(self, category, exit_code, message):
+        super().__init__(message)
+        self.category, self.exit_code = category, exit_code
+
+
+class FailureDiagnostic:
+    """Observe explicit host stages without exporting exceptions or changing them."""
+    def __init__(self):
+        self.first = None
+        self.observed = False
+
+    @contextmanager
+    def stage(self, name):
+        try:
+            yield
+        except Exception as error:
+            if not self.observed:
+                # Latch before collection: a broken observer cannot let cleanup
+                # relabel a later error as the original failure.
+                self.observed = True
+                # A diagnostic failure must not replace the original failure.
+                try:
+                    category = error.category if isinstance(error, PrivateCommandFailure) else "verification-failed"
+                    code = error.exit_code if isinstance(error, PrivateCommandFailure) else None
+                    self.first = dict(safe_failure_diagnostic({"stage": name, "category": category, "exitCode": code}))
+                except Exception:
+                    pass
+            raise
 
 
 class EvidenceGate:
@@ -195,7 +244,7 @@ def safe_json(filename, payload):
             raise SecurityViolation("Unexpected database source metadata")
     elif filename == "result.json":
         required = {"passed", "scope", "commit", "runtime", "sdkVersion", "steps"}
-        if not isinstance(payload, dict) or not required <= set(payload) or set(payload) - required - {"failureKind", "cleanupFailed", "securityFailure"}:
+        if not isinstance(payload, dict) or not required <= set(payload) or set(payload) - required - {"failureKind", "cleanupFailed", "securityFailure", "failureDiagnostic"}:
             raise SecurityViolation("Unexpected result fields")
         if type(payload["passed"]) is not bool or payload["scope"] != SCOPE or not isinstance(payload["commit"], str) or not re.fullmatch(r"[a-f0-9]{40}", payload["commit"]) or not isinstance(payload["runtime"], str) or not re.fullmatch(r"com\.apple\.CoreSimulator\.SimRuntime\.iOS-[0-9-]+", payload["runtime"]) or not isinstance(payload["sdkVersion"], str) or not re.fullmatch(r"[0-9]+(?:\.[0-9]+){0,2}", payload["sdkVersion"]):
             raise SecurityViolation("Unexpected result values")
@@ -204,7 +253,7 @@ def safe_json(filename, payload):
         for index, step in enumerate(payload["steps"]):
             if not isinstance(step, dict) or set(step) != {"app", "phase", "passed"} or step["passed"] is not True or index >= len(expected_order()) or (step["app"], step["phase"]) != expected_order()[index]:
                 raise SecurityViolation("Unexpected phase order in result")
-        if payload["passed"] and (len(payload["steps"]) != len(expected_order()) or any(key in payload for key in ["failureKind", "cleanupFailed", "securityFailure"])):
+        if payload["passed"] and (len(payload["steps"]) != len(expected_order()) or any(key in payload for key in ["failureKind", "cleanupFailed", "securityFailure", "failureDiagnostic"])):
             raise SecurityViolation("Incomplete or failed journey cannot be approved")
         if "failureKind" in payload and payload["failureKind"] not in {"security-rejection", "native-journey-failed", "phase-rejected"}:
             raise SecurityViolation("Unexpected failure category")
@@ -214,6 +263,10 @@ def safe_json(filename, payload):
             failure = payload["securityFailure"]
             if not isinstance(failure, dict) or set(failure) != {"kind", "observedAt"} or failure["kind"] not in {"private-identity", "credential-exposure", "unprotected-password-field", "unsafe-evidence"} or not isinstance(failure["observedAt"], str) or not re.fullmatch(r"[0-9T:.+-]+", failure["observedAt"]):
                 raise SecurityViolation("Unexpected security failure metadata")
+        if "failureDiagnostic" in payload:
+            if payload["passed"] or "securityFailure" in payload or payload.get("failureKind") in {"security-rejection", "phase-rejected"}:
+                raise SecurityViolation("Failure diagnostic cannot replace a primary rejection")
+            safe_failure_diagnostic(payload["failureDiagnostic"])
     else:
         if not isinstance(payload, dict) or set(payload) != {"app", "phase", "checks", "snapshot", "apiEvents", "screenshotSha256"}:
             raise SecurityViolation("Unexpected phase evidence fields")
@@ -277,14 +330,17 @@ def owned_simulator(value, created):
 def command(*arguments, timeout=60, private_log=None):
     try:
         result = subprocess.run(arguments, capture_output=True, text=True, timeout=timeout)
-    except (OSError, subprocess.TimeoutExpired):
-        raise RuntimeError("Private verification command unavailable or timed out") from None
+    except subprocess.TimeoutExpired:
+        raise PrivateCommandFailure("timed-out", None, "Private verification command unavailable or timed out") from None
+    except OSError:
+        raise PrivateCommandFailure("unavailable", None, "Private verification command unavailable or timed out") from None
     if private_log:
         Path(private_log).write_text(result.stdout + result.stderr, encoding="utf-8")
     if result.returncode:
         # A failure can contain typeText/password/DSNs: never include stdout,
         # stderr, command arguments or the original exception in public output.
-        raise RuntimeError("Private verification command failed")
+        code = result.returncode if type(result.returncode) is int and -255 <= result.returncode <= 255 else None
+        raise PrivateCommandFailure("nonzero-exit", code, "Private verification command failed")
     return result.stdout.strip()
 
 
@@ -501,39 +557,50 @@ def run(private, output, resident, operations):
     server = None
     report = {"passed": False, "scope": SCOPE,
               "commit": os.environ.get("GITHUB_SHA"), "runtime": runtime, "sdkVersion": sdk, "steps": []}
+    diagnostic = FailureDiagnostic()
     try:
-        created = str(uuid.UUID(command("xcrun", "simctl", "create", "PredioON-auth-" + str(uuid.uuid4()), device, runtime)))
-        simulator = owned_simulator(created, created)
-        command("xcrun", "simctl", "bootstatus", simulator, "-b", timeout=180)
-        command("xcrun", "simctl", "keychain", simulator, "add-root-cert", str(private / "tls/ca.pem"))
-        for application in [resident, operations]:
-            command("xcrun", "simctl", "install", simulator, str(application.resolve()), timeout=120)
-        coordinator = Coordinator(private, candidate, fixture, simulator, credentials["IOS_AUTH_COORDINATOR_TOKEN"], secrets)
-        server = ThreadingHTTPServer(("127.0.0.1", 3555), handler(coordinator))
-        context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-        context.minimum_version = ssl.TLSVersion.TLSv1_2
-        context.load_cert_chain(private / "tls/server.pem", private / "tls/server.key")
-        server.socket = context.wrap_socket(server.socket, server_side=True)
-        threading.Thread(target=server.serve_forever, daemon=True).start()
+        with diagnostic.stage("simulator-create"):
+            created = str(uuid.UUID(command("xcrun", "simctl", "create", "PredioON-auth-" + str(uuid.uuid4()), device, runtime)))
+            simulator = owned_simulator(created, created)
+        with diagnostic.stage("simulator-boot"):
+            command("xcrun", "simctl", "bootstatus", simulator, "-b", timeout=180)
+        with diagnostic.stage("certificate-install"):
+            command("xcrun", "simctl", "keychain", simulator, "add-root-cert", str(private / "tls/ca.pem"))
+        for application, stage in [(resident, "resident-install"), (operations, "operations-install")]:
+            with diagnostic.stage(stage):
+                command("xcrun", "simctl", "install", simulator, str(application.resolve()), timeout=120)
+        with diagnostic.stage("coordinator-init"):
+            coordinator = Coordinator(private, candidate, fixture, simulator, credentials["IOS_AUTH_COORDINATOR_TOKEN"], secrets)
+            server = ThreadingHTTPServer(("127.0.0.1", 3555), handler(coordinator))
+            context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+            context.minimum_version = ssl.TLSVersion.TLSv1_2
+            context.load_cert_chain(private / "tls/server.pem", private / "tls/server.key")
+            server.socket = context.wrap_socket(server.socket, server_side=True)
+            threading.Thread(target=server.serve_forever, daemon=True).start()
         project = str(private / "AuthJourney.xcodeproj")
         derived = str(private / "runner-build")
         common = ["xcodebuild", "-project", project, "-scheme", "AuthJourney", "-configuration", "Release",
                   "-destination", "platform=iOS Simulator,id=" + simulator, "-derivedDataPath", derived,
                   "CODE_SIGNING_ALLOWED=YES", "CODE_SIGN_IDENTITY=-", "-parallel-testing-enabled", "NO",
                   "-maximum-concurrent-test-simulator-destinations", "1"]
-        command(*common, "build-for-testing", timeout=240, private_log=private / "runner-build.log")
-        runner_info = private / "runner-build/Build/Products/Release-iphonesimulator/AuthJourney-Runner.app/Info.plist"
-        with runner_info.open("rb") as source:
-            runner_plist = plistlib.load(source)
-        runner_ats = runner_plist.get("NSAppTransportSecurity", {})
-        if runner_ats.get("NSAllowsArbitraryLoads") or runner_ats.get("NSExceptionDomains"):
-            raise AssertionError("Standalone runner must use trusted HTTPS without insecure ATS exceptions")
-        command(*common, "test-without-building", "-only-testing:AuthJourney/AuthJourney/testBothInstalledReleaseApps",
-                "-resultBundlePath", str(private / "AuthJourney.xcresult"), timeout=1200, private_log=private / "runner-test.log")
-        if not coordinator.finished or len(coordinator.steps) != len(coordinator.order):
-            raise AssertionError("The native runner did not finish all approved phases")
-        coordinator.gate.require_open()
-        report["passed"] = True
+        with diagnostic.stage("runner-build"):
+            command(*common, "build-for-testing", timeout=240, private_log=private / "runner-build.log")
+        with diagnostic.stage("runner-plist"):
+            runner_info = private / "runner-build/Build/Products/Release-iphonesimulator/AuthJourney-Runner.app/Info.plist"
+            with runner_info.open("rb") as source:
+                runner_plist = plistlib.load(source)
+        with diagnostic.stage("runner-ats-check"):
+            runner_ats = runner_plist.get("NSAppTransportSecurity", {})
+            if runner_ats.get("NSAllowsArbitraryLoads") or runner_ats.get("NSExceptionDomains"):
+                raise AssertionError("Standalone runner must use trusted HTTPS without insecure ATS exceptions")
+        with diagnostic.stage("runner-test"):
+            command(*common, "test-without-building", "-only-testing:AuthJourney/AuthJourney/testBothInstalledReleaseApps",
+                    "-resultBundlePath", str(private / "AuthJourney.xcresult"), timeout=1200, private_log=private / "runner-test.log")
+        with diagnostic.stage("journey-finish-check"):
+            if not coordinator.finished or len(coordinator.steps) != len(coordinator.order):
+                raise AssertionError("The native runner did not finish all approved phases")
+            coordinator.gate.require_open()
+            report["passed"] = True
     except SecurityViolation:
         report["failureKind"] = "security-rejection"
     except Exception:
@@ -545,18 +612,22 @@ def run(private, output, resident, operations):
             report["steps"] = coordinator.steps
             if coordinator.gate.failure:
                 report["passed"] = False
+                report["failureKind"] = "security-rejection"
                 report["securityFailure"] = coordinator.gate.failure
-            if coordinator.error_kind:
+            elif coordinator.error_kind:
                 report["passed"] = False
                 report["failureKind"] = coordinator.error_kind
         # Cleanup does not inspect/capture either application's private content.
         if simulator:
             for action in ["shutdown", "delete"]:
                 try:
-                    command("xcrun", "simctl", action, owned_simulator(simulator, simulator), timeout=60)
+                    with diagnostic.stage("simulator-" + action):
+                        command("xcrun", "simctl", action, owned_simulator(simulator, simulator), timeout=60)
                 except Exception:
                     report["passed"] = False
                     report["cleanupFailed"] = True
+        if diagnostic.first is not None and report.get("failureKind") not in {"security-rejection", "phase-rejected"}:
+            report["failureDiagnostic"] = dict(diagnostic.first)
         (candidate / "result.json").write_text(json.dumps(report, ensure_ascii=False, indent=2))
         export_evidence(candidate, output, secrets)
         with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as outputs:

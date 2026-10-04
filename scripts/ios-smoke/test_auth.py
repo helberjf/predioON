@@ -1,5 +1,6 @@
 """Host-side tests; they never create a database or an Apple simulator."""
 import importlib.util
+from contextlib import ExitStack
 import json
 from pathlib import Path
 import random
@@ -9,7 +10,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 import zlib
 
 BASE = Path(__file__).resolve().parent
@@ -259,6 +260,287 @@ class ExportTests(unittest.TestCase):
                 run.owned_simulator(invalid, None)
         value = "f19ce90e-9c36-461d-a499-692ff2570a01"
         self.assertEqual(run.owned_simulator(value, value), value)
+
+
+class NativeFailureDiagnosticTests(unittest.TestCase):
+    def run_failure(self, failed_stage, *, cleanup_fails=False, rejection=None, outcome="nonzero-exit"):
+        run = load("run_auth")
+        secret = "PrivateNativeDiagnosticSentinel123456"
+        with tempfile.TemporaryDirectory() as temporary, ExitStack() as patches:
+            root = Path(temporary)
+            private = root / "private"
+            private.mkdir()
+            (private / "secrets.json").write_text(json.dumps({"IOS_AUTH_COORDINATOR_TOKEN": secret}))
+            (private / "fixture.json").write_text("{}")
+            database = root / "database"
+            database.mkdir()
+            (database / "source-versions.json").write_text(json.dumps({
+                "postgres": "16.15", "timescale": "2.17.2",
+                "postgresSha256": "c1575341fa7bd40f5274ea465b34390f4dc64cdd0770af327005caaeb9f6b7ed",
+                "timescaleSha256": "85dd01deaa0728f95d117c1a75ca0cbf78f3301e6ab2b98bebe5f7c95b793acb"}))
+            applications = []
+            for product, bundle in run.APPS.items():
+                application = root / (product + ".app")
+                application.mkdir()
+                with (application / "Info.plist").open("wb") as destination:
+                    run.plistlib.dump({"CFBundleIdentifier": bundle, "CFBundleExecutable": "Product"}, destination)
+                (application / "Product").write_bytes(product.encode())
+                applications.append(application)
+            runner_info = private / "runner-build/Build/Products/Release-iphonesimulator/AuthJourney-Runner.app/Info.plist"
+            runner_info.parent.mkdir(parents=True)
+            with runner_info.open("wb") as destination:
+                run.plistlib.dump({}, destination)
+            simulator = "f19ce90e-9c36-461d-a499-692ff2570a01"
+            runtime = "com.apple.CoreSimulator.SimRuntime.iOS-18-5"
+            stages = []
+            coordinators = []
+            original_coordinator = run.Coordinator
+
+            def coordinator(*arguments):
+                item = original_coordinator(*arguments)
+                coordinators.append(item)
+                return item
+
+            def respond(arguments, **options):
+                stage = None
+                if arguments[:3] == ("xcrun", "simctl", "create"):
+                    stdout = simulator
+                elif arguments[:3] == ("xcrun", "simctl", "list"):
+                    stdout = "{}"
+                elif arguments[:3] == ("xcrun", "simctl", "bootstatus"):
+                    stage, stdout = "simulator-boot", ""
+                    self.assertEqual(options["timeout"], 180)
+                elif arguments[:3] == ("xcrun", "simctl", "install"):
+                    stage, stdout = ("resident-install" if "resident-mobile" in arguments[-1] else "operations-install"), ""
+                    self.assertEqual(options["timeout"], 120)
+                elif arguments[0] == "xcodebuild":
+                    stage = "runner-build" if "build-for-testing" in arguments else "runner-test"
+                    stdout = ""
+                    self.assertEqual(options["timeout"], 240 if stage == "runner-build" else 1200)
+                    if rejection and stage == "runner-test":
+                        if rejection == "phase":
+                            coordinators[0].error_kind = "phase-rejected"
+                        else:
+                            coordinators[0].gate.reject("private-identity")
+                            coordinators[0].gate.reject("credential-exposure")
+                            if rejection == "security-and-phase":
+                                coordinators[0].error_kind = "phase-rejected"
+                elif arguments[:3] == ("xcrun", "simctl", "shutdown"):
+                    stage, stdout = "simulator-shutdown", ""
+                elif arguments[:3] == ("xcrun", "simctl", "delete"):
+                    stage, stdout = "simulator-delete", ""
+                elif arguments[:2] == ("xcrun", "otool"):
+                    stdout = "sectname __entitlements"
+                elif arguments[:3] == ("xcrun", "--sdk", "iphonesimulator"):
+                    stdout = "18.5"
+                else:
+                    stdout = ""
+                if stage:
+                    stages.append(stage)
+                if stage == failed_stage:
+                    if outcome == "returns-incomplete":
+                        return subprocess.CompletedProcess(arguments, 0, "", "")
+                    if outcome == "timed-out":
+                        raise subprocess.TimeoutExpired(arguments, options["timeout"], output=secret, stderr=secret)
+                    if outcome == "unavailable":
+                        raise OSError(secret)
+                    return subprocess.CompletedProcess(arguments, 65, secret, secret)
+                if cleanup_fails and stage in {"simulator-shutdown", "simulator-delete"}:
+                    return subprocess.CompletedProcess(arguments, 42, secret, secret)
+                return subprocess.CompletedProcess(arguments, 0, stdout, "")
+
+            patches.enter_context(patch.object(run, "ROOT", root))
+            patches.enter_context(patch.object(run, "disposable_path", return_value=private))
+            patches.enter_context(patch.object(run, "simulator_product", side_effect=lambda info: info["CFBundleIdentifier"]))
+            patches.enter_context(patch.object(run, "iphone_target", return_value=(runtime, "fixed-fixture-device")))
+            patches.enter_context(patch.object(run, "Coordinator", side_effect=coordinator))
+            patches.enter_context(patch.object(run, "ThreadingHTTPServer", return_value=MagicMock()))
+            patches.enter_context(patch.object(run.ssl, "SSLContext", return_value=MagicMock()))
+            patches.enter_context(patch.object(run.threading, "Thread", return_value=MagicMock()))
+            patches.enter_context(patch.object(run.subprocess, "run", side_effect=respond))
+            patches.enter_context(patch.dict(run.os.environ, {"GITHUB_SHA": "b" * 40, "IOS_DB_ROOT": str(database),
+                                                           "GITHUB_OUTPUT": str(root / "outputs")}))
+            output = root / ".local/ios-auth/evidence"
+            with self.assertRaises(SystemExit) as failure:
+                run.run(private, output, *applications)
+            self.assertNotIn(secret, str(failure.exception))
+            result = json.loads((output / "result.json").read_text())
+            self.assertNotIn(secret, json.dumps(result))
+            self.assertFalse(result["passed"])
+            self.assertEqual(result["steps"], [])
+            self.assertEqual({item.name for item in output.iterdir()}, {"result.json", "builds.json", "database-source.json"})
+            self.assertIn(failed_stage, stages)
+            return result, stages
+
+    def test_boot_failure_reports_the_boot_stage(self):
+        result, stages = self.run_failure("simulator-boot")
+        self.assertEqual(result.get("failureDiagnostic"), {"stage": "simulator-boot", "category": "nonzero-exit", "exitCode": 65})
+        self.assertNotIn("resident-install", stages)
+
+    def test_each_product_install_failure_is_identified(self):
+        for stage in ["resident-install", "operations-install"]:
+            with self.subTest(stage=stage):
+                result, stages = self.run_failure(stage)
+                self.assertEqual(result.get("failureDiagnostic"), {"stage": stage, "category": "nonzero-exit", "exitCode": 65})
+                self.assertNotIn("runner-build", stages)
+
+    def test_runner_build_failure_does_not_claim_xctest_started(self):
+        result, stages = self.run_failure("runner-build")
+        self.assertEqual(result.get("failureDiagnostic"), {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 65})
+        self.assertNotIn("runner-test", stages)
+
+    def test_runner_test_failure_is_distinct_from_build(self):
+        result, stages = self.run_failure("runner-test")
+        self.assertEqual(result.get("failureDiagnostic"), {"stage": "runner-test", "category": "nonzero-exit", "exitCode": 65})
+        self.assertIn("runner-build", stages)
+
+    def test_cleanup_cannot_overwrite_the_first_failure(self):
+        result, stages = self.run_failure("runner-build", cleanup_fails=True)
+        self.assertEqual(result.get("failureDiagnostic"), {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 65})
+        self.assertTrue(result["cleanupFailed"])
+        self.assertEqual(stages[-2:], ["simulator-shutdown", "simulator-delete"])
+
+    def test_timeout_and_unavailable_do_not_echo_the_original_error(self):
+        for outcome in ["timed-out", "unavailable"]:
+            with self.subTest(outcome=outcome):
+                result, _stages = self.run_failure("runner-test", outcome=outcome)
+                self.assertEqual(result.get("failureDiagnostic"), {"stage": "runner-test", "category": outcome, "exitCode": None})
+
+    def test_security_and_phase_rejections_remain_primary(self):
+        for rejection in ["security", "phase", "security-and-phase"]:
+            with self.subTest(rejection=rejection):
+                result, _stages = self.run_failure("runner-test", rejection=rejection, cleanup_fails=True)
+                self.assertEqual(result["failureKind"], "phase-rejected" if rejection == "phase" else "security-rejection")
+                self.assertNotIn("failureDiagnostic", result)
+                if rejection != "phase":
+                    self.assertEqual(result["securityFailure"]["kind"], "private-identity")
+
+    def test_successful_runner_command_cannot_approve_an_incomplete_journey(self):
+        result, _stages = self.run_failure("runner-test", outcome="returns-incomplete")
+        self.assertEqual(result["failureDiagnostic"], {"stage": "journey-finish-check", "category": "verification-failed", "exitCode": None})
+
+    def test_diagnostic_failure_preserves_the_original_exception_object(self):
+        run = load("run_auth")
+        diagnostic = run.FailureDiagnostic()
+        original = RuntimeError("PrivateDiagnosticSentinel123456")
+        with patch.object(run, "safe_failure_diagnostic", side_effect=OSError("private collector failure")):
+            with self.assertRaises(RuntimeError) as observed:
+                with diagnostic.stage("runner-test"):
+                    raise original
+        self.assertIs(observed.exception, original)
+        self.assertIsNone(diagnostic.first)
+
+    def test_failed_first_observation_cannot_relabel_cleanup_as_the_first_failure(self):
+        run = load("run_auth")
+        diagnostic = run.FailureDiagnostic()
+        original = RuntimeError("private first failure")
+        with patch.object(run, "safe_failure_diagnostic", side_effect=OSError("private collector failure")):
+            with self.assertRaises(RuntimeError) as observed:
+                with diagnostic.stage("runner-build"):
+                    raise original
+        self.assertIs(observed.exception, original)
+        with self.assertRaises(RuntimeError):
+            with diagnostic.stage("simulator-delete"):
+                raise RuntimeError("private cleanup failure")
+        self.assertIsNone(diagnostic.first)
+
+    def test_real_subprocess_exit_timeout_and_missing_executable_are_closed(self):
+        run = load("run_auth")
+        secret = "PrivateRealProcessSentinel123456"
+        with tempfile.TemporaryDirectory() as temporary:
+            cases = [
+                ((sys.executable, "-c", "import sys; print(sys.argv[1]); sys.stderr.write(sys.argv[1]); sys.exit(23)", secret),
+                 5, "nonzero-exit", 23),
+                ((sys.executable, "-c", "import time; time.sleep(60)"), 0.15, "timed-out", None),
+                ((str(Path(temporary) / "missing-executable"), secret), 5, "unavailable", None),
+            ]
+            for arguments, timeout, category, code in cases:
+                with self.subTest(category=category):
+                    diagnostic = run.FailureDiagnostic()
+                    with self.assertRaises(RuntimeError) as observed:
+                        with diagnostic.stage("runner-test"):
+                            run.command(*arguments, timeout=timeout)
+                    self.assertEqual(diagnostic.first, {"stage": "runner-test", "category": category, "exitCode": code})
+                    self.assertNotIn(secret, str(observed.exception))
+                    self.assertNotIn(secret, json.dumps(diagnostic.first))
+
+    def test_real_success_preserves_stdout_private_capture_and_has_no_failure(self):
+        run = load("run_auth")
+        diagnostic = run.FailureDiagnostic()
+        with tempfile.TemporaryDirectory() as temporary:
+            log = Path(temporary) / "private.log"
+            with diagnostic.stage("runner-build"):
+                output = run.command(sys.executable, "-c", "import sys; print(' kept '); sys.stderr.write('private-stderr')",
+                                     timeout=5, private_log=log)
+            self.assertEqual(output, "kept")
+            self.assertEqual(log.read_text(), " kept \nprivate-stderr")
+            self.assertIsNone(diagnostic.first)
+
+    def test_signal_exit_is_bounded_without_fabricating_a_positive_status(self):
+        run = load("run_auth")
+        for status, expected in [(-15, -15), (255, 255), (256, None), (-256, None)]:
+            with self.subTest(status=status):
+                diagnostic = run.FailureDiagnostic()
+                response = subprocess.CompletedProcess(["fixture"], status, "private", "private")
+                with patch.object(run.subprocess, "run", return_value=response), self.assertRaises(RuntimeError):
+                    with diagnostic.stage("runner-test"):
+                        run.command("fixture")
+                self.assertEqual(diagnostic.first["exitCode"], expected)
+
+
+class FailureDiagnosticExportTests(unittest.TestCase):
+    def result(self, run, diagnostic):
+        return {"passed": False, "scope": run.SCOPE, "commit": "b" * 40,
+                "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-18-5", "sdkVersion": "18.5", "steps": [],
+                "failureKind": "native-journey-failed", "failureDiagnostic": diagnostic}
+
+    def export(self, run, private, public, result):
+        builds = [{"app": app, "bundleId": bundle, "mode": "Release", "sha256": "a" * 64}
+                  for app, bundle in run.APPS.items()]
+        (private / "builds.json").write_text(json.dumps(builds))
+        (private / "result.json").write_text(json.dumps(result))
+        run.export_evidence(private, public, ["PrivateExportSentinel123456"])
+
+    def test_valid_failed_result_preserves_optional_closed_diagnostic(self):
+        run = load("run_auth")
+        diagnostic = {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 65}
+        with tempfile.TemporaryDirectory() as temporary:
+            private, public = Path(temporary) / "private", Path(temporary) / "public"
+            private.mkdir()
+            self.export(run, private, public, self.result(run, diagnostic))
+            self.assertEqual(json.loads((public / "result.json").read_text())["failureDiagnostic"], diagnostic)
+            self.assertEqual({item.name for item in public.iterdir()}, {"builds.json", "result.json"})
+
+    def test_export_rejects_unknown_keys_types_categories_and_exit_code_bounds(self):
+        run = load("run_auth")
+        valid = {"stage": "runner-test", "category": "nonzero-exit", "exitCode": 65}
+        invalid = [None, [], "PrivateExportSentinel123456", {}, {**valid, "assertion": "private"},
+                   {**valid, "argv": ["private"]}, {**valid, "stage": "private"}, {**valid, "stage": []},
+                   {**valid, "category": "private"}, {**valid, "category": {}},
+                   *[{**valid, "exitCode": code} for code in [True, False, 0, 256, -256, 1.0, "65", []]],
+                   *[{**valid, "category": category} for category in ["timed-out", "unavailable", "verification-failed"]]]
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            for index, diagnostic in enumerate(invalid):
+                with self.subTest(index=index):
+                    private, public = root / str(index), root / (str(index) + "-public")
+                    private.mkdir()
+                    with self.assertRaises(run.SecurityViolation):
+                        self.export(run, private, public, self.result(run, diagnostic))
+                    self.assertFalse(public.exists())
+
+    def test_diagnostic_never_turns_a_success_or_primary_rejection_into_approval(self):
+        run = load("run_auth")
+        diagnostic = {"stage": "runner-test", "category": "nonzero-exit", "exitCode": 65}
+        original = self.result(run, diagnostic)
+        success = {**original, "passed": True,
+                   "steps": [{"app": app, "phase": phase, "passed": True} for app, phase in run.expected_order()]}
+        del success["failureKind"]
+        for invalid in [success, {**original, "failureKind": "phase-rejected"},
+                        {**original, "failureKind": "security-rejection"},
+                        {**original, "securityFailure": {"kind": "private-identity", "observedAt": "2026-10-04T22:00:00Z"}}]:
+            with self.assertRaises(run.SecurityViolation):
+                run.safe_json("result.json", invalid)
 
 
 class SourceContractTests(unittest.TestCase):

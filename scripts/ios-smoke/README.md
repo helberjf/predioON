@@ -83,6 +83,26 @@ Segredos conhecidos e fragmentos são verificados inclusive em campos de SHA-256
 
 Arquivos publicáveis: `result.json`, `builds.json`, `database-source.json` e pares `<produto>-<fase>.json/.png`. O resultado traz commit, SDK/runtime, estados de aprovação, categoria fixa de falha e horário sanitizado da primeira negativa. Os snapshots contêm apenas contagens de famílias/tokens; os eventos contêm apenas método, rota da allowlist e status. Não há tokens, hashes de credenciais, payloads, árvores de UI, stderr ou anexos XCTest. Imagens ainda exigem revisão visual após o CI; uma execução incompleta continua reprovada, mesmo que fases anteriores tenham imagens válidas.
 
+## Diagnóstico fechado da jornada autenticada
+
+Uma falha anterior ao primeiro checkpoint pode produzir `steps=[]` sem identificar o comando que falhou. O run [b6761fd/37237681193](https://github.com/helberjf/predioON/actions/runs/37237681193) teve ambos os builds e a prontidão HTTPS aprovados, mas exportou somente `native-journey-failed`. A saída privada do runner não estava no artefato; portanto não foi possível distinguir boot, instalação, compilação ou teste inicial. Este diagnóstico acrescenta observabilidade para uma execução futura; não atribui causa àquela falha nem aprova a jornada Apple.
+
+[run_auth.py](run_auth.py) pode acrescentar `failureDiagnostic` ao `result.json` reprovado, com exatamente três campos:
+
+```json
+{"stage":"runner-build","category":"nonzero-exit","exitCode":65}
+```
+
+O estágio vem de uma constante no ponto da operação, sem interpretar paths ou argumentos. Os valores permitidos são `simulator-create`, `simulator-boot`, `certificate-install`, `resident-install`, `operations-install`, `coordinator-init`, `runner-build`, `runner-plist`, `runner-ats-check`, `runner-test`, `journey-finish-check`, `simulator-shutdown` e `simulator-delete`. As categorias são `nonzero-exit`, `timed-out`, `unavailable` e `verification-failed`; esta última indica uma falha de verificação/host naquele estágio, sem afirmar sua causa nativa.
+
+`exitCode` aceita somente inteiro não zero entre −255 e 255, ou `null`; códigos negativos preservam a representação de sinal do subprocesso POSIX. Timeout, comando indisponível e falha de verificação exigem `null`. Um status de processo fora desse intervalo também vira `null`, sem inventar outro código. O diagnóstico não inclui mensagem da exceção, assertiva livre, argv, paths, ambiente, stdout/stderr, identidade de simulador, dados de tela ou `xcresult`; também não inventa totais XCTest.
+
+A primeira falha é fixada antes da coleta. Uma falha posterior de limpeza não substitui seu estágio; se o próprio coletor falhar, o erro original permanece e uma falha posterior não passa a ser apresentada como a primeira. Rejeições de segurança ou fase continuam primárias e omitem esse diagnóstico suplementar. O primeiro `securityFailure` mantém precedência sobre o término do processo ou uma categoria posterior de fase. Um resultado aprovado não pode conter `failureDiagnostic`, e o diagnóstico nunca acrescenta checkpoint ou imagem. O exportador recusa campos, tipos, enums e códigos fora do contrato antes de criar a pasta pública.
+
+A cobertura limita-se aos estágios enumerados dentro da execução e à limpeza do simulador. As validações iniciais de produto/assinatura/SDK, falhas do próprio exportador e encerramento do servidor do coordenador podem impedir a exportação sem produzir esse campo. As chamadas, captura privada dos subprocessos, TLS, certificado, origem, prazos, ausência de retries, Swift, sequência de 14 POST e gates de banco/imagens permanecem iguais.
+
+Os testes de host injetam falhas nos pontos reais do fluxo de boot, instalação dos dois produtos, `build-for-testing` e `test-without-building`, incluindo primeira negativa, cleanup posterior e falha do coletor. Também executam processos Python reais com sucesso, exit não zero, timeout e executável ausente, sem executar Xcode ou simulador. Esses ensaios verificam o diagnóstico e a fronteira de publicação; uma nova jornada nativa Apple continua necessária.
+
 ## Verificação local deste incremento
 
 `python3 -B -m unittest discover -s scripts/ios-smoke -p 'test_*.py' -v` passou **35/35 em Windows e Linux**: 29 testes novos de configuração, exportação, sequência, sessões, nonce, primeira negativa, PNG e resposta da API, além dos seis existentes de seleção de simulador. RED inicial: dez erros pela ausência da implementação; RED da fronteira de exportação: dois erros antes da implementação dessa fronteira; RED de PNG: cinco erros nas subverificações antes do validador estrutural. Uma reprodução adicional removeu somente a verificação de segredo conhecido no campo de digest e obteve a falha esperada: segredo conhecido em SHA não foi rejeitado; a versão corrigida passa esse teste. A revisão independente reproduziu um segundo logout tardio aceito na fase seguinte; quatro novas negativas RED reproduziram logout extra na fase vazia, POST extra de outra rota, POST que chega durante o snapshot e ação extra no fim. As quatro passam após a validação exata das ações.
