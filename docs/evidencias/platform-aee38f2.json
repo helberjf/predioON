@@ -1,0 +1,212 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "aee38f239075bc63883c3d429ae5787cf8eea0ba",
+  "sourceHashFormat": "Committed Git blob bytes, LF",
+  "sourceFiles": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "b75a67eb1e86f471d76d4cc781aa6953ee86835cd537bd1ab2f87a6974dba9d6"
+    },
+    {
+      "path": "playwright.config.ts",
+      "sha256": "afbc13845370146fbf2cdd948b8e4b61c33f62c98f9cf6dcd52a33cc7f215860"
+    },
+    {
+      "path": "services/ingest/src/pipeline/normalize.ts",
+      "sha256": "9e3a53ea7acf4a4ab198de0ec4ce9c266324da9bc2858ebb495b244fc0264ff0"
+    },
+    {
+      "path": "services/ingest/test/normalize-utf8.test.ts",
+      "sha256": "ac43198ea234c6b68a1eaaab6bfd76e02c1e1ffbaaf022afe1ea5dc753b92bc8"
+    }
+  ],
+  "platform": {
+    "runId": 37211000112,
+    "url": "https://github.com/helberjf/predioON/actions/runs/37211000112",
+    "conclusion": "success",
+    "nodeVersion": "24.21.0",
+    "jobs": [
+      {
+        "id": 111462673341,
+        "name": "backup",
+        "conclusion": "success"
+      },
+      {
+        "id": 111462673416,
+        "name": "platform",
+        "conclusion": "success"
+      },
+      {
+        "id": 111462673488,
+        "name": "notifications",
+        "conclusion": "success"
+      }
+    ],
+    "general": {
+      "db": {
+        "tests": 36,
+        "suites": 2,
+        "passed": 34,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 2,
+        "todo": 0,
+        "durationMs": 11077.290852
+      },
+      "apiClient": {
+        "tests": 64,
+        "suites": 0,
+        "passed": 64,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "durationMs": 774.880207
+      },
+      "api": {
+        "tests": 697,
+        "suites": 52,
+        "passed": 697,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "durationMs": 658598.791455
+      },
+      "ingest": {
+        "tests": 121,
+        "suites": 15,
+        "passed": 121,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "durationMs": 15335.055315
+      },
+      "ui": {
+        "tests": 89,
+        "suites": 0,
+        "passed": 89,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "durationMs": 1178.93818
+      },
+      "mobile": {
+        "tests": 75,
+        "suites": 0,
+        "passed": 75,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "durationMs": 1074.773792
+      },
+      "mobileReservationContract": {
+        "tests": 1,
+        "suites": 0,
+        "passed": 1,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "durationMs": 2937.474537
+      },
+      "mobileGateContract": {
+        "tests": 1,
+        "suites": 0,
+        "passed": 1,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "durationMs": 3440.024346
+      }
+    },
+    "dedicated": {
+      "sql038": {
+        "tests": 54,
+        "suites": 1,
+        "passed": 54,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "durationMs": 6989.455796
+      },
+      "worker": {
+        "tests": 36,
+        "suites": 1,
+        "passed": 36,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "durationMs": 25302.999423
+      },
+      "producers": {
+        "tests": 40,
+        "suites": 1,
+        "passed": 40,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "durationMs": 7665.100618
+      },
+      "backup": {
+        "tests": 2,
+        "suites": 0,
+        "passed": 2,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "durationMs": 44703.995609
+      }
+    },
+    "checks": {
+      "typesAndBoundaries": "success",
+      "serviceAndWebBuilds": "success",
+      "productionContainerBuilds": "success",
+      "productionProxyIsolation": "success"
+    },
+    "logArchiveSha256": "9d4ec313330184d12988b3de95e4ea53d09c412d978a5b2f5c77587e0bdec846"
+  },
+  "browser": {
+    "runId": 37211000109,
+    "url": "https://github.com/helberjf/predioON/actions/runs/37211000109",
+    "conclusion": "success",
+    "artifactId": 11306753993,
+    "artifactSha256": "61f6dc0d5685fb8c6d2307284a6b03869b0f19fb5e4b4287cc09f84be5224f52",
+    "officialDigestVerified": true,
+    "artifactBytes": 2226512,
+    "stats": {
+      "total": 222,
+      "expected": 222,
+      "unexpected": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": true
+    },
+    "projectCounts": {
+      "chromium": 74,
+      "firefox": 74,
+      "webkit": 74
+    },
+    "configuredRetries": 0,
+    "actualWorkers": 1,
+    "attemptsPerTest": 1,
+    "reportErrors": 0,
+    "durationMs": 570330.844,
+    "logArchiveSha256": "5c7b485513c6619e51dee95d6f96bc211244b170f14cc796b9fabe054e47a34d"
+  },
+  "limits": [
+    "General CI ingest121 and the dedicated producers40 are separate executions; do not label their sum a new full ingest161.",
+    "The local root ingest161 proof remains separate from these CI totals.",
+    "CI does not homologate physical devices, production, authenticated iOS or unresolved Android renderer warnings.",
+    "Browser report was parsed offline; screenshots were not visually reviewed in this audit.",
+    "No raw logs, traces, UI trees, environments, credentials or error strings are exported in this summary."
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "commit": "b4726b97c7a1384d836ec84a8c265fe002bd951e",
+  "bundleId": "com.predioon.operations",
+  "binarySha256": "5526c01e201cd4abd22f77599b7c2b567eda74206fb8d195dd262d09f771f975",
+  "passed": true,
+  "scope": "launch, process survival, relaunch and login-form OCR; no authenticated requests",
+  "phases": [
+    "simulator-signature-verified",
+    "simulator-booted",
+    "release-installed",
+    "01-first-launch",
+    "02-new-process"
+  ],
+  "screenshots": [
+    {
+      "file": "01-first-launch.png",
+      "sha256": "1ba06fe9eabd59381e5989a0943b925d23992ec01abc02a1b072e63e60575e31"
+    },
+    {
+      "file": "02-new-process.png",
+      "sha256": "8865ae7aa58c69c8cbe4b3d9a20f58db7ab32b81c856f45d4c3ee0b8a032f97b"
+    }
+  ],
+  "signing": "Xcode local simulator signature; not a distribution signature",
+  "embeddedEntitlementSection": true,
+  "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-18-5",
+  "deviceType": "com.apple.CoreSimulator.SimDeviceType.iPhone-16-Pro",
+  "sdkVersion": "18.5",
+  "xcode": "Xcode 16.4\nBuild version 16F6",
+  "apiOrigin": "https://smoke-api.invalid",
+  "launchSeconds": {
+    "01-first-launch": 9.206,
+    "02-new-process": 2.1
+  }
+}
