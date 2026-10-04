@@ -1,6 +1,6 @@
 # Melhorias e novas implementações — Prédio ON
 
-Revisão: 03/10/2026. Documento vivo de priorização; não é uma declaração de conclusão nem substitui o [PRD](PRD.md), o [TDD](TDD.md) e o [plano de execução](superpowers/plans/2026-09-27-product-execution.md).
+Revisão: 04/10/2026. Documento vivo de priorização; não é uma declaração de conclusão nem substitui o [PRD](PRD.md), o [TDD](TDD.md) e o [plano de execução](superpowers/plans/2026-09-27-product-execution.md).
 
 ## 1. Como usar este documento
 
@@ -12,17 +12,23 @@ Prioridades: **P0** bloqueia uma entrega confiável; **P1** completa a operaçã
 
 Estes itens já pertencem à evolução prevista. Não devem ser apresentados como ideias opcionais para encobrir trabalho pendente.
 
-Estado consolidado em [CONTINUIDADE.md](CONTINUIDADE.md). Cookies web/CSRF, coordenação entre abas e gestão das próprias sessões já foram implementados e testados. O executor de migrations com checksum/lock/no-op e a restauração local real até037 também estão entregues; implantação e recuperação do ambiente de produção continuam pendentes. Esses itens saíram da lista de implementações a iniciar e devem permanecer na regressão.
+Estado consolidado em [CONTINUIDADE.md](CONTINUIDADE.md). Cookies web/CSRF, coordenação entre abas e gestão das próprias sessões já foram implementados e testados. O executor de migrations com checksum/lock/no-op e a restauração real até038, inclusive em outro cluster físico, também estão entregues; implantação e recuperação do ambiente de produção continuam pendentes. Esses itens saíram da lista de implementações a iniciar e devem permanecer na regressão.
 
-Progresso038 em03/10: outbox/worker de webhook, produtores atômicos, role própria e restauração em outro cluster estão integrados no incremento038. Passaram SQL54, worker36 Linux, ingestão123, backup2, API697 e cliente64/UI89/mobile75. A fixture de provisionamento foi corrigida preservando o endurecimentoNOLOGIN. Playwright038 passou222/222, três motores/0 retries; conferir novos jobs CI e implantação; [guia e limites](NOTIFICACOES_DURAVEIS.md). Não fecha inbox, privilégio mínimo da ingestão inteira, retenção/replay ou idempotência do provedor. Android1f concluiu domínios16/20 e senha29/29, mas persistem20 SoftExceptions de domínios e1 de senha; a reprodução mínima está sendo preparada. CIiOSa9 passou banco/ambos Releases e falhou no checkHTTPS antes do XCTest; prontidão corrigida em53a28ce com64 testes Linux e nova jornada macOS em andamento.
+Progresso038 em 03/10: outbox/worker de webhook, produtores atômicos, role própria e restauração em outro cluster foram publicados em **292e12e**. O [CI 586cc92](https://github.com/helberjf/predioON/actions/runs/37164944806) confirmou API **697/697**, cliente **64/64**, UI **89/89**, mobile **75/75**, ingestão **83/83** e banco **34 aprovados de 36 casos, 2 skips de backup**. Nos jobs próprios passaram SQL **54/54**, worker **36/36**, produtores **40/40** e backup **2/2**, sem skips; SQL/produtores dedicados não foram executados no job geral. A integral local de ingestão **123/123** é uma prova distinta. O [navegador 292e12e](https://github.com/helberjf/predioON/actions/runs/37164756602) passou **222/222**, três motores, sem falhas, instabilidade, skips ou retries. [Registro versionado](evidencias/notification038-ci.json) e [guia operacional](NOTIFICACOES_DURAVEIS.md). Não repetir038: permanecem inbox, privilégios da ingestão inteira, retenção/replay, idempotência do destinatário e rollout real.
+
+Android 1f7bd3d concluiu domínios 16/20 e senha 29/29, mas persistem 20 SoftExceptions de domínios e 1 de senha. O monitor **f96b0ae** está publicado: primeira negativa terminal, exportação fechada e revisão independente sem bloqueadores; **30/30 host Linux e 29 com 1 skip Windows**. O [CI nativo](https://github.com/helberjf/predioON/actions/runs/37166294051) falhou antes do login na etapa 15 por `log-format-rejected`; [registro sanitizado](evidencias/android-renderer-f96b0ae.json). A compatibilidade do padding AOSP está em revisão com 31/31 Linux e 30 com 1 skip Windows; falta nova jornada nativa. Essa rejeição não reproduziu Fabric nem aprovou os apps.
+
+No iOS, preservar o histórico **53a28ce → 48f1505 → 032ff6f**: timeout do fixture HTTPS, dependência de DNS reproduzida e posterior opção de socket indisponível no macOS, corrigidos somente nos testes. O [run 032ff6f](https://github.com/helberjf/predioON/actions/runs/37165815983) passou **65/65 host macOS**, TLS OpenSSL 3.6.4, banco/provisionamento/fixture, API pronta e ambos os Releases, mas falhou na **etapa 12**: prontidão do proxy HTTPS excedeu **30 s**, causa desconhecida. XCTest/upload foram pulados e não há artefatos autenticados. A suíte atual também passou 65/65 Linux e 59 com 6 skips Windows; **XCTest/Keychain continuam sem aceite**. O diagnóstico deve preservar prazos/TLS; DNS reproduzido no fixture não é causa confirmada da falha Apple.
+
+Preparação posterior **5144913**: o DTO MQTT conserva `qos`, `retain` e `dup`; dirigido de transporte 8/8 e integral local de ingestão **125/125**, sem skips/falhas, em 51,25 s, com credenciais dos quatro papéis no cluster exclusivo. Essa prova não altera os totais do CI 038 e não entrega inbox039; o plano durável restante continua necessário.
 
 | Prioridade | Trabalho | Resultado esperado | Critério de aceite |
 |---|---|---|---|
 | P0 | Concluir autorização por capacidade nos domínios restantes | Acesso depende da concessão atual ao condomínio e ao recurso | HTTP e SQL negativos; revogação, expiração, equipe inativa e troca de condomínio sem vazamentos; nenhum privilégio global implícito sobre dados privados |
 | P0 | MFA e verificação adicional para ações privilegiadas | Proteção adicional da administração e de operações sensíveis | Cadastro, desafio, recuperação e revogação; limites de tentativas; proteção contra reutilização; testes sem segredos reais |
 | P1 | Convites e recuperação de senha | Entrada e recuperação sem distribuição manual de senhas | Tokens de uso único, expiração, revogação e respostas sem enumeração de contas; provedor de envio configurável |
-| P0 | Inbox, outbox e workers duráveis | Trabalho obrigatório sobrevive à queda de processo | Ensaios de interrupção antes/depois do commit, deduplicação, reserva com prazo e recuperação; filas não repetem comandos físicos indiscriminadamente |
-| P0 | Credenciais restritas para ingestão e workers | Processos de runtime deixam de usar a conexão proprietária | Matriz de privilégios e testes de operações negadas por processo; bootstrap/migrations continuam separados |
+| P0 | Inbox e consumidores duráveis restantes | Trabalho obrigatório sobrevive à queda de processo; preservar outbox038 já entregue | Ensaios de interrupção antes/depois do commit, deduplicação, reserva com prazo e recuperação; filas não repetem comandos físicos indiscriminadamente |
+| P0 | Credenciais restritas para ingestão e demais workers | Separar as responsabilidades legadas ainda proprietárias; preservar a role de notificações038 | Matriz de privilégios e testes de operações negadas por processo; bootstrap/migrations continuam separados |
 | P1 | Ativos e ordens de serviço | Manutenção com responsável e histórico do equipamento | Criar, atribuir, executar, concluir e reabrir conforme permissão; histórico auditável; relação explícita com chamados |
 | P1 | Automações versionadas | Regras controladas, simuláveis e rastreáveis | Versão imutável, simulação antes de ativar, limites, histórico de execução e desligamento; sem execução de scripts arbitrários |
 | P1 | Planos e assinaturas | Condições comerciais separadas dos dados operacionais | Plano versionado, vigência, limites e eventos; cobrança por provedor continua sendo integração separada |
@@ -84,7 +90,7 @@ Oferecer prévia, erros por linha e confirmação do lote antes de aplicar. Usar
 
 | Prioridade | Sugestão | Evidência necessária antes da entrega |
 |---|---|---|
-| P1 | Consolidar a matriz de testes já existente em Chromium, Firefox e WebKit | Preservar a integral222/222 dos três portais compilados, três motores e0 retries, aprovada localmente e no CI3035245; ampliar para novos módulos sem somar dirigidos como integral |
+| P1 | Ampliar a matriz já existente em Chromium, Firefox e WebKit | Preservar 222/222 dos três portais compilados no CI292e12e, três motores e zero retries/falhas/flaky/skips; ampliar para novos módulos sem somar dirigidos como integral |
 | P1 | Testes de componente e acessibilidade nativa | Controles, estados de erro e nomes acessíveis verificados; complementar testes em aparelho |
 | P1 | Ensaio de atualização e retorno de versão | Backup anterior restaurável, migrations compatíveis e procedimento de recuperação exercitado |
 | P2 | Dividir o JavaScript do painel por rota | Medição antes/depois de download e abertura inicial; sem regressão de navegação ou autorização |
@@ -105,7 +111,7 @@ Oferecer prévia, erros por linha e confirmação do lote antes de aplicar. Usar
 
 1. Estabilizar regressão, permissões e builds nativos da versão atual.
 2. Concluir identidade segura e migrations operáveis antes de ampliar distribuição.
-3. Entregar processamento durável e privilégios por carga.
+3. Preservar 038 e entregar inbox, consumidores restantes e privilégios por carga, seguindo um novo plano e provas próprias.
 4. Integrar ativos/ordens e notificações com os dois apps e a gestão web.
 5. Homologar implantação e recuperação; finalizar a documentação técnica e de operação.
 6. Selecionar sugestões P2/P3 com base no uso observado, sem misturá-las aos requisitos pendentes.
@@ -123,6 +129,6 @@ Para cada item aprovado, registrar: problema observado, público, fluxo esperado
 
 ## 10. Atualização após senha037
 
-Troca de senha e revogação atômica de todas as famílias já foram entregues na API, três portais e dois apps. MFA, convites e recuperação continuam no escopo pendente; não confundir recuperação com troca autenticada. Priorizar aceite Android/iOS e processamento durável038, preservando credenciais restritas, pausa e testes negativos.
+Troca de senha e revogação atômica de todas as famílias já foram entregues na API, três portais e dois apps. MFA, convites e recuperação continuam no escopo pendente; não confundir recuperação com troca autenticada. Priorizar aceite Android/iOS e os consumidores duráveis restantes, preservando 038, credenciais restritas, pausa e testes negativos.
 
-Como melhoriaP1, manter um índice de evidências por commit com versão da fonte, suite integral, ausência de skips/retries e limites de cada imagem. Um teste React host não aprova Fabric, build não aprova sessão nativa e capturas de uma fase não aprovam toda a jornada. Galeria19 versionada; cinco vídeos ainda pendentes. O próximo ensaio Android deve reprovar na primeira MissingViewState ou removeViewAt/index-mismatch, com fase/seq/horário/PID para ligar o erro à transição real, sem declarar sua causa por correlação com GC ou teclado.
+Como melhoria P1, ampliar o [índice de evidências 038](evidencias/notification038-ci.json) para cada incremento, com fonte, execução integral, skips/retries explícitos e limites de cada imagem. Um teste React host não aprova Fabric, build não aprova sessão nativa e capturas de uma fase não aprovam toda a jornada. Galeria com 19 imagens versionadas; cinco vídeos ainda pendentes. O monitor Android publicado em f96b0ae reprova na primeira MissingViewState ou removeViewAt/index-mismatch com fase/seq/horário/PID; sua primeira execução rejeitou o formato do log antes do login. Corrigir a compatibilidade do parser com prova própria, mantendo as negativas; não declarar causa por correlação com GC ou teclado.

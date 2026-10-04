@@ -1,0 +1,222 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-10-03",
+  "scope": "CI da integração038; não homologação nativa, hardware, serviços externos ou produção.",
+  "platform": {
+    "commit": "586cc922a21fbcb27b5c9bde1cbc2d0c130cc7a3",
+    "run": 37164944806,
+    "url": "https://github.com/helberjf/predioON/actions/runs/37164944806",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "name": "notifications",
+        "logSha256": "cb9f0905e274aff5fa70a566c0414d2d7256de7585927c22f6d1f49ecf6b951d",
+        "nodeVersions": [
+          "v24.21.0"
+        ],
+        "suites": [
+          {
+            "command": "pnpm --filter @predioon/db exec node --import tsx --test --test-concurrency=1 test/notification-delivery.test.ts",
+            "tests": 54,
+            "suites": 1,
+            "pass": 54,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 7078.6144
+          },
+          {
+            "command": "pnpm --filter @predioon/notifications test",
+            "tests": 36,
+            "suites": 1,
+            "pass": 36,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 25460.384581
+          },
+          {
+            "command": "pnpm --filter @predioon/ingest exec node --import tsx --test --test-concurrency=1 test/outbox-producers.integration.test.ts",
+            "tests": 40,
+            "suites": 1,
+            "pass": 40,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 7820.351583
+          }
+        ],
+        "excludedDedicatedSuites": []
+      },
+      {
+        "name": "backup",
+        "logSha256": "3c0864491c58201d399d66051bb5dc40cd5021a3cf5695f983ef29af06c661bc",
+        "nodeVersions": [
+          "v24.21.0"
+        ],
+        "suites": [
+          {
+            "command": "pnpm --filter @predioon/db exec node --import tsx --test --test-concurrency=1 test/backup-restore.test.ts",
+            "tests": 2,
+            "suites": 0,
+            "pass": 2,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 45723.469172
+          }
+        ],
+        "excludedDedicatedSuites": []
+      },
+      {
+        "name": "platform",
+        "logSha256": "ef0092b3d049e621ab927e767172ce0c29f67a9adbe7933f4f18677112624f18",
+        "nodeVersions": [
+          "v24.21.0"
+        ],
+        "suites": [
+          {
+            "command": "pnpm --filter @predioon/db exec node --import tsx --test --test-concurrency=1 test/*.test.ts",
+            "tests": 36,
+            "suites": 2,
+            "pass": 34,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 2,
+            "todo": 0,
+            "duration_ms": 10314.543647
+          },
+          {
+            "command": "workspace @predioon/api-client@0.1.0 : test packages/api-client",
+            "tests": 64,
+            "suites": 0,
+            "pass": 64,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 771.614534
+          },
+          {
+            "command": "workspace @predioon/api@0.1.0 : test apps/api",
+            "tests": 697,
+            "suites": 52,
+            "pass": 697,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 609489.249818
+          },
+          {
+            "command": "workspace @predioon/ingest@0.1.0 : test services/ingest",
+            "tests": 83,
+            "suites": 15,
+            "pass": 83,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 13385.99691
+          },
+          {
+            "command": "workspace @predioon/ui@0.1.0 : test packages/ui",
+            "tests": 89,
+            "suites": 0,
+            "pass": 89,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 1056.298977
+          },
+          {
+            "command": "workspace @predioon/mobile@0.1.0 : test packages/mobile",
+            "tests": 75,
+            "suites": 0,
+            "pass": 75,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 1044.240776
+          },
+          {
+            "command": "pnpm --filter @predioon/mobile exec tsc --project test/tsconfig.integration.json",
+            "tests": 1,
+            "suites": 0,
+            "pass": 1,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 2458.034456
+          },
+          {
+            "command": "pnpm --filter @predioon/api exec tsx --test ../../packages/mobile/test/resident-access.integration.mts",
+            "tests": 1,
+            "suites": 0,
+            "pass": 1,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 2803.360771
+          }
+        ],
+        "excludedDedicatedSuites": [
+          "durable alert delivery SQL038, real restricted connections",
+          "SQL038 source producers are atomic, durable and transport-free"
+        ]
+      }
+    ]
+  },
+  "browser": {
+    "commit": "292e12e9ad83cfc9492fd5840914fdc54bb72b14",
+    "run": 37164756602,
+    "url": "https://github.com/helberjf/predioON/actions/runs/37164756602",
+    "conclusion": "success",
+    "projects": [
+      "chromium",
+      "firefox",
+      "webkit"
+    ],
+    "stats": {
+      "total": 222,
+      "expected": 222,
+      "unexpected": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": true
+    },
+    "retries": 0,
+    "artifact": {
+      "id": 11289167962,
+      "sha256": "497d65c182b716992f6c16ee012e7c44fa9071840289eb480e926749491245c8",
+      "lastRun": {
+        "status": "passed",
+        "failedTests": 0
+      },
+      "files": [
+        "playwright-results/.last-run.json",
+        "playwright-results/audit-auditoria-global-não-cf276-onhecido-ou-campos-privados-chromium/audit-global.png",
+        "playwright-results/audit-auditoria-local-pagi-869d4--atualiza-a-primeira-página-chromium/audit-local.png",
+        "playwright-results/password-change-senha-admi-218d1-navegador-aba-e-dispositivo-chromium/password-admin.png",
+        "playwright-results/password-change-senha-buil-8790e-navegador-aba-e-dispositivo-chromium/password-building.png",
+        "playwright-results/password-change-senha-resi-caa20-navegador-aba-e-dispositivo-chromium/password-resident.png",
+        "playwright-report/index.html"
+      ]
+    }
+  },
+  "migration038Sha256": "65c1b502621ceebc82021c9c94648de55e9ff9c63907237dd81866ce44f8c3c7",
+  "limits": [
+    "Não somar casos dirigidos aos totais integrais.",
+    "O DB geral tem34 passes e2 skips de backup; o job separado exercitou2 backups reais.",
+    "Ingest geral83 não inclui produtores40; produtores, SQL54 e worker36 têm job dedicado.",
+    "Nenhum APK, XCTest, dispositivo físico, destino webhook de produção ou implantação pública foi aprovado por estes jobs."
+  ]
+}

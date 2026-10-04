@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "app": "resident-mobile",
+  "passed": false,
+  "category": "log-format-rejected",
+  "pid": 3558,
+  "markers": [
+    {
+      "sequence": 1,
+      "phase": "startup",
+      "boundary": "before",
+      "kind": "phase",
+      "deviceTime": "1791075622.961"
+    },
+    {
+      "sequence": 2,
+      "phase": "startup",
+      "boundary": "before",
+      "kind": "launch",
+      "deviceTime": "1791075623.071"
+    },
+    {
+      "sequence": 3,
+      "phase": "startup",
+      "boundary": "after",
+      "kind": "launch",
+      "deviceTime": "1791075625.626"
+    }
+  ],
+  "firstFailure": {
+    "category": "log-format-rejected",
+    "deviceTime": null
+  },
+  "domainSnapshotUnchanged": false,
+  "source": {
+    "commit": "f96b0ae8dd5ce72ee6b8e9add893eaf99799f610",
+    "apkSha256": "f700cdd6af4e525b8583785ecf2bda5269da9b7e4ca10e7696e783630d79aa19",
+    "reactNative": "0.87.1",
+    "androidApi": 35,
+    "abi": "x86_64"
+  }
+}
