@@ -5,11 +5,42 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 from pathlib import Path
 import ssl
+import socketserver
 from urllib.parse import urlsplit
 
 ALLOWED = {("GET", "/health"), ("GET", "/auth/me"), ("GET", "/buildings"),
            ("POST", "/auth/login"), ("POST", "/auth/refresh"), ("POST", "/auth/logout")}
 MAX_BODY = 1_048_576
+STARTUP_STAGES = frozenset({"resolver-skipped", "bind", "bound", "listen", "listening", "tls-load", "tls-ready", "serving"})
+
+
+def emit_startup(stage):
+    if stage not in STARTUP_STAGES:
+        raise ValueError("Unexpected startup diagnostic stage")
+    # Authentication evidence parses only lines starting with '{'. These fixed
+    # markers are separate diagnostics and never carry HTTP or private data.
+    print("PROXY_STARTUP:" + stage, flush=True)
+
+
+class LoopbackHTTPServer(ThreadingHTTPServer):
+    def __init__(self, address, handler, *, startup=None):
+        if address[0] != "127.0.0.1":
+            raise ValueError("Verification proxy requires numeric loopback")
+        self.startup = startup or (lambda _stage: None)
+        super().__init__(address, handler)
+
+    def server_bind(self):
+        self.startup("resolver-skipped")
+        self.startup("bind")
+        socketserver.TCPServer.server_bind(self)
+        self.server_name = "localhost"
+        self.server_port = self.server_address[1]
+        self.startup("bound")
+
+    def server_activate(self):
+        self.startup("listen")
+        super().server_activate()
+        self.startup("listening")
 
 
 def make_handler(upstream_port, allow_request=None):
@@ -62,12 +93,15 @@ def main():
     parser.add_argument("--tls", type=Path, required=True)
     parser.add_argument("--upstream-port", type=int, default=3000)
     args = parser.parse_args()
-    server = ThreadingHTTPServer(("127.0.0.1", 3443), make_handler(args.upstream_port))
+    server = LoopbackHTTPServer(("127.0.0.1", 3443), make_handler(args.upstream_port), startup=emit_startup)
+    emit_startup("tls-load")
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     context.minimum_version = ssl.TLSVersion.TLSv1_2
     context.load_cert_chain(args.tls / "server.pem", args.tls / "server.key")
     server.socket = context.wrap_socket(server.socket, server_side=True)
+    emit_startup("tls-ready")
     print("Disposable HTTPS proxy ready on loopback:3443", flush=True)
+    emit_startup("serving")
     server.serve_forever()
 
 

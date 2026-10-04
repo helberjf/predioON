@@ -1,6 +1,8 @@
 import contextlib
+import errno
 import http.client
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+import importlib.util
 import io
 import os
 from pathlib import Path
@@ -22,6 +24,15 @@ from prepare_auth import choose_openssl, create_ios_certificates
 SECRET = "SENTINEL_PRIVATE_PROXY_PASSWORD"
 
 
+def ios_auth_runner():
+    # The Android harness has a different run_auth.py. Certificate helpers
+    # can place its directory first in sys.path during the same test process.
+    spec = importlib.util.spec_from_file_location("ios_proxy_journal_contract", Path(__file__).with_name("run_auth.py"))
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 class LoopbackFixtureHTTPServer(ThreadingHTTPServer):
     def server_bind(self):
         # HTTPServer resolves a reverse DNS name between bind and listen.
@@ -32,6 +43,145 @@ class LoopbackFixtureHTTPServer(ThreadingHTTPServer):
 
 
 class ReadinessTests(unittest.TestCase):
+    def test_real_password_proxy_process_has_verified_health_and_closed_startup_journal(self):
+        run_auth = ios_auth_runner()
+        if sys.platform == "darwin":
+            binary = Path(subprocess.check_output(["brew", "--prefix", "openssl@3"], text=True).strip()) / "bin/openssl"
+        else:
+            selected = shutil.which("openssl")
+            if not selected:
+                self.skipTest("OpenSSL is unavailable for real proxy process TLS")
+            binary = Path(selected)
+        tool = choose_openssl(binary)
+        class Health(BaseHTTPRequestHandler):
+            observed = []
+            def do_GET(self):
+                self.observed.append((self.command, self.path))
+                body = b'{"ok":true,"service":"predioon-api","timestamp":"2026-10-04T00:00:00Z"}'
+                self.send_response(200)
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            def log_message(self, *_): pass
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            ca = create_ios_certificates(root / "tls", tool)
+            with LoopbackFixtureHTTPServer(("127.0.0.1", 0), Health) as upstream:
+                thread = threading.Thread(target=upstream.serve_forever, daemon=True)
+                thread.start()
+                with (root / "proxy.log").open("w") as log:
+                    process = subprocess.Popen([sys.executable, "-B", str(Path(__file__).resolve().parents[1] / "android-password-smoke/password_proxy.py"),
+                        "--tls", str(root / "tls"), "--upstream-port", str(upstream.server_port)], stdout=log, stderr=log)
+                    diagnostics = readiness.ProbeDiagnostics()
+                    try:
+                        readiness.wait_for_proxy(ca, lambda: process.poll() is None, budget=3, interval=.05, diagnostics=diagnostics)
+                        self.assertEqual(readiness.proxy_startup_stage(root), "serving")
+                        self.assertEqual(diagnostics.snapshot()["lastProbe"], {"stage": "body", "outcome": "ready", "errno": "none"})
+                        self.assertEqual(Health.observed, [("GET", "/health")])
+                        # The proxy writes its journal after the response body.
+                        # Observe that same GET, without sending another one.
+                        journal_deadline = time.monotonic() + .5
+                        while not run_auth.proxy_events(root / "proxy.log") and time.monotonic() < journal_deadline:
+                            time.sleep(.01)
+                        self.assertEqual(run_auth.proxy_events(root / "proxy.log"), [{"method": "GET", "path": "/health", "status": 200}])
+                    finally:
+                        process.terminate()
+                        process.wait(timeout=3)
+                        upstream.shutdown()
+                        thread.join(timeout=3)
+
+    def test_probe_diagnostics_only_expose_closed_stages_and_errno_categories(self):
+        for phase, error, outcome, errno_category in [
+            ("tcp", ConnectionRefusedError(errno.ECONNREFUSED, SECRET), "io-retry", "refused"),
+            ("tls", ssl.SSLCertVerificationError(SECRET), "tls-rejected", "other"),
+            (SECRET, OSError(SECRET), "io-retry", "other"),
+        ]:
+            diagnostics = readiness.ProbeDiagnostics()
+            with patch.object(readiness, "DeadlineHTTPSConnection") as connection:
+                def failed_request(*_args):
+                    connection.return_value.phase = phase
+                    raise error
+                connection.return_value.request.side_effect = failed_request
+                if outcome == "tls-rejected":
+                    with self.assertRaisesRegex(readiness.ReadinessFailure, "proxy_tls_rejected"):
+                        readiness.probe(object(), .1, diagnostics)
+                else:
+                    self.assertFalse(readiness.probe(object(), .1, diagnostics))
+            snapshot = diagnostics.snapshot()
+            self.assertEqual(snapshot, {"attempts": 1, "lastProbe": {
+                "stage": phase if phase != SECRET else "unknown", "outcome": outcome, "errno": errno_category}})
+            self.assertNotIn(SECRET, str(snapshot))
+
+    def test_http_diagnostics_distinguish_headers_and_body_without_private_values(self):
+        for response_status, error, body, stage, outcome, category in [
+            (503, None, None, "headers", "http-retry", None),
+            (200, http.client.BadStatusLine(SECRET), None, "headers", "http-rejected", "proxy_http_rejected"),
+            (200, None, SECRET.encode(), "body", "health-rejected", "proxy_health_rejected"),
+        ]:
+            diagnostics = readiness.ProbeDiagnostics()
+            with patch.object(readiness, "DeadlineHTTPSConnection") as connection:
+                response = connection.return_value.getresponse.return_value
+                response.status = response_status
+                response.read.return_value = body
+                if error:
+                    connection.return_value.getresponse.side_effect = error
+                if category:
+                    with self.assertRaisesRegex(readiness.ReadinessFailure, category):
+                        readiness.probe(object(), .1, diagnostics)
+                else:
+                    self.assertFalse(readiness.probe(object(), .1, diagnostics))
+            snapshot = diagnostics.snapshot()
+            self.assertEqual(snapshot, {"attempts": 1, "lastProbe": {"stage": stage, "outcome": outcome, "errno": "none"}})
+            self.assertNotIn(SECRET, str(snapshot))
+
+    def test_startup_diagnostic_only_reads_bounded_regular_log_and_closed_markers(self):
+        run_auth = ios_auth_runner()
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            log = root / "proxy.log"
+            log.write_text("PROXY_STARTUP:bind\n" + SECRET + "\nPROXY_STARTUP:serving\n" +
+                           '{"method":"GET","path":"/health","status":200}\nPROXY_STARTUP:' + SECRET + '\n')
+            self.assertEqual(readiness.proxy_startup_stage(root), "serving")
+            self.assertEqual(run_auth.proxy_events(log), [{"method": "GET", "path": "/health", "status": 200}])
+            log.write_text("PROXY_STARTUP:" + SECRET)
+            self.assertEqual(readiness.proxy_startup_stage(root), "unknown")
+            log.write_bytes(b'x' * (1_048_576 + 1))
+            self.assertEqual(readiness.proxy_startup_stage(root), "unavailable")
+            log.unlink()
+            log.mkdir()
+            self.assertEqual(readiness.proxy_startup_stage(root), "unavailable")
+
+    def test_startup_diagnostic_refuses_fifo_and_symlink_without_waiting(self):
+        if not hasattr(os, "mkfifo") or not hasattr(os, "O_NOFOLLOW"):
+            self.skipTest("POSIX FIFO and no-follow are unavailable")
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            log = root / "proxy.log"
+            os.mkfifo(log)
+            started = time.monotonic()
+            self.assertEqual(readiness.proxy_startup_stage(root), "unavailable")
+            self.assertLess(time.monotonic() - started, .5)
+            log.unlink()
+            target = root / "private.txt"
+            target.write_text("PROXY_STARTUP:serving\n" + SECRET)
+            log.symlink_to(target)
+            self.assertEqual(readiness.proxy_startup_stage(root), "unavailable")
+            with patch.object(Path, "is_symlink", return_value=False):
+                self.assertEqual(readiness.proxy_startup_stage(root), "unavailable")
+
+    def test_cli_diagnostics_never_emit_unrecognized_exception_category(self):
+        output = io.StringIO()
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "proxy.pid").write_text(str(os.getpid()))
+            with patch.object(readiness, "disposable_path", return_value=root), \
+                 patch.object(readiness, "wait_for_proxy", side_effect=readiness.ReadinessFailure(SECRET)), \
+                 contextlib.redirect_stdout(output):
+                self.assertEqual(readiness.main(["--private", str(root)]), 1)
+        self.assertNotIn(SECRET, output.getvalue())
+        self.assertNotIn(str(root), output.getvalue())
+        self.assertIn("proxy_configuration_rejected", output.getvalue())
+
     def test_loopback_fixture_never_uses_reverse_dns_before_listening(self):
         with patch.object(socket, "getfqdn", side_effect=AssertionError("Loopback fixture must not wait for reverse DNS")) as reverse, \
              patch.object(socket.socket, "getsockopt", side_effect=OSError(42, "Protocol not available")) as unsupported:
@@ -117,6 +267,46 @@ class ReadinessTests(unittest.TestCase):
                 self.assertNotIn(SECRET, str(error.exception))
                 build.return_value.request.assert_called_once_with("GET", "/health")
                 build.return_value.close.assert_called_once()
+
+    def test_real_partial_status_ended_by_watchdog_is_deadline_not_framing(self):
+        if sys.platform == "darwin":
+            binary = Path(subprocess.check_output(["brew", "--prefix", "openssl@3"], text=True).strip()) / "bin/openssl"
+        else:
+            selected = shutil.which("openssl")
+            if not selected:
+                self.skipTest("OpenSSL is unavailable for partial HTTP status TLS")
+            binary = Path(selected)
+        tool = choose_openssl(binary)
+        class PartialStatus(BaseHTTPRequestHandler):
+            observed = []
+            def do_GET(self):
+                self.observed.append((self.command, self.path))
+                try:
+                    for value in b"HTTP/1.1 200 OK\r\nContent-Length: 36\r\n\r\n":
+                        self.wfile.write(bytes([value])); self.wfile.flush(); time.sleep(.04)
+                except OSError:
+                    pass
+            def log_message(self, *_): pass
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            ca = create_ios_certificates(root / "tls", tool)
+            with LoopbackFixtureHTTPServer(("127.0.0.1", 3443), PartialStatus) as server:
+                context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+                context.load_cert_chain(root / "tls/server.pem", root / "tls/server.key")
+                server.socket = context.wrap_socket(server.socket, server_side=True)
+                thread = threading.Thread(target=lambda: server.serve_forever(poll_interval=.02), daemon=True)
+                thread.start()
+                diagnostics = readiness.ProbeDiagnostics()
+                started = time.monotonic()
+                try:
+                    with self.assertRaisesRegex(readiness.ReadinessFailure, "proxy_readiness_timeout"):
+                        readiness.wait_for_proxy(ca, lambda: True, budget=.2, interval=.05, diagnostics=diagnostics)
+                    self.assertLess(time.monotonic() - started, .8)
+                    self.assertEqual(PartialStatus.observed, [("GET", "/health")])
+                    self.assertEqual(diagnostics.snapshot()["lastProbe"], {"stage": "headers", "outcome": "deadline", "errno": "none"})
+                finally:
+                    server.shutdown()
+                    thread.join(timeout=3)
 
     def test_success_after_deadline_or_process_exit_is_never_accepted(self):
         instant = [0.0]
