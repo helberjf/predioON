@@ -1,0 +1,768 @@
+{
+  "schema": "predioon.android-renderer-1414-ci-proof.v1",
+  "commit": "1414f020542628988e9796ac2ad960fb3db2a8d9",
+  "journeys": [
+    {
+      "schema": "predioon.android-renderer-ci-audit.v1",
+      "journey": "renderer",
+      "commit": "1414f020542628988e9796ac2ad960fb3db2a8d9",
+      "runId": 37215518745,
+      "runUrl": "https://github.com/helberjf/predioON/actions/runs/37215518745",
+      "jobId": 111475105773,
+      "jobConclusion": "failure",
+      "nativeConclusion": "failure",
+      "artifactId": 11308012714,
+      "artifactBytes": 1097,
+      "artifactSha256": "5c95e6cb3e0c2004afc19cdb96db42621ede3c31d0f34696270d1326899e87a6",
+      "artifactDigestVerified": true,
+      "artifactEntries": [
+        "result.json"
+      ],
+      "closedReportReconstructionVerified": true,
+      "completedPhases": [
+        "startup",
+        "login",
+        "building",
+        "notices"
+      ],
+      "completedPhaseCount": 4,
+      "markerCount": 53,
+      "markerCounts": {
+        "phase": 9,
+        "launch": 2,
+        "tap": 10,
+        "text": 28,
+        "back": 4
+      },
+      "deviceDurationSeconds": "73.446",
+      "firstNegativeAssociation": {
+        "previousMarker": {
+          "sequence": 53,
+          "phase": "finance",
+          "boundary": "after",
+          "kind": "tap",
+          "deviceTime": "1791130544.773"
+        },
+        "followingMarker": null
+      },
+      "result": {
+        "schema": 1,
+        "app": "resident-mobile",
+        "passed": false,
+        "category": "renderer-missing-view-state",
+        "pid": 3442,
+        "markers": [
+          {
+            "sequence": 1,
+            "phase": "startup",
+            "boundary": "before",
+            "kind": "phase",
+            "deviceTime": "1791130471.327"
+          },
+          {
+            "sequence": 2,
+            "phase": "startup",
+            "boundary": "before",
+            "kind": "launch",
+            "deviceTime": "1791130471.476"
+          },
+          {
+            "sequence": 3,
+            "phase": "startup",
+            "boundary": "after",
+            "kind": "launch",
+            "deviceTime": "1791130474.786"
+          },
+          {
+            "sequence": 4,
+            "phase": "startup",
+            "boundary": "after",
+            "kind": "phase",
+            "deviceTime": "1791130475.239"
+          },
+          {
+            "sequence": 5,
+            "phase": "login",
+            "boundary": "before",
+            "kind": "phase",
+            "deviceTime": "1791130475.489"
+          },
+          {
+            "sequence": 6,
+            "phase": "login",
+            "boundary": "before",
+            "kind": "tap",
+            "deviceTime": "1791130479.318"
+          },
+          {
+            "sequence": 7,
+            "phase": "login",
+            "boundary": "after",
+            "kind": "tap",
+            "deviceTime": "1791130479.717"
+          },
+          {
+            "sequence": 8,
+            "phase": "login",
+            "boundary": "before",
+            "kind": "text",
+            "deviceTime": "1791130480.556"
+          },
+          {
+            "sequence": 9,
+            "phase": "login",
+            "boundary": "after",
+            "kind": "text",
+            "deviceTime": "1791130484.392"
+          },
+          {
+            "sequence": 10,
+            "phase": "login",
+            "boundary": "before",
+            "kind": "text",
+            "deviceTime": "1791130484.860"
+          },
+          {
+            "sequence": 11,
+            "phase": "login",
+            "boundary": "after",
+            "kind": "text",
+            "deviceTime": "1791130486.583"
+          },
+          {
+            "sequence": 12,
+            "phase": "login",
+            "boundary": "before",
+            "kind": "text",
+            "deviceTime": "1791130486.929"
+          },
+          {
+            "sequence": 13,
+            "phase": "login",
+            "boundary": "after",
+            "kind": "text",
+            "deviceTime": "1791130488.862"
+          },
+          {
+            "sequence": 14,
+            "phase": "login",
+            "boundary": "before",
+            "kind": "text",
+            "deviceTime": "1791130489.292"
+          },
+          {
+            "sequence": 15,
+            "phase": "login",
+            "boundary": "after",
+            "kind": "text",
+            "deviceTime": "1791130491.023"
+          },
+          {
+            "sequence": 16,
+            "phase": "login",
+            "boundary": "before",
+            "kind": "text",
+            "deviceTime": "1791130491.320"
+          },
+          {
+            "sequence": 17,
+            "phase": "login",
+            "boundary": "after",
+            "kind": "text",
+            "deviceTime": "1791130492.654"
+          },
+          {
+            "sequence": 18,
+            "phase": "login",
+            "boundary": "before",
+            "kind": "text",
+            "deviceTime": "1791130493.115"
+          },
+          {
+            "sequence": 19,
+            "phase": "login",
+            "boundary": "after",
+            "kind": "text",
+            "deviceTime": "1791130494.562"
+          },
+          {
+            "sequence": 20,
+            "phase": "login",
+            "boundary": "before",
+            "kind": "text",
+            "deviceTime": "1791130494.867"
+          },
+          {
+            "sequence": 21,
+            "phase": "login",
+            "boundary": "after",
+            "kind": "text",
+            "deviceTime": "1791130496.357"
+          },
+          {
+            "sequence": 22,
+            "phase": "login",
+            "boundary": "before",
+            "kind": "text",
+            "deviceTime": "1791130496.830"
+          },
+          {
+            "sequence": 23,
+            "phase": "login",
+            "boundary": "after",
+            "kind": "text",
+            "deviceTime": "1791130498.503"
+          },
+          {
+            "sequence": 24,
+            "phase": "login",
+            "boundary": "before",
+            "kind": "text",
+            "deviceTime": "1791130499.115"
+          },
+          {
+            "sequence": 25,
+            "phase": "login",
+            "boundary": "after",
+            "kind": "text",
+            "deviceTime": "1791130500.469"
+          },
+          {
+            "sequence": 26,
+            "phase": "login",
+            "boundary": "before",
+            "kind": "back",
+            "deviceTime": "1791130501.618"
+          },
+          {
+            "sequence": 27,
+            "phase": "login",
+            "boundary": "after",
+            "kind": "back",
+            "deviceTime": "1791130502.402"
+          },
+          {
+            "sequence": 28,
+            "phase": "login",
+            "boundary": "before",
+            "kind": "tap",
+            "deviceTime": "1791130507.323"
+          },
+          {
+            "sequence": 29,
+            "phase": "login",
+            "boundary": "after",
+            "kind": "tap",
+            "deviceTime": "1791130508.182"
+          },
+          {
+            "sequence": 30,
+            "phase": "login",
+            "boundary": "before",
+            "kind": "text",
+            "deviceTime": "1791130509.328"
+          },
+          {
+            "sequence": 31,
+            "phase": "login",
+            "boundary": "after",
+            "kind": "text",
+            "deviceTime": "1791130510.630"
+          },
+          {
+            "sequence": 32,
+            "phase": "login",
+            "boundary": "before",
+            "kind": "text",
+            "deviceTime": "1791130511.007"
+          },
+          {
+            "sequence": 33,
+            "phase": "login",
+            "boundary": "after",
+            "kind": "text",
+            "deviceTime": "1791130512.149"
+          },
+          {
+            "sequence": 34,
+            "phase": "login",
+            "boundary": "before",
+            "kind": "text",
+            "deviceTime": "1791130512.611"
+          },
+          {
+            "sequence": 35,
+            "phase": "login",
+            "boundary": "after",
+            "kind": "text",
+            "deviceTime": "1791130513.758"
+          },
+          {
+            "sequence": 36,
+            "phase": "login",
+            "boundary": "before",
+            "kind": "text",
+            "deviceTime": "1791130514.135"
+          },
+          {
+            "sequence": 37,
+            "phase": "login",
+            "boundary": "after",
+            "kind": "text",
+            "deviceTime": "1791130515.015"
+          },
+          {
+            "sequence": 38,
+            "phase": "login",
+            "boundary": "before",
+            "kind": "text",
+            "deviceTime": "1791130515.361"
+          },
+          {
+            "sequence": 39,
+            "phase": "login",
+            "boundary": "after",
+            "kind": "text",
+            "deviceTime": "1791130516.095"
+          },
+          {
+            "sequence": 40,
+            "phase": "login",
+            "boundary": "before",
+            "kind": "back",
+            "deviceTime": "1791130517.071"
+          },
+          {
+            "sequence": 41,
+            "phase": "login",
+            "boundary": "after",
+            "kind": "back",
+            "deviceTime": "1791130517.712"
+          },
+          {
+            "sequence": 42,
+            "phase": "login",
+            "boundary": "before",
+            "kind": "tap",
+            "deviceTime": "1791130521.794"
+          },
+          {
+            "sequence": 43,
+            "phase": "login",
+            "boundary": "after",
+            "kind": "tap",
+            "deviceTime": "1791130522.371"
+          },
+          {
+            "sequence": 44,
+            "phase": "login",
+            "boundary": "after",
+            "kind": "phase",
+            "deviceTime": "1791130526.693"
+          },
+          {
+            "sequence": 45,
+            "phase": "building",
+            "boundary": "before",
+            "kind": "phase",
+            "deviceTime": "1791130527.182"
+          },
+          {
+            "sequence": 46,
+            "phase": "building",
+            "boundary": "before",
+            "kind": "tap",
+            "deviceTime": "1791130534.064"
+          },
+          {
+            "sequence": 47,
+            "phase": "building",
+            "boundary": "after",
+            "kind": "tap",
+            "deviceTime": "1791130534.497"
+          },
+          {
+            "sequence": 48,
+            "phase": "building",
+            "boundary": "after",
+            "kind": "phase",
+            "deviceTime": "1791130538.780"
+          },
+          {
+            "sequence": 49,
+            "phase": "notices",
+            "boundary": "before",
+            "kind": "phase",
+            "deviceTime": "1791130538.898"
+          },
+          {
+            "sequence": 50,
+            "phase": "notices",
+            "boundary": "after",
+            "kind": "phase",
+            "deviceTime": "1791130541.695"
+          },
+          {
+            "sequence": 51,
+            "phase": "finance",
+            "boundary": "before",
+            "kind": "phase",
+            "deviceTime": "1791130541.858"
+          },
+          {
+            "sequence": 52,
+            "phase": "finance",
+            "boundary": "before",
+            "kind": "tap",
+            "deviceTime": "1791130544.565"
+          },
+          {
+            "sequence": 53,
+            "phase": "finance",
+            "boundary": "after",
+            "kind": "tap",
+            "deviceTime": "1791130544.773"
+          }
+        ],
+        "firstFailure": {
+          "category": "renderer-missing-view-state",
+          "deviceTime": "1791130544.889"
+        },
+        "domainSnapshotUnchanged": false,
+        "source": {
+          "commit": "1414f020542628988e9796ac2ad960fb3db2a8d9",
+          "apkSha256": "b765ed2b3fcf39bba1c05195adf465d0f7ff3dac04edd3ee12a827b9e3ec950f",
+          "reactNative": "0.87.1",
+          "androidApi": 35,
+          "abi": "x86_64"
+        }
+      },
+      "limitations": [
+        "No raw logs, UI trees or screenshots are exported.",
+        "APK digest is calculated/checked by the committed native runner; APK bytes are private and not independently downloaded.",
+        "Markers delimit observation phases, without proving the cause of a native error.",
+        "A single clean journey does not eliminate renderer intermittence or approve production."
+      ],
+      "ciHostSuites": [
+        {
+          "suite": "renderer-and-prefix",
+          "total": 59,
+          "passed": 59,
+          "failed": 0,
+          "skipped": 0,
+          "durationSeconds": "1.552"
+        },
+        {
+          "suite": "domain",
+          "total": 45,
+          "passed": 45,
+          "failed": 0,
+          "skipped": 0,
+          "durationSeconds": "1.988"
+        }
+      ],
+      "privateJobLog": {
+        "path": "work/ci-prefix-1414f02-renderer-job-private.log",
+        "bytes": 155295,
+        "sha256": "21495dd1376d60b12c291e8772e081f82fbb45d776e81262a796108f9635b5fe"
+      },
+      "reportMetadata": {
+        "path": "work/ci-prefix-1414f02-renderer-verified-final.json",
+        "bytes": 10983,
+        "sha256": "80bda0355ede35d51f185f2c5f00b3acfab242b3567dd49d416fd71d2c40d894"
+      }
+    },
+    {
+      "schema": "predioon.android-renderer-ci-audit.v1",
+      "journey": "prefix",
+      "commit": "1414f020542628988e9796ac2ad960fb3db2a8d9",
+      "runId": 37215518749,
+      "runUrl": "https://github.com/helberjf/predioON/actions/runs/37215518749",
+      "jobId": 111475105826,
+      "jobConclusion": "failure",
+      "nativeConclusion": "failure",
+      "artifactId": 11308960774,
+      "artifactBytes": 744,
+      "artifactSha256": "9293650ead0c3138b1353bba3a4f886f50f0b0317f34785f6a8328f493a88b3e",
+      "artifactDigestVerified": true,
+      "artifactEntries": [
+        "result.json"
+      ],
+      "closedReportReconstructionVerified": true,
+      "completedPhases": [
+        "startup",
+        "login",
+        "building",
+        "notices"
+      ],
+      "completedPhaseCount": 4,
+      "markerCount": 17,
+      "markerCounts": {
+        "phase": 9,
+        "launch": 2,
+        "tap": 6
+      },
+      "deviceDurationSeconds": "55.881",
+      "firstNegativeAssociation": {
+        "previousMarker": {
+          "sequence": 17,
+          "phase": "finance",
+          "boundary": "after",
+          "kind": "tap",
+          "deviceTime": "1791130633.816"
+        },
+        "followingMarker": null
+      },
+      "result": {
+        "schema": 1,
+        "app": "resident-mobile",
+        "passed": false,
+        "category": "renderer-missing-view-state",
+        "pid": 3856,
+        "markers": [
+          {
+            "sequence": 1,
+            "phase": "startup",
+            "boundary": "before",
+            "kind": "phase",
+            "deviceTime": "1791130577.935"
+          },
+          {
+            "sequence": 2,
+            "phase": "startup",
+            "boundary": "before",
+            "kind": "launch",
+            "deviceTime": "1791130578.079"
+          },
+          {
+            "sequence": 3,
+            "phase": "startup",
+            "boundary": "after",
+            "kind": "launch",
+            "deviceTime": "1791130579.984"
+          },
+          {
+            "sequence": 4,
+            "phase": "startup",
+            "boundary": "after",
+            "kind": "phase",
+            "deviceTime": "1791130580.287"
+          },
+          {
+            "sequence": 5,
+            "phase": "login",
+            "boundary": "before",
+            "kind": "phase",
+            "deviceTime": "1791130580.439"
+          },
+          {
+            "sequence": 6,
+            "phase": "login",
+            "boundary": "before",
+            "kind": "tap",
+            "deviceTime": "1791130584.405"
+          },
+          {
+            "sequence": 7,
+            "phase": "login",
+            "boundary": "after",
+            "kind": "tap",
+            "deviceTime": "1791130584.654"
+          },
+          {
+            "sequence": 8,
+            "phase": "login",
+            "boundary": "after",
+            "kind": "phase",
+            "deviceTime": "1791130616.964"
+          },
+          {
+            "sequence": 9,
+            "phase": "building",
+            "boundary": "before",
+            "kind": "phase",
+            "deviceTime": "1791130617.180"
+          },
+          {
+            "sequence": 10,
+            "phase": "building",
+            "boundary": "before",
+            "kind": "tap",
+            "deviceTime": "1791130623.414"
+          },
+          {
+            "sequence": 11,
+            "phase": "building",
+            "boundary": "after",
+            "kind": "tap",
+            "deviceTime": "1791130623.757"
+          },
+          {
+            "sequence": 12,
+            "phase": "building",
+            "boundary": "after",
+            "kind": "phase",
+            "deviceTime": "1791130627.816"
+          },
+          {
+            "sequence": 13,
+            "phase": "notices",
+            "boundary": "before",
+            "kind": "phase",
+            "deviceTime": "1791130628.150"
+          },
+          {
+            "sequence": 14,
+            "phase": "notices",
+            "boundary": "after",
+            "kind": "phase",
+            "deviceTime": "1791130631.239"
+          },
+          {
+            "sequence": 15,
+            "phase": "finance",
+            "boundary": "before",
+            "kind": "phase",
+            "deviceTime": "1791130631.326"
+          },
+          {
+            "sequence": 16,
+            "phase": "finance",
+            "boundary": "before",
+            "kind": "tap",
+            "deviceTime": "1791130633.734"
+          },
+          {
+            "sequence": 17,
+            "phase": "finance",
+            "boundary": "after",
+            "kind": "tap",
+            "deviceTime": "1791130633.816"
+          }
+        ],
+        "firstFailure": {
+          "category": "renderer-missing-view-state",
+          "deviceTime": "1791130634.103"
+        },
+        "domainSnapshotUnchanged": false,
+        "source": {
+          "commit": "1414f020542628988e9796ac2ad960fb3db2a8d9",
+          "apkSha256": "ab9b08c134577e50240bc688c8031bb690b7daed1c5f6ec9f579eaa46b74d835",
+          "reactNative": "0.87.1",
+          "androidApi": 35,
+          "abi": "x86_64"
+        }
+      },
+      "limitations": [
+        "No raw logs, UI trees or screenshots are exported.",
+        "APK digest is calculated/checked by the committed native runner; APK bytes are private and not independently downloaded.",
+        "Markers delimit observation phases, without proving the cause of a native error.",
+        "A single clean journey does not eliminate renderer intermittence or approve production."
+      ],
+      "ciHostSuites": [
+        {
+          "suite": "renderer-and-prefix",
+          "total": 59,
+          "passed": 59,
+          "failed": 0,
+          "skipped": 0,
+          "durationSeconds": "1.514"
+        },
+        {
+          "suite": "domain",
+          "total": 45,
+          "passed": 45,
+          "failed": 0,
+          "skipped": 0,
+          "durationSeconds": "2.204"
+        }
+      ],
+      "privateJobLog": {
+        "path": "work/ci-prefix-1414f02-prefix-job-private.log",
+        "bytes": 185604,
+        "sha256": "85a79473cc7d137ffa5fb0a7662bf3466f819bb6c8afda69db66b0896476b083"
+      },
+      "reportMetadata": {
+        "path": "work/ci-prefix-1414f02-prefix-verified-final.json",
+        "bytes": 4956,
+        "sha256": "4a6c4a57e65ac8c1c26359ef347a91ddf8dd03e6f39aec4fe711a20d46ada208"
+      }
+    }
+  ],
+  "sourceAudit": {
+    "path": "work/ci-prefix-1414f02-source-gitlf-audit.json",
+    "sha256": "e8f9f7bffbd1e7fe2ce8d5184064a7be2d71f437018e5c4920a5224a2baeb916",
+    "gitLfSourcesVerified": 14
+  },
+  "conclusion": "native-renderer-negative-reproduced-in-finance",
+  "limits": [
+    "domainSnapshotUnchanged=false indicates final snapshot verification was not reached; it is not evidence of a domain mutation.",
+    "Exactly one negative is reported per journey; no total count of native exceptions is inferred.",
+    "No APK bytes, screenshots, UI trees or native lines are exported.",
+    "Cause and minimal product fix remain unproven."
+  ],
+  "sourceFiles": [
+    {
+      "path": "scripts/android-renderer-smoke/run_domains_prefix.py",
+      "sha256GitLF": "4750869ce8e37bbed29123bef5e77806a2a60bf4eddee8877e55ed4ae59b44e1"
+    },
+    {
+      "path": "scripts/android-renderer-smoke/test_domains_prefix.py",
+      "sha256GitLF": "db66f0b9b16780e8c343feb5939d5d0382a984ab8bd53f82d6d5036969232b3c"
+    },
+    {
+      "path": "scripts/android-renderer-smoke/README.md",
+      "sha256GitLF": "802c0750841d0416f285670475b6af8850fe22f75b5f68919e6e6c8182984f56"
+    },
+    {
+      "path": ".github/workflows/android-renderer-prefix.yml",
+      "sha256GitLF": "a74d71dc66d871af8663da295a4c1ba64e40eaefcf38942b78544945d8fe3475"
+    },
+    {
+      "path": "scripts/android-renderer-smoke/monitor.py",
+      "sha256GitLF": "9bf160b49c2daed2d4fc1f3924c2141a95185cbff4c78518f3580997b0df84a3"
+    },
+    {
+      "path": "scripts/android-renderer-smoke/run_renderer.py",
+      "sha256GitLF": "5484c4413cd8b0972e3f71bb7df14311eb06a9850d2a4353b68c3f04cf9e1eab"
+    },
+    {
+      "path": "scripts/android-renderer-smoke/policy.py",
+      "sha256GitLF": "fbc437ce0fe2c828e7e98f123961cb78c007fecd4c733ada0f72d07a118526d0"
+    },
+    {
+      "path": "scripts/android-renderer-smoke/proxy_renderer.py",
+      "sha256GitLF": "58a3aa1089ce6eb3d25bae4725b6ea85c795180cd491216581daa4e9a9bccaf3"
+    },
+    {
+      "path": "scripts/android-renderer-smoke/services.py",
+      "sha256GitLF": "bd56ca25915887e6cf0194e84415cb1f18979be4b202dd2666cc2753af11083f"
+    },
+    {
+      "path": "scripts/android-domain-smoke/assertions.py",
+      "sha256GitLF": "7137a9d3634c7f36ba658eac984a01d171901d6f66a05c37b96b47f867255418"
+    },
+    {
+      "path": "scripts/android-domain-smoke/run_domains.py",
+      "sha256GitLF": "c12fcc1e88689338f0be2eb98887c24939b83a5c59b7475533dd8c5e4de0647e"
+    },
+    {
+      "path": "scripts/android-auth-smoke/run_auth.py",
+      "sha256GitLF": "5c5870fb0818443acee29d0e720124dbb1ae9a78f63f25634b72563949a3c87e"
+    },
+    {
+      "path": "scripts/android-smoke/run.py",
+      "sha256GitLF": "d8b500dac1874b734b891b693c71dd3a71766765add5d889de5af5984d56f68b"
+    },
+    {
+      "path": ".github/workflows/android-renderer.yml",
+      "sha256GitLF": "eeff5f10f423ff41c982111ed18b7eddfcfebda19092d11198f89a11df68cbdd"
+    }
+  ],
+  "rootVerification": {
+    "officialArtifactMetadata": true,
+    "zipBytesAndExactMemberVerified": true,
+    "closedReportsReconstructed": true,
+    "gitSourceHashesVerified": 14
+  }
+}
