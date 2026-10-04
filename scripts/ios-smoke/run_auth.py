@@ -42,14 +42,37 @@ DIAGNOSTIC_STAGES = frozenset({"simulator-create", "simulator-boot", "certificat
     "resident-install", "operations-install", "coordinator-init", "runner-build", "runner-plist",
     "runner-ats-check", "runner-test", "journey-finish-check", "simulator-shutdown", "simulator-delete"})
 DIAGNOSTIC_CATEGORIES = frozenset({"nonzero-exit", "timed-out", "unavailable", "verification-failed"})
+BUILD_ERROR_SIGNALS = ("destination-selection", "sdk-availability", "scheme-configuration", "compiler-error")
+BUILD_SIGNAL_PATTERNS = (
+    re.compile(r"^xcodebuild: error: (?:Unable to find a destination matching\b|Found no destinations for the scheme\b)"),
+    re.compile(r"^xcodebuild: error: SDK .+ cannot be located\.?$"),
+    re.compile(r"^xcodebuild: error: (?:Scheme .+ is not currently configured for the test action\.?|"
+               r"The (?:project|workspace) named .+ does not contain a scheme named .+)\s*$"),
+    re.compile(r'''^[^\s"'<>:=][^"'<>:=\r\n]*\.swift:[0-9]{1,9}:[0-9]{1,9}: error: .+$'''),
+)
 
 
 class SecurityViolation(RuntimeError):
     pass
 
 
+def safe_build_error_signals(payload):
+    if not isinstance(payload, dict) or set(payload) != {"errorSignals", "signalScanLimited"}:
+        raise SecurityViolation("Unexpected build signal fields")
+    signals, limited = payload["errorSignals"], payload["signalScanLimited"]
+    if type(limited) is not bool or not isinstance(signals, list) or not 1 <= len(signals) <= 4:
+        raise SecurityViolation("Unexpected build signal values")
+    if any(not isinstance(signal, str) or signal not in (*BUILD_ERROR_SIGNALS, "unclassified") for signal in signals):
+        raise SecurityViolation("Unexpected build signal category")
+    if signals != ["unclassified"] and signals != [signal for signal in BUILD_ERROR_SIGNALS if signal in signals]:
+        raise SecurityViolation("Unexpected build signal order or duplication")
+    return payload
+
+
 def safe_failure_diagnostic(payload):
-    if not isinstance(payload, dict) or set(payload) != {"stage", "category", "exitCode"}:
+    required = {"stage", "category", "exitCode"}
+    optional = {"errorSignals", "signalScanLimited"}
+    if not isinstance(payload, dict) or set(payload) not in (required, required | optional):
         raise SecurityViolation("Unexpected failure diagnostic fields")
     stage, category, code = payload["stage"], payload["category"], payload["exitCode"]
     if not isinstance(stage, str) or stage not in DIAGNOSTIC_STAGES or not isinstance(category, str) or category not in DIAGNOSTIC_CATEGORIES:
@@ -58,6 +81,10 @@ def safe_failure_diagnostic(payload):
         raise SecurityViolation("Unexpected failure diagnostic exit code")
     if category != "nonzero-exit" and code is not None:
         raise SecurityViolation("Unexpected exit code for diagnostic category")
+    if optional <= set(payload):
+        if stage != "runner-build" or category != "nonzero-exit":
+            raise SecurityViolation("Build signals require a returned runner build failure")
+        safe_build_error_signals({key: payload[key] for key in optional})
     return payload
 
 
@@ -86,7 +113,13 @@ class FailureDiagnostic:
                 try:
                     category = error.category if isinstance(error, PrivateCommandFailure) else "verification-failed"
                     code = error.exit_code if isinstance(error, PrivateCommandFailure) else None
-                    self.first = dict(safe_failure_diagnostic({"stage": name, "category": category, "exitCode": code}))
+                    payload = {"stage": name, "category": category, "exitCode": code}
+                    if name == "runner-build" and category == "nonzero-exit":
+                        try:
+                            payload.update(safe_build_error_signals(getattr(error, "build_signals", None)))
+                        except Exception:
+                            pass
+                    self.first = dict(safe_failure_diagnostic(payload))
                 except Exception:
                     pass
             raise
@@ -327,7 +360,37 @@ def owned_simulator(value, created):
     return canonical
 
 
-def command(*arguments, timeout=60, private_log=None):
+def runner_build_error_signals(stdout, stderr):
+    """Classify bounded captured text, never return text or a claimed cause."""
+    found = set()
+    limited = False
+    for stream in (stdout, stderr):
+        if not isinstance(stream, str):
+            raise ValueError("Captured build output must be text")
+        if len(stream) > 131072:
+            limited = True
+            first, last = stream[:65536].splitlines(), stream[-65536:].splitlines()
+            # Clipped fragments cannot manufacture an error at a window edge.
+            if first and stream[65535] not in "\r\n":
+                first.pop()
+            if last and stream[-65537] not in "\r\n":
+                last.pop(0)
+            windows = (first, last)
+        else:
+            windows = (stream.splitlines(),)
+        for lines in windows:
+            for line in lines:
+                if len(line) > 8192:
+                    limited = True
+                    continue
+                for signal, pattern in zip(BUILD_ERROR_SIGNALS, BUILD_SIGNAL_PATTERNS):
+                    if pattern.match(line):
+                        found.add(signal)
+    return {"errorSignals": [signal for signal in BUILD_ERROR_SIGNALS if signal in found] or ["unclassified"],
+            "signalScanLimited": limited}
+
+
+def command(*arguments, timeout=60, private_log=None, observe_build_signals=False):
     try:
         result = subprocess.run(arguments, capture_output=True, text=True, timeout=timeout)
     except subprocess.TimeoutExpired:
@@ -340,7 +403,13 @@ def command(*arguments, timeout=60, private_log=None):
         # A failure can contain typeText/password/DSNs: never include stdout,
         # stderr, command arguments or the original exception in public output.
         code = result.returncode if type(result.returncode) is int and -255 <= result.returncode <= 255 else None
-        raise PrivateCommandFailure("nonzero-exit", code, "Private verification command failed")
+        failure = PrivateCommandFailure("nonzero-exit", code, "Private verification command failed")
+        if observe_build_signals is True:
+            try:
+                failure.build_signals = dict(safe_build_error_signals(runner_build_error_signals(result.stdout, result.stderr)))
+            except Exception:
+                pass
+        raise failure
     return result.stdout.strip()
 
 
@@ -584,7 +653,8 @@ def run(private, output, resident, operations):
                   "CODE_SIGNING_ALLOWED=YES", "CODE_SIGN_IDENTITY=-", "-parallel-testing-enabled", "NO",
                   "-maximum-concurrent-test-simulator-destinations", "1"]
         with diagnostic.stage("runner-build"):
-            command(*common, "build-for-testing", timeout=240, private_log=private / "runner-build.log")
+            command(*common, "build-for-testing", timeout=240, private_log=private / "runner-build.log",
+                    observe_build_signals=True)
         with diagnostic.stage("runner-plist"):
             runner_info = private / "runner-build/Build/Products/Release-iphonesimulator/AuthJourney-Runner.app/Info.plist"
             with runner_info.open("rb") as source:

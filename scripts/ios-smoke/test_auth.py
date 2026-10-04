@@ -263,7 +263,7 @@ class ExportTests(unittest.TestCase):
 
 
 class NativeFailureDiagnosticTests(unittest.TestCase):
-    def run_failure(self, failed_stage, *, cleanup_fails=False, rejection=None, outcome="nonzero-exit"):
+    def run_failure(self, failed_stage, *, cleanup_fails=False, rejection=None, outcome="nonzero-exit", build_message=None):
         run = load("run_auth")
         secret = "PrivateNativeDiagnosticSentinel123456"
         with tempfile.TemporaryDirectory() as temporary, ExitStack() as patches:
@@ -344,7 +344,8 @@ class NativeFailureDiagnosticTests(unittest.TestCase):
                         raise subprocess.TimeoutExpired(arguments, options["timeout"], output=secret, stderr=secret)
                     if outcome == "unavailable":
                         raise OSError(secret)
-                    return subprocess.CompletedProcess(arguments, 65, secret, secret)
+                    return subprocess.CompletedProcess(arguments, 65, secret,
+                                                       build_message if stage == "runner-build" and build_message is not None else secret)
                 if cleanup_fails and stage in {"simulator-shutdown", "simulator-delete"}:
                     return subprocess.CompletedProcess(arguments, 42, secret, secret)
                 return subprocess.CompletedProcess(arguments, 0, stdout, "")
@@ -386,7 +387,16 @@ class NativeFailureDiagnosticTests(unittest.TestCase):
 
     def test_runner_build_failure_does_not_claim_xctest_started(self):
         result, stages = self.run_failure("runner-build")
-        self.assertEqual(result.get("failureDiagnostic"), {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 65})
+        self.assertEqual(result.get("failureDiagnostic"), {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 65,
+                                                         "errorSignals": ["unclassified"], "signalScanLimited": False})
+        self.assertNotIn("runner-test", stages)
+
+    def test_runner_build_call_explicitly_observes_signals_and_keeps_original_gate(self):
+        result, stages = self.run_failure("runner-build", build_message=RunnerBuildSignalTests.destination,
+                                          cleanup_fails=True)
+        self.assertEqual(result.get("failureDiagnostic"), {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 65,
+                                                         "errorSignals": ["destination-selection"], "signalScanLimited": False})
+        self.assertTrue(result["cleanupFailed"])
         self.assertNotIn("runner-test", stages)
 
     def test_runner_test_failure_is_distinct_from_build(self):
@@ -396,7 +406,8 @@ class NativeFailureDiagnosticTests(unittest.TestCase):
 
     def test_cleanup_cannot_overwrite_the_first_failure(self):
         result, stages = self.run_failure("runner-build", cleanup_fails=True)
-        self.assertEqual(result.get("failureDiagnostic"), {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 65})
+        self.assertEqual(result.get("failureDiagnostic"), {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 65,
+                                                         "errorSignals": ["unclassified"], "signalScanLimited": False})
         self.assertTrue(result["cleanupFailed"])
         self.assertEqual(stages[-2:], ["simulator-shutdown", "simulator-delete"])
 
@@ -488,6 +499,169 @@ class NativeFailureDiagnosticTests(unittest.TestCase):
                 self.assertEqual(diagnostic.first["exitCode"], expected)
 
 
+class RunnerBuildSignalTests(unittest.TestCase):
+    destination = "xcodebuild: error: Unable to find a destination matching the provided destination specifier:\n"
+    sdk = 'xcodebuild: error: SDK "PrivateSdkSentinel" cannot be located.\n'
+    scheme = "xcodebuild: error: Scheme PrivateSchemeSentinel is not currently configured for the test action.\n"
+    compiler = "/private/PrivatePathSentinel/AuthJourney.swift:12:3: error: PrivateCompilerSentinel\n"
+
+    def observe(self, run, stdout, stderr, *, flag=True, status=70):
+        diagnostic = run.FailureDiagnostic()
+        response = subprocess.CompletedProcess(["private-fixture"], status, stdout, stderr)
+        with patch.object(run.subprocess, "run", return_value=response) as process:
+            try:
+                with diagnostic.stage("runner-build"):
+                    run.command("private-fixture", observe_build_signals=flag)
+            except run.PrivateCommandFailure as error:
+                self.assertEqual(error.exit_code, status)
+                self.assertEqual(str(error), "Private verification command failed")
+            self.assertEqual(process.call_count, 1)
+        return diagnostic.first
+
+    def test_each_signal_uses_only_a_closed_enum(self):
+        run = load("run_auth")
+        for marker, expected in [(self.destination, "destination-selection"), (self.sdk, "sdk-availability"),
+                                 (self.scheme, "scheme-configuration"), (self.compiler, "compiler-error")]:
+            with self.subTest(signal=expected):
+                result = self.observe(run, "", marker)
+                self.assertEqual(result, {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 70,
+                                          "errorSignals": [expected], "signalScanLimited": False})
+                self.assertNotIn("Private", json.dumps(result))
+
+    def test_multiple_streams_are_deduplicated_and_sorted_without_causal_order(self):
+        run = load("run_auth")
+        result = self.observe(run, self.compiler + self.sdk + self.destination, self.scheme + self.destination)
+        self.assertEqual(result["errorSignals"], ["destination-selection", "sdk-availability", "scheme-configuration", "compiler-error"])
+        self.assertFalse(result["signalScanLimited"])
+
+    def test_unknown_empty_and_non_error_text_remain_unclassified(self):
+        run = load("run_auth")
+        for text in ["", "private generic failure\n", "Command line invocation: " + self.destination,
+                     'let text = "' + self.compiler.strip() + '"\n',
+                     self.compiler.replace(": error:", ": warning:"),
+                     "prefix " + self.sdk, " \t" + self.destination,
+                     "private-nul\x00 private-emoji🙂\n"]:
+            with self.subTest(text_index=len(text)):
+                result = self.observe(run, text, "")
+                self.assertEqual(result["errorSignals"], ["unclassified"])
+                self.assertFalse(result["signalScanLimited"])
+
+    def test_observer_is_opt_in_and_does_not_change_generic_commands(self):
+        run = load("run_auth")
+        with patch.object(run, "runner_build_error_signals", side_effect=AssertionError("observer must not run")):
+            for flag in [False, None, 1, "true"]:
+                with self.subTest(flag=type(flag).__name__):
+                    self.assertEqual(self.observe(run, "", self.destination, flag=flag),
+                                     {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 70})
+
+    def test_success_does_not_observe_even_when_the_flag_is_enabled(self):
+        run = load("run_auth")
+        with patch.object(run, "runner_build_error_signals", side_effect=AssertionError("observer must not run")):
+            self.assertIsNone(self.observe(run, self.destination, "", status=0))
+
+    def test_scan_first_and_last_windows_only_and_reports_omitted_middle(self):
+        run = load("run_auth")
+        text = self.destination + ("ordinary line\n" * 12000) + self.compiler
+        result = self.observe(run, text, self.sdk)
+        self.assertEqual(result["errorSignals"], ["destination-selection", "sdk-availability", "compiler-error"])
+        self.assertTrue(result["signalScanLimited"])
+        hidden = ("ordinary line\n" * 7000) + self.scheme + ("ordinary line\n" * 7000)
+        result = self.observe(run, hidden, "")
+        self.assertEqual(result["errorSignals"], ["unclassified"])
+        self.assertTrue(result["signalScanLimited"])
+
+    def test_line_length_boundary_and_clipped_fragments_cannot_create_signals(self):
+        run = load("run_auth")
+        prefix = "xcodebuild: error: Unable to find a destination matching "
+        for length, expected in [(8192, "destination-selection"), (8193, "unclassified")]:
+            with self.subTest(length=length):
+                result = self.observe(run, prefix + "x" * (length - len(prefix)) + "\n", "")
+                self.assertEqual(result["errorSignals"], [expected])
+                self.assertEqual(result["signalScanLimited"], length > 8192)
+        # The tail starts at a marker within a huge line, not at a real error line.
+        tail = self.destination + "x" * (65536 - len(self.destination))
+        result = self.observe(run, "x" * 100000 + tail, "")
+        self.assertEqual(result["errorSignals"], ["unclassified"])
+        self.assertTrue(result["signalScanLimited"])
+
+    def test_collector_failure_omits_only_the_supplement_and_keeps_first_failure(self):
+        run = load("run_auth")
+        diagnostic = run.FailureDiagnostic()
+        response = subprocess.CompletedProcess(["fixture"], 70, "private", self.destination)
+        original = []
+        with patch.object(run.subprocess, "run", return_value=response), \
+                patch.object(run, "runner_build_error_signals", side_effect=OSError("private observer failure")):
+            with self.assertRaises(run.PrivateCommandFailure) as observed:
+                with diagnostic.stage("runner-build"):
+                    try:
+                        run.command("fixture", observe_build_signals=True)
+                    except run.PrivateCommandFailure as error:
+                        original.append(error)
+                        raise
+        self.assertIs(observed.exception, original[0])
+        self.assertEqual(diagnostic.first, {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 70})
+        with self.assertRaises(RuntimeError):
+            with diagnostic.stage("simulator-delete"):
+                raise RuntimeError("private cleanup failure")
+        self.assertEqual(diagnostic.first["stage"], "runner-build")
+
+    def test_malformed_collector_payload_cannot_replace_the_base_diagnostic(self):
+        run = load("run_auth")
+        for payload in [None, [], {"errorSignals": ["private"], "signalScanLimited": False},
+                        {"errorSignals": ["compiler-error"], "signalScanLimited": False, "exitCode": 11}]:
+            with self.subTest(payload_type=type(payload).__name__), \
+                    patch.object(run, "runner_build_error_signals", return_value=payload):
+                self.assertEqual(self.observe(run, "", self.compiler),
+                                 {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 70})
+
+    def test_real_nonzero_process_keeps_capture_argv_exit_and_execution_count(self):
+        run = load("run_auth")
+        diagnostic = run.FailureDiagnostic()
+        code = "import sys; print('private stdout'); sys.stderr.write(sys.argv[1]); sys.exit(70)"
+        with tempfile.TemporaryDirectory() as temporary:
+            log = Path(temporary) / "private.log"
+            actual = run.subprocess.run
+            with patch.object(run.subprocess, "run", wraps=actual) as process, self.assertRaises(run.PrivateCommandFailure):
+                with diagnostic.stage("runner-build"):
+                    run.command(sys.executable, "-c", code, self.destination, timeout=5,
+                                private_log=log, observe_build_signals=True)
+            self.assertEqual(process.call_count, 1)
+            self.assertEqual(process.call_args.args[0], (sys.executable, "-c", code, self.destination))
+            self.assertEqual(process.call_args.kwargs, {"capture_output": True, "text": True, "timeout": 5})
+            self.assertEqual(log.read_text(), "private stdout\n" + self.destination)
+        self.assertEqual(diagnostic.first, {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 70,
+                                          "errorSignals": ["destination-selection"], "signalScanLimited": False})
+
+    def test_real_success_timeout_and_missing_executable_do_not_collect(self):
+        run = load("run_auth")
+        with tempfile.TemporaryDirectory() as temporary, \
+                patch.object(run, "runner_build_error_signals", side_effect=AssertionError("observer must not run")):
+            self.assertEqual(run.command(sys.executable, "-c", "print(' kept ')", timeout=5,
+                                         observe_build_signals=True), "kept")
+            for arguments, timeout, category in [
+                    ((sys.executable, "-c", "import time; time.sleep(60)"), 0.15, "timed-out"),
+                    ((str(Path(temporary) / "missing-executable"),), 5, "unavailable")]:
+                with self.subTest(category=category):
+                    diagnostic = run.FailureDiagnostic()
+                    with self.assertRaises(run.PrivateCommandFailure):
+                        with diagnostic.stage("runner-build"):
+                            run.command(*arguments, timeout=timeout, observe_build_signals=True)
+                    self.assertEqual(diagnostic.first, {"stage": "runner-build", "category": category, "exitCode": None})
+
+    def test_a_supplement_cannot_escape_its_runner_build_stage(self):
+        run = load("run_auth")
+        for stage in ["runner-test", "simulator-delete"]:
+            with self.subTest(stage=stage):
+                diagnostic = run.FailureDiagnostic()
+                error = run.PrivateCommandFailure("nonzero-exit", 70, "Private verification command failed")
+                error.build_signals = {"errorSignals": ["compiler-error"], "signalScanLimited": False}
+                with self.assertRaises(run.PrivateCommandFailure) as observed:
+                    with diagnostic.stage(stage):
+                        raise error
+                self.assertIs(observed.exception, error)
+                self.assertEqual(diagnostic.first, {"stage": stage, "category": "nonzero-exit", "exitCode": 70})
+
+
 class FailureDiagnosticExportTests(unittest.TestCase):
     def result(self, run, diagnostic):
         return {"passed": False, "scope": run.SCOPE, "commit": "b" * 40,
@@ -541,6 +715,65 @@ class FailureDiagnosticExportTests(unittest.TestCase):
                         {**original, "securityFailure": {"kind": "private-identity", "observedAt": "2026-10-04T22:00:00Z"}}]:
             with self.assertRaises(run.SecurityViolation):
                 run.safe_json("result.json", invalid)
+
+    def test_optional_build_signals_are_exported_only_as_a_closed_pair(self):
+        run = load("run_auth")
+        for signals, limited in [(["destination-selection"], False), (["unclassified"], True),
+                                 (["destination-selection", "sdk-availability", "scheme-configuration", "compiler-error"], False)]:
+            with self.subTest(signals=signals), tempfile.TemporaryDirectory() as temporary:
+                diagnostic = {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 70,
+                              "errorSignals": signals, "signalScanLimited": limited}
+                private, public = Path(temporary) / "private", Path(temporary) / "public"
+                private.mkdir()
+                self.export(run, private, public, self.result(run, diagnostic))
+                self.assertEqual(json.loads((public / "result.json").read_text())["failureDiagnostic"], diagnostic)
+
+    def test_build_signal_schema_rejects_types_enums_caps_order_and_other_stages(self):
+        run = load("run_auth")
+        valid = {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 70,
+                 "errorSignals": ["destination-selection"], "signalScanLimited": False}
+        invalid = [{key: value for key, value in valid.items() if key != omitted}
+                   for omitted in ["errorSignals", "signalScanLimited"]]
+        invalid += [{**valid, "errorSignals": signals} for signals in [
+            None, "destination-selection", {}, (), [], [None], [True], [1], [[]],
+            ["PrivateExportSentinel123456"], ["destination-selection"] * 2,
+            ["compiler-error", "destination-selection"], ["unclassified", "compiler-error"],
+            ["destination-selection", "sdk-availability", "scheme-configuration", "compiler-error", "unclassified"]]]
+        invalid += [{**valid, "signalScanLimited": value} for value in [None, 0, 1, 0.0, "false", [], {}]]
+        invalid += [{**valid, "stage": stage} for stage in run.DIAGNOSTIC_STAGES if stage != "runner-build"]
+        invalid += [{**valid, "category": category, "exitCode": None}
+                    for category in run.DIAGNOSTIC_CATEGORIES if category != "nonzero-exit"]
+        invalid += [{**valid, "rawLine": "PrivateExportSentinel123456"}]
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            for index, diagnostic in enumerate(invalid):
+                with self.subTest(index=index):
+                    private, public = root / str(index), root / (str(index) + "-public")
+                    private.mkdir()
+                    with self.assertRaises(run.SecurityViolation):
+                        self.export(run, private, public, self.result(run, diagnostic))
+                    self.assertFalse(public.exists())
+
+    def test_build_signals_cannot_be_published_on_success_or_primary_rejection(self):
+        run = load("run_auth")
+        diagnostic = {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 70,
+                      "errorSignals": ["compiler-error"], "signalScanLimited": False}
+        original = self.result(run, diagnostic)
+        success = {**original, "passed": True,
+                   "steps": [{"app": app, "phase": phase, "passed": True} for app, phase in run.expected_order()]}
+        del success["failureKind"]
+        invalid = [success, {**original, "failureKind": "phase-rejected"},
+                   {**original, "failureKind": "security-rejection"},
+                   {**original, "securityFailure": {"kind": "private-identity", "observedAt": "2026-10-04T22:00:00Z"}}]
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            for index, result in enumerate(invalid):
+                with self.subTest(index=index):
+                    private, public = root / str(index), root / (str(index) + "-public")
+                    private.mkdir()
+                    with self.assertRaises(run.SecurityViolation):
+                        self.export(run, private, public, result)
+                    self.assertFalse(public.exists())
 
 
 class SourceContractTests(unittest.TestCase):
