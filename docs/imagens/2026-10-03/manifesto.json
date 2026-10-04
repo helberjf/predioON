@@ -417,6 +417,18 @@
       "reviewed": true,
       "scope": "Original empty login form after a new locally signed iOS Release process; no authenticated journey acceptance",
       "limit": "Startup only. Auth629 failed at runner-build/nonzero-exit/70 before test-without-building; no approved checkpoints, Keychain/family/14POST or production acceptance."
+    },
+    {
+      "file": "web-sindico-menu-movel-bc2fcc8.jpg",
+      "sha256": "1302ac95860a957c20ae5364198bdb15e28b719738ae0635fdbda337356604ef",
+      "width": 375,
+      "height": 812,
+      "sourceCommit": "bc2fcc8812500c5f1e9c37239a22a0a8587eb7f4",
+      "sourceRun": null,
+      "reviewed": true,
+      "evidence": "../../evidencias/web-menu-bc2fcc8.json",
+      "scope": "Original CUA JPEG of rebuilt shared mobile menu at 375x812, synthetic demo037; source attribution covers front-end only",
+      "limit": "API loaded commit and browser in-memory asset bytes were not captured; no production, native app, final video or complete manual-product acceptance."
     }
   ]
 }

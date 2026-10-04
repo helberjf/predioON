@@ -56,6 +56,8 @@ Dois gates nativos Android0674 foram aprovados (8 fases/78 e28 marcadores), com 
 
 O diagnóstico de build iOS5a8 foi publicado após105/105Linux e96+9Windows, repetição independente,32/49schemas e11 comandos intactos; [prova](evidencias/ios-build-signals-5a8d2f6.json). Auditar o CI Apple dessa fonte antes de qualquer aceite autenticado; enums são observações de texto e não prova de causa.
 
+Menu compartilhado corrigido em bc2fcc8 apósRED6,18dirigidos e240integrais reais (80por motor, sem retry/skip), UI89 e QA manual de teclado/desktop. Uma captura original foi incluída na galeria32; [prova](evidencias/web-menu-bc2fcc8.json). Seguir cobertura manual dos demais fluxos, jornadas nativas e módulos do plano.
+
 | Prioridade | Trabalho | Resultado esperado | Critério de aceite |
 |---|---|---|---|
 | P0 | Concluir autorização por capacidade nos domínios restantes | Acesso depende da concessão atual ao condomínio e ao recurso | HTTP e SQL negativos; revogação, expiração, equipe inativa e troca de condomínio sem vazamentos; nenhum privilégio global implícito sobre dados privados |

@@ -1,0 +1,173 @@
+{
+  "schemaVersion": 1,
+  "sourceBaseCommit": "601fe863f2f45e23db0b657e3d8273d5ff0c4a44",
+  "sourceFiles": [
+    {
+      "path": "packages/ui/src/components/dashboard-frame.tsx",
+      "sha256": "9e0ba282aa5cb9e0da91f12574fde53b1ec8b6df95e3a894d46511fa5b9b390f",
+      "bytes": 10574
+    },
+    {
+      "path": "e2e/menu-navigation.spec.ts",
+      "sha256": "157cd902a1c9a7dd72bd3846eb033994e36342e0c6300717120575cb3507d346",
+      "bytes": 5422
+    },
+    {
+      "path": "e2e/README.md",
+      "sha256": "e173ac04e4572b7e268de3f9a975b9b8606a9ec26cbc70a501aa0c36f314aa78",
+      "bytes": 13796
+    }
+  ],
+  "stats": {
+    "total": 240,
+    "expected": 240,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "ok": true
+  },
+  "projects": {
+    "chromium": 80,
+    "firefox": 80,
+    "webkit": 80
+  },
+  "fileCount": 17,
+  "totalAttempts": 240,
+  "retryNumbers": [
+    0
+  ],
+  "reportHtmlSha256": "403f3f1d46d2419a3177a9339c55ad8a0d3fdff836c405b302a9764714458857",
+  "privateLogHashes": [
+    {
+      "name": "menu-qa-red.log",
+      "sha256": "e691e73e5442fa099facd8bf449562a9aab0e7f419065d0e2225842b8bca416d",
+      "bytes": 24061
+    },
+    {
+      "name": "menu-qa-green.log",
+      "sha256": "a1b31a88f1f85443b299f9b40f2320215faddb502487552826fac5d12aa710bd",
+      "bytes": 7813
+    },
+    {
+      "name": "menu-qa-full.log",
+      "sha256": "c5ecdba544c9f83cc9c29c121ba5924318cef780526daec8dce190635a828919",
+      "bytes": 40816
+    },
+    {
+      "name": "menu-ui-tests.log",
+      "sha256": "1689e5b116ff0f9c365790378fd9dae3d205f246e8ce1470fe15ee280d8970d3",
+      "bytes": 8484
+    },
+    {
+      "name": "menu-boundaries.log",
+      "sha256": "926ac0e81288549017f73bbd28e1a4c3e8854ff667e10d456839536711c2a0b6",
+      "bytes": 33
+    },
+    {
+      "name": "menu-host-three-portals-build.log",
+      "sha256": "1654152d11c762c46a0f552aa4b8473c97b03b7c5d5442f3ee42b0e49412e695",
+      "bytes": 6953
+    }
+  ],
+  "sourceUnchangedAfterFullRun": true,
+  "hostReview": "root-reviewed-component-test-and-production-builds",
+  "productionAccepted": false,
+  "nativeAppsAccepted": false,
+  "sourceCommit": "bc2fcc8812500c5f1e9c37239a22a0a8587eb7f4",
+  "date": "2026-10-04",
+  "status": "published-menu-fix-full-browser-regression-and-partial-manual-approved",
+  "red": {
+    "tests": 6,
+    "failed": 6,
+    "scope": "unchanged product601 plus new assertions; no login preparation failure"
+  },
+  "directed": {
+    "total": 18,
+    "passed": 18,
+    "retries": 0,
+    "skipped": 0
+  },
+  "ui": {
+    "total": 89,
+    "passed": 89
+  },
+  "typecheck": [
+    "ui",
+    "admin-web",
+    "building-web",
+    "resident-web",
+    "new-spec"
+  ],
+  "boundariesPassed": true,
+  "builds": [
+    "admin-web",
+    "building-web",
+    "resident-web"
+  ],
+  "frontEndTrackedRootsUnchangedFromSource": [
+    "apps/admin-web",
+    "apps/building-web",
+    "apps/resident-web",
+    "packages/ui",
+    "packages/api-client",
+    "packages/contracts",
+    "packages/shared"
+  ],
+  "manual": {
+    "portal": "building-web",
+    "url": "http://localhost:5174/areas",
+    "synthetic": true,
+    "appliedMigrations": 37,
+    "checks": [
+      "initial focus Fechar menu and body overflow hidden",
+      "Shift+Tab to Sair da conta then Tab to Fechar menu",
+      "Escape returns focus to Abrir menu and restores overflow",
+      "current route Áreas comuns closes menu and returns opener focus",
+      "desktop1280x900 removes dialog/restores overflow/focuses main",
+      "mobile375x812 reopens with focus inside; document scrollWidth375",
+      "close button removes dialog; viewport reset1280x720",
+      "captured console errors empty"
+    ],
+    "serverBundleChecks": [
+      {
+        "observedBrowserSource": "/assets/index-Bgnd_JB6.js",
+        "serverGetSha256": "5b65fa488998ab5ac971edf64530a92edcac63e120a867ba72bc4414d540df39",
+        "bytes": 960813,
+        "matchesRebuiltDist": true
+      },
+      {
+        "observedBrowserSource": "/assets/index-C4rHl-J3.css",
+        "serverGetSha256": "dbe8e4dc5fbbca33a6ff7e3accaca39fc8b34545ea804d7cd24dc69da140914f",
+        "bytes": 26253,
+        "matchesRebuiltDist": true
+      }
+    ],
+    "browserLoadedBytesCaptured": false,
+    "apiProcessLoadedCommitVerified": false,
+    "notification038RuntimeVerified": false,
+    "viewportRestored": true,
+    "screenshots": [
+      {
+        "file": "web-sindico-menu-movel-bc2fcc8.jpg",
+        "sha256": "1302ac95860a957c20ae5364198bdb15e28b719738ae0635fdbda337356604ef",
+        "width": 375,
+        "height": 812,
+        "sourceCommit": "bc2fcc8812500c5f1e9c37239a22a0a8587eb7f4",
+        "sourceRun": null,
+        "reviewed": true,
+        "evidence": "../../evidencias/web-menu-bc2fcc8.json",
+        "scope": "Original CUA JPEG of rebuilt shared mobile menu at 375x812, synthetic demo037; source attribution covers front-end only",
+        "limit": "API loaded commit and browser in-memory asset bytes were not captured; no production, native app, final video or complete manual-product acceptance."
+      }
+    ]
+  },
+  "limits": [
+    "One actual integral of240tests/17files,80per engine, one attempt each; do not add the18 directed as another integral.",
+    "Root reviewed the shared component/tests, reconstructed the HTML report ZIP and all240 result attempts, checked three Git blobs and repeated host production builds.",
+    "Manual coverage is the building portal menu only. Administration menu and remaining regressions are covered by Playwright; resident has a different navigation component.",
+    "Source commit denotes the rebuilt front-end sources only. Browser script/style URLs were observed and separate HTTP GET bytes matched dist; browser in-memory asset bytes and loaded API commit were not captured.",
+    "The manual demo remains037. The integral used a separate real038 database with restricted roles; neither demonstrates production rollout.",
+    "Original screenshot is copied unchanged and root visually reviewed; the previous31 image records and bytes are preserved.",
+    "Native apps, physical devices, all new modules, full manual-product QA, production, documentation completion and five videos remain pending."
+  ]
+}

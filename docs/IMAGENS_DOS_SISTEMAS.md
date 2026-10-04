@@ -2,7 +2,7 @@
 
 Publicadas em **03/10/2026**, atualizadas em **04/10/2026**. Estas capturas foram conferidas em execuções reais e usam dados fictícios. Cada imagem mantém a origem comprovada, inclusive commit nulo quando o runtime não foi atestado; a data de publicação não altera a versão demonstrada. O plano completo e os cinco vídeos finais continuam pendentes, conforme [CONTINUIDADE.md](CONTINUIDADE.md).
 
-As **31 imagens — 9 Android, 16 web e 6 iOS** — e a [galeria HTML](IMAGENS_DOS_SISTEMAS.html) acompanham o clone. As seis iOS incluem duas capturas históricas de b4726b9, duas de novo processo Release em deb20b1 e duas em6298065; todas mostram somente entrada. Abra a galeria no navegador para filtrar e ampliar. O [manifesto](imagens/2026-10-03/manifesto.json) registra dimensões, SHA-256 e origem. As referências desta atualização foram conferidas estaticamente; o acesso ao servidor local 8765 continua bloqueado, sem novo aceite dos controles no navegador.
+As **32 imagens — 9 Android, 17 web e 6 iOS** — e a [galeria HTML](IMAGENS_DOS_SISTEMAS.html) acompanham o clone. As seis iOS incluem duas capturas históricas de b4726b9, duas de novo processo Release em deb20b1 e duas em6298065; todas mostram somente entrada. Abra a galeria no navegador para filtrar e ampliar. O [manifesto](imagens/2026-10-03/manifesto.json) registra dimensões, SHA-256 e origem. As referências desta atualização foram conferidas estaticamente; o acesso ao servidor local 8765 continua bloqueado, sem novo aceite dos controles no navegador.
 
 ## Android — Morador: avisos
 
@@ -189,3 +189,9 @@ Formulário E-mail/Senha vazio no segundo processo Release, simulador iOS18.5/SD
 Formulário E-mail/Senha vazio no segundo processo Release, simulador iOS18.5/SDK18.5. Abertura, sobrevivência e novo processo dos dois produtos conferidos. PNG original da fase02-new-process, copiada sem edição e revisada visualmente pelo agente principal. Fonte6298065, startup37240428244; a execução autenticada37240428231 falhou no build do runner, diagnostic runner-build/nonzero-exit/70, antes de test-without-building. Entrada não aprova login, Keychain/famílias,14POSTs, domínios, distribuição, aparelhos físicos ou produção; zero checkpoints aprovados não prova ausência de pedidos antes da falha. Artefato11317101666; [prova fechada e hashes](evidencias/ios-6298065.json).
 
 ![iOS — Operação · Novo processo Release · 6298065](imagens/2026-10-03/ios-operacao-startup-6298065.png)
+
+## Web — Síndico: menu móvel corrigido
+
+Menu do Síndico em375×812 após reconstruir os portais da fontebc2fcc8. Foco inicial, cicloTab/ShiftTab, Escape, página atual e transição desktop conferidos no navegador; Playwright240/240,80por motor, sem retries/skips. JPEG original revisado, dados fictícios da demo037. A origem atesta somente fontes front-end; API carregada e bytes do navegador em memória não foram capturados. Não é homologação integral ou vídeo. [Prova e hashes](evidencias/web-menu-bc2fcc8.json).
+
+![Menu móvel do Síndico](imagens/2026-10-03/web-sindico-menu-movel-bc2fcc8.jpg)
