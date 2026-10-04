@@ -18,6 +18,7 @@ A configuração inicia a API na porta 3100 e os portais nas portas 5273–5275.
 Os cenários cobrem:
 
 - Login real e inválido, validação HTML, dashboard, contas sem condomínio e recuperação do painel administrativo.
+- Menu móvel nos portais administrativo e do condomínio: foco inicial, ciclo de Tab/Shift+Tab, fundo inativo, fechamento por Escape/botão/fundo/navegação e transição para desktop sem modal oculto nem bloqueio de rolagem.
 - Cookie HttpOnly e SameSite, access somente em memória, limpeza dos tokens legados e SSE com bearer no cabeçalho, sem credencial na URL.
 - Restauração após reload, renovação simultânea em duas abas, propagação de logout/troca de conta, sessões independentes entre portais e revogação real de família.
 - Logout sem rede permanece bloqueado após reload; login inválido não recupera a identidade antiga; ausência de Web Locks apresenta diagnóstico sem enviar autenticação.

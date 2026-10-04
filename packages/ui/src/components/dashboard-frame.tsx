@@ -1,4 +1,4 @@
-import { useEffect, useState, type ComponentType, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ComponentType, type KeyboardEvent, type ReactNode } from "react";
 import { Bell, ChevronRight, LogOut, Menu, Search, MapPin, X } from "lucide-react";
 import { Brand } from "./primitives.js";
 import { buildingImage } from "../assets.js";
@@ -15,20 +15,63 @@ type Props = {
 export function DashboardFrame({ children, title, subtitle, userName, role, links, pathname, signOut, renderLink, navigationFeedback, navigationBusy = false }: Props) {
   const [search, setSearch] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuId = useId();
+  const menuRef = useRef<HTMLDialogElement>(null);
+  const openerRef = useRef<HTMLButtonElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const mainRef = useRef<HTMLElement>(null);
   const initials = userName.split(" ").filter(Boolean).slice(0, 2).map(part => part[0]).join("");
   const matches = links.filter(link => link.label.toLocaleLowerCase("pt-BR").includes(search.toLocaleLowerCase("pt-BR")));
 
-  // Fecha o menu ao trocar de página: o clique no link já navegou.
+  // Also close on navigation that did not originate from a menu link.
   useEffect(() => setMenuOpen(false), [pathname]);
 
   useEffect(() => {
-    if (!menuOpen) return;
-    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") setMenuOpen(false); };
-    document.addEventListener("keydown", onKey);
+    const menu = menuRef.current;
+    if (!menuOpen || !menu) return;
+    // Both portal themes use Tailwind's default lg breakpoint.
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    if (desktop.matches) {
+      setMenuOpen(false);
+      return;
+    }
+    const opener = openerRef.current;
     const previous = document.body.style.overflow;
+    const onDesktop = (event: MediaQueryListEvent) => {
+      if (event.matches) setMenuOpen(false);
+    };
+    // Native modality makes all other page content inert, including the skip link.
+    menu.showModal();
+    closeRef.current?.focus();
     document.body.style.overflow = "hidden";
-    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = previous; };
+    desktop.addEventListener("change", onDesktop);
+    return () => {
+      desktop.removeEventListener("change", onDesktop);
+      if (menu.open) menu.close();
+      document.body.style.overflow = previous;
+      // The mobile opener is hidden on desktop; leave focus in visible content.
+      const target = opener?.isConnected && opener.getClientRects().length ? opener : mainRef.current;
+      target?.focus({ preventScroll: true });
+    };
   }, [menuOpen]);
+
+  const confineMenuFocus = (event: KeyboardEvent<HTMLDialogElement>) => {
+    if (event.key !== "Tab" || event.altKey || event.ctrlKey || event.metaKey) return;
+    const items = Array.from(event.currentTarget.querySelectorAll<HTMLElement>(
+      'a[href], button, input, select, textarea, [tabindex]',
+    )).filter(item => item.tabIndex >= 0 && !item.matches(":disabled") && item.getClientRects().length);
+    const first = items[0];
+    const last = items[items.length - 1];
+    if (!first || !last) return;
+    const active = document.activeElement;
+    if (event.shiftKey && (active === first || !event.currentTarget.contains(active))) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && (active === last || !event.currentTarget.contains(active))) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
 
   const nav = () => links.map(({ to, label, icon: Icon }) => <div key={to}>{renderLink(to, <><Icon size={20}/><span>{label}</span><ChevronRight size={14} className="ml-auto opacity-40"/></>, cls("flex h-11 items-center gap-3 rounded-md px-3 text-[13px] transition", pathname === to ? "bg-[#0b5155] font-semibold text-[#33d6a4]" : "text-slate-200 hover:bg-white/5 hover:text-white"))}</div>);
 
@@ -36,9 +79,11 @@ export function DashboardFrame({ children, title, subtitle, userName, role, link
   const sidebar = (onClose?: () => void) => <>
     <div className="flex items-start justify-between px-5 pb-6 pt-5">
       <Brand dark/>
-      {onClose && <button aria-label="Fechar menu" onClick={onClose} className="-mr-1 rounded-md p-2 text-slate-300 hover:bg-white/10"><X size={20}/></button>}
+      {onClose && <button ref={closeRef} aria-label="Fechar menu" onClick={onClose} className="-mr-1 rounded-md p-2 text-slate-300 hover:bg-white/10"><X size={20}/></button>}
     </div>
-    <nav aria-label="Menu principal" aria-busy={navigationBusy} className="space-y-1 px-3">{navigationFeedback ?? nav()}</nav>
+    <nav aria-label="Menu principal" aria-busy={navigationBusy} className="space-y-1 px-3" onClick={event => {
+      if (event.target instanceof Element && event.target.closest("a[href]")) onClose?.();
+    }}>{navigationFeedback ?? nav()}</nav>
     <div className="relative mt-5 min-h-32 flex-1 overflow-hidden" aria-hidden="true">
       <img src={buildingImage} alt="" className="absolute inset-0 h-full w-full object-cover object-center opacity-65"/>
       <div className="absolute inset-0 bg-gradient-to-b from-[#0c202e] via-transparent to-[#0c202e]"/>
@@ -55,18 +100,26 @@ export function DashboardFrame({ children, title, subtitle, userName, role, link
 
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col overflow-y-auto bg-[#0c202e] lg:flex">{sidebar()}</aside>
 
-    {menuOpen && <div className="fixed inset-0 z-40 lg:hidden">
+    {menuOpen && <dialog
+      ref={menuRef}
+      id={menuId}
+      aria-modal="true"
+      aria-label="Menu principal"
+      onCancel={event => { event.preventDefault(); setMenuOpen(false); }}
+      onKeyDown={confineMenuFocus}
+      className="fixed inset-0 m-0 h-full max-h-none w-full max-w-none border-0 bg-transparent p-0 backdrop:bg-transparent"
+    >
       <div className="absolute inset-0 bg-slate-900/60" onClick={() => setMenuOpen(false)} aria-hidden="true"/>
-      <div role="dialog" aria-modal="true" aria-label="Menu principal" className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col overflow-y-auto bg-[#0c202e] shadow-2xl">
+      <div className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col overflow-y-auto bg-[#0c202e] shadow-2xl">
         {sidebar(() => setMenuOpen(false))}
       </div>
-    </div>}
+    </dialog>}
 
     <div className="lg:pl-60">
       <header className="relative z-20 border-b border-slate-200/70 bg-[#fafdff]">
         <div className="flex min-h-[72px] items-center justify-between gap-4 px-4 md:px-6">
           <div className="flex min-w-0 items-center gap-3">
-            <button aria-label="Abrir menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(true)} className="-ml-1 rounded-lg p-2 text-[#183a58] hover:bg-slate-100 lg:hidden"><Menu size={22}/></button>
+            <button ref={openerRef} aria-label="Abrir menu" aria-haspopup="dialog" aria-controls={menuOpen ? menuId : undefined} aria-expanded={menuOpen} onClick={() => setMenuOpen(true)} className="-ml-1 rounded-lg p-2 text-[#183a58] hover:bg-slate-100 lg:hidden"><Menu size={22}/></button>
             <div className="min-w-0">
               <div className="lg:hidden"><Brand compact/></div>
               <p className="hidden truncate text-[17px] font-bold tracking-tight text-[#142f50] lg:block">{title}</p>
@@ -85,7 +138,7 @@ export function DashboardFrame({ children, title, subtitle, userName, role, link
         </div>
         <p className="border-t border-slate-200/70 px-4 py-2.5 text-[13px] font-semibold text-[#142f50] lg:hidden">{title}</p>
       </header>
-      <main id="conteudo" className="mx-auto max-w-[1680px] space-y-4 p-4 md:p-5">{children}</main>
+      <main ref={mainRef} id="conteudo" tabIndex={-1} className="mx-auto max-w-[1680px] space-y-4 p-4 md:p-5">{children}</main>
       <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200/70 bg-white px-6 py-5 text-[11px] text-slate-500"><div><strong className="text-[#18304e]">Prédio ON</strong><p className="mt-1">Tecnologia a serviço do seu condomínio.</p></div><span>{role} · Seu prédio, sempre conectado.</span></footer>
     </div>
   </div>;
