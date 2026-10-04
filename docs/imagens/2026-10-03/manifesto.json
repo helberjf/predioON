@@ -1,5 +1,6 @@
 {
   "publishedOn": "2026-10-03",
+  "updatedOn": "2026-10-04",
   "purpose": "Reviewed real screenshots of progress, with synthetic demonstration data; not final demo videos",
   "images": [
     {
@@ -198,6 +199,30 @@
       "sourceArtifact": "evidence/operations-mobile/02-own-account-blank-0.png",
       "apkSha256": "f6d0f3d308f6cd353fe8cb973fcb376c688bdff84ade03bb63c85d7398044ca5",
       "limit": "Minha conta com campos protegidos vazios e confirmação desabilitada. 29 fases por app aprovadas contra API/PG/HTTPS reais: erro400 preserva sessão, troca204 revoga as próprias famílias, senha antiga401, nova literal200 e isolamento entre apps. É captura nativa de emulador Release, sem edição; aparelho físico e iOS autenticado pendentes. Um aviso MissingViewState permanece na jornada de senha da Operação; não houve crash/ANR."
+    },
+    {
+      "file": "ios-morador-startup-deb20b1.png",
+      "sha256": "b7452cf3e20d71ba6dead2a2fe421b1d4114758b7a36faf05d1df5c3e404d1a1",
+      "width": 1206,
+      "height": 2622,
+      "sourceCommit": "deb20b1fb9ad68c2f00249d0a38cf8f4ec25db9b",
+      "sourceRun": "https://github.com/helberjf/predioON/actions/runs/37210946972",
+      "sourceArtifact": 11306358477,
+      "sourcePhase": "02-new-process",
+      "evidence": "../../evidencias/ios-deb20b1.json",
+      "scope": "Empty login form after native Release new process launch; authenticated journey not approved"
+    },
+    {
+      "file": "ios-operacao-startup-deb20b1.png",
+      "sha256": "665e89190a7255c7ae53c868249e6d684e2cd0ffe16d1e02fc321e5f34cb5a02",
+      "width": 1206,
+      "height": 2622,
+      "sourceCommit": "deb20b1fb9ad68c2f00249d0a38cf8f4ec25db9b",
+      "sourceRun": "https://github.com/helberjf/predioON/actions/runs/37210946972",
+      "sourceArtifact": 11306851591,
+      "sourcePhase": "02-new-process",
+      "evidence": "../../evidencias/ios-deb20b1.json",
+      "scope": "Empty login form after native Release new process launch; authenticated journey not approved"
     }
   ]
 }

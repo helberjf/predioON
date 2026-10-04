@@ -1,0 +1,258 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "77adf128f212e5526c641c878ee9fd241413e22c",
+  "officialArtifactDigestsVerified": true,
+  "results": {
+    "renderer": {
+      "passed": true,
+      "category": "passed",
+      "phases": [
+        "startup",
+        "login",
+        "building",
+        "notices",
+        "finance",
+        "expand",
+        "requests",
+        "final"
+      ],
+      "phaseCount": 8,
+      "markers": 78,
+      "markerCounts": {
+        "phase": 16,
+        "launch": 2,
+        "tap": 14,
+        "text": 28,
+        "back": 4,
+        "swipe": 14
+      },
+      "firstFailure": null,
+      "domainSnapshotUnchanged": true,
+      "source": {
+        "commit": "77adf128f212e5526c641c878ee9fd241413e22c",
+        "apkSha256": "c1a42706162013c8f7574cf78e1f34897df25b4b58d7b0147c6daa5dbc088206",
+        "reactNative": "0.87.1",
+        "androidApi": 35,
+        "abi": "x86_64"
+      },
+      "durationSeconds": 88.584,
+      "zipSha256": "641c6498c0824e0b2b11aea8858bd00af2815d3e95883a9ee336df3e8ad528ec",
+      "zipBytes": 1372,
+      "memberCount": 1,
+      "runId": 37209972540,
+      "runUrl": "https://github.com/helberjf/predioON/actions/runs/37209972540",
+      "artifactId": 11306951026
+    },
+    "password": {
+      "passed": false,
+      "apps": {
+        "resident-mobile": {
+          "phaseCount": 0,
+          "lastPhase": null
+        },
+        "operations-mobile": {
+          "phaseCount": 0,
+          "lastPhase": null
+        }
+      },
+      "failureCategory": "unclassified-private-error",
+      "failurePhase": null,
+      "zipSha256": "04792d2b2337feeb634f1a33550e74929cb99a062ff296115b6bd8b4df04603f",
+      "zipBytes": 1298001,
+      "memberCount": 14,
+      "failureCategories": [
+        "emulator-system-dialog",
+        "system-dialog-detected"
+      ],
+      "environment": {
+        "resident-mobile": {
+          "environmentAttempts": 1,
+          "readyObservations": 0,
+          "systemDialogAttempts": 1
+        },
+        "operations-mobile": {
+          "environmentAttempts": 0,
+          "readyObservations": 0,
+          "systemDialogAttempts": 0
+        }
+      },
+      "runId": 37209972584,
+      "runUrl": "https://github.com/helberjf/predioON/actions/runs/37209972584",
+      "artifactId": 11306422038,
+      "initialHomeGuard": {
+        "systemDialogCategory": "launcher-anr",
+        "environmentAttempts": 1,
+        "readyObservations": 0,
+        "sessionSnapshotAllZero": true,
+        "beforeAppInstallation": true,
+        "rootCauseEstablished": false
+      }
+    },
+    "auth": {
+      "passed": true,
+      "apps": {
+        "resident-mobile": {
+          "phaseCount": 19,
+          "lastPhase": "08-final-logout"
+        },
+        "operations-mobile": {
+          "phaseCount": 21,
+          "lastPhase": "08-final-logout"
+        }
+      },
+      "sessionSnapshots": 13,
+      "finalSessions": {
+        "resident-mobile": {
+          "sessions": 2,
+          "active_sessions": 0,
+          "logouts": 2,
+          "refresh_tokens": 3,
+          "rotations": 1,
+          "live_refresh_tokens": 0
+        },
+        "operations-mobile": {
+          "sessions": 2,
+          "active_sessions": 0,
+          "logouts": 2,
+          "refresh_tokens": 3,
+          "rotations": 1,
+          "live_refresh_tokens": 0
+        }
+      },
+      "sourceCommit": "77adf128f212e5526c641c878ee9fd241413e22c",
+      "buildMetadata": [
+        {
+          "app": "resident-mobile",
+          "apkSha256": "1a194f70dbe29ada1a48ecda91d4b9c035d74dc2d261f919392b2be0a79f70ed",
+          "architecture": "x86_64",
+          "mode": "release"
+        },
+        {
+          "app": "operations-mobile",
+          "apkSha256": "a9f84d49f8c3a01003804f80a5521fd55b50f3f13566858efe3b26b7aed0d7b9",
+          "architecture": "x86_64",
+          "mode": "release"
+        }
+      ],
+      "zipSha256": "850dbd9fb837a740ae924847a131d18c9c2219f6ef5abb2b6ab169736c3f6f1c",
+      "zipBytes": 4751694,
+      "memberCount": 110,
+      "runId": 37209972505,
+      "runUrl": "https://github.com/helberjf/predioON/actions/runs/37209972505",
+      "artifactId": 11306517237
+    },
+    "reservations": {
+      "passed": true,
+      "app": "resident-mobile",
+      "phaseCount": 23,
+      "lastPhase": "19-logout",
+      "databaseSnapshots": 8,
+      "finalDatabase": {
+        "ownTotal": 2,
+        "ownConfirmed": 0,
+        "ownPending": 1,
+        "ownCancelled": 1,
+        "createdAudits": 2,
+        "cancelledAudits": 1,
+        "neighborStatus": "CANCELLED",
+        "calendarGrantsActive": 0,
+        "foreignStatus": "CONFIRMED"
+      },
+      "sourceCommit": "77adf128f212e5526c641c878ee9fd241413e22c",
+      "buildMetadata": [
+        {
+          "app": "resident-mobile",
+          "apkSha256": "3b3c7d3691db9879d068ac3ded1f142b6b965e3fd07dfa3f6a03ded068fdfc0f",
+          "architecture": "x86_64",
+          "mode": "release"
+        }
+      ],
+      "zipSha256": "65639ebc1a3c42a7c325b7aa1ea33f038640aa700d671e133f6640675c6f3cf1",
+      "zipBytes": 3273636,
+      "memberCount": 59,
+      "runId": 37209972499,
+      "runUrl": "https://github.com/helberjf/predioON/actions/runs/37209972499",
+      "artifactId": 11306497390
+    },
+    "domains": {
+      "passed": true,
+      "apps": {
+        "resident-mobile": {
+          "phaseCount": 16,
+          "lastPhase": "15-logout"
+        },
+        "operations-mobile": {
+          "phaseCount": 20,
+          "lastPhase": "15-logout"
+        }
+      },
+      "databaseSnapshots": 5,
+      "finalDatabase": {
+        "residentCreated": 1,
+        "residentComments": 1,
+        "operatorStatus": "IN_PROGRESS",
+        "operatorComments": 1,
+        "alertStatus": "ACKNOWLEDGED",
+        "neighborStatus": "OPEN",
+        "neighborAlertStatus": "OPEN",
+        "neighborEvents": 0,
+        "deviceGrantActive": false,
+        "ticketGrantActive": false,
+        "financeGrantActive": false
+      },
+      "background": {
+        "resident-mobile": {
+          "observationCount": 2,
+          "resolvedVisibleStopped": 2
+        },
+        "operations-mobile": {
+          "observationCount": 4,
+          "resolvedVisibleStopped": 4
+        }
+      },
+      "securityFailures": 0,
+      "sourceCommit": "77adf128f212e5526c641c878ee9fd241413e22c",
+      "buildMetadata": [
+        {
+          "app": "resident-mobile",
+          "apkSha256": "3609225be74916b39ee537d0963a0fe0fd4ef2d117195c40d6eeda2df3c9f11b",
+          "architecture": "x86_64",
+          "mode": "release"
+        },
+        {
+          "app": "operations-mobile",
+          "apkSha256": "c30d536f8ce8bfd7a867ed1c1ef41f22d6fdb8899d839ab6f5c3ddc8eb37ab99",
+          "architecture": "x86_64",
+          "mode": "release"
+        }
+      ],
+      "zipSha256": "ac3e94e2e8ee538f9b1934454880e93938c8b054a2d43901adf41fd8243db78a",
+      "zipBytes": 6672362,
+      "memberCount": 94,
+      "runId": 37209972513,
+      "runUrl": "https://github.com/helberjf/predioON/actions/runs/37209972513",
+      "artifactId": 11306876701,
+      "rendererAudit": {
+        "allLogPrioritiesInspected": true,
+        "buffersInspected": 4,
+        "duplicateRecordsExcluded": true,
+        "residentPid": 3477,
+        "uniqueMissingViewStateSoftHeaders": 7,
+        "uniqueRemoveViewAtRecords": 1,
+        "declarationsNotCountedAsAdditionalIncidents": 9,
+        "stackFramesNotCountedAsAdditionalIncidents": 184,
+        "operationsPid": 5856,
+        "matchingOperationsRecordsInCapturedBuffers": 0,
+        "countsAreRecordsNotIndependentlyIdentifiedExceptionIncidents": true,
+        "rawLogsExported": false
+      }
+    }
+  },
+  "limits": [
+    "Four journeys passed; the password journey executed zero app phases because the initial HOME guard detected a system dialog.",
+    "Renderer success covers only its eight-phase resident journey; historic rendering warnings and intermittence remain under investigation.",
+    "Domain success and zero securityFailures do not assert absence of renderer warnings.",
+    "Release x86_64 emulator evidence does not homologate physical Android devices, iOS or production.",
+    "No screenshots, raw logs, UI trees or credentials are included in this summary."
+  ]
+}

@@ -1,0 +1,188 @@
+{
+  "schemaVersion": 1,
+  "commit": "deb20b1fb9ad68c2f00249d0a38cf8f4ec25db9b",
+  "sourceFiles": [
+    {
+      "path": ".github/workflows/ios.yml",
+      "gitBlobSha": "513bc9969fe79cf498b937091f8eb880a4c4b8fb",
+      "sha256": "e6064e6452d7096ba2f76685887ca318c424efb414961925e7a6700f03db79bd"
+    },
+    {
+      "path": "scripts/ios-smoke/capture.py",
+      "gitBlobSha": "5c294dee67b4973908abc8bda6c29a692b29da66",
+      "sha256": "a2ad808d6ab3e2d84ee7aabf7e828d6e067e1031d389c177663763d99135a40d"
+    },
+    {
+      "path": "scripts/ios-smoke/inspect.swift",
+      "gitBlobSha": "4a0a53524349465fa3a6c75ddf5fb3d4cdf7cbe9",
+      "sha256": "3c02dbdc1ac63c7d60a5cbee26d252f756f42ce901850762042cbce3601ab0e3"
+    },
+    {
+      "path": "scripts/ios-smoke/test_https_proxy.py",
+      "gitBlobSha": "2e77f7d6d1a9db8b3cd9edcf9cb1fad698ad5728",
+      "sha256": "5889beb9a8ff3b542bd67b57161cf35f3b6e7ae9af91d225959eb1fdea635c2c"
+    }
+  ],
+  "sourceHashFormat": "Committed Git blob bytes, LF",
+  "startup": {
+    "runId": 37210946972,
+    "url": "https://github.com/helberjf/predioON/actions/runs/37210946972",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "id": 111461852205,
+        "app": "resident-mobile",
+        "conclusion": "success",
+        "hostTests": {
+          "passed": 73,
+          "failed": 0,
+          "skipped": 0,
+          "durationSeconds": 6.795
+        }
+      },
+      {
+        "id": 111461852508,
+        "app": "operations-mobile",
+        "conclusion": "success",
+        "hostTests": {
+          "passed": 73,
+          "failed": 0,
+          "skipped": 0,
+          "durationSeconds": 8.971
+        }
+      }
+    ],
+    "scope": "Locally signed Release launch, 15-second process survival, new process launch and empty login form on disposable iPhone simulators",
+    "imagesReviewed": 4,
+    "apps": [
+      {
+        "app": "resident",
+        "bundleId": "com.predioon.resident",
+        "artifactId": 11306358477,
+        "archiveSha256": "4f21a024fc6d98ad7f73c061273e152eab7c59225b541a98909ddb7a60d23b53",
+        "binarySha256": "ec0a8adbcc811b0acf797e061ebe8be66698b99db0e5520bb6e1065453c94ad1",
+        "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-18-5",
+        "sdkVersion": "18.5",
+        "startupPassed": true,
+        "phases": [
+          "simulator-signature-verified",
+          "simulator-booted",
+          "release-installed",
+          "01-first-launch",
+          "02-new-process"
+        ],
+        "launchSeconds": {
+          "01-first-launch": 3.93,
+          "02-new-process": 1.125
+        },
+        "crashSignatureCounts": {
+          "EXC_BAD_ACCESS": 0,
+          "SIGSEGV": 0,
+          "Terminating app due to uncaught exception": 0,
+          "RCTFatal": 0,
+          "MissingViewState": 0
+        },
+        "images": [
+          {
+            "phase": "01-first-launch",
+            "file": "resident-01-first-launch.png",
+            "sha256": "4843ef55b256803de97a8d4ceaf8f83830808efd29a21b28d263edaea727a248",
+            "visualReviewed": true
+          },
+          {
+            "phase": "02-new-process",
+            "file": "resident-02-new-process.png",
+            "sha256": "b7452cf3e20d71ba6dead2a2fe421b1d4114758b7a36faf05d1df5c3e404d1a1",
+            "visualReviewed": true
+          }
+        ]
+      },
+      {
+        "app": "operations",
+        "bundleId": "com.predioon.operations",
+        "artifactId": 11306851591,
+        "archiveSha256": "f9e08fb9e47b987a1a3f7e5ba13f2e04996cfa2f4bcc0e1c1794888dea68b954",
+        "binarySha256": "cbe9bdf910673be88ca484fa980d658d5699e90a1788addafd7b7b8259295f35",
+        "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-18-5",
+        "sdkVersion": "18.5",
+        "startupPassed": true,
+        "phases": [
+          "simulator-signature-verified",
+          "simulator-booted",
+          "release-installed",
+          "01-first-launch",
+          "02-new-process"
+        ],
+        "launchSeconds": {
+          "01-first-launch": 49.602,
+          "02-new-process": 2.011
+        },
+        "crashSignatureCounts": {
+          "EXC_BAD_ACCESS": 0,
+          "SIGSEGV": 0,
+          "Terminating app due to uncaught exception": 0,
+          "RCTFatal": 0,
+          "MissingViewState": 0
+        },
+        "images": [
+          {
+            "phase": "01-first-launch",
+            "file": "operations-01-first-launch.png",
+            "sha256": "8ab4435d29927afc23a99239a6face2019926c977508b1d9a633749bdb10c54c",
+            "visualReviewed": true
+          },
+          {
+            "phase": "02-new-process",
+            "file": "operations-02-new-process.png",
+            "sha256": "665e89190a7255c7ae53c868249e6d684e2cd0ffe16d1e02fc321e5f34cb5a02",
+            "visualReviewed": true
+          }
+        ]
+      }
+    ]
+  },
+  "authenticated": {
+    "runId": 37210947033,
+    "jobId": 111461852300,
+    "url": "https://github.com/helberjf/predioON/actions/runs/37210947033",
+    "conclusion": "failure",
+    "hostTests": {
+      "passed": 73,
+      "failed": 0,
+      "skipped": 0,
+      "durationSeconds": 7.758
+    },
+    "failedStep": 11,
+    "failureCategory": "COCOAPODS_PATHNAME_NULL_BYTE",
+    "errorClass": "ArgumentError",
+    "podStage": "operations-mobile",
+    "cocoaPodsVersion": "1.15.2",
+    "rubyVersion": "3.3.12",
+    "xcodeVersion": "16.4",
+    "databasePrepared": true,
+    "httpsReadinessStarted": false,
+    "xctestStarted": false,
+    "postActionsProved": 0,
+    "artifacts": 0,
+    "approved": false
+  },
+  "limits": [
+    "Startup proves no authenticated requests, Keychain restore, password changes or domain functionality.",
+    "Authenticated run failed before HTTPS readiness and XCTest; do not infer proxy success or failure from it.",
+    "The origin of the null pathname remains under read-only investigation.",
+    "Simulator local signing does not prove App Store/TestFlight distribution signing.",
+    "Only two new-process PNGs are published here; all four source images were reviewed, without raw logs or recognized-text dumps."
+  ],
+  "publishedImages": [
+    {
+      "path": "docs/imagens/2026-10-03/ios-morador-startup-deb20b1.png",
+      "sha256": "b7452cf3e20d71ba6dead2a2fe421b1d4114758b7a36faf05d1df5c3e404d1a1",
+      "sourcePhase": "02-new-process"
+    },
+    {
+      "path": "docs/imagens/2026-10-03/ios-operacao-startup-deb20b1.png",
+      "sha256": "665e89190a7255c7ae53c868249e6d684e2cd0ffe16d1e02fc321e5f34cb5a02",
+      "sourcePhase": "02-new-process"
+    }
+  ]
+}

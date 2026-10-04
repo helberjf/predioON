@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "commit": "aee38f239075bc63883c3d429ae5787cf8eea0ba",
+  "change": "Strict UTF-8 decoding before JSON parsing; invalid byte sequences reject the entire envelope",
+  "sources": [
+    {
+      "path": "services/ingest/src/pipeline/normalize.ts",
+      "sha256": "9e3a53ea7acf4a4ab198de0ec4ce9c266324da9bc2858ebb495b244fc0264ff0"
+    },
+    {
+      "path": "services/ingest/test/normalize-utf8.test.ts",
+      "sha256": "ac43198ea234c6b68a1eaaab6bfd76e02c1e1ffbaaf022afe1ea5dc753b92bc8"
+    }
+  ],
+  "red": {
+    "newCases": 36,
+    "validPassed": 19,
+    "invalidFailedBeforeFix": 17
+  },
+  "directed": {
+    "newTests": 36,
+    "withSensorRegressions": 45,
+    "platforms": [
+      "Windows",
+      "Linux"
+    ],
+    "failed": 0,
+    "skipped": 0
+  },
+  "independentReview": {
+    "newTestsPassed": 36,
+    "blockers": 0
+  },
+  "rootFullIngest": {
+    "tests": 161,
+    "suites": 15,
+    "passed": 161,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "durationMs": 31407.4214,
+    "realDatabase": true,
+    "exclusiveCluster": true,
+    "runtimeDsnsSameDatabase": true,
+    "accessAndRbacTestsEnabled": true,
+    "notificationProducersEnabled": true,
+    "logSha256": "2618e00a57e7ef49681ca090569bb1d14525223f69bfe9dc5385b58afa358e98"
+  },
+  "typecheck": "passed",
+  "boundaries": "passed",
+  "preserved": [
+    "Leading BOM rejection",
+    "Literal Unicode and identities without trim, NFC or case folding",
+    "Value types and water offsets",
+    "16384-byte envelope limit",
+    "Existing JSON escape policy"
+  ],
+  "limits": [
+    "This is a local ingest proof, not a replacement for the earlier CI totals.",
+    "No inbox039 SQL, receiver, worker or production rollout was implemented by this fix."
+  ]
+}

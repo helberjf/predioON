@@ -1,0 +1,576 @@
+{
+  "schemaVersion": 1,
+  "run": 37208975852,
+  "url": "https://github.com/helberjf/predioON/actions/runs/37208975852",
+  "artifact": 11305991951,
+  "artifactSha256": "eb5399b6bbf4590d8675e0cf6f82e18278302be1b70d6a7165ae394cae0f4972",
+  "report": {
+    "schema": 1,
+    "app": "resident-mobile",
+    "passed": true,
+    "category": "passed",
+    "pid": 3540,
+    "markers": [
+      {
+        "sequence": 1,
+        "phase": "startup",
+        "boundary": "before",
+        "kind": "phase",
+        "deviceTime": "1791124169.262"
+      },
+      {
+        "sequence": 2,
+        "phase": "startup",
+        "boundary": "before",
+        "kind": "launch",
+        "deviceTime": "1791124169.354"
+      },
+      {
+        "sequence": 3,
+        "phase": "startup",
+        "boundary": "after",
+        "kind": "launch",
+        "deviceTime": "1791124171.836"
+      },
+      {
+        "sequence": 4,
+        "phase": "startup",
+        "boundary": "after",
+        "kind": "phase",
+        "deviceTime": "1791124172.492"
+      },
+      {
+        "sequence": 5,
+        "phase": "login",
+        "boundary": "before",
+        "kind": "phase",
+        "deviceTime": "1791124172.942"
+      },
+      {
+        "sequence": 6,
+        "phase": "login",
+        "boundary": "before",
+        "kind": "tap",
+        "deviceTime": "1791124177.174"
+      },
+      {
+        "sequence": 7,
+        "phase": "login",
+        "boundary": "after",
+        "kind": "tap",
+        "deviceTime": "1791124177.750"
+      },
+      {
+        "sequence": 8,
+        "phase": "login",
+        "boundary": "before",
+        "kind": "text",
+        "deviceTime": "1791124178.820"
+      },
+      {
+        "sequence": 9,
+        "phase": "login",
+        "boundary": "after",
+        "kind": "text",
+        "deviceTime": "1791124182.630"
+      },
+      {
+        "sequence": 10,
+        "phase": "login",
+        "boundary": "before",
+        "kind": "text",
+        "deviceTime": "1791124183.110"
+      },
+      {
+        "sequence": 11,
+        "phase": "login",
+        "boundary": "after",
+        "kind": "text",
+        "deviceTime": "1791124184.719"
+      },
+      {
+        "sequence": 12,
+        "phase": "login",
+        "boundary": "before",
+        "kind": "text",
+        "deviceTime": "1791124185.316"
+      },
+      {
+        "sequence": 13,
+        "phase": "login",
+        "boundary": "after",
+        "kind": "text",
+        "deviceTime": "1791124186.654"
+      },
+      {
+        "sequence": 14,
+        "phase": "login",
+        "boundary": "before",
+        "kind": "text",
+        "deviceTime": "1791124186.974"
+      },
+      {
+        "sequence": 15,
+        "phase": "login",
+        "boundary": "after",
+        "kind": "text",
+        "deviceTime": "1791124188.486"
+      },
+      {
+        "sequence": 16,
+        "phase": "login",
+        "boundary": "before",
+        "kind": "text",
+        "deviceTime": "1791124188.863"
+      },
+      {
+        "sequence": 17,
+        "phase": "login",
+        "boundary": "after",
+        "kind": "text",
+        "deviceTime": "1791124190.573"
+      },
+      {
+        "sequence": 18,
+        "phase": "login",
+        "boundary": "before",
+        "kind": "text",
+        "deviceTime": "1791124190.865"
+      },
+      {
+        "sequence": 19,
+        "phase": "login",
+        "boundary": "after",
+        "kind": "text",
+        "deviceTime": "1791124192.320"
+      },
+      {
+        "sequence": 20,
+        "phase": "login",
+        "boundary": "before",
+        "kind": "text",
+        "deviceTime": "1791124192.656"
+      },
+      {
+        "sequence": 21,
+        "phase": "login",
+        "boundary": "after",
+        "kind": "text",
+        "deviceTime": "1791124194.200"
+      },
+      {
+        "sequence": 22,
+        "phase": "login",
+        "boundary": "before",
+        "kind": "text",
+        "deviceTime": "1791124194.759"
+      },
+      {
+        "sequence": 23,
+        "phase": "login",
+        "boundary": "after",
+        "kind": "text",
+        "deviceTime": "1791124196.398"
+      },
+      {
+        "sequence": 24,
+        "phase": "login",
+        "boundary": "before",
+        "kind": "text",
+        "deviceTime": "1791124196.923"
+      },
+      {
+        "sequence": 25,
+        "phase": "login",
+        "boundary": "after",
+        "kind": "text",
+        "deviceTime": "1791124197.947"
+      },
+      {
+        "sequence": 26,
+        "phase": "login",
+        "boundary": "before",
+        "kind": "back",
+        "deviceTime": "1791124198.896"
+      },
+      {
+        "sequence": 27,
+        "phase": "login",
+        "boundary": "after",
+        "kind": "back",
+        "deviceTime": "1791124199.559"
+      },
+      {
+        "sequence": 28,
+        "phase": "login",
+        "boundary": "before",
+        "kind": "tap",
+        "deviceTime": "1791124203.793"
+      },
+      {
+        "sequence": 29,
+        "phase": "login",
+        "boundary": "after",
+        "kind": "tap",
+        "deviceTime": "1791124204.321"
+      },
+      {
+        "sequence": 30,
+        "phase": "login",
+        "boundary": "before",
+        "kind": "text",
+        "deviceTime": "1791124205.400"
+      },
+      {
+        "sequence": 31,
+        "phase": "login",
+        "boundary": "after",
+        "kind": "text",
+        "deviceTime": "1791124206.605"
+      },
+      {
+        "sequence": 32,
+        "phase": "login",
+        "boundary": "before",
+        "kind": "text",
+        "deviceTime": "1791124207.228"
+      },
+      {
+        "sequence": 33,
+        "phase": "login",
+        "boundary": "after",
+        "kind": "text",
+        "deviceTime": "1791124208.278"
+      },
+      {
+        "sequence": 34,
+        "phase": "login",
+        "boundary": "before",
+        "kind": "text",
+        "deviceTime": "1791124208.704"
+      },
+      {
+        "sequence": 35,
+        "phase": "login",
+        "boundary": "after",
+        "kind": "text",
+        "deviceTime": "1791124209.852"
+      },
+      {
+        "sequence": 36,
+        "phase": "login",
+        "boundary": "before",
+        "kind": "text",
+        "deviceTime": "1791124210.505"
+      },
+      {
+        "sequence": 37,
+        "phase": "login",
+        "boundary": "after",
+        "kind": "text",
+        "deviceTime": "1791124211.406"
+      },
+      {
+        "sequence": 38,
+        "phase": "login",
+        "boundary": "before",
+        "kind": "text",
+        "deviceTime": "1791124211.767"
+      },
+      {
+        "sequence": 39,
+        "phase": "login",
+        "boundary": "after",
+        "kind": "text",
+        "deviceTime": "1791124212.479"
+      },
+      {
+        "sequence": 40,
+        "phase": "login",
+        "boundary": "before",
+        "kind": "back",
+        "deviceTime": "1791124213.510"
+      },
+      {
+        "sequence": 41,
+        "phase": "login",
+        "boundary": "after",
+        "kind": "back",
+        "deviceTime": "1791124214.278"
+      },
+      {
+        "sequence": 42,
+        "phase": "login",
+        "boundary": "before",
+        "kind": "tap",
+        "deviceTime": "1791124218.333"
+      },
+      {
+        "sequence": 43,
+        "phase": "login",
+        "boundary": "after",
+        "kind": "tap",
+        "deviceTime": "1791124218.933"
+      },
+      {
+        "sequence": 44,
+        "phase": "login",
+        "boundary": "after",
+        "kind": "phase",
+        "deviceTime": "1791124222.903"
+      },
+      {
+        "sequence": 45,
+        "phase": "building",
+        "boundary": "before",
+        "kind": "phase",
+        "deviceTime": "1791124223.286"
+      },
+      {
+        "sequence": 46,
+        "phase": "building",
+        "boundary": "before",
+        "kind": "tap",
+        "deviceTime": "1791124228.844"
+      },
+      {
+        "sequence": 47,
+        "phase": "building",
+        "boundary": "after",
+        "kind": "tap",
+        "deviceTime": "1791124229.108"
+      },
+      {
+        "sequence": 48,
+        "phase": "building",
+        "boundary": "after",
+        "kind": "phase",
+        "deviceTime": "1791124231.946"
+      },
+      {
+        "sequence": 49,
+        "phase": "notices",
+        "boundary": "before",
+        "kind": "phase",
+        "deviceTime": "1791124232.043"
+      },
+      {
+        "sequence": 50,
+        "phase": "notices",
+        "boundary": "after",
+        "kind": "phase",
+        "deviceTime": "1791124234.509"
+      },
+      {
+        "sequence": 51,
+        "phase": "finance",
+        "boundary": "before",
+        "kind": "phase",
+        "deviceTime": "1791124234.613"
+      },
+      {
+        "sequence": 52,
+        "phase": "finance",
+        "boundary": "before",
+        "kind": "tap",
+        "deviceTime": "1791124237.092"
+      },
+      {
+        "sequence": 53,
+        "phase": "finance",
+        "boundary": "after",
+        "kind": "tap",
+        "deviceTime": "1791124237.285"
+      },
+      {
+        "sequence": 54,
+        "phase": "finance",
+        "boundary": "before",
+        "kind": "swipe",
+        "deviceTime": "1791124240.086"
+      },
+      {
+        "sequence": 55,
+        "phase": "finance",
+        "boundary": "after",
+        "kind": "swipe",
+        "deviceTime": "1791124240.819"
+      },
+      {
+        "sequence": 56,
+        "phase": "finance",
+        "boundary": "after",
+        "kind": "phase",
+        "deviceTime": "1791124244.015"
+      },
+      {
+        "sequence": 57,
+        "phase": "expand",
+        "boundary": "before",
+        "kind": "phase",
+        "deviceTime": "1791124244.116"
+      },
+      {
+        "sequence": 58,
+        "phase": "expand",
+        "boundary": "before",
+        "kind": "tap",
+        "deviceTime": "1791124246.637"
+      },
+      {
+        "sequence": 59,
+        "phase": "expand",
+        "boundary": "after",
+        "kind": "tap",
+        "deviceTime": "1791124246.814"
+      },
+      {
+        "sequence": 60,
+        "phase": "expand",
+        "boundary": "before",
+        "kind": "swipe",
+        "deviceTime": "1791124247.082"
+      },
+      {
+        "sequence": 61,
+        "phase": "expand",
+        "boundary": "after",
+        "kind": "swipe",
+        "deviceTime": "1791124247.751"
+      },
+      {
+        "sequence": 62,
+        "phase": "expand",
+        "boundary": "after",
+        "kind": "phase",
+        "deviceTime": "1791124250.574"
+      },
+      {
+        "sequence": 63,
+        "phase": "requests",
+        "boundary": "before",
+        "kind": "phase",
+        "deviceTime": "1791124250.675"
+      },
+      {
+        "sequence": 64,
+        "phase": "requests",
+        "boundary": "before",
+        "kind": "swipe",
+        "deviceTime": "1791124250.887"
+      },
+      {
+        "sequence": 65,
+        "phase": "requests",
+        "boundary": "after",
+        "kind": "swipe",
+        "deviceTime": "1791124251.616"
+      },
+      {
+        "sequence": 66,
+        "phase": "requests",
+        "boundary": "before",
+        "kind": "swipe",
+        "deviceTime": "1791124252.282"
+      },
+      {
+        "sequence": 67,
+        "phase": "requests",
+        "boundary": "after",
+        "kind": "swipe",
+        "deviceTime": "1791124253.006"
+      },
+      {
+        "sequence": 68,
+        "phase": "requests",
+        "boundary": "before",
+        "kind": "swipe",
+        "deviceTime": "1791124253.424"
+      },
+      {
+        "sequence": 69,
+        "phase": "requests",
+        "boundary": "after",
+        "kind": "swipe",
+        "deviceTime": "1791124254.310"
+      },
+      {
+        "sequence": 70,
+        "phase": "requests",
+        "boundary": "before",
+        "kind": "swipe",
+        "deviceTime": "1791124254.538"
+      },
+      {
+        "sequence": 71,
+        "phase": "requests",
+        "boundary": "after",
+        "kind": "swipe",
+        "deviceTime": "1791124255.520"
+      },
+      {
+        "sequence": 72,
+        "phase": "requests",
+        "boundary": "before",
+        "kind": "swipe",
+        "deviceTime": "1791124255.745"
+      },
+      {
+        "sequence": 73,
+        "phase": "requests",
+        "boundary": "after",
+        "kind": "swipe",
+        "deviceTime": "1791124256.664"
+      },
+      {
+        "sequence": 74,
+        "phase": "requests",
+        "boundary": "before",
+        "kind": "tap",
+        "deviceTime": "1791124259.509"
+      },
+      {
+        "sequence": 75,
+        "phase": "requests",
+        "boundary": "after",
+        "kind": "tap",
+        "deviceTime": "1791124259.720"
+      },
+      {
+        "sequence": 76,
+        "phase": "requests",
+        "boundary": "after",
+        "kind": "phase",
+        "deviceTime": "1791124262.357"
+      },
+      {
+        "sequence": 77,
+        "phase": "final",
+        "boundary": "before",
+        "kind": "phase",
+        "deviceTime": "1791124262.455"
+      },
+      {
+        "sequence": 78,
+        "phase": "final",
+        "boundary": "after",
+        "kind": "phase",
+        "deviceTime": "1791124264.010"
+      }
+    ],
+    "firstFailure": null,
+    "domainSnapshotUnchanged": true,
+    "source": {
+      "commit": "c949299f6cb4fff48c662e07c56bb7e7c9d54739",
+      "apkSha256": "3644ec5b722d4c707d02e72bf4b2c64e7d8d06f2a83fe7faa54978106bdee337",
+      "reactNative": "0.87.1",
+      "androidApi": 35,
+      "abi": "x86_64"
+    }
+  },
+  "limits": [
+    "Somente a jornada do Morador startup/login/Avisos/Transparencia/expansao/Solicitacoes foi exercitada neste recorte.",
+    "O monitor nao detectou falha nesta execucao; isso nao elimina intermitencia nem explica os20+1 avisos historicos.",
+    "Sem screenshots/logs brutos/credenciais no artefato; nao equivale a homologacao dos dois apps ou de aparelhos fisicos."
+  ]
+}
