@@ -1,0 +1,233 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c",
+  "date": "2026-10-04",
+  "status": "published-host-and-independent-review-approved-native-pending",
+  "sourceFiles": [
+    {
+      "path": "scripts/ios-smoke/run_auth.py",
+      "sha256GitLF": "bfe820924513014bba793c390ad9502011fdc7034aa035c6c622a7197709d20d",
+      "bytesGitLF": 41021
+    },
+    {
+      "path": "scripts/ios-smoke/test_auth.py",
+      "sha256GitLF": "cc85b6592ad24ee99367eb31ac36802183b32a5d1b6d3a59afa7ec5c4c16fcda",
+      "bytesGitLF": 61512
+    },
+    {
+      "path": "scripts/ios-smoke/README.md",
+      "sha256GitLF": "0f04404de53090dfed2d8919f9e15dac39b5161232137547ec70b2a71b7a39e2",
+      "bytesGitLF": 40313
+    }
+  ],
+  "sourceArchive": {
+    "sha256": "bc5cdcfe3f0cfc5f907230738712d6db45b4c3bcfec663e38a2bc1459ac9b65c",
+    "memberCount": 3
+  },
+  "freezeManifestSha256": "e2ca7eac2cd897539cd406fd4a56bd63cea12225aa041c23ab2967d6baa9e1ce",
+  "contract": {
+    "optionalPair": [
+      "errorSignals",
+      "signalScanLimited"
+    ],
+    "stage": "runner-build",
+    "category": "nonzero-exit",
+    "closedSignalOrder": [
+      "destination-selection",
+      "sdk-availability",
+      "scheme-configuration",
+      "compiler-error"
+    ],
+    "unclassifiedExclusive": true,
+    "strictBoolean": true,
+    "streamWindowCharacters": 65536,
+    "maximumLineCharacters": 8192,
+    "source": "already captured stdout/stderr only",
+    "capturesAndCommandsUnchanged": true,
+    "causalOrderAsserted": false
+  },
+  "tests": {
+    "linux": {
+      "python": "3.14.7",
+      "total": 105,
+      "passed": 105,
+      "skipped": 0,
+      "image": "python:3.14.7-slim-bookworm",
+      "digest": "sha256:82bc3c539b8813ada9d68c63b40158fa002f7f33de9bf3312a3dfdc0620dff56",
+      "network": "none",
+      "sourceMount": "readonly",
+      "tmpfs": "rw,exec,nosuid,size=128m",
+      "realTlsAndProcesses": true
+    },
+    "windows": {
+      "python": "3.12.14",
+      "total": 105,
+      "passed": 96,
+      "skipped": 9,
+      "skipScopes": [
+        "OpenSSL/TLS",
+        "POSIX Bash",
+        "symlink",
+        "POSIX FIFO/no-follow"
+      ]
+    },
+    "directed": 16,
+    "independentLinux": {
+      "passed": 105,
+      "total": 105,
+      "skipped": 0,
+      "seconds": 25.026
+    },
+    "independentWindows": {
+      "passed": 96,
+      "total": 105,
+      "skipped": 9,
+      "seconds": 7.65
+    },
+    "rootWindows": {
+      "passed": 96,
+      "total": 105,
+      "skipped": 9,
+      "seconds": 6.771,
+      "logSha256": "19a0e09e0b9f8e7eaed5d89565420b4056c44f6598f19ccff40504a3b87bcf60"
+    }
+  },
+  "implementationLogHashes": [
+    {
+      "sha256": "9cf33acef59673595e24fb5bd886ce164611237d2f73be44b4e83fdc853828ec",
+      "tests": 11,
+      "seconds": 0.356,
+      "passed": false,
+      "footer": "FAILED (errors=26)"
+    },
+    {
+      "sha256": "f766666af16a4ff62da9dc13655a649e3573547692594d193f6b16ae56d35bb8",
+      "tests": 1,
+      "seconds": 0.195,
+      "passed": false,
+      "footer": "FAILED (errors=3)"
+    },
+    {
+      "sha256": "c7ed93b7039ee004c000206931819a923cded49e2832db2ed7f91ed9c2ea3fcb",
+      "tests": 1,
+      "seconds": 0.246,
+      "passed": false,
+      "footer": "FAILED (failures=1)"
+    },
+    {
+      "sha256": "66e3212b393f5968e100ebb8a48688d4e38c538d46b5d1fb8d32f5018ced442f",
+      "tests": 16,
+      "seconds": 1.57,
+      "passed": true,
+      "footer": "OK"
+    },
+    {
+      "sha256": "017340bb3c103ca65be6dea9c11c25a9d007b42102775a96a07642c5696c8ea7",
+      "tests": 105,
+      "seconds": 6.019,
+      "passed": true,
+      "footer": "OK (skipped=9)"
+    },
+    {
+      "sha256": "cec726a55ca983a7db55f098beb570794d46f4e1598cf69a00e601cfdd6be1da",
+      "tests": 105,
+      "seconds": 23.3,
+      "passed": true,
+      "footer": "OK"
+    }
+  ],
+  "independentReview": {
+    "manifestSha256": "e2ca7eac2cd897539cd406fd4a56bd63cea12225aa041c23ab2967d6baa9e1ce",
+    "sourceZipSha256": "bc5cdcfe3f0cfc5f907230738712d6db45b4c3bcfec663e38a2bc1459ac9b65c",
+    "sourcePaths": 3,
+    "crcAndRawLfHashesVerified": true,
+    "unchangedSourceFiles": 6,
+    "preservedLogHashes": 6,
+    "unchangedCommandCalls": 11,
+    "explicitBuildObservationCalls": 1,
+    "independentAcceptedClosedSchemas": 32,
+    "independentRejectedSchemas": 49,
+    "independentScanCases": 7,
+    "collectorFailureAndFirstLatchCases": 2,
+    "baselineNewClassRed": {
+      "tests": 12,
+      "errors": 26,
+      "failures": 0,
+      "passed": false
+    },
+    "appleCauseEstablished": false,
+    "repositoryEdited": false,
+    "decision": "approved",
+    "reportSha256": "5f082315e5d20edcf09be8c8c4f571f2539da544ddd9600ca3f4ab3e94119613",
+    "summarySha256": "c3e1ea1d3dfc232e71d7ec931664a26830665f297908e676ea1905f83b6badb0",
+    "logHashes": [
+      {
+        "sha256": "9f20e7d94f02f644164ae21db4e430e44aa4ce689f060fb5b02d2f4ef28a8954",
+        "bytes": 17727
+      },
+      {
+        "sha256": "91c5f1161e6b0e9daccc959cf56ef94e7177bc1019c602e9b73956b965f28e4c",
+        "bytes": 17266
+      },
+      {
+        "sha256": "6b8c960e98e57e0082b71250d5ad787e537e2483daf0ce67f979255fe54bf64d",
+        "bytes": 29137
+      }
+    ]
+  },
+  "unchangedSourceFiles": [
+    {
+      "path": "scripts/ios-smoke/project.rb",
+      "lfSha256": "648cf00c386c17cf922c57faa5b85280eb121e5f9acba7af264b14cbfc8747c6",
+      "matchesBase": true
+    },
+    {
+      "path": "scripts/ios-smoke/AuthJourney.swift",
+      "lfSha256": "17624694466f96c2803467a2c345dd85f8209839898d62337fc936c8c37e153b",
+      "matchesBase": true
+    },
+    {
+      "path": "scripts/ios-smoke/prepare_auth.py",
+      "lfSha256": "9bd961c1e02becb27cd16a12feac2cfa98636efce440da7ee62323ceeb3d2a6a",
+      "matchesBase": true
+    },
+    {
+      "path": "scripts/ios-smoke/capture.py",
+      "lfSha256": "a2ad808d6ab3e2d84ee7aabf7e828d6e067e1031d389c177663763d99135a40d",
+      "matchesBase": true
+    },
+    {
+      "path": "scripts/ios-smoke/wait_https_proxy.py",
+      "lfSha256": "d01c56b552ef05b3e0ae2381ae897a593fa441a873682ec28810ef16b4cac9b7",
+      "matchesBase": true
+    },
+    {
+      "path": ".github/workflows/ios-auth.yml",
+      "lfSha256": "9895ef170153f020c8b857a0235a64571da5e4658a61aa37398f35fa6c30ae8e",
+      "matchesBase": true
+    }
+  ],
+  "commandsAndBudgetsAstComparison": {
+    "runCommandsCompared": 11,
+    "unchanged": true,
+    "commonXcodeArgumentsUnchanged": true,
+    "observationCalls": [
+      {
+        "explicitTrue": true,
+        "buildForTestingArgument": true
+      }
+    ]
+  },
+  "appleCauseEstablished": false,
+  "nativeAuthenticatedApproved": false,
+  "productionAccepted": false,
+  "limits": [
+    "This supplement records allowlisted text observations; enum order is fixed and does not establish causal order or an internal Apple cause.",
+    "Scanning uses bounded first/last stream windows; overlong lines and clipped fragments are discarded, with signalScanLimited indicating omitted content. Existing private capture buffers are unchanged.",
+    "Observer failure or malformed payload preserves the original exception, exit and first-negative latch and omits the optional pair. Privacy/security and phase failures remain primary.",
+    "Swift, Xcode project, preparation, capture, HTTPS/readiness, workflow, commands, timers, TLS/ATS, GC, dependencies and retries remain unchanged.",
+    "Host suites do not execute Xcode, XCTest, Keychain or an Apple simulator. Windows has nine explicit platform skips; Linux exercises real TLS/processes/FIFO/symlink/Bash.",
+    "The preceding source629 native authentication failed at build-for-testing with exit70, no approved checkpoints or images. It remains historical evidence and is not reclassified retrospectively.",
+    "The new native source5a8 needs closed CI audit including fourteen POSTs, session families, Keychain, DB snapshots, native assertions and original screenshots before authenticated approval."
+  ]
+}

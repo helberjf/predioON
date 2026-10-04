@@ -54,6 +54,8 @@ Duas PNGs originais02-new-process iOS629 foram revistas visualmente e versionada
 
 Dois gates nativos Android0674 foram aprovados (8 fases/78 e28 marcadores), com domínio inalterado, ZIPs/digests/esquemas e18 fontes conferidos; [prova](evidencias/android-0674c78.json). Próximo trabalho: concluir jornadas completas bloqueadas antes da instalação e investigar a intermitência, mantendo os REDs históricos e testes em aparelhos.
 
+O diagnóstico de build iOS5a8 foi publicado após105/105Linux e96+9Windows, repetição independente,32/49schemas e11 comandos intactos; [prova](evidencias/ios-build-signals-5a8d2f6.json). Auditar o CI Apple dessa fonte antes de qualquer aceite autenticado; enums são observações de texto e não prova de causa.
+
 | Prioridade | Trabalho | Resultado esperado | Critério de aceite |
 |---|---|---|---|
 | P0 | Concluir autorização por capacidade nos domínios restantes | Acesso depende da concessão atual ao condomínio e ao recurso | HTTP e SQL negativos; revogação, expiração, equipe inativa e troca de condomínio sem vazamentos; nenhum privilégio global implícito sobre dados privados |
