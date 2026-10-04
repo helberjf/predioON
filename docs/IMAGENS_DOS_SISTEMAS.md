@@ -1,8 +1,8 @@
 # Imagens reais dos aplicativos e portais
 
-Publicadas em **03/10/2026**, atualizadas em **04/10/2026**. Estas capturas foram conferidas em execuções reais e usam dados fictícios. Cada imagem mantém o commit de origem; a data de publicação não altera a versão demonstrada. O plano completo e os cinco vídeos finais continuam pendentes, conforme [CONTINUIDADE.md](CONTINUIDADE.md).
+Publicadas em **03/10/2026**, atualizadas em **04/10/2026**. Estas capturas foram conferidas em execuções reais e usam dados fictícios. Cada imagem mantém a origem comprovada, inclusive commit nulo quando o runtime não foi atestado; a data de publicação não altera a versão demonstrada. O plano completo e os cinco vídeos finais continuam pendentes, conforme [CONTINUIDADE.md](CONTINUIDADE.md).
 
-As **24 imagens — 7 Android, 13 web e 4 iOS** — e a [galeria HTML](IMAGENS_DOS_SISTEMAS.html) acompanham o clone. As quatro iOS incluem duas capturas históricas de b4726b9 e duas de novo processo Release em deb20b1; todas mostram somente entrada. Abra a galeria no navegador para filtrar e ampliar. O [manifesto](imagens/2026-10-03/manifesto.json) registra dimensões, SHA-256 e origem. As referências desta atualização foram conferidas estaticamente; o acesso ao servidor local 8765 continua bloqueado, sem novo aceite dos controles no navegador.
+As **27 imagens — 7 Android, 16 web e 4 iOS** — e a [galeria HTML](IMAGENS_DOS_SISTEMAS.html) acompanham o clone. As quatro iOS incluem duas capturas históricas de b4726b9 e duas de novo processo Release em deb20b1; todas mostram somente entrada. Abra a galeria no navegador para filtrar e ampliar. O [manifesto](imagens/2026-10-03/manifesto.json) registra dimensões, SHA-256 e origem. As referências desta atualização foram conferidas estaticamente; o acesso ao servidor local 8765 continua bloqueado, sem novo aceite dos controles no navegador.
 
 ## Android — Morador: avisos
 
@@ -147,3 +147,21 @@ Resposta ao chamado fictício #1000 enviada pelo Síndico e estado resolvido con
 Após atualização no Morador, o chamado fictício #1000 aparece resolvido. Resposta e histórico de resolução também foram conferidos. QA manual parcial em navegador desta máquina, com Morador Demo/Condomínio Piloto e banco demonstrativo de 37 migrations. As fontes das sete raízes comparadas são idênticas entre 580a236 e 1414f020; os bundles JS atuais de dist diferem da prova histórica de 580a236. Hashes atuais, comparação e ações observadas estão no registro. O commit carregado pelo processo API e os bytes efetivamente servidos ao navegador não foram comprovados; esta captura não demonstra runtime038, apps nativos, produção, cobertura completa ou vídeo. JPEG original, sem edição ou conversão. [Registro e limites](imagens/2026-10-03/web-occurrences-manual-evidence.json).
 
 ![Web — Morador · Chamado resolvido](imagens/2026-10-03/web-morador-chamado-resolvido.jpg)
+
+## Web — Morador · Reserva pendente
+
+Reserva sintética de churrasqueira enviada pelo Morador para aprovação da gestão. Dados fictícios, QA manual parcial em demo037. API em execução e bundles servidos sem commit comprovado; fontes e hashes locais comparados no registro. JPEG original, sem edição. Não comprova todos os conflitos, privacidade de terceiros, apps nativos, produção ou vídeo. [Registro e limites](imagens/2026-10-03/web-reservations-manual-evidence.json).
+
+![Web — Morador · Reserva pendente](imagens/2026-10-03/web-morador-reserva-pendente.jpg)
+
+## Web — Síndico · Reserva aprovada
+
+A gestão aprovou a reserva; ela saiu da fila de pendências e apareceu como confirmada. O Morador também conferiu a confirmação após recarregar. Dados fictícios, QA manual parcial em demo037. API em execução e bundles servidos sem commit comprovado; fontes e hashes locais comparados no registro. JPEG original, sem edição. Não comprova todos os conflitos, privacidade de terceiros, apps nativos, produção ou vídeo. [Registro e limites](imagens/2026-10-03/web-reservations-manual-evidence.json).
+
+![Web — Síndico · Reserva aprovada](imagens/2026-10-03/web-sindico-reserva-aprovada.jpg)
+
+## Web — Morador · Reserva cancelada
+
+O próprio Morador cancelou a reserva confirmada. O botão de cancelamento desapareceu e as filas de pendências/confirmadas da gestão ficaram vazias após recarregar. Dados fictícios, QA manual parcial em demo037. API em execução e bundles servidos sem commit comprovado; fontes e hashes locais comparados no registro. JPEG original, sem edição. Não comprova todos os conflitos, privacidade de terceiros, apps nativos, produção ou vídeo. [Registro e limites](imagens/2026-10-03/web-reservations-manual-evidence.json).
+
+![Web — Morador · Reserva cancelada](imagens/2026-10-03/web-morador-reserva-cancelada.jpg)

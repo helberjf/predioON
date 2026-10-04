@@ -268,6 +268,51 @@
       "reviewed": true,
       "scope": "Partial manual synthetic ticket QA in demo037; no native app, video or production acceptance",
       "sourceLimit": "Compared sources are identical; current dist JS differs from historical 580a236 bundles. Browser served bytes and running API commit are not proven."
+    },
+    {
+      "file": "web-morador-reserva-pendente.jpg",
+      "sha256": "24adedca922ad02e6b8ef85e31ba6517f0edf3bdf2542848dbd69e2024409a33",
+      "width": 1280,
+      "height": 720,
+      "sourceCommit": null,
+      "sourceReferenceCommit": "580a23608f4f79df3f9728946be4bfdb993155bb",
+      "comparedSourceCommit": "a34346b7ec7f0d09d1449a2e24e5b122e4971a5d",
+      "sourceRun": null,
+      "evidence": "web-reservations-manual-evidence.json",
+      "format": "Original browser screenshot JPEG; bytes copied without conversion or editing",
+      "reviewed": true,
+      "scope": "Partial manual synthetic reservation QA in demo037; no native app, video or production acceptance",
+      "sourceLimit": "Seven source roots are unchanged from the prior source audit; running API commit and browser served bundles remain unverified."
+    },
+    {
+      "file": "web-sindico-reserva-aprovada.jpg",
+      "sha256": "1951974e544a04f71d534ba38921078200a13761565f5d1379eb53f4ab8f3c15",
+      "width": 1264,
+      "height": 796,
+      "sourceCommit": null,
+      "sourceReferenceCommit": "580a23608f4f79df3f9728946be4bfdb993155bb",
+      "comparedSourceCommit": "a34346b7ec7f0d09d1449a2e24e5b122e4971a5d",
+      "sourceRun": null,
+      "evidence": "web-reservations-manual-evidence.json",
+      "format": "Original browser screenshot JPEG; bytes copied without conversion or editing",
+      "reviewed": true,
+      "scope": "Partial manual synthetic reservation QA in demo037; no native app, video or production acceptance",
+      "sourceLimit": "Seven source roots are unchanged from the prior source audit; running API commit and browser served bundles remain unverified."
+    },
+    {
+      "file": "web-morador-reserva-cancelada.jpg",
+      "sha256": "abaa695b97e952d0df6bae5d7b387754251a4aec597823682fdd086ce8d71e14",
+      "width": 1280,
+      "height": 720,
+      "sourceCommit": null,
+      "sourceReferenceCommit": "580a23608f4f79df3f9728946be4bfdb993155bb",
+      "comparedSourceCommit": "a34346b7ec7f0d09d1449a2e24e5b122e4971a5d",
+      "sourceRun": null,
+      "evidence": "web-reservations-manual-evidence.json",
+      "format": "Original browser screenshot JPEG; bytes copied without conversion or editing",
+      "reviewed": true,
+      "scope": "Partial manual synthetic reservation QA in demo037; no native app, video or production acceptance",
+      "sourceLimit": "Seven source roots are unchanged from the prior source audit; running API commit and browser served bundles remain unverified."
     }
   ]
 }

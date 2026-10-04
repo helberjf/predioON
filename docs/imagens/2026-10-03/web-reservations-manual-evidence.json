@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 1,
+  "captureDate": "2026-10-04",
+  "browser": "Codex in-app browser, documented CUA UI controls",
+  "viewport": {
+    "width": 1280,
+    "height": 720,
+    "fullPage": true,
+    "nativeResponsiveOverrideApplied": false
+  },
+  "sourceCommit": null,
+  "sourceReferenceCommit": "580a23608f4f79df3f9728946be4bfdb993155bb",
+  "comparedSourceCommit": "a34346b7ec7f0d09d1449a2e24e5b122e4971a5d",
+  "sourceAudit": {
+    "reference": "web-occurrences-manual-evidence.json",
+    "sourceRoots": [
+      "apps/api/src",
+      "apps/building-web/src",
+      "apps/resident-web/src",
+      "packages/ui/src",
+      "packages/api-client/src",
+      "packages/contracts/src",
+      "packages/shared/src"
+    ],
+    "gitDiffBetweenComparedCommitsEmpty": true,
+    "localSourceFingerprintsReverified": 170,
+    "localDistFingerprintsReverified": 6,
+    "newDistBuildPerformed": false
+  },
+  "database": {
+    "kind": "Existing synthetic local demo037, separate from CI and integral test databases",
+    "appliedMigrations": 37,
+    "sqlReservationStateIndependentlyVerified": false
+  },
+  "runtime": {
+    "apiProcessLoadedCommitVerified": false,
+    "browserServedBundleBytesVerified": false,
+    "notification038RuntimeVerified": false
+  },
+  "reservation": {
+    "synthetic": true,
+    "area": "Churrasqueira",
+    "dateObserved": "2026-11-15",
+    "startObserved": "12:00",
+    "endObserved": "13:00",
+    "durationHours": 1,
+    "syntheticUnit": "QA-SINTETICA-04-10",
+    "timezoneDisplayed": "America/Sao_Paulo",
+    "statusSequenceObserved": [
+      "PENDING",
+      "CONFIRMED",
+      "CANCELLED"
+    ]
+  },
+  "confirmedActionEnums": [
+    "empty-date-submit-disabled",
+    "empty-occupation-observed",
+    "resident-reservation-created-pending",
+    "manager-pending-queue-confirmed",
+    "manager-approved-reservation",
+    "resident-reload-confirmed",
+    "resident-cancelled-own-reservation",
+    "resident-cancel-control-removed",
+    "manager-reload-pending-and-confirmed-empty",
+    "resident-console-no-errors",
+    "manager-console-no-errors"
+  ],
+  "inputInteractionLimit": "Initial date/time fill values did not survive subsequent form updates. Native ArrowUp/ArrowDown confirmation preserved the selected values and completed this journey; no application change or product-cause attribution was made.",
+  "consoleErrorCounts": {
+    "resident": 0,
+    "management": 0
+  },
+  "screenshots": [
+    {
+      "file": "web-morador-reserva-pendente.jpg",
+      "sha256": "24adedca922ad02e6b8ef85e31ba6517f0edf3bdf2542848dbd69e2024409a33",
+      "width": 1280,
+      "height": 720,
+      "sourceCommit": null,
+      "sourceReferenceCommit": "580a23608f4f79df3f9728946be4bfdb993155bb",
+      "comparedSourceCommit": "a34346b7ec7f0d09d1449a2e24e5b122e4971a5d",
+      "sourceRun": null,
+      "evidence": "web-reservations-manual-evidence.json",
+      "format": "Original browser screenshot JPEG; bytes copied without conversion or editing",
+      "reviewed": true,
+      "scope": "Partial manual synthetic reservation QA in demo037; no native app, video or production acceptance",
+      "sourceLimit": "Seven source roots are unchanged from the prior source audit; running API commit and browser served bundles remain unverified."
+    },
+    {
+      "file": "web-sindico-reserva-aprovada.jpg",
+      "sha256": "1951974e544a04f71d534ba38921078200a13761565f5d1379eb53f4ab8f3c15",
+      "width": 1264,
+      "height": 796,
+      "sourceCommit": null,
+      "sourceReferenceCommit": "580a23608f4f79df3f9728946be4bfdb993155bb",
+      "comparedSourceCommit": "a34346b7ec7f0d09d1449a2e24e5b122e4971a5d",
+      "sourceRun": null,
+      "evidence": "web-reservations-manual-evidence.json",
+      "format": "Original browser screenshot JPEG; bytes copied without conversion or editing",
+      "reviewed": true,
+      "scope": "Partial manual synthetic reservation QA in demo037; no native app, video or production acceptance",
+      "sourceLimit": "Seven source roots are unchanged from the prior source audit; running API commit and browser served bundles remain unverified."
+    },
+    {
+      "file": "web-morador-reserva-cancelada.jpg",
+      "sha256": "abaa695b97e952d0df6bae5d7b387754251a4aec597823682fdd086ce8d71e14",
+      "width": 1280,
+      "height": 720,
+      "sourceCommit": null,
+      "sourceReferenceCommit": "580a23608f4f79df3f9728946be4bfdb993155bb",
+      "comparedSourceCommit": "a34346b7ec7f0d09d1449a2e24e5b122e4971a5d",
+      "sourceRun": null,
+      "evidence": "web-reservations-manual-evidence.json",
+      "format": "Original browser screenshot JPEG; bytes copied without conversion or editing",
+      "reviewed": true,
+      "scope": "Partial manual synthetic reservation QA in demo037; no native app, video or production acceptance",
+      "sourceLimit": "Seven source roots are unchanged from the prior source audit; running API commit and browser served bundles remain unverified."
+    }
+  ],
+  "limits": {
+    "syntheticDataOnly": true,
+    "manualCoverageComplete": false,
+    "calendarPrivacyForOtherResidentsVerified": false,
+    "allConflictAndConcurrentDecisionCasesVerified": false,
+    "nativeAppsVerified": false,
+    "galleryBrowserVerified": false,
+    "productionAccepted": false,
+    "finalVideoRecorded": false,
+    "allProductPlanComplete": false
+  }
+}
