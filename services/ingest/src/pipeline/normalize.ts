@@ -1,11 +1,16 @@
 import { createHash } from "node:crypto";
+import { TextDecoder } from "node:util";
 import { TelemetrySchema, WaterTelemetrySchema, parseTelemetryTopic, parseWaterTelemetryTopic, type Telemetry } from "@predioon/shared";
+
+// Preserve a leading BOM so JSON still rejects it, while invalid bytes fail
+// instead of becoming replacement characters in values or source identities.
+const utf8 = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
 
 /** A bad field rejects the whole envelope before any database writes. */
 export function normalizeTelemetry(topic: string, raw: Buffer): Telemetry[] {
   if (raw.length > 16_384) return [];
   let body: unknown;
-  try { body = JSON.parse(raw.toString("utf8")); } catch { return []; }
+  try { body = JSON.parse(utf8.decode(raw)); } catch { return []; }
   const water = parseWaterTelemetryTopic(topic);
   if (water) {
     const parsed = WaterTelemetrySchema.safeParse(body);
