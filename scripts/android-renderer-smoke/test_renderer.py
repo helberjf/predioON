@@ -212,7 +212,9 @@ class RendererTests(unittest.TestCase):
         for phase in ["startup", "login", "building", "notices", "finance", "expand", "requests", "final"]:
             for kind, boundary in [("phase", "before"), *([(required[phase], "before"), (required[phase], "after")] if phase in required else []), ("phase", "after")]:
                 markers.append({"sequence": len(markers) + 1, "phase": phase, "boundary": boundary, "kind": kind, "deviceTime": "1791065526.176"})
-        self.assertTrue(public_report(True, "passed", PID, markers, None, True, SOURCE)["passed"])
+        report = public_report(True, "passed", PID, markers, None, True, SOURCE)
+        self.assertTrue(report["passed"])
+        self.assertNotIn("preflightDiagnostic", report)
         with self.assertRaises(RendererFailure):
             public_report(True, "passed", PID, markers[:-1], None, True, SOURCE)
 
@@ -317,6 +319,242 @@ class RendererTests(unittest.TestCase):
             self.assertTrue(allows("GET", path), path)
         for path in ["/auth/login", "/auth/refresh", "/auth/logout"]:
             self.assertTrue(allows("POST", path), path)
+
+
+    def assert_preflight(self, stage, category, marker_count):
+        import run_renderer as runner
+        from test_domains_prefix import preflight_failure
+        report = preflight_failure(runner, stage)
+        self.assertEqual(report.get("preflightDiagnostic"), {"stage": stage, "category": category})
+        self.assertEqual(report["category"], category)
+        self.assertIsNone(report["pid"])
+        self.assertIsNone(report["firstFailure"])
+        self.assertEqual(len(report["markers"]), marker_count)
+
+
+    def test_immediate_security_failure_blocks_next_renderer_gesture(self):
+        from run_renderer import RendererDevice
+        for kind, category in [("private-domain-content", "privacy-rejected"), ("credential-exposure", "credential-exposure")]:
+            with self.subTest(kind=kind), tempfile.TemporaryDirectory() as folder:
+                device = RendererDevice("emulator-5554", Path(folder), {"accounts": {"resident-mobile": {}}, "forbidden": []}, "A" * 32)
+                device.monitor = RendererMonitor(PID)
+                device.record_security_failure(kind)
+                with patch.object(device, "raw", side_effect=lambda *args, **kwargs: str(PID) if args[:2] == ("shell", "pidof") else "") as raw:
+                    with self.assertRaisesRegex(RendererFailure, category):
+                        device.adb("shell", "input", "tap", "1", "2")
+                    raw.assert_not_called()
+
+    def test_complete_success_with_stale_stage_still_exports_previous_keys(self):
+        import contextlib
+        import run_renderer as runner
+        from test_domains_prefix import PrefixTests
+        with tempfile.TemporaryDirectory() as folder:
+            private, public, env = PrefixTests().main_fixture(Path(folder)); output = io.StringIO()
+            def complete(device, _apk, _fixture):
+                device.monitor = RendererMonitor(PID)
+                device.preflight_stage = "home-readiness"
+                required = {"startup": "launch", "login": "tap", "building": "tap", "finance": "tap", "expand": "tap", "requests": "tap"}
+                for phase in ["startup", "login", "building", "notices", "finance", "expand", "requests", "final"]:
+                    pairs = [("phase", "before"), *([(required[phase], "before"), (required[phase], "after")] if phase in required else []), ("phase", "after")]
+                    for kind, boundary in pairs:
+                        device.markers.append({"sequence": len(device.markers) + 1, "phase": phase, "boundary": boundary, "kind": kind, "deviceTime": "1791065526.176"})
+            with patch.dict(os.environ, env), patch.object(runner, "source_metadata", return_value=SOURCE), \
+                 patch.object(runner, "run", side_effect=complete), contextlib.redirect_stdout(output):
+                self.assertEqual(runner.main(["--private", str(private), "--public", str(public)]), 0)
+            report = json.loads((public / "result.json").read_text())
+            self.assertTrue(report["passed"])
+            self.assertEqual(set(report), {"schema", "app", "passed", "category", "pid", "markers", "firstFailure", "domainSnapshotUnchanged", "source"})
+
+    def test_main_emulator_failure_has_closed_stage(self):
+        self.assert_preflight("emulator-check", "configuration-rejected", 0)
+
+    def test_main_home_failure_has_closed_stage(self):
+        self.assert_preflight("home-readiness", "ui-incomplete", 0)
+
+
+    def test_home_privacy_and_credential_failures_have_closed_prebind_stage(self):
+        import run_renderer as runner
+        from test_domains_prefix import preflight_failure
+        for kind, category in [("private-domain-content", "privacy-rejected"), ("credential-exposure", "credential-exposure")]:
+            report = preflight_failure(runner, "home-readiness", kind)
+            self.assertEqual(report.get("preflightDiagnostic"), {"stage": "home-readiness", "category": category})
+            self.assertIsNone(report["firstFailure"])
+            self.assertIsNone(report["pid"])
+            self.assertEqual(report["markers"], [])
+
+    def test_bound_monitor_start_failure_in_both_runners_never_gets_preflight_diagnostic(self):
+        import contextlib
+        import run_renderer as runner
+        import run_domains_prefix as prefix
+        from test_domains_prefix import PrefixTests, FakeDevice, INITIAL
+        for module, constructor, origin in [(runner, "RendererDevice", "source_metadata"), (prefix, "PrefixDevice", "checked_source")]:
+            with self.subTest(runner=module.__name__), tempfile.TemporaryDirectory() as folder:
+                private, public, env = PrefixTests().main_fixture(Path(folder)); output = io.StringIO(); devices = []
+                def factory(serial, directory, data, password):
+                    device = FakeDevice(directory); devices.append(device); return device
+                with patch.dict(os.environ, env), patch.object(module, origin, return_value=SOURCE), \
+                     patch.object(module, constructor, side_effect=factory), patch.object(module, "fixture_action", return_value=INITIAL) as database, \
+                     patch.object(RendererMonitor, "start", side_effect=RendererFailure("diagnostic-stream-failed")), contextlib.redirect_stdout(output):
+                    self.assertEqual(module.main(["--private", str(private), "--public", str(public)]), 1)
+                report = json.loads((public / "result.json").read_text())
+                self.assertEqual(report["category"], "diagnostic-stream-failed")
+                self.assertEqual(report["pid"], PID)
+                self.assertNotIn("preflightDiagnostic", report)
+                self.assertEqual(devices[0].steps, [])
+                self.assertEqual(list((private / "ui-private").iterdir()), [])
+                self.assertEqual(database.call_count, 1)
+                self.assertEqual(len(report["markers"]), 3)
+                self.assertNotIn(SECRET, output.getvalue())
+
+    def test_main_install_failure_has_closed_stage(self):
+        self.assert_preflight("apk-install", "adb-failed", 0)
+
+    def test_main_initial_snapshot_failure_has_closed_stage(self):
+        self.assert_preflight("initial-snapshot", "ui-incomplete", 0)
+
+    def test_main_launch_failure_has_closed_stage(self):
+        self.assert_preflight("app-launch", "adb-failed", 2)
+
+    def test_main_pid_failure_has_closed_stage(self):
+        self.assert_preflight("pid-bind", "process-changed", 3)
+
+    def security_failure_order(self, initial, later):
+        import contextlib
+        import run_renderer as runner
+        from test_domains_prefix import PrefixTests, native
+        with tempfile.TemporaryDirectory() as folder:
+            private, public, env = PrefixTests().main_fixture(Path(folder))
+            output = io.StringIO()
+            def reject(device, _apk, _fixture):
+                device.monitor = RendererMonitor(PID)
+                device.preflight_stage = "home-readiness"
+                if initial == "native":
+                    device.monitor.observe(native())
+                device.record_security_failure("credential-exposure" if initial == "credential" else "private-domain-content")
+                raise runner.PrivacyViolation(SECRET)
+            def finish(monitor):
+                if later == "native":
+                    monitor.observe(native())
+                elif later == "diagnostic":
+                    monitor.fail("diagnostic-stream-failed")
+                monitor.check()
+            with patch.dict(os.environ, env), patch.object(runner, "source_metadata", return_value=SOURCE), \
+                 patch.object(runner, "run", side_effect=reject), patch.object(runner, "finish_monitor", side_effect=finish), \
+                 patch.object(runner.RendererDevice, "raw") as raw, contextlib.redirect_stdout(output):
+                self.assertEqual(runner.main(["--private", str(private), "--public", str(public)]), 1)
+                raw.assert_not_called()
+            report = json.loads((public / "result.json").read_text())
+            self.assertFalse(report["passed"])
+            self.assertFalse(report["domainSnapshotUnchanged"])
+            self.assertNotIn("preflightDiagnostic", report)
+            self.assertEqual(list((private / "ui-private").iterdir()), [])
+            self.assertEqual([p.name for p in public.iterdir()], ["result.json"])
+            self.assertNotIn(SECRET, output.getvalue())
+            self.assertNotIn(SECRET, json.dumps(report))
+            return report
+
+    def test_privacy_before_late_native_failure_preserves_first_category(self):
+        report = self.security_failure_order("privacy", "native")
+        self.assertEqual(report["category"], "privacy-rejected")
+        self.assertEqual(report["firstFailure"], {"category": "privacy-rejected", "deviceTime": None})
+
+    def test_native_before_privacy_preserves_first_category(self):
+        report = self.security_failure_order("native", None)
+        self.assertEqual(report["category"], "renderer-missing-view-state")
+        self.assertEqual(report["firstFailure"], {"category": "renderer-missing-view-state", "deviceTime": "1791065526.176"})
+
+    def test_credential_before_cleanup_diagnostic_preserves_first_category(self):
+        report = self.security_failure_order("credential", "diagnostic")
+        self.assertEqual(report["category"], "credential-exposure")
+        self.assertEqual(report["firstFailure"], {"category": "credential-exposure", "deviceTime": None})
+
+    def test_privacy_without_later_failure_is_recorded_immediately(self):
+        report = self.security_failure_order("privacy", None)
+        self.assertEqual(report["category"], "privacy-rejected")
+        self.assertEqual(report["firstFailure"], {"category": "privacy-rejected", "deviceTime": None})
+
+    def startup_markers(self, size):
+        return [{"sequence": i + 1, "phase": "startup", "boundary": boundary, "kind": kind,
+                 "deviceTime": "1791065526.176"} for i, (boundary, kind) in enumerate(
+                 [("before", "phase"), ("before", "launch"), ("after", "launch")][:size])]
+
+    def test_preflight_export_allows_only_closed_stage_category_pairs(self):
+        from monitor import CATEGORIES
+        pairs = {"emulator-check": ["configuration-rejected", "adb-failed", "diagnostic-stream-failed", "harness-failed"],
+                 "home-readiness": ["ui-incomplete", "adb-failed", "privacy-rejected", "credential-exposure", "harness-failed"],
+                 "apk-install": ["adb-failed", "harness-failed"],
+                 "initial-snapshot": ["ui-incomplete", "fixture-rejected", "harness-failed"],
+                 "app-launch": ["adb-failed", "ui-incomplete", "configuration-rejected", "diagnostic-stream-failed", "harness-failed"],
+                 "pid-bind": ["process-changed", "configuration-rejected", "adb-failed", "harness-failed"]}
+        for stage, categories in pairs.items():
+            for category in categories:
+                for count in ([3] if stage == "pid-bind" else range(4) if stage == "app-launch" else [0]):
+                    diagnostic = {"stage": stage, "category": category}
+                    report = public_report(False, category, None, self.startup_markers(count), None, False, SOURCE,
+                                           preflight_diagnostic=diagnostic)
+                    self.assertEqual(report["preflightDiagnostic"], diagnostic)
+            for category in CATEGORIES - set(categories):
+                with self.assertRaises(RendererFailure):
+                    public_report(False, category, None, self.startup_markers(3 if stage == "pid-bind" else 0), None, False, SOURCE,
+                                  preflight_diagnostic={"stage": stage, "category": category})
+
+    def test_preflight_export_rejects_private_values_extra_fields_and_incompatible_categories(self):
+        from monitor import CATEGORIES
+        valid = {"stage": "home-readiness", "category": "ui-incomplete"}
+        for diagnostic in [dict(valid, stderr=SECRET), dict(valid, stage=SECRET), dict(valid, category=SECRET),
+                           {}, [], SECRET, {"stage": "apk-install", "category": "ui-incomplete"},
+                           {"stage": "initial-snapshot", "category": "privacy-rejected"}]:
+            with self.assertRaises(RendererFailure):
+                public_report(False, "ui-incomplete", None, [], None, False, SOURCE, preflight_diagnostic=diagnostic)
+        for category in CATEGORIES - {"ui-incomplete", "adb-failed", "privacy-rejected", "credential-exposure", "harness-failed"}:
+            with self.assertRaises(RendererFailure):
+                public_report(False, category, None, [], None, False, SOURCE,
+                              preflight_diagnostic={"stage": "home-readiness", "category": category})
+
+    def test_preflight_export_rejects_success_bound_pid_first_failure_and_category_mismatch(self):
+        diagnostic = {"stage": "home-readiness", "category": "ui-incomplete"}
+        for passed, category, pid, failure, unchanged in [
+            (True, "passed", PID, None, True), (False, "ui-incomplete", PID, None, False),
+            (False, "ui-incomplete", None, {"category": "privacy-rejected", "deviceTime": None}, False),
+            (False, "adb-failed", None, None, False), (False, "ui-incomplete", None, None, True)]:
+            with self.assertRaises(RendererFailure):
+                public_report(passed, category, pid, [], failure, unchanged, SOURCE, preflight_diagnostic=diagnostic)
+
+    def test_preflight_export_rejects_illegal_startup_prefix_or_wrong_stage_markers(self):
+        valid = self.startup_markers(3)
+        invalid = [valid + [{"sequence": 4, "phase": "startup", "boundary": "after", "kind": "phase", "deviceTime": "1791065526.176"}],
+                   [dict(valid[0], phase="login")], [dict(valid[0], kind="launch")],
+                   [valid[0], dict(valid[1], boundary="after")], [valid[0], dict(valid[1], kind="tap")]]
+        for markers in invalid:
+            with self.assertRaises(RendererFailure):
+                public_report(False, "adb-failed", None, markers, None, False, SOURCE,
+                              preflight_diagnostic={"stage": "app-launch", "category": "adb-failed"})
+        for stage in ["emulator-check", "home-readiness", "apk-install", "initial-snapshot"]:
+            with self.assertRaises(RendererFailure):
+                public_report(False, "harness-failed", None, valid[:1], None, False, SOURCE,
+                              preflight_diagnostic={"stage": stage, "category": "harness-failed"})
+        for count in range(3):
+            with self.assertRaises(RendererFailure):
+                public_report(False, "process-changed", None, self.startup_markers(count), None, False, SOURCE,
+                              preflight_diagnostic={"stage": "pid-bind", "category": "process-changed"})
+
+    def test_legacy_failure_report_has_exact_previous_keys(self):
+        report = public_report(False, "ui-incomplete", None, [], None, False, SOURCE)
+        self.assertEqual(set(report), {"schema", "app", "passed", "category", "pid", "markers", "firstFailure", "domainSnapshotUnchanged", "source"})
+
+    def test_source_failure_never_constructs_device_or_adds_preflight_stage(self):
+        import contextlib
+        import run_renderer as runner
+        from test_domains_prefix import PrefixTests
+        with tempfile.TemporaryDirectory() as folder:
+            private, public, env = PrefixTests().main_fixture(Path(folder)); output = io.StringIO()
+            with patch.dict(os.environ, env), patch.object(runner, "source_metadata", side_effect=RendererFailure("configuration-rejected")), \
+                 patch.object(runner, "RendererDevice") as constructor, contextlib.redirect_stdout(output):
+                self.assertEqual(runner.main(["--private", str(private), "--public", str(public)]), 1)
+                constructor.assert_not_called()
+            report = json.loads((public / "result.json").read_text())
+            self.assertNotIn("preflightDiagnostic", report)
+            self.assertFalse((private / "ui-private").exists())
 
 
 if __name__ == "__main__":

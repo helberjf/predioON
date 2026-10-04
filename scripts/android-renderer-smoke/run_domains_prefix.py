@@ -21,6 +21,7 @@ class PrefixDevice(DomainDevice):
         self.phase = "preflight"
         self.markers = []
         self.marked_actions = set()
+        self.preflight_stage = None
 
     def record_security_failure(self, kind):
         super().record_security_failure(kind)
@@ -173,21 +174,28 @@ class PrefixDevice(DomainDevice):
 
 
 def run(device, apks, fixture_file):
+    device.preflight_stage = "emulator-check"
     verify_emulator(device)
+    device.preflight_stage = "home-readiness"
     device.wait_environment_ready()
+    device.preflight_stage = "apk-install"
     for app in ["resident-mobile", "operations-mobile"]:
         device.adb("install", "-r", str(apks / app / "verification.apk"), timeout=120)
         device.adb("shell", "pm", "clear", "com.predioon.resident" if app == "resident-mobile" else "com.predioon.operations")
     device.adb("logcat", "-c")
+    device.preflight_stage = "initial-snapshot"
     assert_snapshot(fixture_action(fixture_file, "snapshot"), "initial")
+    device.preflight_stage = "app-launch"
     device.set_phase("startup")
     device.launch()
+    device.preflight_stage = "pid-bind"
     value = device.raw("shell", "pidof", device.package).strip()
     if not value.isascii() or not value.isdecimal() or not 1 <= int(value) < 2 ** 31:
         raise RendererFailure("process-changed")
     device.monitor = RendererMonitor(int(value))
     device.monitor.start(device.serial)
     device.monitor.snapshot(device.raw)
+    device.preflight_stage = None
     device.mark("after", "phase")
     labels = device.fixture["labels"]
     device.set_phase("login")
@@ -292,9 +300,11 @@ def main(arguments=None):
         failure = device.monitor.failure if device and device.monitor else None
         if failure:
             passed, category, unchanged = False, failure["category"], False
+        diagnostic = ({"stage": device.preflight_stage, "category": category}
+                      if device and device.preflight_stage and not device.monitor and not passed else None)
         try:
             report = public_report(passed, category, device.monitor.pid if device and device.monitor else None,
-                                   device.markers if device else [], failure, unchanged, source)
+                                   device.markers if device else [], failure, unchanged, source, preflight_diagnostic=diagnostic)
         except RendererFailure:
             passed = False
             report = public_report(False, "configuration-rejected", None, [], None, False)

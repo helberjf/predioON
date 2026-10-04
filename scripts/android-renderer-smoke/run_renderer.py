@@ -77,6 +77,13 @@ class RendererDevice(DomainDevice):
         self.monitor = None
         self.phase = "preflight"
         self.markers = []
+        self.preflight_stage = None
+
+    def record_security_failure(self, kind):
+        super().record_security_failure(kind)
+        if self.monitor:
+            category = "credential-exposure" if self.security_failure["kind"] == "credential-exposure" else "privacy-rejected"
+            self.monitor.fail(category)
 
     def raw(self, *args, **kwargs):
         try:
@@ -164,20 +171,27 @@ def verify_emulator(device):
 
 
 def run(device, apk, fixture_file):
+    device.preflight_stage = "emulator-check"
     verify_emulator(device)
+    device.preflight_stage = "home-readiness"
     device.wait_environment_ready()  # Same HOME/boot observations and deadlines.
+    device.preflight_stage = "apk-install"
     device.raw("install", "-r", str(apk), timeout=120)
     device.raw("shell", "pm", "clear", device.package)
     device.raw("logcat", "-c")  # Once, before startup; never clear a negative.
+    device.preflight_stage = "initial-snapshot"
     assert_snapshot(fixture_action(fixture_file, "snapshot"), "initial")
+    device.preflight_stage = "app-launch"
     device.set_phase("startup")
     device.launch()
+    device.preflight_stage = "pid-bind"
     value = device.raw("shell", "pidof", device.package).strip()
     if not value.isascii() or not value.isdecimal():
         raise RendererFailure("process-changed")
     device.monitor = RendererMonitor(int(value))
     device.monitor.start(device.serial)
     device.monitor.snapshot(device.raw)  # Includes startup history before PID binding.
+    device.preflight_stage = None
     device.mark("after", "phase")
     device.set_phase("login")
     device.login("login")  # One submission; existing bounded input batches.
@@ -261,13 +275,17 @@ def main(arguments=None):
                 finish_monitor(device.monitor)
             except RendererFailure as error:
                 passed, category, unchanged = False, error.category, False
-        failure = device.monitor.failure if device and device.monitor else None
         if device and device.security_failed:
             passed, unchanged = False, False
             category = "credential-exposure" if device.security_failure["kind"] == "credential-exposure" else "privacy-rejected"
+        failure = device.monitor.failure if device and device.monitor else None
+        if failure:
+            passed, category, unchanged = False, failure["category"], False
+        diagnostic = ({"stage": device.preflight_stage, "category": category}
+                      if device and device.preflight_stage and not device.monitor and not passed else None)
         try:
             report = public_report(passed, category, device.monitor.pid if device and device.monitor else None,
-                                   device.markers if device else [], failure, unchanged, source)
+                                   device.markers if device else [], failure, unchanged, source, preflight_diagnostic=diagnostic)
         except RendererFailure:
             passed = False
             report = public_report(False, "configuration-rejected", None, [], None, False)

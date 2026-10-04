@@ -9,6 +9,14 @@ CATEGORIES = {"passed", "renderer-missing-view-state", "renderer-remove-view-at"
               "log-format-rejected", "diagnostic-stream-failed", "process-changed", "privacy-rejected",
               "credential-exposure", "crash-or-anr", "adb-failed", "ui-incomplete", "fixture-rejected",
               "configuration-rejected", "harness-failed"}
+PREFLIGHT_CATEGORIES = {
+    "emulator-check": {"configuration-rejected", "adb-failed", "diagnostic-stream-failed", "harness-failed"},
+    "home-readiness": {"ui-incomplete", "adb-failed", "privacy-rejected", "credential-exposure", "harness-failed"},
+    "apk-install": {"adb-failed", "harness-failed"},
+    "initial-snapshot": {"ui-incomplete", "fixture-rejected", "harness-failed"},
+    "app-launch": {"adb-failed", "ui-incomplete", "configuration-rejected", "diagnostic-stream-failed", "harness-failed"},
+    "pid-bind": {"process-changed", "configuration-rejected", "adb-failed", "harness-failed"},
+}
 EPOCH = r"[0-9]{10}\.[0-9]{3,6}"
 # liblog pads short tags to eight columns before the separator. Keep the tag
 # token (including React Native's internal colons) distinct from that padding.
@@ -152,7 +160,7 @@ class RendererMonitor:
                 self.process.stdout.close()
 
 
-def public_report(passed, category, pid, markers, failure, database_unchanged, source=None):
+def public_report(passed, category, pid, markers, failure, database_unchanged, source=None, *, preflight_diagnostic=None):
     if type(passed) is not bool or type(database_unchanged) is not bool or category not in CATEGORIES:
         raise RendererFailure("configuration-rejected")
     if pid is not None and (type(pid) is not int or not 1 <= pid < 2 ** 31):
@@ -210,5 +218,22 @@ def public_report(passed, category, pid, markers, failure, database_unchanged, s
         observed = {(marker["phase"], marker["kind"]) for marker in clean if marker["boundary"] == "after"}
         if not required.issubset(observed) or active is not None or action is not None:
             raise RendererFailure("configuration-rejected")
-    return {"schema": 1, "app": "resident-mobile", "passed": passed, "category": category, "pid": pid,
-            "markers": clean, "firstFailure": first, "domainSnapshotUnchanged": database_unchanged, "source": origin}
+    report = {"schema": 1, "app": "resident-mobile", "passed": passed, "category": category, "pid": pid,
+              "markers": clean, "firstFailure": first, "domainSnapshotUnchanged": database_unchanged, "source": origin}
+    if preflight_diagnostic is not None:
+        if (not isinstance(preflight_diagnostic, dict) or set(preflight_diagnostic) != {"stage", "category"} or
+                not isinstance(preflight_diagnostic["stage"], str) or
+                preflight_diagnostic["stage"] not in PREFLIGHT_CATEGORIES or
+                not isinstance(preflight_diagnostic["category"], str) or
+                preflight_diagnostic["category"] not in PREFLIGHT_CATEGORIES[preflight_diagnostic["stage"]] or
+                preflight_diagnostic["category"] != category or passed or database_unchanged or pid is not None or first is not None):
+            raise RendererFailure("configuration-rejected")
+        stage = preflight_diagnostic["stage"]
+        startup = [("startup", "before", "phase"), ("startup", "before", "launch"), ("startup", "after", "launch")]
+        observed = [(marker["phase"], marker["boundary"], marker["kind"]) for marker in clean]
+        if (len(observed) > 3 or observed != startup[:len(observed)] or
+                (stage == "pid-bind" and len(observed) != 3) or
+                (stage not in {"app-launch", "pid-bind"} and observed)):
+            raise RendererFailure("configuration-rejected")
+        report["preflightDiagnostic"] = {"stage": stage, "category": category}
+    return report
