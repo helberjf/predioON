@@ -42,6 +42,8 @@ Portabilidade das imagens: os registros históricos [web](imagens/2026-10-03/web
 
 Os dois gates a343 falharam antes do PID, ui-incomplete/zero fases; [prova](evidencias/android-preflight-a34346b.json). Acrescentar diagnóstico fechado sem relaxar gates; o teste nativo da View continua pendente. f701f07 publicou três fotos de reserva pendente/aprovada/cancelada em QA manual parcial, com estados persistidos nos dois perfis e consoles sem erros; [prova sourceCommit nulo/demo037](imagens/2026-10-03/web-reservations-manual-evidence.json). A galeria atual tem27 imagens; isso não encerra apps/produção/vídeos.
 
+6298065 publicou diagnóstico nativo iOS por estágio com primeira falha preservada:89/89 Linux e80+9skips Windows, revisão e repetição independente; [prova](evidencias/ios-native-diagnostic-6298065.json). Conferir próximo CI Apple sem tratar os testes host como XCTest/Keychain aprovados.
+
 | Prioridade | Trabalho | Resultado esperado | Critério de aceite |
 |---|---|---|---|
 | P0 | Concluir autorização por capacidade nos domínios restantes | Acesso depende da concessão atual ao condomínio e ao recurso | HTTP e SQL negativos; revogação, expiração, equipe inativa e troca de condomínio sem vazamentos; nenhum privilégio global implícito sobre dados privados |

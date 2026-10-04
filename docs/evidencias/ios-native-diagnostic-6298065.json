@@ -1,0 +1,151 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "629806581457750cff893f35f25ca19eb017aba4",
+  "date": "2026-10-04",
+  "status": "published-diagnostic-host-approved-apple-run-pending",
+  "sourceFiles": [
+    {
+      "path": "scripts/ios-smoke/run_auth.py",
+      "bytesGitLF": 37237,
+      "sha256GitLF": "4453e8a8386640b5ca2db6fa9c31071d7804e32304346a15f5acba0310d22ab6"
+    },
+    {
+      "path": "scripts/ios-smoke/test_auth.py",
+      "bytesGitLF": 45803,
+      "sha256GitLF": "4d3608fbf59ed12b0a1582084f69fa1ab6921c26c0dde20185ef223ed4fcef2f"
+    },
+    {
+      "path": "scripts/ios-smoke/README.md",
+      "bytesGitLF": 37672,
+      "sha256GitLF": "02027f207c482da9447667041d321687afb26ca153f6aa27c8a4ecb4ade32fe8"
+    }
+  ],
+  "contract": {
+    "resultField": "failureDiagnostic",
+    "keys": [
+      "stage",
+      "category",
+      "exitCode"
+    ],
+    "categories": [
+      "nonzero-exit",
+      "timed-out",
+      "unavailable",
+      "verification-failed"
+    ],
+    "exitCodeMin": -255,
+    "exitCodeMax": 255,
+    "exitCodeZeroAllowed": false,
+    "nullExitAllowed": true,
+    "securityPhasePrimary": true,
+    "firstFailureLatchedBeforeCollection": true
+  },
+  "tests": {
+    "linux": {
+      "total": 89,
+      "passed": 89,
+      "skips": 0,
+      "seconds": 33.967,
+      "python": "3.14.7",
+      "image": "python:3.14.7-slim-bookworm",
+      "imageDigest": "sha256:82bc3c539b8813ada9d68c63b40158fa002f7f33de9bf3312a3dfdc0620dff56",
+      "network": "none",
+      "repository": "read-only",
+      "tmpfs": "rw,exec,nosuid,size=128m"
+    },
+    "windows": {
+      "total": 89,
+      "passed": 80,
+      "skips": 9,
+      "seconds": 3.779,
+      "python": "3.12.14",
+      "skippedTests": [
+        "test_real_tls_keeps_ip_ca_and_chain_verification (test_auth.OpenSSLSelectionTests.test_real_tls_keeps_ip_ca_and_chain_verification)",
+        "test_broken_classifier_and_requested_shell_trace_do_not_export_private_stderr (test_database_setup.BuildWrapperTests.test_broken_classifier_and_requested_shell_trace_do_not_export_private_stderr)",
+        "test_each_compile_failure_preserves_exit_hides_logs_and_precedes_password_file (test_database_setup.BuildWrapperTests.test_each_compile_failure_preserves_exit_hides_logs_and_precedes_password_file)",
+        "test_successful_compilation_reaches_only_fake_initdb_without_failure_diagnostic (test_database_setup.BuildWrapperTests.test_successful_compilation_reaches_only_fake_initdb_without_failure_diagnostic)",
+        "test_log_symlink_is_not_followed (test_database_setup.DiagnosticTests.test_log_symlink_is_not_followed)",
+        "test_real_delayed_https_startup_and_wrong_ca (test_https_proxy.ReadinessTests.test_real_delayed_https_startup_and_wrong_ca)",
+        "test_real_partial_status_ended_by_watchdog_is_deadline_not_framing (test_https_proxy.ReadinessTests.test_real_partial_status_ended_by_watchdog_is_deadline_not_framing)",
+        "test_real_password_proxy_process_has_verified_health_and_closed_startup_journal (test_https_proxy.ReadinessTests.test_real_password_proxy_process_has_verified_health_and_closed_startup_journal)",
+        "test_startup_diagnostic_refuses_fifo_and_symlink_without_waiting (test_https_proxy.ReadinessTests.test_startup_diagnostic_refuses_fifo_and_symlink_without_waiting)"
+      ]
+    },
+    "directed": {
+      "total": 16,
+      "passed": 16,
+      "realSubprocesses": true
+    },
+    "red": {
+      "initialMethods": 7,
+      "initialFailures": 9,
+      "collectorLatchMethods": 1,
+      "collectorLatchFailures": 1
+    },
+    "historicalLinuxNoexecFailure": {
+      "total": 88,
+      "failures": 9,
+      "errors": 3,
+      "reason": "Disposable tmpfs had noexec; existing POSIX test stubs could not execute. /proc/mounts confirmed flags; no test/timeout change used to bypass it."
+    }
+  },
+  "independentReview": {
+    "agent": "/root/password_implementation/review_ios_native_diagnostic",
+    "accepted": true,
+    "proofs": [
+      "Original exception identity preserved",
+      "Collector failure cannot relabel cleanup as original",
+      "104 accepted closed combinations",
+      "18 invalid schemas rejected"
+    ],
+    "limits": [
+      "Read-only review with memory probes; did not execute full suites/Apple/DB/network"
+    ]
+  },
+  "rootVerification": {
+    "publishedGitSourceHashes": 3,
+    "frozenSourceZipAndLogHashes": true,
+    "sourceReview": true,
+    "windows": {
+      "total": 89,
+      "passed": 80,
+      "skips": 9,
+      "seconds": 4.352
+    },
+    "linux": {
+      "total": 89,
+      "passed": 89,
+      "skips": 0,
+      "seconds": 39.533,
+      "network": "none",
+      "sourceMount": "read-only",
+      "tmpfs": "exec"
+    }
+  },
+  "rootTestLogs": [
+    {
+      "name": "ios-native-diagnostic-root-independent89-windows",
+      "bytes": 205,
+      "sha256": "61efe9e5a1fdfa9d37b3da949a28ec94f29d81203989ffefbea47ac958ffb76e"
+    },
+    {
+      "name": "ios-native-diagnostic-root-independent89-linux",
+      "bytes": 194,
+      "sha256": "861c8d28b459d6e1f68c6f76ab5701f1a8b8e2d24ff5631638d7fd42fd675742"
+    }
+  ],
+  "appleJourneyApproved": false,
+  "historicalFailedRun": {
+    "runId": 37237681193,
+    "source": "b6761fd0e421ac6d068ab5ebb1b989a5c2736430",
+    "cause": "UNOBSERVED"
+  },
+  "limits": [
+    "Host tests do not run Apple simulator or XCTest; fourteen POSTs, session families, Keychain and approved images remain required.",
+    "Diagnostic observes explicit stages without changing commands, TLS, ATS, timeouts, retry, GC, dependencies, app source or workflow.",
+    "Unknown exception maps to verification-failed; it does not reveal its assertion or native cause.",
+    "Failures before the protected native try and at the publication boundary remain outside this diagnostic.",
+    "Historical b6761fd failure has no observed native substage; new instrumentation cannot retroactively assign one.",
+    "Only closed enums and bounded nonzero status/null are exported, no command arguments, paths, raw messages, stdout/stderr, credentials, trees or xcresult."
+  ]
+}
