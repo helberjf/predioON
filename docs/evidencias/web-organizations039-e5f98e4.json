@@ -1,0 +1,270 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-10-05",
+  "sourceCommit": "e5f98e481893860363aab2d3c050c532400e024c",
+  "backendSourceCommit": "758debaeeebf4a775af1ab0746666a8a3bb36a5c",
+  "sourceMigrationCount": 39,
+  "status": "commercial-web-consumer-browser-integral-approved",
+  "sourceFiles": [
+    {
+      "path": "apps/admin-web/src/App.tsx",
+      "sha256LF": "234e3779a9ea78c095f0d887d8e3278ab3fbba5db6d9c52e7480f19f975143c5",
+      "runtimeMatch": true
+    },
+    {
+      "path": "apps/admin-web/src/layout/Shell.tsx",
+      "sha256LF": "880aeb7cb9e19ba38b5811ad9042c016be5bece43f2c6ba39f7f799e1c0921f7",
+      "runtimeMatch": true
+    },
+    {
+      "path": "apps/admin-web/src/pages/Clients.tsx",
+      "sha256LF": "8a21ed04669aeb91c8c181280507265120ed1570496e9a7792437395274b4c15",
+      "runtimeMatch": true
+    },
+    {
+      "path": "apps/admin-web/src/pages/Buildings.tsx",
+      "sha256LF": "b4133b8641b07eeada9bfb16af62e0f0b4fc203b1c614f815a66b479fa3abd09",
+      "runtimeMatch": true
+    },
+    {
+      "path": "apps/admin-web/src/organization-access.tsx",
+      "sha256LF": "e6243aa170ffd17a9e63c3a059b45123c2261a96e83340122c2c860f71cf697b",
+      "runtimeMatch": true
+    },
+    {
+      "path": "e2e/organizations.spec.ts",
+      "sha256LF": "10fa1ef08dce54ffac9952bd012314cd0a753c91697350f7ba56e91fcd4712f2",
+      "runtimeMatch": true
+    },
+    {
+      "path": "apps/admin-web/package.json",
+      "sha256LF": "5f84065def1ce880ecc1cb4e7f38b5a766bd6ee0c1657f5cb69161e20c2538a8",
+      "runtimeMatch": true
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "sha256LF": "1849fb5db34d768f07bab0e21f4279bf22c46f17fbd238bf8f76808e025de00f",
+      "runtimeMatch": true
+    },
+    {
+      "path": "e2e/README.md",
+      "sha256LF": "90a8686f871b5d4e170e54eab45599690f4c74a33faeca184b940d57417abb0d",
+      "runtimeMatch": null
+    }
+  ],
+  "tests": {
+    "integral": {
+      "schemaVersion": 1,
+      "recordedAtUtc": "2026-10-05T11:14:08.9371469Z",
+      "scope": "Final checkpoint B browser integral against API/SQL 001-039",
+      "sourceBase": "758debaeeebf4a775af1ab0746666a8a3bb36a5c",
+      "processExit": 0,
+      "workers": 1,
+      "retries": 0,
+      "files": 18,
+      "tests": 312,
+      "attempts": 312,
+      "passed": 312,
+      "failed": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "reportErrors": 0,
+      "durationMilliseconds": 1583804.071,
+      "durationReported": "26.4m",
+      "startTime": 1791195374539,
+      "engines": [
+        {
+          "engine": "chromium",
+          "tests": 104,
+          "attempts": 104,
+          "passed": 104,
+          "retries": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "failed": 0
+        },
+        {
+          "engine": "firefox",
+          "tests": 104,
+          "attempts": 104,
+          "passed": 104,
+          "retries": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "failed": 0
+        },
+        {
+          "engine": "webkit",
+          "tests": 104,
+          "attempts": 104,
+          "passed": 104,
+          "retries": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "failed": 0
+        }
+      ],
+      "runtimeManifest": "org039-ui-full-runtime.json",
+      "sourceHashes": "org039-ui-final-runtime-hashes.json",
+      "cleanup": "org039-ui-full-cleanup.json",
+      "log": {
+        "path": "org039-ui-full-final.log",
+        "sha256": "4ea75a5a43198ad26836616118681048a12323889b8316b5d8ff1398620bf405"
+      },
+      "report": {
+        "path": "org039-ui-full-final-report/index.html",
+        "sha256": "c3e5f7cbe2ad8b03e8a67d2e44da7570908c194e3b0cc78d14980a6325ee6530"
+      },
+      "lastRun": {
+        "path": "org039-ui-full-final-results/.last-run.json",
+        "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+      },
+      "limitations": [
+        "Local headless browser run, not CI approval or native runtime evidence",
+        "Synthetic fixture sessions in HTML/trace remain outside Git",
+        "Prior passing runs are preserved separately and not added to this total"
+      ]
+    },
+    "rootIndependentReportVerification": {
+      "htmlZipCRCValid": true,
+      "all312AttemptsPassedAtRetryZero": true,
+      "reportErrors": 0,
+      "source9MatchedPublishedCommit": true,
+      "cleanupVerified": true,
+      "verificationSha256": "77babb52f25592c16b9b19e836f12e811fec1e1ccd10e22985dd28cfed651f0d"
+    },
+    "productRed": {
+      "pureRbacEntryReadOnlyWriteAndUnauthorizedSelector": 3,
+      "uncertainResponseAfterActualPersistedPost": 2,
+      "revocationSameTurnAsWriteBodyCompletion": 1,
+      "initialProjectionMenuPointerDestinationShift": 1
+    },
+    "priorExpandedMatrix": {
+      "passed": 69,
+      "testsPerEngine": 23,
+      "zeroRetries": true
+    },
+    "priorAdjacent": {
+      "passed": 69,
+      "zeroRetries": true
+    },
+    "finalMenuDelta": {
+      "passed": 3,
+      "engines": 3
+    },
+    "apiClient": {
+      "passed": 64
+    },
+    "sharedUi": {
+      "passed": 89
+    },
+    "strictTypesWindowsAndLinuxPassed": true
+  },
+  "behavior": {
+    "pureGlobalRbacCommercialEntrySupported": true,
+    "readAndManageControlsDistinct": true,
+    "commercialGrantsDoNotPromoteOperationalRoutes": true,
+    "postResponseEpochChecksSynchronous": true,
+    "staleSessionRouteVisibilityAndRegrantResponsesDiscarded": true,
+    "initialProjectionDoesNotMoveClickableMenuLinks": true,
+    "confirmedNavigationRetainedDuringPolling": true,
+    "uncertainWriteResponseRequiresRefreshBeforeManualRetry": true,
+    "writesAutomaticallyReplayed": false,
+    "organizationMetadataEdited": false
+  },
+  "postRun": {
+    "organization_users": 0,
+    "organizations": 0,
+    "buildings": 0,
+    "audit_rows": 0,
+    "catalog": [
+      {
+        "role_key": "PLATFORM_ADMIN",
+        "created_at": "2026-10-05T01:13:15.864618+00:00",
+        "permission_key": "organizations:manage"
+      },
+      {
+        "role_key": "PLATFORM_ADMIN",
+        "created_at": "2026-10-05T01:13:15.864618+00:00",
+        "permission_key": "organizations:read"
+      }
+    ]
+  },
+  "runtime": {
+    "capturedAtUtc": "2026-10-05T10:59:31.5046199Z",
+    "image": "mcr.microsoft.com/playwright:v1.63.0-noble",
+    "imageDigest": "sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27",
+    "node": "v24.20.0",
+    "pnpm": "10.17.1",
+    "databaseContainer": "predioon-org039-ui-qa-20261004",
+    "databaseVersion": "16.6",
+    "databaseHostPort": 5463,
+    "portOffset": 1300,
+    "apiPort": 4400,
+    "previewPorts": [
+      6573,
+      6574,
+      6575
+    ],
+    "runtimeSourceVolume": "predioon-org039-ui-source-20261004",
+    "cacheVolumeReadOnly": "predioon-menu-qa038-source",
+    "backendBaseCommit": "758debaeeebf4a775af1ab0746666a8a3bb36a5c",
+    "lastSnapshotMigration": "039-organizations-capabilities.sql",
+    "workers": 1,
+    "retries": 0,
+    "discoveredTests": 312,
+    "discoveredFiles": 18,
+    "sourceHashes": "org039-ui-final-runtime-hashes.json",
+    "runLog": "org039-ui-full-final.log"
+  },
+  "review": {
+    "independentReviewSha256": "a240f6373a33ef95498f97546214d4e555c265450ee1508ba1f97ee05797e5d2",
+    "finalShellSha256": "880aeb7cb9e19ba38b5811ad9042c016be5bece43f2c6ba39f7f799e1c0921f7",
+    "finalShellReviewedByRootAndIndependentBackend": true,
+    "blockingFindingsRemaining": 0
+  },
+  "manualFinalFrontend": {
+    "syntheticOwnDatabasePort": 5466,
+    "apiPort": 4500,
+    "webPort": 6673,
+    "migrationCount": 39,
+    "desktopSessionsAndClientsNavigationPassed": true,
+    "mobileMenuClosesAndReturnsFocusOnNavigation": true,
+    "syntheticEditedOrganizationRetained": true,
+    "horizontalOverflow": false,
+    "viewportWidth": 390,
+    "viewportHeight": 844,
+    "frontendCopiedSourcesMatchPublished": true,
+    "observedScriptPath": "/assets/index-Bz0ovkgn.js",
+    "serverGetEqualsRebuiltDist": true,
+    "bundleSha256": "0c83ccdde29bb31fc6d725909d3193b4aae9cde09907d3f3f0808f9a5c9c3039",
+    "browserInMemoryBytesCaptured": false,
+    "apiLoadedCommitCaptured": false,
+    "productionBundleWarningsRemain": true,
+    "correctedBuildInitiallyUsedDefaultApiPort": true,
+    "executionPolicyChanged": false
+  },
+  "publishedOriginalImage": {
+    "file": "web-admin-clientes-final-e5f98e4.jpg",
+    "sha256": "cc5c05b45408571a301a6665f780521092cf96f1e445f4eef3858fd1a5923d6f",
+    "width": 375,
+    "height": 1017,
+    "bytes": 41799,
+    "sourceCommit": "e5f98e481893860363aab2d3c050c532400e024c",
+    "sourceRun": null,
+    "capturedOn": "2026-10-05",
+    "reviewed": true,
+    "evidence": "../../evidencias/web-organizations039-e5f98e4.json",
+    "scope": "Original JPEG of final published frontend in390x844 viewport. Root tested desktop/mobile Sessions-to-Clients navigation and retained synthetic organization after rebuild.",
+    "limit": "Frontend sources match published commit and observed script GET equals rebuilt dist. Browser in-memory bytes and loaded API commit not captured. Manual delayed-projection race not induced; automated test covers it."
+  },
+  "productionAccepted": false,
+  "nativeAppsAccepted": false,
+  "computerRestarted": false,
+  "limits": [
+    "Integral belongs to SQL001–039; it does not validate users040 or later iOS/Android source changes.",
+    "Prior63/69/69 and directed results remain separate runs, not a sum invented as an integral.",
+    "Background visibility is simulated; HTTP503, lost/corrupt responses and held real response bodies are explicit test injections.",
+    "No complete video, physical-device approval or production rollout. Shared auth/hooks and final API commit in memory were not altered or attested by this frontend increment."
+  ]
+}

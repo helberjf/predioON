@@ -515,6 +515,20 @@
       "evidence": "../../evidencias/web-organizations039-manual.json",
       "scope": "Responsive Clients view after reactivation, cleared form and reload; real browser and HTTP/SQL with synthetic data; original JPEG without editing.",
       "limit": "Unpublished UI source hashes recorded in proof. This copy predates the final initial-menu-latency fix; does not validate that delta or production."
+    },
+    {
+      "file": "web-admin-clientes-final-e5f98e4.jpg",
+      "sha256": "cc5c05b45408571a301a6665f780521092cf96f1e445f4eef3858fd1a5923d6f",
+      "width": 375,
+      "height": 1017,
+      "bytes": 41799,
+      "sourceCommit": "e5f98e481893860363aab2d3c050c532400e024c",
+      "sourceRun": null,
+      "capturedOn": "2026-10-05",
+      "reviewed": true,
+      "evidence": "../../evidencias/web-organizations039-e5f98e4.json",
+      "scope": "Original JPEG of final published frontend in390x844 viewport. Root tested desktop/mobile Sessions-to-Clients navigation and retained synthetic organization after rebuild.",
+      "limit": "Frontend sources match published commit and observed script GET equals rebuilt dist. Browser in-memory bytes and loaded API commit not captured. Manual delayed-projection race not induced; automated test covers it."
     }
   ]
 }

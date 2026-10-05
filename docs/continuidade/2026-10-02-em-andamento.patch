@@ -1,1363 +1,748 @@
-diff --git a/apps/admin-web/package.json b/apps/admin-web/package.json
-index 8510ca3..58f3cd8 100644
---- a/apps/admin-web/package.json
-+++ b/apps/admin-web/package.json
-@@ -17,6 +17,7 @@
-     "tailwind-merge": "^2.5.0",
-     "@predioon/ui": "workspace:*",
-     "@predioon/shared": "workspace:*",
-+    "@predioon/contracts": "workspace:*",
-     "react-router-dom": "^7.1.1",
-     "recharts": "^2.15.0"
-   },
-diff --git a/apps/admin-web/src/App.tsx b/apps/admin-web/src/App.tsx
-index 9bdd845..fc47a87 100644
---- a/apps/admin-web/src/App.tsx
-+++ b/apps/admin-web/src/App.tsx
-@@ -1,4 +1,5 @@
--import { Navigate, Route, Routes } from "react-router-dom";
-+import type { ReactNode } from "react";
-+import { Link, Navigate, Route, Routes } from "react-router-dom";
- import { Button, FeatureProvider, FeatureContent, LoginScreen, SessionsPanel, useAuth } from "@predioon/ui";
- import { Shell } from "./layout/Shell.js";
- import { Overview } from "./pages/Overview.js";
-@@ -13,40 +14,58 @@ import { Operations } from "./pages/Operations.js";
- import { Features } from "./pages/Features.js";
- import { Support } from "./pages/Support.js";
- import { Tenancy } from "./pages/Tenancy.js";
-+import { OrganizationAccessFeedback, OrganizationAccessProvider, useOrganizationAccess } from "./organization-access.js";
+diff --git a/packages/db/test/backup-restore.test.ts b/packages/db/test/backup-restore.test.ts
+index 83132e5..4359c17 100644
+--- a/packages/db/test/backup-restore.test.ts
++++ b/packages/db/test/backup-restore.test.ts
+@@ -212,7 +212,7 @@ for(const separateCluster of [false,true])it(`restores a real Timescale archive
+     await execute(process.execPath,['--import','tsx','src/bootstrap.ts'],{cwd,env:{...process.env,DATABASE_URL:sourceUrl.toString()},timeout:30_000,windowsHide:true});
+     const migrations=await loadInfrastructureMigrations();
+     await applyInfrastructure(source,migrations);
+-    assert.equal(migrations.length,39,'recovery fixture includes the complete immutable SQL039 ledger');
++    assert.equal(migrations.length,40,'recovery fixture includes the complete immutable SQL040 ledger');
+     const sourceConnections=await provisionRuntime(sourceUrl);
+     await restrictedRoles(source,true);
+     await source`insert into organizations(id,name,slug) values('restore-org','Recovery fixture','restore-org')`;
+diff --git a/packages/db/test/notification-delivery.test.ts b/packages/db/test/notification-delivery.test.ts
+index 60bb330..f3e7ceb 100644
+--- a/packages/db/test/notification-delivery.test.ts
++++ b/packages/db/test/notification-delivery.test.ts
+@@ -224,7 +224,7 @@ describe("durable alert delivery SQL038, real restricted connections", { skip: !
+   it("preserves delivery state on ledger reapplication", async () => {
+     await enqueue(await alert()); const migrations = await loadInfrastructureMigrations();
+     assert.deepEqual(await applyInfrastructure(owner, migrations), []);
+-    assert.equal((await owner`select count(*)::int as count from schema_migrations`)[0]!.count, 39);
++    assert.equal((await owner`select count(*)::int as count from schema_migrations`)[0]!.count, 40);
+     assert.equal((await owner`select count(*)::int as count from event_deliveries`)[0]!.count, 1);
+   });
+   it("removes preexisting runtime column grants, PUBLIC column grants and memberships", async () => {
+diff --git a/scripts/ios-smoke/project.rb b/scripts/ios-smoke/project.rb
+index 2d3ac71..557cf56 100644
+--- a/scripts/ios-smoke/project.rb
++++ b/scripts/ios-smoke/project.rb
+@@ -1,14 +1,98 @@
+ # Generate a standalone, locally signed XCUITest runner in the private CI folder.
+ require 'pathname'
+ require 'fileutils'
++require 'find'
++require 'open3'
+ require 'xcodeproj'
  
- export function App() {
--  const { user, loading, signOut } = useAuth();
-+  const { user, loading } = useAuth();
- 
-   if (loading) return <p className="p-8 text-slate-500">Carregando...</p>;
-   if (!user) return <LoginScreen subtitle="Administração da plataforma" />;
- 
--  if (user.role !== "PLATFORM_ADMIN") {
--    return (
--      <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-8 text-center text-slate-600">
--        <p>Este painel é exclusivo da administração da plataforma.</p>
--        <Button variant="secondary" onClick={() => void signOut()}>Sair e usar outra conta</Button>
--      </main>
--    );
--  }
-+  return <OrganizationAccessProvider key={user.id}><AuthenticatedApp /></OrganizationAccessProvider>;
-+}
++def simulator_platform
++  output = ''.b
++  deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 15
++  Open3.popen2('/usr/bin/xcrun', '--sdk', 'iphonesimulator', '--show-sdk-platform-path', err: File::NULL, pgroup: true) do |input, stream, child|
++    input.close
++    begin
++      loop do
++        remaining = deadline - Process.clock_gettime(Process::CLOCK_MONOTONIC)
++        raise 'Discovery deadline' unless remaining.positive? && IO.select([stream], nil, nil, remaining)
++        begin
++          output << stream.read_nonblock(4097 - output.bytesize)
++          raise 'Discovery output limit' if output.bytesize > 4096
++        rescue EOFError
++          break
++        rescue IO::WaitReadable
++          next
++        end
++      end
++      remaining = deadline - Process.clock_gettime(Process::CLOCK_MONOTONIC)
++      raise 'Discovery failed' unless remaining.positive? && child.join(remaining) && child.value.success?
++    ensure
++      stream.close unless stream.closed?
++      if child.alive?
++        begin
++          Process.kill('KILL', -child.pid)
++        rescue Errno::ESRCH
++          # The owned child may have exited between the check and termination.
++        end
++        child.join(2)
++      end
++    end
++  end
++  output.force_encoding(Encoding::UTF_8)
++  raise 'Invalid discovery output' unless output.valid_encoding?
++  path = output.delete_suffix("\n")
++  raise 'Invalid discovery path' if path.empty? || path.match?(/[\x00-\x1f\x7f]/)
++  platform = Pathname.new(path)
++  raise 'Invalid simulator platform' unless platform.absolute? && platform.basename.to_s == 'iPhoneSimulator.platform'
++  raise 'Linked simulator platform' unless platform.lstat.directory? && !platform.lstat.symlink?
++  platform.realpath
++end
 +
-+function Denied() {
-+  const { signOut } = useAuth();
-+  const access = useOrganizationAccess();
-+  return <div className="flex flex-col items-center gap-4 p-8 text-center text-slate-600">
-+    <p>Este painel é exclusivo da administração da plataforma.</p>
-+    {access.canRead && <Link className="font-semibold text-emerald-700 underline" to="/clientes">Ir para Clientes</Link>}
-+    <Link className="font-semibold text-emerald-700 underline" to="/sessoes">Consultar minhas sessões</Link>
-+    <Button variant="secondary" onClick={() => void signOut()}>Sair e usar outra conta</Button>
-+  </div>;
-+}
++def strict_xctrunner(folder)
++  raise 'Runner folder must be private' unless folder.stat.uid == Process.uid && (folder.stat.mode & 077).zero?
++  platform = simulator_platform
++  source = platform
++  %w[Developer Library Xcode Agents XCTRunner.app].each do |component|
++    source = source.join(component)
++    raise 'Invalid runner source directory' unless source.lstat.directory? && !source.lstat.symlink?
++    raise 'Escaped runner source' unless source.realpath.to_s.start_with?(platform.to_s + '/')
++  end
++  source = source.realpath
++  # Validate the selected Apple agent before the standard library copies it.
++  # No resources may reference files outside this bundle, or require special file IO.
++  Find.find(source.to_s) do |entry|
++    attributes = File.lstat(entry)
++    raise 'Unsupported runner resource' unless !attributes.symlink? && (attributes.directory? || attributes.file?)
++    canonical = Pathname.new(entry).realpath.to_s
++    raise 'Escaped runner resource' unless canonical == source.to_s || canonical.start_with?(source.to_s + '/')
++  end
++  info_path = source.join('Info.plist')
++  binary = source.join('XCTRunner')
++  entitlements = source.join('RunnerEntitlements.plist')
++  raise 'Missing runner resources' unless info_path.lstat.file? && binary.lstat.file? && entitlements.lstat.file?
++  raise 'Non-executable runner' unless (binary.stat.mode & 0111).positive? && binary.executable?
++  info = Xcodeproj::Plist.read_from_path(info_path)
++  raise 'Invalid runner information' unless info.is_a?(Hash) && info['CFBundlePackageType'] == 'APPL'
 +
-+function CommercialEntry() {
-+  const access = useOrganizationAccess();
-+  if (access.canRead) return <Navigate to="/clientes" replace />;
-+  if (access.checking || access.error) return <OrganizationAccessFeedback />;
-+  return <Denied />;
-+}
++  destination = folder.join('StrictXCTRunner.app')
++  Dir.mkdir(destination, 0700) # Exclusive: a prior or linked destination is never reused.
++  FileUtils.cp_r(Dir.children(source).sort.map { |name| source.join(name) }, destination, preserve: true)
++  private_info = destination.join('Info.plist')
++  raise 'Invalid private runner information' unless private_info.lstat.file? && !private_info.lstat.symlink? && private_info.realpath.to_s.start_with?(destination.to_s + '/')
++  strict_info = info.merge('NSAppTransportSecurity' => { 'NSAllowsArbitraryLoads' => false })
++  Xcodeproj::Plist.write_to_path(strict_info, private_info)
++  raise 'Runner policy was not persisted' unless Xcodeproj::Plist.read_from_path(private_info) == strict_info
++  destination.to_s
++rescue StandardError
++  abort 'Strict XCTest runner source preparation failed'
++end
 +
-+function AuthenticatedApp() {
-+  const { user } = useAuth();
-+  const legacy = user?.role === "PLATFORM_ADMIN";
-+  const gated = (page: ReactNode) => legacy ? page : <Denied />;
+ abort 'Disposable macOS CI runner required' unless ENV['GITHUB_ACTIONS'] == 'true' && ENV['RUNNER_OS'] == 'macOS'
+ temporary = Pathname.new(ENV.fetch('RUNNER_TEMP')).realpath
+ folder = Pathname.new(ARGV.fetch(0)).realpath
+ abort 'Project must stay below RUNNER_TEMP' unless folder.to_s.start_with?(temporary.to_s + '/')
+ path = folder.join('AuthJourney.xcodeproj')
+ abort 'Runner project already exists' if path.exist?
++runner_source = strict_xctrunner(folder)
+ FileUtils.cp(File.join(__dir__, 'AuthJourney.swift'), folder.join('AuthJourney.swift'))
+ abort 'Private generated runner configuration missing' unless folder.join('AuthConfiguration.swift').file?
+ project = Xcodeproj::Project.new(path.to_s)
+@@ -24,6 +108,7 @@ target.build_configurations.each do |config|
+     'PRODUCT_BUNDLE_IDENTIFIER' => 'com.predioon.authjourney',
+     'GENERATE_INFOPLIST_FILE' => 'YES', 'INFOPLIST_FILE' => 'RunnerInfo.plist', 'SWIFT_VERSION' => '5.0',
+     'ENABLE_TESTING_SEARCH_PATHS' => 'YES', 'USES_XCTRUNNER' => 'YES',
++    'XCTRUNNER_PATH' => runner_source,
+     'CODE_SIGNING_ALLOWED' => 'YES', 'CODE_SIGN_IDENTITY' => '-',
+     'TARGETED_DEVICE_FAMILY' => '1', 'SUPPORTED_PLATFORMS' => 'iphonesimulator'
+   })
+diff --git a/scripts/ios-smoke/test_auth.py b/scripts/ios-smoke/test_auth.py
+index e883e95..6c4676b 100644
+--- a/scripts/ios-smoke/test_auth.py
++++ b/scripts/ios-smoke/test_auth.py
+@@ -2,6 +2,7 @@
+ import importlib.util
+ from contextlib import ExitStack
+ import json
++import os
+ from pathlib import Path
+ import random
+ import shutil
+@@ -16,6 +17,238 @@ import zlib
+ BASE = Path(__file__).resolve().parent
  
--  return (
--    <FeatureProvider><Shell>
-+  const content = <Shell>
-       <Routes>
--        <Route path="/" element={<FeatureContent><Overview /></FeatureContent>} />
-+        <Route path="/" element={legacy ? <FeatureContent><Overview /></FeatureContent> : <CommercialEntry />} />
-         <Route path="/clientes" element={<Clients />} />
--        <Route path="/predios" element={<Buildings />} />
--        <Route path="/gateways" element={<Gateways />} />
--        <Route path="/dispositivos" element={<Devices />} />
--        <Route path="/alertas" element={<FeatureContent><Alerts /></FeatureContent>} />
--        <Route path="/usuarios" element={<Users />} />
-+        <Route path="/predios" element={gated(<Buildings />)} />
-+        <Route path="/gateways" element={gated(<Gateways />)} />
-+        <Route path="/dispositivos" element={gated(<Devices />)} />
-+        <Route path="/alertas" element={gated(<FeatureContent><Alerts /></FeatureContent>)} />
-+        <Route path="/usuarios" element={gated(<Users />)} />
-         <Route path="/sessoes" element={<SessionsPanel />} />
--        <Route path="/unidades-equipes" element={<Tenancy />} />
--        <Route path="/funcionalidades" element={<Features />} />
--        <Route path="/auditoria" element={<Audit />} />
--        <Route path="/operacao" element={<FeatureContent path="/operacao"><Operations /></FeatureContent>} />
--        <Route path="/suporte-remoto" element={<FeatureContent path="/suporte-remoto"><Support /></FeatureContent>} />
-+        <Route path="/unidades-equipes" element={gated(<Tenancy />)} />
-+        <Route path="/funcionalidades" element={gated(<Features />)} />
-+        <Route path="/auditoria" element={gated(<Audit />)} />
-+        <Route path="/operacao" element={gated(<FeatureContent path="/operacao"><Operations /></FeatureContent>)} />
-+        <Route path="/suporte-remoto" element={gated(<FeatureContent path="/suporte-remoto"><Support /></FeatureContent>)} />
-         <Route path="*" element={<Navigate to="/" replace />} />
-       </Routes>
--    </Shell></FeatureProvider>
--  );
-+    </Shell>;
-+  // Commercial-only accounts must not start the legacy global features/SSE readers.
-+  return legacy ? <FeatureProvider>{content}</FeatureProvider> : content;
- }
-diff --git a/apps/admin-web/src/layout/Shell.tsx b/apps/admin-web/src/layout/Shell.tsx
-index 9c374c0..fd48983 100644
---- a/apps/admin-web/src/layout/Shell.tsx
-+++ b/apps/admin-web/src/layout/Shell.tsx
-@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
- import { Link, useLocation } from "react-router-dom";
- import { AlertTriangle, Building2, ChartNoAxesCombined, Cpu, House, Monitor, RadioTower, ScrollText, ShieldCheck, Users } from "lucide-react";
- import { DashboardFrame, useFeatures, useAuth } from "@predioon/ui";
-+import { organizationRouteAllowed, useOrganizationAccess } from "../organization-access.js";
- const LINKS = [
-   { to: "/", label: "Dashboard", icon: House },
-   { to: "/predios", label: "Condomínios", icon: Building2 },
-@@ -21,5 +22,12 @@ export function Shell({ children }: { children: ReactNode }) {
-   const { user, signOut } = useAuth();
-   const location = useLocation();
-   const flags = useFeatures();
--  return <DashboardFrame title="Central de gestão Prédio ON" subtitle="Todos os seus condomínios em um só lugar" userName={user?.name ?? ""} role="Administrador" links={LINKS.filter(link => flags.routeAllowed(link.to))} pathname={location.pathname} signOut={() => void signOut()} renderLink={(to, content, className) => <Link to={to} className={className}>{content}</Link>}>{children}</DashboardFrame>;
-+  const access = useOrganizationAccess();
-+  const legacy = user?.role === "PLATFORM_ADMIN";
-+  const allowed = (path: string) => organizationRouteAllowed(path, legacy, access.canRead) && flags.routeAllowed(path);
-+  // Do not move a usable link between pointerdown and pointerup as Clients arrives.
-+  // Periodic checks retain a confirmed projection and therefore keep navigation stable.
-+  const navigationPending = access.capabilities === null && access.checking;
-+  const navigationFeedback = navigationPending ? <p role="status" className="min-h-64 px-3 py-4 text-sm text-slate-300">Carregando menu…</p> : undefined;
-+  return <DashboardFrame title="Central de gestão Prédio ON" subtitle={legacy ? "Todos os seus condomínios em um só lugar" : "Clientes e segurança da sua conta"} userName={user?.name ?? ""} role={legacy ? "Administrador" : access.canManage ? "Gestão de clientes" : "Consulta de clientes"} links={navigationPending ? [] : LINKS.filter(link => allowed(link.to))} navigationBusy={navigationPending} navigationFeedback={navigationFeedback} pathname={location.pathname} signOut={() => void signOut()} renderLink={(to, content, className) => allowed(to) ? <Link to={to} className={className}>{content}</Link> : null}>{children}</DashboardFrame>;
- }
-diff --git a/apps/admin-web/src/pages/Buildings.tsx b/apps/admin-web/src/pages/Buildings.tsx
-index b1dcba7..c5a757f 100644
---- a/apps/admin-web/src/pages/Buildings.tsx
-+++ b/apps/admin-web/src/pages/Buildings.tsx
-@@ -1,87 +1,91 @@
--import { useState } from "react";
--import { api, Badge, Button, Card, EmptyState, ErrorBanner, Field, Input, Select, useResource } from "@predioon/ui";
-+import { useEffect, useState } from "react";
-+import { api, Badge, Button, Card, EmptyState, ErrorBanner, Field, Input, ResourceFeedback, Select, useResource } from "@predioon/ui";
- import type { Paged } from "@predioon/ui";
-+import type { OrganizationView } from "@predioon/contracts";
- import { CreatePropertySchema, PROPERTY_TYPES, type PropertyType } from "@predioon/shared";
-+import { OrganizationAccessFeedback, useOrganizationAccess, useOrganizationMutation } from "../organization-access.js";
  
--type Organization = { id: string; name: string };
- type Building = { id: string; organizationId: string; name: string; code: string; propertyType: PropertyType; timezone: string; active: boolean };
-+type PropertyDraft = { name: string; code: string; propertyType: PropertyType; timezone: string };
- 
- export function Buildings() {
-   const buildings = useResource<Paged<Building>>("/buildings");
--  const clients = useResource<Paged<Organization>>("/organizations");
--  const [error, setError] = useState<string | null>(null);
--  const [form, setForm] = useState({ organizationId: "", name: "", code: "", propertyType: "CONDOMINIUM" as PropertyType, timezone: "America/Sao_Paulo" });
-+  const access = useOrganizationAccess();
-+  const [form, setForm] = useState<PropertyDraft>({ name: "", code: "", propertyType: "CONDOMINIUM", timezone: "America/Sao_Paulo" });
- 
--  async function create() {
--    try {
--      setError(null);
--      const result = CreatePropertySchema.safeParse(form);
--      if (!result.success) throw new Error(result.error.issues[0]?.message ?? "Confira os dados do imóvel");
--      await api.post("/buildings", result.data);
-+  return <>
-+    <h1 className="text-2xl font-bold text-slate-900">Imóveis</h1>
-+    <div className="grid gap-5 xl:grid-cols-3">
-+      {/* A confirmed revocation discards the commercial resource, selection and
-+          pending intent at commit, even if React batches a rapid regrant. */}
-+      <BuildingCreation key={access.readEpoch} form={form} setForm={setForm} onCreated={buildings.reload} />
-+      <Card title="Imóveis cadastrados" className="xl:col-span-2">
-+        {buildings.data?.items.length ? <ul className="space-y-2">
-+          {buildings.data.items.map(building => <li key={building.id} className="flex items-center justify-between rounded-xl border border-slate-100 p-3">
-+            <div>
-+              <p className="font-medium text-slate-800">{building.name}</p>
-+              <p className="mt-1 text-xs font-medium text-slate-600">{PROPERTY_TYPES.find(type => type.value === building.propertyType)?.label ?? "Condomínio"}</p>
-+              <p className="text-xs text-slate-400">{building.id} · {building.code} · {building.timezone}</p>
-+            </div>
-+            <Badge tone={building.active ? "success" : "neutral"}>{building.active ? "ATIVO" : "INATIVO"}</Badge>
-+          </li>)}
-+        </ul> : <EmptyState text={buildings.error ?? "Nenhum imóvel cadastrado."} />}
-+      </Card>
-+    </div>
-+  </>;
-+}
++# Real Xcodeproj generation with a synthetic Apple agent; no Apple build is performed.
++RUNNER_PROJECT_FIXTURE = r'''
++require 'json'
++require 'digest'
++require 'tmpdir'
++require 'fileutils'
++require 'stringio'
++require 'open3'
++require 'rbconfig'
++require 'xcodeproj'
++script, scenario = ARGV
++original_popen2 = Open3.method(:popen2)
 +
-+function BuildingCreation({ form, setForm, onCreated }: { form: PropertyDraft; setForm(value: PropertyDraft): void; onCreated(): void }) {
-+  const access = useOrganizationAccess();
-+  const mutation = useOrganizationMutation();
-+  const clients = useResource<Paged<OrganizationView>>(access.canRead ? "/organizations" : null);
-+  const [organizationId, setOrganizationId] = useState("");
-+  const selectedOrganization = access.canRead && clients.data?.items.some(row => row.id === organizationId) ? organizationId : "";
-+  useEffect(() => { if (clients.errorStatus === 403) access.invalidate(); }, [clients.errorStatus, access.invalidate]);
-+  useEffect(() => {
-+    if (!access.canRead) { mutation.cancelPendingIntent(); setOrganizationId(""); }
-+  }, [access.canRead]);
++def check(value)
++  raise 'Runner project fixture assertion failed' unless value
++end
 +
-+  function create() {
-+    const result = CreatePropertySchema.safeParse({ ...form, organizationId: selectedOrganization });
-+    if (!result.success) { mutation.setError(result.error.issues[0]?.message ?? "Confira os dados do imóvel"); return; }
-+    void mutation.run("read", () => api.post("/buildings", result.data), () => {
-       setForm({ ...form, name: "", code: "" });
--      buildings.reload();
--    } catch (cause) {
--      setError(cause instanceof Error ? cause.message : "Falha ao criar imóvel");
--    }
-+      onCreated();
-+    });
-   }
- 
-   return (
--    <>
--      <h1 className="text-2xl font-bold text-slate-900">Imóveis</h1>
--      {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
--
--      <div className="grid gap-5 xl:grid-cols-3">
--        <Card title="Novo imóvel">
-+    <Card title="Novo imóvel">
-+      {mutation.error && <ErrorBanner message={mutation.error} onDismiss={() => mutation.setError(null)} />}
-           <div className="space-y-3">
--            <Field label="Cliente">
-+            {!access.canRead ? <OrganizationAccessFeedback /> : clients.error ? <ResourceFeedback resource={clients} emptyText="" /> : <Field label="Cliente">
-               <Select
--                value={form.organizationId}
--                onChange={(organizationId) => setForm({ ...form, organizationId })}
-+                value={selectedOrganization}
-+                disabled={mutation.busy || access.checking || clients.loading}
-+                onChange={(value) => { mutation.cancelPendingIntent(); setOrganizationId(value); }}
-                 options={[
-                   { value: "", label: "Escolha um cliente" },
-                   ...(clients.data?.items ?? []).map((client) => ({ value: client.id, label: client.name })),
-                 ]}
-               />
--            </Field>
-+            </Field>}
-             <Field label="Nome">
--              <Input value={form.name} onChange={(name) => setForm({ ...form, name })} placeholder="Residencial das Flores" />
-+              <Input value={form.name} disabled={mutation.busy} onChange={(name) => setForm({ ...form, name })} placeholder="Residencial das Flores" />
-             </Field>
-             <Field label="Código" hint="identificador curto usado na operação">
--              <Input value={form.code} onChange={(code) => setForm({ ...form, code })} placeholder="FLORES" />
-+              <Input value={form.code} disabled={mutation.busy} onChange={(code) => setForm({ ...form, code })} placeholder="FLORES" />
-             </Field>
-             <Field label="Tipo de imóvel">
--              <Select value={form.propertyType} onChange={(propertyType) => setForm({ ...form, propertyType })} options={[...PROPERTY_TYPES]} />
-+              <Select value={form.propertyType} disabled={mutation.busy} onChange={(propertyType) => setForm({ ...form, propertyType })} options={[...PROPERTY_TYPES]} />
-             </Field>
-             <Field label="Fuso horário" hint="Usado para dias de consumo e estimativas. Ex.: America/Sao_Paulo ou America/Manaus.">
--              <Input value={form.timezone} onChange={(timezone) => setForm({ ...form, timezone })} placeholder="America/Sao_Paulo" />
-+              <Input value={form.timezone} disabled={mutation.busy} onChange={(timezone) => setForm({ ...form, timezone })} placeholder="America/Sao_Paulo" />
-             </Field>
--            <Button full onClick={() => void create()} disabled={!form.organizationId || !form.name || !form.code || !form.timezone.trim()}>
-+            <Button full onClick={create} disabled={mutation.busy || access.checking || !selectedOrganization || !form.name || !form.code || !form.timezone.trim()}>
-               Cadastrar
-             </Button>
-           </div>
--        </Card>
--
--        <Card title="Imóveis cadastrados" className="xl:col-span-2">
--          {buildings.data?.items.length ? (
--            <ul className="space-y-2">
--              {buildings.data.items.map((building) => (
--                <li key={building.id} className="flex items-center justify-between rounded-xl border border-slate-100 p-3">
--                  <div>
--                    <p className="font-medium text-slate-800">{building.name}</p>
--                    <p className="mt-1 text-xs font-medium text-slate-600">{PROPERTY_TYPES.find((type) => type.value === building.propertyType)?.label ?? "Condomínio"}</p>
--                    <p className="text-xs text-slate-400">
--                      {building.id} · {building.code} · {building.timezone}
--                    </p>
--                  </div>
--                  <Badge tone={building.active ? "success" : "neutral"}>{building.active ? "ATIVO" : "INATIVO"}</Badge>
--                </li>
--              ))}
--            </ul>
--          ) : (
--            <EmptyState text={buildings.error ?? "Nenhum imóvel cadastrado."} />
--          )}
--        </Card>
--      </div>
--    </>
-+    </Card>
-   );
- }
-diff --git a/apps/admin-web/src/pages/Clients.tsx b/apps/admin-web/src/pages/Clients.tsx
-index 6315c2b..aee4d3d 100644
---- a/apps/admin-web/src/pages/Clients.tsx
-+++ b/apps/admin-web/src/pages/Clients.tsx
-@@ -1,64 +1,114 @@
--import { useState } from "react";
--import { api, Badge, Button, Card, EmptyState, ErrorBanner, Field, Input, useResource } from "@predioon/ui";
--import type { Paged } from "@predioon/ui";
-+import { useEffect, useState } from "react";
-+import type { CreateOrganizationRequest, OrganizationView, UpdateOrganizationRequest } from "@predioon/contracts";
-+import { api, Badge, Button, Card, ErrorBanner, Field, Input, ResourceFeedback, useResource, type Paged } from "@predioon/ui";
-+import { OrganizationAccessFeedback, useOrganizationAccess, useOrganizationMutation } from "../organization-access.js";
- 
--type Organization = { id: string; name: string; slug: string; active: boolean };
-+type Draft = { name: string; slug: string };
-+type Confirmation = { id: string; name: string; active: boolean };
-+const blank = (): Draft => ({ name: "", slug: "" });
-+function validDraft(draft: Draft): boolean {
-+  return draft.name.length >= 2 && draft.name.length <= 120 && draft.slug.length >= 2 && draft.slug.length <= 60 && /^[a-z0-9-]+$/.test(draft.slug);
-+}
- 
- export function Clients() {
--  const clients = useResource<Paged<Organization>>("/organizations");
--  const [error, setError] = useState<string | null>(null);
--  const [form, setForm] = useState({ name: "", slug: "" });
-+  const access = useOrganizationAccess();
-+  const mutation = useOrganizationMutation();
-+  const [creation, setCreation] = useState<Draft>(blank);
-+  const [editing, setEditing] = useState<{ id: string; draft: Draft } | null>(null);
-+  const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
-+  const [message, setMessage] = useState<string | null>(null);
-+  // Revocation destroys drafts; transient preflight failures only hide them.
-+  useEffect(() => {
-+    setCreation(blank()); setEditing(null); setConfirmation(null); setMessage(null);
-+    mutation.cancelPendingIntent();
-+  }, [access.manageEpoch]);
-+  return <>
-+    <h1 className="text-2xl font-bold text-slate-900">Clientes</h1>
-+    {mutation.error && <ErrorBanner message={mutation.error} onDismiss={() => mutation.setError(null)} />}
-+    {message && access.canRead && <p role="status" className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">{message}</p>}
-+    {access.canRead ? <ClientsWorkspace key={access.readEpoch} creation={creation} setCreation={setCreation} editing={editing} setEditing={setEditing}
-+      confirmation={confirmation} setConfirmation={setConfirmation} mutation={mutation} setMessage={setMessage} /> : <OrganizationAccessFeedback />}
-+  </>;
-+}
- 
--  async function create() {
--    try {
--      await api.post("/organizations", form);
--      setForm({ name: "", slug: "" });
--      clients.reload();
--    } catch (cause) {
--      setError(cause instanceof Error ? cause.message : "Falha ao criar cliente");
--    }
-+type WorkspaceProps = {
-+  creation: Draft; setCreation(value: Draft): void;
-+  editing: { id: string; draft: Draft } | null; setEditing(value: { id: string; draft: Draft } | null): void;
-+  confirmation: Confirmation | null; setConfirmation(value: Confirmation | null): void;
-+  mutation: ReturnType<typeof useOrganizationMutation>; setMessage(value: string | null): void;
-+};
-+function ClientsWorkspace({ creation, setCreation, editing, setEditing, confirmation, setConfirmation, mutation, setMessage }: WorkspaceProps) {
-+  const access = useOrganizationAccess();
-+  const clients = useResource<Paged<OrganizationView>>("/organizations");
-+  useEffect(() => { if (clients.errorStatus === 403) access.invalidate(); }, [clients.errorStatus, access.invalidate]);
-+  const selected = clients.data?.items.find(row => row.id === editing?.id);
-+  useEffect(() => {
-+    if (!clients.loading && clients.data && editing && !selected) { mutation.cancelPendingIntent(); setEditing(null); }
-+  }, [clients.loading, clients.data, editing?.id, selected?.id]);
-+  const disabled = mutation.busy || access.checking;
-+  function cancel() { mutation.cancelPendingIntent(); setEditing(null); setConfirmation(null); setMessage(null); }
-+  function create() {
-+    if (!validDraft(creation)) { mutation.setError("Confira o nome e o slug do cliente."); return; }
-+    const payload: CreateOrganizationRequest = { ...creation };
-+    setMessage(null);
-+    void mutation.run("manage", () => api.post<OrganizationView>("/organizations", payload), () => {
-+      setCreation(blank()); setMessage("Cliente cadastrado."); clients.reload();
-+    });
-   }
--
--  return (
--    <>
--      <h1 className="text-2xl font-bold text-slate-900">Clientes</h1>
--      {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
--
--      <div className="grid gap-5 xl:grid-cols-3">
--        <Card title="Novo cliente">
--          <div className="space-y-3">
--            <Field label="Nome">
--              <Input value={form.name} onChange={(name) => setForm({ ...form, name })} placeholder="Administradora Alfa" />
--            </Field>
--            <Field label="Slug" hint="minúsculas, números e hífen">
--              <Input value={form.slug} onChange={(slug) => setForm({ ...form, slug })} placeholder="administradora-alfa" />
--            </Field>
--            <Button full onClick={() => void create()} disabled={!form.name || !form.slug}>
--              Cadastrar
--            </Button>
--          </div>
--        </Card>
--
--        <Card title="Clientes cadastrados" className="xl:col-span-2">
--          {clients.data?.items.length ? (
--            <ul className="space-y-2">
--              {clients.data.items.map((client) => (
--                <li key={client.id} className="flex items-center justify-between rounded-xl border border-slate-100 p-3">
--                  <div>
--                    <p className="font-medium text-slate-800">{client.name}</p>
--                    <p className="text-xs text-slate-400">
--                      {client.id} · {client.slug}
--                    </p>
--                  </div>
--                  <Badge tone={client.active ? "success" : "neutral"}>{client.active ? "ATIVO" : "INATIVO"}</Badge>
--                </li>
--              ))}
--            </ul>
--          ) : (
--            <EmptyState text={clients.error ?? "Nenhum cliente cadastrado."} />
--          )}
--        </Card>
--      </div>
--    </>
--  );
-+  function save() {
-+    if (!editing || !selected || !validDraft(editing.draft)) return;
-+    const id = editing.id;
-+    const payload: UpdateOrganizationRequest = {};
-+    if (editing.draft.name !== selected.name) payload.name = editing.draft.name;
-+    if (editing.draft.slug !== selected.slug) payload.slug = editing.draft.slug;
-+    if (!Object.keys(payload).length) return;
-+    setMessage(null);
-+    void mutation.run("manage", () => api.patch<OrganizationView>(`/organizations/${encodeURIComponent(id)}`, payload), () => {
-+      setEditing(null); setMessage("Cliente atualizado."); clients.reload();
-+    });
-+  }
-+  function changeStatus() {
-+    if (!confirmation) return;
-+    const { id, active } = confirmation;
-+    setMessage(null);
-+    void mutation.run("manage", () => api.patch<OrganizationView>(`/organizations/${encodeURIComponent(id)}`, { active } satisfies UpdateOrganizationRequest), result => {
-+      setConfirmation(null); setMessage(result.active ? "Cliente reativado." : "Cliente desativado."); clients.reload();
-+    });
-+  }
-+  return <>
-+    <div className="flex flex-wrap items-center justify-between gap-3">
-+      <p className="text-sm text-slate-600">{access.canManage ? "Cadastre clientes e mantenha seus dados comerciais." : "Você pode consultar os clientes cadastrados."}</p>
-+      <Button variant="secondary" disabled={mutation.busy} onClick={() => { void access.refresh(); clients.reload(); }}>Atualizar clientes</Button>
-+    </div>
-+    <div className={`grid gap-5 ${access.canManage ? "xl:grid-cols-3" : ""}`}>
-+      {access.canManage && <Card title={editing ? "Editar cliente" : "Novo cliente"}>
-+        <form aria-label={editing ? "Editar cliente" : "Cadastrar cliente"} className="space-y-3" onSubmit={event => { event.preventDefault(); if (editing) save(); else create(); }}>
-+          <Field label="Nome do cliente"><Input value={editing?.draft.name ?? creation.name} minLength={2} maxLength={120} required disabled={mutation.busy}
-+            onChange={name => editing ? setEditing({ ...editing, draft: { ...editing.draft, name } }) : setCreation({ ...creation, name })} placeholder="Administradora Alfa" /></Field>
-+          <Field label="Slug do cliente" hint="De 2 a 60 caracteres: minúsculas, números e hífen."><Input value={editing?.draft.slug ?? creation.slug} minLength={2} maxLength={60} pattern="[a-z0-9-]+" required disabled={mutation.busy}
-+            onChange={slug => editing ? setEditing({ ...editing, draft: { ...editing.draft, slug } }) : setCreation({ ...creation, slug })} placeholder="administradora-alfa" /></Field>
-+          <Button full type="submit" disabled={disabled || !validDraft(editing?.draft ?? creation) || Boolean(editing && (!selected || (editing.draft.name === selected.name && editing.draft.slug === selected.slug)))}>
-+            {mutation.busy ? "Aguardando confirmação…" : editing ? "Salvar cliente" : "Cadastrar cliente"}
-+          </Button>
-+          {editing && <Button variant="secondary" onClick={cancel}>Cancelar edição</Button>}
-+          {mutation.busy && <p role="status" className="text-sm text-slate-500">Verificando a permissão e aguardando a resposta da API.</p>}
-+        </form>
-+      </Card>}
-+      <Card title="Clientes cadastrados" className={access.canManage ? "xl:col-span-2" : undefined}>
-+        {clients.error ? <ResourceFeedback resource={clients} emptyText="" /> : clients.data?.items.length ? <div className="space-y-3">
-+          {clients.data.items.map(client => <article key={client.id} aria-label={`Cliente ${client.name}`} className="rounded-xl border border-slate-200 p-3">
-+            <div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0"><p className="break-words font-medium text-slate-800">{client.name}</p><p className="break-all text-xs text-slate-500">{client.slug}</p></div><Badge tone={client.active ? "success" : "neutral"}>{client.active ? "ATIVO" : "INATIVO"}</Badge></div>
-+            {access.canManage && <div className="mt-3 flex flex-wrap gap-2">
-+              <Button variant="secondary" disabled={disabled} onClick={() => { cancel(); setEditing({ id: client.id, draft: { name: client.name, slug: client.slug } }); }}>Editar cliente</Button>
-+              <Button variant={client.active ? "danger" : "secondary"} disabled={disabled} onClick={() => { cancel(); setConfirmation({ id: client.id, name: client.name, active: !client.active }); }}>{client.active ? "Desativar cliente" : "Reativar cliente"}</Button>
-+            </div>}
-+            {access.canManage && confirmation?.id === client.id && <div className="mt-3 space-y-3 rounded-lg bg-amber-50 p-3">
-+              <p className="text-sm text-amber-900">{confirmation.active ? `Reativar ${confirmation.name}?` : `Desativar ${confirmation.name}? O acesso aos imóveis vinculados ficará indisponível enquanto o cliente estiver inativo.`}</p>
-+              <div className="flex flex-wrap gap-2"><Button variant={confirmation.active ? "primary" : "danger"} disabled={disabled} onClick={changeStatus}>{confirmation.active ? "Confirmar reativação" : "Confirmar desativação"}</Button><Button variant="secondary" onClick={cancel}>Manter estado atual</Button></div>
-+            </div>}
-+          </article>)}
-+        </div> : <ResourceFeedback resource={clients} emptyText="Nenhum cliente cadastrado." />}
-+      </Card>
-+    </div>
-+  </>;
- }
-diff --git a/e2e/README.md b/e2e/README.md
-index e9b2601..558ed61 100644
---- a/e2e/README.md
-+++ b/e2e/README.md
-@@ -45,6 +45,20 @@ Os cenários de contador e finanças com escopo exato criam papéis exclusivos e
- 
- Relatório HTML, capturas e traces de falhas ficam em `.local/playwright-report` e `.local/playwright-results`, ignorados pelo Git. As gravações podem conter sessões das contas de demonstração; use apenas o banco descartável preparado para a suíte.
- 
-+## Clientes e organizações039
++def tree_bytes(root)
++  Dir.glob(File.join(root, '**', '*'), File::FNM_DOTMATCH).sort.select { |p| File.file?(p) && !File.symlink?(p) }.to_h do |path|
++    [path.delete_prefix(root + '/'), Digest::SHA256.file(path).hexdigest]
++  end
++end
 +
-+`organizations.spec.ts` usa login real e a projeção finita `/v1/authorization/platform`. Uma conta com binding global `PLATFORM_ADMIN`, sem a flag legada, entra em Clientes mantendo o papel `RESIDENT` recebido no login. Ela não monta os módulos operacionais nem seus atalhos, mesmo por URL direta; Minhas sessões continua disponível a qualquer identidade autenticada. A flag legada mantém as demais rotas, mas não substitui `organizations:read`/`organizations:manage` nos controles comerciais.
++def fixture(script, original_popen2, mutation: nil, output_kind: 'valid', wait_seconds: 0)
++  Dir.mktmpdir('strict-runner-fixture-') do |temporary|
++    folder = File.join(temporary, 'private')
++    platform = File.join(temporary, 'iPhoneSimulator.platform')
++    agent = File.join(platform, 'Developer', 'Library', 'Xcode', 'Agents', 'XCTRunner.app')
++    FileUtils.mkdir_p(folder, mode: 0700)
++    FileUtils.mkdir_p(agent, mode: 0700)
++    File.write(File.join(folder, 'AuthConfiguration.swift'), "enum AuthConfiguration {}\n")
++    info = {'CFBundleExecutable'=>'$(WRAPPEDPRODUCTNAME)', 'CFBundleIdentifier'=>'$(WRAPPEDPRODUCTBUNDLEIDENTIFIER)', 'CFBundlePackageType'=>'APPL', 'NSAppTransportSecurity'=>{'NSAllowsArbitraryLoads'=>true, 'NSExceptionDomains'=>{'fixture.invalid'=>{'NSExceptionAllowsInsecureHTTPLoads'=>true}}}, 'fixture-data'=>['unchanged', 42, false]}
++    Xcodeproj::Plist.write_to_path(info, File.join(agent, 'Info.plist'))
++    Xcodeproj::Plist.write_to_path({'fixture-entitlement'=>true}, File.join(agent, 'RunnerEntitlements.plist'))
++    File.binwrite(File.join(agent, 'XCTRunner'), "synthetic executable fixture\n")
++    File.chmod(0700, File.join(agent, 'XCTRunner'))
++    FileUtils.mkdir_p(File.join(agent, 'Resources'))
++    File.write(File.join(agent, 'Resources', 'fixture.txt'), 'preserve resource')
++    destination = File.join(folder, 'StrictXCTRunner.app')
++    outside = File.join(temporary, 'outside')
++    FileUtils.mkdir_p(outside)
++    File.write(File.join(outside, 'fixture.txt'), 'outside sentinel')
++    case mutation
++    when 'agent-link'
++      FileUtils.mv(agent, File.join(outside, 'agent'))
++      File.symlink(File.join(outside, 'agent'), agent)
++    when 'info-link'
++      FileUtils.mv(File.join(agent, 'Info.plist'), File.join(outside, 'Info.plist'))
++      File.symlink(File.join(outside, 'Info.plist'), File.join(agent, 'Info.plist'))
++    when 'binary-link'
++      FileUtils.mv(File.join(agent, 'XCTRunner'), File.join(outside, 'XCTRunner'))
++      File.symlink(File.join(outside, 'XCTRunner'), File.join(agent, 'XCTRunner'))
++    when 'resource-link'
++      File.symlink(outside, File.join(agent, 'Resources', 'escape'))
++    when 'missing-entitlements'
++      File.unlink(File.join(agent, 'RunnerEntitlements.plist'))
++    when 'non-executable'
++      File.chmod(0600, File.join(agent, 'XCTRunner'))
++    when 'malformed-plist'
++      File.write(File.join(agent, 'Info.plist'), 'malformed fixture')
++    when 'invalid-plist-type'
++      File.write(File.join(agent, 'Info.plist'), "<?xml version=\"1.0\"?><plist version=\"1.0\"><array/></plist>")
++    when 'existing-destination'
++      Dir.mkdir(destination)
++      File.write(File.join(destination, 'sentinel'), 'existing destination')
++    when 'destination-link'
++      File.symlink(outside, destination)
++    when 'non-private-folder'
++      File.chmod(0755, folder)
++    end
++    before = tree_bytes(platform)
++    outside_before = tree_bytes(outside)
++    calls, children = [], []
++    Open3.define_singleton_method(:popen2) do |*arguments, **options, &block|
++      calls << arguments
++      check(arguments == ['/usr/bin/xcrun', '--sdk', 'iphonesimulator', '--show-sdk-platform-path'])
++      check(options[:err] == File::NULL && options[:pgroup] == true)
++      output = case output_kind
++      when 'empty' then ''
++      when 'relative' then "relative/iPhoneSimulator.platform\n"
++      when 'nul' then platform + "\x00\n"
++      when 'cr' then platform + "\r\n"
++      when 'multiple-lines' then platform + "\nextra\n"
++      when 'oversized' then 'x' * 4097
++      when 'invalid-utf8' then "\xff\n".b
++      when 'wrong-platform' then outside + "\n"
++      when 'missing-platform' then File.join(temporary, 'missing', 'iPhoneSimulator.platform') + "\n"
++      else platform + "\n"
++      end
++      program = "STDERR.write('discarded fixture stderr'); sleep(#{wait_seconds}); STDOUT.binmode; STDOUT.write(#{output.dump}); exit(#{output_kind == 'nonzero' ? 7 : 0})"
++      original_popen2.call(RbConfig.ruby, '-e', program, **options) do |input, stream, child|
++        children << child
++        block.call(input, stream, child)
++      end
++    end
++    ENV['GITHUB_ACTIONS']='true'; ENV['RUNNER_OS']='macOS'; ENV['RUNNER_TEMP']=temporary
++    ENV['XCTRUNNER_PATH']=outside
++    ENV['IOS_TEST_RUNNER_ORIGIN']=outside
++    ARGV.replace([folder])
++    old_stdout, old_stderr = $stdout, $stderr
++    $stdout, $stderr = StringIO.new, StringIO.new
++    started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
++    success = false
++    begin
++      load script
++      success = true
++    rescue SystemExit => failure
++      check(failure.status == 1)
++    ensure
++      elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - started
++      captured_error = $stderr.string
++      $stdout, $stderr = old_stdout, old_stderr
++    end
++    check(before == tree_bytes(platform) && outside_before == tree_bytes(outside))
++    check(children.all? { |child| !child.alive? })
++    check(!captured_error.include?(temporary) && !captured_error.include?('discarded fixture stderr'))
++    yield folder, agent, destination, info, calls, success, elapsed
++  end
++end
 +
-+Os 24 cenários por navegador verificam consulta de ativos e inativos, criação única com dois eventos de submit, edição parcial sem sobrescrever metadata, confirmação/cancelamento de inativação e reativação, conflito409 e preservação do rascunho. Também cobrem revogação de leitura/gestão/binding, GET anterior atrasado, preflight pendente ao navegar/cancelar/trocar identidade inclusive para a mesma conta, erro transitório e resposta403 posterior à checagem. Perder a resposta de um POST realmente concluído ou receber seu JSON inválido deve orientar a atualizar a lista, conservar o rascunho e não reenviar a escrita. O teste de background injeta `visibilitychange` de maneira determinística; ele não representa suspensão real pelo sistema operacional.
++case scenario
++when 'valid'
++  fixture(script, original_popen2) do |folder, agent, destination, info, calls, success, _elapsed|
++    check(success && calls.length == 1 && File.directory?(destination))
++    project = Xcodeproj::Project.open(File.join(folder, 'AuthJourney.xcodeproj'))
++    target = project.targets.fetch(0)
++    check(target.product_type == 'com.apple.product-type.bundle.ui-testing')
++    check(target.build_configurations.map(&:name).sort == ['Debug', 'Release'])
++    target.build_configurations.each do |config|
++      check(config.build_settings['XCTRUNNER_PATH'] == destination)
++      check(config.build_settings['INFOPLIST_FILE'] == 'RunnerInfo.plist')
++      check(config.build_settings['CODE_SIGNING_ALLOWED'] == 'YES' && config.build_settings['CODE_SIGN_IDENTITY'] == '-')
++    end
++    copied = Xcodeproj::Plist.read_from_path(File.join(destination, 'Info.plist'))
++    check(copied.reject { |key, _| key == 'NSAppTransportSecurity' } == info.reject { |key, _| key == 'NSAppTransportSecurity' })
++    check(copied['NSAppTransportSecurity'] == {'NSAllowsArbitraryLoads'=>false})
++    check(File.binread(File.join(agent, 'XCTRunner')) == File.binread(File.join(destination, 'XCTRunner')))
++    check(File.executable?(File.join(destination, 'XCTRunner')))
++    check(File.binread(File.join(agent, 'RunnerEntitlements.plist')) == File.binread(File.join(destination, 'RunnerEntitlements.plist')))
++    check(File.read(File.join(destination, 'Resources', 'fixture.txt')) == 'preserve resource')
++  end
++when 'invalid-source'
++  %w[agent-link info-link binary-link resource-link missing-entitlements non-executable malformed-plist invalid-plist-type non-private-folder].each do |kind|
++    fixture(script, original_popen2, mutation: kind) do |folder, _agent, _destination, _info, _calls, success, _elapsed|
++      check(!success && !File.exist?(File.join(folder, 'AuthJourney.xcodeproj')))
++    end
++  end
++when 'exclusive-destination'
++  %w[existing-destination destination-link].each do |kind|
++    fixture(script, original_popen2, mutation: kind) do |folder, _agent, destination, _info, _calls, success, _elapsed|
++      check(!success && !File.exist?(File.join(folder, 'AuthJourney.xcodeproj')))
++      check(File.read(File.join(destination, 'sentinel')) == 'existing destination') if kind == 'existing-destination'
++    end
++  end
++when 'invalid-discovery'
++  %w[nonzero empty relative nul cr multiple-lines oversized invalid-utf8 wrong-platform missing-platform].each do |kind|
++    fixture(script, original_popen2, output_kind: kind) do |folder, _agent, _destination, _info, calls, success, _elapsed|
++      check(!success && calls.length == 1 && !File.exist?(File.join(folder, 'AuthJourney.xcodeproj')))
++    end
++  end
++when 'discovery-timeout'
++  peer = Process.spawn(RbConfig.ruby, '-e', 'sleep 100', out: File::NULL, err: File::NULL, pgroup: true)
++  peer_reaped = false
++  begin
++    fixture(script, original_popen2, wait_seconds: 100) do |folder, _agent, _destination, _info, calls, success, elapsed|
++      check(!success && calls.length == 1 && elapsed >= 14.5 && elapsed < 18)
++      check(!File.exist?(File.join(folder, 'AuthJourney.xcodeproj')))
++      peer_reaped = !Process.waitpid(peer, Process::WNOHANG).nil?
++      check(!peer_reaped)
++    end
++  ensure
++    unless peer_reaped
++      Process.kill('KILL', -peer)
++      Process.waitpid(peer)
++    end
++  end
++else
++  raise 'Unknown runner project fixture scenario'
++end
++puts JSON.generate({'scenario'=>scenario, 'passed'=>true, 'ruby'=>RUBY_VERSION, 'xcodeproj'=>Xcodeproj::VERSION, 'nativeBuild'=>false})
++'''
 +
-+Uma regressão libera, no mesmo turno, os corpos reais da revogação e de uma escrita já persistida. O MutationObserver detecta inclusive uma confirmação antiga inserida brevemente no DOM antes da limpeza passiva. O guard compara epochs sincronamente; reconceder a capacidade não recupera a intenção anterior. Outro caso retém a primeira projeção e verifica o destino entre pointerdown/up: o menu parcial movia Minhas sessões de y92 para y140. O Shell agora apresenta carregamento até a primeira projeção, conserva os links durante consultas periódicas com dados válidos e mantém Sair disponível.
 +
-+O seletor comercial de Imóveis só consulta organizações quando a leitura atual é permitida. Uma revogação desmonta seu recurso, seleção e intenção; o retorno da permissão aguarda dados novos. O formulário revalida a leitura antes de criar o imóvel e não exige gestão de organizações, conservando a autorização legada própria desse domínio.
++class RunnerProjectGenerationTests(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        cls.ruby = shutil.which("ruby")
++        cls.unavailable = None
++        if os.name == "nt" or not cls.ruby:
++            cls.unavailable = "POSIX Ruby/Xcodeproj unavailable; real generator requires its separate Ruby fixture"
++            return
++        cls.environment = dict(os.environ)
++        cls.bootstrap = "require 'xcodeproj'; load ARGV.shift"
++        probe = subprocess.run([cls.ruby, "-e", "require 'xcodeproj'"], env=cls.environment, capture_output=True, timeout=15)
++        if probe.returncode != 0:
++            cls.environment["BUNDLE_GEMFILE"] = str(BASE.parent.parent / "apps/resident-mobile/Gemfile")
++            probe = subprocess.run([cls.ruby, "-e", "require 'bundler/setup'; require 'xcodeproj'"], env=cls.environment, capture_output=True, timeout=15)
++            if probe.returncode != 0:
++                cls.unavailable = "Configured Xcodeproj gem unavailable; no automatic dependency installation"
++                return
++            cls.bootstrap = "require 'bundler/setup'; require 'xcodeproj'; load ARGV.shift"
 +
-+Esta spec altera temporariamente as duas linhas `role_permissions` de `PLATFORM_ADMIN` **apenas no banco descartável dedicado à sua execução**, para provar a ausência real de cada capacidade sem simular a autorização. Não execute a suíte junto a outro consumidor do mesmo banco. O `finally` repõe os registros originais, incluindo `created_at` com microssegundos via JSONB, e remove apenas usuários, organizações, imóveis e auditoria pertencentes aos UUIDs do cenário. Não há reset de banco nem uso de contas reais. As respostas atrasadas são respostas reais retidas; os únicos erros sintéticos são503 e a perda/corrupção explícita da resposta após persistência real.
++    def run_fixture(self, scenario):
++        if self.unavailable:
++            self.skipTest(self.unavailable)
++        with tempfile.TemporaryDirectory() as temporary:
++            fixture = Path(temporary) / "runner-fixture.rb"
++            fixture.write_text(RUNNER_PROJECT_FIXTURE, encoding="utf-8")
++            response = subprocess.run([self.ruby, "-e", self.bootstrap, str(fixture), str(BASE / "project.rb"), scenario],
++                                      env=self.environment, capture_output=True, text=True, timeout=45)
++        self.assertEqual(response.returncode, 0, "Real runner project fixture failed; captured output remains private")
++        report = json.loads(response.stdout)
++        self.assertEqual(report["scenario"], scenario)
++        self.assertIs(report["passed"], True)
++        self.assertIs(report["nativeBuild"], False)
 +
-+Evidência local: três REDs válidos demonstraram a entrada bloqueada do RBAC puro, controles indevidos para leitor e consulta indevida do seletor. Dois REDs adicionais reproduziram a mensagem inadequada de resultado incerto; a confirmação tardia e o deslocamento do menu também tiveram RED próprio. Antes do ajuste final do menu, a matriz de organizações passou **69/69**, em3,9min, e a regressão de platform/menu/auth-cookie/session-management passou **69/69**, em5,0min. São execuções distintas, com bundles de produção, API e PostgreSQL001–039, um worker e zero retries (`work/org039-ui-final-three-browsers.log` e `work/org039-ui-adjacent.log`). O ajuste posterior do menu passou **3/3** dirigidos nos três motores (`work/org039-ui-menu-latency-green.log`). Tipos do portal e da spec passaram em Windows/Linux; cliente HTTP64/64 e biblioteca UI89/89 também passaram. A integral da fonte final, descoberta com312 casos em18 arquivos, está em execução; os resultados anteriores não são somados nem apresentados como aprovação dessa integral ou do CI.
++    def test_generated_configs_bind_private_strict_origin_and_preserve_source(self):
++        self.run_fixture("valid")
 +
- ## Ambiente do CI e regressão de atualização
- 
- O workflow usa a [imagem oficial Playwright](https://playwright.dev/docs/ci#via-containers) `1.63.0-noble`, na mesma versão fixada do pacote. Os navegadores e dependências do sistema já vêm na imagem. O [PostgreSQL do job container](https://docs.github.com/en/actions/tutorials/use-containerized-services/create-postgresql-service-containers) é acessado pelo nome do serviço; não precisa publicar porta no host.
-diff --git a/pnpm-lock.yaml b/pnpm-lock.yaml
-index f89113a..e99d3e5 100644
---- a/pnpm-lock.yaml
-+++ b/pnpm-lock.yaml
-@@ -17,6 +17,9 @@ importers:
- 
-   apps/admin-web:
-     dependencies:
-+      '@predioon/contracts':
-+        specifier: workspace:*
-+        version: link:../../packages/contracts
-       '@predioon/shared':
-         specifier: workspace:*
-         version: link:../../packages/shared
-diff --git a/apps/admin-web/src/organization-access.tsx b/apps/admin-web/src/organization-access.tsx
++    def test_source_links_missing_resources_and_malformed_plists_fail_closed(self):
++        self.run_fixture("invalid-source")
++
++    def test_private_destination_is_exclusive_and_never_overwrites(self):
++        self.run_fixture("exclusive-destination")
++
++    def test_fixed_discovery_rejects_invalid_outputs_and_does_not_use_environment_origin(self):
++        self.run_fixture("invalid-discovery")
++
++    def test_discovery_timeout_terminates_only_owned_child(self):
++        self.run_fixture("discovery-timeout")
++
++
+ def png_fixture():
+     def chunk(kind, contents):
+         return struct.pack(">I", len(contents)) + kind + contents + struct.pack(">I", zlib.crc32(kind + contents))
+diff --git a/infrastructure/040-users-runtime-acl.sql b/infrastructure/040-users-runtime-acl.sql
 new file mode 100644
-index 0000000..cc8a2cd
+index 0000000..c35ebc9
 --- /dev/null
-+++ b/apps/admin-web/src/organization-access.tsx
-@@ -0,0 +1,175 @@
-+import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
-+import { useLocation } from "react-router-dom";
-+import type { PlatformAuthorizationResponse } from "@predioon/contracts/tenancy";
-+import { api, ApiError, Button, Card, ErrorBanner, LoadingState, useAuth } from "@predioon/ui";
++++ b/infrastructure/040-users-runtime-acl.sql
+@@ -0,0 +1,23 @@
++-- The API reads public account fields and still supports legacy account INSERT.
++-- Credential reads and replacement belong to the separate identity runtime.
++-- Keep RLS, SECURITY DEFINER helpers and every other principal unchanged.
++REVOKE SELECT, UPDATE, DELETE ON TABLE public.users FROM predioon_app;
 +
-+type Capabilities = PlatformAuthorizationResponse["capabilities"];
-+type Snapshot = { capabilities: Capabilities | null; checking: boolean; error: string | null; readEpoch: number; manageEpoch: number };
-+const reads = (capabilities: Capabilities | null) => capabilities?.includes("organizations:read") === true;
-+const manages = (capabilities: Capabilities | null) => reads(capabilities) && capabilities?.includes("organizations:manage") === true;
++-- Table REVOKE does not remove previously granted column privileges. Clear
++-- both classes explicitly, including any residual grant on a non-public field.
++DO $$
++DECLARE column_name text;
++BEGIN
++  FOR column_name IN
++    SELECT attname FROM pg_catalog.pg_attribute
++    WHERE attrelid = 'public.users'::regclass AND attnum > 0 AND NOT attisdropped
++  LOOP
++    EXECUTE format('REVOKE SELECT (%I), UPDATE (%I) ON TABLE public.users FROM predioon_app', column_name, column_name);
++  END LOOP;
++END $$;
 +
-+function capabilitiesFrom(value: PlatformAuthorizationResponse): Capabilities {
-+  if (!value || !Array.isArray(value.capabilities) || value.capabilities.some(key => typeof key !== "string")) {
-+    throw new Error("A API retornou uma autorização de clientes inválida.");
-+  }
-+  // The finite projection never grants another module, including future keys.
-+  return value.capabilities.filter(key => key === "organizations:read" || key === "organizations:manage");
-+}
++GRANT SELECT (id, name, email, phone, is_platform_admin, active, created_at)
++  ON TABLE public.users TO predioon_app;
 +
-+/** A page-owned, awaitable authorization read. A refresh requested during a slow
-+ * read supersedes that result and queues one new read, without concurrent loops. */
-+function createOrganizationAccess(session: { isValid(): boolean }) {
-+  let snapshot: Snapshot = { capabilities: null, checking: true, error: null, readEpoch: 0, manageEpoch: 0 };
-+  let last: Capabilities | null = null;
-+  let active = false, running = false, desired = 0, started = 0;
-+  let resolveRead: ((value: Capabilities | null) => void) | null = null;
-+  const listeners = new Set<() => void>();
-+  const current = () => active && session.isValid();
-+  function publish(next: Snapshot) { snapshot = next; for (const listener of listeners) listener(); }
-+  function settle(value: Capabilities | null) { const resolve = resolveRead; resolveRead = null; resolve?.(value); }
-+  async function pump(): Promise<void> {
-+    if (!current() || running || started === desired) return;
-+    running = true;
-+    const expected = desired; started = expected;
-+    try {
-+      const capabilities = capabilitiesFrom(await api.get<PlatformAuthorizationResponse>("/v1/authorization/platform"));
-+      if (!current() || expected !== desired) return;
-+      publish({ capabilities, checking: false, error: null,
-+        readEpoch: snapshot.readEpoch + Number(reads(last) && !reads(capabilities)),
-+        manageEpoch: snapshot.manageEpoch + Number(manages(last) && !manages(capabilities)) });
-+      last = capabilities;
-+      settle(capabilities);
-+    } catch (cause) {
-+      if (!current() || expected !== desired) return;
-+      publish({ ...snapshot, capabilities: null, checking: false,
-+        error: cause instanceof Error ? cause.message : "Não foi possível verificar o acesso a clientes." });
-+      settle(null);
-+    } finally {
-+      running = false;
-+      if (current() && started !== desired) void pump();
-+    }
-+  }
-+  function refresh(): Promise<Capabilities | null> {
-+    if (!current()) return Promise.resolve(null);
-+    // An older preflight must finish without writing, even if its fetch is slow.
-+    settle(null); desired++;
-+    publish({ ...snapshot, checking: true, error: null });
-+    const result = new Promise<Capabilities | null>(resolve => { resolveRead = resolve; });
-+    void pump();
-+    return result;
-+  }
-+  return {
-+    getSnapshot: () => snapshot,
-+    subscribe(listener: () => void) { listeners.add(listener); return () => { listeners.delete(listener); }; },
-+    current,
-+    refresh,
-+    start() { active = true; void refresh(); },
-+    stop() { active = false; desired++; settle(null); },
-+    invalidate() {
-+      if (!current()) return;
-+      last = [];
-+      publish({ ...snapshot, capabilities: null, error: null, checking: true,
-+        readEpoch: snapshot.readEpoch + 1, manageEpoch: snapshot.manageEpoch + 1 });
-+      void refresh();
-+    },
-+  };
-+}
-+type Access = ReturnType<typeof createOrganizationAccess>;
-+const Context = createContext<Access | null>(null);
-+
-+export function OrganizationAccessProvider({ children }: { children: ReactNode }) {
-+  const { user, accessIntents } = useAuth();
-+  // Auth invalidates the prior reference synchronously, also for same-account login.
-+  const access = useMemo(() => createOrganizationAccess(accessIntents), [user?.id, accessIntents]);
-+  useEffect(() => {
-+    access.start();
-+    const refresh = () => { if (document.visibilityState === "visible") void access.refresh(); };
-+    window.addEventListener("focus", refresh);
-+    document.addEventListener("visibilitychange", refresh);
-+    const timer = setInterval(refresh, 30_000);
-+    return () => { access.stop(); clearInterval(timer); window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", refresh); };
-+  }, [access]);
-+  return <Context.Provider value={access}>{children}</Context.Provider>;
-+}
-+
-+export function useOrganizationAccess() {
-+  const access = useContext(Context);
-+  if (!access) throw new Error("OrganizationAccessProvider ausente");
-+  const snapshot = useSyncExternalStore(access.subscribe, access.getSnapshot, access.getSnapshot);
-+  return { ...snapshot, canRead: reads(snapshot.capabilities), canManage: manages(snapshot.capabilities),
-+    refresh: access.refresh, invalidate: access.invalidate, current: access.current, access };
-+}
-+
-+export function OrganizationAccessFeedback() {
-+  const access = useOrganizationAccess();
-+  if (access.checking && !access.capabilities) return <LoadingState text="Verificando acesso a clientes…" />;
-+  return <Card>
-+    {access.error ? <ErrorBanner message={`Acesso a clientes indisponível: ${access.error}`} /> : <p role="status" className="mb-3 text-sm text-slate-600">Você não tem permissão para consultar clientes.</p>}
-+    <Button variant="secondary" disabled={access.checking} onClick={() => void access.refresh()}>Tentar novamente</Button>
-+  </Card>;
-+}
-+
-+/** Only these explicit routes inherit the old platform entry requirement. */
-+const LEGACY_ROUTES = new Set(["/", "/predios", "/gateways", "/dispositivos", "/alertas", "/usuarios", "/unidades-equipes", "/funcionalidades", "/auditoria", "/operacao", "/suporte-remoto"]);
-+export function organizationRouteAllowed(path: string, legacy: boolean, canRead: boolean): boolean {
-+  const pathname = path.split(/[?#]/)[0]!.replace(/\/+$/, "") || "/";
-+  return pathname === "/sessoes" || (pathname === "/clientes" ? canRead : legacy && LEGACY_ROUTES.has(pathname));
-+}
-+
-+/** Mutations belong to the current view and session. No retry/replay is added. */
-+export function useOrganizationMutation() {
-+  const { access } = useOrganizationAccess();
-+  const location = useLocation();
-+  const generation = useRef(0), mounted = useRef(false), sending = useRef(false);
-+  const [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null);
-+  useLayoutEffect(() => {
-+    mounted.current = true;
-+    const invalidate = () => { generation.current++; };
-+    const visibility = () => { if (document.visibilityState !== "visible") invalidate(); };
-+    document.addEventListener("visibilitychange", visibility);
-+    window.addEventListener("pagehide", invalidate);
-+    return () => { mounted.current = false; invalidate(); document.removeEventListener("visibilitychange", visibility); window.removeEventListener("pagehide", invalidate); };
-+  }, [access, location.key]);
-+  const cancelPendingIntent = () => { generation.current++; setError(null); };
-+  async function run<T>(required: "read" | "manage", operation: () => Promise<T>, succeeded: (value: T) => void) {
-+    if (sending.current || !mounted.current || !access.current() || document.visibilityState !== "visible") return;
-+    sending.current = true; setBusy(true); setError(null);
-+    const expected = generation.current;
-+    const authorization = access.getSnapshot();
-+    let submitted = false;
-+    const current = () => {
-+      const latest = access.getSnapshot();
-+      // Publication precedes React's effect cleanup. A committed response from
-+      // an earlier authorization epoch cannot update the new view, even after regrant.
-+      return mounted.current && generation.current === expected && access.current() && document.visibilityState === "visible"
-+        && latest.readEpoch === authorization.readEpoch
-+        && (required === "read" || latest.manageEpoch === authorization.manageEpoch);
-+    };
-+    try {
-+      const capabilities = await access.refresh();
-+      if (!current()) return;
-+      // A newer focus/revocation may supersede this completed response before
-+      // its continuation runs. Never start a fresh request with an older grant.
-+      if (access.getSnapshot().capabilities !== capabilities || access.getSnapshot().checking) return;
-+      if (!(required === "manage" ? manages(capabilities) : reads(capabilities))) {
-+        if (capabilities) throw new Error("Sua permissão mudou. A ação não foi enviada.");
-+        throw new Error("Não foi possível confirmar sua permissão. A ação não foi enviada.");
-+      }
-+      submitted = true;
-+      const result = await operation();
-+      if (current()) succeeded(result);
-+    } catch (cause) {
-+      if (!current()) return;
-+      if (cause instanceof ApiError && cause.status === 403) access.invalidate();
-+      if (!(cause instanceof ApiError && cause.code === "SESSION_CHANGED")) {
-+        const uncertain = submitted && cause instanceof ApiError && (cause.code === "NETWORK_ERROR" || cause.code === "INVALID_RESPONSE");
-+        setError(uncertain ? "Não foi possível confirmar se a alteração foi concluída. Atualize a lista antes de tentar novamente."
-+          : cause instanceof Error ? cause.message : "Não foi possível confirmar a resposta da operação. Atualize a lista antes de tentar novamente.");
-+      }
-+    } finally {
-+      sending.current = false;
-+      if (mounted.current && access.current()) setBusy(false);
-+    }
-+  }
-+  return { busy, error, setError, run, cancelPendingIntent };
-+}
-diff --git a/e2e/organizations.spec.ts b/e2e/organizations.spec.ts
++-- Do not narrow INSERT to columns here: the existing Drizzle INSERT includes
++-- DEFAULTs for the remaining columns. Its authorization still comes from RLS.
+diff --git a/apps/api/test/users-runtime-acl.test.ts b/apps/api/test/users-runtime-acl.test.ts
 new file mode 100644
-index 0000000..9139973
+index 0000000..c493d2c
 --- /dev/null
-+++ b/e2e/organizations.spec.ts
-@@ -0,0 +1,677 @@
++++ b/apps/api/test/users-runtime-acl.test.ts
+@@ -0,0 +1,325 @@
++import assert from "node:assert/strict";
 +import { randomUUID } from "node:crypto";
-+import { expect, test, type APIRequestContext, type Page } from "./fixtures";
-+import { ADMIN_URL, API_URL } from "./environment";
-+import { authenticatedApi, enterCredentials, signIn, signOut } from "./helpers";
-+import { withFixtureDatabase } from "./database";
++import { readFile } from "node:fs/promises";
++import { after, before, describe, it, mock } from "node:test";
++import { sql, type SQL } from "drizzle-orm";
++import { sqlClient } from "@predioon/db";
++import { appSqlClient, closeAppDb, withUserContext, type UserContext } from "@predioon/db/runtime";
++import { identitySqlClient } from "@predioon/db/identity";
++import { brokerAuthSqlClient } from "@predioon/db/broker-auth";
++import { createNotificationSqlClient } from "@predioon/db/notifications";
++import { hashPassword } from "../src/auth/passwords.js";
++import { loginBudgetKeys } from "../src/auth/login-budget-keys.js";
++import { config } from "../src/config.js";
++import { pgErrorCode } from "../src/http/errors.js";
++import { call, login, startTestServer, type Session, type TestServer } from "./helpers.js";
 +
-+type Account = { id: string; email: string };
-+type CatalogGrant = { role_key: string; permission_key: string; created_at: string };
-+type Fixture = {
-+  prefix: string; organization: string; inactive: string; building: string;
-+  name: string; inactiveName: string; buildingName: string;
-+  pure: Account; flag: Account; outsider: Account;
-+  capabilities: (account: Account, expected: string[]) => Promise<void>;
-+  setCapability: (key: "organizations:read" | "organizations:manage", enabled: boolean) => Promise<void>;
-+  revokeBinding: () => Promise<void>;
-+};
++const publicColumns = ["active", "created_at", "email", "id", "is_platform_admin", "name", "phone"];
++const publicDto = ["active", "createdAt", "email", "id", "isPlatformAdmin", "name", "phone"];
++const allColumns = [...publicColumns, "password_hash", "updated_at"].sort();
++const runtimeRoles = ["predioon_app", "predioon_identity", "predioon_broker_auth", "predioon_notifications"];
++const publicProjection = sql.raw(publicColumns.join(","));
 +
-+/** This suite owns the disposable cluster while changing the two platform grants.
-+ * All UI requests use normal login/API/RLS; owner SQL only prepares/cleans fixtures. */
-+async function withOrganizations(request: APIRequestContext, run: (fixture: Fixture) => Promise<void>) {
-+  const prefix = `e2e-org-${randomUUID()}`;
-+  const organization = `${prefix}-a`, inactive = `${prefix}-b`, building = `${prefix}-building`;
-+  const account = (kind: string): Account => ({ id: `${prefix}-${kind}`, email: `${prefix}-${kind}@organizations.test` });
-+  const pure = account("pure"), flag = account("flag"), outsider = account("outsider");
-+  const users = [pure.id, flag.id, outsider.id], binding = randomUUID();
-+  const name = `Cliente próprio ${prefix}`, inactiveName = `Cliente inativo ${prefix}`, buildingName = `Imóvel próprio ${prefix}`;
-+  let grants: CatalogGrant[] | undefined;
-+  try {
-+    await withFixtureDatabase(async sql => {
-+      const catalog = await sql<{ row: CatalogGrant }[]>`select to_jsonb(rp) row from role_permissions rp where role_key='PLATFORM_ADMIN'
-+        and permission_key in ('organizations:read','organizations:manage') order by permission_key`;
-+      grants = catalog.map(({ row }) => row); // JSON retains PostgreSQL microseconds exactly.
-+      expect(grants).toHaveLength(2);
-+      await sql.begin(async tx => {
-+        await tx`insert into organizations(id,name,slug,active,metadata) values
-+          (${organization},${name},${organization},true,'{"preserve":"commercial metadata"}'),
-+          (${inactive},${inactiveName},${inactive},false,'{}')`;
-+        await tx`insert into buildings(id,organization_id,name,code) values(${building},${organization},${buildingName},${prefix.slice(-20)})`;
-+        for (const current of [pure, flag, outsider]) {
-+          const inserted = await tx`insert into users(id,email,name,password_hash,active,is_platform_admin)
-+            select ${current.id},${current.email},${current.id},password_hash,true,${current.id === flag.id}
-+            from users where email='admin@predioon.local' returning id`;
-+          expect(inserted).toHaveLength(1);
-+        }
-+        await tx`insert into role_bindings(id,user_id,role_key) values(${binding},${pure.id},'PLATFORM_ADMIN')`;
-+      });
-+    });
-+    const clients = new Map<string, Awaited<ReturnType<typeof authenticatedApi>>>();
-+    await run({
-+      prefix, organization, inactive, building, name, inactiveName, buildingName, pure, flag, outsider,
-+      async capabilities(current, expected) {
-+        let api = clients.get(current.id);
-+        if (!api) { api = await authenticatedApi(request, current.email); clients.set(current.id, api); }
-+        const response = await api.get("/v1/authorization/platform");
-+        expect(response.status(), "A premissa usa a projeção real autenticada").toBe(200);
-+        expect(response.headers()["cache-control"]).toBe("no-store");
-+        expect(await response.json()).toEqual({ capabilities: [...expected].sort() });
-+      },
-+      async setCapability(key, enabled) {
-+        await withFixtureDatabase(async sql => {
-+          await sql`delete from role_permissions where role_key='PLATFORM_ADMIN' and permission_key=${key}`;
-+          if (enabled) await sql`insert into role_permissions select * from jsonb_populate_recordset(null::role_permissions,${sql.json(grants!)}::jsonb) where permission_key=${key}`;
-+        });
-+      },
-+      async revokeBinding() { await withFixtureDatabase(sql => sql`update role_bindings set active=false where id=${binding}`); },
-+    });
-+  } finally {
-+    await withFixtureDatabase(async sql => sql.begin(async tx => {
-+      if (grants) {
-+        await tx`delete from role_permissions where role_key='PLATFORM_ADMIN' and permission_key in ('organizations:read','organizations:manage')`;
-+        await tx`insert into role_permissions select * from jsonb_populate_recordset(null::role_permissions,${tx.json(grants)}::jsonb)`;
-+      }
-+      await tx`delete from audit_logs where user_id in ${tx(users)} or resource_id in (${organization},${inactive},${building})`;
-+      await tx`delete from buildings where organization_id in (${organization},${inactive})`;
-+      // Only this scenario's unguessable slug namespace, including uncertain POST responses.
-+      await tx`delete from organizations where slug like ${prefix + '%'} or id in (${organization},${inactive})`;
-+      await tx`delete from users where id in ${tx(users)}`;
-+    }));
-+  }
-+}
++describe("users runtime has public reads and legacy inserts only", () => {
++  let server: TestServer;
++  let passwordHash: string;
++  const actorRoles = new Map<string, UserContext["role"]>();
 +
-+test("organizações: RBAC puro entra em Clientes sem elevar o papel legado", async ({ page, request }) => withOrganizations(request, async f => {
-+  await f.capabilities(f.pure, ["organizations:read", "organizations:manage"]);
-+  const login = page.waitForResponse(response => response.url() === `${API_URL}/auth/web/login`);
-+  await signIn(page, ADMIN_URL, f.pure.email);
-+  expect((await (await login).json()).user.role).toBe("RESIDENT");
-+  await expect(page).toHaveURL(`${ADMIN_URL}/clientes`);
-+  await expect(page.getByRole("heading", { name: "Clientes", exact: true })).toBeVisible();
-+  await expect(page.getByText(f.name, { exact: true })).toBeVisible();
-+  await withFixtureDatabase(async sql => {
-+    const [row] = await sql`select is_platform_admin from users where id=${f.pure.id}`;
-+    expect(row!.is_platform_admin).toBe(false);
++  before(async () => {
++    const [role] = await appSqlClient`select current_user as effective, session_user as authenticated`;
++    assert.deepEqual(role, { effective: "predioon_app", authenticated: "predioon_app" });
++    passwordHash = await hashPassword("predioon123");
++    server = await startTestServer();
 +  });
-+}));
-+
-+async function openClients(page: Page, account: Account) {
-+  await signIn(page, ADMIN_URL, account.email);
-+  await page.goto(`${ADMIN_URL}/clientes`);
-+  await expect(page.getByRole("heading", { name: "Clientes", exact: true })).toBeVisible();
-+}
-+const clientRow = (page: Page, name: string) => page.getByRole("article", { name: `Cliente ${name}`, exact: true });
-+async function fillClient(page: Page, name: string, slug: string) {
-+  await page.getByLabel("Nome do cliente", { exact: true }).fill(name);
-+  await page.getByLabel("Slug do cliente", { exact: true }).fill(slug);
-+}
-+async function focusAuthorization(page: Page) {
-+  const response = page.waitForResponse(r => r.url() === `${API_URL}/v1/authorization/platform`);
-+  await page.evaluate(() => window.dispatchEvent(new Event("focus")));
-+  expect((await response).status()).toBe(200);
-+}
-+
-+/** Delay a real response, and prove its body reached the same browser document.
-+ * The client may rightly refuse to consume an old identity's original stream. */
-+async function holdFirstResponse(page: Page, path: string) {
-+  let release!: () => void, reached!: () => void;
-+  const barrier = new Promise<void>(resolve => { release = resolve; });
-+  const held = new Promise<void>(resolve => { reached = resolve; });
-+  const marker = randomUUID();
-+  await page.evaluate(({ path, marker, origin }) => {
-+    const host = window as typeof window & { organizationDeliveries?: Record<string, unknown> };
-+    host.organizationDeliveries ??= {};
-+    const original = window.fetch.bind(window);
-+    let captured = false;
-+    window.fetch = async (...args) => {
-+      const input = args[0];
-+      const url = new URL(typeof input === "string" ? input : input instanceof URL ? input.href : input.url, location.href);
-+      const selected = !captured && url.origin === origin && url.pathname === path;
-+      if (selected) captured = true;
-+      const response = await original(...args);
-+      if (selected) host.organizationDeliveries![marker] = await response.clone().json();
-+      return response;
-+    };
-+  }, { path, marker, origin: API_URL });
-+  let once = false;
-+  await page.route(`${API_URL}${path}`, async route => {
-+    if (once || route.request().method() !== "GET") return route.continue();
-+    once = true;
-+    const actual = await route.fetch();
-+    expect(actual.status()).toBe(200);
-+    reached();
-+    await barrier;
-+    await route.fulfill({ response: actual });
++  after(async () => {
++    await server?.close();
++    await closeAppDb();
++    await sqlClient.end();
 +  });
-+  return {
-+    held, release,
-+    async delivered() {
-+      await expect.poll(() => page.evaluate(marker => (window as typeof window & { organizationDeliveries?: Record<string, unknown> }).organizationDeliveries?.[marker] !== undefined, marker)).toBe(true);
-+      return page.evaluate(marker => (window as typeof window & { organizationDeliveries: Record<string, unknown> }).organizationDeliveries[marker], marker);
-+    },
++
++  type Fixture = {
++    prefix: string;
++    users: Record<"admin" | "resident" | "manager" | "foreign", string>;
++    buildings: string[];
++    session: (kind: keyof Fixture["users"]) => Promise<Session>;
 +  };
-+}
 +
-+test("organizações: conta comercial não monta módulos legados nem oferece seus atalhos", async ({ page, request }, info) => withOrganizations(request, async f => {
-+  await openClients(page, f.pure);
-+  await expect(clientRow(page, f.name)).toBeVisible();
-+  await expect(page.getByRole("link", { name: "Ver alertas", exact: true })).toHaveCount(0);
-+  await page.getByRole("textbox", { name: "Buscar no sistema", exact: true }).fill("Alertas");
-+  await expect(page.getByText("Nenhuma página encontrada.", { exact: true })).toBeVisible();
-+  const requests: string[] = [];
-+  page.on("request", current => { if (new URL(current.url()).origin === API_URL) requests.push(new URL(current.url()).pathname); });
-+  for (const route of ["predios", "gateways", "dispositivos", "alertas", "usuarios", "unidades-equipes", "funcionalidades", "auditoria", "operacao", "suporte-remoto", "predios/?check=1"]) {
-+    await page.goto(`${ADMIN_URL}/${route}`);
-+    await expect(page.getByText("Este painel é exclusivo da administração da plataforma.", { exact: true })).toBeVisible();
-+    await expect(page.getByRole("link", { name: "Ir para Clientes", exact: true })).toBeVisible();
-+  }
-+  expect(requests.every(path => path.startsWith("/auth/") || path === "/v1/authorization/platform")).toBe(true);
-+  await page.getByRole("link", { name: "Ir para Clientes", exact: true }).click();
-+  await expect(clientRow(page, f.name)).toBeVisible();
-+  await page.setViewportSize({ width: 390, height: 844 });
-+  await page.getByRole("button", { name: "Abrir menu", exact: true }).click();
-+  const menu = page.getByRole("dialog", { name: "Menu principal", exact: true });
-+  await expect(menu.getByRole("link")).toHaveCount(2);
-+  await expect(menu.getByRole("button", { name: "Fechar menu", exact: true })).toBeFocused();
-+  await menu.getByRole("link", { name: "Minhas sessões", exact: true }).click();
-+  await expect(page.getByRole("article", { name: "Sessão deste navegador", exact: true })).toBeVisible();
-+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-+  if (info.project.name === "chromium") await page.screenshot({ path: info.outputPath("commercial-own-sessions-mobile.png"), fullPage: true });
-+}));
-+
-+test("organizações: gestor cria uma vez, edita parcialmente e confirma desativação e reativação", async ({ page, request }, info) => withOrganizations(request, async f => {
-+  await openClients(page, f.pure);
-+  await expect(clientRow(page, f.name)).toBeVisible();
-+  const createdName = `Novo ${f.prefix}`, slug = `${f.prefix}-novo`;
-+  await fillClient(page, createdName, slug);
-+  let posts = 0;
-+  page.on("request", current => { if (current.url() === `${API_URL}/organizations` && current.method() === "POST") posts++; });
-+  const created = page.waitForResponse(r => r.url() === `${API_URL}/organizations` && r.request().method() === "POST");
-+  // Two submit events exercise the synchronous guard independently of a disabled button.
-+  await page.getByRole("form", { name: "Cadastrar cliente", exact: true }).evaluate(form => { (form as HTMLFormElement).requestSubmit(); (form as HTMLFormElement).requestSubmit(); });
-+  expect((await created).status()).toBe(201);
-+  await expect(clientRow(page, createdName)).toBeVisible();
-+  expect(posts).toBe(1);
-+  await clientRow(page, f.name).getByRole("button", { name: "Editar cliente", exact: true }).click();
-+  const changedName = `Atualizado ${f.prefix}`;
-+  await fillClient(page, changedName, `${f.prefix}-editado`);
-+  const edited = page.waitForResponse(r => r.url() === `${API_URL}/organizations/${f.organization}` && r.request().method() === "PATCH");
-+  await page.getByRole("button", { name: "Salvar cliente", exact: true }).click();
-+  const update = await edited;
-+  expect(update.status()).toBe(200);
-+  expect(Object.keys(update.request().postDataJSON()).sort()).toEqual(["name", "slug"]);
-+  expect((await update.json()).metadata).toEqual({ preserve: "commercial metadata" });
-+  await expect(clientRow(page, changedName)).toBeVisible();
-+  let patches = 0;
-+  page.on("request", current => { if (current.url() === `${API_URL}/organizations/${f.organization}` && current.method() === "PATCH") patches++; });
-+  await clientRow(page, changedName).getByRole("button", { name: "Desativar cliente", exact: true }).click();
-+  await page.getByRole("button", { name: "Manter estado atual", exact: true }).click();
-+  expect(patches).toBe(0);
-+  for (const active of [false, true]) {
-+    await clientRow(page, changedName).getByRole("button", { name: active ? "Reativar cliente" : "Desativar cliente", exact: true }).click();
-+    const response = page.waitForResponse(r => r.url() === `${API_URL}/organizations/${f.organization}` && r.request().method() === "PATCH");
-+    await page.getByRole("button", { name: active ? "Confirmar reativação" : "Confirmar desativação", exact: true }).click();
-+    const result = await response;
-+    expect(result.status()).toBe(200); expect(result.request().postDataJSON()).toEqual({ active });
-+    await expect(clientRow(page, changedName).getByText(active ? "Ativo" : "Inativo", { exact: true })).toBeVisible();
-+  }
-+  expect(patches).toBe(2);
-+  await page.reload();
-+  await expect(clientRow(page, changedName)).toBeVisible();
-+  await expect(clientRow(page, createdName)).toBeVisible();
-+  await withFixtureDatabase(async sql => {
-+    const rows = await sql`select action from audit_logs where user_id=${f.pure.id}`;
-+    expect(rows.filter(row => row.action === "ORGANIZATION_CREATED")).toHaveLength(1);
-+    expect(rows.filter(row => row.action === "ORGANIZATION_UPDATED")).toHaveLength(3);
-+  });
-+  if (info.project.name === "chromium") await page.screenshot({ path: info.outputPath("commercial-clients-managed.png"), fullPage: true });
-+}));
-+
-+test("organizações: conflito real conserva rascunho e não repete a escrita ao revalidar", async ({ page, request }) => withOrganizations(request, async f => {
-+  await openClients(page, f.pure);
-+  const draft = `Rascunho ${f.prefix}`;
-+  await fillClient(page, draft, f.organization);
-+  let posts = 0;
-+  page.on("request", current => { if (current.url() === `${API_URL}/organizations` && current.method() === "POST") posts++; });
-+  const response = page.waitForResponse(r => r.url() === `${API_URL}/organizations` && r.request().method() === "POST");
-+  await page.getByRole("button", { name: "Cadastrar cliente", exact: true }).click();
-+  expect((await response).status()).toBe(409);
-+  await expect(page.getByRole("alert")).toContainText("Já existe uma organização com este slug");
-+  await expect(page.getByLabel("Nome do cliente", { exact: true })).toHaveValue(draft);
-+  await expect(page.getByLabel("Slug do cliente", { exact: true })).toHaveValue(f.organization);
-+  await focusAuthorization(page);
-+  expect(posts).toBe(1);
-+}));
-+
-+test("organizações: revoga gestão e leitura legadas sem restaurar o rascunho depois", async ({ page, request }) => withOrganizations(request, async f => {
-+  await openClients(page, f.flag);
-+  await clientRow(page, f.name).getByRole("button", { name: "Editar cliente", exact: true }).click();
-+  await page.getByLabel("Nome do cliente", { exact: true }).fill("Rascunho que deve ser descartado");
-+  await f.setCapability("organizations:manage", false);
-+  await f.capabilities(f.flag, ["organizations:read"]);
-+  await focusAuthorization(page);
-+  await expect(page.getByLabel("Nome do cliente", { exact: true })).toHaveCount(0);
-+  await expect(clientRow(page, f.name)).toBeVisible();
-+  await f.setCapability("organizations:manage", true);
-+  await focusAuthorization(page);
-+  await expect(page.getByLabel("Nome do cliente", { exact: true })).toHaveValue("");
-+  await f.setCapability("organizations:read", false);
-+  await focusAuthorization(page);
-+  await expect(page.getByText("Você não tem permissão para consultar clientes.", { exact: true })).toBeVisible();
-+  await expect(page.getByRole("article")).toHaveCount(0);
-+  await expect(page.getByLabel("Nome do cliente", { exact: true })).toHaveCount(0);
-+  await expect(page.getByRole("link", { name: "Condomínios", exact: true })).toBeVisible();
-+}));
-+
-+test("organizações: binding puro revogado retira clientes e conserva sessões próprias", async ({ page, request }) => withOrganizations(request, async f => {
-+  await openClients(page, f.pure);
-+  await expect(clientRow(page, f.name)).toBeVisible();
-+  await f.revokeBinding();
-+  await f.capabilities(f.pure, []);
-+  await focusAuthorization(page);
-+  await expect(page.getByRole("article")).toHaveCount(0);
-+  await expect(page.getByRole("link", { name: "Clientes", exact: true })).toHaveCount(0);
-+  const sessions = page.waitForResponse(r => new URL(r.url()).pathname === "/auth/sessions");
-+  await page.getByRole("link", { name: "Minhas sessões", exact: true }).click();
-+  const data = await (await sessions).json();
-+  expect(data.items.length).toBeGreaterThan(0);
-+  expect(data.items.every((row: { userId: string }) => row.userId === f.pure.id)).toBe(true);
-+  await signOut(page);
-+}));
-+
-+test("organizações: GET antigo não recoloca dados depois de revogar leitura e atualizar em pendência", async ({ page, request }) => withOrganizations(request, async f => {
-+  await openClients(page, f.pure);
-+  await expect(clientRow(page, f.name)).toBeVisible();
-+  const delayed = await holdFirstResponse(page, "/organizations");
-+  try {
-+    await page.getByRole("button", { name: "Atualizar clientes", exact: true }).click();
-+    await delayed.held;
-+    await page.getByRole("button", { name: "Atualizar clientes", exact: true }).click();
-+    await f.setCapability("organizations:read", false);
-+    await focusAuthorization(page);
-+    await expect(page.getByRole("article")).toHaveCount(0);
-+    delayed.release();
-+    const actual = await delayed.delivered() as { items: { id: string }[] };
-+    expect(actual.items.some(row => row.id === f.organization)).toBe(true);
-+    await expect(page.getByText(f.name, { exact: true })).toHaveCount(0);
-+    await expect(page.getByLabel("Nome do cliente", { exact: true })).toHaveCount(0);
-+  } finally { delayed.release(); }
-+}));
-+
-+for (const destination of ["sessions", "same-account", "other-account"] as const) {
-+  test(`organizações: preflight antigo não escreve após ${destination}`, async ({ page, request }) => withOrganizations(request, async f => {
-+    await openClients(page, f.pure);
-+    await fillClient(page, "Intenção antiga", `${f.prefix}-pending`);
-+    const delayed = await holdFirstResponse(page, "/v1/authorization/platform");
-+    let posts = 0;
-+    page.on("request", current => { if (current.url() === `${API_URL}/organizations` && current.method() === "POST") posts++; });
++  async function fixture(run: (f: Fixture) => Promise<void>) {
++    const prefix = `users040-${randomUUID()}`;
++    const users = Object.fromEntries(["admin", "resident", "manager", "foreign"].map(kind => [kind, `${prefix}-${kind}`])) as Fixture["users"];
++    const buildings = [`${prefix}-local`, `${prefix}-foreign`];
++    const sessions = new Map<keyof Fixture["users"], Session>();
++    const f: Fixture = { prefix, users, buildings, session: async kind => {
++      if (!sessions.has(kind)) sessions.set(kind, await login(server.url, `${users[kind]}@example.invalid`));
++      return sessions.get(kind)!;
++    } };
 +    try {
-+      await page.getByRole("button", { name: "Cadastrar cliente", exact: true }).click();
-+      await delayed.held;
-+      if (destination === "sessions") {
-+        await page.getByRole("link", { name: "Minhas sessões", exact: true }).click();
-+        await expect(page.getByRole("article", { name: "Sessão deste navegador", exact: true })).toBeVisible();
-+      } else {
-+        await signOut(page);
-+        await enterCredentials(page, destination === "same-account" ? f.pure.email : f.outsider.email);
-+        if (destination === "same-account") await expect(page.getByLabel("Nome do cliente", { exact: true })).toHaveValue("");
-+        else await expect(page.getByText("Você não tem permissão para consultar clientes.", { exact: true })).toBeVisible();
++      for (const building of buildings) {
++        await sqlClient`insert into organizations(id,name,slug) values(${building},'ACL fixture',${building})`;
++        await sqlClient`insert into buildings(id,organization_id,name,code) values(${building},${building},'ACL fixture',${building})`;
 +      }
-+      delayed.release();
-+      expect(await delayed.delivered()).toEqual({ capabilities: ["organizations:manage", "organizations:read"] });
-+      expect(posts).toBe(0);
-+      await withFixtureDatabase(async sql => { expect(await sql`select id from organizations where slug=${f.prefix + '-pending'}`).toHaveLength(0); });
-+    } finally { delayed.release(); }
-+  }));
-+}
-+
-+test("organizações: revogação posterior ao preflight recebe403 e fecha o escopo sem replay", async ({ page, request }) => withOrganizations(request, async f => {
-+  await openClients(page, f.pure);
-+  await fillClient(page, "Intenção revogada", `${f.prefix}-revoked`);
-+  const delayed = await holdFirstResponse(page, "/v1/authorization/platform");
-+  let posts = 0;
-+  page.on("request", current => { if (current.url() === `${API_URL}/organizations` && current.method() === "POST") posts++; });
-+  try {
-+    await page.getByRole("button", { name: "Cadastrar cliente", exact: true }).click();
-+    await delayed.held;
-+    await f.revokeBinding();
-+    const denied = page.waitForResponse(r => r.url() === `${API_URL}/organizations` && r.request().method() === "POST");
-+    delayed.release();
-+    expect((await denied).status()).toBe(403);
-+    await expect(page.getByText("Você não tem permissão para consultar clientes.", { exact: true })).toBeVisible();
-+    expect(posts).toBe(1);
-+    await expect(page.getByRole("article")).toHaveCount(0);
-+    await withFixtureDatabase(async sql => { expect(await sql`select action from audit_logs where user_id=${f.pure.id}`).toHaveLength(0); });
-+  } finally { delayed.release(); }
-+}));
-+
-+test("organizações: falhas de projeção e listagem têm retry real sem parecer lista vazia", async ({ page, request }) => withOrganizations(request, async f => {
-+  let projectionFailure = true, listFailure = true;
-+  await page.route(`${API_URL}/v1/authorization/platform`, route => {
-+    if (!projectionFailure) return route.continue();
-+    projectionFailure = false;
-+    return route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "Autorização temporariamente indisponível" }) });
-+  });
-+  await page.route(`${API_URL}/organizations`, route => {
-+    if (!listFailure) return route.continue();
-+    listFailure = false;
-+    return route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "Lista temporariamente indisponível" }) });
-+  });
-+  await signIn(page, `${ADMIN_URL}/clientes`, f.pure.email);
-+  await expect(page.getByRole("alert")).toContainText("Autorização temporariamente indisponível");
-+  await expect(page.getByText("Nenhum cliente cadastrado.", { exact: true })).toHaveCount(0);
-+  await page.getByRole("button", { name: "Tentar novamente", exact: true }).click();
-+  await expect(page.getByRole("alert")).toContainText("Lista temporariamente indisponível");
-+  await expect(page.getByText("Nenhum cliente cadastrado.", { exact: true })).toHaveCount(0);
-+  await page.getByRole("button", { name: "Tentar novamente", exact: true }).click();
-+  await expect(clientRow(page, f.name)).toBeVisible();
-+}));
-+
-+test("organizações: Imóveis revalida seleção antes de enviar e não exige gestão comercial", async ({ page, request }) => withOrganizations(request, async f => {
-+  await signIn(page, ADMIN_URL, f.flag.email);
-+  await page.goto(`${ADMIN_URL}/predios`);
-+  await page.getByLabel("Cliente", { exact: true }).selectOption(f.organization);
-+  await page.getByLabel("Nome", { exact: true }).fill("Imóvel de teste");
-+  await page.getByLabel("Código", { exact: true }).fill("PRE039");
-+  let posts = 0;
-+  page.on("request", current => { if (current.url() === `${API_URL}/buildings` && current.method() === "POST") posts++; });
-+  await f.setCapability("organizations:read", false);
-+  await page.getByRole("button", { name: "Cadastrar", exact: true }).click();
-+  await expect(page.getByText("Você não tem permissão para consultar clientes.", { exact: true })).toBeVisible();
-+  await expect(page.getByLabel("Cliente", { exact: true })).toHaveCount(0);
-+  await expect(page.getByText(f.buildingName, { exact: true })).toBeVisible();
-+  expect(posts).toBe(0);
-+  await f.setCapability("organizations:read", true);
-+  await f.setCapability("organizations:manage", false);
-+  await focusAuthorization(page);
-+  await expect(page.getByLabel("Cliente", { exact: true })).toHaveValue("");
-+  await page.getByLabel("Cliente", { exact: true }).selectOption(f.organization);
-+  const created = page.waitForResponse(r => r.url() === `${API_URL}/buildings` && r.request().method() === "POST");
-+  await page.getByRole("button", { name: "Cadastrar", exact: true }).click();
-+  expect((await created).status()).toBe(201);
-+  await expect(page.getByText("Imóvel de teste", { exact: true })).toBeVisible();
-+  expect(posts).toBe(1);
-+}));
-+
-+test("organizações: leitor legado consulta ativos e inativos sem formulário ou ações", async ({ page, request }) => withOrganizations(request, async f => {
-+  await f.setCapability("organizations:manage", false);
-+  await f.capabilities(f.flag, ["organizations:read"]);
-+  await signIn(page, ADMIN_URL, f.flag.email);
-+  await page.goto(`${ADMIN_URL}/clientes`);
-+  await expect(page.getByText(f.name, { exact: true })).toBeVisible();
-+  await expect(page.getByText(f.inactiveName, { exact: true })).toBeVisible();
-+  await expect(page.getByRole("button", { name: /Cadastrar|Editar|Desativar|Reativar/ })).toHaveCount(0);
-+  await expect(page.getByLabel("Slug", { exact: true })).toHaveCount(0);
-+}));
-+
-+for (const lostResponse of ["network", "invalid-json"] as const) {
-+  test(`organizações: escrita concluída com resposta ${lostResponse} orienta reconciliação sem replay`, async ({ page, request }) => withOrganizations(request, async f => {
-+    await openClients(page, f.pure);
-+    const draft = `Resultado incerto ${f.prefix}`, slug = `${f.prefix}-uncertain`;
-+    await fillClient(page, draft, slug);
-+    let posts = 0;
-+    await page.route(`${API_URL}/organizations`, async route => {
-+      if (route.request().method() !== "POST") return route.continue();
-+      posts++;
-+      const actual = await route.fetch();
-+      expect(actual.status()).toBe(201); // The server really committed before losing its response.
-+      if (lostResponse === "network") return route.abort("failed");
-+      return route.fulfill({ response: actual, body: "{invalid-json" });
-+    });
-+    await page.getByRole("button", { name: "Cadastrar cliente", exact: true }).click();
-+    await expect(page.getByRole("alert")).toContainText("Não foi possível confirmar se a alteração foi concluída. Atualize a lista antes de tentar novamente.");
-+    await expect(page.getByLabel("Nome do cliente", { exact: true })).toHaveValue(draft);
-+    await expect(page.getByLabel("Slug do cliente", { exact: true })).toHaveValue(slug);
-+    await page.getByRole("button", { name: "Atualizar clientes", exact: true }).click();
-+    await expect(clientRow(page, draft)).toBeVisible();
-+    await focusAuthorization(page);
-+    expect(posts).toBe(1);
-+    await withFixtureDatabase(async sql => {
-+      expect(await sql`select id from organizations where slug=${slug}`).toHaveLength(1);
-+      expect(await sql`select id from audit_logs where user_id=${f.pure.id} and action='ORGANIZATION_CREATED'`).toHaveLength(1);
-+    });
-+  }));
-+}
-+
-+test("organizações: cancelar edição com preflight pendente invalida a intenção antiga", async ({ page, request }) => withOrganizations(request, async f => {
-+  await openClients(page, f.pure);
-+  await clientRow(page, f.name).getByRole("button", { name: "Editar cliente", exact: true }).click();
-+  await page.getByLabel("Nome do cliente", { exact: true }).fill("Não deve persistir");
-+  const delayed = await holdFirstResponse(page, "/v1/authorization/platform");
-+  let patches = 0;
-+  page.on("request", current => { if (new URL(current.url()).pathname.startsWith("/organizations/") && current.method() === "PATCH") patches++; });
-+  try {
-+    await page.getByRole("button", { name: "Salvar cliente", exact: true }).click();
-+    await delayed.held;
-+    await page.getByRole("button", { name: "Cancelar edição", exact: true }).click();
-+    delayed.release();
-+    expect(await delayed.delivered()).toEqual({ capabilities: ["organizations:manage", "organizations:read"] });
-+    await expect(page.getByRole("button", { name: "Cadastrar cliente", exact: true })).toBeVisible();
-+    expect(patches).toBe(0);
-+    await withFixtureDatabase(async sql => { expect((await sql`select name from organizations where id=${f.organization}`)[0]!.name).toBe(f.name); });
-+  } finally { delayed.release(); }
-+}));
-+
-+test("organizações: Imóveis preserva sua lista sem consultar seletor comercial não autorizado", async ({ page, request }) => withOrganizations(request, async f => {
-+  await f.setCapability("organizations:read", false);
-+  await f.capabilities(f.flag, ["organizations:manage"]);
-+  await signIn(page, ADMIN_URL, f.flag.email);
-+  let organizationReads = 0;
-+  page.on("request", current => { if (new URL(current.url()).pathname === "/organizations" && current.method() === "GET") organizationReads++; });
-+  await page.goto(`${ADMIN_URL}/predios`);
-+  await expect(page.getByText(f.buildingName, { exact: true })).toBeVisible();
-+  expect(organizationReads, "Sem read comercial não há consulta de opções").toBe(0);
-+  await expect(page.getByRole("button", { name: "Cadastrar", exact: true })).toBeDisabled();
-+  await expect(page.getByText("Você não tem permissão para consultar clientes.", { exact: true })).toBeVisible();
-+}));
-+
-+test("organizações: erro transitório no preflight conserva rascunho sem enviar escrita", async ({ page, request }) => withOrganizations(request, async f => {
-+  await openClients(page, f.pure);
-+  await fillClient(page, "Rascunho preservado", `${f.prefix}-draft`);
-+  let failOnce = true, posts = 0;
-+  await page.route(`${API_URL}/v1/authorization/platform`, route => {
-+    if (!failOnce) return route.continue();
-+    failOnce = false;
-+    return route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "Preflight indisponível" }) });
-+  });
-+  page.on("request", current => { if (current.url() === `${API_URL}/organizations` && current.method() === "POST") posts++; });
-+  await page.getByRole("button", { name: "Cadastrar cliente", exact: true }).click();
-+  await expect(page.getByText(/Acesso a clientes indisponível: Preflight indisponível/)).toBeVisible();
-+  await page.getByRole("button", { name: "Tentar novamente", exact: true }).click();
-+  await expect(page.getByLabel("Nome do cliente", { exact: true })).toHaveValue("Rascunho preservado");
-+  await expect(page.getByLabel("Slug do cliente", { exact: true })).toHaveValue(`${f.prefix}-draft`);
-+  expect(posts).toBe(0);
-+}));
-+
-+test("organizações: evento de background invalida preflight mesmo depois de retornar", async ({ page, request }) => withOrganizations(request, async f => {
-+  await openClients(page, f.pure);
-+  await fillClient(page, "Intenção antes do background", `${f.prefix}-background`);
-+  const delayed = await holdFirstResponse(page, "/v1/authorization/platform");
-+  let posts = 0;
-+  page.on("request", current => { if (current.url() === `${API_URL}/organizations` && current.method() === "POST") posts++; });
-+  try {
-+    await page.getByRole("button", { name: "Cadastrar cliente", exact: true }).click();
-+    await delayed.held;
-+    // Deterministic lifecycle event, not a claim of real OS/tab suspension.
-+    await page.evaluate(() => {
-+      Object.defineProperty(document, "visibilityState", { configurable: true, value: "hidden" });
-+      document.dispatchEvent(new Event("visibilitychange"));
-+      Object.defineProperty(document, "visibilityState", { configurable: true, value: "visible" });
-+      document.dispatchEvent(new Event("visibilitychange"));
-+    });
-+    delayed.release();
-+    expect(await delayed.delivered()).toEqual({ capabilities: ["organizations:manage", "organizations:read"] });
-+    await expect(page.getByRole("button", { name: "Cadastrar cliente", exact: true })).toBeEnabled();
-+    expect(posts).toBe(0);
-+    await withFixtureDatabase(async sql => { expect(await sql`select id from organizations where slug=${f.prefix + '-background'}`).toHaveLength(0); });
-+  } finally { delayed.release(); }
-+}));
-+
-+test("organizações: seletor de Imóveis aguarda dados novos depois de perder e recuperar leitura", async ({ page, request }) => withOrganizations(request, async f => {
-+  await signIn(page, ADMIN_URL, f.flag.email);
-+  await page.goto(`${ADMIN_URL}/predios`);
-+  await page.getByLabel("Cliente", { exact: true }).selectOption(f.organization);
-+  await f.setCapability("organizations:read", false);
-+  await focusAuthorization(page);
-+  await expect(page.getByLabel("Cliente", { exact: true })).toHaveCount(0);
-+  const delayed = await holdFirstResponse(page, "/organizations");
-+  try {
-+    await f.setCapability("organizations:read", true);
-+    await focusAuthorization(page);
-+    await delayed.held;
-+    await expect(page.getByLabel("Cliente", { exact: true })).toBeDisabled();
-+    await expect(page.getByLabel("Cliente", { exact: true })).toHaveValue("");
-+    await expect(page.getByRole("option", { name: f.name, exact: true })).toHaveCount(0);
-+    await expect(page.getByText(f.buildingName, { exact: true })).toBeVisible();
-+    delayed.release();
-+    const delivered = await delayed.delivered() as { items: { id: string }[] };
-+    expect(delivered.items.some(row => row.id === f.organization)).toBe(true);
-+    await expect(page.getByLabel("Cliente", { exact: true })).toBeEnabled();
-+    await expect(page.getByRole("option", { name: f.name, exact: true })).toHaveCount(1);
-+    await expect(page.getByLabel("Cliente", { exact: true })).toHaveValue("");
-+  } finally { delayed.release(); }
-+}));
-+
-+test("organizações: revogação publicada no mesmo turno da resposta de escrita impede confirmação antiga", async ({ page, request }) => withOrganizations(request, async f => {
-+  await openClients(page, f.pure);
-+  await fillClient(page, "Escrita anterior à revogação", `${f.prefix}-committed`);
-+  await page.evaluate(origin => {
-+    type PendingBody = { resolve(value: unknown): void; body: unknown };
-+    const state = {
-+      write: null as PendingBody | null, authorization: null as PendingBody | null,
-+      armAuthorization: false, messages: [] as string[],
-+      release() {
-+        if (!this.authorization || !this.write) throw new Error("Os dois corpos reais ainda não estão disponíveis");
-+        // Resolve the real JSON reads in the same turn: authorization first,
-+        // then the committed write, before React's next scheduled render/effect.
-+        this.authorization.resolve(this.authorization.body);
-+        this.write.resolve(this.write.body);
-+        return { authorization: this.authorization.body, write: this.write.body };
-+      },
-+    };
-+    (window as typeof window & { organizationCompletionRace: typeof state }).organizationCompletionRace = state;
-+    new MutationObserver(records => {
-+      for (const record of records) for (const node of Array.from(record.addedNodes)) {
-+        if (node.textContent?.includes("Cliente cadastrado.")) state.messages.push(node.textContent);
++      for (const [kind, id] of Object.entries(users)) {
++        actorRoles.set(id, kind === "admin" ? "PLATFORM_ADMIN" : kind === "manager" ? "BUILDING_ADMIN" : "RESIDENT");
++        await sqlClient`insert into users(id,name,email,password_hash,is_platform_admin,phone)
++          values(${id},'ACL fixture',${`${id}@example.invalid`},${passwordHash},${kind === "admin"},'fixture-phone')`;
 +      }
-+    }).observe(document.body, { subtree: true, childList: true });
-+    const original = window.fetch.bind(window);
-+    window.fetch = async (...args) => {
-+      const input = args[0];
-+      const url = new URL(typeof input === "string" ? input : input instanceof URL ? input.href : input.url, location.href);
-+      const method = args[1]?.method ?? (input instanceof Request ? input.method : "GET");
-+      const response = await original(...args);
-+      if (url.origin !== origin || !response.ok) return response;
-+      const key = url.pathname === "/organizations" && method === "POST" ? "write"
-+        : url.pathname === "/v1/authorization/platform" && state.armAuthorization ? "authorization" : null;
-+      if (key) {
-+        const body: unknown = await response.clone().json();
-+        response.json = () => new Promise(resolve => { state[key] = { resolve, body }; });
++      await sqlClient`insert into memberships(user_id,building_id,role) values
++        (${users.resident},${buildings[0]!},'RESIDENT'),
++        (${users.manager},${buildings[0]!},'BUILDING_ADMIN'),
++        (${users.foreign},${buildings[1]!},'RESIDENT')`;
++      await run(f);
++    } finally {
++      // Includes HTTP-created users whose generated IDs do not have our prefix.
++      await sqlClient`delete from audit_logs where user_id in ${sqlClient(Object.values(users))}
++        or resource_id in (select id from users where email like ${`${prefix}%@example.invalid`})`;
++      await sqlClient`delete from buildings where id in ${sqlClient(buildings)}`;
++      await sqlClient`delete from organizations where id in ${sqlClient(buildings)}`;
++      const accounts = await sqlClient`select email from users where email like ${`${prefix}%@example.invalid`}`;
++      for (const account of accounts) {
++        const key = loginBudgetKeys(config.authRateLimitKey, account.email, "127.0.0.1").account;
++        await sqlClient`delete from auth_login_buckets where scope='account' and key_hash=${key}`;
 +      }
-+      return response;
-+    };
-+  }, API_URL);
-+  let posts = 0;
-+  page.on("request", current => { if (current.url() === `${API_URL}/organizations` && current.method() === "POST") posts++; });
-+  await page.getByRole("button", { name: "Cadastrar cliente", exact: true }).click();
-+  await expect.poll(() => page.evaluate(() => Boolean((window as any).organizationCompletionRace.write))).toBe(true);
-+  await withFixtureDatabase(async sql => { expect(await sql`select id from organizations where slug=${f.prefix + '-committed'}`).toHaveLength(1); });
-+  await f.setCapability("organizations:manage", false);
-+  await page.evaluate(() => {
-+    (window as any).organizationCompletionRace.armAuthorization = true;
-+    window.dispatchEvent(new Event("focus"));
-+  });
-+  await expect.poll(() => page.evaluate(() => Boolean((window as any).organizationCompletionRace.authorization))).toBe(true);
-+  const bodies = await page.evaluate(() => (window as any).organizationCompletionRace.release()) as { authorization: unknown; write: { slug: string } };
-+  expect(bodies.authorization).toEqual({ capabilities: ["organizations:read"] });
-+  expect(bodies.write.slug).toBe(`${f.prefix}-committed`);
-+  await expect(page.getByLabel("Nome do cliente", { exact: true })).toHaveCount(0);
-+  expect(await page.evaluate(() => (window as any).organizationCompletionRace.messages)).toEqual([]);
-+  await page.evaluate(() => { (window as any).organizationCompletionRace.armAuthorization = false; });
-+  await f.setCapability("organizations:manage", true);
-+  await focusAuthorization(page);
-+  await expect(page.getByLabel("Nome do cliente", { exact: true })).toHaveValue("");
-+  await page.getByRole("button", { name: "Atualizar clientes", exact: true }).click();
-+  await expect(clientRow(page, "Escrita anterior à revogação")).toBeVisible();
-+  expect(await page.evaluate(() => (window as any).organizationCompletionRace.messages)).toEqual([]);
-+  expect(posts).toBe(1);
-+}));
-+
-+test("organizações: perder gestão comercial não invalida resposta de imóvel autorizado por leitura", async ({ page, request }) => withOrganizations(request, async f => {
-+  await signIn(page, ADMIN_URL, f.flag.email);
-+  await page.goto(`${ADMIN_URL}/predios`);
-+  await page.getByLabel("Cliente", { exact: true }).selectOption(f.organization);
-+  const name = `Imóvel sem gestão comercial ${f.prefix}`;
-+  await page.getByLabel("Nome", { exact: true }).fill(name);
-+  await page.getByLabel("Código", { exact: true }).fill("READ039");
-+  let release!: () => void, reached!: () => void, posts = 0;
-+  const barrier = new Promise<void>(resolve => { release = resolve; });
-+  const held = new Promise<void>(resolve => { reached = resolve; });
-+  await page.route(`${API_URL}/buildings`, async route => {
-+    if (route.request().method() !== "POST") return route.continue();
-+    posts++;
-+    const actual = await route.fetch();
-+    expect(actual.status()).toBe(201);
-+    expect((await actual.json()).name).toBe(name);
-+    reached();
-+    await barrier;
-+    await route.fulfill({ response: actual });
-+  });
-+  try {
-+    await page.getByRole("button", { name: "Cadastrar", exact: true }).click();
-+    await held;
-+    await f.setCapability("organizations:manage", false);
-+    await focusAuthorization(page);
-+    await f.capabilities(f.flag, ["organizations:read"]);
-+    release();
-+    await expect(page.getByText(name, { exact: true })).toBeVisible();
-+    await expect(page.getByLabel("Nome", { exact: true })).toHaveValue("");
-+    expect(posts).toBe(1);
-+    await withFixtureDatabase(async sql => { expect(await sql`select id from buildings where organization_id=${f.organization} and name=${name}`).toHaveLength(1); });
-+  } finally { release(); }
-+}));
-+
-+test("organizações: primeira projeção lenta não desloca o destino durante o clique no menu", async ({ page, request }, info) => withOrganizations(request, async f => {
-+  let release!: () => void, reached!: () => void;
-+  const barrier = new Promise<void>(resolve => { release = resolve; });
-+  const held = new Promise<void>(resolve => { reached = resolve; });
-+  let once = false;
-+  await page.route(`${API_URL}/v1/authorization/platform`, async route => {
-+    if (once) return route.continue();
-+    once = true;
-+    const actual = await route.fetch();
-+    expect(actual.status()).toBe(200);
-+    expect(await actual.json()).toEqual({ capabilities: ["organizations:manage", "organizations:read"] });
-+    reached();
-+    await barrier;
-+    await route.fulfill({ response: actual });
-+  });
-+  try {
-+    await signIn(page, `${ADMIN_URL}/clientes`, f.pure.email);
-+    await held;
-+    const navigation = page.getByRole("navigation", { name: "Menu principal", exact: true });
-+    await expect(navigation).toBeVisible();
-+    const sessions = navigation.getByRole("link", { name: "Minhas sessões", exact: true });
-+    if (await sessions.count()) {
-+      // A usable link must remain under the same pointer throughout its click.
-+      const before = await sessions.boundingBox();
-+      expect(before).not.toBeNull();
-+      await page.mouse.move(before!.x + before!.width / 2, before!.y + before!.height / 2);
-+      await page.mouse.down();
-+      release();
-+      await expect(navigation.getByRole("link", { name: "Clientes", exact: true })).toBeVisible();
-+      const after = await sessions.boundingBox();
-+      await page.mouse.up();
-+      await info.attach("initial-projection-pointer.json", { contentType: "application/json", body: JSON.stringify({ before, after, pathname: new URL(page.url()).pathname }) });
-+      expect(after?.y, "A autorização não pode mover um destino já oferecido durante pointerdown/up").toBe(before!.y);
-+    } else {
-+      // Withholding the incomplete menu must provide a loading state and leave logout usable.
-+      await expect(navigation).toHaveAttribute("aria-busy", "true");
-+      await expect(navigation.getByRole("status")).toContainText("Carregando menu");
-+      await expect(page.getByRole("button", { name: "Sair da conta", exact: true })).toBeEnabled();
-+      release();
-+      await expect(navigation).toHaveAttribute("aria-busy", "false");
-+      await sessions.click();
++      await sqlClient`delete from users where email like ${`${prefix}%@example.invalid`}`;
++      assert.equal((await sqlClient`select id from users where email like ${`${prefix}%@example.invalid`}`).length, 0);
++      for (const id of Object.values(users)) actorRoles.delete(id);
 +    }
-+    await expect(page).toHaveURL(`${ADMIN_URL}/sessoes`);
-+    await expect(page.getByRole("article", { name: "Sessão deste navegador", exact: true })).toBeVisible();
-+  } finally { release(); }
-+}));
++  }
++
++  const as = <T>(userId: string, run: Parameters<typeof withUserContext<T>>[1]) => {
++    const role = actorRoles.get(userId);
++    assert.ok(role, "actor context must belong to this fixture");
++    return withUserContext({ userId, role }, run);
++  };
++
++  async function unchanged(f: Fixture) {
++    const [row] = await sqlClient`select count(*)::int as count,
++      bool_and(password_hash=${passwordHash} and active and is_platform_admin=(id=${f.users.admin})) as intact
++      from users where id in ${sqlClient(Object.values(f.users))}`;
++    assert.deepEqual(row, { count: 4, intact: true });
++  }
++
++  async function denied(userId: string, statement: SQL) {
++    // Also roll back unexpected success in RED: tests never persist a promotion,
++    // credential change, deletion or a mistakenly authorized insert.
++    const rollback = new Error("users ACL probe rollback");
++    let refused = false;
++    try {
++      await as(userId, async tx => { await tx.execute(statement); throw rollback; });
++    } catch (error) {
++      if (error !== rollback) {
++        assert.equal(pgErrorCode(error), "42501", "failure must be PostgreSQL permission denied");
++        refused = true;
++      }
++    }
++    assert.equal(refused, true, "restricted application operation must be denied");
++  }
++
++  it("denies credential reads even for the visible account and a real administrator", async () => fixture(async f => {
++    for (const actor of [f.users.resident, f.users.admin]) {
++      for (const projection of [sql`password_hash`, sql`updated_at`, sql`*`]) {
++        await denied(actor, sql`select ${projection} from users where id=${actor}`);
++        await denied(actor, sql`select ${projection} from users where false`);
++      }
++    }
++    await unchanged(f);
++  }));
++
++  it("denies self promotion through the application SQL role", async () => fixture(async f => {
++    await denied(f.users.resident, sql`update users set is_platform_admin=true where id=${f.users.resident}`);
++    await unchanged(f);
++    const [row] = await as(f.users.resident, tx => tx.execute(sql`select app_has_global_capability('organizations:read') as allowed`));
++    assert.equal(row!.allowed, false);
++  }));
++
++  it("denies account credential replacement outside the identity helper", async () => fixture(async f => {
++    for (const actor of [f.users.resident, f.users.admin]) {
++      await denied(actor, sql`update users set password_hash='non-authenticating-ACL-placeholder' where id=${actor}`);
++    }
++    await unchanged(f);
++  }));
++
++  it("denies account deletion for residents and real administrators", async () => fixture(async f => {
++    for (const actor of [f.users.resident, f.users.admin]) await denied(actor, sql`delete from users where id=${actor}`);
++    await unchanged(f);
++  }));
++
++  it("removes UPDATE for every column, including residual column grants", async () => fixture(async f => {
++    const columns = await sqlClient`select attname from pg_attribute where attrelid='public.users'::regclass and attnum>0 and not attisdropped order by attname`;
++    assert.deepEqual(columns.map(row => row.attname), allColumns);
++    for (const actor of [f.users.resident, f.users.admin]) {
++      for (const column of allColumns) {
++        const identifier = sql.identifier(column);
++        await denied(actor, sql`update users set ${identifier}=${identifier} where id=${actor}`);
++      }
++    }
++    await unchanged(f);
++  }));
++
++  it("exposes exactly seven public columns while retaining the original INSERT privilege", async () => {
++    const table = await sqlClient`select privilege,has_table_privilege('predioon_app','public.users',privilege) as allowed
++      from unnest(array['SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER']) privilege order by privilege`;
++    assert.deepEqual(table.map(row => [row.privilege, row.allowed]), [
++      ["DELETE", false], ["INSERT", true], ["REFERENCES", false], ["SELECT", false],
++      ["TRIGGER", false], ["TRUNCATE", false], ["UPDATE", false],
++    ]);
++    const columns = await sqlClient`select attname,
++      has_column_privilege('predioon_app','public.users',attname,'SELECT') as readable,
++      has_column_privilege('predioon_app','public.users',attname,'INSERT') as insertable,
++      has_column_privilege('predioon_app','public.users',attname,'UPDATE') as updatable
++      from pg_attribute where attrelid='public.users'::regclass and attnum>0 and not attisdropped order by attname`;
++    assert.deepEqual(columns.map(row => row.attname), allColumns);
++    assert.deepEqual(columns.filter(row => row.readable).map(row => row.attname), publicColumns);
++    assert.ok(columns.every(row => row.insertable && !row.updatable));
++  });
++
++  it("preserves existing public SELECT isolation with each actor's actual context", async () => fixture(async f => {
++    for (const [actor, expected] of [
++      [f.users.resident, [f.users.resident]],
++      [f.users.manager, [f.users.manager, f.users.resident]],
++      [f.users.admin, Object.values(f.users)],
++    ] as const) {
++      const rows = await as(actor, tx => tx.execute(sql`select ${publicProjection} from users
++        where id in (${sql.join(Object.values(f.users).map(id => sql`${id}`), sql`,`)}) order by id`));
++      assert.deepEqual(rows.map(row => row.id), [...expected].sort());
++      assert.ok(rows.every(row => Object.keys(row).sort().join() === publicColumns.join()));
++    }
++    assert.equal((await appSqlClient`select id from users`).length, 0, "pool outside actor context sees no users");
++  }));
++
++  it("allows authorized INSERT with public RETURNING but never secret RETURNING", async () => fixture(async f => {
++    const rollback = new Error("authorized insert rollback");
++    await assert.rejects(as(f.users.admin, async tx => {
++      const [row] = await tx.execute(sql`insert into users(id,name,email,password_hash)
++        values(${`${f.prefix}-sql`},'Inserted fixture',${`${f.prefix}-sql@example.invalid`},'non-authenticating-ACL-placeholder')
++        returning ${publicProjection}`);
++      assert.deepEqual(Object.keys(row!).sort(), publicColumns);
++      assert.equal(row!.active, true);
++      assert.equal(row!.is_platform_admin, false);
++      throw rollback;
++    }), error => error === rollback);
++    await denied(f.users.admin, sql`insert into users(id,name,email,password_hash)
++      values(${`${f.prefix}-secret`},'Secret return fixture',${`${f.prefix}-secret@example.invalid`},'non-authenticating-ACL-placeholder') returning password_hash`);
++    await denied(f.users.resident, sql`insert into users(id,name,email)
++      values(${`${f.prefix}-forbidden`},'Forbidden fixture',${`${f.prefix}-forbidden@example.invalid`}) returning id`);
++    assert.equal((await sqlClient`select id from users where id in (${`${f.prefix}-sql`},${`${f.prefix}-secret`},${`${f.prefix}-forbidden`})`).length, 0);
++  }));
++
++  it("keeps legacy HTTP creation, duplicate checks, public listing and audit atomic", async () => fixture(async f => {
++    const admin = await f.session("admin");
++    const body = { name: "Created ACL fixture", email: `${f.prefix}-http@example.invalid`, password: "predioon123", phone: "public-phone" };
++    const response = await call(server.url, "/users", { method: "POST", token: admin.accessToken, body });
++    assert.equal(response.status, 201);
++    const created = await response.json() as Record<string, unknown>;
++    assert.deepEqual(Object.keys(created).sort(), publicDto);
++    assert.equal(created.email, body.email);
++    assert.equal(created.active, true);
++    assert.equal(created.isPlatformAdmin, false);
++    assert.equal((await login(server.url, body.email)).user.id, created.id);
++    assert.equal((await call(server.url, "/users", { method: "POST", token: admin.accessToken, body })).status, 409);
++    const manager = await f.session("manager");
++    assert.equal((await call(server.url, "/users", { method: "POST", token: manager.accessToken, body: { ...body, email: `${f.prefix}-denied@example.invalid` } })).status, 403);
++    const list = await call(server.url, `/users?buildingId=${f.buildings[0]}`, { token: manager.accessToken });
++    assert.equal(list.status, 200);
++    const { items } = await list.json() as { items: Record<string, unknown>[] };
++    assert.deepEqual(items.map(row => row.id).sort(), [f.users.manager, f.users.resident].sort());
++    assert.ok(items.every(row => Object.keys(row).sort().join() === publicDto.join()));
++    const audit = await sqlClient`select action,metadata,scope_kind from audit_logs where user_id=${f.users.admin} and resource_id=${String(created.id)}`;
++    assert.deepEqual(audit.map(row => ({ ...row })), [{ action: "USER_CREATED", metadata: {}, scope_kind: "PLATFORM" }]);
++    assert.equal((await sqlClient`select id from users where email=${`${f.prefix}-denied@example.invalid`}`).length, 0);
++  }));
++
++  it("rolls HTTP account creation back when its mandatory audit fails", async () => fixture(async f => {
++    const admin = await f.session("admin");
++    const name = `users040_${randomUUID().replaceAll("-", "")}`;
++    const logger = mock.method(console, "error", () => {});
++    try {
++      await sqlClient.unsafe(`create function ${name}() returns trigger language plpgsql as $$ begin
++        if new.user_id=TG_ARGV[0] and new.action='USER_CREATED' then raise exception 'Fixture audit failure'; end if;
++        return new; end $$`);
++      await sqlClient.unsafe(`create trigger ${name} before insert on audit_logs for each row execute function ${name}('${f.users.admin}')`);
++      const response = await call(server.url, "/users", { method: "POST", token: admin.accessToken,
++        body: { name: "Rollback fixture", email: `${f.prefix}-rollback@example.invalid`, password: "predioon123" } });
++      assert.equal(response.status, 500);
++      assert.equal((await sqlClient`select id from users where email=${`${f.prefix}-rollback@example.invalid`}`).length, 0);
++      assert.equal((await sqlClient`select id from audit_logs where user_id=${f.users.admin}`).length, 0);
++    } finally {
++      await sqlClient.unsafe(`drop trigger if exists ${name} on audit_logs`);
++      await sqlClient.unsafe(`drop function if exists ${name}()`);
++      logger.mock.restore();
++    }
++  }));
++
++  it("preserves identity login, refresh and password replacement without direct UPDATE", async () => fixture(async f => {
++    const initial = await f.session("resident");
++    const refreshed = await call(server.url, "/auth/refresh", { method: "POST", body: { refreshToken: initial.refreshToken } });
++    assert.equal(refreshed.status, 200);
++    const rotated = await refreshed.json() as Session;
++    const nextPassword = "New disposable password 040";
++    assert.equal((await call(server.url, "/auth/password", { method: "POST", token: rotated.accessToken,
++      body: { currentPassword: "predioon123", newPassword: nextPassword } })).status, 204);
++    assert.equal((await call(server.url, "/auth/me", { token: rotated.accessToken })).status, 401);
++    assert.equal((await call(server.url, "/auth/refresh", { method: "POST", body: { refreshToken: rotated.refreshToken } })).status, 401);
++    assert.equal((await call(server.url, "/auth/login", { method: "POST", body: { email: `${f.users.resident}@example.invalid`, password: "predioon123" } })).status, 401);
++    assert.equal((await login(server.url, `${f.users.resident}@example.invalid`, nextPassword)).user.id, f.users.resident);
++    const [account] = await identitySqlClient`select password_hash is not null as has_credential from users where id=${f.users.resident}`;
++    assert.equal(account!.has_credential, true);
++    await assert.rejects(identitySqlClient`update users set active=false where false`, { code: "42501" });
++  }));
++
++  it("keeps broker and notifications excluded from users and roles unprivileged", async () => {
++    const notifications = createNotificationSqlClient(() => {});
++    try {
++      for (const client of [brokerAuthSqlClient, notifications]) {
++        await assert.rejects(client`select id from users where false`, { code: "42501" });
++        await assert.rejects(client`select password_hash from users where false`, { code: "42501" });
++      }
++    } finally { await notifications.end({ timeout: 5 }); }
++    const flags = await sqlClient`select rolname,rolsuper,rolinherit,rolbypassrls,rolcreatedb,rolcreaterole,rolreplication
++      from pg_roles where rolname in ${sqlClient(runtimeRoles)} order by rolname`;
++    assert.equal(flags.length, 4);
++    assert.ok(flags.every(row => Object.entries(row).every(([key, value]) => key === "rolname" || value === false)));
++    assert.equal((await sqlClient`select 1 from pg_auth_members m join pg_roles r on r.oid=m.member where r.rolname in ${sqlClient(runtimeRoles)}`).length, 0);
++  });
++
++  it("reapplication removes residual column grants without changing other ACLs, policies or helpers", async () => {
++    const migration = await readFile(new URL("../../../infrastructure/040-users-runtime-acl.sql", import.meta.url), "utf8");
++    const rollback = new Error("040 reapplication rollback");
++    await assert.rejects(sqlClient.begin(async owner => {
++      const invariant = async () => ({
++        functions: await owner`select p.oid::regprocedure::text as signature,p.prosrc,p.proacl::text,p.proowner,p.proconfig
++          from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' order by signature`,
++        policies: await owner`select * from pg_policies where schemaname='public' order by tablename,policyname`,
++        tables: await owner`select c.oid,c.relowner,c.relrowsecurity,c.relforcerowsecurity,x.* from pg_class c
++          join pg_namespace n on n.oid=c.relnamespace cross join lateral aclexplode(c.relacl) x
++          where n.nspname='public' and not (c.oid='public.users'::regclass and x.grantee='predioon_app'::regrole)
++          order by c.oid,x.grantor,x.grantee,x.privilege_type`,
++        columns: await owner`select a.attrelid,a.attnum,x.* from pg_attribute a
++          join pg_class c on c.oid=a.attrelid join pg_namespace n on n.oid=c.relnamespace
++          cross join lateral aclexplode(a.attacl) x where n.nspname='public'
++          and not (a.attrelid='public.users'::regclass and x.grantee='predioon_app'::regrole)
++          order by a.attrelid,a.attnum,x.grantor,x.grantee,x.privilege_type`,
++        roles: await owner`select rolname,rolsuper,rolinherit,rolbypassrls,rolcreatedb,rolcreaterole,rolreplication
++          from pg_roles where rolname in ${owner(runtimeRoles)} order by rolname`,
++        memberships: await owner`select * from pg_auth_members order by roleid,member,grantor`,
++      });
++      const before = await invariant();
++      await owner`grant select(password_hash,updated_at), update(is_platform_admin,name) on users to predioon_app`;
++      for (let iteration = 0; iteration < 2; iteration++) {
++        await owner.unsafe(migration);
++        assert.deepEqual(await invariant(), before);
++        const [table] = await owner`select has_table_privilege('predioon_app','users','INSERT') as insertable,
++          has_table_privilege('predioon_app','users','SELECT') as readable,
++          has_table_privilege('predioon_app','users','UPDATE') as updatable,
++          has_table_privilege('predioon_app','users','DELETE') as deletable`;
++        assert.deepEqual(table, { insertable: true, readable: false, updatable: false, deletable: false });
++        const columns = await owner`select attname,
++          has_column_privilege('predioon_app','users',attname,'SELECT') as readable,
++          has_column_privilege('predioon_app','users',attname,'UPDATE') as updatable
++          from pg_attribute where attrelid='users'::regclass and attnum>0 and not attisdropped order by attname`;
++        assert.deepEqual(columns.filter(row => row.readable).map(row => row.attname), publicColumns);
++        assert.ok(columns.every(row => !row.updatable));
++      }
++      throw rollback;
++    }), error => error === rollback);
++  });
++});

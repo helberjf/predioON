@@ -1,50 +1,38 @@
 {
-  "baseCommit": "cf9b92741b2358a51ca6ebf4b964889ac3039bee",
+  "baseCommit": "e5f98e481893860363aab2d3c050c532400e024c",
   "capturedOn": "2026-10-05",
   "state": "Drafts: restore for review, not approved product changes",
   "patch": "2026-10-02-em-andamento.patch",
-  "sha256": "c3e64abfcbc012a382a95c30bd9c8199c1bba4b37ad150bd523e6b8010a865f7",
+  "sha256": "ee28a6f5686dfe11ab7543460523c84ab0ce4e2808065aa65e9421de185e7d5c",
   "files": [
     {
-      "path": "e2e/README.md",
-      "sha256LF": "133e93cdbef105d6f5e79a372956ed2a7d19618d435601c58e6242b532ab5279"
+      "path": "infrastructure/040-users-runtime-acl.sql",
+      "sha256LF": "96c46748f57a3bd3a8b5e92f24c37d2c79d89fe3c916fb23be50e958168e7e8a"
     },
     {
-      "path": "pnpm-lock.yaml",
-      "sha256LF": "1849fb5db34d768f07bab0e21f4279bf22c46f17fbd238bf8f76808e025de00f"
+      "path": "apps/api/test/users-runtime-acl.test.ts",
+      "sha256LF": "2cc7ec80cd86b1d79e90e08672454fffeee0a6a044f166347e14838abd25643f"
     },
     {
-      "path": "apps/admin-web/package.json",
-      "sha256LF": "5f84065def1ce880ecc1cb4e7f38b5a766bd6ee0c1657f5cb69161e20c2538a8"
+      "path": "scripts/ios-smoke/project.rb",
+      "sha256LF": "6c279a4a596a26043fe9dbd9c5573e7d828c7dc30a33305e46fadff498b50496"
     },
     {
-      "path": "apps/admin-web/src/App.tsx",
-      "sha256LF": "234e3779a9ea78c095f0d887d8e3278ab3fbba5db6d9c52e7480f19f975143c5"
+      "path": "scripts/ios-smoke/test_auth.py",
+      "sha256LF": "a5524e75bfcc94717963c58a5b88728e982181875da62bc7a8939abca1df61f6"
     },
     {
-      "path": "apps/admin-web/src/layout/Shell.tsx",
-      "sha256LF": "880aeb7cb9e19ba38b5811ad9042c016be5bece43f2c6ba39f7f799e1c0921f7"
+      "path": "packages/db/test/notification-delivery.test.ts",
+      "sha256LF": "4b9cfefd2b9516dddf8edd931aac34fe876ec1c805818a60de23619c359e9e16"
     },
     {
-      "path": "apps/admin-web/src/pages/Clients.tsx",
-      "sha256LF": "8a21ed04669aeb91c8c181280507265120ed1570496e9a7792437395274b4c15"
-    },
-    {
-      "path": "apps/admin-web/src/pages/Buildings.tsx",
-      "sha256LF": "b4133b8641b07eeada9bfb16af62e0f0b4fc203b1c614f815a66b479fa3abd09"
-    },
-    {
-      "path": "apps/admin-web/src/organization-access.tsx",
-      "sha256LF": "e6243aa170ffd17a9e63c3a059b45123c2261a96e83340122c2c860f71cf697b"
-    },
-    {
-      "path": "e2e/organizations.spec.ts",
-      "sha256LF": "10fa1ef08dce54ffac9952bd012314cd0a753c91697350f7ba56e91fcd4712f2"
+      "path": "packages/db/test/backup-restore.test.ts",
+      "sha256LF": "b7d625dd6eb2a92952ad16cd5fc61148a925cf210d3ec11d0bae9756b367f2e1"
     }
   ],
   "restoreCheck": {
     "passed": true,
-    "filesVerified": 9,
+    "filesVerified": 6,
     "method": "git apply to archived base, compare SHA-256 with normalized LF"
   }
 }

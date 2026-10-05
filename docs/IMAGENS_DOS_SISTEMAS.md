@@ -2,7 +2,7 @@
 
 Publicadas em **03/10/2026**, atualizadas em **05/10/2026**. Estas capturas foram conferidas em execuções reais e usam dados fictícios. Cada imagem mantém a origem comprovada, inclusive commit nulo quando o runtime não foi atestado; a data de publicação não altera a versão demonstrada. O plano completo e os cinco vídeos finais continuam pendentes, conforme [CONTINUIDADE.md](CONTINUIDADE.md).
 
-As **37 imagens —9Android,19web e9iOS—** e a [galeriaHTML](IMAGENS_DOS_SISTEMAS.html) acompanham o clone. Todas as iOS mostram somente entrada; as duas novas de cf9b927 foram conferidas no startup aprovado dos dois produtos. Authcf9 parou no guardATS; Keychain/14POST/produção continuam pendentes. Duas novas JPEGs comerciais mostram QA manual em banco próprio039, com fonte ainda não publicada anterior ao ajuste finalShell; hashes e limites na [prova manual](evidencias/web-organizations039-manual.json). O [manifesto](imagens/2026-10-03/manifesto.json) registra dimensões, SHA e origem. Referências estáticas conferidas; acesso8765 continua bloqueado, sem bypass nem novo aceite de controles da galeria.
+As **38 imagens —9Android,20web e9iOS—** e a [galeriaHTML](IMAGENS_DOS_SISTEMAS.html) acompanham o clone. Todas as iOS mostram somente entrada; as duas novas de cf9b927 foram conferidas no startup aprovado dos dois produtos. Authcf9 parou no guardATS; Keychain/14POST/produção continuam pendentes. Duas novas JPEGs comerciais mostram QA manual em banco próprio039, com fonte ainda não publicada anterior ao ajuste finalShell; hashes e limites na [prova manual](evidencias/web-organizations039-manual.json). O [manifesto](imagens/2026-10-03/manifesto.json) registra dimensões, SHA e origem. Referências estáticas conferidas; acesso8765 continua bloqueado, sem bypass nem novo aceite de controles da galeria.
 
 ## Android — Morador: avisos
 
@@ -205,3 +205,9 @@ Menu do Síndico em375×812 após reconstruir os portais da fontebc2fcc8. Foco i
 ![web-admin-clientes-inativo-039.jpg](imagens/2026-10-03/web-admin-clientes-inativo-039.jpg)
 
 ![web-admin-clientes-movel-039.jpg](imagens/2026-10-03/web-admin-clientes-movel-039.jpg)
+
+## Clientes — versão final publicada
+
+[Prova312 e QA manual](evidencias/web-organizations039-e5f98e4.json). Frontend final publicado; fonteAPIcarregada e bytes do browser em memória não atestados.
+
+![Clientes final móvel](imagens/2026-10-03/web-admin-clientes-final-e5f98e4.jpg)
