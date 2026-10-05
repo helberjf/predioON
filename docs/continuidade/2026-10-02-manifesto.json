@@ -1,17 +1,13 @@
 {
-  "baseCommit": "758debaeeebf4a775af1ab0746666a8a3bb36a5c",
+  "baseCommit": "cf9b92741b2358a51ca6ebf4b964889ac3039bee",
   "capturedOn": "2026-10-05",
   "state": "Drafts: restore for review, not approved product changes",
   "patch": "2026-10-02-em-andamento.patch",
-  "sha256": "be0d4c344dda8c51c16c7cf4e1fe3962d6dd549e1ae3093199466529b6ff899f",
+  "sha256": "c3e64abfcbc012a382a95c30bd9c8199c1bba4b37ad150bd523e6b8010a865f7",
   "files": [
     {
       "path": "e2e/README.md",
-      "sha256LF": "fe49a50885a2f025cd6983054aefd5ccd2498d1ce3c5a6bf287109b10b9a90b9"
-    },
-    {
-      "path": "scripts/ios-smoke/test_auth.py",
-      "sha256LF": "2cee1ef3b1647e9484cb9a373551a0d0e105496e133fd5cb9c6b14a946886ee1"
+      "sha256LF": "133e93cdbef105d6f5e79a372956ed2a7d19618d435601c58e6242b532ab5279"
     },
     {
       "path": "pnpm-lock.yaml",
@@ -27,7 +23,7 @@
     },
     {
       "path": "apps/admin-web/src/layout/Shell.tsx",
-      "sha256LF": "9bb293369e4f6588fe29719fba151adbf2bcab91aea0c4dc8dfff3446db6392f"
+      "sha256LF": "880aeb7cb9e19ba38b5811ad9042c016be5bece43f2c6ba39f7f799e1c0921f7"
     },
     {
       "path": "apps/admin-web/src/pages/Clients.tsx",
@@ -39,16 +35,16 @@
     },
     {
       "path": "apps/admin-web/src/organization-access.tsx",
-      "sha256LF": "38fe24ccb82702e48a483b8c7c48476c994fbfdd3ab33edcd21f011b13a74219"
+      "sha256LF": "e6243aa170ffd17a9e63c3a059b45123c2261a96e83340122c2c860f71cf697b"
     },
     {
       "path": "e2e/organizations.spec.ts",
-      "sha256LF": "6ee75a61b61928db635f5631f1601d58ab63a39d65023f2ab726b2a1019713b6"
+      "sha256LF": "10fa1ef08dce54ffac9952bd012314cd0a753c91697350f7ba56e91fcd4712f2"
     }
   ],
   "restoreCheck": {
     "passed": true,
-    "filesVerified": 10,
+    "filesVerified": 9,
     "method": "git apply to archived base, compare SHA-256 with normalized LF"
   }
 }

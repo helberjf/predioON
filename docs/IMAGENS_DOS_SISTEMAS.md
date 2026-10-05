@@ -1,8 +1,8 @@
 # Imagens reais dos aplicativos e portais
 
-Publicadas em **03/10/2026**, atualizadas em **04/10/2026**. Estas capturas foram conferidas em execuções reais e usam dados fictícios. Cada imagem mantém a origem comprovada, inclusive commit nulo quando o runtime não foi atestado; a data de publicação não altera a versão demonstrada. O plano completo e os cinco vídeos finais continuam pendentes, conforme [CONTINUIDADE.md](CONTINUIDADE.md).
+Publicadas em **03/10/2026**, atualizadas em **05/10/2026**. Estas capturas foram conferidas em execuções reais e usam dados fictícios. Cada imagem mantém a origem comprovada, inclusive commit nulo quando o runtime não foi atestado; a data de publicação não altera a versão demonstrada. O plano completo e os cinco vídeos finais continuam pendentes, conforme [CONTINUIDADE.md](CONTINUIDADE.md).
 
-As **32 imagens — 9 Android, 17 web e 6 iOS** — e a [galeria HTML](IMAGENS_DOS_SISTEMAS.html) acompanham o clone. As seis iOS incluem duas capturas históricas de b4726b9, duas de novo processo Release em deb20b1 e duas em6298065; todas mostram somente entrada. Abra a galeria no navegador para filtrar e ampliar. O [manifesto](imagens/2026-10-03/manifesto.json) registra dimensões, SHA-256 e origem. As referências desta atualização foram conferidas estaticamente; o acesso ao servidor local 8765 continua bloqueado, sem novo aceite dos controles no navegador.
+As **37 imagens —9Android,19web e9iOS—** e a [galeriaHTML](IMAGENS_DOS_SISTEMAS.html) acompanham o clone. Todas as iOS mostram somente entrada; as duas novas de cf9b927 foram conferidas no startup aprovado dos dois produtos. Authcf9 parou no guardATS; Keychain/14POST/produção continuam pendentes. Duas novas JPEGs comerciais mostram QA manual em banco próprio039, com fonte ainda não publicada anterior ao ajuste finalShell; hashes e limites na [prova manual](evidencias/web-organizations039-manual.json). O [manifesto](imagens/2026-10-03/manifesto.json) registra dimensões, SHA e origem. Referências estáticas conferidas; acesso8765 continua bloqueado, sem bypass nem novo aceite de controles da galeria.
 
 ## Android — Morador: avisos
 
@@ -195,3 +195,13 @@ Formulário E-mail/Senha vazio no segundo processo Release, simulador iOS18.5/SD
 Menu do Síndico em375×812 após reconstruir os portais da fontebc2fcc8. Foco inicial, cicloTab/ShiftTab, Escape, página atual e transição desktop conferidos no navegador; Playwright240/240,80por motor, sem retries/skips. JPEG original revisado, dados fictícios da demo037. A origem atesta somente fontes front-end; API carregada e bytes do navegador em memória não foram capturados. Não é homologação integral ou vídeo. [Prova e hashes](evidencias/web-menu-bc2fcc8.json).
 
 ![Menu móvel do Síndico](imagens/2026-10-03/web-sindico-menu-movel-bc2fcc8.jpg)
+
+## Atualização de 05/10 — iOS e Clientes
+
+![ios-morador-startup-cf9b927.png](imagens/2026-10-03/ios-morador-startup-cf9b927.png)
+
+![ios-operacao-startup-cf9b927.png](imagens/2026-10-03/ios-operacao-startup-cf9b927.png)
+
+![web-admin-clientes-inativo-039.jpg](imagens/2026-10-03/web-admin-clientes-inativo-039.jpg)
+
+![web-admin-clientes-movel-039.jpg](imagens/2026-10-03/web-admin-clientes-movel-039.jpg)

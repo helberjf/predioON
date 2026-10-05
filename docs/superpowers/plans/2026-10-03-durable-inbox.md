@@ -1,3 +1,5 @@
+> Coordenação de05/10/2026: **041** é o próximo número reservado desta proposta.039 jápublicou organizações comerciais;040 é o recorte deACLusers em implementação. Referências040 abaixo conservam o desenho histórico e devem ser ajustadas ao implementar. Nenhum SQL041/receiver/worker de inbox foi entregue.
+
 # Inbox durável de telemetria — proposta do incremento 040
 
 Estado: desenho para revisão, sem implementação ou ativação autorizada por este arquivo. Elaborado em 03–04/10/2026 sobre a linha que contém SQL038; fonte examinada inicialmente em `f96b0ae8dd5ce72ee6b8e9add893eaf99799f610`. A preparação de metadados MQTT foi publicada em `5144913c6c60ff4b499c380dca8ba3807b2578d2`; a revisão independente reproduziu seus 8 testes com broker real, sem PostgreSQL. O coordenador informou integral ingestão 125/125 nessa fonte; essa contagem não demonstra inbox040. O nome do arquivo conserva a data de abertura do trabalho. O coordenador deve homologar as decisões abaixo antes de distribuir a implementação.

@@ -105,7 +105,7 @@ index 9bdd845..fc47a87 100644
 +  return legacy ? <FeatureProvider>{content}</FeatureProvider> : content;
  }
 diff --git a/apps/admin-web/src/layout/Shell.tsx b/apps/admin-web/src/layout/Shell.tsx
-index 9c374c0..73323ea 100644
+index 9c374c0..fd48983 100644
 --- a/apps/admin-web/src/layout/Shell.tsx
 +++ b/apps/admin-web/src/layout/Shell.tsx
 @@ -2,6 +2,7 @@ import type { ReactNode } from "react";
@@ -116,7 +116,7 @@ index 9c374c0..73323ea 100644
  const LINKS = [
    { to: "/", label: "Dashboard", icon: House },
    { to: "/predios", label: "Condomínios", icon: Building2 },
-@@ -21,5 +22,8 @@ export function Shell({ children }: { children: ReactNode }) {
+@@ -21,5 +22,12 @@ export function Shell({ children }: { children: ReactNode }) {
    const { user, signOut } = useAuth();
    const location = useLocation();
    const flags = useFeatures();
@@ -124,7 +124,11 @@ index 9c374c0..73323ea 100644
 +  const access = useOrganizationAccess();
 +  const legacy = user?.role === "PLATFORM_ADMIN";
 +  const allowed = (path: string) => organizationRouteAllowed(path, legacy, access.canRead) && flags.routeAllowed(path);
-+  return <DashboardFrame title="Central de gestão Prédio ON" subtitle={legacy ? "Todos os seus condomínios em um só lugar" : "Clientes e segurança da sua conta"} userName={user?.name ?? ""} role={legacy ? "Administrador" : access.canManage ? "Gestão de clientes" : "Consulta de clientes"} links={LINKS.filter(link => allowed(link.to))} pathname={location.pathname} signOut={() => void signOut()} renderLink={(to, content, className) => allowed(to) ? <Link to={to} className={className}>{content}</Link> : null}>{children}</DashboardFrame>;
++  // Do not move a usable link between pointerdown and pointerup as Clients arrives.
++  // Periodic checks retain a confirmed projection and therefore keep navigation stable.
++  const navigationPending = access.capabilities === null && access.checking;
++  const navigationFeedback = navigationPending ? <p role="status" className="min-h-64 px-3 py-4 text-sm text-slate-300">Carregando menu…</p> : undefined;
++  return <DashboardFrame title="Central de gestão Prédio ON" subtitle={legacy ? "Todos os seus condomínios em um só lugar" : "Clientes e segurança da sua conta"} userName={user?.name ?? ""} role={legacy ? "Administrador" : access.canManage ? "Gestão de clientes" : "Consulta de clientes"} links={navigationPending ? [] : LINKS.filter(link => allowed(link.to))} navigationBusy={navigationPending} navigationFeedback={navigationFeedback} pathname={location.pathname} signOut={() => void signOut()} renderLink={(to, content, className) => allowed(to) ? <Link to={to} className={className}>{content}</Link> : null}>{children}</DashboardFrame>;
  }
 diff --git a/apps/admin-web/src/pages/Buildings.tsx b/apps/admin-web/src/pages/Buildings.tsx
 index b1dcba7..c5a757f 100644
@@ -455,10 +459,10 @@ index 6315c2b..aee4d3d 100644
 +  </>;
  }
 diff --git a/e2e/README.md b/e2e/README.md
-index e9b2601..d1d30ec 100644
+index e9b2601..558ed61 100644
 --- a/e2e/README.md
 +++ b/e2e/README.md
-@@ -45,6 +45,18 @@ Os cenários de contador e finanças com escopo exato criam papéis exclusivos e
+@@ -45,6 +45,20 @@ Os cenários de contador e finanças com escopo exato criam papéis exclusivos e
  
  Relatório HTML, capturas e traces de falhas ficam em `.local/playwright-report` e `.local/playwright-results`, ignorados pelo Git. As gravações podem conter sessões das contas de demonstração; use apenas o banco descartável preparado para a suíte.
  
@@ -466,13 +470,15 @@ index e9b2601..d1d30ec 100644
 +
 +`organizations.spec.ts` usa login real e a projeção finita `/v1/authorization/platform`. Uma conta com binding global `PLATFORM_ADMIN`, sem a flag legada, entra em Clientes mantendo o papel `RESIDENT` recebido no login. Ela não monta os módulos operacionais nem seus atalhos, mesmo por URL direta; Minhas sessões continua disponível a qualquer identidade autenticada. A flag legada mantém as demais rotas, mas não substitui `organizations:read`/`organizations:manage` nos controles comerciais.
 +
-+Os 21 cenários por navegador verificam consulta de ativos e inativos, criação única com dois eventos de submit, edição parcial sem sobrescrever metadata, confirmação/cancelamento de inativação e reativação, conflito409 e preservação do rascunho. Também cobrem revogação de leitura/gestão/binding, GET anterior atrasado, preflight pendente ao navegar/cancelar/trocar identidade inclusive para a mesma conta, erro transitório e resposta403 posterior à checagem. Perder a resposta de um POST realmente concluído ou receber seu JSON inválido deve orientar a atualizar a lista, conservar o rascunho e não reenviar a escrita. O teste de background injeta `visibilitychange` de maneira determinística; ele não representa suspensão real pelo sistema operacional.
++Os 24 cenários por navegador verificam consulta de ativos e inativos, criação única com dois eventos de submit, edição parcial sem sobrescrever metadata, confirmação/cancelamento de inativação e reativação, conflito409 e preservação do rascunho. Também cobrem revogação de leitura/gestão/binding, GET anterior atrasado, preflight pendente ao navegar/cancelar/trocar identidade inclusive para a mesma conta, erro transitório e resposta403 posterior à checagem. Perder a resposta de um POST realmente concluído ou receber seu JSON inválido deve orientar a atualizar a lista, conservar o rascunho e não reenviar a escrita. O teste de background injeta `visibilitychange` de maneira determinística; ele não representa suspensão real pelo sistema operacional.
++
++Uma regressão libera, no mesmo turno, os corpos reais da revogação e de uma escrita já persistida. O MutationObserver detecta inclusive uma confirmação antiga inserida brevemente no DOM antes da limpeza passiva. O guard compara epochs sincronamente; reconceder a capacidade não recupera a intenção anterior. Outro caso retém a primeira projeção e verifica o destino entre pointerdown/up: o menu parcial movia Minhas sessões de y92 para y140. O Shell agora apresenta carregamento até a primeira projeção, conserva os links durante consultas periódicas com dados válidos e mantém Sair disponível.
 +
 +O seletor comercial de Imóveis só consulta organizações quando a leitura atual é permitida. Uma revogação desmonta seu recurso, seleção e intenção; o retorno da permissão aguarda dados novos. O formulário revalida a leitura antes de criar o imóvel e não exige gestão de organizações, conservando a autorização legada própria desse domínio.
 +
 +Esta spec altera temporariamente as duas linhas `role_permissions` de `PLATFORM_ADMIN` **apenas no banco descartável dedicado à sua execução**, para provar a ausência real de cada capacidade sem simular a autorização. Não execute a suíte junto a outro consumidor do mesmo banco. O `finally` repõe os registros originais, incluindo `created_at` com microssegundos via JSONB, e remove apenas usuários, organizações, imóveis e auditoria pertencentes aos UUIDs do cenário. Não há reset de banco nem uso de contas reais. As respostas atrasadas são respostas reais retidas; os únicos erros sintéticos são503 e a perda/corrupção explícita da resposta após persistência real.
 +
-+Evidência local inicial: três REDs válidos demonstraram a entrada bloqueada do RBAC puro, controles indevidos para leitor e consulta indevida do seletor; depois passaram3/3. Dois REDs adicionais reproduziram a mensagem inadequada de resultado incerto. A implementação corrigida passou **21/21 Chromium**, em1min42s, com bundles de produção, API e PostgreSQL001–039, um worker e zero retries (`work/org039-ui-directed-green.log`). Tipos do portal e da spec também passaram. A matriz dos três motores está em validação; este registro não declara aprovação de CI, integral API nem publicação do recorte.
++Evidência local: três REDs válidos demonstraram a entrada bloqueada do RBAC puro, controles indevidos para leitor e consulta indevida do seletor. Dois REDs adicionais reproduziram a mensagem inadequada de resultado incerto; a confirmação tardia e o deslocamento do menu também tiveram RED próprio. Antes do ajuste final do menu, a matriz de organizações passou **69/69**, em3,9min, e a regressão de platform/menu/auth-cookie/session-management passou **69/69**, em5,0min. São execuções distintas, com bundles de produção, API e PostgreSQL001–039, um worker e zero retries (`work/org039-ui-final-three-browsers.log` e `work/org039-ui-adjacent.log`). O ajuste posterior do menu passou **3/3** dirigidos nos três motores (`work/org039-ui-menu-latency-green.log`). Tipos do portal e da spec passaram em Windows/Linux; cliente HTTP64/64 e biblioteca UI89/89 também passaram. A integral da fonte final, descoberta com312 casos em18 arquivos, está em execução; os resultados anteriores não são somados nem apresentados como aprovação dessa integral ou do CI.
 +
  ## Ambiente do CI e regressão de atualização
  
@@ -491,203 +497,12 @@ index f89113a..e99d3e5 100644
        '@predioon/shared':
          specifier: workspace:*
          version: link:../../packages/shared
-diff --git a/scripts/ios-smoke/test_auth.py b/scripts/ios-smoke/test_auth.py
-index 6432873..a954d24 100644
---- a/scripts/ios-smoke/test_auth.py
-+++ b/scripts/ios-smoke/test_auth.py
-@@ -289,7 +289,8 @@ class ExportTests(unittest.TestCase):
- 
- class NativeFailureDiagnosticTests(unittest.TestCase):
-     def run_failure(self, failed_stage, *, cleanup_fails=False, rejection=None, outcome="nonzero-exit",
--                    build_message=None, created_id=None, command_trace=None, coordinator_trace=None):
-+                    build_message=None, created_id=None, command_trace=None, coordinator_trace=None,
-+                    runner_policy=None, ats_observer_fails=False):
-         run = load("run_auth")
-         secret = "PrivateNativeDiagnosticSentinel123456"
-         with tempfile.TemporaryDirectory() as temporary, ExitStack() as patches:
-@@ -315,7 +316,7 @@ class NativeFailureDiagnosticTests(unittest.TestCase):
-             runner_info = private / "runner-build/Build/Products/Release-iphonesimulator/AuthJourney-Runner.app/Info.plist"
-             runner_info.parent.mkdir(parents=True)
-             with runner_info.open("wb") as destination:
--                run.plistlib.dump({}, destination)
-+                run.plistlib.dump({} if runner_policy is None else runner_policy, destination)
-             simulator = created_id if created_id is not None else "f19ce90e-9c36-461d-a499-692ff2570a01"
-             runtime = "com.apple.CoreSimulator.SimRuntime.iOS-18-5"
-             stages = []
-@@ -389,6 +390,8 @@ class NativeFailureDiagnosticTests(unittest.TestCase):
-             patches.enter_context(patch.object(run.ssl, "SSLContext", return_value=MagicMock()))
-             patches.enter_context(patch.object(run.threading, "Thread", return_value=MagicMock()))
-             patches.enter_context(patch.object(run.subprocess, "run", side_effect=respond))
-+            if ats_observer_fails:
-+                patches.enter_context(patch.object(run, "runner_ats_policy", side_effect=OSError(secret)))
-             patches.enter_context(patch.dict(run.os.environ, {"GITHUB_SHA": "b" * 40, "IOS_DB_ROOT": str(database),
-                                                            "GITHUB_OUTPUT": str(root / "outputs")}))
-             output = root / ".local/ios-auth/evidence"
-@@ -400,7 +403,10 @@ class NativeFailureDiagnosticTests(unittest.TestCase):
-             self.assertFalse(result["passed"])
-             self.assertEqual(result["steps"], [])
-             self.assertEqual({item.name for item in output.iterdir()}, {"result.json", "builds.json", "database-source.json"})
--            self.assertIn(failed_stage, stages)
-+            if failed_stage == "runner-ats-check":
-+                self.assertEqual(result["failureDiagnostic"]["stage"], failed_stage)
-+            else:
-+                self.assertIn(failed_stage, stages)
-             return result, stages
- 
-     def test_boot_failure_reports_the_boot_stage(self):
-@@ -434,6 +440,42 @@ class NativeFailureDiagnosticTests(unittest.TestCase):
-         self.assertEqual(result.get("failureDiagnostic"), {"stage": "runner-test", "category": "nonzero-exit", "exitCode": 65})
-         self.assertIn("runner-build", stages)
- 
-+    def test_ats_guard_failure_is_closed_and_precedes_test_and_cleanup(self):
-+        secret = "PrivateATSDomainSentinel123456"
-+        cases = [
-+            ({"NSAppTransportSecurity": {"NSAllowsArbitraryLoads": True}}, ats_policy(arbitrary="bool", enabled=True)),
-+            ({"NSAppTransportSecurity": {"NSExceptionDomains": {secret: {"private": secret}}}}, ats_policy(domains="dict", count=1)),
-+            ({"NSAppTransportSecurity": True}, ats_policy(ats="bool", arbitrary="unavailable", domains="unavailable")),
-+            ({"NSAppTransportSecurity": False}, ats_policy(ats="bool", arbitrary="unavailable", domains="unavailable")),
-+            ({"NSAppTransportSecurity": secret}, ats_policy(ats="invalid", arbitrary="unavailable", domains="unavailable")),
-+            ([], ats_policy(ats="unavailable", arbitrary="unavailable", domains="unavailable")),
-+        ]
-+        for index, (plist, policy) in enumerate(cases):
-+            with self.subTest(case=index):
-+                result, stages = self.run_failure("runner-ats-check", runner_policy=plist, cleanup_fails=True)
-+                self.assertEqual(result["failureDiagnostic"], {"stage": "runner-ats-check", "category": "verification-failed",
-+                                                              "exitCode": None, "atsPolicy": policy})
-+                self.assertTrue(result["cleanupFailed"])
-+                self.assertIn("runner-build", stages)
-+                self.assertNotIn("runner-test", stages)
-+                self.assertNotIn(secret, json.dumps(result))
-+
-+    def test_safe_ats_configs_keep_existing_gate_and_never_collect_on_success(self):
-+        for plist in [{}, {"NSAppTransportSecurity": {}},
-+                      {"NSAppTransportSecurity": {"NSAllowsLocalNetworking": True}},
-+                      {"NSAppTransportSecurity": {"NSAllowsArbitraryLoads": False, "NSExceptionDomains": {}}}]:
-+            with self.subTest(plist=plist):
-+                result, stages = self.run_failure("runner-test", runner_policy=plist, ats_observer_fails=True)
-+                self.assertEqual(result["failureDiagnostic"], {"stage": "runner-test", "category": "nonzero-exit", "exitCode": 65})
-+                self.assertIn("runner-test", stages)
-+
-+    def test_failed_ats_observer_omits_only_supplement_and_preserves_first_gate(self):
-+        result, stages = self.run_failure("runner-ats-check", runner_policy={"NSAppTransportSecurity": {"NSAllowsArbitraryLoads": True}},
-+                                          ats_observer_fails=True, cleanup_fails=True)
-+        self.assertEqual(result["failureDiagnostic"], {"stage": "runner-ats-check", "category": "verification-failed", "exitCode": None})
-+        self.assertTrue(result["cleanupFailed"])
-+        self.assertNotIn("runner-test", stages)
-+
-     def test_created_simulator_spelling_reaches_all_owned_commands_and_coordinator(self):
-         lower = "f19ce90e-9c36-461d-a499-692ff2570a01"
-         for producer in [lower.upper(), "F19ce90E-9c36-461D-a499-692fF2570A01", lower]:
-@@ -574,6 +616,103 @@ class NativeFailureDiagnosticTests(unittest.TestCase):
-                 self.assertEqual(diagnostic.first["exitCode"], expected)
- 
- 
-+def ats_policy(*, ats="dict", arbitrary="absent", enabled=None, domains="absent", count=None):
-+    return {"atsKind": ats, "arbitraryLoadsKind": arbitrary, "arbitraryLoadsEnabled": enabled,
-+            "exceptionDomainsKind": domains, "exceptionDomainCountCapped": count}
-+
-+
-+class RunnerATSDiagnosticTests(unittest.TestCase):
-+    def test_exact_types_and_absence_are_distinct_without_free_values(self):
-+        run = load("run_auth")
-+        secret = "PrivateATSDomainSentinel123456"
-+        cases = [({}, ats_policy(ats="absent", arbitrary="unavailable", domains="unavailable")),
-+                 ([], ats_policy(ats="unavailable", arbitrary="unavailable", domains="unavailable")),
-+                 ({"NSAppTransportSecurity": True}, ats_policy(ats="bool", arbitrary="unavailable", domains="unavailable")),
-+                 ({"NSAppTransportSecurity": {}}, ats_policy()),
-+                 ({"NSAppTransportSecurity": secret}, ats_policy(ats="invalid", arbitrary="unavailable", domains="unavailable")),
-+                 ({"NSAppTransportSecurity": {"NSAllowsArbitraryLoads": False}}, ats_policy(arbitrary="bool", enabled=False)),
-+                 ({"NSAppTransportSecurity": {"NSAllowsArbitraryLoads": True}}, ats_policy(arbitrary="bool", enabled=True)),
-+                 ({"NSAppTransportSecurity": {"NSAllowsArbitraryLoads": {}}}, ats_policy(arbitrary="dict")),
-+                 ({"NSAppTransportSecurity": {"NSAllowsArbitraryLoads": secret}}, ats_policy(arbitrary="invalid")),
-+                 ({"NSAppTransportSecurity": {"NSAllowsArbitraryLoads": 1}}, ats_policy(arbitrary="invalid")),
-+                 ({"NSAppTransportSecurity": {"NSExceptionDomains": {}}}, ats_policy(domains="dict", count=0)),
-+                 ({"NSAppTransportSecurity": {"NSExceptionDomains": {secret: {"private": secret}}}}, ats_policy(domains="dict", count=1)),
-+                 ({"NSAppTransportSecurity": {"NSExceptionDomains": True}}, ats_policy(domains="bool")),
-+                 ({"NSAppTransportSecurity": {"NSExceptionDomains": secret}}, ats_policy(domains="invalid")),
-+                 ({"NSAppTransportSecurity": {"NSExceptionDomains": []}}, ats_policy(domains="invalid"))]
-+        for index, (plist, expected) in enumerate(cases):
-+            with self.subTest(case=index):
-+                observed = run.runner_ats_policy(plist)
-+                self.assertEqual(observed, expected)
-+                self.assertNotIn(secret, json.dumps(observed))
-+
-+    def test_count_is_capped_without_inspecting_domains_or_invalid_objects(self):
-+        run = load("run_auth")
-+        class Uninspectable:
-+            def __str__(self): raise AssertionError("must not stringify")
-+            def __repr__(self): raise AssertionError("must not repr")
-+            def __bool__(self): raise AssertionError("must not derive truthiness")
-+            def __iter__(self): raise AssertionError("must not iterate")
-+        domains = {index: Uninspectable() for index in range(40)}
-+        self.assertEqual(run.runner_ats_policy({"NSAppTransportSecurity": {"NSExceptionDomains": domains}}), ats_policy(domains="dict", count=32))
-+        self.assertEqual(run.runner_ats_policy({"NSAppTransportSecurity": {"NSAllowsArbitraryLoads": Uninspectable(), "NSExceptionDomains": Uninspectable()}}),
-+                         ats_policy(arbitrary="invalid", domains="invalid"))
-+        self.assertEqual(run.runner_ats_policy(Uninspectable()), ats_policy(ats="unavailable", arbitrary="unavailable", domains="unavailable"))
-+
-+    def test_observer_runs_after_first_latch_and_preserves_original_exception(self):
-+        run = load("run_auth")
-+        diagnostic = run.FailureDiagnostic()
-+        original = AssertionError("PrivateATSSentinel123456")
-+        calls = []
-+        def observe():
-+            calls.append(diagnostic.observed)
-+            return ats_policy(arbitrary="bool", enabled=True)
-+        with self.assertRaises(AssertionError) as caught:
-+            with diagnostic.stage("runner-ats-check", observe_ats=observe):
-+                raise original
-+        self.assertIs(caught.exception, original)
-+        self.assertEqual(calls, [True])
-+        first = {"stage": "runner-ats-check", "category": "verification-failed", "exitCode": None,
-+                 "atsPolicy": ats_policy(arbitrary="bool", enabled=True)}
-+        self.assertEqual(diagnostic.first, first)
-+        with self.assertRaises(OSError):
-+            with diagnostic.stage("simulator-delete", observe_ats=observe):
-+                raise OSError("private cleanup")
-+        self.assertEqual(calls, [True])
-+        self.assertEqual(diagnostic.first, first)
-+
-+    def test_no_collection_on_success_other_stage_or_wrong_category(self):
-+        run = load("run_auth")
-+        observer = MagicMock(side_effect=AssertionError("must not observe"))
-+        diagnostic = run.FailureDiagnostic()
-+        with diagnostic.stage("runner-ats-check", observe_ats=observer):
-+            pass
-+        self.assertIsNone(diagnostic.first)
-+        for stage, error in [("runner-test", AssertionError("private")),
-+                             ("runner-ats-check", run.PrivateCommandFailure("nonzero-exit", 65, "private"))]:
-+            with self.subTest(stage=stage):
-+                diagnostic = run.FailureDiagnostic()
-+                with self.assertRaises(type(error)) as caught:
-+                    with diagnostic.stage(stage, observe_ats=observer):
-+                        raise error
-+                self.assertIs(caught.exception, error)
-+                self.assertNotIn("atsPolicy", diagnostic.first)
-+        observer.assert_not_called()
-+
-+    def test_broken_or_invalid_observer_preserves_base_and_original_error(self):
-+        run = load("run_auth")
-+        for observer in [MagicMock(side_effect=OSError("private")), MagicMock(return_value={"domains": "PrivateATSSentinel123456"})]:
-+            with self.subTest(observer=True):
-+                diagnostic = run.FailureDiagnostic()
-+                original = AssertionError("PrivateATSSentinel123456")
-+                with self.assertRaises(AssertionError) as caught:
-+                    with diagnostic.stage("runner-ats-check", observe_ats=observer):
-+                        raise original
-+                self.assertIs(caught.exception, original)
-+                self.assertEqual(diagnostic.first, {"stage": "runner-ats-check", "category": "verification-failed", "exitCode": None})
-+                observer.assert_called_once()
-+
-+
- class RunnerBuildSignalTests(unittest.TestCase):
-     destination = "xcodebuild: error: Unable to find a destination matching the provided destination specifier:\n"
-     device_destination = "xcodebuild: error: Unable to find a device matching the provided destination specifier:\n"
 diff --git a/apps/admin-web/src/organization-access.tsx b/apps/admin-web/src/organization-access.tsx
 new file mode 100644
-index 0000000..3bdfb12
+index 0000000..cc8a2cd
 --- /dev/null
 +++ b/apps/admin-web/src/organization-access.tsx
-@@ -0,0 +1,167 @@
+@@ -0,0 +1,175 @@
 +import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 +import { useLocation } from "react-router-dom";
 +import type { PlatformAuthorizationResponse } from "@predioon/contracts/tenancy";
@@ -825,8 +640,16 @@ index 0000000..3bdfb12
 +    if (sending.current || !mounted.current || !access.current() || document.visibilityState !== "visible") return;
 +    sending.current = true; setBusy(true); setError(null);
 +    const expected = generation.current;
++    const authorization = access.getSnapshot();
 +    let submitted = false;
-+    const current = () => mounted.current && generation.current === expected && access.current() && document.visibilityState === "visible";
++    const current = () => {
++      const latest = access.getSnapshot();
++      // Publication precedes React's effect cleanup. A committed response from
++      // an earlier authorization epoch cannot update the new view, even after regrant.
++      return mounted.current && generation.current === expected && access.current() && document.visibilityState === "visible"
++        && latest.readEpoch === authorization.readEpoch
++        && (required === "read" || latest.manageEpoch === authorization.manageEpoch);
++    };
 +    try {
 +      const capabilities = await access.refresh();
 +      if (!current()) return;
@@ -857,10 +680,10 @@ index 0000000..3bdfb12
 +}
 diff --git a/e2e/organizations.spec.ts b/e2e/organizations.spec.ts
 new file mode 100644
-index 0000000..b18faf7
+index 0000000..9139973
 --- /dev/null
 +++ b/e2e/organizations.spec.ts
-@@ -0,0 +1,531 @@
+@@ -0,0 +1,677 @@
 +import { randomUUID } from "node:crypto";
 +import { expect, test, type APIRequestContext, type Page } from "./fixtures";
 +import { ADMIN_URL, API_URL } from "./environment";
@@ -1391,4 +1214,150 @@ index 0000000..b18faf7
 +    await expect(page.getByRole("option", { name: f.name, exact: true })).toHaveCount(1);
 +    await expect(page.getByLabel("Cliente", { exact: true })).toHaveValue("");
 +  } finally { delayed.release(); }
++}));
++
++test("organizações: revogação publicada no mesmo turno da resposta de escrita impede confirmação antiga", async ({ page, request }) => withOrganizations(request, async f => {
++  await openClients(page, f.pure);
++  await fillClient(page, "Escrita anterior à revogação", `${f.prefix}-committed`);
++  await page.evaluate(origin => {
++    type PendingBody = { resolve(value: unknown): void; body: unknown };
++    const state = {
++      write: null as PendingBody | null, authorization: null as PendingBody | null,
++      armAuthorization: false, messages: [] as string[],
++      release() {
++        if (!this.authorization || !this.write) throw new Error("Os dois corpos reais ainda não estão disponíveis");
++        // Resolve the real JSON reads in the same turn: authorization first,
++        // then the committed write, before React's next scheduled render/effect.
++        this.authorization.resolve(this.authorization.body);
++        this.write.resolve(this.write.body);
++        return { authorization: this.authorization.body, write: this.write.body };
++      },
++    };
++    (window as typeof window & { organizationCompletionRace: typeof state }).organizationCompletionRace = state;
++    new MutationObserver(records => {
++      for (const record of records) for (const node of Array.from(record.addedNodes)) {
++        if (node.textContent?.includes("Cliente cadastrado.")) state.messages.push(node.textContent);
++      }
++    }).observe(document.body, { subtree: true, childList: true });
++    const original = window.fetch.bind(window);
++    window.fetch = async (...args) => {
++      const input = args[0];
++      const url = new URL(typeof input === "string" ? input : input instanceof URL ? input.href : input.url, location.href);
++      const method = args[1]?.method ?? (input instanceof Request ? input.method : "GET");
++      const response = await original(...args);
++      if (url.origin !== origin || !response.ok) return response;
++      const key = url.pathname === "/organizations" && method === "POST" ? "write"
++        : url.pathname === "/v1/authorization/platform" && state.armAuthorization ? "authorization" : null;
++      if (key) {
++        const body: unknown = await response.clone().json();
++        response.json = () => new Promise(resolve => { state[key] = { resolve, body }; });
++      }
++      return response;
++    };
++  }, API_URL);
++  let posts = 0;
++  page.on("request", current => { if (current.url() === `${API_URL}/organizations` && current.method() === "POST") posts++; });
++  await page.getByRole("button", { name: "Cadastrar cliente", exact: true }).click();
++  await expect.poll(() => page.evaluate(() => Boolean((window as any).organizationCompletionRace.write))).toBe(true);
++  await withFixtureDatabase(async sql => { expect(await sql`select id from organizations where slug=${f.prefix + '-committed'}`).toHaveLength(1); });
++  await f.setCapability("organizations:manage", false);
++  await page.evaluate(() => {
++    (window as any).organizationCompletionRace.armAuthorization = true;
++    window.dispatchEvent(new Event("focus"));
++  });
++  await expect.poll(() => page.evaluate(() => Boolean((window as any).organizationCompletionRace.authorization))).toBe(true);
++  const bodies = await page.evaluate(() => (window as any).organizationCompletionRace.release()) as { authorization: unknown; write: { slug: string } };
++  expect(bodies.authorization).toEqual({ capabilities: ["organizations:read"] });
++  expect(bodies.write.slug).toBe(`${f.prefix}-committed`);
++  await expect(page.getByLabel("Nome do cliente", { exact: true })).toHaveCount(0);
++  expect(await page.evaluate(() => (window as any).organizationCompletionRace.messages)).toEqual([]);
++  await page.evaluate(() => { (window as any).organizationCompletionRace.armAuthorization = false; });
++  await f.setCapability("organizations:manage", true);
++  await focusAuthorization(page);
++  await expect(page.getByLabel("Nome do cliente", { exact: true })).toHaveValue("");
++  await page.getByRole("button", { name: "Atualizar clientes", exact: true }).click();
++  await expect(clientRow(page, "Escrita anterior à revogação")).toBeVisible();
++  expect(await page.evaluate(() => (window as any).organizationCompletionRace.messages)).toEqual([]);
++  expect(posts).toBe(1);
++}));
++
++test("organizações: perder gestão comercial não invalida resposta de imóvel autorizado por leitura", async ({ page, request }) => withOrganizations(request, async f => {
++  await signIn(page, ADMIN_URL, f.flag.email);
++  await page.goto(`${ADMIN_URL}/predios`);
++  await page.getByLabel("Cliente", { exact: true }).selectOption(f.organization);
++  const name = `Imóvel sem gestão comercial ${f.prefix}`;
++  await page.getByLabel("Nome", { exact: true }).fill(name);
++  await page.getByLabel("Código", { exact: true }).fill("READ039");
++  let release!: () => void, reached!: () => void, posts = 0;
++  const barrier = new Promise<void>(resolve => { release = resolve; });
++  const held = new Promise<void>(resolve => { reached = resolve; });
++  await page.route(`${API_URL}/buildings`, async route => {
++    if (route.request().method() !== "POST") return route.continue();
++    posts++;
++    const actual = await route.fetch();
++    expect(actual.status()).toBe(201);
++    expect((await actual.json()).name).toBe(name);
++    reached();
++    await barrier;
++    await route.fulfill({ response: actual });
++  });
++  try {
++    await page.getByRole("button", { name: "Cadastrar", exact: true }).click();
++    await held;
++    await f.setCapability("organizations:manage", false);
++    await focusAuthorization(page);
++    await f.capabilities(f.flag, ["organizations:read"]);
++    release();
++    await expect(page.getByText(name, { exact: true })).toBeVisible();
++    await expect(page.getByLabel("Nome", { exact: true })).toHaveValue("");
++    expect(posts).toBe(1);
++    await withFixtureDatabase(async sql => { expect(await sql`select id from buildings where organization_id=${f.organization} and name=${name}`).toHaveLength(1); });
++  } finally { release(); }
++}));
++
++test("organizações: primeira projeção lenta não desloca o destino durante o clique no menu", async ({ page, request }, info) => withOrganizations(request, async f => {
++  let release!: () => void, reached!: () => void;
++  const barrier = new Promise<void>(resolve => { release = resolve; });
++  const held = new Promise<void>(resolve => { reached = resolve; });
++  let once = false;
++  await page.route(`${API_URL}/v1/authorization/platform`, async route => {
++    if (once) return route.continue();
++    once = true;
++    const actual = await route.fetch();
++    expect(actual.status()).toBe(200);
++    expect(await actual.json()).toEqual({ capabilities: ["organizations:manage", "organizations:read"] });
++    reached();
++    await barrier;
++    await route.fulfill({ response: actual });
++  });
++  try {
++    await signIn(page, `${ADMIN_URL}/clientes`, f.pure.email);
++    await held;
++    const navigation = page.getByRole("navigation", { name: "Menu principal", exact: true });
++    await expect(navigation).toBeVisible();
++    const sessions = navigation.getByRole("link", { name: "Minhas sessões", exact: true });
++    if (await sessions.count()) {
++      // A usable link must remain under the same pointer throughout its click.
++      const before = await sessions.boundingBox();
++      expect(before).not.toBeNull();
++      await page.mouse.move(before!.x + before!.width / 2, before!.y + before!.height / 2);
++      await page.mouse.down();
++      release();
++      await expect(navigation.getByRole("link", { name: "Clientes", exact: true })).toBeVisible();
++      const after = await sessions.boundingBox();
++      await page.mouse.up();
++      await info.attach("initial-projection-pointer.json", { contentType: "application/json", body: JSON.stringify({ before, after, pathname: new URL(page.url()).pathname }) });
++      expect(after?.y, "A autorização não pode mover um destino já oferecido durante pointerdown/up").toBe(before!.y);
++    } else {
++      // Withholding the incomplete menu must provide a loading state and leave logout usable.
++      await expect(navigation).toHaveAttribute("aria-busy", "true");
++      await expect(navigation.getByRole("status")).toContainText("Carregando menu");
++      await expect(page.getByRole("button", { name: "Sair da conta", exact: true })).toBeEnabled();
++      release();
++      await expect(navigation).toHaveAttribute("aria-busy", "false");
++      await sessions.click();
++    }
++    await expect(page).toHaveURL(`${ADMIN_URL}/sessoes`);
++    await expect(page.getByRole("article", { name: "Sessão deste navegador", exact: true })).toBeVisible();
++  } finally { release(); }
 +}));

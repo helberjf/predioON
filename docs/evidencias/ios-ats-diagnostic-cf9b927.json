@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-10-05",
+  "sourceCommit": "cf9b92741b2358a51ca6ebf4b964889ac3039bee",
+  "status": "closed-ATS-observer-host-approved-native-policy-correction-pending",
+  "sourceFiles": [
+    {
+      "path": "scripts/ios-smoke/run_auth.py",
+      "sha256LF": "0cef012a34faf4c579158b7d7ddc7d571a4bfb51547cdeebd75c310b9e15773d",
+      "bytesLF": 44486,
+      "gitBlobLF": "c212aac7629741f963a1cb72c1c0735893b6d50a",
+      "baselineSha256LF": "6c21302681b5c9d3b2cc9a0d00213d9a297b85eaa4f8ab9be11d5bea8580070a"
+    },
+    {
+      "path": "scripts/ios-smoke/test_auth.py",
+      "sha256LF": "4f6b58ae6d2015fa0efaa4d3a3120011d084a0d6beae023a46ab618d8a657f43",
+      "bytesLF": 82162,
+      "gitBlobLF": "e883e95ca8414dcb3b692d7f2b409408617be51d",
+      "baselineSha256LF": "5e5d4dc6132054ac4a09b07e472763b3e90cb5bc467d5bd76e4da74e08b28de5"
+    },
+    {
+      "path": "scripts/ios-smoke/README.md",
+      "sha256LF": "fa51057f9bd6af66bc3b2760501c140d692a9225d74bb902879e80ae95476fad",
+      "bytesLF": 51830,
+      "gitBlobLF": "277518420cda004dde854068ef5814f15648cd69",
+      "baselineSha256LF": "f08cee1ab0981a041e7e888894427600c60f39dfa19205adec33e9a17fb82b4a"
+    }
+  ],
+  "red": {
+    "tests": 11,
+    "expectedIntegrationFailures": 6,
+    "expectedSubtestErrors": 28,
+    "baselineCommit": "f7444572f7b5920597a3b16023ec7fe5235413a5"
+  },
+  "tests": {
+    "directed": {
+      "tests": 11,
+      "passed": 11
+    },
+    "linux": {
+      "tests": 137,
+      "passed": 137,
+      "skipped": 0,
+      "failed": 0,
+      "durationSeconds": 35.721,
+      "logSha256": "378fa29258788d0366df0ef5e0a27106713693887da450c6bd1b355fe98a7c47",
+      "realTlsAndPosix": true
+    },
+    "authorWindows": {
+      "tests": 137,
+      "passed": 121,
+      "skipped": 16,
+      "failed": 0,
+      "durationSeconds": 24.249
+    },
+    "rootWindows": {
+      "total": 137,
+      "passed": 121,
+      "skipped": 16,
+      "failures": 0,
+      "errors": 0,
+      "durationSeconds": 28.864,
+      "logSha256": "257e911a20f08420f1968328e399167ce3037459cb423fa31cab6a75838fdb55"
+    }
+  },
+  "review": {
+    "independentReviewSha256": "1f23db4e301369580a789c2bf0f2d725f7c25a81a5b8d0af4ab6cb612610f22b",
+    "rootDiffReviewCompleted": true,
+    "guardLiteralAndAstUnchanged": true,
+    "runtimeAstOutsideReviewedChangesUnchanged": true,
+    "protectedSourceFilesVerified": 8,
+    "otherIOSSourceFilesVerified": 18,
+    "sourceZipSha256": "a96f2b5018213193f1e2c2e510cc27adbb9cbd2bd096ff9459946237c196274c"
+  },
+  "behavior": {
+    "optionalFields": 5,
+    "observationOnlyAfterFirstFailureLatch": true,
+    "allowedStage": "runner-ats-check",
+    "allowedCategory": "verification-failed",
+    "allowedExitCode": null,
+    "exceptionDomainCountCap": 32,
+    "domainNamesValuesAndPrivateLogsExported": false,
+    "originalExceptionAndCleanupPrecedencePreserved": true
+  },
+  "nativeAuthenticatedAccepted": false,
+  "productionAccepted": false,
+  "computerRestarted": false,
+  "limits": [
+    "Host tests validate the closed diagnostic, not Xcode or authentication. Different executions are not summed.",
+    "The mandatory ATS guard, TLS, time budgets, retries, Swift, project generator and workflows were unchanged in this increment."
+  ]
+}

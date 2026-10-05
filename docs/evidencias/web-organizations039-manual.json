@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-10-05",
+  "sourceCommit": null,
+  "publishedBase": "0e46f340b7754c19effa30e4d5d8d22b41c86ee8",
+  "status": "partial-manual-CRUD-and-responsive-QA-approved",
+  "frontSources": [
+    {
+      "path": "apps/admin-web/package.json",
+      "sha256": "5f84065def1ce880ecc1cb4e7f38b5a766bd6ee0c1657f5cb69161e20c2538a8"
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "sha256": "1849fb5db34d768f07bab0e21f4279bf22c46f17fbd238bf8f76808e025de00f"
+    },
+    {
+      "path": "apps/admin-web/src/App.tsx",
+      "sha256": "234e3779a9ea78c095f0d887d8e3278ab3fbba5db6d9c52e7480f19f975143c5"
+    },
+    {
+      "path": "apps/admin-web/src/organization-access.tsx",
+      "sha256": "e6243aa170ffd17a9e63c3a059b45123c2261a96e83340122c2c860f71cf697b"
+    },
+    {
+      "path": "apps/admin-web/src/layout/Shell.tsx",
+      "sha256": "9bb293369e4f6588fe29719fba151adbf2bcab91aea0c4dc8dfff3446db6392f"
+    },
+    {
+      "path": "apps/admin-web/src/pages/Clients.tsx",
+      "sha256": "8a21ed04669aeb91c8c181280507265120ed1570496e9a7792437395274b4c15"
+    },
+    {
+      "path": "apps/admin-web/src/pages/Buildings.tsx",
+      "sha256": "b4133b8641b07eeada9bfb16af62e0f0b4fc203b1c614f815a66b479fa3abd09"
+    }
+  ],
+  "runtime": {
+    "ownedIsolatedCluster": true,
+    "databasePort": 5466,
+    "apiPort": 4500,
+    "webPort": 6673,
+    "migrationCount": 39,
+    "syntheticOnly": true,
+    "sharedDemoTouched": false,
+    "pnpmExecutionPolicyChanged": false
+  },
+  "manualChecks": {
+    "blankSubmitDisabled": true,
+    "invalidSlugSubmitDisabled": true,
+    "createPersisted": true,
+    "unchangedEditDisabled": true,
+    "renamePersisted": true,
+    "statusCancellationPreservedState": true,
+    "deactivationConfirmed": true,
+    "reactivationConfirmed": true,
+    "reloadPreservedNameSlugAndStatus": true,
+    "duplicateRejectedWithDraftRetained": true,
+    "responsiveViewport": {
+      "width": 390,
+      "height": 844,
+      "contentWidth": 375,
+      "horizontalOverflow": false
+    },
+    "capturedConsoleErrorsAndWarnings": 0
+  },
+  "databaseVerification": {
+    "ownOrganizationCount": 1,
+    "ownNameMatches": true,
+    "ownActive": true,
+    "ownMetadataEmpty": true,
+    "createdAudits": 1,
+    "updatedAudits": 3,
+    "duplicateNameCount": 0,
+    "seedOrganizationActive": true,
+    "ledgerCount": 39
+  },
+  "publishedOriginalImages": [
+    {
+      "file": "web-admin-clientes-inativo-039.jpg",
+      "sha256": "716a7fefca6e6926c2dd76bf0a8ee6203fee5a8fbd347a1902d7c8aac4cbde20",
+      "width": 1280,
+      "height": 720,
+      "bytes": 68144,
+      "sourceCommit": null,
+      "publishedBase": "0e46f340b7754c19effa30e4d5d8d22b41c86ee8",
+      "sourceRun": null,
+      "capturedOn": "2026-10-05",
+      "reviewed": true,
+      "evidence": "../../evidencias/web-organizations039-manual.json",
+      "scope": "Inactive organization after confirmed status change; real browser and HTTP/SQL with synthetic data; original JPEG without editing.",
+      "limit": "Unpublished UI source hashes recorded in proof. This copy predates the final initial-menu-latency fix; does not validate that delta or production."
+    },
+    {
+      "file": "web-admin-clientes-movel-039.jpg",
+      "sha256": "dc5c2fde8ce56943f7ba305ef8e45b022e6add89da28bc8fcbc9136676b262eb",
+      "width": 375,
+      "height": 1017,
+      "bytes": 41756,
+      "sourceCommit": null,
+      "publishedBase": "0e46f340b7754c19effa30e4d5d8d22b41c86ee8",
+      "sourceRun": null,
+      "capturedOn": "2026-10-05",
+      "reviewed": true,
+      "evidence": "../../evidencias/web-organizations039-manual.json",
+      "scope": "Responsive Clients view after reactivation, cleared form and reload; real browser and HTTP/SQL with synthetic data; original JPEG without editing.",
+      "limit": "Unpublished UI source hashes recorded in proof. This copy predates the final initial-menu-latency fix; does not validate that delta or production."
+    }
+  ],
+  "productionAccepted": false,
+  "computerRestarted": false,
+  "limits": [
+    "Actual native pointer/UI actions, real CRUD and SQL readback. This is partial manual QA, not every functionality or five complete videos.",
+    "Source commit is null because the frontend was unpublished; exact copied-source hashes are recorded. The final Shell latency fix was added later.",
+    "No saved8765 browser denial was bypassed. Only a new own QA site was used. Captured console scope alone does not prove absence of all errors."
+  ]
+}
