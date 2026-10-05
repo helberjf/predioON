@@ -1,716 +1,932 @@
-diff --git a/e2e/README.md b/e2e/README.md
-index aedd0e2..e9b2601 100644
---- a/e2e/README.md
-+++ b/e2e/README.md
-@@ -18,6 +18,7 @@ A configuração inicia a API na porta 3100 e os portais nas portas 5273–5275.
- Os cenários cobrem:
- 
- - Login real e inválido, validação HTML, dashboard, contas sem condomínio e recuperação do painel administrativo.
-+- Menu móvel nos portais administrativo e do condomínio: foco inicial, ciclo de Tab/Shift+Tab, fundo inativo, fechamento por Escape/botão/fundo/navegação e transição para desktop sem modal oculto nem bloqueio de rolagem.
- - Cookie HttpOnly e SameSite, access somente em memória, limpeza dos tokens legados e SSE com bearer no cabeçalho, sem credencial na URL.
- - Restauração após reload, renovação simultânea em duas abas, propagação de logout/troca de conta, sessões independentes entre portais e revogação real de família.
- - Logout sem rede permanece bloqueado após reload; login inválido não recupera a identidade antiga; ausência de Web Locks apresenta diagnóstico sem enviar autenticação.
-diff --git a/packages/ui/src/components/dashboard-frame.tsx b/packages/ui/src/components/dashboard-frame.tsx
-index 103baaf..756d93c 100644
---- a/packages/ui/src/components/dashboard-frame.tsx
-+++ b/packages/ui/src/components/dashboard-frame.tsx
-@@ -1,4 +1,4 @@
--import { useEffect, useState, type ComponentType, type ReactNode } from "react";
-+import { useEffect, useId, useRef, useState, type ComponentType, type KeyboardEvent, type ReactNode } from "react";
- import { Bell, ChevronRight, LogOut, Menu, Search, MapPin, X } from "lucide-react";
- import { Brand } from "./primitives.js";
- import { buildingImage } from "../assets.js";
-@@ -15,30 +15,75 @@ type Props = {
- export function DashboardFrame({ children, title, subtitle, userName, role, links, pathname, signOut, renderLink, navigationFeedback, navigationBusy = false }: Props) {
-   const [search, setSearch] = useState("");
-   const [menuOpen, setMenuOpen] = useState(false);
-+  const menuId = useId();
-+  const menuRef = useRef<HTMLDialogElement>(null);
-+  const openerRef = useRef<HTMLButtonElement>(null);
-+  const closeRef = useRef<HTMLButtonElement>(null);
-+  const mainRef = useRef<HTMLElement>(null);
-   const initials = userName.split(" ").filter(Boolean).slice(0, 2).map(part => part[0]).join("");
-   const matches = links.filter(link => link.label.toLocaleLowerCase("pt-BR").includes(search.toLocaleLowerCase("pt-BR")));
- 
--  // Fecha o menu ao trocar de página: o clique no link já navegou.
-+  // Also close on navigation that did not originate from a menu link.
-   useEffect(() => setMenuOpen(false), [pathname]);
- 
-   useEffect(() => {
--    if (!menuOpen) return;
--    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") setMenuOpen(false); };
--    document.addEventListener("keydown", onKey);
-+    const menu = menuRef.current;
-+    if (!menuOpen || !menu) return;
-+    // Both portal themes use Tailwind's default lg breakpoint.
-+    const desktop = window.matchMedia("(min-width: 1024px)");
-+    if (desktop.matches) {
-+      setMenuOpen(false);
-+      return;
-+    }
-+    const opener = openerRef.current;
-     const previous = document.body.style.overflow;
-+    const onDesktop = (event: MediaQueryListEvent) => {
-+      if (event.matches) setMenuOpen(false);
-+    };
-+    // Native modality makes all other page content inert, including the skip link.
-+    menu.showModal();
-+    closeRef.current?.focus();
-     document.body.style.overflow = "hidden";
--    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = previous; };
-+    desktop.addEventListener("change", onDesktop);
-+    return () => {
-+      desktop.removeEventListener("change", onDesktop);
-+      if (menu.open) menu.close();
-+      document.body.style.overflow = previous;
-+      // The mobile opener is hidden on desktop; leave focus in visible content.
-+      const target = opener?.isConnected && opener.getClientRects().length ? opener : mainRef.current;
-+      target?.focus({ preventScroll: true });
-+    };
-   }, [menuOpen]);
- 
-+  const confineMenuFocus = (event: KeyboardEvent<HTMLDialogElement>) => {
-+    if (event.key !== "Tab" || event.altKey || event.ctrlKey || event.metaKey) return;
-+    const items = Array.from(event.currentTarget.querySelectorAll<HTMLElement>(
-+      'a[href], button, input, select, textarea, [tabindex]',
-+    )).filter(item => item.tabIndex >= 0 && !item.matches(":disabled") && item.getClientRects().length);
-+    const first = items[0];
-+    const last = items[items.length - 1];
-+    if (!first || !last) return;
-+    const active = document.activeElement;
-+    if (event.shiftKey && (active === first || !event.currentTarget.contains(active))) {
-+      event.preventDefault();
-+      last.focus();
-+    } else if (!event.shiftKey && (active === last || !event.currentTarget.contains(active))) {
-+      event.preventDefault();
-+      first.focus();
-+    }
-+  };
-+
-   const nav = () => links.map(({ to, label, icon: Icon }) => <div key={to}>{renderLink(to, <><Icon size={20}/><span>{label}</span><ChevronRight size={14} className="ml-auto opacity-40"/></>, cls("flex h-11 items-center gap-3 rounded-md px-3 text-[13px] transition", pathname === to ? "bg-[#0b5155] font-semibold text-[#33d6a4]" : "text-slate-200 hover:bg-white/5 hover:text-white"))}</div>);
- 
-   // Mesma coluna escura serve à barra fixa do desktop e ao painel deslizante do celular.
-   const sidebar = (onClose?: () => void) => <>
-     <div className="flex items-start justify-between px-5 pb-6 pt-5">
-       <Brand dark/>
--      {onClose && <button aria-label="Fechar menu" onClick={onClose} className="-mr-1 rounded-md p-2 text-slate-300 hover:bg-white/10"><X size={20}/></button>}
-+      {onClose && <button ref={closeRef} aria-label="Fechar menu" onClick={onClose} className="-mr-1 rounded-md p-2 text-slate-300 hover:bg-white/10"><X size={20}/></button>}
-     </div>
--    <nav aria-label="Menu principal" aria-busy={navigationBusy} className="space-y-1 px-3">{navigationFeedback ?? nav()}</nav>
-+    <nav aria-label="Menu principal" aria-busy={navigationBusy} className="space-y-1 px-3" onClick={event => {
-+      if (event.target instanceof Element && event.target.closest("a[href]")) onClose?.();
-+    }}>{navigationFeedback ?? nav()}</nav>
-     <div className="relative mt-5 min-h-32 flex-1 overflow-hidden" aria-hidden="true">
-       <img src={buildingImage} alt="" className="absolute inset-0 h-full w-full object-cover object-center opacity-65"/>
-       <div className="absolute inset-0 bg-gradient-to-b from-[#0c202e] via-transparent to-[#0c202e]"/>
-@@ -55,18 +100,26 @@ export function DashboardFrame({ children, title, subtitle, userName, role, link
- 
-     <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col overflow-y-auto bg-[#0c202e] lg:flex">{sidebar()}</aside>
- 
--    {menuOpen && <div className="fixed inset-0 z-40 lg:hidden">
-+    {menuOpen && <dialog
-+      ref={menuRef}
-+      id={menuId}
-+      aria-modal="true"
-+      aria-label="Menu principal"
-+      onCancel={event => { event.preventDefault(); setMenuOpen(false); }}
-+      onKeyDown={confineMenuFocus}
-+      className="fixed inset-0 m-0 h-full max-h-none w-full max-w-none border-0 bg-transparent p-0 backdrop:bg-transparent"
-+    >
-       <div className="absolute inset-0 bg-slate-900/60" onClick={() => setMenuOpen(false)} aria-hidden="true"/>
--      <div role="dialog" aria-modal="true" aria-label="Menu principal" className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col overflow-y-auto bg-[#0c202e] shadow-2xl">
-+      <div className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col overflow-y-auto bg-[#0c202e] shadow-2xl">
-         {sidebar(() => setMenuOpen(false))}
-       </div>
--    </div>}
-+    </dialog>}
- 
-     <div className="lg:pl-60">
-       <header className="relative z-20 border-b border-slate-200/70 bg-[#fafdff]">
-         <div className="flex min-h-[72px] items-center justify-between gap-4 px-4 md:px-6">
-           <div className="flex min-w-0 items-center gap-3">
--            <button aria-label="Abrir menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(true)} className="-ml-1 rounded-lg p-2 text-[#183a58] hover:bg-slate-100 lg:hidden"><Menu size={22}/></button>
-+            <button ref={openerRef} aria-label="Abrir menu" aria-haspopup="dialog" aria-controls={menuOpen ? menuId : undefined} aria-expanded={menuOpen} onClick={() => setMenuOpen(true)} className="-ml-1 rounded-lg p-2 text-[#183a58] hover:bg-slate-100 lg:hidden"><Menu size={22}/></button>
-             <div className="min-w-0">
-               <div className="lg:hidden"><Brand compact/></div>
-               <p className="hidden truncate text-[17px] font-bold tracking-tight text-[#142f50] lg:block">{title}</p>
-@@ -85,7 +138,7 @@ export function DashboardFrame({ children, title, subtitle, userName, role, link
-         </div>
-         <p className="border-t border-slate-200/70 px-4 py-2.5 text-[13px] font-semibold text-[#142f50] lg:hidden">{title}</p>
-       </header>
--      <main id="conteudo" className="mx-auto max-w-[1680px] space-y-4 p-4 md:p-5">{children}</main>
-+      <main ref={mainRef} id="conteudo" tabIndex={-1} className="mx-auto max-w-[1680px] space-y-4 p-4 md:p-5">{children}</main>
-       <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200/70 bg-white px-6 py-5 text-[11px] text-slate-500"><div><strong className="text-[#18304e]">Prédio ON</strong><p className="mt-1">Tecnologia a serviço do seu condomínio.</p></div><span>{role} · Seu prédio, sempre conectado.</span></footer>
-     </div>
-   </div>;
+diff --git a/.github/workflows/ios-auth.yml b/.github/workflows/ios-auth.yml
+index 215a16a..4314e34 100644
+--- a/.github/workflows/ios-auth.yml
++++ b/.github/workflows/ios-auth.yml
+@@ -50,6 +50,7 @@ jobs:
+       - name: Verify host guards and exporter before preparing private runtime
+         run: |
+           python3 -B -m unittest discover -s scripts/ios-smoke -p 'test_*.py' -v
++          node --test scripts/ios-smoke/private_build_diagnostic.test.mjs
+           bash -n scripts/ios-smoke/database.sh
+           ruby -c scripts/ios-smoke/project.rb
+       - name: Prepare ephemeral database credentials and fixed HTTPS app origin
+@@ -103,10 +104,11 @@ jobs:
+           python3 -B scripts/ios-smoke/wait_https_proxy.py --private "$IOS_AUTH_PRIVATE"
+       - name: Execute real XCUITest journey with both coinstalled releases
+         id: journey
+-        run: >-
+-          python3 -B scripts/ios-smoke/run_auth.py --private "$IOS_AUTH_PRIVATE"
+-          --resident "$IOS_AUTH_PRIVATE/build-resident-mobile/Build/Products/Release-iphonesimulator/PredioONMorador.app"
+-          --operations "$IOS_AUTH_PRIVATE/build-operations-mobile/Build/Products/Release-iphonesimulator/PredioONOperacao.app"
++        run: |
++          umask 077
++          python3 -B scripts/ios-smoke/run_auth.py --private "$IOS_AUTH_PRIVATE" \
++            --resident "$IOS_AUTH_PRIVATE/build-resident-mobile/Build/Products/Release-iphonesimulator/PredioONMorador.app" \
++            --operations "$IOS_AUTH_PRIVATE/build-operations-mobile/Build/Products/Release-iphonesimulator/PredioONOperacao.app"
+       - name: Remove fixture records and stop only the owned disposable cluster
+         if: always()
+         run: |
+@@ -125,3 +127,26 @@ jobs:
+           include-hidden-files: false
+           if-no-files-found: warn
+           retention-days: 7
++      - name: Seal optional private runner-build diagnostic after the original failure
++        id: private-diagnostic
++        if: always() && steps.journey.outcome == 'failure' && steps.journey.outputs.evidence-ready == 'true'
++        continue-on-error: true
++        timeout-minutes: 1
++        env:
++          IOS_BUILD_PRIVATE_DIAGNOSTIC: '1'
++          IOS_JOURNEY_OUTCOME: ${{ steps.journey.outcome }}
++          IOS_EVIDENCE_READY: ${{ steps.journey.outputs.evidence-ready }}
++        run: python3 -B scripts/ios-smoke/collect_build_diagnostic.py
++      - name: Upload only the encrypted runner-build companion
++        if: always() && steps.private-diagnostic.outputs.private-diagnostic-ready == 'true'
++        continue-on-error: true
++        timeout-minutes: 1
++        uses: actions/upload-artifact@v4
++        with:
++          name: ios-runner-build-encrypted-${{ github.run_id }}-${{ github.run_attempt }}
++          path: .local/ios-auth/encrypted-diagnostic/runner-build.envelope.json
++          include-hidden-files: false
++          if-no-files-found: error
++          overwrite: false
++          compression-level: 0
++          retention-days: 1
 diff --git a/scripts/ios-smoke/README.md b/scripts/ios-smoke/README.md
-index f45a898..f487fe7 100644
+index f487fe7..b7599a0 100644
 --- a/scripts/ios-smoke/README.md
 +++ b/scripts/ios-smoke/README.md
-@@ -87,7 +87,7 @@ Arquivos publicáveis: `result.json`, `builds.json`, `database-source.json` e pa
+@@ -113,6 +113,26 @@ A cobertura limita-se aos estágios enumerados dentro da execução e à limpeza
  
- Uma falha anterior ao primeiro checkpoint pode produzir `steps=[]` sem identificar o comando que falhou. O run [b6761fd/37237681193](https://github.com/helberjf/predioON/actions/runs/37237681193) teve ambos os builds e a prontidão HTTPS aprovados, mas exportou somente `native-journey-failed`. A saída privada do runner não estava no artefato; portanto não foi possível distinguir boot, instalação, compilação ou teste inicial. Este diagnóstico acrescenta observabilidade para uma execução futura; não atribui causa àquela falha nem aprova a jornada Apple.
+ Os testes de host injetam falhas nos pontos reais do fluxo de boot, instalação dos dois produtos, `build-for-testing` e `test-without-building`, incluindo primeira negativa, cleanup posterior e falha do coletor. Também executam processos Python reais com sucesso, exit não zero, timeout e executável ausente, sem executar Xcode ou simulador. O suplemento cobre cada enum, múltiplos streams, textos desconhecidos, comandos/linhas de código que não são marcadores de erro, conteúdo omitido, linhas longas e fragmentos cortados. A chamada real do fluxo exige a flag somente no build e preserva o gate quando cleanup também falha; o processo controlado confirma execução única, argumentos, prazo, captura privada, exit e ausência de segredo no suplemento. O exportador recusa tipos/enums/caps, ordem/duplicatas, campo incompleto, `unclassified` combinado, outro estágio/categoria, sucesso e negativas primárias. Esses ensaios verificam o diagnóstico e a fronteira de publicação; uma nova jornada nativa Apple continua necessária.
  
--[run_auth.py](run_auth.py) pode acrescentar `failureDiagnostic` ao `result.json` reprovado, com exatamente três campos:
-+[run_auth.py](run_auth.py) pode acrescentar `failureDiagnostic` ao `result.json` reprovado, com três campos obrigatórios:
- 
- ```json
- {"stage":"runner-build","category":"nonzero-exit","exitCode":65}
-@@ -95,13 +95,23 @@ Uma falha anterior ao primeiro checkpoint pode produzir `steps=[]` sem identific
- 
- O estágio vem de uma constante no ponto da operação, sem interpretar paths ou argumentos. Os valores permitidos são `simulator-create`, `simulator-boot`, `certificate-install`, `resident-install`, `operations-install`, `coordinator-init`, `runner-build`, `runner-plist`, `runner-ats-check`, `runner-test`, `journey-finish-check`, `simulator-shutdown` e `simulator-delete`. As categorias são `nonzero-exit`, `timed-out`, `unavailable` e `verification-failed`; esta última indica uma falha de verificação/host naquele estágio, sem afirmar sua causa nativa.
- 
-+Somente `runner-build/nonzero-exit` pode incluir o par opcional `errorSignals` e `signalScanLimited`:
++## Companion privado para falha de compilação do runner
 +
-+```json
-+{"stage":"runner-build","category":"nonzero-exit","exitCode":70,"errorSignals":["destination-selection"],"signalScanLimited":false}
++O coletor opcional `collect_build_diagnostic.py` executa **depois** do upload de evidências fechadas. Ele exige opt-in literal `IOS_BUILD_PRIVATE_DIAGNOSTIC=1`, runner macOS no GitHub Actions, repositório e branch `main` esperados, jornada com falha e evidência pronta. Reutiliza `safe_json` sem mudar seu schema. Somente o primeiro erro `runner-build` com saída não zero, sem rejeição de segurança e com commit correspondente à execução, habilita a leitura. Sucesso, outro estágio, timeout ou relatório inválido não habilitam o diagnóstico. A falha original e seu latch continuam sendo a autoridade sobre o resultado.
++
++O workflow aplica `umask 077` imediatamente antes da mesma invocação da jornada, sem alterar argumentos, prazos ou assertivas. Assim `runner-build.log` nasce com modo `0600` no diretório privado `0700`; o coletor não corrige permissões de arquivos existentes. A leitura aceita apenas arquivo regular do usuário atual, sem links simbólicos ou hardlinks, com identidade estável antes/depois da leitura e até **2 MiB**, sem truncamento. Conteúdo maior ou qualquer falha de validação encerra o companion sem exportação.
++
++`private_build_diagnostic.mjs` usa somente o crypto integrado do Node 24: RSA de 4096 bits com OAEP-SHA256 para encapsular uma chave AES-256-GCM aleatória, IV de 12 bytes e tag de 16 bytes. O contexto fechado inclui repositório, commit, run ID, tentativa, estágio e código de saída, autenticados como AAD; o envelope JSON canônico tem limite de **3 MiB**. A chave pública versionada tem fingerprint SPKI SHA256 `f792f93f45f280e421b4d5f643de2523d17f8a909be69bb34bb4bb48af28b8b2`. Nenhuma chave privada vai ao repositório ou CI. O subprocesso recebe o log por stdin e somente três variáveis de ambiente permitidas, sem `NODE_OPTIONS`, credenciais ou ambiente herdado. Tem uma tentativa, limite próprio de **15 segundos** e stdout/stderr descartados em `DEVNULL`, inclusive em erro.
++
++O único caminho exportável pelo companion é `.local/ios-auth/encrypted-diagnostic/runner-build.envelope.json`, criado exclusivamente com `wx`. A flag separada `private-diagnostic-ready=true` só é escrita após validar o envelope. O upload opcional tem nome por run/tentativa, retenção de **1 dia**, sem sobrescrita e sem fallback para log bruto. As duas etapas opcionais têm `continue-on-error`; não substituem o exit da jornada nem ampliam a allowlist do artefato fechado existente. O opt-in está ligado especificamente para obter evidência da próxima falha elegível; desligá-lo impede novas coletas.
++
++Para diagnóstico local, o operador deve baixar o artefato pela execução correta, verificar seu digest e validar a lista/caminhos do ZIP antes da extração. O companion não baixa nem extrai arquivos. O contexto esperado deve vir da execução confiável, não apenas do envelope. A cifra não prova autoria: qualquer pessoa com a chave pública pode criar um envelope novo, portanto a procedência do artefato continua indispensável. Em um diretório privado previamente protegido (ACL explícita no Windows; `0600` não substitui ACL), o comando abaixo autentica a tag **antes** de criar um arquivo novo e nunca imprime o texto aberto:
++
++```text
++node scripts/ios-smoke/private_build_diagnostic.mjs open <envelope.json> <chave-privada.pem> <contexto-esperado.json> <novo-log-privado.txt>
 +```
 +
-+Os sinais permitidos, nesta ordem fixa, são `destination-selection`, `sdk-availability`, `scheme-configuration` e `compiler-error`; múltiplos sinais podem coexistir, sem duplicatas ou ordem causal. `unclassified` aparece sozinho quando nenhum marcador permitido é reconhecido. Cada sinal representa somente um padrão restrito de erro no texto já capturado; não estabelece a causa do Xcode nem autoriza uma correção automática. O [run 6298065/37240428231](https://github.com/helberjf/predioON/actions/runs/37240428231) observou `runner-build/nonzero-exit/70`, antes de chamar `test-without-building`, mas não exportou esse suplemento. Seu motivo interno continua desconhecido; a classificação nova não reinterpreta essa execução nem falhas anteriores.
++A abertura é bloqueada quando `GITHUB_ACTIONS` ou `GITHUB_RUN_ID` estiver presente. Não sobrescreve destino existente, não segue links e não abre automaticamente o resultado. A chave privada deve permanecer apenas no computador autorizado; perda dessa chave impede recuperação, e comprometimento dela exige rotação da chave pública antes de futuras coletas. O artefato cifrado contém tamanho aproximado do log e metadados públicos da execução; a confidencialidade depende também de manter o diretório/chave local restritos.
 +
-+A flag interna de observação é habilitada apenas na chamada existente de `build-for-testing`. A análise usa stdout/stderr já capturados, sem novas ferramentas, leitura de logs ou arquivo adicional. Examina somente as primeiras e últimas 65.536 posições por stream, desconsidera fragmentos cortados nas bordas e ignora linhas acima de 8.192 posições. `signalScanLimited` é bool exato e indica conteúdo omitido ou linha longa; `unclassified` em uma análise limitada não prova ausência de erro fora dessas janelas. Campos, mensagens, símbolos, linha/coluna, paths, argv, ambiente e versões não são copiados para o resultado. A captura privada original permanece igual; os limites restringem a análise, sem mudar os buffers do subprocesso.
++Os testes Python e Node usam somente chaves descartáveis e payloads sentinela; cobrem criptografia real, adulteração, contextos divergentes, limites, permissões/links POSIX, erros de processo, deadline, ausência de executável, emissão de stderr, ausência da flag em falhas e preservação da saída original. As verificações POSIX não são simuladas como aprovação no Windows: executam também em Linux. Esse mecanismo não estabelece uma causa Apple nem aprova qualquer fase nativa; isso depende da evidência de uma futura execução elegível, aberta privadamente.
 +
- `exitCode` aceita somente inteiro não zero entre −255 e 255, ou `null`; códigos negativos preservam a representação de sinal do subprocesso POSIX. Timeout, comando indisponível e falha de verificação exigem `null`. Um status de processo fora desse intervalo também vira `null`, sem inventar outro código. O diagnóstico não inclui mensagem da exceção, assertiva livre, argv, paths, ambiente, stdout/stderr, identidade de simulador, dados de tela ou `xcresult`; também não inventa totais XCTest.
- 
--A primeira falha é fixada antes da coleta. Uma falha posterior de limpeza não substitui seu estágio; se o próprio coletor falhar, o erro original permanece e uma falha posterior não passa a ser apresentada como a primeira. Rejeições de segurança ou fase continuam primárias e omitem esse diagnóstico suplementar. O primeiro `securityFailure` mantém precedência sobre o término do processo ou uma categoria posterior de fase. Um resultado aprovado não pode conter `failureDiagnostic`, e o diagnóstico nunca acrescenta checkpoint ou imagem. O exportador recusa campos, tipos, enums e códigos fora do contrato antes de criar a pasta pública.
-+A primeira falha é fixada antes da coleta. Uma falha posterior de limpeza não substitui seu estágio; se o próprio coletor falhar, o erro original permanece e uma falha posterior não passa a ser apresentada como a primeira. Falha ou retorno inválido do classificador omite somente o par de sinais e conserva o erro e diagnóstico base. Rejeições de segurança ou fase continuam primárias e omitem esse diagnóstico suplementar. O primeiro `securityFailure` mantém precedência sobre o término do processo ou uma categoria posterior de fase. Um resultado aprovado não pode conter `failureDiagnostic`, e o diagnóstico nunca acrescenta checkpoint ou imagem. O exportador recusa campos, tipos, enums e códigos fora do contrato antes de criar a pasta pública. O par opcional é indivisível, tem lista de 1–4 valores com ordem fixa, exige bool estrito e não pode aparecer em outro estágio/categoria, sucesso ou negativa primária.
- 
- A cobertura limita-se aos estágios enumerados dentro da execução e à limpeza do simulador. As validações iniciais de produto/assinatura/SDK, falhas do próprio exportador e encerramento do servidor do coordenador podem impedir a exportação sem produzir esse campo. As chamadas, captura privada dos subprocessos, TLS, certificado, origem, prazos, ausência de retries, Swift, sequência de 14 POST e gates de banco/imagens permanecem iguais.
- 
--Os testes de host injetam falhas nos pontos reais do fluxo de boot, instalação dos dois produtos, `build-for-testing` e `test-without-building`, incluindo primeira negativa, cleanup posterior e falha do coletor. Também executam processos Python reais com sucesso, exit não zero, timeout e executável ausente, sem executar Xcode ou simulador. Esses ensaios verificam o diagnóstico e a fronteira de publicação; uma nova jornada nativa Apple continua necessária.
-+Os testes de host injetam falhas nos pontos reais do fluxo de boot, instalação dos dois produtos, `build-for-testing` e `test-without-building`, incluindo primeira negativa, cleanup posterior e falha do coletor. Também executam processos Python reais com sucesso, exit não zero, timeout e executável ausente, sem executar Xcode ou simulador. O suplemento cobre cada enum, múltiplos streams, textos desconhecidos, comandos/linhas de código que não são marcadores de erro, conteúdo omitido, linhas longas e fragmentos cortados. A chamada real do fluxo exige a flag somente no build e preserva o gate quando cleanup também falha; o processo controlado confirma execução única, argumentos, prazo, captura privada, exit e ausência de segredo no suplemento. O exportador recusa tipos/enums/caps, ordem/duplicatas, campo incompleto, `unclassified` combinado, outro estágio/categoria, sucesso e negativas primárias. Esses ensaios verificam o diagnóstico e a fronteira de publicação; uma nova jornada nativa Apple continua necessária.
- 
  ## Verificação local deste incremento
  
-diff --git a/scripts/ios-smoke/run_auth.py b/scripts/ios-smoke/run_auth.py
-index 3bdc323..9327978 100644
---- a/scripts/ios-smoke/run_auth.py
-+++ b/scripts/ios-smoke/run_auth.py
-@@ -42,14 +42,37 @@ DIAGNOSTIC_STAGES = frozenset({"simulator-create", "simulator-boot", "certificat
-     "resident-install", "operations-install", "coordinator-init", "runner-build", "runner-plist",
-     "runner-ats-check", "runner-test", "journey-finish-check", "simulator-shutdown", "simulator-delete"})
- DIAGNOSTIC_CATEGORIES = frozenset({"nonzero-exit", "timed-out", "unavailable", "verification-failed"})
-+BUILD_ERROR_SIGNALS = ("destination-selection", "sdk-availability", "scheme-configuration", "compiler-error")
-+BUILD_SIGNAL_PATTERNS = (
-+    re.compile(r"^xcodebuild: error: (?:Unable to find a destination matching\b|Found no destinations for the scheme\b)"),
-+    re.compile(r"^xcodebuild: error: SDK .+ cannot be located\.?$"),
-+    re.compile(r"^xcodebuild: error: (?:Scheme .+ is not currently configured for the test action\.?|"
-+               r"The (?:project|workspace) named .+ does not contain a scheme named .+)\s*$"),
-+    re.compile(r'''^[^\s"'<>:=][^"'<>:=\r\n]*\.swift:[0-9]{1,9}:[0-9]{1,9}: error: .+$'''),
-+)
- 
- 
- class SecurityViolation(RuntimeError):
-     pass
- 
- 
-+def safe_build_error_signals(payload):
-+    if not isinstance(payload, dict) or set(payload) != {"errorSignals", "signalScanLimited"}:
-+        raise SecurityViolation("Unexpected build signal fields")
-+    signals, limited = payload["errorSignals"], payload["signalScanLimited"]
-+    if type(limited) is not bool or not isinstance(signals, list) or not 1 <= len(signals) <= 4:
-+        raise SecurityViolation("Unexpected build signal values")
-+    if any(not isinstance(signal, str) or signal not in (*BUILD_ERROR_SIGNALS, "unclassified") for signal in signals):
-+        raise SecurityViolation("Unexpected build signal category")
-+    if signals != ["unclassified"] and signals != [signal for signal in BUILD_ERROR_SIGNALS if signal in signals]:
-+        raise SecurityViolation("Unexpected build signal order or duplication")
-+    return payload
-+
-+
- def safe_failure_diagnostic(payload):
--    if not isinstance(payload, dict) or set(payload) != {"stage", "category", "exitCode"}:
-+    required = {"stage", "category", "exitCode"}
-+    optional = {"errorSignals", "signalScanLimited"}
-+    if not isinstance(payload, dict) or set(payload) not in (required, required | optional):
-         raise SecurityViolation("Unexpected failure diagnostic fields")
-     stage, category, code = payload["stage"], payload["category"], payload["exitCode"]
-     if not isinstance(stage, str) or stage not in DIAGNOSTIC_STAGES or not isinstance(category, str) or category not in DIAGNOSTIC_CATEGORIES:
-@@ -58,6 +81,10 @@ def safe_failure_diagnostic(payload):
-         raise SecurityViolation("Unexpected failure diagnostic exit code")
-     if category != "nonzero-exit" and code is not None:
-         raise SecurityViolation("Unexpected exit code for diagnostic category")
-+    if optional <= set(payload):
-+        if stage != "runner-build" or category != "nonzero-exit":
-+            raise SecurityViolation("Build signals require a returned runner build failure")
-+        safe_build_error_signals({key: payload[key] for key in optional})
-     return payload
- 
- 
-@@ -86,7 +113,13 @@ class FailureDiagnostic:
-                 try:
-                     category = error.category if isinstance(error, PrivateCommandFailure) else "verification-failed"
-                     code = error.exit_code if isinstance(error, PrivateCommandFailure) else None
--                    self.first = dict(safe_failure_diagnostic({"stage": name, "category": category, "exitCode": code}))
-+                    payload = {"stage": name, "category": category, "exitCode": code}
-+                    if name == "runner-build" and category == "nonzero-exit":
-+                        try:
-+                            payload.update(safe_build_error_signals(getattr(error, "build_signals", None)))
-+                        except Exception:
-+                            pass
-+                    self.first = dict(safe_failure_diagnostic(payload))
-                 except Exception:
-                     pass
-             raise
-@@ -327,7 +360,37 @@ def owned_simulator(value, created):
-     return canonical
- 
- 
--def command(*arguments, timeout=60, private_log=None):
-+def runner_build_error_signals(stdout, stderr):
-+    """Classify bounded captured text, never return text or a claimed cause."""
-+    found = set()
-+    limited = False
-+    for stream in (stdout, stderr):
-+        if not isinstance(stream, str):
-+            raise ValueError("Captured build output must be text")
-+        if len(stream) > 131072:
-+            limited = True
-+            first, last = stream[:65536].splitlines(), stream[-65536:].splitlines()
-+            # Clipped fragments cannot manufacture an error at a window edge.
-+            if first and stream[65535] not in "\r\n":
-+                first.pop()
-+            if last and stream[-65537] not in "\r\n":
-+                last.pop(0)
-+            windows = (first, last)
-+        else:
-+            windows = (stream.splitlines(),)
-+        for lines in windows:
-+            for line in lines:
-+                if len(line) > 8192:
-+                    limited = True
-+                    continue
-+                for signal, pattern in zip(BUILD_ERROR_SIGNALS, BUILD_SIGNAL_PATTERNS):
-+                    if pattern.match(line):
-+                        found.add(signal)
-+    return {"errorSignals": [signal for signal in BUILD_ERROR_SIGNALS if signal in found] or ["unclassified"],
-+            "signalScanLimited": limited}
-+
-+
-+def command(*arguments, timeout=60, private_log=None, observe_build_signals=False):
-     try:
-         result = subprocess.run(arguments, capture_output=True, text=True, timeout=timeout)
-     except subprocess.TimeoutExpired:
-@@ -340,7 +403,13 @@ def command(*arguments, timeout=60, private_log=None):
-         # A failure can contain typeText/password/DSNs: never include stdout,
-         # stderr, command arguments or the original exception in public output.
-         code = result.returncode if type(result.returncode) is int and -255 <= result.returncode <= 255 else None
--        raise PrivateCommandFailure("nonzero-exit", code, "Private verification command failed")
-+        failure = PrivateCommandFailure("nonzero-exit", code, "Private verification command failed")
-+        if observe_build_signals is True:
-+            try:
-+                failure.build_signals = dict(safe_build_error_signals(runner_build_error_signals(result.stdout, result.stderr)))
-+            except Exception:
-+                pass
-+        raise failure
-     return result.stdout.strip()
- 
- 
-@@ -584,7 +653,8 @@ def run(private, output, resident, operations):
-                   "CODE_SIGNING_ALLOWED=YES", "CODE_SIGN_IDENTITY=-", "-parallel-testing-enabled", "NO",
-                   "-maximum-concurrent-test-simulator-destinations", "1"]
-         with diagnostic.stage("runner-build"):
--            command(*common, "build-for-testing", timeout=240, private_log=private / "runner-build.log")
-+            command(*common, "build-for-testing", timeout=240, private_log=private / "runner-build.log",
-+                    observe_build_signals=True)
-         with diagnostic.stage("runner-plist"):
-             runner_info = private / "runner-build/Build/Products/Release-iphonesimulator/AuthJourney-Runner.app/Info.plist"
-             with runner_info.open("rb") as source:
-diff --git a/scripts/ios-smoke/test_auth.py b/scripts/ios-smoke/test_auth.py
-index 8367734..7bcba4f 100644
---- a/scripts/ios-smoke/test_auth.py
-+++ b/scripts/ios-smoke/test_auth.py
-@@ -263,7 +263,7 @@ class ExportTests(unittest.TestCase):
- 
- 
- class NativeFailureDiagnosticTests(unittest.TestCase):
--    def run_failure(self, failed_stage, *, cleanup_fails=False, rejection=None, outcome="nonzero-exit"):
-+    def run_failure(self, failed_stage, *, cleanup_fails=False, rejection=None, outcome="nonzero-exit", build_message=None):
-         run = load("run_auth")
-         secret = "PrivateNativeDiagnosticSentinel123456"
-         with tempfile.TemporaryDirectory() as temporary, ExitStack() as patches:
-@@ -344,7 +344,8 @@ class NativeFailureDiagnosticTests(unittest.TestCase):
-                         raise subprocess.TimeoutExpired(arguments, options["timeout"], output=secret, stderr=secret)
-                     if outcome == "unavailable":
-                         raise OSError(secret)
--                    return subprocess.CompletedProcess(arguments, 65, secret, secret)
-+                    return subprocess.CompletedProcess(arguments, 65, secret,
-+                                                       build_message if stage == "runner-build" and build_message is not None else secret)
-                 if cleanup_fails and stage in {"simulator-shutdown", "simulator-delete"}:
-                     return subprocess.CompletedProcess(arguments, 42, secret, secret)
-                 return subprocess.CompletedProcess(arguments, 0, stdout, "")
-@@ -386,7 +387,16 @@ class NativeFailureDiagnosticTests(unittest.TestCase):
- 
-     def test_runner_build_failure_does_not_claim_xctest_started(self):
-         result, stages = self.run_failure("runner-build")
--        self.assertEqual(result.get("failureDiagnostic"), {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 65})
-+        self.assertEqual(result.get("failureDiagnostic"), {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 65,
-+                                                         "errorSignals": ["unclassified"], "signalScanLimited": False})
-+        self.assertNotIn("runner-test", stages)
-+
-+    def test_runner_build_call_explicitly_observes_signals_and_keeps_original_gate(self):
-+        result, stages = self.run_failure("runner-build", build_message=RunnerBuildSignalTests.destination,
-+                                          cleanup_fails=True)
-+        self.assertEqual(result.get("failureDiagnostic"), {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 65,
-+                                                         "errorSignals": ["destination-selection"], "signalScanLimited": False})
-+        self.assertTrue(result["cleanupFailed"])
-         self.assertNotIn("runner-test", stages)
- 
-     def test_runner_test_failure_is_distinct_from_build(self):
-@@ -396,7 +406,8 @@ class NativeFailureDiagnosticTests(unittest.TestCase):
- 
-     def test_cleanup_cannot_overwrite_the_first_failure(self):
-         result, stages = self.run_failure("runner-build", cleanup_fails=True)
--        self.assertEqual(result.get("failureDiagnostic"), {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 65})
-+        self.assertEqual(result.get("failureDiagnostic"), {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 65,
-+                                                         "errorSignals": ["unclassified"], "signalScanLimited": False})
-         self.assertTrue(result["cleanupFailed"])
-         self.assertEqual(stages[-2:], ["simulator-shutdown", "simulator-delete"])
- 
-@@ -488,6 +499,169 @@ class NativeFailureDiagnosticTests(unittest.TestCase):
-                 self.assertEqual(diagnostic.first["exitCode"], expected)
- 
- 
-+class RunnerBuildSignalTests(unittest.TestCase):
-+    destination = "xcodebuild: error: Unable to find a destination matching the provided destination specifier:\n"
-+    sdk = 'xcodebuild: error: SDK "PrivateSdkSentinel" cannot be located.\n'
-+    scheme = "xcodebuild: error: Scheme PrivateSchemeSentinel is not currently configured for the test action.\n"
-+    compiler = "/private/PrivatePathSentinel/AuthJourney.swift:12:3: error: PrivateCompilerSentinel\n"
-+
-+    def observe(self, run, stdout, stderr, *, flag=True, status=70):
-+        diagnostic = run.FailureDiagnostic()
-+        response = subprocess.CompletedProcess(["private-fixture"], status, stdout, stderr)
-+        with patch.object(run.subprocess, "run", return_value=response) as process:
-+            try:
-+                with diagnostic.stage("runner-build"):
-+                    run.command("private-fixture", observe_build_signals=flag)
-+            except run.PrivateCommandFailure as error:
-+                self.assertEqual(error.exit_code, status)
-+                self.assertEqual(str(error), "Private verification command failed")
-+            self.assertEqual(process.call_count, 1)
-+        return diagnostic.first
-+
-+    def test_each_signal_uses_only_a_closed_enum(self):
-+        run = load("run_auth")
-+        for marker, expected in [(self.destination, "destination-selection"), (self.sdk, "sdk-availability"),
-+                                 (self.scheme, "scheme-configuration"), (self.compiler, "compiler-error")]:
-+            with self.subTest(signal=expected):
-+                result = self.observe(run, "", marker)
-+                self.assertEqual(result, {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 70,
-+                                          "errorSignals": [expected], "signalScanLimited": False})
-+                self.assertNotIn("Private", json.dumps(result))
-+
-+    def test_multiple_streams_are_deduplicated_and_sorted_without_causal_order(self):
-+        run = load("run_auth")
-+        result = self.observe(run, self.compiler + self.sdk + self.destination, self.scheme + self.destination)
-+        self.assertEqual(result["errorSignals"], ["destination-selection", "sdk-availability", "scheme-configuration", "compiler-error"])
-+        self.assertFalse(result["signalScanLimited"])
-+
-+    def test_unknown_empty_and_non_error_text_remain_unclassified(self):
-+        run = load("run_auth")
-+        for text in ["", "private generic failure\n", "Command line invocation: " + self.destination,
-+                     'let text = "' + self.compiler.strip() + '"\n',
-+                     self.compiler.replace(": error:", ": warning:"),
-+                     "prefix " + self.sdk, " \t" + self.destination,
-+                     "private-nul\x00 private-emoji🙂\n"]:
-+            with self.subTest(text_index=len(text)):
-+                result = self.observe(run, text, "")
-+                self.assertEqual(result["errorSignals"], ["unclassified"])
-+                self.assertFalse(result["signalScanLimited"])
-+
-+    def test_observer_is_opt_in_and_does_not_change_generic_commands(self):
-+        run = load("run_auth")
-+        with patch.object(run, "runner_build_error_signals", side_effect=AssertionError("observer must not run")):
-+            for flag in [False, None, 1, "true"]:
-+                with self.subTest(flag=type(flag).__name__):
-+                    self.assertEqual(self.observe(run, "", self.destination, flag=flag),
-+                                     {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 70})
-+
-+    def test_success_does_not_observe_even_when_the_flag_is_enabled(self):
-+        run = load("run_auth")
-+        with patch.object(run, "runner_build_error_signals", side_effect=AssertionError("observer must not run")):
-+            self.assertIsNone(self.observe(run, self.destination, "", status=0))
-+
-+    def test_scan_first_and_last_windows_only_and_reports_omitted_middle(self):
-+        run = load("run_auth")
-+        text = self.destination + ("ordinary line\n" * 12000) + self.compiler
-+        result = self.observe(run, text, self.sdk)
-+        self.assertEqual(result["errorSignals"], ["destination-selection", "sdk-availability", "compiler-error"])
-+        self.assertTrue(result["signalScanLimited"])
-+        hidden = ("ordinary line\n" * 7000) + self.scheme + ("ordinary line\n" * 7000)
-+        result = self.observe(run, hidden, "")
-+        self.assertEqual(result["errorSignals"], ["unclassified"])
-+        self.assertTrue(result["signalScanLimited"])
-+
-+    def test_line_length_boundary_and_clipped_fragments_cannot_create_signals(self):
-+        run = load("run_auth")
-+        prefix = "xcodebuild: error: Unable to find a destination matching "
-+        for length, expected in [(8192, "destination-selection"), (8193, "unclassified")]:
-+            with self.subTest(length=length):
-+                result = self.observe(run, prefix + "x" * (length - len(prefix)) + "\n", "")
-+                self.assertEqual(result["errorSignals"], [expected])
-+                self.assertEqual(result["signalScanLimited"], length > 8192)
-+        # The tail starts at a marker within a huge line, not at a real error line.
-+        tail = self.destination + "x" * (65536 - len(self.destination))
-+        result = self.observe(run, "x" * 100000 + tail, "")
-+        self.assertEqual(result["errorSignals"], ["unclassified"])
-+        self.assertTrue(result["signalScanLimited"])
-+
-+    def test_collector_failure_omits_only_the_supplement_and_keeps_first_failure(self):
-+        run = load("run_auth")
-+        diagnostic = run.FailureDiagnostic()
-+        response = subprocess.CompletedProcess(["fixture"], 70, "private", self.destination)
-+        original = []
-+        with patch.object(run.subprocess, "run", return_value=response), \
-+                patch.object(run, "runner_build_error_signals", side_effect=OSError("private observer failure")):
-+            with self.assertRaises(run.PrivateCommandFailure) as observed:
-+                with diagnostic.stage("runner-build"):
-+                    try:
-+                        run.command("fixture", observe_build_signals=True)
-+                    except run.PrivateCommandFailure as error:
-+                        original.append(error)
-+                        raise
-+        self.assertIs(observed.exception, original[0])
-+        self.assertEqual(diagnostic.first, {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 70})
-+        with self.assertRaises(RuntimeError):
-+            with diagnostic.stage("simulator-delete"):
-+                raise RuntimeError("private cleanup failure")
-+        self.assertEqual(diagnostic.first["stage"], "runner-build")
-+
-+    def test_malformed_collector_payload_cannot_replace_the_base_diagnostic(self):
-+        run = load("run_auth")
-+        for payload in [None, [], {"errorSignals": ["private"], "signalScanLimited": False},
-+                        {"errorSignals": ["compiler-error"], "signalScanLimited": False, "exitCode": 11}]:
-+            with self.subTest(payload_type=type(payload).__name__), \
-+                    patch.object(run, "runner_build_error_signals", return_value=payload):
-+                self.assertEqual(self.observe(run, "", self.compiler),
-+                                 {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 70})
-+
-+    def test_real_nonzero_process_keeps_capture_argv_exit_and_execution_count(self):
-+        run = load("run_auth")
-+        diagnostic = run.FailureDiagnostic()
-+        code = "import sys; print('private stdout'); sys.stderr.write(sys.argv[1]); sys.exit(70)"
-+        with tempfile.TemporaryDirectory() as temporary:
-+            log = Path(temporary) / "private.log"
-+            actual = run.subprocess.run
-+            with patch.object(run.subprocess, "run", wraps=actual) as process, self.assertRaises(run.PrivateCommandFailure):
-+                with diagnostic.stage("runner-build"):
-+                    run.command(sys.executable, "-c", code, self.destination, timeout=5,
-+                                private_log=log, observe_build_signals=True)
-+            self.assertEqual(process.call_count, 1)
-+            self.assertEqual(process.call_args.args[0], (sys.executable, "-c", code, self.destination))
-+            self.assertEqual(process.call_args.kwargs, {"capture_output": True, "text": True, "timeout": 5})
-+            self.assertEqual(log.read_text(), "private stdout\n" + self.destination)
-+        self.assertEqual(diagnostic.first, {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 70,
-+                                          "errorSignals": ["destination-selection"], "signalScanLimited": False})
-+
-+    def test_real_success_timeout_and_missing_executable_do_not_collect(self):
-+        run = load("run_auth")
-+        with tempfile.TemporaryDirectory() as temporary, \
-+                patch.object(run, "runner_build_error_signals", side_effect=AssertionError("observer must not run")):
-+            self.assertEqual(run.command(sys.executable, "-c", "print(' kept ')", timeout=5,
-+                                         observe_build_signals=True), "kept")
-+            for arguments, timeout, category in [
-+                    ((sys.executable, "-c", "import time; time.sleep(60)"), 0.15, "timed-out"),
-+                    ((str(Path(temporary) / "missing-executable"),), 5, "unavailable")]:
-+                with self.subTest(category=category):
-+                    diagnostic = run.FailureDiagnostic()
-+                    with self.assertRaises(run.PrivateCommandFailure):
-+                        with diagnostic.stage("runner-build"):
-+                            run.command(*arguments, timeout=timeout, observe_build_signals=True)
-+                    self.assertEqual(diagnostic.first, {"stage": "runner-build", "category": category, "exitCode": None})
-+
-+    def test_a_supplement_cannot_escape_its_runner_build_stage(self):
-+        run = load("run_auth")
-+        for stage in ["runner-test", "simulator-delete"]:
-+            with self.subTest(stage=stage):
-+                diagnostic = run.FailureDiagnostic()
-+                error = run.PrivateCommandFailure("nonzero-exit", 70, "Private verification command failed")
-+                error.build_signals = {"errorSignals": ["compiler-error"], "signalScanLimited": False}
-+                with self.assertRaises(run.PrivateCommandFailure) as observed:
-+                    with diagnostic.stage(stage):
-+                        raise error
-+                self.assertIs(observed.exception, error)
-+                self.assertEqual(diagnostic.first, {"stage": stage, "category": "nonzero-exit", "exitCode": 70})
-+
-+
- class FailureDiagnosticExportTests(unittest.TestCase):
-     def result(self, run, diagnostic):
-         return {"passed": False, "scope": run.SCOPE, "commit": "b" * 40,
-@@ -542,6 +716,65 @@ class FailureDiagnosticExportTests(unittest.TestCase):
-             with self.assertRaises(run.SecurityViolation):
-                 run.safe_json("result.json", invalid)
- 
-+    def test_optional_build_signals_are_exported_only_as_a_closed_pair(self):
-+        run = load("run_auth")
-+        for signals, limited in [(["destination-selection"], False), (["unclassified"], True),
-+                                 (["destination-selection", "sdk-availability", "scheme-configuration", "compiler-error"], False)]:
-+            with self.subTest(signals=signals), tempfile.TemporaryDirectory() as temporary:
-+                diagnostic = {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 70,
-+                              "errorSignals": signals, "signalScanLimited": limited}
-+                private, public = Path(temporary) / "private", Path(temporary) / "public"
-+                private.mkdir()
-+                self.export(run, private, public, self.result(run, diagnostic))
-+                self.assertEqual(json.loads((public / "result.json").read_text())["failureDiagnostic"], diagnostic)
-+
-+    def test_build_signal_schema_rejects_types_enums_caps_order_and_other_stages(self):
-+        run = load("run_auth")
-+        valid = {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 70,
-+                 "errorSignals": ["destination-selection"], "signalScanLimited": False}
-+        invalid = [{key: value for key, value in valid.items() if key != omitted}
-+                   for omitted in ["errorSignals", "signalScanLimited"]]
-+        invalid += [{**valid, "errorSignals": signals} for signals in [
-+            None, "destination-selection", {}, (), [], [None], [True], [1], [[]],
-+            ["PrivateExportSentinel123456"], ["destination-selection"] * 2,
-+            ["compiler-error", "destination-selection"], ["unclassified", "compiler-error"],
-+            ["destination-selection", "sdk-availability", "scheme-configuration", "compiler-error", "unclassified"]]]
-+        invalid += [{**valid, "signalScanLimited": value} for value in [None, 0, 1, 0.0, "false", [], {}]]
-+        invalid += [{**valid, "stage": stage} for stage in run.DIAGNOSTIC_STAGES if stage != "runner-build"]
-+        invalid += [{**valid, "category": category, "exitCode": None}
-+                    for category in run.DIAGNOSTIC_CATEGORIES if category != "nonzero-exit"]
-+        invalid += [{**valid, "rawLine": "PrivateExportSentinel123456"}]
-+        with tempfile.TemporaryDirectory() as temporary:
-+            root = Path(temporary)
-+            for index, diagnostic in enumerate(invalid):
-+                with self.subTest(index=index):
-+                    private, public = root / str(index), root / (str(index) + "-public")
-+                    private.mkdir()
-+                    with self.assertRaises(run.SecurityViolation):
-+                        self.export(run, private, public, self.result(run, diagnostic))
-+                    self.assertFalse(public.exists())
-+
-+    def test_build_signals_cannot_be_published_on_success_or_primary_rejection(self):
-+        run = load("run_auth")
-+        diagnostic = {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 70,
-+                      "errorSignals": ["compiler-error"], "signalScanLimited": False}
-+        original = self.result(run, diagnostic)
-+        success = {**original, "passed": True,
-+                   "steps": [{"app": app, "phase": phase, "passed": True} for app, phase in run.expected_order()]}
-+        del success["failureKind"]
-+        invalid = [success, {**original, "failureKind": "phase-rejected"},
-+                   {**original, "failureKind": "security-rejection"},
-+                   {**original, "securityFailure": {"kind": "private-identity", "observedAt": "2026-10-04T22:00:00Z"}}]
-+        with tempfile.TemporaryDirectory() as temporary:
-+            root = Path(temporary)
-+            for index, result in enumerate(invalid):
-+                with self.subTest(index=index):
-+                    private, public = root / str(index), root / (str(index) + "-public")
-+                    private.mkdir()
-+                    with self.assertRaises(run.SecurityViolation):
-+                        self.export(run, private, public, result)
-+                    self.assertFalse(public.exists())
-+
- 
- class SourceContractTests(unittest.TestCase):
-     def test_database_evidence_accepts_only_the_verified_maintenance_sources(self):
-diff --git a/e2e/menu-navigation.spec.ts b/e2e/menu-navigation.spec.ts
+ `python3 -B -m unittest discover -s scripts/ios-smoke -p 'test_*.py' -v` passou **35/35 em Windows e Linux**: 29 testes novos de configuração, exportação, sequência, sessões, nonce, primeira negativa, PNG e resposta da API, além dos seis existentes de seleção de simulador. RED inicial: dez erros pela ausência da implementação; RED da fronteira de exportação: dois erros antes da implementação dessa fronteira; RED de PNG: cinco erros nas subverificações antes do validador estrutural. Uma reprodução adicional removeu somente a verificação de segredo conhecido no campo de digest e obteve a falha esperada: segredo conhecido em SHA não foi rejeitado; a versão corrigida passa esse teste. A revisão independente reproduziu um segundo logout tardio aceito na fase seguinte; quatro novas negativas RED reproduziram logout extra na fase vazia, POST extra de outra rota, POST que chega durante o snapshot e ação extra no fim. As quatro passam após a validação exata das ações.
+diff --git a/scripts/ios-smoke/collect_build_diagnostic.py b/scripts/ios-smoke/collect_build_diagnostic.py
 new file mode 100644
-index 0000000..e0a796d
+index 0000000..e528ede
 --- /dev/null
-+++ b/e2e/menu-navigation.spec.ts
-@@ -0,0 +1,106 @@
-+import { expect, test, type Page } from "./fixtures";
-+import { ADMIN_URL, BUILDING_URL } from "./environment";
-+import { signIn } from "./helpers";
++++ b/scripts/ios-smoke/collect_build_diagnostic.py
+@@ -0,0 +1,193 @@
++"""Optional post-failure collector. Never export plaintext or alter journey results."""
++import base64
++import json
++import os
++from pathlib import Path
++import re
++import shutil
++import stat
++import subprocess
++import sys
 +
-+const portals = [
-+  { name: "administração", url: ADMIN_URL, email: "admin@predioon.local", home: "Dashboard" },
-+  { name: "condomínio", url: BUILDING_URL, email: "sindico@predioon.local", home: "Início" },
-+];
++BASE = Path(__file__).resolve().parent
++ROOT = BASE.parents[1]
++sys.path.insert(0, str(BASE))
++from run_auth import safe_json, SCOPE
 +
-+const dialog = (page: Page) => page.getByRole("dialog", { name: "Menu principal", exact: true });
-+const opener = (page: Page) => page.getByRole("button", { name: "Abrir menu", exact: true });
-+const bodyOverflow = (page: Page) => page.evaluate(() => document.body.style.overflow);
++MAX_LOG = 2 * 1024 * 1024
++MAX_ENVELOPE = 3 * 1024 * 1024
++RECIPIENT_KEY_ID = 'f792f93f45f280e421b4d5f643de2523d17f8a909be69bb34bb4bb48af28b8b2'
++ENVELOPE = 'runner-build.envelope.json'
 +
-+async function openMenu(page: Page, home: string) {
-+  await opener(page).click();
-+  await expect(dialog(page)).toBeVisible();
-+  await expect(dialog(page).getByRole("link", { name: home, exact: true })).toBeVisible();
++
++def eligible_context(report, environment):
++    required = {'GITHUB_ACTIONS': 'true', 'RUNNER_OS': 'macOS', 'GITHUB_REF': 'refs/heads/main',
++                'GITHUB_REPOSITORY': 'helberjf/predioON', 'IOS_BUILD_PRIVATE_DIAGNOSTIC': '1',
++                'IOS_JOURNEY_OUTCOME': 'failure', 'IOS_EVIDENCE_READY': 'true'}
++    if any(environment.get(key) != value for key, value in required.items()):
++        return None
++    try:
++        safe_json('result.json', report)
++        first = report.get('failureDiagnostic', {})
++        if report['passed'] is not False or report.get('failureKind') != 'native-journey-failed' or report.get('securityFailure') is not None or first.get('stage') != 'runner-build' or first.get('category') != 'nonzero-exit' or type(first.get('exitCode')) is not int or first['exitCode'] == 0:
++            return None
++        if report['commit'] != environment.get('GITHUB_SHA') or not re.fullmatch(r'[1-9][0-9]{0,19}', environment.get('GITHUB_RUN_ID', '')) or not re.fullmatch(r'[1-9][0-9]{0,5}', environment.get('GITHUB_RUN_ATTEMPT', '')):
++            return None
++        return {'repository': 'helberjf/predioON', 'sha': report['commit'], 'runId': environment['GITHUB_RUN_ID'],
++                'runAttempt': environment['GITHUB_RUN_ATTEMPT'], 'stage': 'runner-build', 'exitCode': first['exitCode']}
++    except Exception:
++        return None
++
++
++def directory_fd(root, parts=(), create=False):
++    if os.name != 'posix' or not hasattr(os, 'O_NOFOLLOW'):
++        raise ValueError('Private collector requires POSIX guards')
++    fd = os.open(Path(root).resolve(strict=True), os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
++    try:
++        for part in parts:
++            if part in {'', '.', '..'} or '/' in part or '\\' in part:
++                raise ValueError('Invalid private path')
++            if create:
++                try: os.mkdir(part, 0o700, dir_fd=fd)
++                except FileExistsError: pass
++            child = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
++            os.close(fd)
++            fd = child
++            info = os.fstat(fd)
++            if info.st_uid != os.getuid() or stat.S_IMODE(info.st_mode) & 0o022:
++                raise ValueError('Invalid private owner or mode')
++        return fd
++    except Exception:
++        os.close(fd)
++        raise
++
++
++def read_owned(root, parts, cap, private_log=False):
++    parent = directory_fd(root, parts[:-1])
++    try:
++        if private_log and stat.S_IMODE(os.fstat(parent).st_mode) != 0o700:
++            raise ValueError('Invalid private directory mode')
++        fd = os.open(parts[-1], os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=parent)
++        try:
++            before = os.fstat(fd)
++            if not stat.S_ISREG(before.st_mode) or before.st_uid != os.getuid() or before.st_nlink != 1 or not 0 < before.st_size <= cap or (private_log and stat.S_IMODE(before.st_mode) != 0o600) or stat.S_IMODE(before.st_mode) & 0o022:
++                raise ValueError('Invalid private file')
++            chunks = []
++            remaining = before.st_size + 1
++            while remaining:
++                chunk = os.read(fd, min(remaining, 65536))
++                if not chunk: break
++                chunks.append(chunk)
++                remaining -= len(chunk)
++            after = os.fstat(fd)
++            linked = os.stat(parts[-1], dir_fd=parent, follow_symlinks=False)
++            identity = lambda item: (item.st_dev, item.st_ino, item.st_size, item.st_mtime_ns, item.st_ctime_ns)
++            data = b''.join(chunks)
++            if identity(before) != identity(after) or identity(linked) != identity(after) or len(data) != before.st_size:
++                raise ValueError('Private file changed')
++            return data
++        finally: os.close(fd)
++    finally: os.close(parent)
++
++
++def strict_json(data):
++    def unique(pairs):
++        result = {}
++        for key, value in pairs:
++            if key in result: raise ValueError('Duplicate field')
++            result[key] = value
++        return result
++    return json.loads(data, object_pairs_hook=unique)
++
++
++def read_report(root):
++    return strict_json(read_owned(root, ('.local', 'ios-auth', 'evidence', 'result.json'), 131072))
++
++
++def read_private_log(temporary):
++    return read_owned(temporary, ('ios-auth-private', 'runner-build.log'), MAX_LOG, private_log=True)
++
++
++def child_environment(context):
++    return {'GITHUB_ACTIONS': 'true', 'RUNNER_OS': 'macOS', 'IOS_DIAGNOSTIC_CONTEXT': json.dumps(context, separators=(',', ':'))}
++
++
++def invoke_sealer(node, root, payload, context):
++    result = subprocess.run([str(node), str(Path(root) / 'scripts/ios-smoke/private_build_diagnostic.mjs'), 'seal'],
++                            cwd=root, input=payload, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
++                            env=child_environment(context), timeout=15, check=False)
++    if result.returncode != 0:
++        raise ValueError('Private sealer unavailable')
++
++
++def validate_envelope(data, context, length):
++    item = strict_json(data)
++    fields = ['version', 'algorithm', 'keyId', 'context', 'iv', 'wrappedKey', 'ciphertext', 'tag']
++    if not isinstance(item, dict) or list(item) != fields or type(item['version']) is not int or item['version'] != 1 or item['algorithm'] != 'RSA-OAEP-SHA256+A256GCM' or item['keyId'] != RECIPIENT_KEY_ID or json.dumps(item['context'], separators=(',', ':')) != json.dumps(context, separators=(',', ':')):
++        raise ValueError('Invalid private envelope')
++    if (json.dumps(item, separators=(',', ':'), ensure_ascii=False) + '\n').encode() != data:
++        raise ValueError('Noncanonical private envelope')
++    for field, size in [('iv', 12), ('wrappedKey', 512), ('ciphertext', length), ('tag', 16)]:
++        value = item[field]
++        if not isinstance(value, str) or len(value) > ((size + 2) // 3) * 4:
++            raise ValueError('Invalid encrypted field')
++        decoded = base64.b64decode(value, validate=True)
++        if len(decoded) != size or base64.b64encode(decoded).decode() != value:
++            raise ValueError('Invalid encrypted field')
++
++
++def write_ready(environment):
++    temporary = Path(environment['RUNNER_TEMP']).resolve(strict=True)
++    path = Path(environment['GITHUB_OUTPUT'])
++    relative = path.relative_to(temporary)
++    parent = directory_fd(temporary, relative.parts[:-1])
++    try:
++        fd = os.open(relative.name, os.O_WRONLY | os.O_APPEND | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=parent)
++        try:
++            info = os.fstat(fd)
++            if not stat.S_ISREG(info.st_mode) or info.st_uid != os.getuid() or info.st_nlink != 1 or stat.S_IMODE(info.st_mode) & 0o022:
++                raise ValueError('Invalid workflow output')
++            flag = b'private-diagnostic-ready=true\n'
++            if os.write(fd, flag) != len(flag):
++                raise ValueError('Workflow output unavailable')
++        finally: os.close(fd)
++    finally: os.close(parent)
++
++
++def collect(root=ROOT, environment=None):
++    environment = os.environ if environment is None else environment
++    parent = None
++    created = None
++    try:
++        context = eligible_context(read_report(root), environment)
++        if context is None: return 'skipped'
++        payload = read_private_log(Path(environment['RUNNER_TEMP']))
++        parent = directory_fd(root, ('.local', 'ios-auth'), create=True)
++        os.mkdir('encrypted-diagnostic', 0o700, dir_fd=parent)
++        created = os.open('encrypted-diagnostic', os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=parent)
++        node = shutil.which('node')
++        if not node: raise ValueError('Private sealer unavailable')
++        invoke_sealer(Path(node).resolve(strict=True), root, payload, context)
++        encoded = read_owned(root, ('.local', 'ios-auth', 'encrypted-diagnostic', ENVELOPE), MAX_ENVELOPE)
++        validate_envelope(encoded, context, len(payload))
++        write_ready(environment)
++        return 'ready'
++    except Exception:
++        if created is not None:
++            try: os.unlink(ENVELOPE, dir_fd=created)
++            except OSError: pass
++            try:
++                linked = os.stat('encrypted-diagnostic', dir_fd=parent, follow_symlinks=False)
++                opened = os.fstat(created)
++                if (linked.st_dev, linked.st_ino) == (opened.st_dev, opened.st_ino):
++                    os.rmdir('encrypted-diagnostic', dir_fd=parent)
++            except OSError: pass
++        return 'unavailable'
++    finally:
++        if created is not None: os.close(created)
++        if parent is not None: os.close(parent)
++
++
++if __name__ == '__main__':
++    # No original exception, paths, argv, environment, stdout or stderr is printed.
++    print('IOS_PRIVATE_DIAGNOSTIC:' + collect())
+diff --git a/scripts/ios-smoke/private_build_diagnostic.mjs b/scripts/ios-smoke/private_build_diagnostic.mjs
+new file mode 100644
+index 0000000..0d27389
+--- /dev/null
++++ b/scripts/ios-smoke/private_build_diagnostic.mjs
+@@ -0,0 +1,155 @@
++/** Optional encrypted transport. Plaintext and exceptions never belong in CI output. */
++import { constants, createCipheriv, createDecipheriv, createHash, createPrivateKey, createPublicKey, privateDecrypt, publicEncrypt, randomBytes } from 'node:crypto';
++import { closeSync, constants as fsConstants, fstatSync, fsyncSync, lstatSync, openSync, readSync, unlinkSync, writeFileSync } from 'node:fs';
++import { dirname, join, resolve } from 'node:path';
++import { fileURLToPath } from 'node:url';
++
++export const MAX_LOG = 2 * 1024 * 1024;
++export const MAX_ENVELOPE = 3 * 1024 * 1024;
++export const RECIPIENT_KEY_ID = 'f792f93f45f280e421b4d5f643de2523d17f8a909be69bb34bb4bb48af28b8b2';
++const ALGORITHM = 'RSA-OAEP-SHA256+A256GCM';
++const LABEL = Buffer.from('predioon/ios-runner-build/v1');
++const fail = () => { throw new Error('Invalid private diagnostic'); };
++const keys = (value, expected) => value && typeof value === 'object' && !Array.isArray(value) && JSON.stringify(Object.keys(value)) === JSON.stringify(expected);
++const canonical = value => Buffer.from(JSON.stringify(value) + '\n');
++
++export function validateContext(value) {
++  if (!keys(value, ['repository', 'sha', 'runId', 'runAttempt', 'stage', 'exitCode']) || value.repository !== 'helberjf/predioON' ||
++      typeof value.sha !== 'string' || !/^[a-f0-9]{40}$/.test(value.sha) ||
++      typeof value.runId !== 'string' || !/^[1-9][0-9]{0,19}$/.test(value.runId) ||
++      typeof value.runAttempt !== 'string' || !/^[1-9][0-9]{0,5}$/.test(value.runAttempt) ||
++      value.stage !== 'runner-build' || !Number.isInteger(value.exitCode) || value.exitCode === 0 || Math.abs(value.exitCode) > 255) fail();
++  return value;
 +}
 +
-+async function expectClosed(page: Page, overflow: string) {
-+  await expect(page.getByRole("dialog", { name: "Menu principal", includeHidden: true })).toHaveCount(0);
-+  await expect(opener(page)).toHaveAttribute("aria-expanded", "false");
-+  await expect.poll(() => bodyOverflow(page)).toBe(overflow);
-+  await expect(opener(page)).toBeFocused();
++function publicRecipient(pem) {
++  if (typeof pem !== 'string' || pem.length > 8192 || !/^-----BEGIN PUBLIC KEY-----\n[A-Za-z0-9+/=\n]+\n-----END PUBLIC KEY-----\n?$/.test(pem.replaceAll('\r\n', '\n'))) fail();
++  const key = createPublicKey(pem);
++  if (key.asymmetricKeyType !== 'rsa' || key.asymmetricKeyDetails?.modulusLength !== 4096 || key.asymmetricKeyDetails?.publicExponent !== 65537n) fail();
++  return { key, id: createHash('sha256').update(key.export({ type: 'spki', format: 'der' })).digest('hex') };
 +}
 +
-+for (const portal of portals) {
-+  test.describe(`Menu móvel — ${portal.name}`, () => {
-+    test.use({ viewport: { width: 375, height: 812 } });
-+
-+    test("recebe o foco, confina Tab e Shift+Tab e impede foco no conteúdo de fundo", async ({ page }) => {
-+      await signIn(page, portal.url, portal.email);
-+      const backgroundAlert = page.getByRole("link", { name: "Ver alertas", exact: true });
-+      // Capture the real background element before a modal removes it from the accessibility tree.
-+      const backgroundHandle = await backgroundAlert.elementHandle();
-+      expect(backgroundHandle).not.toBeNull();
-+      await openMenu(page, portal.home);
-+      const close = dialog(page).getByRole("button", { name: "Fechar menu", exact: true });
-+      const logout = dialog(page).getByRole("button", { name: "Sair da conta", exact: true });
-+      await expect(close).toBeFocused();
-+
-+      await backgroundHandle!.evaluate(element => (element as HTMLElement).focus());
-+      await expect(close).toBeFocused();
-+      await expect(page).toHaveURL(`${portal.url}/`);
-+      await page.keyboard.press("Shift+Tab");
-+      await expect(logout).toBeFocused();
-+      await page.keyboard.press("Tab");
-+      await expect(close).toBeFocused();
-+
-+      const stops = await dialog(page).getByRole("link").count() + 2;
-+      for (const key of ["Tab", "Shift+Tab"]) {
-+        for (let index = 0; index < stops; index++) {
-+          await page.keyboard.press(key);
-+          await expect.poll(() => dialog(page).evaluate(element => element.contains(document.activeElement))).toBe(true);
-+        }
-+        await expect(close).toBeFocused();
-+      }
-+      await page.keyboard.press("Escape");
-+      await expect(opener(page)).toBeFocused();
-+    });
-+
-+    test("devolve foco ao fechar por Escape, botão, fundo ou navegação inclusive para a página atual", async ({ page }) => {
-+      await signIn(page, portal.url, portal.email);
-+      const overflow = await bodyOverflow(page);
-+      for (const method of ["escape", "button", "backdrop"] as const) {
-+        await openMenu(page, portal.home);
-+        await expect.poll(() => bodyOverflow(page)).toBe("hidden");
-+        if (method === "escape") await page.keyboard.press("Escape");
-+        if (method === "button") await dialog(page).getByRole("button", { name: "Fechar menu", exact: true }).click();
-+        if (method === "backdrop") await page.mouse.click(371, 400);
-+        await expectClosed(page, overflow);
-+      }
-+
-+      await openMenu(page, portal.home);
-+      await dialog(page).getByRole("link", { name: portal.home, exact: true }).click();
-+      await expect(page).toHaveURL(`${portal.url}/`);
-+      await expectClosed(page, overflow);
-+      await openMenu(page, portal.home);
-+      await dialog(page).getByRole("link", { name: "Minhas sessões", exact: true }).click();
-+      await expect(page).toHaveURL(`${portal.url}/sessoes`);
-+      await expectClosed(page, overflow);
-+      await expect(page.getByRole("main")).toBeVisible();
-+    });
-+
-+    test("passa ao desktop sem modal oculto nem bloqueio de rolagem e pode reabrir no celular", async ({ page }) => {
-+      await signIn(page, portal.url, portal.email);
-+      const overflow = await bodyOverflow(page);
-+      await openMenu(page, portal.home);
-+      await expect.poll(() => bodyOverflow(page)).toBe("hidden");
-+      await page.setViewportSize({ width: 1280, height: 900 });
-+      await expect(page.getByRole("dialog", { name: "Menu principal", includeHidden: true })).toHaveCount(0);
-+      await expect.poll(() => bodyOverflow(page)).toBe(overflow);
-+      await expect(opener(page)).toBeHidden();
-+      await page.getByRole("navigation", { name: "Menu principal", exact: true })
-+        .getByRole("link", { name: "Minhas sessões", exact: true }).click();
-+      await expect(page).toHaveURL(`${portal.url}/sessoes`);
-+
-+      await page.setViewportSize({ width: 375, height: 812 });
-+      await expect(opener(page)).toHaveAttribute("aria-expanded", "false");
-+      await openMenu(page, portal.home);
-+      await expect(dialog(page).getByRole("button", { name: "Fechar menu", exact: true })).toBeFocused();
-+      await page.keyboard.press("Escape");
-+      await expectClosed(page, overflow);
-+    });
-+  });
++function header(keyId, context) {
++  return { version: 1, algorithm: ALGORITHM, keyId, context: validateContext(context) };
 +}
++
++export function seal(plaintext, publicPem, context) {
++  if (!Buffer.isBuffer(plaintext) || plaintext.length < 1 || plaintext.length > MAX_LOG) fail();
++  const recipient = publicRecipient(publicPem);
++  const metadata = header(recipient.id, context);
++  const key = randomBytes(32);
++  const iv = randomBytes(12);
++  try {
++    const cipher = createCipheriv('aes-256-gcm', key, iv, { authTagLength: 16 });
++    cipher.setAAD(canonical(metadata));
++    const ciphertext = Buffer.concat([cipher.update(plaintext), cipher.final()]);
++    const wrappedKey = publicEncrypt({ key: recipient.key, padding: constants.RSA_PKCS1_OAEP_PADDING, oaepHash: 'sha256', oaepLabel: LABEL }, key);
++    return canonical({ ...metadata, iv: iv.toString('base64'), wrappedKey: wrappedKey.toString('base64'), ciphertext: ciphertext.toString('base64'), tag: cipher.getAuthTag().toString('base64') });
++  } finally { key.fill(0); }
++}
++
++function decode(value, length, cap = length) {
++  if (typeof value !== 'string' || value.length > Math.ceil(cap / 3) * 4 || !/^[A-Za-z0-9+/]*={0,2}$/.test(value)) fail();
++  const bytes = Buffer.from(value, 'base64');
++  if (bytes.length < length || bytes.length > cap || bytes.toString('base64') !== value) fail();
++  return bytes;
++}
++
++export function inspectEnvelope(encoded, expected, publicPem) {
++  validateContext(expected);
++  if (!Buffer.isBuffer(encoded) || encoded.length > MAX_ENVELOPE) fail();
++  const item = JSON.parse(encoded.toString('utf8'));
++  if (!keys(item, ['version', 'algorithm', 'keyId', 'context', 'iv', 'wrappedKey', 'ciphertext', 'tag']) ||
++      !canonical(item).equals(encoded) || item.version !== 1 || item.algorithm !== ALGORITHM ||
++      typeof item.keyId !== 'string' || !/^[a-f0-9]{64}$/.test(item.keyId) ||
++      !canonical(validateContext(item.context)).equals(canonical(expected))) fail();
++  if (publicPem !== undefined && publicRecipient(publicPem).id !== item.keyId) fail();
++  decode(item.iv, 12); decode(item.wrappedKey, 512); decode(item.ciphertext, 1, MAX_LOG); decode(item.tag, 16);
++  return item;
++}
++
++export function openEnvelope(encoded, privatePem, expected) {
++  const privateKey = typeof privatePem === 'object' && privatePem?.type === 'private' ? privatePem : createPrivateKey(privatePem);
++  const publicPem = createPublicKey(privateKey).export({ type: 'spki', format: 'pem' });
++  const item = inspectEnvelope(encoded, expected, publicPem);
++  const key = privateDecrypt({ key: privateKey, padding: constants.RSA_PKCS1_OAEP_PADDING, oaepHash: 'sha256', oaepLabel: LABEL }, decode(item.wrappedKey, 512));
++  let partial;
++  try {
++    if (key.length !== 32) fail();
++    const decipher = createDecipheriv('aes-256-gcm', key, decode(item.iv, 12), { authTagLength: 16 });
++    decipher.setAAD(canonical(header(item.keyId, item.context)));
++    decipher.setAuthTag(decode(item.tag, 16));
++    partial = decipher.update(decode(item.ciphertext, 1, MAX_LOG));
++    return Buffer.concat([partial, decipher.final()]);
++  } finally { key.fill(0); partial?.fill(0); }
++}
++
++function noLinkedParents(path) {
++  let parent = dirname(resolve(path));
++  while (true) {
++    const stat = lstatSync(parent);
++    if (!stat.isDirectory() || stat.isSymbolicLink()) fail();
++    const next = dirname(parent);
++    if (next === parent) break;
++    parent = next;
++  }
++}
++
++function writeNew(path, bytes) {
++  noLinkedParents(path);
++  const fd = openSync(path, 'wx', 0o600);
++  try { writeFileSync(fd, bytes); fsyncSync(fd); }
++  catch { closeSync(fd); unlinkSync(path); fail(); }
++  closeSync(fd);
++}
++
++export function writePlaintext(encoded, privatePem, expected, output, environment = process.env) {
++  if ('GITHUB_ACTIONS' in environment || 'GITHUB_RUN_ID' in environment) fail();
++  const bytes = openEnvelope(encoded, privatePem, expected);
++  try { writeNew(output, bytes); }
++  finally { bytes.fill(0); }
++}
++
++function readBounded(path, cap) {
++  noLinkedParents(path);
++  if (lstatSync(path).isSymbolicLink()) fail();
++  const fd = openSync(path, fsConstants.O_RDONLY | (fsConstants.O_NOFOLLOW ?? 0) | (fsConstants.O_NONBLOCK ?? 0));
++  try {
++    const before = fstatSync(fd);
++    if (!before.isFile() || before.nlink !== 1 || before.size > cap) fail();
++    const buffer = Buffer.alloc(before.size + 1);
++    let total = 0;
++    while (total < buffer.length) { const count = readSync(fd, buffer, total, buffer.length - total, null); if (!count) break; total += count; }
++    const after = fstatSync(fd);
++    const linked = lstatSync(path);
++    if (linked.isSymbolicLink() || linked.dev !== after.dev || linked.ino !== after.ino || total !== before.size || after.size !== before.size || after.mtimeMs !== before.mtimeMs || after.ctimeMs !== before.ctimeMs) fail();
++    return buffer.subarray(0, total);
++  } finally { closeSync(fd); }
++}
++
++async function main() {
++  if (!process.versions.node.startsWith('24.')) fail();
++  const base = dirname(fileURLToPath(import.meta.url));
++  const root = resolve(base, '../..');
++  const [mode, ...args] = process.argv.slice(2);
++  if (mode === 'seal' && args.length === 0 && process.env.GITHUB_ACTIONS === 'true' && process.env.RUNNER_OS === 'macOS') {
++    const context = validateContext(JSON.parse(process.env.IOS_DIAGNOSTIC_CONTEXT ?? 'null'));
++    const publicPem = readBounded(join(base, 'diagnostic-recipient-public.pem'), 8192).toString('utf8');
++    if (publicRecipient(publicPem).id !== RECIPIENT_KEY_ID) fail();
++    const chunks = []; let total = 0;
++    for await (const chunk of process.stdin) { total += chunk.length; if (total > MAX_LOG) fail(); chunks.push(chunk); }
++    const plaintext = Buffer.concat(chunks);
++    try { writeNew(join(root, '.local/ios-auth/encrypted-diagnostic/runner-build.envelope.json'), seal(plaintext, publicPem, context)); }
++    finally { plaintext.fill(0); for (const chunk of chunks) chunk.fill(0); }
++  } else if (mode === 'open' && args.length === 4 && !('GITHUB_ACTIONS' in process.env) && !('GITHUB_RUN_ID' in process.env)) {
++    // Local operator must provision a private directory/NTFS ACL first. No plaintext stdout.
++    const [envelopePath, privateKeyPath, expectedPath, outputPath] = args;
++    const key = readBounded(privateKeyPath, 8192);
++    try { writePlaintext(readBounded(envelopePath, MAX_ENVELOPE), key, validateContext(JSON.parse(readBounded(expectedPath, 4096).toString('utf8'))), outputPath); }
++    finally { key.fill(0); }
++  } else fail();
++}
++
++if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
++  main().catch(() => { process.stderr.write('Private diagnostic unavailable\n'); process.exitCode = 1; });
++}
+diff --git a/scripts/ios-smoke/diagnostic-recipient-public.pem b/scripts/ios-smoke/diagnostic-recipient-public.pem
+new file mode 100644
+index 0000000..ed89e9c
+--- /dev/null
++++ b/scripts/ios-smoke/diagnostic-recipient-public.pem
+@@ -0,0 +1,14 @@
++-----BEGIN PUBLIC KEY-----
++MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAnbVQt1IUmHCrW3RhBHO1
++vWWRdo4g5lZSV7YlzQu46ZhT9aP5duZ3KEmY53GkeOX7dSs/gf7mMjKQBuHdy1fL
++Mx8Iy6dWywYQ+nL1RUsOslRVkQ+2y2rcgnjVdpckMdLvKvZRBiSLxRw3YDX1g7i/
++408llL+a60JwRL2JRaj9YZUKKfNt5r3OkkmQ9Q5XOwsw+5/tQlnJ6rQDtb6zsvMp
++JnEAiCWGZTn/gts4Wkdrloj2WilibipLVt2bw4ImRfDnG9dwM/E8VaLGxul4jme9
++N3pTDiXkpFLyyFcLoRxJwZ6nYVTBibq0g6YL+SV2MleODWOldSjGs+NK+88xb1Si
++dQZ+fFiDjUW97S3XXdW4FIKOmFfW4CQoQ252Q2r8cexvg/l6ducOoJ2QU/m1oxa4
++hJPJae8I9xhYh3bqyU77LpvKLekNkeRs8CvbDfNjUT5UGxVBlavxYDWx6z8n1xpk
++rifa6fldYpYQiaWYR7oQAPRZOa1wk2TPV94IyZO805ehstaoLK1NPXgpPDQ2oDN3
++mJ8Eb/zVSkoMjsMIBcCOr+UC6ST6ayu2JDb0dLaR7on0XB96CI4/vdS18DzR5KHn
++sH2H2k6aUwAfLrY7cvCfRMxAw6jb47N4q/v+eR+XEdXro1MXvgZeoKrI0a9RuoD+
++OB6jB+sRGxKXVSGpSO0t01sCAwEAAQ==
++-----END PUBLIC KEY-----
+diff --git a/scripts/ios-smoke/test_private_build_diagnostic.py b/scripts/ios-smoke/test_private_build_diagnostic.py
+new file mode 100644
+index 0000000..82d6b27
+--- /dev/null
++++ b/scripts/ios-smoke/test_private_build_diagnostic.py
+@@ -0,0 +1,291 @@
++"""Portable guards plus real POSIX filesystem/subprocess checks; no Apple tools."""
++import copy
++from contextlib import redirect_stderr, redirect_stdout
++import importlib.util
++import io
++import json
++import os
++from pathlib import Path
++import subprocess
++import shutil
++import sys
++import tempfile
++import unittest
++from unittest.mock import patch
++
++BASE = Path(__file__).resolve().parent
++spec = importlib.util.spec_from_file_location('private_diagnostic_collector', BASE / 'collect_build_diagnostic.py')
++collector = importlib.util.module_from_spec(spec)
++spec.loader.exec_module(collector)
++
++
++class CollectorTests(unittest.TestCase):
++    def setUp(self):
++        self.temporary = tempfile.TemporaryDirectory()
++        self.addCleanup(self.temporary.cleanup)
++        self.root = Path(self.temporary.name).resolve()
++        self.environment = {'GITHUB_ACTIONS': 'true', 'RUNNER_OS': 'macOS', 'GITHUB_REF': 'refs/heads/main',
++                            'GITHUB_REPOSITORY': 'helberjf/predioON', 'GITHUB_SHA': 'a' * 40,
++                            'GITHUB_RUN_ID': '123', 'GITHUB_RUN_ATTEMPT': '1', 'RUNNER_TEMP': str(self.root),
++                            'IOS_BUILD_PRIVATE_DIAGNOSTIC': '1', 'IOS_JOURNEY_OUTCOME': 'failure', 'IOS_EVIDENCE_READY': 'true'}
++        self.report = {'passed': False, 'scope': collector.SCOPE, 'commit': 'a' * 40,
++                       'runtime': 'com.apple.CoreSimulator.SimRuntime.iOS-18-5', 'sdkVersion': '18.5', 'steps': [],
++                       'failureKind': 'native-journey-failed', 'failureDiagnostic': {'stage': 'runner-build', 'category': 'nonzero-exit', 'exitCode': 70}}
++
++    def test_eligibility_is_closed_and_original_report_is_never_modified(self):
++        original = copy.deepcopy(self.report)
++        self.assertEqual(collector.eligible_context(self.report, self.environment)['exitCode'], 70)
++        self.assertEqual(self.report, original)
++        for key, value in [('IOS_BUILD_PRIVATE_DIAGNOSTIC', '0'), ('IOS_JOURNEY_OUTCOME', 'success'), ('IOS_EVIDENCE_READY', 'false'), ('GITHUB_SHA', 'b' * 40), ('GITHUB_REF', 'refs/heads/other'), ('RUNNER_OS', 'Windows')]:
++            with self.subTest(key=key):
++                self.assertIsNone(collector.eligible_context(self.report, {**self.environment, key: value}))
++
++    def test_ineligible_result_never_reads_log_key_or_launches_child(self):
++        variants = []
++        for patch_report in [{'passed': True}, {'failureKind': 'security-rejection'}, {'failureKind': 'phase-rejected'}, {'private': 'secret'}, {'failureDiagnostic': {'stage': 'runner-test', 'category': 'nonzero-exit', 'exitCode': 70}}, {'failureDiagnostic': {'stage': 'runner-build', 'category': 'timed-out', 'exitCode': None}}]:
++            variants.append({**self.report, **patch_report})
++        for report in variants:
++            with self.subTest(report=report), patch.object(collector, 'read_report', return_value=report), patch.object(collector, 'read_private_log', side_effect=AssertionError('must not read')) as read, patch.object(collector, 'invoke_sealer', side_effect=AssertionError('must not launch')) as child:
++                self.assertEqual(collector.collect(self.root, self.environment), 'skipped')
++                read.assert_not_called()
++                child.assert_not_called()
++        for key, value in [('IOS_BUILD_PRIVATE_DIAGNOSTIC', '0'), ('IOS_JOURNEY_OUTCOME', 'success'), ('IOS_EVIDENCE_READY', 'false'), ('GITHUB_SHA', 'b' * 40), ('GITHUB_REF', 'refs/heads/other'), ('GITHUB_REPOSITORY', 'other/repo'), ('RUNNER_OS', 'Windows'), ('GITHUB_ACTIONS', 'false')]:
++            with self.subTest(gate=key), patch.object(collector, 'read_report', return_value=self.report), patch.object(collector, 'read_private_log') as read, patch.object(collector, 'invoke_sealer') as child:
++                self.assertEqual(collector.collect(self.root, {**self.environment, key: value}), 'skipped')
++                read.assert_not_called()
++                child.assert_not_called()
++
++    def test_child_environment_drops_credentials_preloads_and_debug_switches(self):
++        context = collector.eligible_context(self.report, self.environment)
++        environment = collector.child_environment(context)
++        self.assertEqual(set(environment), {'GITHUB_ACTIONS', 'RUNNER_OS', 'IOS_DIAGNOSTIC_CONTEXT'})
++        self.assertEqual(json.loads(environment['IOS_DIAGNOSTIC_CONTEXT']), context)
++
++    def test_subprocess_is_one_bounded_attempt_with_devnull_not_public_capture(self):
++        with patch.object(collector.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0)) as run:
++            collector.invoke_sealer(sys.executable, BASE, b'private payload', collector.eligible_context(self.report, self.environment))
++        self.assertEqual(run.call_count, 1)
++        _, options = run.call_args
++        self.assertEqual(options['timeout'], 15)
++        self.assertEqual(options['stdout'], subprocess.DEVNULL)
++        self.assertEqual(options['stderr'], subprocess.DEVNULL)
++        self.assertEqual(options['input'], b'private payload')
++
++    @unittest.skipUnless(os.name == 'posix', 'POSIX owner/mode/openat guards; CI target is macOS')
++    def test_real_log_accepts_only_owned_0600_regular_file(self):
++        folder = self.root / 'ios-auth-private'
++        folder.mkdir(mode=0o700)
++        path = folder / 'runner-build.log'
++        path.write_bytes(b'private\x00log')
++        path.chmod(0o600)
++        self.assertEqual(collector.read_private_log(self.root), b'private\x00log')
++        for mode in [0o644, 0o660, 0o400]:
++            path.chmod(mode)
++            with self.subTest(mode=mode), self.assertRaises(Exception): collector.read_private_log(self.root)
++
++    @unittest.skipUnless(os.name == 'posix', 'POSIX symlink/hardlink guards')
++    def test_symlinks_hardlinks_and_oversize_are_rejected_without_truncation(self):
++        folder = self.root / 'ios-auth-private'
++        folder.mkdir(mode=0o700)
++        path = folder / 'runner-build.log'
++        target = self.root / 'secret'
++        target.write_bytes(b'private')
++        target.chmod(0o600)
++        path.symlink_to(target)
++        with self.assertRaises(Exception): collector.read_private_log(self.root)
++        path.unlink()
++        os.link(target, path)
++        with self.assertRaises(Exception): collector.read_private_log(self.root)
++        path.unlink()
++        path.write_bytes(b'x' * (collector.MAX_LOG + 1))
++        path.chmod(0o600)
++        with self.assertRaises(Exception): collector.read_private_log(self.root)
++        self.assertEqual(path.stat().st_size, collector.MAX_LOG + 1)
++
++    def test_sealer_errors_and_timeout_cannot_write_a_ready_flag(self):
++        for error in [OSError('private env argv'), subprocess.TimeoutExpired('secret', 15), RuntimeError('private stderr')]:
++            with self.subTest(error=type(error).__name__), patch.object(collector, 'read_report', return_value=self.report), patch.object(collector, 'read_private_log', return_value=b'private'), patch.object(collector, 'invoke_sealer', side_effect=error), patch.object(collector, 'write_ready') as ready:
++                self.assertEqual(collector.collect(self.root, self.environment), 'unavailable')
++                ready.assert_not_called()
++                self.assertEqual(self.report['failureDiagnostic']['exitCode'], 70)
++
++    @unittest.skipUnless(os.name == 'posix', 'POSIX descriptor/path identity guard')
++    def test_replacing_log_name_during_read_is_rejected(self):
++        folder = self.root / 'ios-auth-private'
++        folder.mkdir(mode=0o700)
++        path = folder / 'runner-build.log'
++        path.write_bytes(b'original private log')
++        path.chmod(0o600)
++        original_read = os.read
++        changed = False
++        def replacing_read(fd, count):
++            nonlocal changed
++            data = original_read(fd, count)
++            if not changed:
++                changed = True
++                path.rename(folder / 'previous')
++                path.write_bytes(b'replacement')
++                path.chmod(0o600)
++            return data
++        with patch.object(collector.os, 'read', side_effect=replacing_read), self.assertRaises(Exception):
++            collector.read_private_log(self.root)
++
++    @unittest.skipUnless(os.name == 'posix', 'Actual CI subprocess and file descriptors require POSIX')
++    def test_real_node_sealer_exports_only_ciphertext_and_separate_ready_flag(self):
++        node = shutil.which('node')
++        self.assertIsNotNone(node, 'Node24 is required for the real encryption boundary test')
++        generator = "const c=require('node:crypto');const p=c.generateKeyPairSync('rsa',{modulusLength:4096,publicExponent:65537}).publicKey;process.stdout.write(JSON.stringify({pem:p.export({type:'spki',format:'pem'}),id:c.createHash('sha256').update(p.export({type:'spki',format:'der'})).digest('hex')}));"
++        recipient = json.loads(subprocess.run([node, '-e', generator], capture_output=True, text=True, check=True, timeout=15).stdout)
++        scripts = self.root / 'scripts/ios-smoke'
++        scripts.mkdir(parents=True)
++        scripts.joinpath('private_build_diagnostic.mjs').write_text(BASE.joinpath('private_build_diagnostic.mjs').read_text().replace(collector.RECIPIENT_KEY_ID, recipient['id']))
++        scripts.joinpath('diagnostic-recipient-public.pem').write_text(recipient['pem'])
++        private = self.root / 'ios-auth-private'
++        private.mkdir(mode=0o700)
++        log = private / 'runner-build.log'
++        payload = b'SENTINEL-password-DSN-token\x00 ::error:: native build failure'
++        log.write_bytes(payload)
++        log.chmod(0o600)
++        evidence = self.root / '.local/ios-auth/evidence'
++        evidence.mkdir(parents=True)
++        report = json.dumps(self.report).encode()
++        evidence.joinpath('result.json').write_bytes(report)
++        output = self.root / 'outputs'
++        output.touch(mode=0o600)
++        environment = {**self.environment, 'GITHUB_OUTPUT': str(output), 'NODE_OPTIONS': '--require /private/secret', 'DATABASE_URL': 'secret'}
++        public_output = io.StringIO()
++        with patch.object(collector, 'RECIPIENT_KEY_ID', recipient['id']), redirect_stdout(public_output), redirect_stderr(public_output):
++            self.assertEqual(collector.collect(self.root, environment), 'ready')
++        self.assertEqual(public_output.getvalue(), '')
++        self.assertEqual(output.read_text(), 'private-diagnostic-ready=true\n')
++        self.assertEqual(log.read_bytes(), payload)
++        self.assertEqual(evidence.joinpath('result.json').read_bytes(), report)
++        envelope = self.root / '.local/ios-auth/encrypted-diagnostic/runner-build.envelope.json'
++        self.assertNotIn(payload, envelope.read_bytes())
++        self.assertEqual(set(path.name for path in envelope.parent.iterdir()), {collector.ENVELOPE})
++        self.assertEqual(envelope.stat().st_mode & 0o777, 0o600)
++
++    @unittest.skipUnless(os.name == 'posix', 'Real post-failure child test requires POSIX staging')
++    def test_real_child_errors_are_silent_and_never_retried(self):
++        scripts = self.root / 'scripts/ios-smoke'
++        scripts.mkdir(parents=True)
++        scripts.joinpath('private_build_diagnostic.mjs').write_text("import{appendFileSync}from'node:fs';appendFileSync('called','1');console.log('SENTINEL-password ::error::');console.error(JSON.stringify(process.env));process.exit(29);")
++        # Capture OS-level streams around the collector, so a child accidentally
++        # inheriting stdout/stderr would expose the sentinel and fail this test.
++        driver = """import json,sys
++from pathlib import Path
++from unittest.mock import patch
++sys.path.insert(0, sys.argv[1])
++import collect_build_diagnostic as collector
++with patch.object(collector, 'read_report', return_value=json.loads(sys.argv[3])), patch.object(collector, 'read_private_log', return_value=b'private'):
++    print(collector.collect(Path(sys.argv[2]), json.loads(sys.argv[4])))
++"""
++        result = subprocess.run([sys.executable, '-B', '-c', driver, str(BASE), str(self.root), json.dumps(self.report), json.dumps(self.environment)], capture_output=True, text=True, timeout=20)
++        self.assertEqual(result.returncode, 0)
++        self.assertEqual(result.stdout, 'unavailable\n')
++        self.assertEqual(result.stderr, '')
++        self.assertEqual(self.root.joinpath('called').read_text(), '1')
++        self.assertFalse(self.root.joinpath('.local/ios-auth/encrypted-diagnostic').exists())
++
++    def test_envelope_validator_rejects_wrong_context_types_duplicates_and_noncanonical_base64(self):
++        import base64
++        context = collector.eligible_context(self.report, self.environment)
++        encode = lambda size: base64.b64encode(b'x' * size).decode()
++        item = {'version': 1, 'algorithm': 'RSA-OAEP-SHA256+A256GCM', 'keyId': collector.RECIPIENT_KEY_ID,
++                'context': context, 'iv': encode(12), 'wrappedKey': encode(512), 'ciphertext': encode(7), 'tag': encode(16)}
++        serialize = lambda value: (json.dumps(value, separators=(',', ':')) + '\n').encode()
++        collector.validate_envelope(serialize(item), context, 7)
++        for field, value in [('version', True), ('extra', 'secret'), ('tag', encode(8)), ('iv', encode(12) + '\n'), ('keyId', '0' * 64), ('ciphertext', encode(8))]:
++            with self.subTest(field=field), self.assertRaises(Exception):
++                collector.validate_envelope(serialize({**item, field: value}), context, 7)
++        data = serialize(item).replace(b'"version":1', b'"version":1,"version":1')
++        with self.assertRaises(Exception): collector.validate_envelope(data, context, 7)
++        context_one = {**context, 'exitCode': 1}
++        boolean_context = {**context_one, 'exitCode': True}
++        with self.assertRaises(Exception):
++            collector.validate_envelope(serialize({**item, 'context': boolean_context}), context_one, 7)
++
++    @unittest.skipUnless(os.name == 'posix', 'POSIX parent/FIFO/owner guards')
++    def test_parent_symlink_fifo_wrong_owner_and_directory_fail_without_reading(self):
++        folder = self.root / 'ios-auth-private'
++        real = self.root / 'real'
++        real.mkdir(mode=0o700)
++        folder.symlink_to(real, target_is_directory=True)
++        with self.assertRaises(Exception): collector.read_private_log(self.root)
++        folder.unlink()
++        folder.mkdir(mode=0o700)
++        path = folder / 'runner-build.log'
++        os.mkfifo(path, 0o600)
++        with self.assertRaises(Exception): collector.read_private_log(self.root)
++        path.unlink()
++        path.mkdir()
++        with self.assertRaises(Exception): collector.read_private_log(self.root)
++        path.rmdir()
++        path.write_bytes(b'private')
++        path.chmod(0o600)
++        with patch.object(collector.os, 'getuid', return_value=os.getuid() + 1), self.assertRaises(Exception):
++            collector.read_private_log(self.root)
++
++    def test_real_timeout_and_missing_spawn_never_expose_child_output(self):
++        scripts = self.root / 'scripts/ios-smoke'
++        scripts.mkdir(parents=True)
++        scripts.joinpath('private_build_diagnostic.mjs').write_text("import sys,time\nsys.stdout.write('SENTINEL-password\\n');sys.stdout.flush()\nsys.stderr.write('SENTINEL-DSN-env-argv\\n');sys.stderr.flush()\ntime.sleep(60)\n")
++        context = collector.eligible_context(self.report, self.environment)
++        output = io.StringIO()
++        with redirect_stdout(output), redirect_stderr(output):
++            with self.assertRaises(subprocess.TimeoutExpired) as timed:
++                collector.invoke_sealer(sys.executable, self.root, b'private', context)
++            with self.assertRaises(OSError):
++                collector.invoke_sealer(self.root / 'missing-private-node', self.root, b'private', context)
++        # POSIX communicate reports its remaining budget after process startup.
++        self.assertGreater(timed.exception.timeout, 14)
++        self.assertLessEqual(timed.exception.timeout, 15)
++        self.assertIsNone(timed.exception.stdout)
++        self.assertIsNone(timed.exception.stderr)
++        self.assertEqual(output.getvalue(), '')
++
++    def test_real_original_exit_and_first_latch_survive_collector_error(self):
++        from run_auth import FailureDiagnostic, PrivateCommandFailure, command
++        diagnostic = FailureDiagnostic()
++        with self.assertRaises(PrivateCommandFailure) as original:
++            with diagnostic.stage('runner-build'):
++                command(sys.executable, '-c', "import sys;print('SENTINEL-private-output');sys.exit(70)", observe_build_signals=True)
++        first = copy.deepcopy(diagnostic.first)
++        self.report['failureDiagnostic'] = first
++        output = io.StringIO()
++        with patch.object(collector, 'read_report', return_value=self.report), patch.object(collector, 'read_private_log', side_effect=OSError('SENTINEL-private-error')), redirect_stdout(output), redirect_stderr(output):
++            self.assertEqual(collector.collect(self.root, self.environment), 'unavailable')
++        self.assertEqual(original.exception.exit_code, 70)
++        self.assertEqual(diagnostic.first, first)
++        self.assertFalse(self.report['passed'])
++        self.assertEqual(output.getvalue(), '')
++
++    @unittest.skipUnless(os.name == 'posix', 'POSIX workflow output path guards')
++    def test_ready_flag_cannot_follow_link_or_escape_runner_temporary_directory(self):
++        target = self.root / 'keep'
++        target.write_text('keep')
++        target.chmod(0o600)
++        link = self.root / 'output'
++        link.symlink_to(target)
++        with self.assertRaises(Exception):
++            collector.write_ready({**self.environment, 'GITHUB_OUTPUT': str(link)})
++        with self.assertRaises(Exception):
++            collector.write_ready({**self.environment, 'GITHUB_OUTPUT': str(self.root.parent / 'outside-output')})
++        self.assertEqual(target.read_text(), 'keep')
++
++    def test_workflow_keeps_the_original_journey_arguments_and_separate_failure_upload(self):
++        workflow = (BASE.parents[1] / '.github/workflows/ios-auth.yml').read_text()
++        self.assertIn('umask 077\n          python3 -B scripts/ios-smoke/run_auth.py --private "$IOS_AUTH_PRIVATE"', workflow)
++        self.assertIn('--resident "$IOS_AUTH_PRIVATE/build-resident-mobile/Build/Products/Release-iphonesimulator/PredioONMorador.app"', workflow)
++        self.assertIn('--operations "$IOS_AUTH_PRIVATE/build-operations-mobile/Build/Products/Release-iphonesimulator/PredioONOperacao.app"', workflow)
++        self.assertLess(workflow.index('name: Export only approved'), workflow.index('id: private-diagnostic'))
++        companion = workflow[workflow.index('id: private-diagnostic'):]
++        self.assertIn("steps.journey.outcome == 'failure' && steps.journey.outputs.evidence-ready == 'true'", companion)
++        self.assertEqual(companion.count('continue-on-error: true'), 2)
++        self.assertIn('path: .local/ios-auth/encrypted-diagnostic/runner-build.envelope.json', companion)
++        self.assertIn('retention-days: 1', companion)
++        self.assertIn('overwrite: false', companion)
++
++
++if __name__ == '__main__':
++    unittest.main()
+diff --git a/scripts/ios-smoke/private_build_diagnostic.test.mjs b/scripts/ios-smoke/private_build_diagnostic.test.mjs
+new file mode 100644
+index 0000000..176509c
+--- /dev/null
++++ b/scripts/ios-smoke/private_build_diagnostic.test.mjs
+@@ -0,0 +1,163 @@
++import { test } from 'node:test';
++import assert from 'node:assert/strict';
++import { generateKeyPairSync } from 'node:crypto';
++import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, existsSync, rmSync, symlinkSync, realpathSync } from 'node:fs';
++import { tmpdir } from 'node:os';
++import { join } from 'node:path';
++import { spawnSync } from 'node:child_process';
++import { fileURLToPath } from 'node:url';
++import { seal, openEnvelope, inspectEnvelope, writePlaintext, validateContext, MAX_LOG, RECIPIENT_KEY_ID } from './private_build_diagnostic.mjs';
++
++// Disposable test keys only. Never load the workstation recipient's private key.
++const pair = generateKeyPairSync('rsa', { modulusLength: 4096, publicExponent: 65537 });
++const other = generateKeyPairSync('rsa', { modulusLength: 4096, publicExponent: 65537 });
++const publicPem = pair.publicKey.export({ type: 'spki', format: 'pem' });
++const privatePem = pair.privateKey.export({ type: 'pkcs8', format: 'pem' });
++const context = { repository: 'helberjf/predioON', sha: 'a'.repeat(40), runId: '123', runAttempt: '1', stage: 'runner-build', exitCode: 70 };
++const secret = Buffer.from('private-password/DSN/token ::error::\n\u0000á🔥 stderr');
++const encoded = seal(secret, publicPem, context);
++const rewrite = change => { const item = JSON.parse(encoded); change(item); return Buffer.from(JSON.stringify(item) + '\n'); };
++
++test('real RSA4096/AES-GCM round trip preserves all bytes and randomizes each envelope', () => {
++  assert.deepEqual(openEnvelope(encoded, privatePem, context), secret);
++  const second = JSON.parse(seal(secret, publicPem, context));
++  const first = JSON.parse(encoded);
++  for (const field of ['iv', 'wrappedKey', 'ciphertext', 'tag']) assert.notEqual(first[field], second[field]);
++  assert.equal(encoded.includes(secret), false);
++  assert.equal(inspectEnvelope(encoded, context, publicPem).context.exitCode, 70);
++});
++
++test('context is closed, bounded, and does not accept caller-chosen repository or stages', () => {
++  for (const patch of [{ repository: 'other/repo' }, { sha: 'bad' }, { runId: '../secret' }, { runAttempt: '0' }, { stage: 'runner-test' }, { exitCode: 0 }, { exitCode: true }, { extra: 'secret' }]) {
++    assert.throws(() => validateContext({ ...context, ...patch }));
++  }
++  for (const patch of [{ sha: 'b'.repeat(40) }, { runId: '124' }, { runAttempt: '2' }, { exitCode: 65 }]) {
++    assert.throws(() => openEnvelope(encoded, privatePem, { ...context, ...patch }));
++  }
++});
++
++test('only bounded nonempty buffers and a public RSA4096 SPKI are admitted', () => {
++  for (const payload of [Buffer.alloc(0), Buffer.alloc(MAX_LOG + 1), 'secret']) assert.throws(() => seal(payload, publicPem, context));
++  const weak = generateKeyPairSync('rsa', { modulusLength: 2048 }).publicKey.export({ type: 'spki', format: 'pem' });
++  const ec = generateKeyPairSync('ec', { namedCurve: 'prime256v1' }).publicKey.export({ type: 'spki', format: 'pem' });
++  for (const key of [privatePem, publicPem + publicPem, 'secret', weak, ec]) assert.throws(() => seal(secret, key, context));
++});
++
++test('wrong recipient, key substitution and tampering in every authenticated part fail', () => {
++  assert.throws(() => openEnvelope(encoded, other.privateKey, context));
++  for (const field of ['iv', 'wrappedKey', 'ciphertext', 'tag']) {
++    assert.throws(() => openEnvelope(rewrite(item => { const bytes = Buffer.from(item[field], 'base64'); bytes[0] ^= 1; item[field] = bytes.toString('base64'); }), privatePem, context));
++  }
++  assert.throws(() => openEnvelope(rewrite(item => { item.keyId = 'b'.repeat(64); }), privatePem, context));
++  assert.throws(() => openEnvelope(rewrite(item => { item.context.runId = '124'; }), privatePem, { ...context, runId: '124' }));
++});
++
++test('rejects truncation, extra or duplicate keys, noncanonical JSON/base64 and short tags', () => {
++  const invalid = [encoded.subarray(0, -5), Buffer.alloc(3 * 1024 * 1024 + 1), Buffer.from(' ' + encoded), Buffer.from(encoded.toString().replace('"version":1', '"version":1,"version":1'))];
++  for (const mutate of [item => { item.extra = 'private'; }, item => { delete item.tag; }, item => { item.tag = Buffer.alloc(8).toString('base64'); }, item => { item.ciphertext += '\n'; }, item => { item.algorithm = 'none'; }, item => { item.version = 2; }]) invalid.push(rewrite(mutate));
++  for (const value of invalid) assert.throws(() => openEnvelope(value, privatePem, context));
++});
++
++test('plaintext is created exclusively only after tag verification and never on failure', () => {
++  const directory = realpathSync(mkdtempSync(join(tmpdir(), 'ios-crypto-test-')));
++  try {
++    const output = join(directory, 'log.txt');
++    assert.throws(() => writePlaintext(rewrite(item => { item.tag = Buffer.alloc(16).toString('base64'); }), privatePem, context, output, {}));
++    assert.equal(existsSync(output), false);
++    writePlaintext(encoded, privatePem, context, output, {});
++    assert.deepEqual(readFileSync(output), secret);
++    assert.throws(() => writePlaintext(encoded, privatePem, context, output, {}));
++    assert.deepEqual(readFileSync(output), secret);
++    assert.throws(() => writePlaintext(encoded, privatePem, context, join(directory, 'ci.txt'), { GITHUB_ACTIONS: 'true' }));
++    assert.equal(existsSync(join(directory, 'ci.txt')), false);
++  } finally { rmSync(directory, { recursive: true, force: true }); }
++});
++
++test('CLI cannot decrypt in CI and emits neither arguments nor exceptions', () => {
++  const command = fileURLToPath(new URL('./private_build_diagnostic.mjs', import.meta.url));
++  const result = spawnSync(process.execPath, [command, 'open', 'private-password-path'], { env: { GITHUB_ACTIONS: 'true' }, encoding: 'utf8' });
++  assert.notEqual(result.status, 0);
++  assert.equal(result.stdout, '');
++  assert.equal(result.stderr, 'Private diagnostic unavailable\n');
++});
++
++test('exact maximum payload survives real encryption without truncation', () => {
++  const payload = Buffer.alloc(MAX_LOG, 0x61);
++  assert.deepEqual(openEnvelope(seal(payload, publicPem, context), privatePem, context), payload);
++});
++
++test('local CLI decrypts disposable test material only, silently and without overwriting', () => {
++  const directory = realpathSync(mkdtempSync(join(tmpdir(), 'ios-crypto-local-')));
++  try {
++    const source = join(directory, 'envelope.json');
++    const key = join(directory, 'test-key.pem');
++    const expected = join(directory, 'context.json');
++    const output = join(directory, 'log.txt');
++    writeFileSync(source, encoded, { mode: 0o600 });
++    writeFileSync(key, privatePem, { mode: 0o600 });
++    writeFileSync(expected, JSON.stringify(context), { mode: 0o600 });
++    const args = [fileURLToPath(new URL('./private_build_diagnostic.mjs', import.meta.url)), 'open', source, key, expected, output];
++    const blocked = spawnSync(process.execPath, args, { env: { GITHUB_ACTIONS: 'true', GITHUB_RUN_ID: '123' }, encoding: 'utf8' });
++    assert.notEqual(blocked.status, 0);
++    assert.equal(blocked.stdout, '');
++    assert.equal(blocked.stderr, 'Private diagnostic unavailable\n');
++    assert.equal(existsSync(output), false);
++    const first = spawnSync(process.execPath, args, { env: {}, encoding: 'utf8' });
++    assert.equal(first.status, 0, first.stderr);
++    assert.equal(first.stdout, '');
++    assert.equal(first.stderr, '');
++    assert.deepEqual(readFileSync(output), secret);
++    const second = spawnSync(process.execPath, args, { env: {}, encoding: 'utf8' });
++    assert.notEqual(second.status, 0);
++    assert.equal(second.stdout, '');
++    assert.equal(second.stderr, 'Private diagnostic unavailable\n');
++    assert.deepEqual(readFileSync(output), secret);
++  } finally { rmSync(directory, { recursive: true, force: true }); }
++});
++
++test('checked-in public recipient matches the pinned fingerprint without reading a private key', () => {
++  const pem = readFileSync(new URL('./diagnostic-recipient-public.pem', import.meta.url), 'utf8');
++  assert.equal(JSON.parse(seal(Buffer.from('test-only'), pem, context)).keyId, RECIPIENT_KEY_ID);
++});
++
++test('CLI refuses missing, malformed, private and unpinned public recipients without leaking data', () => {
++  const directory = realpathSync(mkdtempSync(join(tmpdir(), 'ios-crypto-policy-')));
++  try {
++    const scripts = join(directory, 'scripts', 'ios-smoke');
++    mkdirSync(scripts, { recursive: true });
++    const command = join(scripts, 'private_build_diagnostic.mjs');
++    writeFileSync(command, readFileSync(new URL('./private_build_diagnostic.mjs', import.meta.url)));
++    const destination = join(scripts, 'diagnostic-recipient-public.pem');
++    const output = join(directory, '.local', 'ios-auth', 'encrypted-diagnostic');
++    mkdirSync(output, { recursive: true });
++    for (const pem of [undefined, 'SENTINEL-invalid-key', privatePem, publicPem]) {
++      if (pem !== undefined) writeFileSync(destination, pem);
++      const result = spawnSync(process.execPath, [command, 'seal'], {
++        cwd: directory, input: secret, encoding: 'utf8',
++        env: { GITHUB_ACTIONS: 'true', RUNNER_OS: 'macOS', IOS_DIAGNOSTIC_CONTEXT: JSON.stringify(context) },
++      });
++      assert.notEqual(result.status, 0);
++      assert.equal(result.stdout, '');
++      assert.equal(result.stderr, 'Private diagnostic unavailable\n');
++      assert.equal(existsSync(join(output, 'runner-build.envelope.json')), false);
++    }
++  } finally { rmSync(directory, { recursive: true, force: true }); }
++});
++
++test('plaintext cannot follow a symbolic-link destination or parent', { skip: process.platform === 'win32' ? 'Windows symlink privileges are unavailable; POSIX test remains required' : false }, () => {
++  const directory = realpathSync(mkdtempSync(join(tmpdir(), 'ios-crypto-links-')));
++  try {
++    const real = join(directory, 'real');
++    mkdirSync(real);
++    const linked = join(directory, 'linked');
++    symlinkSync(real, linked, 'dir');
++    assert.throws(() => writePlaintext(encoded, privatePem, context, join(linked, 'log.txt'), {}));
++    assert.equal(existsSync(join(real, 'log.txt')), false);
++    const target = join(real, 'existing.txt');
++    writeFileSync(target, 'keep');
++    const output = join(directory, 'log.txt');
++    symlinkSync(target, output);
++    assert.throws(() => writePlaintext(encoded, privatePem, context, output, {}));
++    assert.equal(readFileSync(target, 'utf8'), 'keep');
++  } finally { rmSync(directory, { recursive: true, force: true }); }
++});

@@ -1,38 +1,42 @@
 {
-  "baseCommit": "87a7f0512c46ab34239dac25bd83d4305c6c56eb",
+  "baseCommit": "dcfc31cc05f4a411e2bbaa09270c71c8e5aae016",
   "capturedOn": "2026-10-04",
   "state": "Drafts: restore for review, not approved product changes",
   "patch": "2026-10-02-em-andamento.patch",
-  "sha256": "2813738213919a20e1245592338330bac7c9384468d7d3a480e8016209e06630",
+  "sha256": "4f468e6cc5ad0c39fe7ecab48fb0c1ce28af8c6905c601eb930890966897f5e4",
   "files": [
     {
+      "path": "scripts/ios-smoke/collect_build_diagnostic.py",
+      "sha256LF": "fa80ec72091e37187509727cae4dd9f5b0bd5a5e7a4ea6b128bd44505b0ee33a"
+    },
+    {
+      "path": "scripts/ios-smoke/private_build_diagnostic.mjs",
+      "sha256LF": "7d66baa95446d866d0237200d63d72fadff73797514ad20a327750a965e5c5db"
+    },
+    {
+      "path": "scripts/ios-smoke/diagnostic-recipient-public.pem",
+      "sha256LF": "4133c7acd0874e4b3d6ffa5a9d90e5c05f883f7790597653893336b41bc3bcaa"
+    },
+    {
+      "path": "scripts/ios-smoke/test_private_build_diagnostic.py",
+      "sha256LF": "b0feefd450a7bf965e017ad722e87aed6599fc639f9bc7e67ff42c0b63e4f763"
+    },
+    {
+      "path": "scripts/ios-smoke/private_build_diagnostic.test.mjs",
+      "sha256LF": "686e462d11edbcd7fe23daf0b893b8a8141efb9614cbb863cc5cb950d332b6b8"
+    },
+    {
+      "path": ".github/workflows/ios-auth.yml",
+      "sha256LF": "9f1d223fca442ff38514a05ad7d2f5b88ad07ab771f80e1eccb96645afae6398"
+    },
+    {
       "path": "scripts/ios-smoke/README.md",
-      "sha256LF": "0f04404de53090dfed2d8919f9e15dac39b5161232137547ec70b2a71b7a39e2"
-    },
-    {
-      "path": "e2e/README.md",
-      "sha256LF": "e173ac04e4572b7e268de3f9a975b9b8606a9ec26cbc70a501aa0c36f314aa78"
-    },
-    {
-      "path": "scripts/ios-smoke/run_auth.py",
-      "sha256LF": "bfe820924513014bba793c390ad9502011fdc7034aa035c6c622a7197709d20d"
-    },
-    {
-      "path": "scripts/ios-smoke/test_auth.py",
-      "sha256LF": "cc85b6592ad24ee99367eb31ac36802183b32a5d1b6d3a59afa7ec5c4c16fcda"
-    },
-    {
-      "path": "e2e/menu-navigation.spec.ts",
-      "sha256LF": "157cd902a1c9a7dd72bd3846eb033994e36342e0c6300717120575cb3507d346"
-    },
-    {
-      "path": "packages/ui/src/components/dashboard-frame.tsx",
-      "sha256LF": "9e0ba282aa5cb9e0da91f12574fde53b1ec8b6df95e3a894d46511fa5b9b390f"
+      "sha256LF": "340001d2fabb699923fa0eb9bd318c2267d634bb3c5c2ef968295859bc0defb5"
     }
   ],
   "restoreCheck": {
     "passed": true,
-    "filesVerified": 6,
+    "filesVerified": 7,
     "method": "git apply to archived base, compare SHA-256 with normalized LF"
   }
 }
