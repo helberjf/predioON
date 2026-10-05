@@ -17,6 +17,7 @@
     "tailwind-merge": "^2.5.0",
     "@predioon/ui": "workspace:*",
     "@predioon/shared": "workspace:*",
+    "@predioon/contracts": "workspace:*",
     "react-router-dom": "^7.1.1",
     "recharts": "^2.15.0"
   },

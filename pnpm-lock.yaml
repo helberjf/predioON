@@ -17,6 +17,9 @@ importers:
 
   apps/admin-web:
     dependencies:
+      '@predioon/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@predioon/shared':
         specifier: workspace:*
         version: link:../../packages/shared
