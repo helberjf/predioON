@@ -44,7 +44,8 @@ DIAGNOSTIC_STAGES = frozenset({"simulator-create", "simulator-boot", "certificat
 DIAGNOSTIC_CATEGORIES = frozenset({"nonzero-exit", "timed-out", "unavailable", "verification-failed"})
 BUILD_ERROR_SIGNALS = ("destination-selection", "sdk-availability", "scheme-configuration", "compiler-error")
 BUILD_SIGNAL_PATTERNS = (
-    re.compile(r"^xcodebuild: error: (?:Unable to find a destination matching\b|Found no destinations for the scheme\b)"),
+    re.compile(r"^xcodebuild: error: (?:Unable to find a destination matching\b|"
+               r"Unable to find a device matching the provided destination specifier\b|Found no destinations for the scheme\b)"),
     re.compile(r"^xcodebuild: error: SDK .+ cannot be located\.?$"),
     re.compile(r"^xcodebuild: error: (?:Scheme .+ is not currently configured for the test action\.?|"
                r"The (?:project|workspace) named .+ does not contain a scheme named .+)\s*$"),
@@ -351,13 +352,16 @@ def export_evidence(private, public, secrets):
 
 
 def owned_simulator(value, created):
+    pattern = r"[A-Fa-f0-9]{8}(?:-[A-Fa-f0-9]{4}){3}-[A-Fa-f0-9]{12}"
+    if type(value) is not str or type(created) is not str or not re.fullmatch(pattern, value) or not re.fullmatch(pattern, created):
+        raise ValueError("An explicit owned simulator UUID is required")
     try:
-        canonical = str(uuid.UUID(value))
+        selected, owned = uuid.UUID(value), uuid.UUID(created)
     except (ValueError, TypeError, AttributeError):
         raise ValueError("An explicit owned simulator UUID is required") from None
-    if canonical == str(uuid.UUID(int=0)) or canonical != created:
+    if owned.int == 0 or selected != owned:
         raise ValueError("Only the simulator created by this run is allowed")
-    return canonical
+    return created
 
 
 def runner_build_error_signals(stdout, stderr):
@@ -629,7 +633,7 @@ def run(private, output, resident, operations):
     diagnostic = FailureDiagnostic()
     try:
         with diagnostic.stage("simulator-create"):
-            created = str(uuid.UUID(command("xcrun", "simctl", "create", "PredioON-auth-" + str(uuid.uuid4()), device, runtime)))
+            created = command("xcrun", "simctl", "create", "PredioON-auth-" + str(uuid.uuid4()), device, runtime)
             simulator = owned_simulator(created, created)
         with diagnostic.stage("simulator-boot"):
             command("xcrun", "simctl", "bootstatus", simulator, "-b", timeout=180)

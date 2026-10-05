@@ -261,9 +261,35 @@ class ExportTests(unittest.TestCase):
         value = "f19ce90e-9c36-461d-a499-692ff2570a01"
         self.assertEqual(run.owned_simulator(value, value), value)
 
+    def test_owned_simulator_preserves_producer_spelling_for_the_same_identity(self):
+        run = load("run_auth")
+        lower = "f19ce90e-9c36-461d-a499-692ff2570a01"
+        for created in [lower, lower.upper(), "F19ce90E-9c36-461D-a499-692fF2570A01"]:
+            with self.subTest(spelling=created):
+                self.assertEqual(run.owned_simulator(created, created), created)
+                self.assertEqual(run.owned_simulator(lower, created), created)
+                self.assertEqual(run.owned_simulator(lower.upper(), created), created)
+
+    def test_owned_simulator_rejects_noncanonical_foreign_and_nil_selectors(self):
+        run = load("run_auth")
+        created = "f19ce90e-9c36-461d-a499-692ff2570a01"
+        invalid = [None, True, 1, run.uuid.UUID(created), "", "booted", "all", "personal-phone",
+                   "00000000-0000-0000-0000-000000000000", "f19ce90e-9c36-461d-a499-692ff2570a02",
+                   created.replace("-", ""), "{" + created + "}", "urn:uuid:" + created,
+                   " " + created, created + " ", created + "\n", created + "\r", created + "\t",
+                   created + "\0", created.replace("-", "\u2010", 1)]
+        for index, value in enumerate(invalid):
+            with self.subTest(position="selector", case=index, value_type=type(value).__name__):
+                with self.assertRaises(ValueError):
+                    run.owned_simulator(value, created)
+            with self.subTest(position="created", case=index, value_type=type(value).__name__):
+                with self.assertRaises(ValueError):
+                    run.owned_simulator(created, value)
+
 
 class NativeFailureDiagnosticTests(unittest.TestCase):
-    def run_failure(self, failed_stage, *, cleanup_fails=False, rejection=None, outcome="nonzero-exit", build_message=None):
+    def run_failure(self, failed_stage, *, cleanup_fails=False, rejection=None, outcome="nonzero-exit",
+                    build_message=None, created_id=None, command_trace=None, coordinator_trace=None):
         run = load("run_auth")
         secret = "PrivateNativeDiagnosticSentinel123456"
         with tempfile.TemporaryDirectory() as temporary, ExitStack() as patches:
@@ -290,7 +316,7 @@ class NativeFailureDiagnosticTests(unittest.TestCase):
             runner_info.parent.mkdir(parents=True)
             with runner_info.open("wb") as destination:
                 run.plistlib.dump({}, destination)
-            simulator = "f19ce90e-9c36-461d-a499-692ff2570a01"
+            simulator = created_id if created_id is not None else "f19ce90e-9c36-461d-a499-692ff2570a01"
             runtime = "com.apple.CoreSimulator.SimRuntime.iOS-18-5"
             stages = []
             coordinators = []
@@ -299,9 +325,13 @@ class NativeFailureDiagnosticTests(unittest.TestCase):
             def coordinator(*arguments):
                 item = original_coordinator(*arguments)
                 coordinators.append(item)
+                if coordinator_trace is not None:
+                    coordinator_trace.append(item.simulator)
                 return item
 
             def respond(arguments, **options):
+                if command_trace is not None:
+                    command_trace.append((arguments, options["timeout"]))
                 stage = None
                 if arguments[:3] == ("xcrun", "simctl", "create"):
                     stdout = simulator
@@ -404,6 +434,51 @@ class NativeFailureDiagnosticTests(unittest.TestCase):
         self.assertEqual(result.get("failureDiagnostic"), {"stage": "runner-test", "category": "nonzero-exit", "exitCode": 65})
         self.assertIn("runner-build", stages)
 
+    def test_created_simulator_spelling_reaches_all_owned_commands_and_coordinator(self):
+        lower = "f19ce90e-9c36-461d-a499-692ff2570a01"
+        for producer in [lower.upper(), "F19ce90E-9c36-461D-a499-692fF2570A01", lower]:
+            with self.subTest(spelling=producer):
+                commands, coordinator = [], []
+                result, stages = self.run_failure("runner-test", created_id=producer,
+                                                  command_trace=commands, coordinator_trace=coordinator)
+                self.assertEqual(result["failureDiagnostic"], {"stage": "runner-test", "category": "nonzero-exit", "exitCode": 65})
+                self.assertEqual(sum(args[:3] == ("xcrun", "simctl", "create") for args, _ in commands), 1)
+                owned = [(args, timeout) for args, timeout in commands
+                         if args[:2] == ("xcrun", "simctl") and args[2] in
+                         {"bootstatus", "keychain", "install", "shutdown", "delete"}]
+                self.assertEqual([args[2] for args, _ in owned], ["bootstatus", "keychain", "install", "install", "shutdown", "delete"])
+                for args, timeout in owned:
+                    with self.subTest(action=args[2]):
+                        self.assertEqual(args[3], producer)
+                    if args[2] in {"shutdown", "delete"}:
+                        self.assertEqual(timeout, 60)
+                builds = [(args, timeout) for args, timeout in commands if args[0] == "xcodebuild"]
+                self.assertEqual(len(builds), 2)
+                self.assertEqual([timeout for _, timeout in builds], [240, 1200])
+                self.assertIn("build-for-testing", builds[0][0])
+                self.assertIn("test-without-building", builds[1][0])
+                for args, _ in builds:
+                    with self.subTest(action="build-for-testing" if "build-for-testing" in args else "test-without-building"):
+                        self.assertEqual(args[args.index("-destination") + 1], "platform=iOS Simulator,id=" + producer)
+                self.assertEqual(coordinator, [producer])
+                self.assertEqual(stages[-2:], ["simulator-shutdown", "simulator-delete"])
+
+    def test_device_destination_failure_preserves_owned_cleanup_and_first_failure(self):
+        producer = "F19CE90E-9C36-461D-A499-692FF2570A01"
+        commands = []
+        result, stages = self.run_failure("runner-build", cleanup_fails=True, created_id=producer,
+                                          build_message=RunnerBuildSignalTests.device_destination, command_trace=commands)
+        self.assertEqual(result["failureDiagnostic"], {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 65,
+                                                      "errorSignals": ["destination-selection"], "signalScanLimited": False})
+        self.assertTrue(result["cleanupFailed"])
+        self.assertNotIn("runner-test", stages)
+        cleanup = [(args, timeout) for args, timeout in commands
+                   if args[:2] == ("xcrun", "simctl") and args[2] in {"shutdown", "delete"}]
+        self.assertEqual([args[2] for args, _ in cleanup], ["shutdown", "delete"])
+        for args, timeout in cleanup:
+            self.assertEqual(args[3], producer)
+            self.assertEqual(timeout, 60)
+
     def test_cleanup_cannot_overwrite_the_first_failure(self):
         result, stages = self.run_failure("runner-build", cleanup_fails=True)
         self.assertEqual(result.get("failureDiagnostic"), {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 65,
@@ -501,6 +576,7 @@ class NativeFailureDiagnosticTests(unittest.TestCase):
 
 class RunnerBuildSignalTests(unittest.TestCase):
     destination = "xcodebuild: error: Unable to find a destination matching the provided destination specifier:\n"
+    device_destination = "xcodebuild: error: Unable to find a device matching the provided destination specifier:\n"
     sdk = 'xcodebuild: error: SDK "PrivateSdkSentinel" cannot be located.\n'
     scheme = "xcodebuild: error: Scheme PrivateSchemeSentinel is not currently configured for the test action.\n"
     compiler = "/private/PrivatePathSentinel/AuthJourney.swift:12:3: error: PrivateCompilerSentinel\n"
@@ -517,6 +593,18 @@ class RunnerBuildSignalTests(unittest.TestCase):
                 self.assertEqual(str(error), "Private verification command failed")
             self.assertEqual(process.call_count, 1)
         return diagnostic.first
+
+    def test_exact_device_destination_wording_is_a_closed_signal(self):
+        run = load("run_auth")
+        diagnostic = self.observe(run, "", self.device_destination)
+        self.assertEqual(diagnostic, {"stage": "runner-build", "category": "nonzero-exit", "exitCode": 70,
+                                      "errorSignals": ["destination-selection"], "signalScanLimited": False})
+        for noise in [self.device_destination.replace("error:", "warning:"),
+                      " " + self.device_destination, "print('" + self.device_destination.rstrip() + "')",
+                      self.device_destination.replace("the provided destination specifier", "a different target"),
+                      "xcodebuild: error: Unable to find a device matching\n"]:
+            with self.subTest(noise=True):
+                self.assertEqual(self.observe(run, "", noise)["errorSignals"], ["unclassified"])
 
     def test_each_signal_uses_only_a_closed_enum(self):
         run = load("run_auth")
