@@ -1,6 +1,6 @@
 {
   "publishedOn": "2026-10-03",
-  "updatedOn": "2026-10-04",
+  "updatedOn": "2026-10-05",
   "purpose": "Reviewed real screenshots of progress, with synthetic demonstration data; not final demo videos",
   "images": [
     {
@@ -429,6 +429,24 @@
       "evidence": "../../evidencias/web-menu-bc2fcc8.json",
       "scope": "Original CUA JPEG of rebuilt shared mobile menu at 375x812, synthetic demo037; source attribution covers front-end only",
       "limit": "API loaded commit and browser in-memory asset bytes were not captured; no production, native app, final video or complete manual-product acceptance."
+    },
+    {
+      "file": "ios-morador-startup-f744457.png",
+      "sha256": "8246409ab113c17fe1b53c2dd52408ebcd79781ce094bd7b7a968aa6a592d507",
+      "width": 1206,
+      "height": 2622,
+      "sourceCommit": "f7444572f7b5920597a3b16023ec7fe5235413a5",
+      "sourceRun": "https://github.com/helberjf/predioON/actions/runs/37251180567",
+      "sourceArtifactId": 11320448726,
+      "sourceArtifactSha256": "48100067f3b5800a9442a416ab05348a777415336a0cb5b003fd422956f47560",
+      "sourceArtifact": "02-new-process.png",
+      "sourcePhase": "02-new-process",
+      "capturedOn": "2026-10-05",
+      "binarySha256Reported": "ec0a8adbcc811b0acf797e061ebe8be66698b99db0e5520bb6e1065453c94ad1",
+      "evidence": "../../evidencias/ios-f744457.json",
+      "reviewed": true,
+      "scope": "Original empty login form after a new iOS Release process; both original resident startup PNGs visually reviewed by root.",
+      "limit": "Resident startup only; operations timed out and authentication stopped at the ATS guard before XCTest. Keychain,14POST, physical devices and production remain pending."
     }
   ]
 }

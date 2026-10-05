@@ -1,0 +1,181 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-10-05",
+  "sourceCommit": "758debaeeebf4a775af1ab0746666a8a3bb36a5c",
+  "status": "backend-approved-web-consumer-in-progress",
+  "sourceFiles": [
+    {
+      "path": "infrastructure/039-organizations-capabilities.sql",
+      "sha256LF": "4aacbd0c1a8197b2593892737a54055fd11dc3c828c0b9fc07f65f841080b319"
+    },
+    {
+      "path": "packages/shared/src/rbac.ts",
+      "sha256LF": "324f0eecfc30ca7866347f82c27eec65dd98d846371fc80c4e6bd1af0a6cb844"
+    },
+    {
+      "path": "apps/api/test/rbac-tenancy-unit.test.ts",
+      "sha256LF": "980ae8b3ee97dd1be1fcdbc61987acd16a683f6011a31e1d0a506580698f8ca9"
+    },
+    {
+      "path": "apps/api/src/modules/organizations/routes.ts",
+      "sha256LF": "fec826bd5a41aaf06713170518e4d31fc23677b887444785c4c3dfada1301f5c"
+    },
+    {
+      "path": "apps/api/src/modules/authorization/routes.ts",
+      "sha256LF": "581e42650c0328bf9112a6e9df6e3fd6b8e7a1da1ceb1f22551cc0ddb71a45f7"
+    },
+    {
+      "path": "packages/contracts/src/tenancy.ts",
+      "sha256LF": "2a77d28ed141ed1c072b17ae6577b42832c5051ca16c09d386bdeb36aca7a469"
+    },
+    {
+      "path": "packages/contracts/src/organizations.ts",
+      "sha256LF": "f66c0da67a6a7bb9b02072d1fcd053dedc74046c37ea681dd3d5902b319f8b4c"
+    },
+    {
+      "path": "packages/contracts/src/index.ts",
+      "sha256LF": "ffc55c3d6f11fce79ca7531f7301f4de45e0eff40df25b9661ad93756e839404"
+    },
+    {
+      "path": "apps/api/test/organizations-capabilities.test.ts",
+      "sha256LF": "10cb23bb3a8baf8b14f1192b5e344e8b035b71f2b6d30f3ed602ba2b86d7ead3"
+    },
+    {
+      "path": "apps/api/test/authorization-platform.test.ts",
+      "sha256LF": "4a62a9b56999b7d7a751afb9dd42df31b93affa71d07ba98ef473200454f603e"
+    },
+    {
+      "path": "apps/api/test/audit-capabilities.test.ts",
+      "sha256LF": "83319632743ae2e6b2afbaff647a9f2b3d9ea45b6abc780d34bdcbcfc52d8437"
+    },
+    {
+      "path": "packages/db/test/backup-restore.test.ts",
+      "sha256LF": "77c152b047561024cc2d969b928fe5e744263e88af6432e2cb383cb613c1812f"
+    },
+    {
+      "path": "packages/db/test/notification-delivery.test.ts",
+      "sha256LF": "62eed5da055c072c98f63736ef73550beeddb1e4a3b05b74c42c3f1b6639d590"
+    }
+  ],
+  "tests": {
+    "apiIntegral": {
+      "tests": 721,
+      "suites": 54,
+      "passed": 721,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "durationMs": 28983317.949,
+      "logSha256": "851cb4018f58cd08374e8e236cb4f3fffb0ca208d554354b67dadb4fd58a93df",
+      "platform": "Windows",
+      "node": "24.19.0",
+      "databaseRuntimeRoles": 4,
+      "exclusiveCluster": true,
+      "accessAndRbacDatabaseOptInsEnabled": true,
+      "clockGapObserved": true,
+      "clockGapCauseEstablished": false
+    },
+    "previousIntegral": {
+      "tests": 721,
+      "passed": 719,
+      "failed": 2,
+      "skipped": 0,
+      "durationMs": 820265,
+      "classification": "test-fixture-platform-history-expectations",
+      "productRegressionEstablished": false
+    },
+    "productRed": {
+      "expectedFailures": 5,
+      "baselineMigrationCount": 38,
+      "baselineApiCommit": "f445c99bfe4b9bbd1318548a3891bd59bfc9296a"
+    },
+    "directed": {
+      "tests": 39,
+      "passed": 39
+    },
+    "adjacent": {
+      "tests": 161,
+      "passed": 161
+    },
+    "auditFixtureRed": {
+      "expectedFailures": 2,
+      "preexistingHistoryPreserved": true
+    },
+    "auditFixtureGreen": {
+      "tests": 25,
+      "passed": 25,
+      "realHttpPagination": true,
+      "pageSize": 2,
+      "ownIdsOnlyExactComparison": true,
+      "independentGlobalSentinelsRequired": true
+    },
+    "notificationSql": {
+      "tests": 54,
+      "passed": 54,
+      "skipped": 0
+    },
+    "backup": {
+      "sourcePaths": [
+        "infrastructure/039-organizations-capabilities.sql",
+        "packages/db/test/backup-restore.test.ts"
+      ],
+      "tests": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "durationMs": 52094.0507,
+      "publicTablesPerMode": 49,
+      "migrationsPerMode": 39,
+      "modes": [
+        "same-cluster",
+        "independent-cluster"
+      ],
+      "independentPhysicalClustersVerified": true,
+      "temporaryDatabasesRemoved": true,
+      "targetRuntimeRolesRemoved": true,
+      "baseDatabasesUntouched": true,
+      "logSha256": "cb45f661dfd51f8527222a2ac841fca22f7d95f9aa9e6c3f069c84af5bbaf5b3",
+      "computerRestarted": false,
+      "productionAccepted": false
+    }
+  },
+  "review": {
+    "independentStaticSourceReviewCompleted": true,
+    "blockingStaticFindings": 0,
+    "reviewSha256": "fe86f68ffb18cab8d6306afc80fceb25257fb42c6c77e0f41fd10fe0e81214bb",
+    "rootSourceAndAuditHelperReviewCompleted": true,
+    "observation": "New commercial fixture has empty private tables; adjacent overview and finance tests with existing rows supply the non-vacuous negatives and passed in the integral."
+  },
+  "postRun": {
+    "sourceHashesMatched": true,
+    "catalogAndFourRuntimeRolesUnchanged": true,
+    "ownedFixturesTriggersFunctionsTransactionsAndAdvisoryLocksAbsent": true,
+    "all25PreexistingAuditIdsPreserved": true,
+    "ledger39HasNoPendingMigrations": true,
+    "ddlTextDifferencePreserved": true,
+    "ddlDifference": "Existing common-area test reapplies028 and reorders one identical OR operand and two distinct identical CASE branches; semantic comparison passed, no039 helper changed."
+  },
+  "behavior": {
+    "readAndManageAreDistinctGlobalCapabilities": true,
+    "writesRequireBoth": true,
+    "legacyFlagOrLiveGlobalBindingIsOnlyARoleSource": true,
+    "activeCurrentCatalogAndDatabaseStatementClockRequired": true,
+    "commercialOrganizationDoesNotGrantPrivateBuildingData": true,
+    "projectionIsFiniteAndNoStore": true,
+    "transactionChecksAfterLocksAndAuditRollbackObservedRevocation": true,
+    "runtimeDeleteAndIdentityColumnUpdatesRevoked": true,
+    "migrationReapplicationDoesNotRestoreRevokedGrants": true
+  },
+  "webConsumerAccepted": false,
+  "productionAccepted": false,
+  "computerRestarted": false,
+  "limits": [
+    "This is the backend increment. Web consumer, final browser regression and manual QA are separate pending work.",
+    "The second integral includes a large elapsed clock gap; its cause is unknown, and it is not described as an uninterrupted run of minutes.",
+    "Distinct test executions are not added into an invented integral. Initial DB83/84 and first API719/721 failures remain preserved.",
+    "Authorization is evaluated at the last database statement/commit boundary; no absolute guarantee against revocation after commit is claimed.",
+    "The demo database remains037. No production rollout, physical-device acceptance or RPO/RTO is established."
+  ]
+}

@@ -10,276 +10,473 @@ index 8510ca3..58f3cd8 100644
      "react-router-dom": "^7.1.1",
      "recharts": "^2.15.0"
    },
-diff --git a/apps/api/src/modules/authorization/routes.ts b/apps/api/src/modules/authorization/routes.ts
-index 064e369..139ad97 100644
---- a/apps/api/src/modules/authorization/routes.ts
-+++ b/apps/api/src/modules/authorization/routes.ts
-@@ -3,11 +3,26 @@ import { z } from "zod";
- import { and, inArray, sql } from "drizzle-orm";
- import { rbacPermissions } from "@predioon/db/runtime";
- import { CAPABILITIES, ResourceTypeSchema } from "@predioon/shared";
-+import type { PlatformAuthorizationResponse } from "@predioon/contracts/tenancy";
- import { inTenantContext } from "../../auth/middleware.js";
- import { forbidden } from "../../http/errors.js";
- import { query, validateQuery } from "../../http/validate.js";
+diff --git a/apps/admin-web/src/App.tsx b/apps/admin-web/src/App.tsx
+index 9bdd845..fc47a87 100644
+--- a/apps/admin-web/src/App.tsx
++++ b/apps/admin-web/src/App.tsx
+@@ -1,4 +1,5 @@
+-import { Navigate, Route, Routes } from "react-router-dom";
++import type { ReactNode } from "react";
++import { Link, Navigate, Route, Routes } from "react-router-dom";
+ import { Button, FeatureProvider, FeatureContent, LoginScreen, SessionsPanel, useAuth } from "@predioon/ui";
+ import { Shell } from "./layout/Shell.js";
+ import { Overview } from "./pages/Overview.js";
+@@ -13,40 +14,58 @@ import { Operations } from "./pages/Operations.js";
+ import { Features } from "./pages/Features.js";
+ import { Support } from "./pages/Support.js";
+ import { Tenancy } from "./pages/Tenancy.js";
++import { OrganizationAccessFeedback, OrganizationAccessProvider, useOrganizationAccess } from "./organization-access.js";
  
- export const authorizationRouter = Router();
-+const COMMERCIAL_CAPABILITIES = ["organizations:read", "organizations:manage"] as const;
-+
-+authorizationRouter.get("/platform", async (req, res) => {
-+  const capabilities = await inTenantContext(req, async tx => {
-+    const rows = await tx.select({ key: rbacPermissions.key }).from(rbacPermissions).where(and(
-+      inArray(rbacPermissions.key, [...COMMERCIAL_CAPABILITIES]),
-+      sql`app_has_global_capability(${rbacPermissions.key})`,
-+    )).orderBy(rbacPermissions.key);
-+    return rows.map(row => row.key as PlatformAuthorizationResponse["capabilities"][number]);
-+  });
-+  res.setHeader("Cache-Control", "no-store");
-+  res.json({ capabilities } satisfies PlatformAuthorizationResponse);
-+});
-+
- const Scope = z.object({ buildingId: z.string().min(1).max(128), resourceType: ResourceTypeSchema.optional(), resourceId: z.string().min(1).max(128).optional() })
-   .refine(value => Boolean(value.resourceType) === Boolean(value.resourceId), "Informe tipo e identificador do recurso juntos");
+ export function App() {
+-  const { user, loading, signOut } = useAuth();
++  const { user, loading } = useAuth();
  
-diff --git a/apps/api/src/modules/organizations/routes.ts b/apps/api/src/modules/organizations/routes.ts
-index 70fe1a5..1402ccd 100644
---- a/apps/api/src/modules/organizations/routes.ts
-+++ b/apps/api/src/modules/organizations/routes.ts
-@@ -1,9 +1,10 @@
- import { Router } from "express";
--import { eq } from "drizzle-orm";
-+import { eq, sql } from "drizzle-orm";
- import { z } from "zod";
--import { organizations } from "@predioon/db/runtime";
--import { currentAuth, inTenantContext, requireRole } from "../../auth/middleware.js";
--import { notFound } from "../../http/errors.js";
-+import { organizations, type AppTransaction } from "@predioon/db/runtime";
-+import type { OrganizationView } from "@predioon/contracts";
-+import { currentAuth, inTenantContext } from "../../auth/middleware.js";
-+import { conflict, forbidden, HttpError, notFound, pgErrorCode } from "../../http/errors.js";
- import { generateId } from "../../http/ids.js";
- import { validateBody } from "../../http/validate.js";
- import { recordAudit } from "../audit/repo.js";
-@@ -18,30 +19,63 @@ const CreateSchema = z.object({
- });
- const UpdateSchema = CreateSchema.partial().extend({ active: z.boolean().optional() });
+   if (loading) return <p className="p-8 text-slate-500">Carregando...</p>;
+   if (!user) return <LoginScreen subtitle="Administração da plataforma" />;
  
--organizationsRouter.use(requireRole("PLATFORM_ADMIN"));
-+organizationsRouter.use((_req, res, next) => { res.setHeader("Cache-Control", "no-store"); next(); });
-+
-+async function assertOrganizationAccess(tx: AppTransaction, write = false): Promise<void> {
-+  const [row] = await tx.execute(sql`select app_has_global_capability('organizations:read')
-+    and (${!write} or app_has_global_capability('organizations:manage')) as allowed`);
-+  if (!row?.allowed) throw forbidden("Sem a capacidade global necessária para organizações");
+-  if (user.role !== "PLATFORM_ADMIN") {
+-    return (
+-      <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-8 text-center text-slate-600">
+-        <p>Este painel é exclusivo da administração da plataforma.</p>
+-        <Button variant="secondary" onClick={() => void signOut()}>Sair e usar outra conta</Button>
+-      </main>
+-    );
+-  }
++  return <OrganizationAccessProvider key={user.id}><AuthenticatedApp /></OrganizationAccessProvider>;
 +}
 +
-+function view(row: typeof organizations.$inferSelect): OrganizationView {
-+  return { id: row.id, name: row.name, slug: row.slug, active: row.active, metadata: row.metadata,
-+    createdAt: row.createdAt.toISOString(), updatedAt: row.updatedAt.toISOString() };
++function Denied() {
++  const { signOut } = useAuth();
++  const access = useOrganizationAccess();
++  return <div className="flex flex-col items-center gap-4 p-8 text-center text-slate-600">
++    <p>Este painel é exclusivo da administração da plataforma.</p>
++    {access.canRead && <Link className="font-semibold text-emerald-700 underline" to="/clientes">Ir para Clientes</Link>}
++    <Link className="font-semibold text-emerald-700 underline" to="/sessoes">Consultar minhas sessões</Link>
++    <Button variant="secondary" onClick={() => void signOut()}>Sair e usar outra conta</Button>
++  </div>;
 +}
 +
-+async function organizationOperation<T>(operation: () => Promise<T>): Promise<T> {
-+  try { return await operation(); }
-+  catch (error) {
-+    if (error instanceof HttpError) throw error;
-+    if (pgErrorCode(error) === "42501") throw forbidden("Sem a capacidade global necessária para organizações");
-+    if (pgErrorCode(error) === "23505") throw conflict("Já existe uma organização com este slug");
-+    // Database errors can contain submitted commercial metadata and SQL parameters.
-+    throw new HttpError(500, "Não foi possível concluir a operação de organizações");
-+  }
++function CommercialEntry() {
++  const access = useOrganizationAccess();
++  if (access.canRead) return <Navigate to="/clientes" replace />;
++  if (access.checking || access.error) return <OrganizationAccessFeedback />;
++  return <Denied />;
 +}
++
++function AuthenticatedApp() {
++  const { user } = useAuth();
++  const legacy = user?.role === "PLATFORM_ADMIN";
++  const gated = (page: ReactNode) => legacy ? page : <Denied />;
  
- organizationsRouter.get("/", async (req, res) => {
--  const rows = await inTenantContext(req, (tx) => tx.select().from(organizations).orderBy(organizations.name));
--  res.json({ items: rows });
-+  const items = await organizationOperation(() => inTenantContext(req, async tx => {
-+    await assertOrganizationAccess(tx);
-+    const rows = await tx.select().from(organizations).orderBy(organizations.name, organizations.id);
-+    await assertOrganizationAccess(tx);
-+    return rows.map(view);
-+  }));
-+  res.json({ items });
- });
- 
- organizationsRouter.post("/", validateBody(CreateSchema), async (req, res) => {
-   const input = req.body as z.infer<typeof CreateSchema>;
-   const auth = currentAuth(req);
- 
--  const row = await inTenantContext(req, async (tx) => {
--    const [created] = await tx
--      .insert(organizations)
--      .values({ id: generateId("org"), ...input, metadata: input.metadata ?? {} })
--      .returning();
-+  const row = await organizationOperation(() => inTenantContext(req, async (tx) => {
-+    await assertOrganizationAccess(tx, true);
-+    const organizationId = generateId("org");
-+    // Limit INSERT privileges to these columns; database-owned defaults are not
-+    // present in the statement, including as client-supplied DEFAULT expressions.
-+    await tx.execute(sql`insert into organizations(id,name,slug,metadata)
-+      values(${organizationId},${input.name},${input.slug},${JSON.stringify(input.metadata ?? {})}::jsonb)`);
-+    await assertOrganizationAccess(tx, true);
-     await recordAudit(tx, req, {
-       userId: auth.userId,
-       action: "ORGANIZATION_CREATED",
-       resourceType: "organization",
--      resourceId: created!.id,
-+      resourceId: organizationId,
-     });
--    return created!;
--  });
-+    const [created] = await tx.select().from(organizations).where(eq(organizations.id, organizationId)).limit(1);
-+    await assertOrganizationAccess(tx, true);
-+    if (!created) throw forbidden("Organização fora do seu escopo atual");
-+    return view(created);
-+  }));
- 
-   res.status(201).json(row);
- });
-@@ -50,11 +84,18 @@ organizationsRouter.patch("/:organizationId", validateBody(UpdateSchema), async
-   const input = req.body as z.infer<typeof UpdateSchema>;
-   const auth = currentAuth(req);
- 
--  const row = await inTenantContext(req, async (tx) => {
-+  const row = await organizationOperation(() => inTenantContext(req, async (tx) => {
-+    await assertOrganizationAccess(tx, true);
-+    const organizationId = param(req, "organizationId");
-+    // id is immutable. NO KEY UPDATE permits existing building FK checks while
-+    // serializing edits and giving authorization a fresh statement after waiting.
-+    const [existing] = await tx.select().from(organizations).where(eq(organizations.id, organizationId)).for("no key update").limit(1);
-+    await assertOrganizationAccess(tx, true);
-+    if (!existing) throw notFound("Organização não encontrada");
-     const [updated] = await tx
-       .update(organizations)
--      .set({ ...input, updatedAt: new Date() })
--      .where(eq(organizations.id, param(req, "organizationId")))
-+      .set({ ...input, updatedAt: sql`clock_timestamp()` })
-+      .where(eq(organizations.id, organizationId))
-       .returning();
-     if (!updated) throw notFound("Organização não encontrada");
-     await recordAudit(tx, req, {
-@@ -64,8 +105,9 @@ organizationsRouter.patch("/:organizationId", validateBody(UpdateSchema), async
-       resourceId: updated.id,
-       metadata: input,
-     });
--    return updated;
--  });
-+    await assertOrganizationAccess(tx, true);
-+    return view(updated);
-+  }));
- 
-   res.json(row);
- });
-diff --git a/apps/api/test/rbac-tenancy-unit.test.ts b/apps/api/test/rbac-tenancy-unit.test.ts
-index 52ce877..bbb37ce 100644
---- a/apps/api/test/rbac-tenancy-unit.test.ts
-+++ b/apps/api/test/rbac-tenancy-unit.test.ts
-@@ -8,6 +8,17 @@ function subject(bindings: AuthorizationSubject["bindings"], supportGrants: Auth
+-  return (
+-    <FeatureProvider><Shell>
++  const content = <Shell>
+       <Routes>
+-        <Route path="/" element={<FeatureContent><Overview /></FeatureContent>} />
++        <Route path="/" element={legacy ? <FeatureContent><Overview /></FeatureContent> : <CommercialEntry />} />
+         <Route path="/clientes" element={<Clients />} />
+-        <Route path="/predios" element={<Buildings />} />
+-        <Route path="/gateways" element={<Gateways />} />
+-        <Route path="/dispositivos" element={<Devices />} />
+-        <Route path="/alertas" element={<FeatureContent><Alerts /></FeatureContent>} />
+-        <Route path="/usuarios" element={<Users />} />
++        <Route path="/predios" element={gated(<Buildings />)} />
++        <Route path="/gateways" element={gated(<Gateways />)} />
++        <Route path="/dispositivos" element={gated(<Devices />)} />
++        <Route path="/alertas" element={gated(<FeatureContent><Alerts /></FeatureContent>)} />
++        <Route path="/usuarios" element={gated(<Users />)} />
+         <Route path="/sessoes" element={<SessionsPanel />} />
+-        <Route path="/unidades-equipes" element={<Tenancy />} />
+-        <Route path="/funcionalidades" element={<Features />} />
+-        <Route path="/auditoria" element={<Audit />} />
+-        <Route path="/operacao" element={<FeatureContent path="/operacao"><Operations /></FeatureContent>} />
+-        <Route path="/suporte-remoto" element={<FeatureContent path="/suporte-remoto"><Support /></FeatureContent>} />
++        <Route path="/unidades-equipes" element={gated(<Tenancy />)} />
++        <Route path="/funcionalidades" element={gated(<Features />)} />
++        <Route path="/auditoria" element={gated(<Audit />)} />
++        <Route path="/operacao" element={gated(<FeatureContent path="/operacao"><Operations /></FeatureContent>)} />
++        <Route path="/suporte-remoto" element={gated(<FeatureContent path="/suporte-remoto"><Support /></FeatureContent>)} />
+         <Route path="*" element={<Navigate to="/" replace />} />
+       </Routes>
+-    </Shell></FeatureProvider>
+-  );
++    </Shell>;
++  // Commercial-only accounts must not start the legacy global features/SSE readers.
++  return legacy ? <FeatureProvider>{content}</FeatureProvider> : content;
  }
+diff --git a/apps/admin-web/src/layout/Shell.tsx b/apps/admin-web/src/layout/Shell.tsx
+index 9c374c0..73323ea 100644
+--- a/apps/admin-web/src/layout/Shell.tsx
++++ b/apps/admin-web/src/layout/Shell.tsx
+@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
+ import { Link, useLocation } from "react-router-dom";
+ import { AlertTriangle, Building2, ChartNoAxesCombined, Cpu, House, Monitor, RadioTower, ScrollText, ShieldCheck, Users } from "lucide-react";
+ import { DashboardFrame, useFeatures, useAuth } from "@predioon/ui";
++import { organizationRouteAllowed, useOrganizationAccess } from "../organization-access.js";
+ const LINKS = [
+   { to: "/", label: "Dashboard", icon: House },
+   { to: "/predios", label: "Condomínios", icon: Building2 },
+@@ -21,5 +22,8 @@ export function Shell({ children }: { children: ReactNode }) {
+   const { user, signOut } = useAuth();
+   const location = useLocation();
+   const flags = useFeatures();
+-  return <DashboardFrame title="Central de gestão Prédio ON" subtitle="Todos os seus condomínios em um só lugar" userName={user?.name ?? ""} role="Administrador" links={LINKS.filter(link => flags.routeAllowed(link.to))} pathname={location.pathname} signOut={() => void signOut()} renderLink={(to, content, className) => <Link to={to} className={className}>{content}</Link>}>{children}</DashboardFrame>;
++  const access = useOrganizationAccess();
++  const legacy = user?.role === "PLATFORM_ADMIN";
++  const allowed = (path: string) => organizationRouteAllowed(path, legacy, access.canRead) && flags.routeAllowed(path);
++  return <DashboardFrame title="Central de gestão Prédio ON" subtitle={legacy ? "Todos os seus condomínios em um só lugar" : "Clientes e segurança da sua conta"} userName={user?.name ?? ""} role={legacy ? "Administrador" : access.canManage ? "Gestão de clientes" : "Consulta de clientes"} links={LINKS.filter(link => allowed(link.to))} pathname={location.pathname} signOut={() => void signOut()} renderLink={(to, content, className) => allowed(to) ? <Link to={to} className={className}>{content}</Link> : null}>{children}</DashboardFrame>;
+ }
+diff --git a/apps/admin-web/src/pages/Buildings.tsx b/apps/admin-web/src/pages/Buildings.tsx
+index b1dcba7..c5a757f 100644
+--- a/apps/admin-web/src/pages/Buildings.tsx
++++ b/apps/admin-web/src/pages/Buildings.tsx
+@@ -1,87 +1,91 @@
+-import { useState } from "react";
+-import { api, Badge, Button, Card, EmptyState, ErrorBanner, Field, Input, Select, useResource } from "@predioon/ui";
++import { useEffect, useState } from "react";
++import { api, Badge, Button, Card, EmptyState, ErrorBanner, Field, Input, ResourceFeedback, Select, useResource } from "@predioon/ui";
+ import type { Paged } from "@predioon/ui";
++import type { OrganizationView } from "@predioon/contracts";
+ import { CreatePropertySchema, PROPERTY_TYPES, type PropertyType } from "@predioon/shared";
++import { OrganizationAccessFeedback, useOrganizationAccess, useOrganizationMutation } from "../organization-access.js";
  
- describe("RBAC explícito por capacidade, condomínio e recurso", () => {
-+  it("mantém organizações globais separadas dos papéis locais e das operações privadas", () => {
-+    for (const role of ["PLATFORM_ADMIN", "PLATFORM_SUPPORT", "BUILDING_ADMIN", "MAINTENANCE_MANAGER", "MAINTENANCE", "RESIDENT"] as const) {
-+      for (const capability of ["organizations:read", "organizations:manage"] as const) {
-+        assert.equal(roleGrants(role, capability), role === "PLATFORM_ADMIN");
-+      }
-+    }
-+    const platform = subject([{ role: "PLATFORM_ADMIN", buildingId: null, active: true }]);
-+    for (const capability of ["organizations:read", "organizations:manage", "telemetry:read", "commands:request"] as const) {
-+      assert.equal(allowsCapability(platform, capability, { buildingId: building }), false);
-+    }
-+  });
-   it("separa configuração física, solicitação e histórico sem autoridade global implícita", () => {
-     for (const role of ["PLATFORM_ADMIN", "PLATFORM_SUPPORT", "MAINTENANCE_MANAGER", "MAINTENANCE"] as const) {
-       for (const capability of ["gates:read", "gates:manage", "commands:read", "commands:read-own"] as const) assert.equal(roleGrants(role, capability), false);
-diff --git a/docs/MIGRATIONS.md b/docs/MIGRATIONS.md
-index e68e4c9..fab14a1 100644
---- a/docs/MIGRATIONS.md
-+++ b/docs/MIGRATIONS.md
-@@ -197,3 +197,15 @@ Ele cobre retomada de infraestrutura parada, bloqueio por pendência/legado, fal
- A release da API muda a serialização de login/refresh/revogação. Coordenar todas as instâncias: pausar tráfego de identidade, encerrar workers antigos, aplicar037 com credencial administrativa, iniciar a release nova completa e conferir prontidão/login/refresh/troca antes de reabrir o tráfego. Não operar um rollout misturando a lógica antiga de locks/hash com o endpoint novo. Seed/reset não são passos de atualização de produção.
+-type Organization = { id: string; name: string };
+ type Building = { id: string; organizationId: string; name: string; code: string; propertyType: PropertyType; timezone: string; active: boolean };
++type PropertyDraft = { name: string; code: string; propertyType: PropertyType; timezone: string };
  
- O ensaio de037 passou26/26 testes de banco com as flags reais, incluindo dump/restauração serial de44 tabelas e37 migrations. O helper restaurado alterou apenas sua conta, revogou duas famílias e preservou outro usuário e a origem. Logs locais work/password037-db-full-verified.log e work/password037-backup-directed.log. Isso comprova o recorte lógico/ACL do teste descartável; aceite de implantação real e operação permanece no plano maior.
-+
-+## Release comercial039: organizações
-+
-+`039-organizations-capabilities.sql` introduz `organizations:read` e `organizations:manage` como capacidades globais. Leitura exige read; criação/edição exige ambas. O papel PLATFORM_ADMIN recebe os defaults na primeira aplicação. A fonte do papel conserva a compatibilidade021: flag persistida real ou binding global vigente, sempre sujeitos a usuário, papel, permission e grant atuais. Revogar apenas um binding de uma conta cuja flag continua verdadeira não elimina essa segunda fonte. Organização comercial não concede acesso aos seus imóveis, moradores, finanças ou comandos.
-+
-+A migration substitui as policies comerciais de organizations, preserva a leitura privada da identidade, retira DELETE e alteração de id/created_at do runtime e limita INSERT/UPDATE às colunas necessárias. Estende a whitelist global atual e somente os dois ramos de criação/edição de organização nas provas de auditoria. Se a forma desses helpers divergir da fonte esperada, o DDL falha dentro da transação da migration; investigar a divergência, sem editar migrations históricas. Reaplicar039 não reativa permissões/grants revogados.
-+
-+A API publica a projeção autenticada `GET /v1/authorization/platform`, com no-store e apenas essas duas capacidades. GET/POST/PATCH de organizations conferem a autoridade atual em transação, inclusive após espera por lock e depois da auditoria; uma revogação observada nessa janela reverte dados e audit juntos. O limite é o último statement confirmado: não há promessa de impedir revogação posterior ao commit ou serialização absoluta de todo SQL direto.
-+
-+Coordenar aplicação039 e releaseAPI; um processo antigo com guard por role não é consumidor da nova autorização comercial. O portal administrativo precisa também do consumidor por capacidades, com gates antes de montar telas e revalidação antes de escrita; esse checkpoint é acompanhado em [CONTINUIDADE.md](CONTINUIDADE.md). Para uma instalação já existente, usar bootstrap de reconhecimento e db:infra/check; seed/reset são exclusivamente de demonstração descartável. Preparar backup e ensaio de restauração da release completa antes de rollout real. Não reduzir o ledger para038 nem restaurar policies amplas como rollback: recuperar backup validado e a release correspondente em ambiente isolado, ou entregar uma nova migration de correção.
-+
-+Em04/10/2026, o ensaio039 em cluster próprio passou API161/161 adjacentes, SQL de notificações54/54 e backup same-cluster1/1 com49 tabelas/39 migrations; são execuções distintas. IntegralAPI, consumidor/navegador e restauração em cluster independente permanecem em validação, sem aceite de produção. [Registro de continuidade](CONTINUIDADE.md) conserva falhas e resultados posteriores.
-diff --git a/packages/contracts/src/index.ts b/packages/contracts/src/index.ts
-index 080d6ea..cb20361 100644
---- a/packages/contracts/src/index.ts
-+++ b/packages/contracts/src/index.ts
-@@ -9,3 +9,4 @@ export type * from "./tenancy.js";
- export type * from "./overview.js";
- export type * from "./reservations.js";
- export type * from "./audit.js";
-+export type * from "./organizations.js";
-diff --git a/packages/contracts/src/tenancy.ts b/packages/contracts/src/tenancy.ts
-index 2df4972..1b98429 100644
---- a/packages/contracts/src/tenancy.ts
-+++ b/packages/contracts/src/tenancy.ts
-@@ -2,6 +2,8 @@ import type { Capability, ResourceType } from "@predioon/shared";
+ export function Buildings() {
+   const buildings = useResource<Paged<Building>>("/buildings");
+-  const clients = useResource<Paged<Organization>>("/organizations");
+-  const [error, setError] = useState<string | null>(null);
+-  const [form, setForm] = useState({ organizationId: "", name: "", code: "", propertyType: "CONDOMINIUM" as PropertyType, timezone: "America/Sao_Paulo" });
++  const access = useOrganizationAccess();
++  const [form, setForm] = useState<PropertyDraft>({ name: "", code: "", propertyType: "CONDOMINIUM", timezone: "America/Sao_Paulo" });
  
- export type CursorPage<T> = { items: T[]; nextCursor: string | null };
- export type AuthorizationResponse = { buildingId: string; resourceType?: ResourceType; resourceId?: string; capabilities: Capability[] };
-+/** Finite commercial projection; it does not enumerate tenants or authorize other admin modules. */
-+export type PlatformAuthorizationResponse = { capabilities: Array<Extract<Capability, "organizations:read" | "organizations:manage">> };
- export type BlockView = { id: string; buildingId: string; code: string; name: string };
- export type UnitView = { id: string; buildingId: string; blockId: string | null; code: string; floor: number | null };
- export type TeamView = { id: string; buildingId: string; name: string; kind: string };
-diff --git a/packages/db/test/backup-restore.test.ts b/packages/db/test/backup-restore.test.ts
-index 9d82a3a..83132e5 100644
---- a/packages/db/test/backup-restore.test.ts
-+++ b/packages/db/test/backup-restore.test.ts
-@@ -212,7 +212,7 @@ for(const separateCluster of [false,true])it(`restores a real Timescale archive
-     await execute(process.execPath,['--import','tsx','src/bootstrap.ts'],{cwd,env:{...process.env,DATABASE_URL:sourceUrl.toString()},timeout:30_000,windowsHide:true});
-     const migrations=await loadInfrastructureMigrations();
-     await applyInfrastructure(source,migrations);
--    assert.equal(migrations.length,38,'recovery fixture includes the complete immutable SQL038 ledger');
-+    assert.equal(migrations.length,39,'recovery fixture includes the complete immutable SQL039 ledger');
-     const sourceConnections=await provisionRuntime(sourceUrl);
-     await restrictedRoles(source,true);
-     await source`insert into organizations(id,name,slug) values('restore-org','Recovery fixture','restore-org')`;
-diff --git a/packages/db/test/notification-delivery.test.ts b/packages/db/test/notification-delivery.test.ts
-index 362b1d3..60bb330 100644
---- a/packages/db/test/notification-delivery.test.ts
-+++ b/packages/db/test/notification-delivery.test.ts
-@@ -224,7 +224,7 @@ describe("durable alert delivery SQL038, real restricted connections", { skip: !
-   it("preserves delivery state on ledger reapplication", async () => {
-     await enqueue(await alert()); const migrations = await loadInfrastructureMigrations();
-     assert.deepEqual(await applyInfrastructure(owner, migrations), []);
--    assert.equal((await owner`select count(*)::int as count from schema_migrations`)[0]!.count, 38);
-+    assert.equal((await owner`select count(*)::int as count from schema_migrations`)[0]!.count, 39);
-     assert.equal((await owner`select count(*)::int as count from event_deliveries`)[0]!.count, 1);
-   });
-   it("removes preexisting runtime column grants, PUBLIC column grants and memberships", async () => {
-diff --git a/packages/shared/src/rbac.ts b/packages/shared/src/rbac.ts
-index bd4edb2..f3e9289 100644
---- a/packages/shared/src/rbac.ts
-+++ b/packages/shared/src/rbac.ts
-@@ -3,6 +3,7 @@ import { z } from "zod";
- /** Capabilities are atomic grants evaluated with tenant/resource scope. */
- export const CAPABILITIES = [
-   "platform:read-health",
-+  "organizations:read", "organizations:manage",
-   "audit:read", "audit:read-platform",
-   "buildings:read", "buildings:manage", "buildings:provision", "features:manage",
-   "gates:read", "gates:manage", "commands:read-own", "commands:read",
-@@ -27,7 +28,7 @@ export const RbacRoleSchema = z.enum(RBAC_ROLES);
+-  async function create() {
+-    try {
+-      setError(null);
+-      const result = CreatePropertySchema.safeParse(form);
+-      if (!result.success) throw new Error(result.error.issues[0]?.message ?? "Confira os dados do imóvel");
+-      await api.post("/buildings", result.data);
++  return <>
++    <h1 className="text-2xl font-bold text-slate-900">Imóveis</h1>
++    <div className="grid gap-5 xl:grid-cols-3">
++      {/* A confirmed revocation discards the commercial resource, selection and
++          pending intent at commit, even if React batches a rapid regrant. */}
++      <BuildingCreation key={access.readEpoch} form={form} setForm={setForm} onCreated={buildings.reload} />
++      <Card title="Imóveis cadastrados" className="xl:col-span-2">
++        {buildings.data?.items.length ? <ul className="space-y-2">
++          {buildings.data.items.map(building => <li key={building.id} className="flex items-center justify-between rounded-xl border border-slate-100 p-3">
++            <div>
++              <p className="font-medium text-slate-800">{building.name}</p>
++              <p className="mt-1 text-xs font-medium text-slate-600">{PROPERTY_TYPES.find(type => type.value === building.propertyType)?.label ?? "Condomínio"}</p>
++              <p className="text-xs text-slate-400">{building.id} · {building.code} · {building.timezone}</p>
++            </div>
++            <Badge tone={building.active ? "success" : "neutral"}>{building.active ? "ATIVO" : "INATIVO"}</Badge>
++          </li>)}
++        </ul> : <EmptyState text={buildings.error ?? "Nenhum imóvel cadastrado."} />}
++      </Card>
++    </div>
++  </>;
++}
++
++function BuildingCreation({ form, setForm, onCreated }: { form: PropertyDraft; setForm(value: PropertyDraft): void; onCreated(): void }) {
++  const access = useOrganizationAccess();
++  const mutation = useOrganizationMutation();
++  const clients = useResource<Paged<OrganizationView>>(access.canRead ? "/organizations" : null);
++  const [organizationId, setOrganizationId] = useState("");
++  const selectedOrganization = access.canRead && clients.data?.items.some(row => row.id === organizationId) ? organizationId : "";
++  useEffect(() => { if (clients.errorStatus === 403) access.invalidate(); }, [clients.errorStatus, access.invalidate]);
++  useEffect(() => {
++    if (!access.canRead) { mutation.cancelPendingIntent(); setOrganizationId(""); }
++  }, [access.canRead]);
++
++  function create() {
++    const result = CreatePropertySchema.safeParse({ ...form, organizationId: selectedOrganization });
++    if (!result.success) { mutation.setError(result.error.issues[0]?.message ?? "Confira os dados do imóvel"); return; }
++    void mutation.run("read", () => api.post("/buildings", result.data), () => {
+       setForm({ ...form, name: "", code: "" });
+-      buildings.reload();
+-    } catch (cause) {
+-      setError(cause instanceof Error ? cause.message : "Falha ao criar imóvel");
+-    }
++      onCreated();
++    });
+   }
  
- /** Complete initial role catalogue. Adding a role requires an explicit set. */
- export const ROLE_CAPABILITIES: Readonly<Record<RbacRole, readonly Capability[]>> = {
--  PLATFORM_ADMIN: ["audit:read-platform", "platform:read-health", "buildings:read", "buildings:manage", "buildings:provision", "features:manage", "plans:read", "plans:manage", "rbac:manage", "support:grant"],
-+  PLATFORM_ADMIN: ["organizations:read", "organizations:manage", "audit:read-platform", "platform:read-health", "buildings:read", "buildings:manage", "buildings:provision", "features:manage", "plans:read", "plans:manage", "rbac:manage", "support:grant"],
-   PLATFORM_SUPPORT: [],
-   BUILDING_ADMIN: ["audit:read", "gates:read", "gates:manage", "commands:read-own", "commands:read", "reservations:create-own", "reservations:read-own", "reservations:cancel-own", "reservations:read-calendar", "reservations:manage", "common-areas:read", "common-areas:manage", "buildings:read", "buildings:manage", "parking:read", "parking:manage", "alert-rules:read", "alert-rules:manage", "notices:read", "notices:manage", "occurrences:create-own", "occurrences:read-own", "occurrences:manage", "telemetry:read", "telemetry:read-published", "alerts:read", "alerts:acknowledge", "alerts:resolve", "work-orders:read-assigned", "work-orders:assign", "work-orders:update-assigned", "devices:read", "devices:configure", "commands:request", "automations:read", "automations:manage", "finance:read", "finance:read-published", "finance:manage", "memberships:read", "memberships:manage", "units:read", "units:manage", "teams:read", "teams:manage", "support:read"],
-   MAINTENANCE_MANAGER: ["parking:read", "finance:read-published", "reservations:create-own", "reservations:read-own", "reservations:cancel-own", "reservations:read-calendar", "common-areas:read", "buildings:read", "notices:read", "occurrences:create-own", "occurrences:read-own", "occurrences:manage", "telemetry:read", "telemetry:read-published", "alerts:read", "alerts:acknowledge", "alerts:resolve", "work-orders:read-assigned", "work-orders:assign", "work-orders:update-assigned", "devices:read", "automations:read", "teams:read", "units:read"],
+   return (
+-    <>
+-      <h1 className="text-2xl font-bold text-slate-900">Imóveis</h1>
+-      {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
+-
+-      <div className="grid gap-5 xl:grid-cols-3">
+-        <Card title="Novo imóvel">
++    <Card title="Novo imóvel">
++      {mutation.error && <ErrorBanner message={mutation.error} onDismiss={() => mutation.setError(null)} />}
+           <div className="space-y-3">
+-            <Field label="Cliente">
++            {!access.canRead ? <OrganizationAccessFeedback /> : clients.error ? <ResourceFeedback resource={clients} emptyText="" /> : <Field label="Cliente">
+               <Select
+-                value={form.organizationId}
+-                onChange={(organizationId) => setForm({ ...form, organizationId })}
++                value={selectedOrganization}
++                disabled={mutation.busy || access.checking || clients.loading}
++                onChange={(value) => { mutation.cancelPendingIntent(); setOrganizationId(value); }}
+                 options={[
+                   { value: "", label: "Escolha um cliente" },
+                   ...(clients.data?.items ?? []).map((client) => ({ value: client.id, label: client.name })),
+                 ]}
+               />
+-            </Field>
++            </Field>}
+             <Field label="Nome">
+-              <Input value={form.name} onChange={(name) => setForm({ ...form, name })} placeholder="Residencial das Flores" />
++              <Input value={form.name} disabled={mutation.busy} onChange={(name) => setForm({ ...form, name })} placeholder="Residencial das Flores" />
+             </Field>
+             <Field label="Código" hint="identificador curto usado na operação">
+-              <Input value={form.code} onChange={(code) => setForm({ ...form, code })} placeholder="FLORES" />
++              <Input value={form.code} disabled={mutation.busy} onChange={(code) => setForm({ ...form, code })} placeholder="FLORES" />
+             </Field>
+             <Field label="Tipo de imóvel">
+-              <Select value={form.propertyType} onChange={(propertyType) => setForm({ ...form, propertyType })} options={[...PROPERTY_TYPES]} />
++              <Select value={form.propertyType} disabled={mutation.busy} onChange={(propertyType) => setForm({ ...form, propertyType })} options={[...PROPERTY_TYPES]} />
+             </Field>
+             <Field label="Fuso horário" hint="Usado para dias de consumo e estimativas. Ex.: America/Sao_Paulo ou America/Manaus.">
+-              <Input value={form.timezone} onChange={(timezone) => setForm({ ...form, timezone })} placeholder="America/Sao_Paulo" />
++              <Input value={form.timezone} disabled={mutation.busy} onChange={(timezone) => setForm({ ...form, timezone })} placeholder="America/Sao_Paulo" />
+             </Field>
+-            <Button full onClick={() => void create()} disabled={!form.organizationId || !form.name || !form.code || !form.timezone.trim()}>
++            <Button full onClick={create} disabled={mutation.busy || access.checking || !selectedOrganization || !form.name || !form.code || !form.timezone.trim()}>
+               Cadastrar
+             </Button>
+           </div>
+-        </Card>
+-
+-        <Card title="Imóveis cadastrados" className="xl:col-span-2">
+-          {buildings.data?.items.length ? (
+-            <ul className="space-y-2">
+-              {buildings.data.items.map((building) => (
+-                <li key={building.id} className="flex items-center justify-between rounded-xl border border-slate-100 p-3">
+-                  <div>
+-                    <p className="font-medium text-slate-800">{building.name}</p>
+-                    <p className="mt-1 text-xs font-medium text-slate-600">{PROPERTY_TYPES.find((type) => type.value === building.propertyType)?.label ?? "Condomínio"}</p>
+-                    <p className="text-xs text-slate-400">
+-                      {building.id} · {building.code} · {building.timezone}
+-                    </p>
+-                  </div>
+-                  <Badge tone={building.active ? "success" : "neutral"}>{building.active ? "ATIVO" : "INATIVO"}</Badge>
+-                </li>
+-              ))}
+-            </ul>
+-          ) : (
+-            <EmptyState text={buildings.error ?? "Nenhum imóvel cadastrado."} />
+-          )}
+-        </Card>
+-      </div>
+-    </>
++    </Card>
+   );
+ }
+diff --git a/apps/admin-web/src/pages/Clients.tsx b/apps/admin-web/src/pages/Clients.tsx
+index 6315c2b..aee4d3d 100644
+--- a/apps/admin-web/src/pages/Clients.tsx
++++ b/apps/admin-web/src/pages/Clients.tsx
+@@ -1,64 +1,114 @@
+-import { useState } from "react";
+-import { api, Badge, Button, Card, EmptyState, ErrorBanner, Field, Input, useResource } from "@predioon/ui";
+-import type { Paged } from "@predioon/ui";
++import { useEffect, useState } from "react";
++import type { CreateOrganizationRequest, OrganizationView, UpdateOrganizationRequest } from "@predioon/contracts";
++import { api, Badge, Button, Card, ErrorBanner, Field, Input, ResourceFeedback, useResource, type Paged } from "@predioon/ui";
++import { OrganizationAccessFeedback, useOrganizationAccess, useOrganizationMutation } from "../organization-access.js";
+ 
+-type Organization = { id: string; name: string; slug: string; active: boolean };
++type Draft = { name: string; slug: string };
++type Confirmation = { id: string; name: string; active: boolean };
++const blank = (): Draft => ({ name: "", slug: "" });
++function validDraft(draft: Draft): boolean {
++  return draft.name.length >= 2 && draft.name.length <= 120 && draft.slug.length >= 2 && draft.slug.length <= 60 && /^[a-z0-9-]+$/.test(draft.slug);
++}
+ 
+ export function Clients() {
+-  const clients = useResource<Paged<Organization>>("/organizations");
+-  const [error, setError] = useState<string | null>(null);
+-  const [form, setForm] = useState({ name: "", slug: "" });
++  const access = useOrganizationAccess();
++  const mutation = useOrganizationMutation();
++  const [creation, setCreation] = useState<Draft>(blank);
++  const [editing, setEditing] = useState<{ id: string; draft: Draft } | null>(null);
++  const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
++  const [message, setMessage] = useState<string | null>(null);
++  // Revocation destroys drafts; transient preflight failures only hide them.
++  useEffect(() => {
++    setCreation(blank()); setEditing(null); setConfirmation(null); setMessage(null);
++    mutation.cancelPendingIntent();
++  }, [access.manageEpoch]);
++  return <>
++    <h1 className="text-2xl font-bold text-slate-900">Clientes</h1>
++    {mutation.error && <ErrorBanner message={mutation.error} onDismiss={() => mutation.setError(null)} />}
++    {message && access.canRead && <p role="status" className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">{message}</p>}
++    {access.canRead ? <ClientsWorkspace key={access.readEpoch} creation={creation} setCreation={setCreation} editing={editing} setEditing={setEditing}
++      confirmation={confirmation} setConfirmation={setConfirmation} mutation={mutation} setMessage={setMessage} /> : <OrganizationAccessFeedback />}
++  </>;
++}
+ 
+-  async function create() {
+-    try {
+-      await api.post("/organizations", form);
+-      setForm({ name: "", slug: "" });
+-      clients.reload();
+-    } catch (cause) {
+-      setError(cause instanceof Error ? cause.message : "Falha ao criar cliente");
+-    }
++type WorkspaceProps = {
++  creation: Draft; setCreation(value: Draft): void;
++  editing: { id: string; draft: Draft } | null; setEditing(value: { id: string; draft: Draft } | null): void;
++  confirmation: Confirmation | null; setConfirmation(value: Confirmation | null): void;
++  mutation: ReturnType<typeof useOrganizationMutation>; setMessage(value: string | null): void;
++};
++function ClientsWorkspace({ creation, setCreation, editing, setEditing, confirmation, setConfirmation, mutation, setMessage }: WorkspaceProps) {
++  const access = useOrganizationAccess();
++  const clients = useResource<Paged<OrganizationView>>("/organizations");
++  useEffect(() => { if (clients.errorStatus === 403) access.invalidate(); }, [clients.errorStatus, access.invalidate]);
++  const selected = clients.data?.items.find(row => row.id === editing?.id);
++  useEffect(() => {
++    if (!clients.loading && clients.data && editing && !selected) { mutation.cancelPendingIntent(); setEditing(null); }
++  }, [clients.loading, clients.data, editing?.id, selected?.id]);
++  const disabled = mutation.busy || access.checking;
++  function cancel() { mutation.cancelPendingIntent(); setEditing(null); setConfirmation(null); setMessage(null); }
++  function create() {
++    if (!validDraft(creation)) { mutation.setError("Confira o nome e o slug do cliente."); return; }
++    const payload: CreateOrganizationRequest = { ...creation };
++    setMessage(null);
++    void mutation.run("manage", () => api.post<OrganizationView>("/organizations", payload), () => {
++      setCreation(blank()); setMessage("Cliente cadastrado."); clients.reload();
++    });
+   }
+-
+-  return (
+-    <>
+-      <h1 className="text-2xl font-bold text-slate-900">Clientes</h1>
+-      {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
+-
+-      <div className="grid gap-5 xl:grid-cols-3">
+-        <Card title="Novo cliente">
+-          <div className="space-y-3">
+-            <Field label="Nome">
+-              <Input value={form.name} onChange={(name) => setForm({ ...form, name })} placeholder="Administradora Alfa" />
+-            </Field>
+-            <Field label="Slug" hint="minúsculas, números e hífen">
+-              <Input value={form.slug} onChange={(slug) => setForm({ ...form, slug })} placeholder="administradora-alfa" />
+-            </Field>
+-            <Button full onClick={() => void create()} disabled={!form.name || !form.slug}>
+-              Cadastrar
+-            </Button>
+-          </div>
+-        </Card>
+-
+-        <Card title="Clientes cadastrados" className="xl:col-span-2">
+-          {clients.data?.items.length ? (
+-            <ul className="space-y-2">
+-              {clients.data.items.map((client) => (
+-                <li key={client.id} className="flex items-center justify-between rounded-xl border border-slate-100 p-3">
+-                  <div>
+-                    <p className="font-medium text-slate-800">{client.name}</p>
+-                    <p className="text-xs text-slate-400">
+-                      {client.id} · {client.slug}
+-                    </p>
+-                  </div>
+-                  <Badge tone={client.active ? "success" : "neutral"}>{client.active ? "ATIVO" : "INATIVO"}</Badge>
+-                </li>
+-              ))}
+-            </ul>
+-          ) : (
+-            <EmptyState text={clients.error ?? "Nenhum cliente cadastrado."} />
+-          )}
+-        </Card>
+-      </div>
+-    </>
+-  );
++  function save() {
++    if (!editing || !selected || !validDraft(editing.draft)) return;
++    const id = editing.id;
++    const payload: UpdateOrganizationRequest = {};
++    if (editing.draft.name !== selected.name) payload.name = editing.draft.name;
++    if (editing.draft.slug !== selected.slug) payload.slug = editing.draft.slug;
++    if (!Object.keys(payload).length) return;
++    setMessage(null);
++    void mutation.run("manage", () => api.patch<OrganizationView>(`/organizations/${encodeURIComponent(id)}`, payload), () => {
++      setEditing(null); setMessage("Cliente atualizado."); clients.reload();
++    });
++  }
++  function changeStatus() {
++    if (!confirmation) return;
++    const { id, active } = confirmation;
++    setMessage(null);
++    void mutation.run("manage", () => api.patch<OrganizationView>(`/organizations/${encodeURIComponent(id)}`, { active } satisfies UpdateOrganizationRequest), result => {
++      setConfirmation(null); setMessage(result.active ? "Cliente reativado." : "Cliente desativado."); clients.reload();
++    });
++  }
++  return <>
++    <div className="flex flex-wrap items-center justify-between gap-3">
++      <p className="text-sm text-slate-600">{access.canManage ? "Cadastre clientes e mantenha seus dados comerciais." : "Você pode consultar os clientes cadastrados."}</p>
++      <Button variant="secondary" disabled={mutation.busy} onClick={() => { void access.refresh(); clients.reload(); }}>Atualizar clientes</Button>
++    </div>
++    <div className={`grid gap-5 ${access.canManage ? "xl:grid-cols-3" : ""}`}>
++      {access.canManage && <Card title={editing ? "Editar cliente" : "Novo cliente"}>
++        <form aria-label={editing ? "Editar cliente" : "Cadastrar cliente"} className="space-y-3" onSubmit={event => { event.preventDefault(); if (editing) save(); else create(); }}>
++          <Field label="Nome do cliente"><Input value={editing?.draft.name ?? creation.name} minLength={2} maxLength={120} required disabled={mutation.busy}
++            onChange={name => editing ? setEditing({ ...editing, draft: { ...editing.draft, name } }) : setCreation({ ...creation, name })} placeholder="Administradora Alfa" /></Field>
++          <Field label="Slug do cliente" hint="De 2 a 60 caracteres: minúsculas, números e hífen."><Input value={editing?.draft.slug ?? creation.slug} minLength={2} maxLength={60} pattern="[a-z0-9-]+" required disabled={mutation.busy}
++            onChange={slug => editing ? setEditing({ ...editing, draft: { ...editing.draft, slug } }) : setCreation({ ...creation, slug })} placeholder="administradora-alfa" /></Field>
++          <Button full type="submit" disabled={disabled || !validDraft(editing?.draft ?? creation) || Boolean(editing && (!selected || (editing.draft.name === selected.name && editing.draft.slug === selected.slug)))}>
++            {mutation.busy ? "Aguardando confirmação…" : editing ? "Salvar cliente" : "Cadastrar cliente"}
++          </Button>
++          {editing && <Button variant="secondary" onClick={cancel}>Cancelar edição</Button>}
++          {mutation.busy && <p role="status" className="text-sm text-slate-500">Verificando a permissão e aguardando a resposta da API.</p>}
++        </form>
++      </Card>}
++      <Card title="Clientes cadastrados" className={access.canManage ? "xl:col-span-2" : undefined}>
++        {clients.error ? <ResourceFeedback resource={clients} emptyText="" /> : clients.data?.items.length ? <div className="space-y-3">
++          {clients.data.items.map(client => <article key={client.id} aria-label={`Cliente ${client.name}`} className="rounded-xl border border-slate-200 p-3">
++            <div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0"><p className="break-words font-medium text-slate-800">{client.name}</p><p className="break-all text-xs text-slate-500">{client.slug}</p></div><Badge tone={client.active ? "success" : "neutral"}>{client.active ? "ATIVO" : "INATIVO"}</Badge></div>
++            {access.canManage && <div className="mt-3 flex flex-wrap gap-2">
++              <Button variant="secondary" disabled={disabled} onClick={() => { cancel(); setEditing({ id: client.id, draft: { name: client.name, slug: client.slug } }); }}>Editar cliente</Button>
++              <Button variant={client.active ? "danger" : "secondary"} disabled={disabled} onClick={() => { cancel(); setConfirmation({ id: client.id, name: client.name, active: !client.active }); }}>{client.active ? "Desativar cliente" : "Reativar cliente"}</Button>
++            </div>}
++            {access.canManage && confirmation?.id === client.id && <div className="mt-3 space-y-3 rounded-lg bg-amber-50 p-3">
++              <p className="text-sm text-amber-900">{confirmation.active ? `Reativar ${confirmation.name}?` : `Desativar ${confirmation.name}? O acesso aos imóveis vinculados ficará indisponível enquanto o cliente estiver inativo.`}</p>
++              <div className="flex flex-wrap gap-2"><Button variant={confirmation.active ? "primary" : "danger"} disabled={disabled} onClick={changeStatus}>{confirmation.active ? "Confirmar reativação" : "Confirmar desativação"}</Button><Button variant="secondary" onClick={cancel}>Manter estado atual</Button></div>
++            </div>}
++          </article>)}
++        </div> : <ResourceFeedback resource={clients} emptyText="Nenhum cliente cadastrado." />}
++      </Card>
++    </div>
++  </>;
+ }
+diff --git a/e2e/README.md b/e2e/README.md
+index e9b2601..d1d30ec 100644
+--- a/e2e/README.md
++++ b/e2e/README.md
+@@ -45,6 +45,18 @@ Os cenários de contador e finanças com escopo exato criam papéis exclusivos e
+ 
+ Relatório HTML, capturas e traces de falhas ficam em `.local/playwright-report` e `.local/playwright-results`, ignorados pelo Git. As gravações podem conter sessões das contas de demonstração; use apenas o banco descartável preparado para a suíte.
+ 
++## Clientes e organizações039
++
++`organizations.spec.ts` usa login real e a projeção finita `/v1/authorization/platform`. Uma conta com binding global `PLATFORM_ADMIN`, sem a flag legada, entra em Clientes mantendo o papel `RESIDENT` recebido no login. Ela não monta os módulos operacionais nem seus atalhos, mesmo por URL direta; Minhas sessões continua disponível a qualquer identidade autenticada. A flag legada mantém as demais rotas, mas não substitui `organizations:read`/`organizations:manage` nos controles comerciais.
++
++Os 21 cenários por navegador verificam consulta de ativos e inativos, criação única com dois eventos de submit, edição parcial sem sobrescrever metadata, confirmação/cancelamento de inativação e reativação, conflito409 e preservação do rascunho. Também cobrem revogação de leitura/gestão/binding, GET anterior atrasado, preflight pendente ao navegar/cancelar/trocar identidade inclusive para a mesma conta, erro transitório e resposta403 posterior à checagem. Perder a resposta de um POST realmente concluído ou receber seu JSON inválido deve orientar a atualizar a lista, conservar o rascunho e não reenviar a escrita. O teste de background injeta `visibilitychange` de maneira determinística; ele não representa suspensão real pelo sistema operacional.
++
++O seletor comercial de Imóveis só consulta organizações quando a leitura atual é permitida. Uma revogação desmonta seu recurso, seleção e intenção; o retorno da permissão aguarda dados novos. O formulário revalida a leitura antes de criar o imóvel e não exige gestão de organizações, conservando a autorização legada própria desse domínio.
++
++Esta spec altera temporariamente as duas linhas `role_permissions` de `PLATFORM_ADMIN` **apenas no banco descartável dedicado à sua execução**, para provar a ausência real de cada capacidade sem simular a autorização. Não execute a suíte junto a outro consumidor do mesmo banco. O `finally` repõe os registros originais, incluindo `created_at` com microssegundos via JSONB, e remove apenas usuários, organizações, imóveis e auditoria pertencentes aos UUIDs do cenário. Não há reset de banco nem uso de contas reais. As respostas atrasadas são respostas reais retidas; os únicos erros sintéticos são503 e a perda/corrupção explícita da resposta após persistência real.
++
++Evidência local inicial: três REDs válidos demonstraram a entrada bloqueada do RBAC puro, controles indevidos para leitor e consulta indevida do seletor; depois passaram3/3. Dois REDs adicionais reproduziram a mensagem inadequada de resultado incerto. A implementação corrigida passou **21/21 Chromium**, em1min42s, com bundles de produção, API e PostgreSQL001–039, um worker e zero retries (`work/org039-ui-directed-green.log`). Tipos do portal e da spec também passaram. A matriz dos três motores está em validação; este registro não declara aprovação de CI, integral API nem publicação do recorte.
++
+ ## Ambiente do CI e regressão de atualização
+ 
+ O workflow usa a [imagem oficial Playwright](https://playwright.dev/docs/ci#via-containers) `1.63.0-noble`, na mesma versão fixada do pacote. Os navegadores e dependências do sistema já vêm na imagem. O [PostgreSQL do job container](https://docs.github.com/en/actions/tutorials/use-containerized-services/create-postgresql-service-containers) é acessado pelo nome do serviço; não precisa publicar porta no host.
 diff --git a/pnpm-lock.yaml b/pnpm-lock.yaml
 index f89113a..e99d3e5 100644
 --- a/pnpm-lock.yaml
@@ -294,519 +491,384 @@ index f89113a..e99d3e5 100644
        '@predioon/shared':
          specifier: workspace:*
          version: link:../../packages/shared
-diff --git a/infrastructure/039-organizations-capabilities.sql b/infrastructure/039-organizations-capabilities.sql
+diff --git a/scripts/ios-smoke/test_auth.py b/scripts/ios-smoke/test_auth.py
+index 6432873..a954d24 100644
+--- a/scripts/ios-smoke/test_auth.py
++++ b/scripts/ios-smoke/test_auth.py
+@@ -289,7 +289,8 @@ class ExportTests(unittest.TestCase):
+ 
+ class NativeFailureDiagnosticTests(unittest.TestCase):
+     def run_failure(self, failed_stage, *, cleanup_fails=False, rejection=None, outcome="nonzero-exit",
+-                    build_message=None, created_id=None, command_trace=None, coordinator_trace=None):
++                    build_message=None, created_id=None, command_trace=None, coordinator_trace=None,
++                    runner_policy=None, ats_observer_fails=False):
+         run = load("run_auth")
+         secret = "PrivateNativeDiagnosticSentinel123456"
+         with tempfile.TemporaryDirectory() as temporary, ExitStack() as patches:
+@@ -315,7 +316,7 @@ class NativeFailureDiagnosticTests(unittest.TestCase):
+             runner_info = private / "runner-build/Build/Products/Release-iphonesimulator/AuthJourney-Runner.app/Info.plist"
+             runner_info.parent.mkdir(parents=True)
+             with runner_info.open("wb") as destination:
+-                run.plistlib.dump({}, destination)
++                run.plistlib.dump({} if runner_policy is None else runner_policy, destination)
+             simulator = created_id if created_id is not None else "f19ce90e-9c36-461d-a499-692ff2570a01"
+             runtime = "com.apple.CoreSimulator.SimRuntime.iOS-18-5"
+             stages = []
+@@ -389,6 +390,8 @@ class NativeFailureDiagnosticTests(unittest.TestCase):
+             patches.enter_context(patch.object(run.ssl, "SSLContext", return_value=MagicMock()))
+             patches.enter_context(patch.object(run.threading, "Thread", return_value=MagicMock()))
+             patches.enter_context(patch.object(run.subprocess, "run", side_effect=respond))
++            if ats_observer_fails:
++                patches.enter_context(patch.object(run, "runner_ats_policy", side_effect=OSError(secret)))
+             patches.enter_context(patch.dict(run.os.environ, {"GITHUB_SHA": "b" * 40, "IOS_DB_ROOT": str(database),
+                                                            "GITHUB_OUTPUT": str(root / "outputs")}))
+             output = root / ".local/ios-auth/evidence"
+@@ -400,7 +403,10 @@ class NativeFailureDiagnosticTests(unittest.TestCase):
+             self.assertFalse(result["passed"])
+             self.assertEqual(result["steps"], [])
+             self.assertEqual({item.name for item in output.iterdir()}, {"result.json", "builds.json", "database-source.json"})
+-            self.assertIn(failed_stage, stages)
++            if failed_stage == "runner-ats-check":
++                self.assertEqual(result["failureDiagnostic"]["stage"], failed_stage)
++            else:
++                self.assertIn(failed_stage, stages)
+             return result, stages
+ 
+     def test_boot_failure_reports_the_boot_stage(self):
+@@ -434,6 +440,42 @@ class NativeFailureDiagnosticTests(unittest.TestCase):
+         self.assertEqual(result.get("failureDiagnostic"), {"stage": "runner-test", "category": "nonzero-exit", "exitCode": 65})
+         self.assertIn("runner-build", stages)
+ 
++    def test_ats_guard_failure_is_closed_and_precedes_test_and_cleanup(self):
++        secret = "PrivateATSDomainSentinel123456"
++        cases = [
++            ({"NSAppTransportSecurity": {"NSAllowsArbitraryLoads": True}}, ats_policy(arbitrary="bool", enabled=True)),
++            ({"NSAppTransportSecurity": {"NSExceptionDomains": {secret: {"private": secret}}}}, ats_policy(domains="dict", count=1)),
++            ({"NSAppTransportSecurity": True}, ats_policy(ats="bool", arbitrary="unavailable", domains="unavailable")),
++            ({"NSAppTransportSecurity": False}, ats_policy(ats="bool", arbitrary="unavailable", domains="unavailable")),
++            ({"NSAppTransportSecurity": secret}, ats_policy(ats="invalid", arbitrary="unavailable", domains="unavailable")),
++            ([], ats_policy(ats="unavailable", arbitrary="unavailable", domains="unavailable")),
++        ]
++        for index, (plist, policy) in enumerate(cases):
++            with self.subTest(case=index):
++                result, stages = self.run_failure("runner-ats-check", runner_policy=plist, cleanup_fails=True)
++                self.assertEqual(result["failureDiagnostic"], {"stage": "runner-ats-check", "category": "verification-failed",
++                                                              "exitCode": None, "atsPolicy": policy})
++                self.assertTrue(result["cleanupFailed"])
++                self.assertIn("runner-build", stages)
++                self.assertNotIn("runner-test", stages)
++                self.assertNotIn(secret, json.dumps(result))
++
++    def test_safe_ats_configs_keep_existing_gate_and_never_collect_on_success(self):
++        for plist in [{}, {"NSAppTransportSecurity": {}},
++                      {"NSAppTransportSecurity": {"NSAllowsLocalNetworking": True}},
++                      {"NSAppTransportSecurity": {"NSAllowsArbitraryLoads": False, "NSExceptionDomains": {}}}]:
++            with self.subTest(plist=plist):
++                result, stages = self.run_failure("runner-test", runner_policy=plist, ats_observer_fails=True)
++                self.assertEqual(result["failureDiagnostic"], {"stage": "runner-test", "category": "nonzero-exit", "exitCode": 65})
++                self.assertIn("runner-test", stages)
++
++    def test_failed_ats_observer_omits_only_supplement_and_preserves_first_gate(self):
++        result, stages = self.run_failure("runner-ats-check", runner_policy={"NSAppTransportSecurity": {"NSAllowsArbitraryLoads": True}},
++                                          ats_observer_fails=True, cleanup_fails=True)
++        self.assertEqual(result["failureDiagnostic"], {"stage": "runner-ats-check", "category": "verification-failed", "exitCode": None})
++        self.assertTrue(result["cleanupFailed"])
++        self.assertNotIn("runner-test", stages)
++
+     def test_created_simulator_spelling_reaches_all_owned_commands_and_coordinator(self):
+         lower = "f19ce90e-9c36-461d-a499-692ff2570a01"
+         for producer in [lower.upper(), "F19ce90E-9c36-461D-a499-692fF2570A01", lower]:
+@@ -574,6 +616,103 @@ class NativeFailureDiagnosticTests(unittest.TestCase):
+                 self.assertEqual(diagnostic.first["exitCode"], expected)
+ 
+ 
++def ats_policy(*, ats="dict", arbitrary="absent", enabled=None, domains="absent", count=None):
++    return {"atsKind": ats, "arbitraryLoadsKind": arbitrary, "arbitraryLoadsEnabled": enabled,
++            "exceptionDomainsKind": domains, "exceptionDomainCountCapped": count}
++
++
++class RunnerATSDiagnosticTests(unittest.TestCase):
++    def test_exact_types_and_absence_are_distinct_without_free_values(self):
++        run = load("run_auth")
++        secret = "PrivateATSDomainSentinel123456"
++        cases = [({}, ats_policy(ats="absent", arbitrary="unavailable", domains="unavailable")),
++                 ([], ats_policy(ats="unavailable", arbitrary="unavailable", domains="unavailable")),
++                 ({"NSAppTransportSecurity": True}, ats_policy(ats="bool", arbitrary="unavailable", domains="unavailable")),
++                 ({"NSAppTransportSecurity": {}}, ats_policy()),
++                 ({"NSAppTransportSecurity": secret}, ats_policy(ats="invalid", arbitrary="unavailable", domains="unavailable")),
++                 ({"NSAppTransportSecurity": {"NSAllowsArbitraryLoads": False}}, ats_policy(arbitrary="bool", enabled=False)),
++                 ({"NSAppTransportSecurity": {"NSAllowsArbitraryLoads": True}}, ats_policy(arbitrary="bool", enabled=True)),
++                 ({"NSAppTransportSecurity": {"NSAllowsArbitraryLoads": {}}}, ats_policy(arbitrary="dict")),
++                 ({"NSAppTransportSecurity": {"NSAllowsArbitraryLoads": secret}}, ats_policy(arbitrary="invalid")),
++                 ({"NSAppTransportSecurity": {"NSAllowsArbitraryLoads": 1}}, ats_policy(arbitrary="invalid")),
++                 ({"NSAppTransportSecurity": {"NSExceptionDomains": {}}}, ats_policy(domains="dict", count=0)),
++                 ({"NSAppTransportSecurity": {"NSExceptionDomains": {secret: {"private": secret}}}}, ats_policy(domains="dict", count=1)),
++                 ({"NSAppTransportSecurity": {"NSExceptionDomains": True}}, ats_policy(domains="bool")),
++                 ({"NSAppTransportSecurity": {"NSExceptionDomains": secret}}, ats_policy(domains="invalid")),
++                 ({"NSAppTransportSecurity": {"NSExceptionDomains": []}}, ats_policy(domains="invalid"))]
++        for index, (plist, expected) in enumerate(cases):
++            with self.subTest(case=index):
++                observed = run.runner_ats_policy(plist)
++                self.assertEqual(observed, expected)
++                self.assertNotIn(secret, json.dumps(observed))
++
++    def test_count_is_capped_without_inspecting_domains_or_invalid_objects(self):
++        run = load("run_auth")
++        class Uninspectable:
++            def __str__(self): raise AssertionError("must not stringify")
++            def __repr__(self): raise AssertionError("must not repr")
++            def __bool__(self): raise AssertionError("must not derive truthiness")
++            def __iter__(self): raise AssertionError("must not iterate")
++        domains = {index: Uninspectable() for index in range(40)}
++        self.assertEqual(run.runner_ats_policy({"NSAppTransportSecurity": {"NSExceptionDomains": domains}}), ats_policy(domains="dict", count=32))
++        self.assertEqual(run.runner_ats_policy({"NSAppTransportSecurity": {"NSAllowsArbitraryLoads": Uninspectable(), "NSExceptionDomains": Uninspectable()}}),
++                         ats_policy(arbitrary="invalid", domains="invalid"))
++        self.assertEqual(run.runner_ats_policy(Uninspectable()), ats_policy(ats="unavailable", arbitrary="unavailable", domains="unavailable"))
++
++    def test_observer_runs_after_first_latch_and_preserves_original_exception(self):
++        run = load("run_auth")
++        diagnostic = run.FailureDiagnostic()
++        original = AssertionError("PrivateATSSentinel123456")
++        calls = []
++        def observe():
++            calls.append(diagnostic.observed)
++            return ats_policy(arbitrary="bool", enabled=True)
++        with self.assertRaises(AssertionError) as caught:
++            with diagnostic.stage("runner-ats-check", observe_ats=observe):
++                raise original
++        self.assertIs(caught.exception, original)
++        self.assertEqual(calls, [True])
++        first = {"stage": "runner-ats-check", "category": "verification-failed", "exitCode": None,
++                 "atsPolicy": ats_policy(arbitrary="bool", enabled=True)}
++        self.assertEqual(diagnostic.first, first)
++        with self.assertRaises(OSError):
++            with diagnostic.stage("simulator-delete", observe_ats=observe):
++                raise OSError("private cleanup")
++        self.assertEqual(calls, [True])
++        self.assertEqual(diagnostic.first, first)
++
++    def test_no_collection_on_success_other_stage_or_wrong_category(self):
++        run = load("run_auth")
++        observer = MagicMock(side_effect=AssertionError("must not observe"))
++        diagnostic = run.FailureDiagnostic()
++        with diagnostic.stage("runner-ats-check", observe_ats=observer):
++            pass
++        self.assertIsNone(diagnostic.first)
++        for stage, error in [("runner-test", AssertionError("private")),
++                             ("runner-ats-check", run.PrivateCommandFailure("nonzero-exit", 65, "private"))]:
++            with self.subTest(stage=stage):
++                diagnostic = run.FailureDiagnostic()
++                with self.assertRaises(type(error)) as caught:
++                    with diagnostic.stage(stage, observe_ats=observer):
++                        raise error
++                self.assertIs(caught.exception, error)
++                self.assertNotIn("atsPolicy", diagnostic.first)
++        observer.assert_not_called()
++
++    def test_broken_or_invalid_observer_preserves_base_and_original_error(self):
++        run = load("run_auth")
++        for observer in [MagicMock(side_effect=OSError("private")), MagicMock(return_value={"domains": "PrivateATSSentinel123456"})]:
++            with self.subTest(observer=True):
++                diagnostic = run.FailureDiagnostic()
++                original = AssertionError("PrivateATSSentinel123456")
++                with self.assertRaises(AssertionError) as caught:
++                    with diagnostic.stage("runner-ats-check", observe_ats=observer):
++                        raise original
++                self.assertIs(caught.exception, original)
++                self.assertEqual(diagnostic.first, {"stage": "runner-ats-check", "category": "verification-failed", "exitCode": None})
++                observer.assert_called_once()
++
++
+ class RunnerBuildSignalTests(unittest.TestCase):
+     destination = "xcodebuild: error: Unable to find a destination matching the provided destination specifier:\n"
+     device_destination = "xcodebuild: error: Unable to find a device matching the provided destination specifier:\n"
+diff --git a/apps/admin-web/src/organization-access.tsx b/apps/admin-web/src/organization-access.tsx
 new file mode 100644
-index 0000000..9d86d27
+index 0000000..3bdfb12
 --- /dev/null
-+++ b/infrastructure/039-organizations-capabilities.sql
-@@ -0,0 +1,76 @@
-+-- Global commercial authorization. Apply atomically; the legacy flag remains
-+-- one platform-role source from 021, never a bypass of current permissions.
-+WITH initial_install AS (
-+ SELECT EXISTS(SELECT 1 FROM pg_policy WHERE polrelid='organizations'::regclass
-+   AND polname='organizations_scope_policy') AS first_install
-+), created_permissions AS (
-+ INSERT INTO permissions(key,resource_type,action,label)
-+ SELECT desired.* FROM (VALUES
-+  ('organizations:read','organization','read','Consultar organizações comerciais'),
-+  ('organizations:manage','organization','manage','Gerenciar organizações comerciais')
-+ ) desired(key,resource_type,action,label) CROSS JOIN initial_install i WHERE i.first_install
-+ ON CONFLICT(key) DO NOTHING RETURNING key
-+)
-+INSERT INTO role_permissions(role_key,permission_key)
-+ SELECT 'PLATFORM_ADMIN',key FROM created_permissions ON CONFLICT DO NOTHING;
++++ b/apps/admin-web/src/organization-access.tsx
+@@ -0,0 +1,167 @@
++import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
++import { useLocation } from "react-router-dom";
++import type { PlatformAuthorizationResponse } from "@predioon/contracts/tenancy";
++import { api, ApiError, Button, Card, ErrorBanner, LoadingState, useAuth } from "@predioon/ui";
 +
-+-- Preserve the final 036 whitelist and the statement-clock/live catalog checks.
-+DO $$ DECLARE definition text; BEGIN
-+ SELECT pg_get_functiondef('app_has_global_capability_at(text,timestamptz)'::regprocedure) INTO STRICT definition;
-+ IF position('''organizations:read''' IN definition)=0 AND position('''organizations:manage''' IN definition)=0 THEN
-+  IF regexp_count(definition,'''audit:read-platform''')<>1 THEN RAISE EXCEPTION 'Unexpected global capability whitelist'; END IF;
-+  EXECUTE replace(definition,'''audit:read-platform''','''audit:read-platform'',''organizations:read'',''organizations:manage''');
-+ ELSIF position('''organizations:read''' IN definition)=0 OR position('''organizations:manage''' IN definition)=0 THEN
-+  RAISE EXCEPTION 'Incomplete organization capability whitelist';
-+ END IF;
-+END $$;
++type Capabilities = PlatformAuthorizationResponse["capabilities"];
++type Snapshot = { capabilities: Capabilities | null; checking: boolean; error: string | null; readEpoch: number; manageEpoch: number };
++const reads = (capabilities: Capabilities | null) => capabilities?.includes("organizations:read") === true;
++const manages = (capabilities: Capabilities | null) => reads(capabilities) && capabilities?.includes("organizations:manage") === true;
 +
-+DROP POLICY IF EXISTS organizations_scope_policy ON organizations;
-+DROP POLICY IF EXISTS organizations_capability_read ON organizations;
-+CREATE POLICY organizations_capability_read ON organizations FOR SELECT TO predioon_app
-+ USING(app_has_global_capability('organizations:read'));
-+DROP POLICY IF EXISTS organizations_capability_insert ON organizations;
-+CREATE POLICY organizations_capability_insert ON organizations FOR INSERT TO predioon_app
-+ WITH CHECK(app_has_global_capability('organizations:read') AND app_has_global_capability('organizations:manage'));
-+DROP POLICY IF EXISTS organizations_capability_update ON organizations;
-+CREATE POLICY organizations_capability_update ON organizations FOR UPDATE TO predioon_app
-+ USING(app_has_global_capability('organizations:read') AND app_has_global_capability('organizations:manage'))
-+ WITH CHECK(app_has_global_capability('organizations:read') AND app_has_global_capability('organizations:manage'));
++function capabilitiesFrom(value: PlatformAuthorizationResponse): Capabilities {
++  if (!value || !Array.isArray(value.capabilities) || value.capabilities.some(key => typeof key !== "string")) {
++    throw new Error("A API retornou uma autorização de clientes inválida.");
++  }
++  // The finite projection never grants another module, including future keys.
++  return value.capabilities.filter(key => key === "organizations:read" || key === "organizations:manage");
++}
 +
-+-- Explicit HTTP insert columns keep creation timestamps and active=true as defaults.
-+REVOKE INSERT,UPDATE,DELETE ON organizations FROM predioon_app;
-+REVOKE INSERT(id,name,slug,active,metadata,created_at,updated_at),
-+ UPDATE(id,name,slug,active,metadata,created_at,updated_at) ON organizations FROM predioon_app;
-+GRANT SELECT ON organizations TO predioon_app;
-+GRANT INSERT(id,name,slug,metadata) ON organizations TO predioon_app;
-+GRANT UPDATE(name,slug,active,metadata,updated_at) ON organizations TO predioon_app;
-+REVOKE ALL ON FUNCTION app_can_access_organization(text)
-+ FROM PUBLIC,predioon_app,predioon_identity,predioon_broker_auth,predioon_notifications;
-+
-+-- Alter exactly the organization branch in each independent audit proof.
-+-- Existing owner, ACL, other branches and policy expressions are retained.
-+DO $$
-+DECLARE signature text; definition text; branch_start integer; branch_end integer;
-+ old_branch text; new_branch text;
-+ marker constant text := 'WHEN action_name IN (''ORGANIZATION_CREATED'',''ORGANIZATION_UPDATED'') AND target_type=''organization'' THEN';
-+ next_marker constant text := 'WHEN action_name=''USER_CREATED''';
-+ authority constant text := '(app_has_global_capability(''organizations:read'') AND app_has_global_capability(''organizations:manage''))';
-+BEGIN
-+ FOREACH signature IN ARRAY ARRAY[
-+  'app_audit_legacy_insert(text,text,text,text)',
-+  'app_audit_platform_insert(text,text,text,text,text)'
-+ ] LOOP
-+  SELECT pg_get_functiondef(signature::regprocedure) INTO STRICT definition;
-+  branch_start := position(marker IN definition);
-+  IF branch_start=0 THEN RAISE EXCEPTION 'Missing organization audit branch'; END IF;
-+  branch_end := position(next_marker IN substring(definition FROM branch_start));
-+  IF branch_end=0 THEN RAISE EXCEPTION 'Unexpected organization audit branch boundary'; END IF;
-+  old_branch := substring(definition FROM branch_start FOR branch_end-1);
-+  IF regexp_count(old_branch,'app_audit_legacy_platform_actor\(\)')=1 THEN
-+   new_branch := replace(old_branch,'app_audit_legacy_platform_actor()',authority);
-+   EXECUTE overlay(definition PLACING new_branch FROM branch_start FOR length(old_branch));
-+  ELSIF position(authority IN old_branch)=0 OR position('app_audit_legacy_platform_actor' IN old_branch)>0 THEN
-+   RAISE EXCEPTION 'Unexpected organization audit authority';
-+  END IF;
-+ END LOOP;
-+END $$;
-diff --git a/packages/contracts/src/organizations.ts b/packages/contracts/src/organizations.ts
-new file mode 100644
-index 0000000..38ce094
---- /dev/null
-+++ b/packages/contracts/src/organizations.ts
-@@ -0,0 +1,12 @@
-+/** Commercial data requires a global organizations:read capability. */
-+export type OrganizationView = {
-+  id: string;
-+  name: string;
-+  slug: string;
-+  active: boolean;
-+  metadata: Record<string, unknown>;
-+  createdAt: string;
-+  updatedAt: string;
-+};
-+export type CreateOrganizationRequest = { name: string; slug: string; metadata?: Record<string, unknown> };
-+export type UpdateOrganizationRequest = Partial<CreateOrganizationRequest> & { active?: boolean };
-diff --git a/apps/api/test/organizations-capabilities.test.ts b/apps/api/test/organizations-capabilities.test.ts
-new file mode 100644
-index 0000000..fbfb898
---- /dev/null
-+++ b/apps/api/test/organizations-capabilities.test.ts
-@@ -0,0 +1,324 @@
-+import assert from "node:assert/strict";
-+import { randomUUID } from "node:crypto";
-+import { createRequire } from "node:module";
-+import { readFile } from "node:fs/promises";
-+import { after, before, describe, it, mock } from "node:test";
-+import { sql } from "drizzle-orm";
-+import { sqlClient } from "@predioon/db";
-+import { appDb, closeAppDb, withUserContext } from "@predioon/db/runtime";
-+import { hashPassword } from "../src/auth/passwords.js";
-+import { pgErrorCode } from "../src/http/errors.js";
-+import { call, login, startTestServer, type TestServer } from "./helpers.js";
-+
-+describe("organizations require current global capabilities", () => {
-+  let server: TestServer, passwordHash: string;
-+  const temporary: string[] = [];
-+  before(async () => {
-+    passwordHash = await hashPassword("predioon123");
-+    server = await startTestServer();
-+    // Allow behavior RED against 038 without fixture FK/schema failures.
-+    for (const action of ["read", "manage"]) {
-+      const rows = await sqlClient`insert into permissions(key,resource_type,action,label)
-+        values(${`organizations:${action}`},'organization',${action},'Organization test permission')
-+        on conflict do nothing returning key`;
-+      for (const row of rows) {
-+        temporary.push(row.key);
-+        await sqlClient`insert into role_permissions(role_key,permission_key) values('PLATFORM_ADMIN',${row.key})`;
-+      }
++/** A page-owned, awaitable authorization read. A refresh requested during a slow
++ * read supersedes that result and queues one new read, without concurrent loops. */
++function createOrganizationAccess(session: { isValid(): boolean }) {
++  let snapshot: Snapshot = { capabilities: null, checking: true, error: null, readEpoch: 0, manageEpoch: 0 };
++  let last: Capabilities | null = null;
++  let active = false, running = false, desired = 0, started = 0;
++  let resolveRead: ((value: Capabilities | null) => void) | null = null;
++  const listeners = new Set<() => void>();
++  const current = () => active && session.isValid();
++  function publish(next: Snapshot) { snapshot = next; for (const listener of listeners) listener(); }
++  function settle(value: Capabilities | null) { const resolve = resolveRead; resolveRead = null; resolve?.(value); }
++  async function pump(): Promise<void> {
++    if (!current() || running || started === desired) return;
++    running = true;
++    const expected = desired; started = expected;
++    try {
++      const capabilities = capabilitiesFrom(await api.get<PlatformAuthorizationResponse>("/v1/authorization/platform"));
++      if (!current() || expected !== desired) return;
++      publish({ capabilities, checking: false, error: null,
++        readEpoch: snapshot.readEpoch + Number(reads(last) && !reads(capabilities)),
++        manageEpoch: snapshot.manageEpoch + Number(manages(last) && !manages(capabilities)) });
++      last = capabilities;
++      settle(capabilities);
++    } catch (cause) {
++      if (!current() || expected !== desired) return;
++      publish({ ...snapshot, capabilities: null, checking: false,
++        error: cause instanceof Error ? cause.message : "Não foi possível verificar o acesso a clientes." });
++      settle(null);
++    } finally {
++      running = false;
++      if (current() && started !== desired) void pump();
 +    }
-+  });
-+  after(async () => {
-+    await server?.close();
-+    if (temporary.length) await sqlClient`delete from permissions where key in ${sqlClient(temporary)}`;
-+    await closeAppDb(); await sqlClient.end();
-+  });
-+
-+  type Fixture = {
-+    org: string; inactive: string; building: string; prefix: string; binding: string;
-+    users: Record<"pure" | "flag" | "local" | "outsider" | "support", string>;
-+    request: (user: string, path?: string, method?: string, body?: unknown) => Promise<Response>;
-+    create: (user: string) => Promise<Response>;
++  }
++  function refresh(): Promise<Capabilities | null> {
++    if (!current()) return Promise.resolve(null);
++    // An older preflight must finish without writing, even if its fetch is slow.
++    settle(null); desired++;
++    publish({ ...snapshot, checking: true, error: null });
++    const result = new Promise<Capabilities | null>(resolve => { resolveRead = resolve; });
++    void pump();
++    return result;
++  }
++  return {
++    getSnapshot: () => snapshot,
++    subscribe(listener: () => void) { listeners.add(listener); return () => { listeners.delete(listener); }; },
++    current,
++    refresh,
++    start() { active = true; void refresh(); },
++    stop() { active = false; desired++; settle(null); },
++    invalidate() {
++      if (!current()) return;
++      last = [];
++      publish({ ...snapshot, capabilities: null, error: null, checking: true,
++        readEpoch: snapshot.readEpoch + 1, manageEpoch: snapshot.manageEpoch + 1 });
++      void refresh();
++    },
 +  };
-+  async function fixture(run: (f: Fixture) => Promise<void>) {
-+    const prefix = `org039-${randomUUID()}`, org = `${prefix}-main`, inactive = `${prefix}-inactive`, building = `${prefix}-building`, binding = randomUUID();
-+    const users = Object.fromEntries(["pure", "flag", "local", "outsider", "support"].map(kind => [kind, `${prefix}-${kind}`])) as Fixture["users"];
-+    const tokens = new Map<string, string>();
-+    const request: Fixture["request"] = async (user, path = "/organizations", method = "GET", body) => {
-+      if (!tokens.has(user)) tokens.set(user, (await login(server.url, `${user}@org039.test`)).accessToken);
-+      return call(server.url, path, { token: tokens.get(user), method, body });
-+    };
-+    const f: Fixture = { org, inactive, building, prefix, binding, users, request,
-+      create: user => request(user, "/organizations", "POST", { name: "Commercial client", slug: `${prefix}-${randomUUID().slice(0, 8)}`, metadata: { billing: "private fixture" } }) };
++}
++type Access = ReturnType<typeof createOrganizationAccess>;
++const Context = createContext<Access | null>(null);
++
++export function OrganizationAccessProvider({ children }: { children: ReactNode }) {
++  const { user, accessIntents } = useAuth();
++  // Auth invalidates the prior reference synchronously, also for same-account login.
++  const access = useMemo(() => createOrganizationAccess(accessIntents), [user?.id, accessIntents]);
++  useEffect(() => {
++    access.start();
++    const refresh = () => { if (document.visibilityState === "visible") void access.refresh(); };
++    window.addEventListener("focus", refresh);
++    document.addEventListener("visibilitychange", refresh);
++    const timer = setInterval(refresh, 30_000);
++    return () => { access.stop(); clearInterval(timer); window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", refresh); };
++  }, [access]);
++  return <Context.Provider value={access}>{children}</Context.Provider>;
++}
++
++export function useOrganizationAccess() {
++  const access = useContext(Context);
++  if (!access) throw new Error("OrganizationAccessProvider ausente");
++  const snapshot = useSyncExternalStore(access.subscribe, access.getSnapshot, access.getSnapshot);
++  return { ...snapshot, canRead: reads(snapshot.capabilities), canManage: manages(snapshot.capabilities),
++    refresh: access.refresh, invalidate: access.invalidate, current: access.current, access };
++}
++
++export function OrganizationAccessFeedback() {
++  const access = useOrganizationAccess();
++  if (access.checking && !access.capabilities) return <LoadingState text="Verificando acesso a clientes…" />;
++  return <Card>
++    {access.error ? <ErrorBanner message={`Acesso a clientes indisponível: ${access.error}`} /> : <p role="status" className="mb-3 text-sm text-slate-600">Você não tem permissão para consultar clientes.</p>}
++    <Button variant="secondary" disabled={access.checking} onClick={() => void access.refresh()}>Tentar novamente</Button>
++  </Card>;
++}
++
++/** Only these explicit routes inherit the old platform entry requirement. */
++const LEGACY_ROUTES = new Set(["/", "/predios", "/gateways", "/dispositivos", "/alertas", "/usuarios", "/unidades-equipes", "/funcionalidades", "/auditoria", "/operacao", "/suporte-remoto"]);
++export function organizationRouteAllowed(path: string, legacy: boolean, canRead: boolean): boolean {
++  const pathname = path.split(/[?#]/)[0]!.replace(/\/+$/, "") || "/";
++  return pathname === "/sessoes" || (pathname === "/clientes" ? canRead : legacy && LEGACY_ROUTES.has(pathname));
++}
++
++/** Mutations belong to the current view and session. No retry/replay is added. */
++export function useOrganizationMutation() {
++  const { access } = useOrganizationAccess();
++  const location = useLocation();
++  const generation = useRef(0), mounted = useRef(false), sending = useRef(false);
++  const [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null);
++  useLayoutEffect(() => {
++    mounted.current = true;
++    const invalidate = () => { generation.current++; };
++    const visibility = () => { if (document.visibilityState !== "visible") invalidate(); };
++    document.addEventListener("visibilitychange", visibility);
++    window.addEventListener("pagehide", invalidate);
++    return () => { mounted.current = false; invalidate(); document.removeEventListener("visibilitychange", visibility); window.removeEventListener("pagehide", invalidate); };
++  }, [access, location.key]);
++  const cancelPendingIntent = () => { generation.current++; setError(null); };
++  async function run<T>(required: "read" | "manage", operation: () => Promise<T>, succeeded: (value: T) => void) {
++    if (sending.current || !mounted.current || !access.current() || document.visibilityState !== "visible") return;
++    sending.current = true; setBusy(true); setError(null);
++    const expected = generation.current;
++    let submitted = false;
++    const current = () => mounted.current && generation.current === expected && access.current() && document.visibilityState === "visible";
 +    try {
-+      await sqlClient`insert into organizations(id,name,slug,active) values(${org},'Current client',${org},true),(${inactive},'Inactive client',${inactive},false)`;
-+      await sqlClient`insert into buildings(id,organization_id,name,code) values(${building},${org},'Local building',${building})`;
-+      for (const [kind, id] of Object.entries(users)) await sqlClient`insert into users(id,name,email,password_hash,is_platform_admin)
-+        values(${id},${kind},${`${id}@org039.test`},${passwordHash},${kind === "flag"})`;
-+      await sqlClient`insert into role_bindings(id,user_id,role_key) values(${binding},${users.pure},'PLATFORM_ADMIN')`;
-+      await sqlClient`insert into role_bindings(user_id,role_key) values(${users.support},'PLATFORM_SUPPORT')`;
-+      await sqlClient`insert into memberships(user_id,building_id,role) values(${users.local},${building},'BUILDING_ADMIN')`;
-+      await run(f);
++      const capabilities = await access.refresh();
++      if (!current()) return;
++      // A newer focus/revocation may supersede this completed response before
++      // its continuation runs. Never start a fresh request with an older grant.
++      if (access.getSnapshot().capabilities !== capabilities || access.getSnapshot().checking) return;
++      if (!(required === "manage" ? manages(capabilities) : reads(capabilities))) {
++        if (capabilities) throw new Error("Sua permissão mudou. A ação não foi enviada.");
++        throw new Error("Não foi possível confirmar sua permissão. A ação não foi enviada.");
++      }
++      submitted = true;
++      const result = await operation();
++      if (current()) succeeded(result);
++    } catch (cause) {
++      if (!current()) return;
++      if (cause instanceof ApiError && cause.status === 403) access.invalidate();
++      if (!(cause instanceof ApiError && cause.code === "SESSION_CHANGED")) {
++        const uncertain = submitted && cause instanceof ApiError && (cause.code === "NETWORK_ERROR" || cause.code === "INVALID_RESPONSE");
++        setError(uncertain ? "Não foi possível confirmar se a alteração foi concluída. Atualize a lista antes de tentar novamente."
++          : cause instanceof Error ? cause.message : "Não foi possível confirmar a resposta da operação. Atualize a lista antes de tentar novamente.");
++      }
 +    } finally {
-+      await sqlClient`delete from audit_logs where user_id in ${sqlClient(Object.values(users))}`;
-+      await sqlClient`delete from buildings where id=${building}`;
-+      await sqlClient`delete from organizations where slug like ${`${prefix}%`}`;
-+      await sqlClient`delete from users where id in ${sqlClient(Object.values(users))}`;
++      sending.current = false;
++      if (mounted.current && access.current()) setBusy(false);
 +    }
 +  }
-+  const as = <T>(userId: string, run: Parameters<typeof withUserContext<T>>[1]) => withUserContext({ userId, role: "PLATFORM_ADMIN" }, run);
-+  const edit = (f: Fixture, user = f.users.pure, body: unknown = { name: "Changed client" }) => f.request(user, `/organizations/${f.org}`, "PATCH", body);
-+  const snapshot = (f: Fixture) => sqlClient`select to_jsonb(o) as row from organizations o where slug like ${`${f.prefix}%`} order by id`;
-+  const audits = (f: Fixture) => sqlClient`select action,resource_id,scope_kind,scope_building_id,user_id from audit_logs where user_id in ${sqlClient(Object.values(f.users))} order by created_at,id`;
-+  async function body(response: Response, status = 200) {
-+    const data = await response.json(); assert.equal(response.status, status, JSON.stringify(data)); return data;
-+  }
-+  async function catalog(run: () => Promise<void>) {
-+    const [state] = await sqlClient`select (select to_jsonb(r) from roles r where key='PLATFORM_ADMIN') role,
-+      (select jsonb_agg(p) from permissions p where key in ('organizations:read','organizations:manage')) permissions,
-+      (select jsonb_agg(rp) from role_permissions rp where role_key='PLATFORM_ADMIN') grants`;
-+    try { await run(); }
-+    finally {
-+      await sqlClient.begin(async tx => {
-+        await tx`update roles set (active,created_at)=(select active,created_at from jsonb_populate_record(null::roles,${JSON.stringify(state!.role)}::jsonb)) where key='PLATFORM_ADMIN'`;
-+        await tx`update permissions p set (active,created_at)=(s.active,s.created_at)
-+          from jsonb_populate_recordset(null::permissions,${JSON.stringify(state!.permissions)}::jsonb) s where p.key=s.key`;
-+        await tx`delete from role_permissions where role_key='PLATFORM_ADMIN'`;
-+        await tx`insert into role_permissions select * from jsonb_populate_recordset(null::role_permissions,${JSON.stringify(state!.grants)}::jsonb)`;
-+      });
-+    }
-+  }
-+
-+  it("permits RBAC-only global readers and writers, including inactive organizations", async () => fixture(async f => {
-+    const list = await body(await f.request(f.users.pure));
-+    assert.ok(list.items.some((row: any) => row.id === f.inactive && !row.active));
-+    const created = await body(await f.create(f.users.pure), 201);
-+    assert.equal(created.metadata.billing, "private fixture");
-+    assert.equal(created.active, true);
-+    assert.equal((await body(await edit(f))).name, "Changed client");
-+    assert.equal((await body(await f.request(f.users.pure, `/organizations/${f.inactive}`, "PATCH", { active: true }))).active, true);
-+    const history = await audits(f);
-+    assert.equal(history.length, 3);
-+    assert.ok(history.every(row => row.scope_kind === "PLATFORM" && row.scope_building_id === null && row.user_id === f.users.pure));
-+  }));
-+  it("does not let a real legacy flag bypass a disabled platform role", async () => fixture(async f => catalog(async () => {
-+    const before = await snapshot(f);
-+    await sqlClient`update roles set active=false where key='PLATFORM_ADMIN'`;
-+    assert.equal((await f.request(f.users.flag)).status, 403);
-+    assert.equal((await f.create(f.users.flag)).status, 403);
-+    assert.equal((await edit(f, f.users.flag)).status, 403);
-+    assert.deepEqual(await snapshot(f), before); assert.equal((await audits(f)).length, 0);
-+  })));
-+  it("RLS denies forged app.role and commercial reading inherited from a local membership", async () => fixture(async f => {
-+    for (const user of [f.users.local, f.users.outsider, f.users.support]) {
-+      assert.equal((await f.request(user)).status, 403);
-+      assert.equal((await as(user, tx => tx.execute(sql`select id from organizations`))).length, 0);
-+      await assert.rejects(as(user, tx => tx.execute(sql`insert into organizations(id,name,slug) values(${`${f.prefix}-forged`},'Forbidden',${`${f.prefix}-forged`})`)), e => pgErrorCode(e) === "42501");
-+      assert.equal((await as(user, tx => tx.execute(sql`update organizations set name='Forbidden' where id=${f.org} returning id`))).length, 0);
-+    }
-+  }));
-+  for (const capability of ["organizations:read", "organizations:manage"]) for (const kind of ["permission", "grant"]) {
-+    it(`enforces ${capability} independently after ${kind} revocation on the same token`, async () => fixture(async f => catalog(async () => {
-+      assert.equal((await f.request(f.users.flag)).status, 200);
-+      const before = await snapshot(f);
-+      if (kind === "permission") await sqlClient`update permissions set active=false where key=${capability}`;
-+      else await sqlClient`delete from role_permissions where role_key='PLATFORM_ADMIN' and permission_key=${capability}`;
-+      assert.equal((await f.request(f.users.flag)).status, capability.endsWith(":read") ? 403 : 200);
-+      assert.equal((await f.create(f.users.flag)).status, 403);
-+      assert.equal((await edit(f, f.users.flag)).status, 403);
-+      await assert.rejects(as(f.users.flag, tx => tx.execute(sql`insert into organizations(id,name,slug) values(${`${f.prefix}-denied`},'Forbidden',${`${f.prefix}-denied`})`)), e => pgErrorCode(e) === "42501");
-+      assert.deepEqual(await snapshot(f), before); assert.equal((await audits(f)).length, 0);
-+    })));
-+  }
-+  it("revokes pure RBAC bindings while preserving the explicit legacy flag compatibility", async () => fixture(async f => {
-+    for (const mutate of [
-+      () => sqlClient`update role_bindings set active=false where id=${f.binding}`,
-+      () => sqlClient`update role_bindings set starts_at=clock_timestamp()+interval '1 hour' where id=${f.binding}`,
-+      () => sqlClient`update role_bindings set ends_at=clock_timestamp()-interval '1 second' where id=${f.binding}`,
-+    ]) {
-+      assert.equal((await f.request(f.users.pure)).status, 200);
-+      await mutate(); assert.equal((await f.request(f.users.pure)).status, 403); assert.equal((await edit(f)).status, 403);
-+      await sqlClient`update role_bindings set active=true,starts_at=null,ends_at=null where id=${f.binding}`;
-+    }
-+    await sqlClient`update users set is_platform_admin=true where id=${f.users.pure}`;
-+    await sqlClient`update role_bindings set active=false where id=${f.binding}`;
-+    assert.equal((await f.request(f.users.pure)).status, 200);
-+    await sqlClient`update users set is_platform_admin=false where id=${f.users.pure}`;
-+    assert.equal((await f.request(f.users.pure)).status, 403);
-+  }));
-+  it("does not grant DELETE or identity-column updates even to an authorized administrator", async () => fixture(async f => {
-+    for (const statement of [sql`delete from organizations where id=${f.inactive}`, sql`update organizations set id=${`${f.inactive}-moved`} where id=${f.inactive}`, sql`update organizations set created_at=clock_timestamp() where id=${f.inactive}`]) {
-+      await assert.rejects(as(f.users.flag, tx => tx.execute(statement)), e => pgErrorCode(e) === "42501");
-+    }
-+    assert.equal((await sqlClient`select id from organizations where id=${f.org}`).length, 1);
-+    await assert.rejects(as(f.users.pure, tx => tx.execute(sql`insert into organizations(id,name,slug,created_at)
-+      values(${`${f.prefix}-timestamp`},'Forbidden timestamp',${`${f.prefix}-timestamp`},'2000-01-01')`)), e => pgErrorCode(e) === "42501");
-+    assert.equal((await appDb.execute(sql`select id from organizations`)).length, 0, "pooled queries without authenticated transaction context must not see organizations");
-+  }));
-+  it("keeps commercial authority separate from local data and account activity", async () => fixture(async f => {
-+    for (const table of ["devices", "alerts", "financial_reports"]) assert.equal((await as(f.users.pure, tx => tx.execute(sql`select id from ${sql.identifier(table)} where building_id=${f.building}`))).length, 0);
-+    assert.equal((await f.request(f.users.local, `/buildings/${f.building}`)).status, 200);
-+    assert.equal((await f.request(f.users.flag)).status, 200);
-+    await sqlClient`update users set active=false where id=${f.users.flag}`;
-+    assert.equal((await f.request(f.users.flag)).status, 401);
-+    assert.equal((await as(f.users.flag, tx => tx.execute(sql`select id from organizations`))).length, 0);
-+    assert.equal((await call(server.url, "/organizations")).status, 401);
-+  }));
-+  it("requires current authority and a real platform organization for both audit proofs", async () => fixture(async f => catalog(async () => {
-+    for (const [building, type, target] of [[f.building, "organization", f.org], [null, "building", f.org], [null, "organization", "missing"]] as const) {
-+      await assert.rejects(as(f.users.pure, tx => tx.execute(sql`insert into audit_logs(user_id,building_id,action,resource_type,resource_id)
-+        values(${f.users.pure},${building},'ORGANIZATION_UPDATED',${type},${target})`)), e => pgErrorCode(e) === "42501");
-+    }
-+    await sqlClient`delete from role_permissions where role_key='PLATFORM_ADMIN' and permission_key='organizations:manage'`;
-+    await assert.rejects(as(f.users.flag, tx => tx.execute(sql`insert into audit_logs(user_id,action,resource_type,resource_id)
-+      values(${f.users.flag},'ORGANIZATION_UPDATED','organization',${f.org})`)), e => pgErrorCode(e) === "42501");
-+    const [proofs] = await as(f.users.flag, tx => tx.execute(sql`select
-+      app_audit_legacy_insert(null,'ORGANIZATION_UPDATED','organization',${f.org}) legacy,
-+      app_audit_platform_insert('PLATFORM',null,'ORGANIZATION_UPDATED','organization',${f.org}) platform`));
-+    assert.deepEqual(proofs, { legacy: false, platform: false });
-+  })));
-+  it("preserves response fields and uniqueness without publishing database errors", async () => fixture(async f => {
-+    const response = await f.request(f.users.flag);
-+    assert.equal(response.headers.get("cache-control"), "no-store");
-+    const row = (await body(response)).items.find((item: any) => item.id === f.org);
-+    assert.deepEqual(Object.keys(row).sort(), ["active", "createdAt", "id", "metadata", "name", "slug", "updatedAt"]);
-+    assert.equal((await f.request(f.users.flag, `/organizations/${f.org}`, "PATCH", { slug: f.inactive })).status, 409);
-+    assert.equal((await f.request(f.users.flag, "/organizations/missing", "PATCH", { name: "Missing" })).status, 404);
-+  }));
-+
-+  async function locked<T>(lock: (owner: any) => Promise<unknown>, start: () => Promise<T>, during: () => Promise<void>) {
-+    const require = createRequire(import.meta.url);
-+    const postgres = createRequire(require.resolve("@predioon/db"))("postgres") as (url: string, options: object) => typeof sqlClient;
-+    const client = postgres(process.env.DATABASE_URL!, { max: 1, connect_timeout: 2 });
-+    let release!: () => void, ready!: (pid: number) => void, reject!: (error: unknown) => void;
-+    const held = new Promise<void>(resolve => { release = resolve; });
-+    const acquired = new Promise<number>((resolve, fail) => { ready = resolve; reject = fail; });
-+    let pending: Promise<PromiseSettledResult<T>[]> | undefined, timer: ReturnType<typeof setTimeout> | undefined, started = false, result: T | undefined;
-+    const blocker = Promise.allSettled([client.begin(async owner => {
-+      await owner`set local lock_timeout='2s'`; await owner`set local statement_timeout='3s'`;
-+      await lock(owner); ready((await owner`select pg_backend_pid() as pid`)[0]!.pid); await held;
-+    })]);
-+    void blocker.then(([outcome]) => { if (outcome?.status === "rejected") reject(outcome.reason); });
-+    try {
-+      const pid = await Promise.race([acquired, new Promise<never>((_, fail) => { timer = setTimeout(() => fail(new Error("Organization blocker acquisition deadline")), 5000); })]);
-+      clearTimeout(timer); started = true; pending = Promise.allSettled([Promise.resolve().then(start)]);
-+      let waiting = false;
-+      for (let index = 0; index < 250; index++) {
-+        const [state] = await sqlClient`select exists(select 1 from pg_stat_activity a where a.usename='predioon_app'
-+          and a.wait_event_type='Lock' and ${pid}=any(pg_blocking_pids(a.pid))) waiting`;
-+        if (state!.waiting) { waiting = true; break; }
-+        await new Promise(resolve => setTimeout(resolve, 20));
-+      }
-+      assert.equal(waiting, true, "HTTP operation must actually wait on the owned database lock");
-+      await during();
-+    } finally {
-+      clearTimeout(timer); release();
-+      if (!started) await client.end({ timeout: 0 });
-+      const [blocks, responses] = await Promise.all([blocker, pending ?? Promise.resolve([])]);
-+      await client.end({ timeout: 1 });
-+      for (const outcome of [...blocks, ...responses]) if (outcome.status === "rejected") throw outcome.reason;
-+      if (responses[0]?.status === "fulfilled") result = responses[0].value;
-+    }
-+    return result as T;
-+  }
-+  for (const change of ["revoke", "expire"] as const) it(`revalidates current authority after a real organization lock (${change})`, async () => fixture(async f => {
-+    await f.request(f.users.pure); // Authenticate before acquiring the blocker.
-+    const before = await snapshot(f);
-+    const response = await locked(owner => owner`select id from organizations where id=${f.org} for update`, () => edit(f), async () => {
-+      if (change === "revoke") await sqlClient`update role_bindings set active=false where id=${f.binding}`;
-+      else {
-+        await sqlClient`update role_bindings set ends_at=clock_timestamp()+interval '0.1 seconds' where id=${f.binding}`;
-+        await sqlClient`select pg_sleep(0.15)`;
-+      }
-+    });
-+    assert.equal(response.status, 403, await response.clone().text());
-+    assert.deepEqual(await snapshot(f), before); assert.equal((await audits(f)).length, 0);
-+  }));
-+  async function auditTrigger(f: Fixture, body: string, run: () => Promise<void>) {
-+    const name = `org039_audit_${randomUUID().replaceAll("-", "")}`;
-+    await sqlClient.unsafe(`create function ${name}() returns trigger language plpgsql as $$ begin if NEW.user_id=TG_ARGV[0] then ${body}; end if; return NEW; end $$`);
-+    await sqlClient.unsafe(`create trigger ${name} before insert on audit_logs for each row execute function ${name}('${f.users.pure}')`);
-+    try { await run(); }
-+    finally { await sqlClient.unsafe(`drop trigger ${name} on audit_logs`); await sqlClient.unsafe(`drop function ${name}()`); }
-+  }
-+  for (const method of ["POST", "PATCH"] as const) it(`rolls back ${method} and audit when authority expires while audit waits`, async () => fixture(async f => {
-+    await f.request(f.users.pure);
-+    const before = await snapshot(f);
-+    await auditTrigger(f, "perform pg_advisory_xact_lock(390039,1)", async () => {
-+      const response = await locked(owner => owner`select pg_advisory_xact_lock(390039,1)`, () => method === "POST" ? f.create(f.users.pure) : edit(f), async () => {
-+        await sqlClient`update role_bindings set ends_at=clock_timestamp()+interval '0.1 seconds' where id=${f.binding}`;
-+        await sqlClient`select pg_sleep(0.15)`;
-+      });
-+      assert.equal(response.status, 403, await response.clone().text());
-+    });
-+    assert.deepEqual(await snapshot(f), before); assert.equal((await audits(f)).length, 0);
-+  }));
-+  it("audit rejection rolls back mutations without exposing private database details", async () => fixture(async f => {
-+    const before = await snapshot(f), logger = mock.method(console, "error", () => {});
-+    try {
-+      await auditTrigger(f, "raise exception 'private audit sentinel'", async () => {
-+        for (const send of [() => f.create(f.users.pure), () => edit(f)]) {
-+          const response = await send(); assert.equal(response.status, 500);
-+          assert.equal((await response.text()).includes("sentinel"), false);
-+        }
-+      });
-+      assert.equal(logger.mock.callCount(), 0);
-+    } finally { logger.mock.restore(); }
-+    assert.deepEqual(await snapshot(f), before); assert.equal((await audits(f)).length, 0);
-+  }));
-+  it("discards already-read commercial rows if authorization is revoked before the DTO", async () => fixture(async f => {
-+    const original = appDb.transaction; let delayed = false;
-+    function builder(target: any): any {
-+      return new Proxy(target, { get(object, key) {
-+        if (key === "then") return (resolve: any, reject: any) => object.then(async (rows: any) => {
-+          if (!delayed && object.toSQL().sql.includes('"organizations"')) {
-+            delayed = true; await sqlClient`update role_bindings set active=false where id=${f.binding}`;
-+          }
-+          return resolve(rows);
-+        }, reject);
-+        const value = Reflect.get(object, key);
-+        if (typeof value === "function") return (...args: any[]) => {
-+          const result = value.apply(object, args);
-+          return result && typeof result === "object" && ("from" in result || "toSQL" in result) ? builder(result) : result;
-+        };
-+        return value;
-+      } });
-+    }
-+    appDb.transaction = ((callback: any, ...options: any[]) => original.call(appDb, (tx: any) => callback(new Proxy(tx, {
-+      get(target, key, receiver) { if (key === "select") return (...args: any[]) => builder(target.select(...args)); return Reflect.get(target, key, receiver); },
-+    })), ...options)) as typeof appDb.transaction;
-+    try { assert.equal((await f.request(f.users.pure)).status, 403); assert.equal(delayed, true); }
-+    finally { appDb.transaction = original; }
-+  }));
-+  it("migration reapplication preserves revocations, other policies, helpers and runtime roles", async () => {
-+    const migration = await readFile(new URL("../../../infrastructure/039-organizations-capabilities.sql", import.meta.url), "utf8");
-+    const rollback = new Error("039 reapplication rollback");
-+    await assert.rejects(sqlClient.begin(async owner => {
-+      await owner`update permissions set active=false where key='organizations:read'`;
-+      await owner`delete from role_permissions where role_key='PLATFORM_ADMIN' and permission_key='organizations:manage'`;
-+      const before = await owner`select to_jsonb(p) row from permissions p order by key`;
-+      const grants = await owner`select to_jsonb(rp) row from role_permissions rp order by role_key,permission_key`;
-+      const unrelated = () => owner`select p.oid::regprocedure::text signature,p.prosrc,p.proacl::text,p.proowner,p.proconfig
-+        from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and left(p.proname,4)='app_'
-+        and p.proname not in ('app_has_global_capability_at','app_audit_legacy_insert','app_audit_platform_insert','app_can_access_organization') order by signature`;
-+      const functions = await unrelated();
-+      const policies = await owner`select * from pg_policies where schemaname='public' and tablename<>'organizations' order by tablename,policyname`;
-+      for (let iteration = 0; iteration < 2; iteration++) {
-+        await owner.unsafe(migration);
-+        assert.deepEqual(await owner`select to_jsonb(p) row from permissions p order by key`, before);
-+        assert.deepEqual(await owner`select to_jsonb(rp) row from role_permissions rp order by role_key,permission_key`, grants);
-+        assert.deepEqual(await unrelated(), functions);
-+        assert.deepEqual(await owner`select * from pg_policies where schemaname='public' and tablename<>'organizations' order by tablename,policyname`, policies);
-+      }
-+      await owner`delete from permissions where key in ('organizations:read','organizations:manage')`;
-+      await owner.unsafe(migration);
-+      assert.equal((await owner`select key from permissions where key in ('organizations:read','organizations:manage')`).length, 0);
-+      throw rollback;
-+    }), error => error === rollback);
-+    const [legacy] = await sqlClient`select has_function_privilege('predioon_app','app_can_access_organization(text)','execute') allowed`;
-+    assert.equal(legacy!.allowed, false);
-+    const [roles] = await sqlClient`select has_table_privilege('predioon_identity','organizations','select') identity,
-+      has_table_privilege('predioon_broker_auth','organizations','select') broker,
-+      has_table_privilege('predioon_notifications','organizations','select') notifications`;
-+    assert.deepEqual(roles, { identity: true, broker: false, notifications: false });
-+  });
-+});
-diff --git a/apps/api/test/authorization-platform.test.ts b/apps/api/test/authorization-platform.test.ts
-new file mode 100644
-index 0000000..39144a7
---- /dev/null
-+++ b/apps/api/test/authorization-platform.test.ts
-@@ -0,0 +1,64 @@
-+import assert from "node:assert/strict";
-+import { randomUUID } from "node:crypto";
-+import { after, before, describe, it } from "node:test";
-+import { sqlClient } from "@predioon/db";
-+import { closeAppDb } from "@predioon/db/runtime";
-+import { hashPassword } from "../src/auth/passwords.js";
-+import { call, login, startTestServer, type TestServer } from "./helpers.js";
-+
-+describe("platform authorization exposes only the current commercial capabilities", () => {
-+  let server: TestServer, passwordHash: string;
-+  before(async () => { passwordHash = await hashPassword("predioon123"); server = await startTestServer(); });
-+  after(async () => { await server?.close(); await closeAppDb(); await sqlClient.end(); });
-+  async function fixture(run: (f: { user: string; binding: string; token: string; request: () => Promise<Response> }) => Promise<void>) {
-+    const user = `org-projection-${randomUUID()}`, binding = randomUUID();
-+    try {
-+      await sqlClient`insert into users(id,name,email,password_hash) values(${user},'Projection fixture',${user + '@org039.test'},${passwordHash})`;
-+      await sqlClient`insert into role_bindings(id,user_id,role_key) values(${binding},${user},'PLATFORM_ADMIN')`;
-+      const { accessToken: token } = await login(server.url, user + '@org039.test');
-+      await run({ user, binding, token, request: () => call(server.url, '/v1/authorization/platform', { token }) });
-+    } finally { await sqlClient`delete from users where id=${user}`; }
-+  }
-+  it("returns a finite no-store projection without inventory or role-derived private powers", async () => fixture(async f => {
-+    const response = await f.request();
-+    assert.equal(response.status, 200, await response.clone().text());
-+    assert.equal(response.headers.get('cache-control'), 'no-store');
-+    assert.deepEqual(await response.json(), { capabilities: ['organizations:manage', 'organizations:read'] });
-+    assert.equal((await call(server.url, '/v1/authorization')).status, 401);
-+  }));
-+  it("returns an empty current scope on revocation using the same session", async () => fixture(async f => {
-+    assert.equal((await f.request()).status, 200);
-+    for (const mutation of [
-+      () => sqlClient`update role_bindings set active=false where id=${f.binding}`,
-+      () => sqlClient`update role_bindings set starts_at=clock_timestamp()+interval '1 hour' where id=${f.binding}`,
-+      () => sqlClient`update role_bindings set ends_at=clock_timestamp()-interval '1 second' where id=${f.binding}`,
-+    ]) {
-+      await mutation();
-+      const response = await f.request();
-+      assert.equal(response.status, 200); assert.equal(response.headers.get('cache-control'), 'no-store');
-+      assert.deepEqual(await response.json(), { capabilities: [] });
-+      await sqlClient`update role_bindings set active=true,starts_at=null,ends_at=null where id=${f.binding}`;
-+    }
-+  }));
-+  it("reports read and manage independently and preserves active catalog metadata", async () => fixture(async f => {
-+    for (const key of ['organizations:read', 'organizations:manage']) {
-+      const [prior] = await sqlClient`select to_jsonb(p) row from permissions p where key=${key}`;
-+      assert.ok(prior, '039 permission must exist for this post-migration negative');
-+      try {
-+        await sqlClient`update permissions set active=false where key=${key}`;
-+        const response = await f.request(); assert.equal(response.status, 200);
-+        assert.deepEqual(await response.json(), { capabilities: [key.endsWith(':read') ? 'organizations:manage' : 'organizations:read'] });
-+      } finally {
-+        await sqlClient`update permissions set (active,created_at)=(select active,created_at from jsonb_populate_record(null::permissions,${JSON.stringify(prior.row)}::jsonb)) where key=${key}`;
-+      }
-+    }
-+  }));
-+  it("requires active authenticated identity and does not turn query parameters into global authority", async () => fixture(async f => {
-+    assert.equal((await call(server.url, '/v1/authorization/platform')).status, 401);
-+    await sqlClient`delete from role_bindings where id=${f.binding}`;
-+    const response = await call(server.url, '/v1/authorization/platform?buildingId=foreign&resourceType=organization&resourceId=any', { token: f.token });
-+    assert.equal(response.status, 200); assert.deepEqual(await response.json(), { capabilities: [] });
-+    await sqlClient`update users set active=false where id=${f.user}`;
-+    assert.equal((await f.request()).status, 401);
-+  }));
-+});
++  return { busy, error, setError, run, cancelPendingIntent };
++}
 diff --git a/e2e/organizations.spec.ts b/e2e/organizations.spec.ts
 new file mode 100644
-index 0000000..fab75a4
+index 0000000..b18faf7
 --- /dev/null
 +++ b/e2e/organizations.spec.ts
-@@ -0,0 +1,116 @@
+@@ -0,0 +1,531 @@
 +import { randomUUID } from "node:crypto";
-+import { expect, test, type APIRequestContext } from "./fixtures";
++import { expect, test, type APIRequestContext, type Page } from "./fixtures";
 +import { ADMIN_URL, API_URL } from "./environment";
-+import { authenticatedApi, signIn } from "./helpers";
++import { authenticatedApi, enterCredentials, signIn, signOut } from "./helpers";
 +import { withFixtureDatabase } from "./database";
 +
 +type Account = { id: string; email: string };
++type CatalogGrant = { role_key: string; permission_key: string; created_at: string };
 +type Fixture = {
 +  prefix: string; organization: string; inactive: string; building: string;
 +  name: string; inactiveName: string; buildingName: string;
@@ -825,11 +887,12 @@ index 0000000..fab75a4
 +  const pure = account("pure"), flag = account("flag"), outsider = account("outsider");
 +  const users = [pure.id, flag.id, outsider.id], binding = randomUUID();
 +  const name = `Cliente próprio ${prefix}`, inactiveName = `Cliente inativo ${prefix}`, buildingName = `Imóvel próprio ${prefix}`;
-+  let grants: unknown[] | undefined;
++  let grants: CatalogGrant[] | undefined;
 +  try {
 +    await withFixtureDatabase(async sql => {
-+      grants = await sql`select * from role_permissions where role_key='PLATFORM_ADMIN'
++      const catalog = await sql<{ row: CatalogGrant }[]>`select to_jsonb(rp) row from role_permissions rp where role_key='PLATFORM_ADMIN'
 +        and permission_key in ('organizations:read','organizations:manage') order by permission_key`;
++      grants = catalog.map(({ row }) => row); // JSON retains PostgreSQL microseconds exactly.
 +      expect(grants).toHaveLength(2);
 +      await sql.begin(async tx => {
 +        await tx`insert into organizations(id,name,slug,active,metadata) values
@@ -859,7 +922,7 @@ index 0000000..fab75a4
 +      async setCapability(key, enabled) {
 +        await withFixtureDatabase(async sql => {
 +          await sql`delete from role_permissions where role_key='PLATFORM_ADMIN' and permission_key=${key}`;
-+          if (enabled) await sql`insert into role_permissions select * from jsonb_populate_recordset(null::role_permissions,${JSON.stringify(grants)}::jsonb) where permission_key=${key}`;
++          if (enabled) await sql`insert into role_permissions select * from jsonb_populate_recordset(null::role_permissions,${sql.json(grants!)}::jsonb) where permission_key=${key}`;
 +        });
 +      },
 +      async revokeBinding() { await withFixtureDatabase(sql => sql`update role_bindings set active=false where id=${binding}`); },
@@ -868,10 +931,10 @@ index 0000000..fab75a4
 +    await withFixtureDatabase(async sql => sql.begin(async tx => {
 +      if (grants) {
 +        await tx`delete from role_permissions where role_key='PLATFORM_ADMIN' and permission_key in ('organizations:read','organizations:manage')`;
-+        await tx`insert into role_permissions select * from jsonb_populate_recordset(null::role_permissions,${JSON.stringify(grants)}::jsonb)`;
++        await tx`insert into role_permissions select * from jsonb_populate_recordset(null::role_permissions,${tx.json(grants)}::jsonb)`;
 +      }
 +      await tx`delete from audit_logs where user_id in ${tx(users)} or resource_id in (${organization},${inactive},${building})`;
-+      await tx`delete from buildings where id=${building}`;
++      await tx`delete from buildings where organization_id in (${organization},${inactive})`;
 +      // Only this scenario's unguessable slug namespace, including uncertain POST responses.
 +      await tx`delete from organizations where slug like ${prefix + '%'} or id in (${organization},${inactive})`;
 +      await tx`delete from users where id in ${tx(users)}`;
@@ -893,6 +956,304 @@ index 0000000..fab75a4
 +  });
 +}));
 +
++async function openClients(page: Page, account: Account) {
++  await signIn(page, ADMIN_URL, account.email);
++  await page.goto(`${ADMIN_URL}/clientes`);
++  await expect(page.getByRole("heading", { name: "Clientes", exact: true })).toBeVisible();
++}
++const clientRow = (page: Page, name: string) => page.getByRole("article", { name: `Cliente ${name}`, exact: true });
++async function fillClient(page: Page, name: string, slug: string) {
++  await page.getByLabel("Nome do cliente", { exact: true }).fill(name);
++  await page.getByLabel("Slug do cliente", { exact: true }).fill(slug);
++}
++async function focusAuthorization(page: Page) {
++  const response = page.waitForResponse(r => r.url() === `${API_URL}/v1/authorization/platform`);
++  await page.evaluate(() => window.dispatchEvent(new Event("focus")));
++  expect((await response).status()).toBe(200);
++}
++
++/** Delay a real response, and prove its body reached the same browser document.
++ * The client may rightly refuse to consume an old identity's original stream. */
++async function holdFirstResponse(page: Page, path: string) {
++  let release!: () => void, reached!: () => void;
++  const barrier = new Promise<void>(resolve => { release = resolve; });
++  const held = new Promise<void>(resolve => { reached = resolve; });
++  const marker = randomUUID();
++  await page.evaluate(({ path, marker, origin }) => {
++    const host = window as typeof window & { organizationDeliveries?: Record<string, unknown> };
++    host.organizationDeliveries ??= {};
++    const original = window.fetch.bind(window);
++    let captured = false;
++    window.fetch = async (...args) => {
++      const input = args[0];
++      const url = new URL(typeof input === "string" ? input : input instanceof URL ? input.href : input.url, location.href);
++      const selected = !captured && url.origin === origin && url.pathname === path;
++      if (selected) captured = true;
++      const response = await original(...args);
++      if (selected) host.organizationDeliveries![marker] = await response.clone().json();
++      return response;
++    };
++  }, { path, marker, origin: API_URL });
++  let once = false;
++  await page.route(`${API_URL}${path}`, async route => {
++    if (once || route.request().method() !== "GET") return route.continue();
++    once = true;
++    const actual = await route.fetch();
++    expect(actual.status()).toBe(200);
++    reached();
++    await barrier;
++    await route.fulfill({ response: actual });
++  });
++  return {
++    held, release,
++    async delivered() {
++      await expect.poll(() => page.evaluate(marker => (window as typeof window & { organizationDeliveries?: Record<string, unknown> }).organizationDeliveries?.[marker] !== undefined, marker)).toBe(true);
++      return page.evaluate(marker => (window as typeof window & { organizationDeliveries: Record<string, unknown> }).organizationDeliveries[marker], marker);
++    },
++  };
++}
++
++test("organizações: conta comercial não monta módulos legados nem oferece seus atalhos", async ({ page, request }, info) => withOrganizations(request, async f => {
++  await openClients(page, f.pure);
++  await expect(clientRow(page, f.name)).toBeVisible();
++  await expect(page.getByRole("link", { name: "Ver alertas", exact: true })).toHaveCount(0);
++  await page.getByRole("textbox", { name: "Buscar no sistema", exact: true }).fill("Alertas");
++  await expect(page.getByText("Nenhuma página encontrada.", { exact: true })).toBeVisible();
++  const requests: string[] = [];
++  page.on("request", current => { if (new URL(current.url()).origin === API_URL) requests.push(new URL(current.url()).pathname); });
++  for (const route of ["predios", "gateways", "dispositivos", "alertas", "usuarios", "unidades-equipes", "funcionalidades", "auditoria", "operacao", "suporte-remoto", "predios/?check=1"]) {
++    await page.goto(`${ADMIN_URL}/${route}`);
++    await expect(page.getByText("Este painel é exclusivo da administração da plataforma.", { exact: true })).toBeVisible();
++    await expect(page.getByRole("link", { name: "Ir para Clientes", exact: true })).toBeVisible();
++  }
++  expect(requests.every(path => path.startsWith("/auth/") || path === "/v1/authorization/platform")).toBe(true);
++  await page.getByRole("link", { name: "Ir para Clientes", exact: true }).click();
++  await expect(clientRow(page, f.name)).toBeVisible();
++  await page.setViewportSize({ width: 390, height: 844 });
++  await page.getByRole("button", { name: "Abrir menu", exact: true }).click();
++  const menu = page.getByRole("dialog", { name: "Menu principal", exact: true });
++  await expect(menu.getByRole("link")).toHaveCount(2);
++  await expect(menu.getByRole("button", { name: "Fechar menu", exact: true })).toBeFocused();
++  await menu.getByRole("link", { name: "Minhas sessões", exact: true }).click();
++  await expect(page.getByRole("article", { name: "Sessão deste navegador", exact: true })).toBeVisible();
++  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
++  if (info.project.name === "chromium") await page.screenshot({ path: info.outputPath("commercial-own-sessions-mobile.png"), fullPage: true });
++}));
++
++test("organizações: gestor cria uma vez, edita parcialmente e confirma desativação e reativação", async ({ page, request }, info) => withOrganizations(request, async f => {
++  await openClients(page, f.pure);
++  await expect(clientRow(page, f.name)).toBeVisible();
++  const createdName = `Novo ${f.prefix}`, slug = `${f.prefix}-novo`;
++  await fillClient(page, createdName, slug);
++  let posts = 0;
++  page.on("request", current => { if (current.url() === `${API_URL}/organizations` && current.method() === "POST") posts++; });
++  const created = page.waitForResponse(r => r.url() === `${API_URL}/organizations` && r.request().method() === "POST");
++  // Two submit events exercise the synchronous guard independently of a disabled button.
++  await page.getByRole("form", { name: "Cadastrar cliente", exact: true }).evaluate(form => { (form as HTMLFormElement).requestSubmit(); (form as HTMLFormElement).requestSubmit(); });
++  expect((await created).status()).toBe(201);
++  await expect(clientRow(page, createdName)).toBeVisible();
++  expect(posts).toBe(1);
++  await clientRow(page, f.name).getByRole("button", { name: "Editar cliente", exact: true }).click();
++  const changedName = `Atualizado ${f.prefix}`;
++  await fillClient(page, changedName, `${f.prefix}-editado`);
++  const edited = page.waitForResponse(r => r.url() === `${API_URL}/organizations/${f.organization}` && r.request().method() === "PATCH");
++  await page.getByRole("button", { name: "Salvar cliente", exact: true }).click();
++  const update = await edited;
++  expect(update.status()).toBe(200);
++  expect(Object.keys(update.request().postDataJSON()).sort()).toEqual(["name", "slug"]);
++  expect((await update.json()).metadata).toEqual({ preserve: "commercial metadata" });
++  await expect(clientRow(page, changedName)).toBeVisible();
++  let patches = 0;
++  page.on("request", current => { if (current.url() === `${API_URL}/organizations/${f.organization}` && current.method() === "PATCH") patches++; });
++  await clientRow(page, changedName).getByRole("button", { name: "Desativar cliente", exact: true }).click();
++  await page.getByRole("button", { name: "Manter estado atual", exact: true }).click();
++  expect(patches).toBe(0);
++  for (const active of [false, true]) {
++    await clientRow(page, changedName).getByRole("button", { name: active ? "Reativar cliente" : "Desativar cliente", exact: true }).click();
++    const response = page.waitForResponse(r => r.url() === `${API_URL}/organizations/${f.organization}` && r.request().method() === "PATCH");
++    await page.getByRole("button", { name: active ? "Confirmar reativação" : "Confirmar desativação", exact: true }).click();
++    const result = await response;
++    expect(result.status()).toBe(200); expect(result.request().postDataJSON()).toEqual({ active });
++    await expect(clientRow(page, changedName).getByText(active ? "Ativo" : "Inativo", { exact: true })).toBeVisible();
++  }
++  expect(patches).toBe(2);
++  await page.reload();
++  await expect(clientRow(page, changedName)).toBeVisible();
++  await expect(clientRow(page, createdName)).toBeVisible();
++  await withFixtureDatabase(async sql => {
++    const rows = await sql`select action from audit_logs where user_id=${f.pure.id}`;
++    expect(rows.filter(row => row.action === "ORGANIZATION_CREATED")).toHaveLength(1);
++    expect(rows.filter(row => row.action === "ORGANIZATION_UPDATED")).toHaveLength(3);
++  });
++  if (info.project.name === "chromium") await page.screenshot({ path: info.outputPath("commercial-clients-managed.png"), fullPage: true });
++}));
++
++test("organizações: conflito real conserva rascunho e não repete a escrita ao revalidar", async ({ page, request }) => withOrganizations(request, async f => {
++  await openClients(page, f.pure);
++  const draft = `Rascunho ${f.prefix}`;
++  await fillClient(page, draft, f.organization);
++  let posts = 0;
++  page.on("request", current => { if (current.url() === `${API_URL}/organizations` && current.method() === "POST") posts++; });
++  const response = page.waitForResponse(r => r.url() === `${API_URL}/organizations` && r.request().method() === "POST");
++  await page.getByRole("button", { name: "Cadastrar cliente", exact: true }).click();
++  expect((await response).status()).toBe(409);
++  await expect(page.getByRole("alert")).toContainText("Já existe uma organização com este slug");
++  await expect(page.getByLabel("Nome do cliente", { exact: true })).toHaveValue(draft);
++  await expect(page.getByLabel("Slug do cliente", { exact: true })).toHaveValue(f.organization);
++  await focusAuthorization(page);
++  expect(posts).toBe(1);
++}));
++
++test("organizações: revoga gestão e leitura legadas sem restaurar o rascunho depois", async ({ page, request }) => withOrganizations(request, async f => {
++  await openClients(page, f.flag);
++  await clientRow(page, f.name).getByRole("button", { name: "Editar cliente", exact: true }).click();
++  await page.getByLabel("Nome do cliente", { exact: true }).fill("Rascunho que deve ser descartado");
++  await f.setCapability("organizations:manage", false);
++  await f.capabilities(f.flag, ["organizations:read"]);
++  await focusAuthorization(page);
++  await expect(page.getByLabel("Nome do cliente", { exact: true })).toHaveCount(0);
++  await expect(clientRow(page, f.name)).toBeVisible();
++  await f.setCapability("organizations:manage", true);
++  await focusAuthorization(page);
++  await expect(page.getByLabel("Nome do cliente", { exact: true })).toHaveValue("");
++  await f.setCapability("organizations:read", false);
++  await focusAuthorization(page);
++  await expect(page.getByText("Você não tem permissão para consultar clientes.", { exact: true })).toBeVisible();
++  await expect(page.getByRole("article")).toHaveCount(0);
++  await expect(page.getByLabel("Nome do cliente", { exact: true })).toHaveCount(0);
++  await expect(page.getByRole("link", { name: "Condomínios", exact: true })).toBeVisible();
++}));
++
++test("organizações: binding puro revogado retira clientes e conserva sessões próprias", async ({ page, request }) => withOrganizations(request, async f => {
++  await openClients(page, f.pure);
++  await expect(clientRow(page, f.name)).toBeVisible();
++  await f.revokeBinding();
++  await f.capabilities(f.pure, []);
++  await focusAuthorization(page);
++  await expect(page.getByRole("article")).toHaveCount(0);
++  await expect(page.getByRole("link", { name: "Clientes", exact: true })).toHaveCount(0);
++  const sessions = page.waitForResponse(r => new URL(r.url()).pathname === "/auth/sessions");
++  await page.getByRole("link", { name: "Minhas sessões", exact: true }).click();
++  const data = await (await sessions).json();
++  expect(data.items.length).toBeGreaterThan(0);
++  expect(data.items.every((row: { userId: string }) => row.userId === f.pure.id)).toBe(true);
++  await signOut(page);
++}));
++
++test("organizações: GET antigo não recoloca dados depois de revogar leitura e atualizar em pendência", async ({ page, request }) => withOrganizations(request, async f => {
++  await openClients(page, f.pure);
++  await expect(clientRow(page, f.name)).toBeVisible();
++  const delayed = await holdFirstResponse(page, "/organizations");
++  try {
++    await page.getByRole("button", { name: "Atualizar clientes", exact: true }).click();
++    await delayed.held;
++    await page.getByRole("button", { name: "Atualizar clientes", exact: true }).click();
++    await f.setCapability("organizations:read", false);
++    await focusAuthorization(page);
++    await expect(page.getByRole("article")).toHaveCount(0);
++    delayed.release();
++    const actual = await delayed.delivered() as { items: { id: string }[] };
++    expect(actual.items.some(row => row.id === f.organization)).toBe(true);
++    await expect(page.getByText(f.name, { exact: true })).toHaveCount(0);
++    await expect(page.getByLabel("Nome do cliente", { exact: true })).toHaveCount(0);
++  } finally { delayed.release(); }
++}));
++
++for (const destination of ["sessions", "same-account", "other-account"] as const) {
++  test(`organizações: preflight antigo não escreve após ${destination}`, async ({ page, request }) => withOrganizations(request, async f => {
++    await openClients(page, f.pure);
++    await fillClient(page, "Intenção antiga", `${f.prefix}-pending`);
++    const delayed = await holdFirstResponse(page, "/v1/authorization/platform");
++    let posts = 0;
++    page.on("request", current => { if (current.url() === `${API_URL}/organizations` && current.method() === "POST") posts++; });
++    try {
++      await page.getByRole("button", { name: "Cadastrar cliente", exact: true }).click();
++      await delayed.held;
++      if (destination === "sessions") {
++        await page.getByRole("link", { name: "Minhas sessões", exact: true }).click();
++        await expect(page.getByRole("article", { name: "Sessão deste navegador", exact: true })).toBeVisible();
++      } else {
++        await signOut(page);
++        await enterCredentials(page, destination === "same-account" ? f.pure.email : f.outsider.email);
++        if (destination === "same-account") await expect(page.getByLabel("Nome do cliente", { exact: true })).toHaveValue("");
++        else await expect(page.getByText("Você não tem permissão para consultar clientes.", { exact: true })).toBeVisible();
++      }
++      delayed.release();
++      expect(await delayed.delivered()).toEqual({ capabilities: ["organizations:manage", "organizations:read"] });
++      expect(posts).toBe(0);
++      await withFixtureDatabase(async sql => { expect(await sql`select id from organizations where slug=${f.prefix + '-pending'}`).toHaveLength(0); });
++    } finally { delayed.release(); }
++  }));
++}
++
++test("organizações: revogação posterior ao preflight recebe403 e fecha o escopo sem replay", async ({ page, request }) => withOrganizations(request, async f => {
++  await openClients(page, f.pure);
++  await fillClient(page, "Intenção revogada", `${f.prefix}-revoked`);
++  const delayed = await holdFirstResponse(page, "/v1/authorization/platform");
++  let posts = 0;
++  page.on("request", current => { if (current.url() === `${API_URL}/organizations` && current.method() === "POST") posts++; });
++  try {
++    await page.getByRole("button", { name: "Cadastrar cliente", exact: true }).click();
++    await delayed.held;
++    await f.revokeBinding();
++    const denied = page.waitForResponse(r => r.url() === `${API_URL}/organizations` && r.request().method() === "POST");
++    delayed.release();
++    expect((await denied).status()).toBe(403);
++    await expect(page.getByText("Você não tem permissão para consultar clientes.", { exact: true })).toBeVisible();
++    expect(posts).toBe(1);
++    await expect(page.getByRole("article")).toHaveCount(0);
++    await withFixtureDatabase(async sql => { expect(await sql`select action from audit_logs where user_id=${f.pure.id}`).toHaveLength(0); });
++  } finally { delayed.release(); }
++}));
++
++test("organizações: falhas de projeção e listagem têm retry real sem parecer lista vazia", async ({ page, request }) => withOrganizations(request, async f => {
++  let projectionFailure = true, listFailure = true;
++  await page.route(`${API_URL}/v1/authorization/platform`, route => {
++    if (!projectionFailure) return route.continue();
++    projectionFailure = false;
++    return route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "Autorização temporariamente indisponível" }) });
++  });
++  await page.route(`${API_URL}/organizations`, route => {
++    if (!listFailure) return route.continue();
++    listFailure = false;
++    return route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "Lista temporariamente indisponível" }) });
++  });
++  await signIn(page, `${ADMIN_URL}/clientes`, f.pure.email);
++  await expect(page.getByRole("alert")).toContainText("Autorização temporariamente indisponível");
++  await expect(page.getByText("Nenhum cliente cadastrado.", { exact: true })).toHaveCount(0);
++  await page.getByRole("button", { name: "Tentar novamente", exact: true }).click();
++  await expect(page.getByRole("alert")).toContainText("Lista temporariamente indisponível");
++  await expect(page.getByText("Nenhum cliente cadastrado.", { exact: true })).toHaveCount(0);
++  await page.getByRole("button", { name: "Tentar novamente", exact: true }).click();
++  await expect(clientRow(page, f.name)).toBeVisible();
++}));
++
++test("organizações: Imóveis revalida seleção antes de enviar e não exige gestão comercial", async ({ page, request }) => withOrganizations(request, async f => {
++  await signIn(page, ADMIN_URL, f.flag.email);
++  await page.goto(`${ADMIN_URL}/predios`);
++  await page.getByLabel("Cliente", { exact: true }).selectOption(f.organization);
++  await page.getByLabel("Nome", { exact: true }).fill("Imóvel de teste");
++  await page.getByLabel("Código", { exact: true }).fill("PRE039");
++  let posts = 0;
++  page.on("request", current => { if (current.url() === `${API_URL}/buildings` && current.method() === "POST") posts++; });
++  await f.setCapability("organizations:read", false);
++  await page.getByRole("button", { name: "Cadastrar", exact: true }).click();
++  await expect(page.getByText("Você não tem permissão para consultar clientes.", { exact: true })).toBeVisible();
++  await expect(page.getByLabel("Cliente", { exact: true })).toHaveCount(0);
++  await expect(page.getByText(f.buildingName, { exact: true })).toBeVisible();
++  expect(posts).toBe(0);
++  await f.setCapability("organizations:read", true);
++  await f.setCapability("organizations:manage", false);
++  await focusAuthorization(page);
++  await expect(page.getByLabel("Cliente", { exact: true })).toHaveValue("");
++  await page.getByLabel("Cliente", { exact: true }).selectOption(f.organization);
++  const created = page.waitForResponse(r => r.url() === `${API_URL}/buildings` && r.request().method() === "POST");
++  await page.getByRole("button", { name: "Cadastrar", exact: true }).click();
++  expect((await created).status()).toBe(201);
++  await expect(page.getByText("Imóvel de teste", { exact: true })).toBeVisible();
++  expect(posts).toBe(1);
++}));
++
 +test("organizações: leitor legado consulta ativos e inativos sem formulário ou ações", async ({ page, request }) => withOrganizations(request, async f => {
 +  await f.setCapability("organizations:manage", false);
 +  await f.capabilities(f.flag, ["organizations:read"]);
@@ -902,6 +1263,54 @@ index 0000000..fab75a4
 +  await expect(page.getByText(f.inactiveName, { exact: true })).toBeVisible();
 +  await expect(page.getByRole("button", { name: /Cadastrar|Editar|Desativar|Reativar/ })).toHaveCount(0);
 +  await expect(page.getByLabel("Slug", { exact: true })).toHaveCount(0);
++}));
++
++for (const lostResponse of ["network", "invalid-json"] as const) {
++  test(`organizações: escrita concluída com resposta ${lostResponse} orienta reconciliação sem replay`, async ({ page, request }) => withOrganizations(request, async f => {
++    await openClients(page, f.pure);
++    const draft = `Resultado incerto ${f.prefix}`, slug = `${f.prefix}-uncertain`;
++    await fillClient(page, draft, slug);
++    let posts = 0;
++    await page.route(`${API_URL}/organizations`, async route => {
++      if (route.request().method() !== "POST") return route.continue();
++      posts++;
++      const actual = await route.fetch();
++      expect(actual.status()).toBe(201); // The server really committed before losing its response.
++      if (lostResponse === "network") return route.abort("failed");
++      return route.fulfill({ response: actual, body: "{invalid-json" });
++    });
++    await page.getByRole("button", { name: "Cadastrar cliente", exact: true }).click();
++    await expect(page.getByRole("alert")).toContainText("Não foi possível confirmar se a alteração foi concluída. Atualize a lista antes de tentar novamente.");
++    await expect(page.getByLabel("Nome do cliente", { exact: true })).toHaveValue(draft);
++    await expect(page.getByLabel("Slug do cliente", { exact: true })).toHaveValue(slug);
++    await page.getByRole("button", { name: "Atualizar clientes", exact: true }).click();
++    await expect(clientRow(page, draft)).toBeVisible();
++    await focusAuthorization(page);
++    expect(posts).toBe(1);
++    await withFixtureDatabase(async sql => {
++      expect(await sql`select id from organizations where slug=${slug}`).toHaveLength(1);
++      expect(await sql`select id from audit_logs where user_id=${f.pure.id} and action='ORGANIZATION_CREATED'`).toHaveLength(1);
++    });
++  }));
++}
++
++test("organizações: cancelar edição com preflight pendente invalida a intenção antiga", async ({ page, request }) => withOrganizations(request, async f => {
++  await openClients(page, f.pure);
++  await clientRow(page, f.name).getByRole("button", { name: "Editar cliente", exact: true }).click();
++  await page.getByLabel("Nome do cliente", { exact: true }).fill("Não deve persistir");
++  const delayed = await holdFirstResponse(page, "/v1/authorization/platform");
++  let patches = 0;
++  page.on("request", current => { if (new URL(current.url()).pathname.startsWith("/organizations/") && current.method() === "PATCH") patches++; });
++  try {
++    await page.getByRole("button", { name: "Salvar cliente", exact: true }).click();
++    await delayed.held;
++    await page.getByRole("button", { name: "Cancelar edição", exact: true }).click();
++    delayed.release();
++    expect(await delayed.delivered()).toEqual({ capabilities: ["organizations:manage", "organizations:read"] });
++    await expect(page.getByRole("button", { name: "Cadastrar cliente", exact: true })).toBeVisible();
++    expect(patches).toBe(0);
++    await withFixtureDatabase(async sql => { expect((await sql`select name from organizations where id=${f.organization}`)[0]!.name).toBe(f.name); });
++  } finally { delayed.release(); }
 +}));
 +
 +test("organizações: Imóveis preserva sua lista sem consultar seletor comercial não autorizado", async ({ page, request }) => withOrganizations(request, async f => {
@@ -915,4 +1324,71 @@ index 0000000..fab75a4
 +  expect(organizationReads, "Sem read comercial não há consulta de opções").toBe(0);
 +  await expect(page.getByRole("button", { name: "Cadastrar", exact: true })).toBeDisabled();
 +  await expect(page.getByText("Você não tem permissão para consultar clientes.", { exact: true })).toBeVisible();
++}));
++
++test("organizações: erro transitório no preflight conserva rascunho sem enviar escrita", async ({ page, request }) => withOrganizations(request, async f => {
++  await openClients(page, f.pure);
++  await fillClient(page, "Rascunho preservado", `${f.prefix}-draft`);
++  let failOnce = true, posts = 0;
++  await page.route(`${API_URL}/v1/authorization/platform`, route => {
++    if (!failOnce) return route.continue();
++    failOnce = false;
++    return route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "Preflight indisponível" }) });
++  });
++  page.on("request", current => { if (current.url() === `${API_URL}/organizations` && current.method() === "POST") posts++; });
++  await page.getByRole("button", { name: "Cadastrar cliente", exact: true }).click();
++  await expect(page.getByText(/Acesso a clientes indisponível: Preflight indisponível/)).toBeVisible();
++  await page.getByRole("button", { name: "Tentar novamente", exact: true }).click();
++  await expect(page.getByLabel("Nome do cliente", { exact: true })).toHaveValue("Rascunho preservado");
++  await expect(page.getByLabel("Slug do cliente", { exact: true })).toHaveValue(`${f.prefix}-draft`);
++  expect(posts).toBe(0);
++}));
++
++test("organizações: evento de background invalida preflight mesmo depois de retornar", async ({ page, request }) => withOrganizations(request, async f => {
++  await openClients(page, f.pure);
++  await fillClient(page, "Intenção antes do background", `${f.prefix}-background`);
++  const delayed = await holdFirstResponse(page, "/v1/authorization/platform");
++  let posts = 0;
++  page.on("request", current => { if (current.url() === `${API_URL}/organizations` && current.method() === "POST") posts++; });
++  try {
++    await page.getByRole("button", { name: "Cadastrar cliente", exact: true }).click();
++    await delayed.held;
++    // Deterministic lifecycle event, not a claim of real OS/tab suspension.
++    await page.evaluate(() => {
++      Object.defineProperty(document, "visibilityState", { configurable: true, value: "hidden" });
++      document.dispatchEvent(new Event("visibilitychange"));
++      Object.defineProperty(document, "visibilityState", { configurable: true, value: "visible" });
++      document.dispatchEvent(new Event("visibilitychange"));
++    });
++    delayed.release();
++    expect(await delayed.delivered()).toEqual({ capabilities: ["organizations:manage", "organizations:read"] });
++    await expect(page.getByRole("button", { name: "Cadastrar cliente", exact: true })).toBeEnabled();
++    expect(posts).toBe(0);
++    await withFixtureDatabase(async sql => { expect(await sql`select id from organizations where slug=${f.prefix + '-background'}`).toHaveLength(0); });
++  } finally { delayed.release(); }
++}));
++
++test("organizações: seletor de Imóveis aguarda dados novos depois de perder e recuperar leitura", async ({ page, request }) => withOrganizations(request, async f => {
++  await signIn(page, ADMIN_URL, f.flag.email);
++  await page.goto(`${ADMIN_URL}/predios`);
++  await page.getByLabel("Cliente", { exact: true }).selectOption(f.organization);
++  await f.setCapability("organizations:read", false);
++  await focusAuthorization(page);
++  await expect(page.getByLabel("Cliente", { exact: true })).toHaveCount(0);
++  const delayed = await holdFirstResponse(page, "/organizations");
++  try {
++    await f.setCapability("organizations:read", true);
++    await focusAuthorization(page);
++    await delayed.held;
++    await expect(page.getByLabel("Cliente", { exact: true })).toBeDisabled();
++    await expect(page.getByLabel("Cliente", { exact: true })).toHaveValue("");
++    await expect(page.getByRole("option", { name: f.name, exact: true })).toHaveCount(0);
++    await expect(page.getByText(f.buildingName, { exact: true })).toBeVisible();
++    delayed.release();
++    const delivered = await delayed.delivered() as { items: { id: string }[] };
++    expect(delivered.items.some(row => row.id === f.organization)).toBe(true);
++    await expect(page.getByLabel("Cliente", { exact: true })).toBeEnabled();
++    await expect(page.getByRole("option", { name: f.name, exact: true })).toHaveCount(1);
++    await expect(page.getByLabel("Cliente", { exact: true })).toHaveValue("");
++  } finally { delayed.release(); }
 +}));

@@ -1,0 +1,346 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-10-05",
+  "sourceCommit": "f7444572f7b5920597a3b16023ec7fe5235413a5",
+  "status": "runner-build-advanced-authentication-blocked-at-ats-guard",
+  "sourceFiles": [
+    {
+      "path": "scripts/ios-smoke/run_auth.py",
+      "sha256LF": "6c21302681b5c9d3b2cc9a0d00213d9a297b85eaa4f8ab9be11d5bea8580070a",
+      "gitBlob": "67f53ca6eaa9d83799aa2d86ff4e76bda5e90b99",
+      "freezeMatched": true
+    },
+    {
+      "path": "scripts/ios-smoke/test_auth.py",
+      "sha256LF": "5e5d4dc6132054ac4a09b07e472763b3e90cb5bc467d5bd76e4da74e08b28de5",
+      "gitBlob": "643287312438c73e9927bf8fee0b07177801cb20",
+      "freezeMatched": true
+    },
+    {
+      "path": "scripts/ios-smoke/README.md",
+      "sha256LF": "f08cee1ab0981a041e7e888894427600c60f39dfa19205adec33e9a17fb82b4a",
+      "gitBlob": "9e366a067f96175ad96e63f0472240a2a8cceda9",
+      "freezeMatched": true
+    },
+    {
+      "path": "scripts/ios-smoke/project.rb",
+      "sha256LF": "648cf00c386c17cf922c57faa5b85280eb121e5f9acba7af264b14cbfc8747c6",
+      "gitBlob": "2d3ac71e103fa7b9c814543e15fca100839073db",
+      "freezeMatched": true
+    },
+    {
+      "path": "scripts/ios-smoke/AuthJourney.swift",
+      "sha256LF": "17624694466f96c2803467a2c345dd85f8209839898d62337fc936c8c37e153b",
+      "gitBlob": "5195045accbe2b5f0f71e0057be76b7141d22a04",
+      "freezeMatched": true
+    },
+    {
+      "path": "scripts/ios-smoke/prepare_auth.py",
+      "sha256LF": "9bd961c1e02becb27cd16a12feac2cfa98636efce440da7ee62323ceeb3d2a6a",
+      "gitBlob": "bdea986fa21c7813dc88217e98073641b3535ccb",
+      "freezeMatched": true
+    },
+    {
+      "path": "scripts/ios-smoke/capture.py",
+      "sha256LF": "a2ad808d6ab3e2d84ee7aabf7e828d6e067e1031d389c177663763d99135a40d",
+      "gitBlob": "5c294dee67b4973908abc8bda6c29a692b29da66",
+      "freezeMatched": true
+    },
+    {
+      "path": "scripts/ios-smoke/wait_https_proxy.py",
+      "sha256LF": "d01c56b552ef05b3e0ae2381ae897a593fa441a873682ec28810ef16b4cac9b7",
+      "gitBlob": "bf9b6c9d78708dcc60892b3ea1260fa8773110b7",
+      "freezeMatched": true
+    },
+    {
+      "path": "scripts/ios-smoke/test_https_proxy.py",
+      "sha256LF": "5889beb9a8ff3b542bd67b57161cf35f3b6e7ae9af91d225959eb1fdea635c2c",
+      "gitBlob": "2e77f7d6d1a9db8b3cd9edcf9cb1fad698ad5728",
+      "freezeMatched": true
+    },
+    {
+      "path": ".github/workflows/ios-auth.yml",
+      "sha256LF": "9f1d223fca442ff38514a05ad7d2f5b88ad07ab771f80e1eccb96645afae6398",
+      "gitBlob": "4314e34ca4cddf24622913a3998d0c89b35838ac",
+      "freezeMatched": true
+    },
+    {
+      "path": ".github/workflows/ios.yml",
+      "sha256LF": "2b421211f75a5c95cce65c89b6883ea42fa9ef0c45a976ad62611e7d11af1bdb",
+      "gitBlob": "122b846351b256b71491d08404375e1beed821d5",
+      "freezeMatched": true
+    }
+  ],
+  "sourceMigrationCount": 38,
+  "organizations039Included": false,
+  "runs": [
+    {
+      "kind": "auth",
+      "run": {
+        "id": 37251180530,
+        "name": "iOS authenticated identity and password",
+        "path": ".github/workflows/ios-auth.yml",
+        "head_sha": "f7444572f7b5920597a3b16023ec7fe5235413a5",
+        "head_branch": "main",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "failure",
+        "run_attempt": 1,
+        "created_at": "2026-10-05T01:22:34Z",
+        "updated_at": "2026-10-05T01:37:14Z",
+        "html_url": "https://github.com/helberjf/predioON/actions/runs/37251180530"
+      },
+      "jobs": [
+        {
+          "id": 111578969344,
+          "name": "authenticated",
+          "status": "completed",
+          "conclusion": "failure"
+        }
+      ]
+    },
+    {
+      "kind": "startup",
+      "run": {
+        "id": 37251180567,
+        "name": "Native iOS verification",
+        "path": ".github/workflows/ios.yml",
+        "head_sha": "f7444572f7b5920597a3b16023ec7fe5235413a5",
+        "head_branch": "main",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "failure",
+        "run_attempt": 1,
+        "created_at": "2026-10-05T01:22:34Z",
+        "updated_at": "2026-10-05T01:31:09Z",
+        "html_url": "https://github.com/helberjf/predioON/actions/runs/37251180567"
+      },
+      "jobs": [
+        {
+          "id": 111578969754,
+          "name": "ios (operations-mobile, PredioONOperacao)",
+          "status": "completed",
+          "conclusion": "failure"
+        },
+        {
+          "id": 111578969898,
+          "name": "ios (resident-mobile, PredioONMorador)",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "kind": "platform",
+      "run": {
+        "id": 37251180578,
+        "name": "Platform verification",
+        "path": ".github/workflows/ci.yml",
+        "head_sha": "f7444572f7b5920597a3b16023ec7fe5235413a5",
+        "head_branch": "main",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "run_attempt": 1,
+        "created_at": "2026-10-05T01:22:34Z",
+        "updated_at": "2026-10-05T01:40:30Z",
+        "html_url": "https://github.com/helberjf/predioON/actions/runs/37251180578"
+      },
+      "jobs": [
+        {
+          "id": 111579660620,
+          "name": "platform",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 111579660627,
+          "name": "backup",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 111579660633,
+          "name": "notifications",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "kind": "auth",
+      "id": 11321406093,
+      "zipSha256": "44e251221ac95f4b266408dcded05f628ceceee93ee6cfd93385a96f4db5ac1b",
+      "officialDigestMatched": true,
+      "zipCrcValid": true,
+      "sourceMatched": true,
+      "rootRevalidated": true
+    },
+    {
+      "kind": "resident",
+      "id": 11320448726,
+      "zipSha256": "48100067f3b5800a9442a416ab05348a777415336a0cb5b003fd422956f47560",
+      "officialDigestMatched": true,
+      "zipCrcValid": true,
+      "sourceMatched": true,
+      "rootRevalidated": true
+    },
+    {
+      "kind": "operations",
+      "id": 11320998919,
+      "zipSha256": "711dfd219f45cd3f0b3710edb3fe588257ef04b5818cc3e7dd38362e54966043",
+      "officialDigestMatched": true,
+      "zipCrcValid": true,
+      "sourceMatched": true,
+      "rootRevalidated": true
+    }
+  ],
+  "auth": {
+    "result": {
+      "passed": false,
+      "scope": "two coinstalled iOS Release apps, real isolated HTTPS/API sessions, Keychain restore, password change and logout",
+      "commit": "f7444572f7b5920597a3b16023ec7fe5235413a5",
+      "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-18-5",
+      "sdkVersion": "18.5",
+      "steps": [],
+      "failureKind": "native-journey-failed",
+      "failureDiagnostic": {
+        "stage": "runner-ats-check",
+        "category": "verification-failed",
+        "exitCode": null
+      }
+    },
+    "builds": [
+      {
+        "app": "resident-mobile",
+        "bundleId": "com.predioon.resident",
+        "mode": "Release",
+        "sha256": "3271bc991b113383607ee8038dca4e7c63f5e3cb1e6d94bace549be84fa72289"
+      },
+      {
+        "app": "operations-mobile",
+        "bundleId": "com.predioon.operations",
+        "mode": "Release",
+        "sha256": "9457c8a9964209a2403b13acda240ebe8b7fdf32de1ea5d268aa7eedfcf526b7"
+      }
+    ],
+    "databaseSource": {
+      "postgres": "16.15",
+      "timescale": "2.17.2",
+      "postgresSha256": "c1575341fa7bd40f5274ea465b34390f4dc64cdd0770af327005caaeb9f6b7ed",
+      "timescaleSha256": "85dd01deaa0728f95d117c1a75ca0cbf78f3301e6ab2b98bebe5f7c95b793acb"
+    },
+    "runnerBuildAndPlistStagesAdvanced": true,
+    "testWithoutBuildingInvokedByHarness": false,
+    "approvedCheckpoints": 0,
+    "approvedImages": 0,
+    "exportedApprovedPOSTs": 0,
+    "completeTransportProofAvailable": false,
+    "concreteAtsFieldOrTypeObserved": false,
+    "atsGuardRelaxed": false
+  },
+  "startup": {
+    "resident": {
+      "result": {
+        "commit": "f7444572f7b5920597a3b16023ec7fe5235413a5",
+        "bundleId": "com.predioon.resident",
+        "binarySha256": "ec0a8adbcc811b0acf797e061ebe8be66698b99db0e5520bb6e1065453c94ad1",
+        "passed": true,
+        "scope": "launch, process survival, relaunch and login-form OCR; no authenticated requests",
+        "phases": [
+          "simulator-signature-verified",
+          "simulator-booted",
+          "release-installed",
+          "01-first-launch",
+          "02-new-process"
+        ],
+        "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-18-5",
+        "sdkVersion": "18.5",
+        "embeddedEntitlementSection": true,
+        "errorPresent": false,
+        "diagnosticErrorPresent": false,
+        "cleanupErrorCount": 0
+      },
+      "originalImages": [
+        {
+          "file": "01-first-launch.png",
+          "sha256": "960209f31d97036bc23192ceadd8c62e357c6920a779aba6779c232d44f90251",
+          "width": 1206,
+          "height": 2622,
+          "bytes": 144170,
+          "visualReview": "pending"
+        },
+        {
+          "file": "02-new-process.png",
+          "sha256": "8246409ab113c17fe1b53c2dd52408ebcd79781ce094bd7b7a968aa6a592d507",
+          "width": 1206,
+          "height": 2622,
+          "bytes": 145155,
+          "visualReview": "pending"
+        }
+      ],
+      "rootVisualReview": true
+    },
+    "operations": {
+      "result": {
+        "commit": "f7444572f7b5920597a3b16023ec7fe5235413a5",
+        "bundleId": "com.predioon.operations",
+        "binarySha256": "cbe9bdf910673be88ca484fa980d658d5699e90a1788addafd7b7b8259295f35",
+        "passed": false,
+        "scope": "launch, process survival, relaunch and login-form OCR; no authenticated requests",
+        "phases": [
+          "simulator-signature-verified",
+          "simulator-booted",
+          "release-installed"
+        ],
+        "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-18-5",
+        "sdkVersion": "18.5",
+        "embeddedEntitlementSection": true,
+        "errorPresent": true,
+        "diagnosticErrorPresent": false,
+        "cleanupErrorCount": 0,
+        "errorCategory": "host-command-timeout",
+        "commandTimeoutSeconds": 120.0
+      },
+      "originalImages": [],
+      "rootVisualReview": false
+    }
+  },
+  "publishedOriginalImage": {
+    "file": "ios-morador-startup-f744457.png",
+    "sha256": "8246409ab113c17fe1b53c2dd52408ebcd79781ce094bd7b7a968aa6a592d507",
+    "width": 1206,
+    "height": 2622,
+    "sourceCommit": "f7444572f7b5920597a3b16023ec7fe5235413a5",
+    "sourceRun": "https://github.com/helberjf/predioON/actions/runs/37251180567",
+    "sourceArtifactId": 11320448726,
+    "sourceArtifactSha256": "48100067f3b5800a9442a416ab05348a777415336a0cb5b003fd422956f47560",
+    "sourceArtifact": "02-new-process.png",
+    "sourcePhase": "02-new-process",
+    "capturedOn": "2026-10-05",
+    "binarySha256Reported": "ec0a8adbcc811b0acf797e061ebe8be66698b99db0e5520bb6e1065453c94ad1",
+    "evidence": "../../evidencias/ios-f744457.json",
+    "reviewed": true,
+    "scope": "Original empty login form after a new iOS Release process; both original resident startup PNGs visually reviewed by root.",
+    "limit": "Resident startup only; operations timed out and authentication stopped at the ATS guard before XCTest. Keychain,14POST, physical devices and production remain pending."
+  },
+  "galleryImageCount": 33,
+  "privateKeyRead": false,
+  "privateLogOrPlaintextRead": false,
+  "encryptedCompanionListed": false,
+  "nativeAuthenticatedAccepted": false,
+  "appleHistoricalCaseCauseEstablished": false,
+  "productionAccepted": false,
+  "physicalDevicesAccepted": false,
+  "computerRestarted": false,
+  "limits": [
+    "Preserving the producer UUID advanced runner compilation in this execution; it does not establish the sole historical cause.",
+    "The required ATS guard failed before test-without-building. The exported result does not reveal which field or type caused the rejection.",
+    "Zero approved POSTs is not proof of zero real transport requests. No complete authenticated XCTest/Keychain/family acceptance is available.",
+    "Resident startup passed five phases; operations has three phases and a120s timeout, with process start unknown and no PNG.",
+    "All three platform jobs passed on this exact source; test totals are not inferred from job status. SQL039 belongs to a later independent source.",
+    "The new PNG is copied byte for byte. Gallery controls were not retested because the saved8765 access denial remains in force."
+  ]
+}

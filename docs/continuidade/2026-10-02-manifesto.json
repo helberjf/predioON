@@ -1,78 +1,54 @@
 {
-  "baseCommit": "f7444572f7b5920597a3b16023ec7fe5235413a5",
-  "capturedOn": "2026-10-04",
+  "baseCommit": "758debaeeebf4a775af1ab0746666a8a3bb36a5c",
+  "capturedOn": "2026-10-05",
   "state": "Drafts: restore for review, not approved product changes",
   "patch": "2026-10-02-em-andamento.patch",
-  "sha256": "d7d2afb87197d94c449675987e8fba1d7bab409fbddeea7319df0b3c364e051a",
+  "sha256": "be0d4c344dda8c51c16c7cf4e1fe3962d6dd549e1ae3093199466529b6ff899f",
   "files": [
     {
-      "path": "infrastructure/039-organizations-capabilities.sql",
-      "sha256LF": "4aacbd0c1a8197b2593892737a54055fd11dc3c828c0b9fc07f65f841080b319"
+      "path": "e2e/README.md",
+      "sha256LF": "fe49a50885a2f025cd6983054aefd5ccd2498d1ce3c5a6bf287109b10b9a90b9"
     },
     {
-      "path": "apps/api/src/modules/organizations/routes.ts",
-      "sha256LF": "fec826bd5a41aaf06713170518e4d31fc23677b887444785c4c3dfada1301f5c"
-    },
-    {
-      "path": "apps/api/src/modules/authorization/routes.ts",
-      "sha256LF": "581e42650c0328bf9112a6e9df6e3fd6b8e7a1da1ceb1f22551cc0ddb71a45f7"
-    },
-    {
-      "path": "packages/shared/src/rbac.ts",
-      "sha256LF": "324f0eecfc30ca7866347f82c27eec65dd98d846371fc80c4e6bd1af0a6cb844"
-    },
-    {
-      "path": "packages/contracts/src/tenancy.ts",
-      "sha256LF": "2a77d28ed141ed1c072b17ae6577b42832c5051ca16c09d386bdeb36aca7a469"
-    },
-    {
-      "path": "packages/contracts/src/organizations.ts",
-      "sha256LF": "f66c0da67a6a7bb9b02072d1fcd053dedc74046c37ea681dd3d5902b319f8b4c"
-    },
-    {
-      "path": "packages/contracts/src/index.ts",
-      "sha256LF": "ffc55c3d6f11fce79ca7531f7301f4de45e0eff40df25b9661ad93756e839404"
-    },
-    {
-      "path": "apps/api/test/organizations-capabilities.test.ts",
-      "sha256LF": "10cb23bb3a8baf8b14f1192b5e344e8b035b71f2b6d30f3ed602ba2b86d7ead3"
-    },
-    {
-      "path": "apps/api/test/authorization-platform.test.ts",
-      "sha256LF": "4a62a9b56999b7d7a751afb9dd42df31b93affa71d07ba98ef473200454f603e"
-    },
-    {
-      "path": "apps/api/test/rbac-tenancy-unit.test.ts",
-      "sha256LF": "980ae8b3ee97dd1be1fcdbc61987acd16a683f6011a31e1d0a506580698f8ca9"
+      "path": "scripts/ios-smoke/test_auth.py",
+      "sha256LF": "2cee1ef3b1647e9484cb9a373551a0d0e105496e133fd5cb9c6b14a946886ee1"
     },
     {
       "path": "pnpm-lock.yaml",
       "sha256LF": "1849fb5db34d768f07bab0e21f4279bf22c46f17fbd238bf8f76808e025de00f"
     },
     {
-      "path": "packages/db/test/notification-delivery.test.ts",
-      "sha256LF": "62eed5da055c072c98f63736ef73550beeddb1e4a3b05b74c42c3f1b6639d590"
-    },
-    {
-      "path": "docs/MIGRATIONS.md",
-      "sha256LF": "3b7cffc8d918f8153e30683e3d5817eb46e890bd85cb039b04e529b5f6cd7861"
-    },
-    {
       "path": "apps/admin-web/package.json",
       "sha256LF": "5f84065def1ce880ecc1cb4e7f38b5a766bd6ee0c1657f5cb69161e20c2538a8"
     },
     {
-      "path": "e2e/organizations.spec.ts",
-      "sha256LF": "209e00ed7dde46519c660705220d8ab39de8d5874c3ad17e17d0303155e36776"
+      "path": "apps/admin-web/src/App.tsx",
+      "sha256LF": "234e3779a9ea78c095f0d887d8e3278ab3fbba5db6d9c52e7480f19f975143c5"
     },
     {
-      "path": "packages/db/test/backup-restore.test.ts",
-      "sha256LF": "77c152b047561024cc2d969b928fe5e744263e88af6432e2cb383cb613c1812f"
+      "path": "apps/admin-web/src/layout/Shell.tsx",
+      "sha256LF": "9bb293369e4f6588fe29719fba151adbf2bcab91aea0c4dc8dfff3446db6392f"
+    },
+    {
+      "path": "apps/admin-web/src/pages/Clients.tsx",
+      "sha256LF": "8a21ed04669aeb91c8c181280507265120ed1570496e9a7792437395274b4c15"
+    },
+    {
+      "path": "apps/admin-web/src/pages/Buildings.tsx",
+      "sha256LF": "b4133b8641b07eeada9bfb16af62e0f0b4fc203b1c614f815a66b479fa3abd09"
+    },
+    {
+      "path": "apps/admin-web/src/organization-access.tsx",
+      "sha256LF": "38fe24ccb82702e48a483b8c7c48476c994fbfdd3ab33edcd21f011b13a74219"
+    },
+    {
+      "path": "e2e/organizations.spec.ts",
+      "sha256LF": "6ee75a61b61928db635f5631f1601d58ab63a39d65023f2ab726b2a1019713b6"
     }
   ],
   "restoreCheck": {
     "passed": true,
-    "filesVerified": 16,
+    "filesVerified": 10,
     "method": "git apply to archived base, compare SHA-256 with normalized LF"
   }
 }
