@@ -1,9 +1,9 @@
 {
-  "baseCommit": "e5f98e481893860363aab2d3c050c532400e024c",
+  "baseCommit": "0e72f646e71231c974404b73810268ab6667aa1e",
   "capturedOn": "2026-10-05",
   "state": "Drafts: restore for review, not approved product changes",
   "patch": "2026-10-02-em-andamento.patch",
-  "sha256": "ee28a6f5686dfe11ab7543460523c84ab0ce4e2808065aa65e9421de185e7d5c",
+  "sha256": "ad2bde430031f817b3aeddbc250af06ca9bd61d47da4b1d6520de387b6fa415f",
   "files": [
     {
       "path": "infrastructure/040-users-runtime-acl.sql",
@@ -12,14 +12,6 @@
     {
       "path": "apps/api/test/users-runtime-acl.test.ts",
       "sha256LF": "2cc7ec80cd86b1d79e90e08672454fffeee0a6a044f166347e14838abd25643f"
-    },
-    {
-      "path": "scripts/ios-smoke/project.rb",
-      "sha256LF": "6c279a4a596a26043fe9dbd9c5573e7d828c7dc30a33305e46fadff498b50496"
-    },
-    {
-      "path": "scripts/ios-smoke/test_auth.py",
-      "sha256LF": "a5524e75bfcc94717963c58a5b88728e982181875da62bc7a8939abca1df61f6"
     },
     {
       "path": "packages/db/test/notification-delivery.test.ts",
@@ -32,7 +24,7 @@
   ],
   "restoreCheck": {
     "passed": true,
-    "filesVerified": 6,
+    "filesVerified": 4,
     "method": "git apply to archived base, compare SHA-256 with normalized LF"
   }
 }

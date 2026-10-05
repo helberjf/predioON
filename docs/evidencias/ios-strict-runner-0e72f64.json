@@ -1,0 +1,168 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-10-05",
+  "sourceCommit": "0e72f646e71231c974404b73810268ab6667aa1e",
+  "status": "strict-private-runner-source-host-approved-apple-pending",
+  "sourceMigrationCount": 39,
+  "sourceFiles": [
+    {
+      "path": "scripts/ios-smoke/project.rb",
+      "sha256LF": "eee4a271c193c4ee35e61b8b6d4a9e2d27b3f14cdd6998fba87f2ea626211819",
+      "gitBlobLF": "9b5268cead75895a93828983c7ea5abf89f4bf26",
+      "baselineSha256LF": "648cf00c386c17cf922c57faa5b85280eb121e5f9acba7af264b14cbfc8747c6",
+      "baselineGitBlobLF": "2d3ac71e103fa7b9c814543e15fca100839073db",
+      "bytesLF": 6452
+    },
+    {
+      "path": "scripts/ios-smoke/test_auth.py",
+      "sha256LF": "b5e4b1f856f2326bbbc32eea6a793618159241a4b21d1eca19a4db5c2efc0821",
+      "gitBlobLF": "9a7a13c2a15375ced926974a621d4cd997f89668",
+      "baselineSha256LF": "4f6b58ae6d2015fa0efaa4d3a3120011d084a0d6beae023a46ab618d8a657f43",
+      "baselineGitBlobLF": "e883e95ca8414dcb3b692d7f2b409408617be51d",
+      "bytesLF": 97708
+    },
+    {
+      "path": "scripts/ios-smoke/README.md",
+      "sha256LF": "947d09ed09fc9e7a8c5f58681ff88b05e6ffca452cce398f43aa792681c58bed",
+      "gitBlobLF": "7fd2749e81f5da8b8aaa7dc7e49932012f0189e6",
+      "baselineSha256LF": "fa51057f9bd6af66bc3b2760501c140d692a9225d74bb902879e80ae95476fad",
+      "baselineGitBlobLF": "277518420cda004dde854068ef5814f15648cd69",
+      "bytesLF": 57069
+    }
+  ],
+  "baseline": "cf9b92741b2358a51ca6ebf4b964889ac3039bee",
+  "behavior": {
+    "fixedSimulatorPlatformDiscovery": true,
+    "discoveryDeadlineSeconds": 15,
+    "discoveryOutputMaxBytes": 4096,
+    "stderrDiscarded": true,
+    "privateExclusiveAppleAgentCopy": true,
+    "globalTemplateUnchanged": true,
+    "onlyCopiedInfoPlistAtsChanged": true,
+    "arbitraryLoadsEnabled": false,
+    "exceptionDomainsConfigured": false,
+    "runnerPathDebugAndRelease": true,
+    "normalXcodeGenerationAndSigning": true,
+    "noPostBuildEditOrResigning": true,
+    "ownedGroupKilledOnDiscoveryFailureAfterLeaderReaped": true,
+    "independentPeerPreserved": true,
+    "noOriginEnvironmentFallback": true
+  },
+  "tests": {
+    "initialGeneratorRed": {
+      "checks": 3,
+      "failed": 3,
+      "actualRubyGenerator": true,
+      "logSha256": "19776ce77dc16e8e77a921f31a4ec7d18c6817658aaf5f62667bb27cb96f4d85"
+    },
+    "previous142Candidate": {
+      "blockedByReview": true,
+      "sourceAndLogsRetained": true,
+      "notAccepted": true
+    },
+    "descendantCleanupRed": {
+      "tests": 1,
+      "failed": 1,
+      "realOwnedProcesses": true,
+      "logSha256": "3fc019eb8da745ab5258b882fd32e53e24f8d8698060e124254bb92b96ac2af4",
+      "sourceZipSha256": "91f3a3e45b1ffe60076d25e1f27aca117b70eb81afc6825859f798144ae1863c"
+    },
+    "directedCleanupGreen": {
+      "tests": 1,
+      "passed": 1,
+      "logSha256": "82acdad80b10dd30a43117da4db99877020e95781aeec627d952c878bae4e692"
+    },
+    "authorHost": [
+      {
+        "file": "ios-ats-generator-host-windows-v2.log",
+        "sha256": "94d039419073c15e6b06a7db27c4ed394b658c7504054c15e23490b39459f2a7",
+        "tests": 143,
+        "passed": 121,
+        "skipped": 22,
+        "failed": 0,
+        "seconds": 24.798
+      },
+      {
+        "file": "ios-ats-generator-host-linux-v2.log",
+        "sha256": "4a20ed1a98b49f620c1abcfb65133aba78729cd209b5b073667258e87959a618",
+        "tests": 143,
+        "passed": 143,
+        "skipped": 0,
+        "failed": 0,
+        "seconds": 93.155
+      }
+    ],
+    "rootWindows": {
+      "tests": 143,
+      "passed": 121,
+      "skipped": 22,
+      "failed": 0,
+      "errors": 0,
+      "durationSeconds": 24.6,
+      "logSha256": "7623b8c4435dce60fbdad5fa7c31166d53b48e98b32ef1fdb080d2e55905f486"
+    },
+    "linuxRuntime": {
+      "ruby": "3.3.12",
+      "xcodeproj": "1.25.1",
+      "python": "3.12.3",
+      "image": "mcr.microsoft.com/playwright:v1.63.0-noble",
+      "network": "none",
+      "repo": "read-only",
+      "gemPrefix": "isolated-read-only",
+      "fixtures": "tmpfs"
+    },
+    "nativeBuildPerformedByHostTests": false
+  },
+  "review": {
+    "sourceZipSha256": "0829ebd688b265443be1768e6e89afe3f167ab821146dc44d37b5592f340a73c",
+    "freezeSha256": "fe37de24037cc3188dc9b1386bb0479bfb17540cdbe59463e72d636ebc5b6ffc",
+    "protectedFilesVerified": 8,
+    "otherIosFilesVerified": 18,
+    "guardLiteralAndAstUnchanged": true,
+    "runAuthUnchanged": true,
+    "oldGeneratorBodyUnchangedExceptExplicitRunnerSource": true,
+    "oldTestsAstUnchanged": true,
+    "rootDiffAndReadmeReviewCompleted": true,
+    "independentReviewSha256": "a14b6c9503db309ecbc890ba1c6b80a0bdd50f8672643281ba7b7e48ca6a379e",
+    "independentBlockingFindingClosed": true,
+    "cleanupDelta": "Completion flag, input.close under ensure, owned-group error cleanup and explanatory comment only."
+  },
+  "nativeAtRecording": [
+    {
+      "runId": 37307304739,
+      "name": "Platform verification",
+      "status": "pending",
+      "conclusion": null,
+      "headSha": "0e72f646e71231c974404b73810268ab6667aa1e"
+    },
+    {
+      "runId": 37307304822,
+      "name": "Browser workflows",
+      "status": "pending",
+      "conclusion": null,
+      "headSha": "0e72f646e71231c974404b73810268ab6667aa1e"
+    },
+    {
+      "runId": 37307304855,
+      "name": "Native iOS verification",
+      "status": "in_progress",
+      "conclusion": null,
+      "headSha": "0e72f646e71231c974404b73810268ab6667aa1e"
+    },
+    {
+      "runId": 37307304828,
+      "name": "iOS authenticated identity and password",
+      "status": "in_progress",
+      "conclusion": null,
+      "headSha": "0e72f646e71231c974404b73810268ab6667aa1e"
+    }
+  ],
+  "nativeAuthenticatedAccepted": false,
+  "productionAccepted": false,
+  "computerRestarted": false,
+  "limits": [
+    "Synthetic Apple agent and actual Ruby generation do not validate the installed Xcode16.4 template or built runner.",
+    "Exact-SHA Apple build, mandatory ATS guard, authenticated XCTest, Keychain, families, 14 POST and accepted export remain required.",
+    "Startup, host tests and authenticated journeys are distinct executions; do not add counts to infer full validation."
+  ]
+}
