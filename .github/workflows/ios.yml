@@ -35,13 +35,13 @@ jobs:
             scheme: PredioONOperacao
     steps:
       - uses: actions/checkout@v4
-      - name: Verify simulator selection guards
-        run: python3 -m unittest discover -s scripts/ios-smoke -p 'test_*.py' -v
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: pnpm
+      - name: Verify simulator selection guards
+        run: python3 -m unittest discover -s scripts/ios-smoke -p 'test_*.py' -v
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.3'
