@@ -1,0 +1,1668 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c",
+  "date": "2026-10-04",
+  "status": "domains-functional-green-renderer-negative-two-startup-smokes-green-password-preinstall-red",
+  "sourceFiles": [
+    {
+      "path": ".github/workflows/android-domains.yml",
+      "gitLfSha256": "eb9b4ec9613664456153109f06e84137719bd081f562ae9454dcb25bc1f83f1a",
+      "bytesGitLF": 6849
+    },
+    {
+      "path": ".github/workflows/android-password.yml",
+      "gitLfSha256": "7c50d53443ff69e95ef80e8a60f932a6521cc3c58dbf5c293c939e6f6cacefbb",
+      "bytesGitLF": 6746
+    },
+    {
+      "path": ".github/workflows/android-smoke.yml",
+      "gitLfSha256": "20151df15786b046c8fd1d659f90199f76dfe2bd229908c2e540c0b4827879d2",
+      "bytesGitLF": 3446
+    },
+    {
+      "path": "packages/mobile/src/building-screen.tsx",
+      "gitLfSha256": "507fc4bd67b58cb808c2e7dcec05e8665375d3c2186140a18a45022c6d5f7f97",
+      "bytesGitLF": 1357
+    },
+    {
+      "path": "packages/mobile/test/building-screen.test.ts",
+      "gitLfSha256": "05815bad06c3fb283f9c58f801a1e2409fc34d50fd7420d6b6e8534092d16d4c",
+      "bytesGitLF": 15206
+    },
+    {
+      "path": "packages/mobile/test/fixtures/native-screen-host.mjs",
+      "gitLfSha256": "dd5cb7971382b0076e100c74c09e4eb4b8e83e955ed16a106e8a603a1e9e6f2f",
+      "bytesGitLF": 1652
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "gitLfSha256": "699b11a6c5fbd19923f5020724e357217dacf97f319c6b36e2220e0eb6997698",
+      "bytesGitLF": 242314
+    },
+    {
+      "path": "scripts/android-auth-smoke/.gitignore",
+      "gitLfSha256": "32dae3052f331ee34d628ef535709b301259a45df7c7522c4d35dcf49873f00b",
+      "bytesGitLF": 13
+    },
+    {
+      "path": "scripts/android-auth-smoke/README.md",
+      "gitLfSha256": "51dfa63df889945c65b2273c3c55b35f638e27583271923923c1347025635add",
+      "bytesGitLF": 17482
+    },
+    {
+      "path": "scripts/android-auth-smoke/diagnostics.py",
+      "gitLfSha256": "3692c8ccac2038920eb0b38e8175006f24de4c9d3e543e0b9a26d33a45873d55",
+      "bytesGitLF": 756
+    },
+    {
+      "path": "scripts/android-auth-smoke/fixture.mts",
+      "gitLfSha256": "4ee2045e6e5cbe37c739287a01e676c4d74c0f2642ea4ba2a804702fb0df0b58",
+      "bytesGitLF": 5167
+    },
+    {
+      "path": "scripts/android-auth-smoke/proxy.py",
+      "gitLfSha256": "f40ff6a71110ce20ed71084def9d4e15793887d3de2b3f7fbf5bc30661105421",
+      "bytesGitLF": 4755
+    },
+    {
+      "path": "scripts/android-auth-smoke/run_auth.py",
+      "gitLfSha256": "5c5870fb0818443acee29d0e720124dbb1ae9a78f63f25634b72563949a3c87e",
+      "bytesGitLF": 11576
+    },
+    {
+      "path": "scripts/android-auth-smoke/test_auth.py",
+      "gitLfSha256": "ad0dc16c52359ce578008b7d40b101980f6a097a18bad4d9e1aa92f82607fce7",
+      "bytesGitLF": 9383
+    },
+    {
+      "path": "scripts/android-auth-smoke/test_proxy.py",
+      "gitLfSha256": "939c9d1ff46cf1fd06dfe2f95b0a70c669b3236627f627c284bae0a093624b73",
+      "bytesGitLF": 4828
+    },
+    {
+      "path": "scripts/android-auth-smoke/tls.py",
+      "gitLfSha256": "b610d490d55ab5c6df079ba4f9834fe9347a9a1718a5abc9fcc863fab6df3f3e",
+      "bytesGitLF": 3835
+    },
+    {
+      "path": "scripts/android-domain-smoke/.gitignore",
+      "gitLfSha256": "32dae3052f331ee34d628ef535709b301259a45df7c7522c4d35dcf49873f00b",
+      "bytesGitLF": 13
+    },
+    {
+      "path": "scripts/android-domain-smoke/README.md",
+      "gitLfSha256": "914df5be1ae57e8c964904b2cd360b9859fe02562066a6f77f8be616cb7b4edd",
+      "bytesGitLF": 20663
+    },
+    {
+      "path": "scripts/android-domain-smoke/assertions.py",
+      "gitLfSha256": "7137a9d3634c7f36ba658eac984a01d171901d6f66a05c37b96b47f867255418",
+      "bytesGitLF": 5158
+    },
+    {
+      "path": "scripts/android-domain-smoke/fixture.mts",
+      "gitLfSha256": "bdf07eb4504313446b7703dd48b95be04b73085d7ef8647a9cf70a6d028d3c3d",
+      "bytesGitLF": 14114
+    },
+    {
+      "path": "scripts/android-domain-smoke/proxy_domains.py",
+      "gitLfSha256": "321e5432ceff5da64d5468da99893d2769bbbb5c8c7fa7a1bfcb605faaac80f4",
+      "bytesGitLF": 1050
+    },
+    {
+      "path": "scripts/android-domain-smoke/run_domains.py",
+      "gitLfSha256": "c12fcc1e88689338f0be2eb98887c24939b83a5c59b7475533dd8c5e4de0647e",
+      "bytesGitLF": 22286
+    },
+    {
+      "path": "scripts/android-domain-smoke/test_domains.py",
+      "gitLfSha256": "975a3fefb0061f286b093037fcefb9c3ffce57f87be5f15c392b1df71281ed79",
+      "bytesGitLF": 52703
+    },
+    {
+      "path": "scripts/android-domain-smoke/test_fixture.mts",
+      "gitLfSha256": "c6776982d1c3d6b83ebbd30c62fadca4fbe3fa3ac6808f860e6cbcfafb443f79",
+      "bytesGitLF": 6271
+    },
+    {
+      "path": "scripts/android-domain-smoke/tsconfig.json",
+      "gitLfSha256": "0a6027688d1527dd02d0a3b2edbd0bc5bd96056d1889fc531a5d6a537ca2edda",
+      "bytesGitLF": 382
+    },
+    {
+      "path": "scripts/android-password-smoke/README.md",
+      "gitLfSha256": "0d7df951aec3616e43d2393c3e2e25abea5559d3b32f9c0e0047114a4f17d26f",
+      "bytesGitLF": 5915
+    },
+    {
+      "path": "scripts/android-password-smoke/diagnostics.py",
+      "gitLfSha256": "bfa1dfdb53dc9fab15c6d1692df389b1fffc4b31c76847ec44549c2f18b49401",
+      "bytesGitLF": 808
+    },
+    {
+      "path": "scripts/android-password-smoke/password_proxy.py",
+      "gitLfSha256": "b902bc2835be88b4e098b1876e805c516046d2a610e91b8666617753638b3982",
+      "bytesGitLF": 1320
+    },
+    {
+      "path": "scripts/android-password-smoke/run_password.py",
+      "gitLfSha256": "3c7bf4317e668e4ee2de60791f986dfeeef0636b6bc18c948dbfb0e35e69a77a",
+      "bytesGitLF": 16266
+    },
+    {
+      "path": "scripts/android-password-smoke/test_password.py",
+      "gitLfSha256": "17dfc9fbe7c612911f7b2b8f56ddbc1880a3e7aff51ffc3160a3c585cdbcb1d4",
+      "bytesGitLF": 20540
+    },
+    {
+      "path": "scripts/android-smoke/.gitignore",
+      "gitLfSha256": "32dae3052f331ee34d628ef535709b301259a45df7c7522c4d35dcf49873f00b",
+      "bytesGitLF": 13
+    },
+    {
+      "path": "scripts/android-smoke/README.md",
+      "gitLfSha256": "3357b5d264c8619a6a204f2a54a857009b39e02e3521ca70119dc1cc6097796d",
+      "bytesGitLF": 24345
+    },
+    {
+      "path": "scripts/android-smoke/avd_snapshot.py",
+      "gitLfSha256": "6593b7fd999da1bd161ded5ff43a6b05a5e180fd881509229f37b630b7eea02d",
+      "bytesGitLF": 11041
+    },
+    {
+      "path": "scripts/android-smoke/clean_avd.py",
+      "gitLfSha256": "38e683201e946986382ebf5bc9c18c6523df82c368ce84defa2824ead300a846",
+      "bytesGitLF": 8400
+    },
+    {
+      "path": "scripts/android-smoke/prepare.py",
+      "gitLfSha256": "da687ec4abbcacc6b210fa487a0b19dee746d9f19bd712f92e4f0aa6d15f06c5",
+      "bytesGitLF": 4288
+    },
+    {
+      "path": "scripts/android-smoke/run.py",
+      "gitLfSha256": "d8b500dac1874b734b891b693c71dd3a71766765add5d889de5af5984d56f68b",
+      "bytesGitLF": 15250
+    },
+    {
+      "path": "scripts/android-smoke/test_avd_snapshot.py",
+      "gitLfSha256": "eed3202e09eab1153d6ac3ba4a185282700e821823a34203b1b4a35e7b8cd3e2",
+      "bytesGitLF": 6973
+    },
+    {
+      "path": "scripts/android-smoke/test_clean_avd.py",
+      "gitLfSha256": "35636226be6fe703865dd18d0d6b3dab6ee3c51674bf3d5dfa686c54c4e7d26d",
+      "bytesGitLF": 11319
+    },
+    {
+      "path": "scripts/android-smoke/test_smoke.py",
+      "gitLfSha256": "f25dee9217998f67e3bb52e05a9c2ca465aebdc9764ee2e3aaed19b018af5517",
+      "bytesGitLF": 18116
+    }
+  ],
+  "sourceFileCount": 39,
+  "dispatchEvidence": {
+    "bytes": 780,
+    "sha256": "fe1a8e0da6cc3a2a94b131d7bfaf68a1180bfdbb283225219e75ae32b94cc696"
+  },
+  "sourceLineage": {
+    "stableViewSource": "a34346b7ec7f0d09d1449a2e24e5b122e4971a5d",
+    "productAndScopedHarnessDiffPaths": [],
+    "productAndScopedHarnessUnchanged": true
+  },
+  "runMetadata": [
+    {
+      "runProof": {
+        "bytes": 11842,
+        "sha256": "3a3886480bf668c7ff89d3a3dc246e85b17d3bb2091a7caee88bc0c6d1c4ef33"
+      },
+      "jobsProof": {
+        "bytes": 5159,
+        "sha256": "b64c1e1fabfd93eb17029fc46a7a7ade910d8af5db4a3cd9117bdc551b88d51a"
+      },
+      "runId": 37244402639,
+      "runAttempt": 1,
+      "event": "workflow_dispatch",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "runProof": {
+        "bytes": 11852,
+        "sha256": "8f9ca37cc80adceb77d037ec28f61ae09a5752b9789d03c2aa68fb3b89a768c9"
+      },
+      "jobsProof": {
+        "bytes": 4986,
+        "sha256": "70157c67529099794ae9801abd8ea2cb7fcb711efc69b67b2b0149b931cae551"
+      },
+      "runId": 37244404359,
+      "runAttempt": 1,
+      "event": "workflow_dispatch",
+      "status": "completed",
+      "conclusion": "failure"
+    },
+    {
+      "runProof": {
+        "bytes": 11840,
+        "sha256": "c317d410b5e911e0527fb419318cb91dc4e35c488b27042762172a7d0549b202"
+      },
+      "jobsProof": {
+        "bytes": 8440,
+        "sha256": "ff5b95d65c8e350b7dcec1c55d320bce3c7cd73a5dd30c00ad692e24a4adaa87"
+      },
+      "runId": 37244405548,
+      "runAttempt": 1,
+      "event": "workflow_dispatch",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "journeys": [
+    {
+      "journey": "domains",
+      "runId": 37244402639,
+      "runAttempt": 1,
+      "event": "workflow_dispatch",
+      "runUrl": "https://github.com/helberjf/predioON/actions/runs/37244402639",
+      "jobId": 111559312148,
+      "jobConclusion": "success",
+      "passed": true,
+      "failedStepNumbers": [],
+      "artifactId": 11318484131,
+      "artifactBytes": 6350195,
+      "artifactSha256": "5aec5eeb39b9336475b11486d8d79fead2fda0665fc89612124c08585a3c7b76",
+      "officialArtifactDigestVerified": true,
+      "privateMemberCount": 94,
+      "zipCrcVerified": true,
+      "closedResultSchemaVerified": true,
+      "privateResultSha256": "07523d45b1ad30300239135003f7324e75e86f8fde45337460aa812eb0da0157",
+      "apps": {
+        "resident-mobile": {
+          "observationCount": 16,
+          "lastPhase": "15-logout",
+          "phases": [
+            "01-login-blank",
+            "01-login-email",
+            "01-login-ready",
+            "01-login-authenticated",
+            "02-enter-profile",
+            "02-enter-building",
+            "03-notices",
+            "04-finance",
+            "05-finance-entry",
+            "06-own-ticket",
+            "07-created",
+            "08-comment-sent",
+            "08-comment",
+            "09-before-finance-revoke",
+            "10-finance-revoked",
+            "15-logout"
+          ]
+        },
+        "operations-mobile": {
+          "observationCount": 20,
+          "lastPhase": "15-logout",
+          "phases": [
+            "01-login-blank",
+            "01-login-email",
+            "01-login-ready",
+            "01-login-authenticated",
+            "02-enter-profile",
+            "02-enter-building",
+            "03-summary",
+            "04-sensor",
+            "05-alert",
+            "06-acknowledged",
+            "07-ticket",
+            "08-conversation",
+            "09-in-progress",
+            "10-comment-sent",
+            "10-comment",
+            "11-before-device-revoke",
+            "12-device-revoked",
+            "13-before-ticket-revoke",
+            "14-ticket-revoked",
+            "15-logout"
+          ]
+        }
+      },
+      "builds": [
+        {
+          "app": "resident-mobile",
+          "apkSha256ReportedByRunner": "e4384623e41a9587a29891793754f8ee6fe9951868d2f41fd74f4ee3a4e62e37",
+          "mode": "release",
+          "architecture": "x86_64",
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "app": "operations-mobile",
+          "apkSha256ReportedByRunner": "eef61af884d405ec9b04c5e452084c5439081d9a81226bf59060ac27fad0bde6",
+          "mode": "release",
+          "architecture": "x86_64",
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        }
+      ],
+      "environment": {
+        "resident-mobile": {
+          "attemptCount": 3,
+          "readyObservations": 2,
+          "errorCategories": {
+            "unclassified-private-error": 1
+          }
+        },
+        "operations-mobile": {
+          "attemptCount": 0,
+          "readyObservations": 0,
+          "errorCategories": {}
+        }
+      },
+      "hostSuites": [
+        {
+          "total": 39,
+          "passed": 39,
+          "skipped": 0,
+          "seconds": 0.059,
+          "failures": 0
+        },
+        {
+          "total": 11,
+          "passed": 11,
+          "skipped": 0,
+          "seconds": 3.387,
+          "failures": 0
+        },
+        {
+          "total": 45,
+          "passed": 45,
+          "skipped": 0,
+          "seconds": 2.295,
+          "failures": 0
+        }
+      ],
+      "privateJobLog": {
+        "bytes": 186618,
+        "sha256": "c70ff7e4e7fafe68ed40cb1f4067fa292d065061d7aecf5d5c6ef46038a11f29"
+      },
+      "artifactListing": {
+        "bytes": 722,
+        "sha256": "4d5ed2eb510bae7fd9729b63ec03237aae0e547eab16e1cee5e4f46bcb22be07"
+      },
+      "snapshots": [
+        {
+          "phase": "actions",
+          "state": {
+            "residentCreated": 1,
+            "residentComments": 1,
+            "operatorStatus": "IN_PROGRESS",
+            "operatorComments": 1,
+            "alertStatus": "ACKNOWLEDGED",
+            "neighborStatus": "OPEN",
+            "neighborAlertStatus": "OPEN",
+            "neighborEvents": 0,
+            "deviceGrantActive": true,
+            "ticketGrantActive": true,
+            "financeGrantActive": true
+          },
+          "assertedAgainstFrozenSource": true,
+          "sha256": "dd6c10460781d62561dd0c896867d73563e2cd3cd36d4b0f4765ac97adff12da"
+        },
+        {
+          "phase": "device-revoked",
+          "state": {
+            "residentCreated": 1,
+            "residentComments": 1,
+            "operatorStatus": "IN_PROGRESS",
+            "operatorComments": 1,
+            "alertStatus": "ACKNOWLEDGED",
+            "neighborStatus": "OPEN",
+            "neighborAlertStatus": "OPEN",
+            "neighborEvents": 0,
+            "deviceGrantActive": false,
+            "ticketGrantActive": true,
+            "financeGrantActive": true
+          },
+          "assertedAgainstFrozenSource": true,
+          "sha256": "1fff0afb06813142859e78cd46c01986419ca6d453f7ff5d0f0fb4435a2c48de"
+        },
+        {
+          "phase": "final",
+          "state": {
+            "residentCreated": 1,
+            "residentComments": 1,
+            "operatorStatus": "IN_PROGRESS",
+            "operatorComments": 1,
+            "alertStatus": "ACKNOWLEDGED",
+            "neighborStatus": "OPEN",
+            "neighborAlertStatus": "OPEN",
+            "neighborEvents": 0,
+            "deviceGrantActive": false,
+            "ticketGrantActive": false,
+            "financeGrantActive": false
+          },
+          "assertedAgainstFrozenSource": true,
+          "sha256": "5b9fae72ddb85b5a33c943eee5952a3fbfde2add51518725e1291e638c77d123"
+        },
+        {
+          "phase": "initial",
+          "state": {
+            "residentCreated": 0,
+            "residentComments": 0,
+            "operatorStatus": "OPEN",
+            "operatorComments": 0,
+            "alertStatus": "OPEN",
+            "neighborStatus": "OPEN",
+            "neighborAlertStatus": "OPEN",
+            "neighborEvents": 0,
+            "deviceGrantActive": true,
+            "ticketGrantActive": true,
+            "financeGrantActive": true
+          },
+          "assertedAgainstFrozenSource": true,
+          "sha256": "2e6059fe55c79c06b6ff06a4cfe0d35fed3c17be8c143ed3c9d83e8cc5901dfe"
+        },
+        {
+          "phase": "resident",
+          "state": {
+            "residentCreated": 1,
+            "residentComments": 1,
+            "operatorStatus": "OPEN",
+            "operatorComments": 0,
+            "alertStatus": "OPEN",
+            "neighborStatus": "OPEN",
+            "neighborAlertStatus": "OPEN",
+            "neighborEvents": 0,
+            "deviceGrantActive": true,
+            "ticketGrantActive": true,
+            "financeGrantActive": true
+          },
+          "assertedAgainstFrozenSource": true,
+          "sha256": "c8f59ca3f64cd5f34c6b25fbca4d54605a391be082f61fa5f42d5ba48cfe975d"
+        }
+      ],
+      "backgroundObservations": {
+        "resident-mobile": [
+          {
+            "number": 1,
+            "observedAt": "2026-10-04T23:52:01.147500+00:00",
+            "homeResolved": true,
+            "homeVisible": true,
+            "appStopped": true
+          },
+          {
+            "number": 2,
+            "observedAt": "2026-10-04T23:52:05.605419+00:00",
+            "homeResolved": true,
+            "homeVisible": true,
+            "appStopped": true
+          }
+        ],
+        "operations-mobile": [
+          {
+            "number": 1,
+            "observedAt": "2026-10-04T23:51:15.906724+00:00",
+            "homeResolved": true,
+            "homeVisible": true,
+            "appStopped": true
+          },
+          {
+            "number": 2,
+            "observedAt": "2026-10-04T23:51:20.989118+00:00",
+            "homeResolved": true,
+            "homeVisible": true,
+            "appStopped": true
+          },
+          {
+            "number": 1,
+            "observedAt": "2026-10-04T23:51:40.002350+00:00",
+            "homeResolved": true,
+            "homeVisible": true,
+            "appStopped": true
+          },
+          {
+            "number": 2,
+            "observedAt": "2026-10-04T23:51:44.766771+00:00",
+            "homeResolved": true,
+            "homeVisible": true,
+            "appStopped": true
+          }
+        ]
+      },
+      "declaredHarnessSecurityFailureCount": 0,
+      "failureCategory": null,
+      "beforeAppInstallation": false,
+      "nativeTerminalFirstFailureRecordAvailable": false,
+      "retainedCrashDiagnostics": {
+        "resident-mobile": {
+          "recognizedCrashOrAnrInRetainedDiagnostics": false,
+          "assertionAgainstFrozenSource": true
+        },
+        "operations-mobile": {
+          "recognizedCrashOrAnrInRetainedDiagnostics": false,
+          "assertionAgainstFrozenSource": true
+        }
+      },
+      "rendererBufferAudit": {
+        "capturedLogFileCount": 4,
+        "buffers": [
+          {
+            "path": "evidence/operations-mobile/crash.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "retainedBufferHeaders": []
+          },
+          {
+            "path": "evidence/operations-mobile/logcat.txt",
+            "bytes": 6082005,
+            "sha256": "a51bbb2217823bc1603f7d8c453401d6ed03ce65e8ced61ba1a99a931fdbffcd",
+            "retainedBufferHeaders": [
+              "main",
+              "system"
+            ]
+          },
+          {
+            "path": "evidence/resident-mobile/crash.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "retainedBufferHeaders": []
+          },
+          {
+            "path": "evidence/resident-mobile/logcat.txt",
+            "bytes": 6058127,
+            "sha256": "e9797f96afc66f9fbcb21d1c8198fe8ab02f650441ac17eb591b588601d6f9d1",
+            "retainedBufferHeaders": [
+              "main",
+              "system"
+            ]
+          }
+        ],
+        "appPidsFromCapturedStartRecords": {
+          "resident-mobile": [
+            3647
+          ],
+          "operations-mobile": [
+            5678
+          ]
+        },
+        "uniqueRecordsByPidAndType": [
+          {
+            "pid": 3647,
+            "category": "missing-view-state-declaration",
+            "count": 2
+          },
+          {
+            "pid": 3647,
+            "category": "missing-view-state-header",
+            "count": 2
+          }
+        ],
+        "missingViewStateRecordCount": 4,
+        "missingViewStateHeaderCount": 2,
+        "missingViewStateDeclarationCount": 2,
+        "stackFramesExcluded": 52,
+        "otherDeclarationsExcluded": 0,
+        "boundedHeaderTimeline": [
+          {
+            "deviceThreadtime": "10-04 23:48:14.192",
+            "pid": 3647,
+            "thread": 3647,
+            "priority": "E",
+            "kind": "missing-view-state-header",
+            "nativeViewTags": [],
+            "app": "resident-mobile",
+            "previousCaptureNumericClock": {
+              "path": "evidence/resident-mobile/03-notices.png",
+              "phase": "03-notices",
+              "zipLocalTime": "2026-10-04T23:48:10",
+              "absoluteNumericDeltaMilliseconds": 4192.0
+            },
+            "nextCaptureNumericClock": {
+              "path": "evidence/resident-mobile/04-finance.png",
+              "phase": "04-finance",
+              "zipLocalTime": "2026-10-04T23:48:20",
+              "absoluteNumericDeltaMilliseconds": 5808.0
+            },
+            "recognizedNativeMethodsInSameSecond": [
+              "updateLayout",
+              "updateState"
+            ],
+            "recognizedNativeGroupsInSameSecond": [
+              "IntBufferBatchMountItem",
+              "MountItemDispatcher"
+            ],
+            "recognizedOwnActivityEventsWithinThreeSeconds": {},
+            "tabActionMarkerAvailable": false,
+            "clockOffsetIndependentlyEstablished": false,
+            "componentCauseInferred": false
+          },
+          {
+            "deviceThreadtime": "10-04 23:48:14.199",
+            "pid": 3647,
+            "thread": 3647,
+            "priority": "E",
+            "kind": "missing-view-state-header",
+            "nativeViewTags": [],
+            "app": "resident-mobile",
+            "previousCaptureNumericClock": {
+              "path": "evidence/resident-mobile/03-notices.png",
+              "phase": "03-notices",
+              "zipLocalTime": "2026-10-04T23:48:10",
+              "absoluteNumericDeltaMilliseconds": 4199.0
+            },
+            "nextCaptureNumericClock": {
+              "path": "evidence/resident-mobile/04-finance.png",
+              "phase": "04-finance",
+              "zipLocalTime": "2026-10-04T23:48:20",
+              "absoluteNumericDeltaMilliseconds": 5801.0
+            },
+            "recognizedNativeMethodsInSameSecond": [
+              "updateLayout",
+              "updateState"
+            ],
+            "recognizedNativeGroupsInSameSecond": [
+              "IntBufferBatchMountItem",
+              "MountItemDispatcher"
+            ],
+            "recognizedOwnActivityEventsWithinThreeSeconds": {},
+            "tabActionMarkerAvailable": false,
+            "clockOffsetIndependentlyEstablished": false,
+            "componentCauseInferred": false
+          }
+        ],
+        "incidentCountInferred": false,
+        "rawLogsExported": false,
+        "limits": [
+          "Four captured files are not four named/continuously observed Android buffers.",
+          "Records are deduplicated by full threadtime record; headers and exception declarations are counted separately.",
+          "ZIP file modification time has two-second resolution and no timezone; capture association is a numeric-clock approximation, not a native tab marker.",
+          "Recognized native method/group labels do not identify a React component or internal cause."
+        ]
+      },
+      "originalImages": [
+        {
+          "path": "evidence/operations-mobile/01-login-authenticated.png",
+          "bytes": 121077,
+          "sha256": "610c6d2e3f35b9fab1b0ad100097697f5ea5aaea2dac8cb4f3b8e8a45e3f0081",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/operations-mobile/01-login-blank.png",
+          "bytes": 75573,
+          "sha256": "8ea78231a7da03601b9d2da825af9579abd965d099def1442d3f0fc33d1eb872",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/operations-mobile/01-login-email.png",
+          "bytes": 90031,
+          "sha256": "e1ef612d139c58ec74af887b1ce9f9a04d393b5dcb6cff35e240b2ac3240e13c",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/operations-mobile/01-login-ready.png",
+          "bytes": 90883,
+          "sha256": "ea54930f91e1cf6a6d98f1f3f36c13e3f9a95e56617b08d4d48f5b015fcdb9b5",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/operations-mobile/02-enter-building.png",
+          "bytes": 182130,
+          "sha256": "b4c2841138d07485cc3fb8e9ea0c87d2ce48d64edd6bf7fcc3b90f9aca85f589",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/operations-mobile/02-enter-profile.png",
+          "bytes": 121077,
+          "sha256": "610c6d2e3f35b9fab1b0ad100097697f5ea5aaea2dac8cb4f3b8e8a45e3f0081",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/operations-mobile/03-summary.png",
+          "bytes": 182130,
+          "sha256": "b4c2841138d07485cc3fb8e9ea0c87d2ce48d64edd6bf7fcc3b90f9aca85f589",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/operations-mobile/04-sensor.png",
+          "bytes": 156009,
+          "sha256": "faa8f6d15de53ffda79e8cfe54fb183946750d5741519837a74586b0bae78408",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/operations-mobile/05-alert.png",
+          "bytes": 162103,
+          "sha256": "d0d2b6c9905fbc8b23769e126c7ffa6cd791997654fd4cb9f99ee5ed32825d81",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/operations-mobile/06-acknowledged.png",
+          "bytes": 143251,
+          "sha256": "321a3a03fb64a16ff9011de81f444b37b4646246a3a5777a5e4b06c9668f42bd",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/operations-mobile/07-ticket.png",
+          "bytes": 164640,
+          "sha256": "7b73b435634f28cdf42c7c88c0fa344705707533084a88ae8673054261f9e6ea",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/operations-mobile/08-conversation.png",
+          "bytes": 204084,
+          "sha256": "7b65e24bcdf24d633a43d55a0d753478cb7da3eb34d02e613336eb1a69cd9374",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/operations-mobile/09-in-progress.png",
+          "bytes": 193377,
+          "sha256": "7cee7cfb2817c8f9893a325bfb8e5cea6c66e4bae9634d50320929fcd116755c",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/operations-mobile/10-comment-sent.png",
+          "bytes": 205925,
+          "sha256": "df81bfd95bb2c5884df9330752feaa92aa612682b5e78244ce17cd0a583ff4db",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/operations-mobile/10-comment.png",
+          "bytes": 193400,
+          "sha256": "ba14ff7b5743eced29acf032fdb485e863751f893a74e1f7506bdc0c132c5b64",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/operations-mobile/11-before-device-revoke.png",
+          "bytes": 153861,
+          "sha256": "b374b86012325d81a448a08ef41a871b09c79438efafe4908ff22a617e9b6d67",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/operations-mobile/12-device-revoked.png",
+          "bytes": 183508,
+          "sha256": "8c91d60362358d85d2701c9aa895ec4ae42d5d56f85d90e72472c27f70d14c46",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/operations-mobile/13-before-ticket-revoke.png",
+          "bytes": 183501,
+          "sha256": "f0fb54581a9cffb37dc1d4b19cf955b18813c3534a6428b797e6127c751130e3",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/operations-mobile/14-ticket-revoked.png",
+          "bytes": 86306,
+          "sha256": "56d08884ccb060561388eaaff2166eb63fac333162473307e7eb8e34d7bb4e16",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/operations-mobile/15-logout.png",
+          "bytes": 75797,
+          "sha256": "e1240b22705870d8c4fd5170153de4d19f7f76b3803299e7e8ea25fbf69d5855",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/operations-mobile/final.png",
+          "bytes": 75737,
+          "sha256": "5752b24ed42473241e41bb225dd9cd2a447cf7602e22ca7160a24534817a8a91",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/resident-mobile/01-login-authenticated.png",
+          "bytes": 114622,
+          "sha256": "c567bb3bf46121dc1bc1089ea975d53f1b0b66f63b00008260860655ec53b0df",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/resident-mobile/01-login-blank.png",
+          "bytes": 76697,
+          "sha256": "d7bc8e208164197d4da63c1124768928c8d562e2f78440f966721786dbe945a5",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/resident-mobile/01-login-email.png",
+          "bytes": 90853,
+          "sha256": "153ec20d097bc4725ea26718b2df40c97255aa1a6e141a9df990f9e0bca7e4bd",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/resident-mobile/01-login-ready.png",
+          "bytes": 91809,
+          "sha256": "dc22f421d50b2b578152c19e8954d8a018df9085169ab5533cfdfa99d52c8d43",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/resident-mobile/02-enter-building.png",
+          "bytes": 136443,
+          "sha256": "b29cc267dbbe065a17260bc9059a2830f09c3a6dc1c5ba9b840ad8845c67a419",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/resident-mobile/02-enter-profile.png",
+          "bytes": 115120,
+          "sha256": "680653ca1ddcda1d18511a0a26d787e28747f1f5e2282fb41e59ca8bf4972cac",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/resident-mobile/03-notices.png",
+          "bytes": 136443,
+          "sha256": "b29cc267dbbe065a17260bc9059a2830f09c3a6dc1c5ba9b840ad8845c67a419",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/resident-mobile/04-finance.png",
+          "bytes": 189279,
+          "sha256": "9daa22add7b741cd95f78bd9f082b3879c88d280bdfae6e36ad1efd1d92bb077",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/resident-mobile/05-finance-entry.png",
+          "bytes": 194300,
+          "sha256": "e89106dd4fdd0b9c92db5a218ad522aff0bcf6daee669120799a9fbb47ae2a5a",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/resident-mobile/06-own-ticket.png",
+          "bytes": 171004,
+          "sha256": "d341feef887d000b923a6dc8c3e07705c300e6345011ff557ef918f6d4047832",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/resident-mobile/07-created.png",
+          "bytes": 193375,
+          "sha256": "ac850131a1bf191f11bb390dbfb954dbf581451c8902d485aea5ae22b0d956fd",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/resident-mobile/08-comment-sent.png",
+          "bytes": 207574,
+          "sha256": "f9730bf3bf9f4f80a95c8bc6ede9feb29692bdedfbed83402827b9f8b8ef4714",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/resident-mobile/08-comment.png",
+          "bytes": 159073,
+          "sha256": "242a289e01352e0e26873b334427d1fbb43054930da3d530726c2ca41ff3434b",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/resident-mobile/09-before-finance-revoke.png",
+          "bytes": 187098,
+          "sha256": "9653feec4f4f703396c8cd6705c1e3f1ac8e35bc5df3c747c0812cfb52c8eb58",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/resident-mobile/10-finance-revoked.png",
+          "bytes": 122129,
+          "sha256": "ede0e370c080077b91e759dd36e3fe785628839b28eb92e8f429fb75d17b39f2",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/resident-mobile/15-logout.png",
+          "bytes": 77292,
+          "sha256": "357de43d1a3ab17b41c4c4244eb25eaaa6d741b9dfc1d8ced2a44e3e2028946b",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/resident-mobile/final.png",
+          "bytes": 75797,
+          "sha256": "e1240b22705870d8c4fd5170153de4d19f7f76b3803299e7e8ea25fbf69d5855",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        }
+      ],
+      "functionalScope": "full-domain-journey",
+      "rendererIntegrityAccepted": false,
+      "productionAccepted": false,
+      "physicalDevicesAccepted": false
+    },
+    {
+      "journey": "password",
+      "runId": 37244404359,
+      "runAttempt": 1,
+      "event": "workflow_dispatch",
+      "runUrl": "https://github.com/helberjf/predioON/actions/runs/37244404359",
+      "jobId": 111559319351,
+      "jobConclusion": "failure",
+      "passed": false,
+      "failedStepNumbers": [
+        15
+      ],
+      "artifactId": 11318637093,
+      "artifactBytes": 1314622,
+      "artifactSha256": "566fbad9559545a9f0a3911f5c5500c8c27004b173ee9ac334543fab2afdb039",
+      "officialArtifactDigestVerified": true,
+      "privateMemberCount": 14,
+      "zipCrcVerified": true,
+      "closedResultSchemaVerified": true,
+      "privateResultSha256": "adfb0f3cef36c50874517bb2a5ff4147c0aa8ff348cea818291dfb8490fc2e87",
+      "apps": {
+        "resident-mobile": {
+          "observationCount": 0,
+          "lastPhase": null,
+          "phases": []
+        },
+        "operations-mobile": {
+          "observationCount": 0,
+          "lastPhase": null,
+          "phases": []
+        }
+      },
+      "builds": [
+        {
+          "app": "resident-mobile",
+          "apkSha256ReportedByRunner": "f223e2bee64f40f822e4a332fa163fe0d8db9763ce58380e96290312762c3e3e",
+          "mode": "release",
+          "architecture": "x86_64",
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "app": "operations-mobile",
+          "apkSha256ReportedByRunner": "7676ee7e21d92b8179d619eddd104112d3168fdc68b7bd639c6c5a3004fae911",
+          "mode": "release",
+          "architecture": "x86_64",
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        }
+      ],
+      "environment": {
+        "resident-mobile": {
+          "attemptCount": 1,
+          "readyObservations": 0,
+          "errorCategories": {
+            "emulator-system-dialog": 1
+          }
+        },
+        "operations-mobile": {
+          "attemptCount": 0,
+          "readyObservations": 0,
+          "errorCategories": {}
+        }
+      },
+      "hostSuites": [
+        {
+          "total": 39,
+          "passed": 39,
+          "skipped": 0,
+          "seconds": 0.059,
+          "failures": 0
+        },
+        {
+          "total": 11,
+          "passed": 11,
+          "skipped": 0,
+          "seconds": 4.158,
+          "failures": 0
+        },
+        {
+          "total": 16,
+          "passed": 16,
+          "skipped": 0,
+          "seconds": 1.668,
+          "failures": 0
+        }
+      ],
+      "privateJobLog": {
+        "bytes": 178221,
+        "sha256": "6123fa064a9fbcdf1935ce3264eb515325a0a82a1ed4a80a6c2992bb0a06c573"
+      },
+      "artifactListing": {
+        "bytes": 730,
+        "sha256": "68325f169b7d5131c0e8b7afa030cc1e78dbc08fe070532d3f9cae3d456b2a81"
+      },
+      "snapshots": [
+        {
+          "phase": "empty",
+          "state": {
+            "resident-mobile": {
+              "sessions": 0,
+              "active_sessions": 0,
+              "logouts": 0,
+              "refresh_tokens": 0,
+              "rotations": 0,
+              "live_refresh_tokens": 0
+            },
+            "operations-mobile": {
+              "sessions": 0,
+              "active_sessions": 0,
+              "logouts": 0,
+              "refresh_tokens": 0,
+              "rotations": 0,
+              "live_refresh_tokens": 0
+            }
+          },
+          "assertedAgainstFrozenSource": true,
+          "sha256": "d4984b6821bf31b5294d814995c9a63d9d0a5a153897820197ca826b4f2db876"
+        }
+      ],
+      "backgroundObservations": {},
+      "declaredHarnessSecurityFailureCount": 0,
+      "failureCategory": "emulator-system-dialog",
+      "beforeAppInstallation": true,
+      "nativeTerminalFirstFailureRecordAvailable": false,
+      "retainedCrashDiagnostics": {
+        "resident-mobile": {
+          "recognizedCrashOrAnrInRetainedDiagnostics": false,
+          "assertionAgainstFrozenSource": true
+        },
+        "operations-mobile": {
+          "recognizedCrashOrAnrInRetainedDiagnostics": false,
+          "assertionAgainstFrozenSource": true
+        }
+      },
+      "rendererBufferAudit": {
+        "capturedLogFileCount": 4,
+        "buffers": [
+          {
+            "path": "evidence/operations-mobile/crash.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "retainedBufferHeaders": []
+          },
+          {
+            "path": "evidence/operations-mobile/logcat.txt",
+            "bytes": 5110783,
+            "sha256": "c6bf0e6dc0b302b43f57146657caa44ab8b92f93055aa413087fed3e704c6969",
+            "retainedBufferHeaders": [
+              "main",
+              "system"
+            ]
+          },
+          {
+            "path": "evidence/resident-mobile/crash.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "retainedBufferHeaders": []
+          },
+          {
+            "path": "evidence/resident-mobile/logcat.txt",
+            "bytes": 4822313,
+            "sha256": "2a7cbbdb53dd8b1449e12eab79c402dc9598d7804006a692cfb5d3f8707a5bae",
+            "retainedBufferHeaders": [
+              "main",
+              "system"
+            ]
+          }
+        ],
+        "appPidsFromCapturedStartRecords": {
+          "resident-mobile": [],
+          "operations-mobile": []
+        },
+        "uniqueRecordsByPidAndType": [],
+        "missingViewStateRecordCount": 0,
+        "missingViewStateHeaderCount": 0,
+        "missingViewStateDeclarationCount": 0,
+        "stackFramesExcluded": 0,
+        "otherDeclarationsExcluded": 0,
+        "boundedHeaderTimeline": [],
+        "incidentCountInferred": false,
+        "rawLogsExported": false,
+        "limits": [
+          "Four captured files are not four named/continuously observed Android buffers.",
+          "Records are deduplicated by full threadtime record; headers and exception declarations are counted separately.",
+          "ZIP file modification time has two-second resolution and no timezone; capture association is a numeric-clock approximation, not a native tab marker.",
+          "Recognized native method/group labels do not identify a React component or internal cause."
+        ]
+      },
+      "originalImages": [],
+      "functionalScope": "password-preflight-only",
+      "rendererIntegrityAccepted": false,
+      "productionAccepted": false,
+      "physicalDevicesAccepted": false
+    },
+    {
+      "journey": "smoke-resident",
+      "runId": 37244405548,
+      "runAttempt": 1,
+      "event": "workflow_dispatch",
+      "runUrl": "https://github.com/helberjf/predioON/actions/runs/37244405548",
+      "jobId": 111559320154,
+      "jobConclusion": "success",
+      "passed": true,
+      "failedStepNumbers": [],
+      "artifactId": 11318278877,
+      "artifactBytes": 922187,
+      "artifactSha256": "e17cc6f9dc1ad8c31b1b51f8c67c6ff5ead7cb1ebb5c12cca457d674e365fc48",
+      "officialArtifactDigestVerified": true,
+      "privateMemberCount": 19,
+      "zipCrcVerified": true,
+      "closedResultSchemaVerified": true,
+      "privateResultSha256": "2f2c9e36f335cc606d6cf3d6680e4feeee0bcc5659cac77c53150eb98578b4d7",
+      "apps": {
+        "resident-mobile": {
+          "observationCount": 5,
+          "lastPhase": "05-new-process-login",
+          "phases": [
+            "01-cold-login",
+            "02-email-only",
+            "03-ready-form",
+            "04-resumed-form",
+            "05-new-process-login"
+          ]
+        }
+      },
+      "builds": [
+        {
+          "app": "resident-mobile",
+          "apkSha256ReportedByRunner": "61661933de262ebebdc5b949a7de5c3a62a89fec7974618425d6260b6df2b93c",
+          "mode": "release",
+          "architecture": "x86_64",
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        }
+      ],
+      "environment": {
+        "resident-mobile": {
+          "attemptCount": 3,
+          "readyObservations": 2,
+          "errorCategories": {
+            "unclassified-private-error": 1
+          }
+        }
+      },
+      "hostSuites": [
+        {
+          "total": 39,
+          "passed": 39,
+          "skipped": 0,
+          "seconds": 0.066,
+          "failures": 0
+        }
+      ],
+      "privateJobLog": {
+        "bytes": 97414,
+        "sha256": "91b7b0ef782000b12e5f5a6ad893d01ec160befc1e27470dd72dfa0c30eed909"
+      },
+      "artifactListing": {
+        "bytes": 1441,
+        "sha256": "27fdaf67e163d7a4ed60b15308be595f1b92a5d2f96051976a4d33067e090f50"
+      },
+      "snapshots": [],
+      "backgroundObservations": {},
+      "declaredHarnessSecurityFailureCount": 0,
+      "failureCategory": null,
+      "beforeAppInstallation": false,
+      "nativeTerminalFirstFailureRecordAvailable": false,
+      "retainedCrashDiagnostics": {
+        "resident-mobile": {
+          "recognizedCrashOrAnrInRetainedDiagnostics": false,
+          "assertionAgainstFrozenSource": true
+        }
+      },
+      "rendererBufferAudit": {
+        "capturedLogFileCount": 2,
+        "buffers": [
+          {
+            "path": "evidence/crash.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "retainedBufferHeaders": []
+          },
+          {
+            "path": "evidence/logcat.txt",
+            "bytes": 3304807,
+            "sha256": "0468f71786b95ce5be98608228f6074519a5e769e8852169c9594ff208063e3a",
+            "retainedBufferHeaders": [
+              "main",
+              "system"
+            ]
+          }
+        ],
+        "appPidsFromCapturedStartRecords": {
+          "resident-mobile": [
+            3144,
+            4335
+          ],
+          "operations-mobile": []
+        },
+        "uniqueRecordsByPidAndType": [],
+        "missingViewStateRecordCount": 0,
+        "missingViewStateHeaderCount": 0,
+        "missingViewStateDeclarationCount": 0,
+        "stackFramesExcluded": 0,
+        "otherDeclarationsExcluded": 0,
+        "boundedHeaderTimeline": [],
+        "incidentCountInferred": false,
+        "rawLogsExported": false,
+        "limits": [
+          "Four captured files are not four named/continuously observed Android buffers.",
+          "Records are deduplicated by full threadtime record; headers and exception declarations are counted separately.",
+          "ZIP file modification time has two-second resolution and no timezone; capture association is a numeric-clock approximation, not a native tab marker.",
+          "Recognized native method/group labels do not identify a React component or internal cause."
+        ]
+      },
+      "originalImages": [
+        {
+          "path": "evidence/01-cold-login.png",
+          "bytes": 76300,
+          "sha256": "74497386d42181a38f6a4af41e5dacfafe7a7f6d25a90800fcd80071fecebc79",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/02-email-only.png",
+          "bytes": 86567,
+          "sha256": "5e02d87ddbfdc5022bcfb82a29c40943a10f1f9728dbdfd6d0f33a55b461731a",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/03-ready-form.png",
+          "bytes": 87339,
+          "sha256": "bac05f83a4d91e6d0ab395a090f10d821dda5d6a038fc59c801b9101a42a0eae",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/04-resumed-form.png",
+          "bytes": 143001,
+          "sha256": "fc8b6713e1c0432bc80becf8d3bff361e74adfc55d0b74e608d2e463f5b038e7",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/05-new-process-login.png",
+          "bytes": 77060,
+          "sha256": "9ea6245e376e421c7685d40155f194728d62fb462ce3951c19f83bdb29769610",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/final.png",
+          "bytes": 77060,
+          "sha256": "9ea6245e376e421c7685d40155f194728d62fb462ce3951c19f83bdb29769610",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        }
+      ],
+      "functionalScope": "unauthenticated-startup-only",
+      "rendererIntegrityAccepted": null,
+      "productionAccepted": false,
+      "physicalDevicesAccepted": false
+    },
+    {
+      "journey": "smoke-operations",
+      "runId": 37244405548,
+      "runAttempt": 1,
+      "event": "workflow_dispatch",
+      "runUrl": "https://github.com/helberjf/predioON/actions/runs/37244405548",
+      "jobId": 111559320307,
+      "jobConclusion": "success",
+      "passed": true,
+      "failedStepNumbers": [],
+      "artifactId": 11318966261,
+      "artifactBytes": 807027,
+      "artifactSha256": "b284157019aacc2a990206abc62af61915feffc6fb30300901249a8b134863e4",
+      "officialArtifactDigestVerified": true,
+      "privateMemberCount": 19,
+      "zipCrcVerified": true,
+      "closedResultSchemaVerified": true,
+      "privateResultSha256": "f5dc29a20729eef230480f0dfd17b194a5b31aa0a1b809cdd3e7763fbf399968",
+      "apps": {
+        "operations-mobile": {
+          "observationCount": 5,
+          "lastPhase": "05-new-process-login",
+          "phases": [
+            "01-cold-login",
+            "02-email-only",
+            "03-ready-form",
+            "04-resumed-form",
+            "05-new-process-login"
+          ]
+        }
+      },
+      "builds": [
+        {
+          "app": "operations-mobile",
+          "apkSha256ReportedByRunner": "9c1f3fdf57bc04f51425fa30262d7e4c5f1a39c9404f444316b0eadd9fca4910",
+          "mode": "release",
+          "architecture": "x86_64",
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        }
+      ],
+      "environment": {
+        "operations-mobile": {
+          "attemptCount": 4,
+          "readyObservations": 3,
+          "errorCategories": {
+            "unclassified-private-error": 1
+          }
+        }
+      },
+      "hostSuites": [
+        {
+          "total": 39,
+          "passed": 39,
+          "skipped": 0,
+          "seconds": 0.053,
+          "failures": 0
+        }
+      ],
+      "privateJobLog": {
+        "bytes": 97281,
+        "sha256": "9a75e2290473bf2592ac449bd207093ce060ba2a744e477fc9a4a3dbeba18f2a"
+      },
+      "artifactListing": {
+        "bytes": 1441,
+        "sha256": "27fdaf67e163d7a4ed60b15308be595f1b92a5d2f96051976a4d33067e090f50"
+      },
+      "snapshots": [],
+      "backgroundObservations": {},
+      "declaredHarnessSecurityFailureCount": 0,
+      "failureCategory": null,
+      "beforeAppInstallation": false,
+      "nativeTerminalFirstFailureRecordAvailable": false,
+      "retainedCrashDiagnostics": {
+        "operations-mobile": {
+          "recognizedCrashOrAnrInRetainedDiagnostics": false,
+          "assertionAgainstFrozenSource": true
+        }
+      },
+      "rendererBufferAudit": {
+        "capturedLogFileCount": 2,
+        "buffers": [
+          {
+            "path": "evidence/crash.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "retainedBufferHeaders": []
+          },
+          {
+            "path": "evidence/logcat.txt",
+            "bytes": 2434140,
+            "sha256": "7018d399ca0e122a599e2f0532ae1d399c698957948d2c682d0430e145a39a89",
+            "retainedBufferHeaders": [
+              "main",
+              "system"
+            ]
+          }
+        ],
+        "appPidsFromCapturedStartRecords": {
+          "resident-mobile": [],
+          "operations-mobile": [
+            3643,
+            4360
+          ]
+        },
+        "uniqueRecordsByPidAndType": [],
+        "missingViewStateRecordCount": 0,
+        "missingViewStateHeaderCount": 0,
+        "missingViewStateDeclarationCount": 0,
+        "stackFramesExcluded": 0,
+        "otherDeclarationsExcluded": 0,
+        "boundedHeaderTimeline": [],
+        "incidentCountInferred": false,
+        "rawLogsExported": false,
+        "limits": [
+          "Four captured files are not four named/continuously observed Android buffers.",
+          "Records are deduplicated by full threadtime record; headers and exception declarations are counted separately.",
+          "ZIP file modification time has two-second resolution and no timezone; capture association is a numeric-clock approximation, not a native tab marker.",
+          "Recognized native method/group labels do not identify a React component or internal cause."
+        ]
+      },
+      "originalImages": [
+        {
+          "path": "evidence/01-cold-login.png",
+          "bytes": 74763,
+          "sha256": "387b59aaac49088bfd77f4afb4d96318dad37731cb76baaf04130a7ef14aef1d",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/02-email-only.png",
+          "bytes": 85275,
+          "sha256": "df3cf75460140d40e0de73e696e67d8cac292b120b3e4e36cd7bb6ce1489e240",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/03-ready-form.png",
+          "bytes": 86032,
+          "sha256": "4a8518fee35ead3a6ed8d608f13fdeac39baf8f0be40c218355d94385876373e",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/04-resumed-form.png",
+          "bytes": 149432,
+          "sha256": "896f6f888c40070f996feb51f95abf3ee55bd64ee049d1fcf76457454f4924c0",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/05-new-process-login.png",
+          "bytes": 74825,
+          "sha256": "ce540440fdc4c84a4092a6b5a040aabeeece1ffdfa741801f7bb92c7a83a7717",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        },
+        {
+          "path": "evidence/final.png",
+          "bytes": 74825,
+          "sha256": "ce540440fdc4c84a4092a6b5a040aabeeece1ffdfa741801f7bb92c7a83a7717",
+          "width": 1080,
+          "height": 2400,
+          "pngCrcAndScanlinesVerified": true,
+          "visuallyReviewed": false,
+          "sourceCommit": "5a8d2f60f8c4fd810858483c560a9a34ded75b2c"
+        }
+      ],
+      "functionalScope": "unauthenticated-startup-only",
+      "rendererIntegrityAccepted": null,
+      "productionAccepted": false,
+      "physicalDevicesAccepted": false
+    }
+  ],
+  "productionAccepted": false,
+  "physicalDevicesAccepted": false,
+  "causeEstablished": false,
+  "intermittenceExcluded": false,
+  "nativeRerunRequested": false,
+  "repositoryEdited": false,
+  "servicesChanged": false,
+  "rawLogsExported": false,
+  "privateUiExported": false,
+  "limits": [
+    "Functional domain success includes four unique MissingViewState records: two headers and two declarations, not four established incidents.",
+    "The full domain renderer negative remains open despite two earlier scoped renderer gates passing on source0674.",
+    "Password stopped before installation with zero functional observations and an empty session snapshot; this is not a password-journey result.",
+    "Startup smokes exercise unauthenticated form lifecycle only and never submit login to a real API.",
+    "Retained buffers are snapshots; no terminal first-negative monitor or continuous all-buffer coverage is established by these ordinary harnesses.",
+    "Original PNG metadata and CRC are verified, but no screenshot received visual review here and no pixels/private XML/log messages are exported.",
+    "APK digests come from signed runner build metadata; APK bytes were not independently downloaded.",
+    "No production, physical-device, distribution or complete project acceptance is implied."
+  ],
+  "rootVerification": {
+    "sourceGitBlobs": 39,
+    "zipDigestsAndCrc": 4,
+    "freshOfficialArtifactMetadata": 4,
+    "nativeRunMetadata": 3,
+    "frozenDatabaseSnapshots": 6,
+    "originalPngMetadata": 50,
+    "visuallyReviewedPngs": 0,
+    "publishedPngs": 0,
+    "candidateSha256": "a8a06957dd4bbeb095977a1189f464ffd397eb52ce18ddd54f35e367d9d91ce7",
+    "independentSanitizationReviewSha256": "f5a6cc538b1c52f553b2be469ef92ef68b47df4a31dec44d45f6b5e3c9ab8660",
+    "privatePathsRemoved": 15,
+    "rawLogsOrXmlPublished": false
+  }
+}

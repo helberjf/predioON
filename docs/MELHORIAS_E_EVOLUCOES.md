@@ -60,6 +60,8 @@ Menu compartilhado corrigido em bc2fcc8 apósRED6,18dirigidos e240integrais reai
 
 Apple5a8 auditado: auth105host/ambosReleases/HTTPSready, falha runner-build70unclassified; startupOperação5fases/2PNG e Morador timeout120na primeira abertura. [Prova](evidencias/ios-5a8d2f6.json). Próximo recorte: companion cifrado opcional do log privado já capturado, sem mudar teste/plist/Swift/SDK/tempos; falta causa demonstrada e aceite autenticado.
 
+Android5a8: domínio16/20 e inicialização5por app aprovados; senha falhou antes da instalação. Permanecem dois cabeçalhos e duas declarações MissingViewState no Morador, sem componente/causa demonstrados. [Prova pública](evidencias/android-5a8d2f6.json). Próximo experimento deve identificar a tag nativa com dados fechados, preservando guards, comandos e prazos.
+
 | Prioridade | Trabalho | Resultado esperado | Critério de aceite |
 |---|---|---|---|
 | P0 | Concluir autorização por capacidade nos domínios restantes | Acesso depende da concessão atual ao condomínio e ao recurso | HTTP e SQL negativos; revogação, expiração, equipe inativa e troca de condomínio sem vazamentos; nenhum privilégio global implícito sobre dados privados |
