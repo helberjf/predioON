@@ -50,6 +50,7 @@ jobs:
       - name: Verify host guards and exporter before preparing private runtime
         run: |
           python3 -B -m unittest discover -s scripts/ios-smoke -p 'test_*.py' -v
+          node --test scripts/ios-smoke/private_build_diagnostic.test.mjs
           bash -n scripts/ios-smoke/database.sh
           ruby -c scripts/ios-smoke/project.rb
       - name: Prepare ephemeral database credentials and fixed HTTPS app origin
@@ -103,10 +104,11 @@ jobs:
           python3 -B scripts/ios-smoke/wait_https_proxy.py --private "$IOS_AUTH_PRIVATE"
       - name: Execute real XCUITest journey with both coinstalled releases
         id: journey
-        run: >-
-          python3 -B scripts/ios-smoke/run_auth.py --private "$IOS_AUTH_PRIVATE"
-          --resident "$IOS_AUTH_PRIVATE/build-resident-mobile/Build/Products/Release-iphonesimulator/PredioONMorador.app"
-          --operations "$IOS_AUTH_PRIVATE/build-operations-mobile/Build/Products/Release-iphonesimulator/PredioONOperacao.app"
+        run: |
+          umask 077
+          python3 -B scripts/ios-smoke/run_auth.py --private "$IOS_AUTH_PRIVATE" \
+            --resident "$IOS_AUTH_PRIVATE/build-resident-mobile/Build/Products/Release-iphonesimulator/PredioONMorador.app" \
+            --operations "$IOS_AUTH_PRIVATE/build-operations-mobile/Build/Products/Release-iphonesimulator/PredioONOperacao.app"
       - name: Remove fixture records and stop only the owned disposable cluster
         if: always()
         run: |
@@ -125,3 +127,26 @@ jobs:
           include-hidden-files: false
           if-no-files-found: warn
           retention-days: 7
+      - name: Seal optional private runner-build diagnostic after the original failure
+        id: private-diagnostic
+        if: always() && steps.journey.outcome == 'failure' && steps.journey.outputs.evidence-ready == 'true'
+        continue-on-error: true
+        timeout-minutes: 1
+        env:
+          IOS_BUILD_PRIVATE_DIAGNOSTIC: '1'
+          IOS_JOURNEY_OUTCOME: ${{ steps.journey.outcome }}
+          IOS_EVIDENCE_READY: ${{ steps.journey.outputs.evidence-ready }}
+        run: python3 -B scripts/ios-smoke/collect_build_diagnostic.py
+      - name: Upload only the encrypted runner-build companion
+        if: always() && steps.private-diagnostic.outputs.private-diagnostic-ready == 'true'
+        continue-on-error: true
+        timeout-minutes: 1
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-runner-build-encrypted-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .local/ios-auth/encrypted-diagnostic/runner-build.envelope.json
+          include-hidden-files: false
+          if-no-files-found: error
+          overwrite: false
+          compression-level: 0
+          retention-days: 1
