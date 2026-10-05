@@ -414,3 +414,8 @@ O [plano do observador Android](2026-10-05-android-renderer-observer.md) agora a
 ### Executor iOS publicado e próximo aceite
 
 `0e72f64` publicou a origem privada ATS estrita, após 143/143 host Linux e repetição Windows 121 aprovados/22 skips. A revisão fechou o descendente deixado ativo pelo cleanup anterior; a versão 142 permanece histórica. Guard ATS, Swift, TLS, assinatura e workflow foram preservados. [Fonte e prova host](../../evidencias/ios-strict-runner-0e72f64.json). O CI Apple do SHA exato está em execução; não há aceite autenticado. O checkpoint atual tem quatro rascunhos 040/DB na base 0e72f64, sem os arquivos iOS já publicados. Galeria 38, provas 30, vídeos completos ainda pendentes.
+
+
+### Apple 0e72f64: duas fixtures host reprovadas antes do nativo
+
+Identidade autenticada 37307304828 e os dois jobs de inicialização 37307304855 tiveram **143 testes: 141 aprovados, duas falhas, zero skips em cada job**. Falharam os casos de origem válida e do descendente após saída do líder. Banco, builds, geração real do agente Apple e XCTest não foram alcançados; metadados oficiais registram zero artefatos nos dois runs. [Prova 31 e hashes dos logs host](../../evidencias/ios-0e72f64.json). A causa ainda não está estabelecida. Alias de caminho macOS e interação da captura ps com o mock da fixture estão sendo reproduzidos; não alterar produto, guard ATS, prazos ou critérios sem evidência. Os 143 aprovados no Linux continuam uma execução histórica distinta.

@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-10-05",
+  "sourceCommit": "0e72f646e71231c974404b73810268ab6667aa1e",
+  "status": "apple-host-fixtures-blocked-before-native-preparation",
+  "authenticated": {
+    "runId": 37307304828,
+    "jobId": 111753980358,
+    "conclusion": "failure",
+    "firstFailedStep": {
+      "number": 7,
+      "name": "Verify host guards and exporter before preparing private runtime"
+    },
+    "host": {
+      "tests": 143,
+      "passed": 141,
+      "failed": 2,
+      "skipped": 0,
+      "durationSeconds": 59.513,
+      "failedTests": [
+        "test_discovery_timeout_terminates_owned_descendant_after_leader_exits",
+        "test_generated_configs_bind_private_strict_origin_and_preserve_source"
+      ],
+      "logSha256": "aefc23cd73c573fe9f83ef82e22931e7118a323a4252fa2daa1df0b2b77e6a91"
+    },
+    "artifacts": 0,
+    "realDatabasePreparationReached": false,
+    "applicationBuildsReached": false,
+    "actualAppleRunnerGenerationReached": false,
+    "xctestReached": false
+  },
+  "startup": {
+    "runId": 37307304855,
+    "conclusion": "failure",
+    "artifacts": 0,
+    "jobs": [
+      {
+        "product": "resident",
+        "jobId": 111753980050,
+        "conclusion": "failure",
+        "firstFailedStep": {
+          "number": 5,
+          "name": "Verify simulator selection guards"
+        },
+        "host": {
+          "tests": 143,
+          "passed": 141,
+          "failed": 2,
+          "skipped": 0,
+          "durationSeconds": 60.818,
+          "failedTests": [
+            "test_discovery_timeout_terminates_owned_descendant_after_leader_exits",
+            "test_generated_configs_bind_private_strict_origin_and_preserve_source"
+          ],
+          "logSha256": "affb5b2eb5846e993846d65d0a8e6c0d4d3175d8a83d8661f55acfc0b969172c"
+        },
+        "nativeBuildReached": false
+      },
+      {
+        "product": "operations",
+        "jobId": 111753980349,
+        "conclusion": "failure",
+        "firstFailedStep": {
+          "number": 5,
+          "name": "Verify simulator selection guards"
+        },
+        "host": {
+          "tests": 143,
+          "passed": 141,
+          "failed": 2,
+          "skipped": 0,
+          "durationSeconds": 60.867,
+          "failedTests": [
+            "test_discovery_timeout_terminates_owned_descendant_after_leader_exits",
+            "test_generated_configs_bind_private_strict_origin_and_preserve_source"
+          ],
+          "logSha256": "9a657f748fc887258cb2ed0291af09be2bc4c29776e261d04d9eaaf30aa1526e"
+        },
+        "nativeBuildReached": false
+      }
+    ]
+  },
+  "priorLinuxHostProof": "ios-strict-runner-0e72f64.json",
+  "causeEstablished": false,
+  "nativeAuthenticatedAccepted": false,
+  "productionAccepted": false,
+  "computerRestarted": false,
+  "limits": [
+    "Both failures are in synthetic Ruby fixtures on macOS. They do not establish a failure in the installed Apple runner or the private-template production helper.",
+    "Linux143 and Windows121+22 remain historical host executions and are not Apple acceptance.",
+    "Canonical path aliases and the interaction between ps capture and the mocked Open3.popen2 are under reproduction; no cause is asserted here."
+  ]
+}
