@@ -1,0 +1,430 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-10-04",
+  "status": "startup-approved-authenticated-runner-build-failed",
+  "sources": [
+    "f445c99bfe4b9bbd1318548a3891bd59bfc9296a",
+    "4c11487a27006ddbcdb677c1f6d4eb8a556e580b"
+  ],
+  "runs": [
+    {
+      "runId": 37247530449,
+      "sourceCommit": "f445c99bfe4b9bbd1318548a3891bd59bfc9296a",
+      "workflow": ".github/workflows/ios-auth.yml",
+      "event": "push",
+      "runAttempt": 1,
+      "conclusion": "failure",
+      "officialRunMetadataSha256": "511ba2d405c146e8115d62289b8856d4b6bbed1d0f6239127d8c9bde4f0082fb"
+    },
+    {
+      "runId": 37247530494,
+      "sourceCommit": "f445c99bfe4b9bbd1318548a3891bd59bfc9296a",
+      "workflow": ".github/workflows/ios.yml",
+      "event": "push",
+      "runAttempt": 1,
+      "conclusion": "failure",
+      "officialRunMetadataSha256": "86f195c249299806b0b2da6e6232fccf5c98a628539e69d49b1095a0dc58e725"
+    },
+    {
+      "runId": 37247530578,
+      "sourceCommit": "f445c99bfe4b9bbd1318548a3891bd59bfc9296a",
+      "workflow": ".github/workflows/workflow-validation.yml",
+      "event": "push",
+      "runAttempt": 1,
+      "conclusion": "success",
+      "officialRunMetadataSha256": "4fadb40a6a419e9b088a11a8bd93e370b5f90073432a42b328dd353c17777879"
+    },
+    {
+      "runId": 37247928548,
+      "sourceCommit": "4c11487a27006ddbcdb677c1f6d4eb8a556e580b",
+      "workflow": ".github/workflows/ios.yml",
+      "event": "push",
+      "runAttempt": 1,
+      "conclusion": "success",
+      "officialRunMetadataSha256": "5265bd6fa4c9d69d21bfa60fe73320233d57ec0f1c51af1b57d84ce1b1ae9bf1"
+    },
+    {
+      "runId": 37247928486,
+      "sourceCommit": "4c11487a27006ddbcdb677c1f6d4eb8a556e580b",
+      "workflow": ".github/workflows/workflow-validation.yml",
+      "event": "push",
+      "runAttempt": 1,
+      "conclusion": "success",
+      "officialRunMetadataSha256": "69d5e0bf273e030fd8ccea716239aca35dd34981e72defa54fb8f2e120d9d4e4"
+    }
+  ],
+  "independentReview": {
+    "monitorSha256": "d4907fe74a84f49c853047460651ed6ade4fbd9e8d9223504ad219ea2c202c35",
+    "closedRuns": 5,
+    "sourceAndArchiveRevalidation": "passed",
+    "privateKeyRead": false,
+    "plaintextOpened": false
+  },
+  "originalStartup": {
+    "runId": 37247530494,
+    "apps": [
+      {
+        "app": "resident-mobile",
+        "jobId": 111568264997,
+        "conclusion": "failure",
+        "failedStep": {
+          "number": 3,
+          "name": "Verify simulator selection guards"
+        },
+        "hostTests": {
+          "total": 121,
+          "passed": 120,
+          "failures": 1,
+          "errors": 0,
+          "skipped": 0,
+          "seconds": 24.785
+        },
+        "failedMethod": "test_real_node_sealer_exports_only_ciphertext_and_separate_ready_flag",
+        "collectorObservedEnum": "unavailable-not-ready",
+        "privateLog": {
+          "bytes": 37018,
+          "sha256": "17c7f6fda20315066050bac9b524ea66e1cb259d717f6c7c59bf3c5eea9a513b"
+        },
+        "runtimeImages": 0,
+        "nativeStartupExecuted": false
+      },
+      {
+        "app": "operations-mobile",
+        "jobId": 111568264799,
+        "conclusion": "failure",
+        "failedStep": {
+          "number": 3,
+          "name": "Verify simulator selection guards"
+        },
+        "hostTests": {
+          "total": 121,
+          "passed": 120,
+          "failures": 1,
+          "errors": 0,
+          "skipped": 0,
+          "seconds": 25.118
+        },
+        "failedMethod": "test_real_node_sealer_exports_only_ciphertext_and_separate_ready_flag",
+        "collectorObservedEnum": "unavailable-not-ready",
+        "privateLog": {
+          "bytes": 37027,
+          "sha256": "ddb3171d04fb3f4064cadee0f8f90fe1dc5d32f145e8aa052ec4b81cc4eeafaa"
+        },
+        "runtimeImages": 0,
+        "nativeStartupExecuted": false
+      }
+    ],
+    "artifactCount": 0,
+    "images": 0,
+    "artifactListingSha256": "244563f989470892c537c9a4622920af0d228ee4528f7d00c64a06d6cd95856c",
+    "sourceOrderObservation": "Host suite executes before setup-node24 although the new real sealer requires Node24. Actual child Node version was not logged; unavailable is not classified as an Apple cause.",
+    "productionAccepted": false
+  },
+  "authenticated": {
+    "sourceCommit": "f445c99bfe4b9bbd1318548a3891bd59bfc9296a",
+    "runId": 37247530449,
+    "jobId": 111568264808,
+    "conclusion": "failure",
+    "firstFailedStep": {
+      "number": 13,
+      "name": "Execute real XCUITest journey with both coinstalled releases"
+    },
+    "diagnostic": {
+      "stage": "runner-build",
+      "category": "nonzero-exit",
+      "exitCode": 70,
+      "errorSignals": [
+        "unclassified"
+      ],
+      "signalScanLimited": false
+    },
+    "hostAndCollector": {
+      "privateLogSha256": "7273439ee240e94c163cadba4f02e35db877a4029991eb9d00093155bdb512a0",
+      "privateLogBytes": 142581,
+      "pythonSuites": [
+        {
+          "total": 121,
+          "skipped": 0,
+          "passed": 121,
+          "seconds": 23.213,
+          "failures": 0
+        }
+      ],
+      "nodeTestCountersIfCaptured": {
+        "tests": 12,
+        "suites": 0,
+        "pass": 12,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "collectorOutcome": "ready",
+      "rawLogsExported": false
+    },
+    "approvedNativeCheckpoints": 0,
+    "pngCount": 0,
+    "ordinaryArtifact": {
+      "id": 11320090529,
+      "name": "ios-authenticated-37247530449",
+      "bytes": 1084,
+      "sha256": "527ee0a47250a334845018b1f2492bdaf1b98e6af8bb6557000601f275394ed8",
+      "officialDigestVerified": true,
+      "sourceCommit": "f445c99bfe4b9bbd1318548a3891bd59bfc9296a",
+      "runId": 37247530449,
+      "runAttemptFromRunRest": 1,
+      "files": [
+        "builds.json",
+        "database-source.json",
+        "result.json"
+      ]
+    },
+    "encryptedCompanion": {
+      "artifact": {
+        "id": 11319049978,
+        "name": "ios-runner-build-encrypted-37247530449-1",
+        "bytes": 33792,
+        "sha256": "ad6d2d333e1aacaedfb1e35d331158df0b892e4bde9eef345717368668e4e7c4",
+        "officialDigestVerified": true,
+        "sourceCommit": "f445c99bfe4b9bbd1318548a3891bd59bfc9296a",
+        "runId": 37247530449,
+        "runAttemptFromRunRest": 1
+      },
+      "version": 1,
+      "algorithm": "RSA-OAEP-SHA256+A256GCM",
+      "keyId": "f792f93f45f280e421b4d5f643de2523d17f8a909be69bb34bb4bb48af28b8b2",
+      "context": {
+        "repository": "helberjf/predioON",
+        "sha": "f445c99bfe4b9bbd1318548a3891bd59bfc9296a",
+        "runId": "37247530449",
+        "runAttempt": "1",
+        "stage": "runner-build",
+        "exitCode": 70
+      },
+      "envelopeBytes": 33626,
+      "envelopeSha256": "c6f4354c32388969d3e8d30c8e6f71e4e9e22a086a94d510fdfa819718a5382b",
+      "decodedCipherFieldLengths": {
+        "iv": 12,
+        "wrappedKey": 512,
+        "ciphertext": 24416,
+        "tag": 16
+      },
+      "strictSchemaCanonicalBase64AndCapsVerified": true,
+      "publicRecipientSpkiSha256Verified": true,
+      "plaintextOpened": false,
+      "realPrivateKeyRead": false,
+      "cryptographicTagAuthenticated": false,
+      "reviewScope": "Independent reviewer verified transport without opening it; the root separately authenticated and opened it below."
+    },
+    "testWithoutBuildingInvoked": false,
+    "actualApiRequestsBeforeFailure": "unknown"
+  },
+  "startup": {
+    "sourceCommit": "4c11487a27006ddbcdb677c1f6d4eb8a556e580b",
+    "runId": 37247928548,
+    "conclusion": "success",
+    "productCount": 2,
+    "pngMetadataCount": 4,
+    "imagesVisuallyReviewed": 0,
+    "products": [
+      {
+        "product": "resident-mobile",
+        "jobId": 111569430552,
+        "conclusion": "success",
+        "hostTests": {
+          "total": 121,
+          "passed": 121,
+          "skipped": 0,
+          "failures": 0,
+          "errors": 0,
+          "seconds": 24.077,
+          "privateLogBytes": 2145082,
+          "privateLogSha256": "cb599c6eb9a5b604ca49dfdff5831efbc990206e04a696a7e53431a78e58c6a2",
+          "rawLogExported": false
+        },
+        "phases": [
+          "simulator-signature-verified",
+          "simulator-booted",
+          "release-installed",
+          "01-first-launch",
+          "02-new-process"
+        ],
+        "artifact": {
+          "id": 11320100740,
+          "name": "resident-mobile-ios-runtime-37247928548",
+          "bytes": 234360,
+          "sha256": "1c783d95c4e08c3f5dcb888763915de9bd4935127a95e4bdbf1a44ae28e08990",
+          "officialDigestVerified": true,
+          "sourceCommit": "4c11487a27006ddbcdb677c1f6d4eb8a556e580b",
+          "runId": 37247928548,
+          "runAttemptFromRunRest": 1,
+          "members": [
+            "01-first-launch.ocr.json",
+            "01-first-launch.png",
+            "02-new-process.ocr.json",
+            "02-new-process.png",
+            "application.log",
+            "result.json"
+          ]
+        },
+        "images": [
+          {
+            "phase": "01-first-launch",
+            "artifactMember": "01-first-launch.png",
+            "sha256": "3c89e963cc8ea939c5f31baf6e91f15883a44600f16e1a114a8bfe7e1dfa781d",
+            "bytes": 145535,
+            "width": 1206,
+            "height": 2622,
+            "ocrMetadataSha256": "84a8524f5c854370f01691d2be74acba1a0c9b1c9dc625338bea517bb7fe0f96",
+            "ocrRequiredLabelsMatched": true,
+            "recognizedLineCount": 11,
+            "visualReviewed": false,
+            "imageExtracted": false
+          },
+          {
+            "phase": "02-new-process",
+            "artifactMember": "02-new-process.png",
+            "sha256": "1f1f915ab0d651c281624f6373ce6cae7db12f4d1dcb588905804f0bc2160324",
+            "bytes": 142541,
+            "width": 1206,
+            "height": 2622,
+            "ocrMetadataSha256": "32739bd9ee2c3905d58bad3b682eeed2ffea98b52d2f489796183fe9759cba27",
+            "ocrRequiredLabelsMatched": true,
+            "recognizedLineCount": 11,
+            "visualReviewed": false,
+            "imageExtracted": false
+          }
+        ]
+      },
+      {
+        "product": "operations-mobile",
+        "jobId": 111569430700,
+        "conclusion": "success",
+        "hostTests": {
+          "total": 121,
+          "passed": 121,
+          "skipped": 0,
+          "failures": 0,
+          "errors": 0,
+          "seconds": 26.896,
+          "privateLogBytes": 2161147,
+          "privateLogSha256": "045d1d96a77970aabdad41b7c5a820caf65b89ae3fe6ec5baf196072d675f96d",
+          "rawLogExported": false
+        },
+        "phases": [
+          "simulator-signature-verified",
+          "simulator-booted",
+          "release-installed",
+          "01-first-launch",
+          "02-new-process"
+        ],
+        "artifact": {
+          "id": 11319703725,
+          "name": "operations-mobile-ios-runtime-37247928548",
+          "bytes": 227914,
+          "sha256": "457bff7eb3b996a27508e9614c522b11191aa48e1b21e6d131fc7696968f7a78",
+          "officialDigestVerified": true,
+          "sourceCommit": "4c11487a27006ddbcdb677c1f6d4eb8a556e580b",
+          "runId": 37247928548,
+          "runAttemptFromRunRest": 1,
+          "members": [
+            "01-first-launch.ocr.json",
+            "01-first-launch.png",
+            "02-new-process.ocr.json",
+            "02-new-process.png",
+            "application.log",
+            "result.json"
+          ]
+        },
+        "images": [
+          {
+            "phase": "01-first-launch",
+            "artifactMember": "01-first-launch.png",
+            "sha256": "7377dc71643847aeb930c8848109dbe7f60077a5834b1cf729d1f9f619c0d0fd",
+            "bytes": 140696,
+            "width": 1206,
+            "height": 2622,
+            "ocrMetadataSha256": "f95f62f7554ea06ba58fbc173b35643664946f74e8b3d163e791bc0e21a74e78",
+            "ocrRequiredLabelsMatched": true,
+            "recognizedLineCount": 10,
+            "visualReviewed": false,
+            "imageExtracted": false
+          },
+          {
+            "phase": "02-new-process",
+            "artifactMember": "02-new-process.png",
+            "sha256": "e137b097471fbbbea43bc2aa22cfeff13a826b003d647a58169ef17d63329a26",
+            "bytes": 142358,
+            "width": 1206,
+            "height": 2622,
+            "ocrMetadataSha256": "f95f62f7554ea06ba58fbc173b35643664946f74e8b3d163e791bc0e21a74e78",
+            "ocrRequiredLabelsMatched": true,
+            "recognizedLineCount": 10,
+            "visualReviewed": false,
+            "imageExtracted": false
+          }
+        ]
+      }
+    ]
+  },
+  "rootPrivateAnalysis": {
+    "officialArtifactSourceSizeDigestAndInventoryVerified": true,
+    "expectedContextMatchedBeforeOpening": true,
+    "publicRecipientSpkiSha256Verified": true,
+    "rsaOaepUnwrapAndGcmTagAuthenticated": true,
+    "plaintextOpenedOnceInRestrictedLocalDirectory": true,
+    "privateKeyOrPlaintextPublished": false,
+    "privateKeyOrPlaintextIncludedInTransferPackage": false,
+    "technicalObservation": {
+      "runId": 37247530449,
+      "firstDiagnostic": "destination-device-unmatched",
+      "requestedCanonicalLowercase": true,
+      "requestedHasHexLetters": true,
+      "availableDeviceUuidCount": 195,
+      "exactRequestedUuidMatches": 0,
+      "caseInsensitiveRequestedUuidMatches": 2,
+      "availableDestinationPlatformCounts": {
+        "macOS": 2,
+        "iOS Simulator": 189,
+        "other": 5
+      },
+      "caseInsensitiveMatchingDestinations": [
+        {
+          "platform": "iOS Simulator",
+          "architecture": "arm64",
+          "uuidCanonicalUppercase": true,
+          "exactRequestedUuidMatch": false
+        },
+        {
+          "platform": "iOS Simulator",
+          "architecture": "x86_64",
+          "uuidCanonicalUppercase": true,
+          "exactRequestedUuidMatch": false
+        }
+      ],
+      "uuidValuesPrinted": false,
+      "pathsOrCredentialsPrinted": false
+    },
+    "technicalObservationSha256": "064a68a47258c6d36fd378b00aea567fad83859187c19ba27fa9590daeafa1fd",
+    "observedXcodebuildError": "Unable to find a device matching the provided destination specifier",
+    "diagnosticClassification": "destination-selection-observed-in-this-execution",
+    "uuidCaseMismatchObserved": true,
+    "uuidCaseCausalityEstablished": false,
+    "historicalFailuresRetroactivelyClassified": false
+  },
+  "authenticatedNativeAccepted": false,
+  "physicalDevicesAccepted": false,
+  "productionAccepted": false,
+  "newImagesPublished": 0,
+  "galleryImageCount": 32,
+  "computerRestarted": false,
+  "limits": [
+    "Startup4c11487 confirms two locally signed simulator releases, installation and two unauthenticated process lifetimes per app; four PNGs are structurally checked without visual approval or publication.",
+    "Authf445 failed before test-without-building, with zero approved checkpoints/images. Actual API request count is unknown; neither Keychain nor password nor domain acceptance is established.",
+    "The root authenticated the encrypted diagnostic in a protected directory and exported only closed technical counts. The reviewer did not read the real private key or plaintext.",
+    "The requested lowercase UUID differs from two available uppercase UUID occurrences for the same simulator, arm64 and x86_64. This observation justifies a producer-spelling preservation experiment, but is not yet a causal Apple proof.",
+    "Earlier exit70 and historical timeouts/NUL reports remain separate and unexplained by this execution.",
+    "The classifier gap between device-matching and destination-matching wording explains the unclassified enum in this observed diagnostic; a tested correction is still pending.",
+    "These five automatic runs were monitored without dispatch, rerun or cancellation. No distribution signing, physical devices, complete project or production acceptance is implied."
+  ]
+}
