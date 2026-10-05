@@ -1,0 +1,352 @@
+{
+  "version": 1,
+  "proofNumber": 21,
+  "status": "host-approved-native-pending",
+  "source": "f445c99bfe4b9bbd1318548a3891bd59bfc9296a",
+  "sourceUrl": "https://github.com/helberjf/predioON/commit/f445c99bfe4b9bbd1318548a3891bd59bfc9296a",
+  "scope": "optional encrypted iOS runner-build companion; host and code review only",
+  "baselineSource": "8e129c38e14ec876f4d6e7aeace342c2e2c95232",
+  "sourceFiles": [
+    {
+      "path": "scripts/ios-smoke/collect_build_diagnostic.py",
+      "gitLfSha256": "fa80ec72091e37187509727cae4dd9f5b0bd5a5e7a4ea6b128bd44505b0ee33a",
+      "frozenLfSha256": "fa80ec72091e37187509727cae4dd9f5b0bd5a5e7a4ea6b128bd44505b0ee33a",
+      "lfBytes": 9207,
+      "matchesFrozen": true
+    },
+    {
+      "path": "scripts/ios-smoke/private_build_diagnostic.mjs",
+      "gitLfSha256": "7d66baa95446d866d0237200d63d72fadff73797514ad20a327750a965e5c5db",
+      "frozenLfSha256": "7d66baa95446d866d0237200d63d72fadff73797514ad20a327750a965e5c5db",
+      "lfBytes": 8824,
+      "matchesFrozen": true
+    },
+    {
+      "path": "scripts/ios-smoke/diagnostic-recipient-public.pem",
+      "gitLfSha256": "4133c7acd0874e4b3d6ffa5a9d90e5c05f883f7790597653893336b41bc3bcaa",
+      "frozenLfSha256": "4133c7acd0874e4b3d6ffa5a9d90e5c05f883f7790597653893336b41bc3bcaa",
+      "lfBytes": 800,
+      "matchesFrozen": true
+    },
+    {
+      "path": "scripts/ios-smoke/test_private_build_diagnostic.py",
+      "gitLfSha256": "b0feefd450a7bf965e017ad722e87aed6599fc639f9bc7e67ff42c0b63e4f763",
+      "frozenLfSha256": "b0feefd450a7bf965e017ad722e87aed6599fc639f9bc7e67ff42c0b63e4f763",
+      "lfBytes": 19011,
+      "matchesFrozen": true
+    },
+    {
+      "path": "scripts/ios-smoke/private_build_diagnostic.test.mjs",
+      "gitLfSha256": "686e462d11edbcd7fe23daf0b893b8a8141efb9614cbb863cc5cb950d332b6b8",
+      "frozenLfSha256": "686e462d11edbcd7fe23daf0b893b8a8141efb9614cbb863cc5cb950d332b6b8",
+      "lfBytes": 10357,
+      "matchesFrozen": true
+    },
+    {
+      "path": ".github/workflows/ios-auth.yml",
+      "gitLfSha256": "9f1d223fca442ff38514a05ad7d2f5b88ad07ab771f80e1eccb96645afae6398",
+      "frozenLfSha256": "9f1d223fca442ff38514a05ad7d2f5b88ad07ab771f80e1eccb96645afae6398",
+      "lfBytes": 7700,
+      "matchesFrozen": true
+    },
+    {
+      "path": "scripts/ios-smoke/README.md",
+      "gitLfSha256": "340001d2fabb699923fa0eb9bd318c2267d634bb3c5c2ef968295859bc0defb5",
+      "frozenLfSha256": "340001d2fabb699923fa0eb9bd318c2267d634bb3c5c2ef968295859bc0defb5",
+      "lfBytes": 44867,
+      "matchesFrozen": true
+    }
+  ],
+  "protectedSourceFiles": [
+    {
+      "path": "scripts/ios-smoke/run_auth.py",
+      "gitLfSha256": "bfe820924513014bba793c390ad9502011fdc7034aa035c6c622a7197709d20d",
+      "baselineLfSha256": "bfe820924513014bba793c390ad9502011fdc7034aa035c6c622a7197709d20d",
+      "unchanged": true
+    },
+    {
+      "path": "scripts/ios-smoke/test_auth.py",
+      "gitLfSha256": "cc85b6592ad24ee99367eb31ac36802183b32a5d1b6d3a59afa7ec5c4c16fcda",
+      "baselineLfSha256": "cc85b6592ad24ee99367eb31ac36802183b32a5d1b6d3a59afa7ec5c4c16fcda",
+      "unchanged": true
+    },
+    {
+      "path": "scripts/ios-smoke/project.rb",
+      "gitLfSha256": "648cf00c386c17cf922c57faa5b85280eb121e5f9acba7af264b14cbfc8747c6",
+      "baselineLfSha256": "648cf00c386c17cf922c57faa5b85280eb121e5f9acba7af264b14cbfc8747c6",
+      "unchanged": true
+    },
+    {
+      "path": "scripts/ios-smoke/AuthJourney.swift",
+      "gitLfSha256": "17624694466f96c2803467a2c345dd85f8209839898d62337fc936c8c37e153b",
+      "baselineLfSha256": "17624694466f96c2803467a2c345dd85f8209839898d62337fc936c8c37e153b",
+      "unchanged": true
+    },
+    {
+      "path": "scripts/ios-smoke/prepare_auth.py",
+      "gitLfSha256": "9bd961c1e02becb27cd16a12feac2cfa98636efce440da7ee62323ceeb3d2a6a",
+      "baselineLfSha256": "9bd961c1e02becb27cd16a12feac2cfa98636efce440da7ee62323ceeb3d2a6a",
+      "unchanged": true
+    },
+    {
+      "path": "scripts/ios-smoke/capture.py",
+      "gitLfSha256": "a2ad808d6ab3e2d84ee7aabf7e828d6e067e1031d389c177663763d99135a40d",
+      "baselineLfSha256": "a2ad808d6ab3e2d84ee7aabf7e828d6e067e1031d389c177663763d99135a40d",
+      "unchanged": true
+    },
+    {
+      "path": "scripts/ios-smoke/database.sh",
+      "gitLfSha256": "dfb6fb07b64ee2ced52ed985bb76130506d404b2aa13628b459be101843cf557",
+      "baselineLfSha256": "dfb6fb07b64ee2ced52ed985bb76130506d404b2aa13628b459be101843cf557",
+      "unchanged": true
+    },
+    {
+      "path": "scripts/ios-smoke/wait_https_proxy.py",
+      "gitLfSha256": "d01c56b552ef05b3e0ae2381ae897a593fa441a873682ec28810ef16b4cac9b7",
+      "baselineLfSha256": "d01c56b552ef05b3e0ae2381ae897a593fa441a873682ec28810ef16b4cac9b7",
+      "unchanged": true
+    }
+  ],
+  "sourceZip": {
+    "sha256": "094ea8758521c44e99b49414a23b68d0d1408b5085c51ed64de1385a37ee5a51",
+    "bytes": 36064,
+    "entries": 7,
+    "crcVerified": true,
+    "containsOnlyReviewedSourceFiles": true,
+    "privateKeyOrAppleLogIncluded": false
+  },
+  "publicRecipientFingerprint": "f792f93f45f280e421b4d5f643de2523d17f8a909be69bb34bb4bb48af28b8b2",
+  "redEvidence": [
+    {
+      "stage": "node-implementation-absent",
+      "kind": "missing-module",
+      "failed": true,
+      "failureCount": 1,
+      "logSha256": "ee1493205129c5c8bf1c6068ab4f26b31a688af84194fbf0ac3aee0d55461c69"
+    },
+    {
+      "stage": "python-implementation-absent",
+      "kind": "missing-collector",
+      "failed": true,
+      "errorCount": 1,
+      "logSha256": "2b447ca76cf38a56c40c385937959bc7978cab0565c18f9d93426ab1f4c8829f"
+    },
+    {
+      "stage": "envelope-context-type-guard",
+      "kind": "boolean-accepted-as-integer",
+      "failed": true,
+      "assertionFailureObserved": true,
+      "fixedBy": "canonical-context-comparison",
+      "logSha256": "212381e7f70f6e9daa910a6d59af5f97b90bad914630e11e88ef7d757cae7e77"
+    }
+  ],
+  "tests": {
+    "implementation": {
+      "windowsPython": {
+        "total": 121,
+        "passed": 105,
+        "failed": 0,
+        "skipped": 16,
+        "seconds": 19.563,
+        "logSha256": "49ec1df77dec3e6d4a4f67971db38869884d0359544562faaa13be90527cc281"
+      },
+      "windowsNode": {
+        "total": 12,
+        "passed": 11,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 1,
+        "todo": 0,
+        "milliseconds": 4465.6999,
+        "logSha256": "c965a51a7e10514d67f22623fa7a9a62b8ab3a385204f30e872e3617f0920ac9"
+      },
+      "linuxPython": {
+        "total": 121,
+        "passed": 121,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 34.978,
+        "logSha256": "ac9cce7dbde88aeed197f196213f49110a3f1067a66e223a5f5cc669e4b2d2d5"
+      },
+      "linuxNode": {
+        "total": 12,
+        "passed": 12,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "milliseconds": 4157.655892,
+        "logSha256": "ac9cce7dbde88aeed197f196213f49110a3f1067a66e223a5f5cc669e4b2d2d5"
+      }
+    },
+    "independentReview": {
+      "windowsPython": {
+        "total": 121,
+        "passed": 105,
+        "failed": 0,
+        "skipped": 16,
+        "seconds": 19.996,
+        "logSha256": "7618ae9d8c9a826b0946424793694e5a136a8df8829c50a50d3ff2aa76cb6aa3"
+      },
+      "windowsNode": {
+        "total": 12,
+        "passed": 11,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 1,
+        "todo": 0,
+        "milliseconds": 5499.532,
+        "logSha256": "297263512c37f47471f2bc23b6f26761ff06827ca74437f76cd2a377d3bf9709"
+      },
+      "linuxPython": {
+        "total": 121,
+        "passed": 121,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 35.789,
+        "logSha256": "37882ee847811c3c06b475ce37e8658769bbb773aa2231709b3cf1f126331fed"
+      },
+      "linuxNode": {
+        "total": 12,
+        "passed": 12,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "milliseconds": 3123.465429,
+        "logSha256": "661b06614dcb1c49a51d9dbc01e3aebda1fd83264c8840fa6daf271207180a77"
+      }
+    },
+    "rootWindows": {
+      "python": {
+        "total": 121,
+        "passed": 105,
+        "failed": 0,
+        "skipped": 16,
+        "seconds": 19.621,
+        "logSha256": "922caeb58bbdb28f5d95730c827c2a733a656aa427306af7593d5761e2d5ab75"
+      },
+      "node": {
+        "total": 12,
+        "passed": 11,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 1,
+        "todo": 0,
+        "milliseconds": 4061.5374,
+        "logSha256": "29480b1cc4f7c8fe5543d2e737baf0c8c7cc5bc8065c8dfe6d3873be96f73e03"
+      }
+    }
+  },
+  "independentReview": {
+    "conclusion": "no-material-code-blocker-found",
+    "blockers": [],
+    "findings": [],
+    "sha256": "831da8a00550d7a80270ed5200eea081dcb97fc5d1e796ee90ed8dba48507078"
+  },
+  "rootSourceVerificationSha256": "45d1115a6a9fa70bb0296eedf59130032ee8556adca26b1987000244d1497bf0",
+  "checks": {
+    "closedResultGuardBeforeLogPublicKeyOrChild": true,
+    "firstFailureAndPrivateCaptureSourceUnchanged": true,
+    "ownedRegular0600PrivateLogIn0700Directory": true,
+    "noFollowHardlinkSizeAndFdIdentityChecks": true,
+    "maxPlaintextBytes": 2097152,
+    "maxEnvelopeBytes": 3145728,
+    "childEnvironmentExactAllowedKeys": [
+      "GITHUB_ACTIONS",
+      "RUNNER_OS",
+      "IOS_DIAGNOSTIC_CONTEXT"
+    ],
+    "childStdoutStderrDevnull": true,
+    "childAttempts": 1,
+    "childTimeoutSeconds": 15,
+    "realOsLevelStderrSentinelNegativePassed": true,
+    "exclusiveEncryptedFileAndReadyFlagAfterValidation": true,
+    "rsaBits": 4096,
+    "rsaPublicExponent": 65537,
+    "oaepHash": "sha256",
+    "oaepLabel": "predioon/ios-runner-build/v1",
+    "aesBits": 256,
+    "gcmIvBytes": 12,
+    "gcmTagBytes": 16,
+    "canonicalEnvelopeAndBase64AndContextAad": true,
+    "authenticationBeforePlaintextFileCreation": true,
+    "productionOpenCliAndFileWriterBlockedInCi": true,
+    "originalJourneyArgvAndTimersUnchanged": true,
+    "projectSwiftTlsDependenciesUnchanged": true,
+    "originalPublicArtifactUnchanged": true,
+    "separateEncryptedOnlyUpload": true,
+    "workflowOriginalSteps": 14,
+    "workflowOptionalStepsAdded": 2,
+    "workflowTimeoutMinutes": 90,
+    "yamlDuplicateKeysRejected": true,
+    "actionlintVersion": "1.7.12",
+    "actionlintExternalShellcheckPyflakes": false,
+    "bashSyntaxBlocksPassed": 10
+  },
+  "workflow": {
+    "yamlVersion": "2.9.1",
+    "duplicateKeysRejected": true,
+    "baselineSteps": 14,
+    "baselineStepsUnchanged": 12,
+    "hostGuardAddedOnlyNodeTests": true,
+    "journeyAddedOnlyUmask077": true,
+    "journeyArgvAndTimeoutsUnchanged": true,
+    "jobTimeoutMinutes": 90,
+    "optionalSteps": 2,
+    "optionalStepTimeoutMinutes": 1,
+    "separateFlagAndLiteralEncryptedOnlyUpload": true,
+    "uploadRetentionDays": 1,
+    "uploadOverwrite": false,
+    "actionlintVersion": "1.7.12",
+    "actionlintPassed": true,
+    "externalShellcheckPyflakesEnabled": false,
+    "bashSyntaxBlocksPassed": 10,
+    "backendYamlLogSha256": "d671a99cdff52c68813be8240af76aac7b10a85836c2365d6258db17be92d16a",
+    "independentYamlLogSha256": "e8272753e490777e2e05a8deb60e3b5b52fc2035ca906cc8a0c4307f73c0e1fc",
+    "backendActionlintLogSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "independentActionlintLogSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "backendBashLogSha256": "2b2746b07b0eab1d0dff7fc3c59e1460b9b716de5e316ff353b724e0ad201fb4",
+    "independentBashLogSha256": "5f6f5e3b1ab8308e1259742212d34718a27a14b9024753d41fed1376cfefde92"
+  },
+  "testBoundaries": {
+    "windowsPythonTotal": 121,
+    "windowsPythonPosixOrToolSkips": 16,
+    "windowsNodeLinkSkip": 1,
+    "linuxPythonTotal": 121,
+    "linuxNodeTotal": 12,
+    "linuxSkips": 0,
+    "linuxNetwork": "none",
+    "linuxSourceMount": "readonly",
+    "privateKeysUsed": "disposable-test-keys-only",
+    "actualNativeCiResultsIncluded": false,
+    "cryptoFingerprintCheckedFromPublicOnly": true
+  },
+  "limits": [
+    "Host tests and code review do not establish a macOS/Xcode/XCTest or production result.",
+    "No current or historical native CI result is attributed to this companion proof.",
+    "The Apple exit70 cause remains unknown; no private Apple log or plaintext was accessed to build this proof.",
+    "The encrypted transport does not approve authenticated phases, the 14-POST sequence, Keychain/session-family data or images.",
+    "Local operators must verify artifact provenance/digest and trusted expected context, and protect the private key/output with local ACLs.",
+    "Asymmetric encryption does not sign origin and does not protect a compromised runner or repository.",
+    "File limits fail closed without truncation; no raw-log fallback or retry is enabled.",
+    "Buffer clearing does not promise forensic erasure.",
+    "The earlier timeout-expectation adjustment was a test portability correction; the subprocess deadline remains15seconds.",
+    "A file named python-linux-race-red recorded GREEN8 and is deliberately excluded from RED evidence."
+  ],
+  "primarySources": [
+    "https://nodejs.org/docs/latest-v24.x/api/crypto.html#cryptopublicencryptkey-buffer",
+    "https://nodejs.org/docs/latest-v24.x/api/crypto.html#deciphersetauthtagbuffer-encoding",
+    "https://raw.githubusercontent.com/actions/upload-artifact/v4/src/shared/search.ts",
+    "https://raw.githubusercontent.com/actions/toolkit/main/packages/glob/src/internal-globber.ts"
+  ],
+  "appleCauseEstablished": false,
+  "nativeAuthenticatedApproved": false,
+  "productionApproved": false,
+  "physicalActuationApproved": false,
+  "physicalDeviceExecutionApproved": false,
+  "realPrivateKeyRead": false,
+  "sourceEditedForProof": false,
+  "testsOrCiRerunForProof": false,
+  "servicesOperatedForProof": false
+}
