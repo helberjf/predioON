@@ -2,6 +2,7 @@
 import importlib.util
 from contextlib import ExitStack
 import json
+import os
 from pathlib import Path
 import random
 import shutil
@@ -14,6 +15,311 @@ from unittest.mock import MagicMock, patch
 import zlib
 
 BASE = Path(__file__).resolve().parent
+
+
+# Real Xcodeproj generation with a synthetic Apple agent; no Apple build is performed.
+RUNNER_PROJECT_FIXTURE = r'''
+require 'json'
+require 'digest'
+require 'tmpdir'
+require 'fileutils'
+require 'stringio'
+require 'open3'
+require 'rbconfig'
+require 'xcodeproj'
+script, scenario = ARGV
+original_popen2 = Open3.method(:popen2)
+
+def check(value)
+  raise 'Runner project fixture assertion failed' unless value
+end
+
+def tree_bytes(root)
+  Dir.glob(File.join(root, '**', '*'), File::FNM_DOTMATCH).sort.select { |p| File.file?(p) && !File.symlink?(p) }.to_h do |path|
+    [path.delete_prefix(root + '/'), Digest::SHA256.file(path).hexdigest]
+  end
+end
+
+def descendant_state(pid)
+  return 'reaped' if Process.waitpid(pid, Process::WNOHANG)
+  'running'
+rescue Errno::ECHILD
+  state, status = Open3.capture2('/bin/ps', '-o', 'stat=', '-p', pid.to_s)
+  return 'absent' if status.exitstatus == 1 && state.strip.empty?
+  check(status.success? && state.bytesize <= 32 && state.strip.match?(/\A[A-Z][A-Za-z<>+ -]*\z/))
+  state.strip.start_with?('Z') ? 'zombie' : 'running'
+end
+
+def fixture(script, original_popen2, mutation: nil, output_kind: 'valid', wait_seconds: 0, orphan_stdout: false)
+  Dir.mktmpdir('strict-runner-fixture-') do |temporary|
+    folder = File.join(temporary, 'private')
+    platform = File.join(temporary, 'iPhoneSimulator.platform')
+    agent = File.join(platform, 'Developer', 'Library', 'Xcode', 'Agents', 'XCTRunner.app')
+    FileUtils.mkdir_p(folder, mode: 0700)
+    FileUtils.mkdir_p(agent, mode: 0700)
+    File.write(File.join(folder, 'AuthConfiguration.swift'), "enum AuthConfiguration {}\n")
+    info = {'CFBundleExecutable'=>'$(WRAPPEDPRODUCTNAME)', 'CFBundleIdentifier'=>'$(WRAPPEDPRODUCTBUNDLEIDENTIFIER)', 'CFBundlePackageType'=>'APPL', 'NSAppTransportSecurity'=>{'NSAllowsArbitraryLoads'=>true, 'NSExceptionDomains'=>{'fixture.invalid'=>{'NSExceptionAllowsInsecureHTTPLoads'=>true}}}, 'fixture-data'=>['unchanged', 42, false]}
+    Xcodeproj::Plist.write_to_path(info, File.join(agent, 'Info.plist'))
+    Xcodeproj::Plist.write_to_path({'fixture-entitlement'=>true}, File.join(agent, 'RunnerEntitlements.plist'))
+    File.binwrite(File.join(agent, 'XCTRunner'), "synthetic executable fixture\n")
+    File.chmod(0700, File.join(agent, 'XCTRunner'))
+    FileUtils.mkdir_p(File.join(agent, 'Resources'))
+    File.write(File.join(agent, 'Resources', 'fixture.txt'), 'preserve resource')
+    destination = File.join(folder, 'StrictXCTRunner.app')
+    outside = File.join(temporary, 'outside')
+    FileUtils.mkdir_p(outside)
+    File.write(File.join(outside, 'fixture.txt'), 'outside sentinel')
+    case mutation
+    when 'agent-link'
+      FileUtils.mv(agent, File.join(outside, 'agent'))
+      File.symlink(File.join(outside, 'agent'), agent)
+    when 'info-link'
+      FileUtils.mv(File.join(agent, 'Info.plist'), File.join(outside, 'Info.plist'))
+      File.symlink(File.join(outside, 'Info.plist'), File.join(agent, 'Info.plist'))
+    when 'binary-link'
+      FileUtils.mv(File.join(agent, 'XCTRunner'), File.join(outside, 'XCTRunner'))
+      File.symlink(File.join(outside, 'XCTRunner'), File.join(agent, 'XCTRunner'))
+    when 'resource-link'
+      File.symlink(outside, File.join(agent, 'Resources', 'escape'))
+    when 'missing-entitlements'
+      File.unlink(File.join(agent, 'RunnerEntitlements.plist'))
+    when 'non-executable'
+      File.chmod(0600, File.join(agent, 'XCTRunner'))
+    when 'malformed-plist'
+      File.write(File.join(agent, 'Info.plist'), 'malformed fixture')
+    when 'invalid-plist-type'
+      File.write(File.join(agent, 'Info.plist'), "<?xml version=\"1.0\"?><plist version=\"1.0\"><array/></plist>")
+    when 'existing-destination'
+      Dir.mkdir(destination)
+      File.write(File.join(destination, 'sentinel'), 'existing destination')
+    when 'destination-link'
+      File.symlink(outside, destination)
+    when 'non-private-folder'
+      File.chmod(0755, folder)
+    end
+    before = tree_bytes(platform)
+    outside_before = tree_bytes(outside)
+    calls, children = [], []
+    descendant_file = File.join(temporary, 'owned-descendant.json')
+    begin
+    Open3.define_singleton_method(:popen2) do |*arguments, **options, &block|
+      calls << arguments
+      check(arguments == ['/usr/bin/xcrun', '--sdk', 'iphonesimulator', '--show-sdk-platform-path'])
+      check(options[:err] == File::NULL && options[:pgroup] == true)
+      output = case output_kind
+      when 'empty' then ''
+      when 'relative' then "relative/iPhoneSimulator.platform\n"
+      when 'nul' then platform + "\x00\n"
+      when 'cr' then platform + "\r\n"
+      when 'multiple-lines' then platform + "\nextra\n"
+      when 'oversized' then 'x' * 4097
+      when 'invalid-utf8' then "\xff\n".b
+      when 'wrong-platform' then outside + "\n"
+      when 'missing-platform' then File.join(temporary, 'missing', 'iPhoneSimulator.platform') + "\n"
+      else platform + "\n"
+      end
+      program = if orphan_stdout
+        "require 'json'; descendant = fork { sleep 100 }; File.write(#{descendant_file.dump}, JSON.generate({'pid'=>descendant, 'pgid'=>Process.getpgrp})); exit 0"
+      else
+        "STDERR.write('discarded fixture stderr'); sleep(#{wait_seconds}); STDOUT.binmode; STDOUT.write(#{output.dump}); exit(#{output_kind == 'nonzero' ? 7 : 0})"
+      end
+      original_popen2.call(RbConfig.ruby, '-e', program, **options) do |input, stream, child|
+        children << child
+        block.call(input, stream, child)
+      end
+    end
+    ENV['GITHUB_ACTIONS']='true'; ENV['RUNNER_OS']='macOS'; ENV['RUNNER_TEMP']=temporary
+    ENV['XCTRUNNER_PATH']=outside
+    ENV['IOS_TEST_RUNNER_ORIGIN']=outside
+    ARGV.replace([folder])
+    old_stdout, old_stderr = $stdout, $stderr
+    $stdout, $stderr = StringIO.new, StringIO.new
+    started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    success = false
+    begin
+      load script
+      success = true
+    rescue SystemExit => failure
+      check(failure.status == 1)
+    ensure
+      elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - started
+      captured_error = $stderr.string
+      $stdout, $stderr = old_stdout, old_stderr
+    end
+    check(before == tree_bytes(platform) && outside_before == tree_bytes(outside))
+    check(children.all? { |child| !child.alive? })
+    check(children.fetch(0).value.success?) if orphan_stdout
+    check(!captured_error.include?(temporary) && !captured_error.include?('discarded fixture stderr'))
+    descendant = orphan_stdout ? JSON.parse(File.read(descendant_file)) : nil
+    check(descendant.keys.sort == ['pgid', 'pid'] && descendant.values.all? { |value| value.is_a?(Integer) && value > 1 } && descendant['pgid'] == children.fetch(0).pid) if descendant
+    yield folder, agent, destination, info, calls, success, elapsed, descendant
+    ensure
+      if orphan_stdout && File.file?(descendant_file) && !(descendant && descendant['stopped'])
+        owned = JSON.parse(File.read(descendant_file))
+        check(owned['pgid'] == children.fetch(0).pid && owned['pid'].is_a?(Integer) && owned['pid'] > 1)
+        begin
+          Process.kill('KILL', owned['pid'])
+        rescue Errno::ESRCH
+          # It may already have terminated and been reaped by this fixture or init.
+        end
+        begin
+          Process.waitpid(owned['pid'])
+        rescue Errno::ECHILD
+          # macOS init owns the orphan; the state check distinguishes zombies.
+        end
+      end
+    end
+  end
+end
+
+case scenario
+when 'valid'
+  fixture(script, original_popen2) do |folder, agent, destination, info, calls, success, _elapsed|
+    check(success && calls.length == 1 && File.directory?(destination))
+    project = Xcodeproj::Project.open(File.join(folder, 'AuthJourney.xcodeproj'))
+    target = project.targets.fetch(0)
+    check(target.product_type == 'com.apple.product-type.bundle.ui-testing')
+    check(target.build_configurations.map(&:name).sort == ['Debug', 'Release'])
+    target.build_configurations.each do |config|
+      check(config.build_settings['XCTRUNNER_PATH'] == destination)
+      check(config.build_settings['INFOPLIST_FILE'] == 'RunnerInfo.plist')
+      check(config.build_settings['CODE_SIGNING_ALLOWED'] == 'YES' && config.build_settings['CODE_SIGN_IDENTITY'] == '-')
+    end
+    copied = Xcodeproj::Plist.read_from_path(File.join(destination, 'Info.plist'))
+    check(copied.reject { |key, _| key == 'NSAppTransportSecurity' } == info.reject { |key, _| key == 'NSAppTransportSecurity' })
+    check(copied['NSAppTransportSecurity'] == {'NSAllowsArbitraryLoads'=>false})
+    check(File.binread(File.join(agent, 'XCTRunner')) == File.binread(File.join(destination, 'XCTRunner')))
+    check(File.executable?(File.join(destination, 'XCTRunner')))
+    check(File.binread(File.join(agent, 'RunnerEntitlements.plist')) == File.binread(File.join(destination, 'RunnerEntitlements.plist')))
+    check(File.read(File.join(destination, 'Resources', 'fixture.txt')) == 'preserve resource')
+  end
+when 'invalid-source'
+  %w[agent-link info-link binary-link resource-link missing-entitlements non-executable malformed-plist invalid-plist-type non-private-folder].each do |kind|
+    fixture(script, original_popen2, mutation: kind) do |folder, _agent, _destination, _info, _calls, success, _elapsed|
+      check(!success && !File.exist?(File.join(folder, 'AuthJourney.xcodeproj')))
+    end
+  end
+when 'exclusive-destination'
+  %w[existing-destination destination-link].each do |kind|
+    fixture(script, original_popen2, mutation: kind) do |folder, _agent, destination, _info, _calls, success, _elapsed|
+      check(!success && !File.exist?(File.join(folder, 'AuthJourney.xcodeproj')))
+      check(File.read(File.join(destination, 'sentinel')) == 'existing destination') if kind == 'existing-destination'
+    end
+  end
+when 'invalid-discovery'
+  %w[nonzero empty relative nul cr multiple-lines oversized invalid-utf8 wrong-platform missing-platform].each do |kind|
+    fixture(script, original_popen2, output_kind: kind) do |folder, _agent, _destination, _info, calls, success, _elapsed|
+      check(!success && calls.length == 1 && !File.exist?(File.join(folder, 'AuthJourney.xcodeproj')))
+    end
+  end
+when 'discovery-timeout'
+  peer = Process.spawn(RbConfig.ruby, '-e', 'sleep 100', out: File::NULL, err: File::NULL, pgroup: true)
+  peer_reaped = false
+  begin
+    fixture(script, original_popen2, wait_seconds: 100) do |folder, _agent, _destination, _info, calls, success, elapsed|
+      check(!success && calls.length == 1 && elapsed >= 14.5 && elapsed < 18)
+      check(!File.exist?(File.join(folder, 'AuthJourney.xcodeproj')))
+      peer_reaped = !Process.waitpid(peer, Process::WNOHANG).nil?
+      check(!peer_reaped)
+    end
+  ensure
+    unless peer_reaped
+      Process.kill('KILL', -peer)
+      Process.waitpid(peer)
+    end
+  end
+when 'orphan-discovery-timeout'
+  if RUBY_PLATFORM.include?('linux')
+    require 'fiddle'
+    prctl = Fiddle::Function.new(Fiddle.dlopen(nil)['prctl'], [Fiddle::TYPE_INT, Fiddle::TYPE_LONG, Fiddle::TYPE_LONG, Fiddle::TYPE_LONG, Fiddle::TYPE_LONG], Fiddle::TYPE_INT)
+    check(prctl.call(36, 1, 0, 0, 0) == 0) # PR_SET_CHILD_SUBREAPER; fixture process only.
+  end
+  peer = Process.spawn(RbConfig.ruby, '-e', 'sleep 100', out: File::NULL, err: File::NULL, pgroup: true)
+  peer_reaped = false
+  begin
+    fixture(script, original_popen2, orphan_stdout: true) do |folder, _agent, _destination, _info, calls, success, elapsed, descendant|
+      check(!success && calls.length == 1 && elapsed >= 14.5 && elapsed < 18)
+      check(!File.exist?(File.join(folder, 'AuthJourney.xcodeproj')))
+      check(Process.getpgid(peer) == peer && peer != descendant['pgid'])
+      peer_reaped = !Process.waitpid(peer, Process::WNOHANG).nil?
+      check(!peer_reaped)
+      deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 1
+      state = descendant_state(descendant['pid'])
+      while state == 'running' && Process.clock_gettime(Process::CLOCK_MONOTONIC) < deadline
+        sleep 0.01
+        state = descendant_state(descendant['pid'])
+      end
+      puts 'Owned descendant running after deadline; leader reaped and independent peer alive' if state == 'running'
+      check(%w[reaped absent zombie].include?(state))
+      descendant['stopped'] = true
+    end
+  ensure
+    unless peer_reaped
+      Process.kill('KILL', -peer)
+      Process.waitpid(peer)
+    end
+  end
+else
+  raise 'Unknown runner project fixture scenario'
+end
+puts JSON.generate({'scenario'=>scenario, 'passed'=>true, 'ruby'=>RUBY_VERSION, 'xcodeproj'=>Xcodeproj::VERSION, 'nativeBuild'=>false})
+'''
+
+
+class RunnerProjectGenerationTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.ruby = shutil.which("ruby")
+        cls.unavailable = None
+        if os.name == "nt" or not cls.ruby:
+            cls.unavailable = "POSIX Ruby/Xcodeproj unavailable; real generator requires its separate Ruby fixture"
+            return
+        cls.environment = dict(os.environ)
+        cls.bootstrap = "require 'xcodeproj'; load ARGV.shift"
+        probe = subprocess.run([cls.ruby, "-e", "require 'xcodeproj'"], env=cls.environment, capture_output=True, timeout=15)
+        if probe.returncode != 0:
+            cls.environment["BUNDLE_GEMFILE"] = str(BASE.parent.parent / "apps/resident-mobile/Gemfile")
+            probe = subprocess.run([cls.ruby, "-e", "require 'bundler/setup'; require 'xcodeproj'"], env=cls.environment, capture_output=True, timeout=15)
+            if probe.returncode != 0:
+                cls.unavailable = "Configured Xcodeproj gem unavailable; no automatic dependency installation"
+                return
+            cls.bootstrap = "require 'bundler/setup'; require 'xcodeproj'; load ARGV.shift"
+
+    def run_fixture(self, scenario):
+        if self.unavailable:
+            self.skipTest(self.unavailable)
+        with tempfile.TemporaryDirectory() as temporary:
+            fixture = Path(temporary) / "runner-fixture.rb"
+            fixture.write_text(RUNNER_PROJECT_FIXTURE, encoding="utf-8")
+            response = subprocess.run([self.ruby, "-e", self.bootstrap, str(fixture), str(BASE / "project.rb"), scenario],
+                                      env=self.environment, capture_output=True, text=True, timeout=45)
+        failure = "Real runner project fixture failed; captured output remains private"
+        marker = "Owned descendant running after deadline; leader reaped and independent peer alive"
+        if scenario == "orphan-discovery-timeout" and response.stdout == marker + "\n":
+            failure = marker
+        self.assertEqual(response.returncode, 0, failure)
+        report = json.loads(response.stdout)
+        self.assertEqual(report["scenario"], scenario)
+        self.assertIs(report["passed"], True)
+        self.assertIs(report["nativeBuild"], False)
+
+    def test_generated_configs_bind_private_strict_origin_and_preserve_source(self):
+        self.run_fixture("valid")
+
+    def test_source_links_missing_resources_and_malformed_plists_fail_closed(self):
+        self.run_fixture("invalid-source")
+
+    def test_private_destination_is_exclusive_and_never_overwrites(self):
+        self.run_fixture("exclusive-destination")
+
+    def test_fixed_discovery_rejects_invalid_outputs_and_does_not_use_environment_origin(self):
+        self.run_fixture("invalid-discovery")
+
+    def test_discovery_timeout_terminates_only_owned_child(self):
+        self.run_fixture("discovery-timeout")
+
+    def test_discovery_timeout_terminates_owned_descendant_after_leader_exits(self):
+        self.run_fixture("orphan-discovery-timeout")
 
 
 def png_fixture():
