@@ -1,0 +1,155 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-10-04",
+  "source": "f7444572f7b5920597a3b16023ec7fe5235413a5",
+  "status": "host-approved-apple-experiment-pending",
+  "sourceFiles": [
+    {
+      "path": "scripts/ios-smoke/run_auth.py",
+      "sha256LF": "6c21302681b5c9d3b2cc9a0d00213d9a297b85eaa4f8ab9be11d5bea8580070a",
+      "sha256Raw": "6c21302681b5c9d3b2cc9a0d00213d9a297b85eaa4f8ab9be11d5bea8580070a",
+      "gitBlobLF": "67f53ca6eaa9d83799aa2d86ff4e76bda5e90b99",
+      "bytesLF": 41366,
+      "baselineSha256LF": "bfe820924513014bba793c390ad9502011fdc7034aa035c6c622a7197709d20d"
+    },
+    {
+      "path": "scripts/ios-smoke/test_auth.py",
+      "sha256LF": "5e5d4dc6132054ac4a09b07e472763b3e90cb5bc467d5bd76e4da74e08b28de5",
+      "sha256Raw": "5e5d4dc6132054ac4a09b07e472763b3e90cb5bc467d5bd76e4da74e08b28de5",
+      "gitBlobLF": "643287312438c73e9927bf8fee0b07177801cb20",
+      "bytesLF": 67836,
+      "baselineSha256LF": "cc85b6592ad24ee99367eb31ac36802183b32a5d1b6d3a59afa7ec5c4c16fcda"
+    },
+    {
+      "path": "scripts/ios-smoke/README.md",
+      "sha256LF": "f08cee1ab0981a041e7e888894427600c60f39dfa19205adec33e9a17fb82b4a",
+      "sha256Raw": "f08cee1ab0981a041e7e888894427600c60f39dfa19205adec33e9a17fb82b4a",
+      "gitBlobLF": "9e366a067f96175ad96e63f0472240a2a8cceda9",
+      "bytesLF": 48148,
+      "baselineSha256LF": "340001d2fabb699923fa0eb9bd318c2267d634bb3c5c2ef968295859bc0defb5"
+    }
+  ],
+  "protectedSourceFiles": [
+    {
+      "path": "scripts/ios-smoke/project.rb",
+      "sha256LF": "648cf00c386c17cf922c57faa5b85280eb121e5f9acba7af264b14cbfc8747c6",
+      "baselineMatched": true
+    },
+    {
+      "path": "scripts/ios-smoke/AuthJourney.swift",
+      "sha256LF": "17624694466f96c2803467a2c345dd85f8209839898d62337fc936c8c37e153b",
+      "baselineMatched": true
+    },
+    {
+      "path": "scripts/ios-smoke/prepare_auth.py",
+      "sha256LF": "9bd961c1e02becb27cd16a12feac2cfa98636efce440da7ee62323ceeb3d2a6a",
+      "baselineMatched": true
+    },
+    {
+      "path": "scripts/ios-smoke/capture.py",
+      "sha256LF": "a2ad808d6ab3e2d84ee7aabf7e828d6e067e1031d389c177663763d99135a40d",
+      "baselineMatched": true
+    },
+    {
+      "path": "scripts/ios-smoke/wait_https_proxy.py",
+      "sha256LF": "d01c56b552ef05b3e0ae2381ae897a593fa441a873682ec28810ef16b4cac9b7",
+      "baselineMatched": true
+    },
+    {
+      "path": "scripts/ios-smoke/test_https_proxy.py",
+      "sha256LF": "5889beb9a8ff3b542bd67b57161cf35f3b6e7ae9af91d225959eb1fdea635c2c",
+      "baselineMatched": true
+    },
+    {
+      "path": ".github/workflows/ios-auth.yml",
+      "sha256LF": "9f1d223fca442ff38514a05ad7d2f5b88ad07ab771f80e1eccb96645afae6398",
+      "baselineMatched": true
+    },
+    {
+      "path": ".github/workflows/ios.yml",
+      "sha256LF": "2b421211f75a5c95cce65c89b6883ea42fa9ef0c45a976ad62611e7d11af1bdb",
+      "baselineMatched": true
+    }
+  ],
+  "allOtherIOSFilesVerifiedAgainstBaseline": 18,
+  "sourceArchiveSha256": "e375a73c9a187a124ad9f4cbdc72ac55dad9ef910a62f7804338088e879fb1fc",
+  "freezeSha256": "b5bd0f18bbdc9a1228d8c664db6aa3882f21427a82a4aa0e4f31385cae9a1ad0",
+  "rootVerificationSha256": "4dfd4ca20312ceef236a5754bcb0d1b9162846c962f93c8c83d339f1cc05a1bb",
+  "review": {
+    "rootSourceReview": "no material blocker found in the three-file diff",
+    "sourceArchiveBaselineAndProtectedFilesVerified": true
+  },
+  "tests": {
+    "author": [
+      {
+        "system": "windows",
+        "total": 126,
+        "passed": 110,
+        "skipped": 16,
+        "failures": 0,
+        "errors": 0,
+        "durationSeconds": 20.061,
+        "logSha256": "61883b2a0a53bfe44c0941e564b2c346bab0f0f55952d9214d7262dd36e7a914",
+        "realTLSAndPOSIX": false
+      },
+      {
+        "system": "linux",
+        "total": 126,
+        "passed": 126,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "durationSeconds": 27.749,
+        "logSha256": "63067a981df0b23eaadd8643e7dd9a348171e05d6a200c91f958ed722b4a301e",
+        "realTLSAndPOSIX": true
+      }
+    ],
+    "rootWindows": {
+      "total": 126,
+      "passed": 110,
+      "skipped": 16,
+      "failures": 0,
+      "seconds": 19.427,
+      "logSha256": "a660c9aa947f6b05545e6c87e44141dd154d6ac11d29cefda01ac8af1bf6a8d6"
+    },
+    "redBeforeProduct": {
+      "baseline": "ea9234cde43cc03c87f4c48ca6be12a30c368c1a",
+      "stage": "RED-before-product",
+      "tests": 5,
+      "failures": 23,
+      "errors": 2,
+      "nativeExecution": false,
+      "zipSha256": "aa1fc214fa99f655871820823567c010d28ccbda1d3ccbfd6e8e97095d66b460",
+      "logSha256": "f28037e8545f19425c76e3ac7a205468be224f5a75d4baa60c633bdc97137fc4"
+    },
+    "markerNarrowingRed": {
+      "tests": 1,
+      "failures": 2,
+      "errors": 0,
+      "logSha256": "3dba32cfc1550b31eacd229ff6d1d116435b35dac7760446506831a2973ec838"
+    }
+  },
+  "behavior": {
+    "producerSpellingPreserved": true,
+    "canonicalHyphenatedNonzeroUuidRequired": true,
+    "identityMustMatchCreatedSimulator": true,
+    "sameProducerIdInBootInstallDestinationCoordinatorAndCleanup": true,
+    "externalNilAliasNoncanonicalAndControlSelectorsRejected": true,
+    "singleBuild240SecondsAndTest1200SecondsPreserved": true,
+    "cleanupCannotReplaceFirstFailure": true,
+    "exactDeviceMatchingErrorClosedEnumAdded": true,
+    "projectSdkSwiftTlsAtsDeadlinesRetriesAndWorkflowsUnchanged": true
+  },
+  "nativeAuthenticatedAccepted": false,
+  "appleCauseEstablished": false,
+  "physicalDevicesAccepted": false,
+  "productionAccepted": false,
+  "privateKeyOrPlaintextReadByAuthor": false,
+  "computerRestarted": false,
+  "limits": [
+    "Host tests prove producer spelling and owned UUID validation using controlled subprocesses; they do not execute Xcode or simulators.",
+    "Linux126/126 and each Windows110+16skips are separate executions; their totals are not added.",
+    "The f445 destination mismatch justified this minimal experiment. Matching success and complete authenticated native acceptance require the new exact-source Apple CI.",
+    "Main at this source has001–038; organizations039 is a separate unpublished draft. No SDK/project/Swift/TLS/time-budget or production rollout is implied."
+  ]
+}
