@@ -1,0 +1,324 @@
+import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
+import { createRequire } from "node:module";
+import { readFile } from "node:fs/promises";
+import { after, before, describe, it, mock } from "node:test";
+import { sql } from "drizzle-orm";
+import { sqlClient } from "@predioon/db";
+import { appDb, closeAppDb, withUserContext } from "@predioon/db/runtime";
+import { hashPassword } from "../src/auth/passwords.js";
+import { pgErrorCode } from "../src/http/errors.js";
+import { call, login, startTestServer, type TestServer } from "./helpers.js";
+
+describe("organizations require current global capabilities", () => {
+  let server: TestServer, passwordHash: string;
+  const temporary: string[] = [];
+  before(async () => {
+    passwordHash = await hashPassword("predioon123");
+    server = await startTestServer();
+    // Allow behavior RED against 038 without fixture FK/schema failures.
+    for (const action of ["read", "manage"]) {
+      const rows = await sqlClient`insert into permissions(key,resource_type,action,label)
+        values(${`organizations:${action}`},'organization',${action},'Organization test permission')
+        on conflict do nothing returning key`;
+      for (const row of rows) {
+        temporary.push(row.key);
+        await sqlClient`insert into role_permissions(role_key,permission_key) values('PLATFORM_ADMIN',${row.key})`;
+      }
+    }
+  });
+  after(async () => {
+    await server?.close();
+    if (temporary.length) await sqlClient`delete from permissions where key in ${sqlClient(temporary)}`;
+    await closeAppDb(); await sqlClient.end();
+  });
+
+  type Fixture = {
+    org: string; inactive: string; building: string; prefix: string; binding: string;
+    users: Record<"pure" | "flag" | "local" | "outsider" | "support", string>;
+    request: (user: string, path?: string, method?: string, body?: unknown) => Promise<Response>;
+    create: (user: string) => Promise<Response>;
+  };
+  async function fixture(run: (f: Fixture) => Promise<void>) {
+    const prefix = `org039-${randomUUID()}`, org = `${prefix}-main`, inactive = `${prefix}-inactive`, building = `${prefix}-building`, binding = randomUUID();
+    const users = Object.fromEntries(["pure", "flag", "local", "outsider", "support"].map(kind => [kind, `${prefix}-${kind}`])) as Fixture["users"];
+    const tokens = new Map<string, string>();
+    const request: Fixture["request"] = async (user, path = "/organizations", method = "GET", body) => {
+      if (!tokens.has(user)) tokens.set(user, (await login(server.url, `${user}@org039.test`)).accessToken);
+      return call(server.url, path, { token: tokens.get(user), method, body });
+    };
+    const f: Fixture = { org, inactive, building, prefix, binding, users, request,
+      create: user => request(user, "/organizations", "POST", { name: "Commercial client", slug: `${prefix}-${randomUUID().slice(0, 8)}`, metadata: { billing: "private fixture" } }) };
+    try {
+      await sqlClient`insert into organizations(id,name,slug,active) values(${org},'Current client',${org},true),(${inactive},'Inactive client',${inactive},false)`;
+      await sqlClient`insert into buildings(id,organization_id,name,code) values(${building},${org},'Local building',${building})`;
+      for (const [kind, id] of Object.entries(users)) await sqlClient`insert into users(id,name,email,password_hash,is_platform_admin)
+        values(${id},${kind},${`${id}@org039.test`},${passwordHash},${kind === "flag"})`;
+      await sqlClient`insert into role_bindings(id,user_id,role_key) values(${binding},${users.pure},'PLATFORM_ADMIN')`;
+      await sqlClient`insert into role_bindings(user_id,role_key) values(${users.support},'PLATFORM_SUPPORT')`;
+      await sqlClient`insert into memberships(user_id,building_id,role) values(${users.local},${building},'BUILDING_ADMIN')`;
+      await run(f);
+    } finally {
+      await sqlClient`delete from audit_logs where user_id in ${sqlClient(Object.values(users))}`;
+      await sqlClient`delete from buildings where id=${building}`;
+      await sqlClient`delete from organizations where slug like ${`${prefix}%`}`;
+      await sqlClient`delete from users where id in ${sqlClient(Object.values(users))}`;
+    }
+  }
+  const as = <T>(userId: string, run: Parameters<typeof withUserContext<T>>[1]) => withUserContext({ userId, role: "PLATFORM_ADMIN" }, run);
+  const edit = (f: Fixture, user = f.users.pure, body: unknown = { name: "Changed client" }) => f.request(user, `/organizations/${f.org}`, "PATCH", body);
+  const snapshot = (f: Fixture) => sqlClient`select to_jsonb(o) as row from organizations o where slug like ${`${f.prefix}%`} order by id`;
+  const audits = (f: Fixture) => sqlClient`select action,resource_id,scope_kind,scope_building_id,user_id from audit_logs where user_id in ${sqlClient(Object.values(f.users))} order by created_at,id`;
+  async function body(response: Response, status = 200) {
+    const data = await response.json(); assert.equal(response.status, status, JSON.stringify(data)); return data;
+  }
+  async function catalog(run: () => Promise<void>) {
+    const [state] = await sqlClient`select (select to_jsonb(r) from roles r where key='PLATFORM_ADMIN') role,
+      (select jsonb_agg(p) from permissions p where key in ('organizations:read','organizations:manage')) permissions,
+      (select jsonb_agg(rp) from role_permissions rp where role_key='PLATFORM_ADMIN') grants`;
+    try { await run(); }
+    finally {
+      await sqlClient.begin(async tx => {
+        await tx`update roles set (active,created_at)=(select active,created_at from jsonb_populate_record(null::roles,${JSON.stringify(state!.role)}::jsonb)) where key='PLATFORM_ADMIN'`;
+        await tx`update permissions p set (active,created_at)=(s.active,s.created_at)
+          from jsonb_populate_recordset(null::permissions,${JSON.stringify(state!.permissions)}::jsonb) s where p.key=s.key`;
+        await tx`delete from role_permissions where role_key='PLATFORM_ADMIN'`;
+        await tx`insert into role_permissions select * from jsonb_populate_recordset(null::role_permissions,${JSON.stringify(state!.grants)}::jsonb)`;
+      });
+    }
+  }
+
+  it("permits RBAC-only global readers and writers, including inactive organizations", async () => fixture(async f => {
+    const list = await body(await f.request(f.users.pure));
+    assert.ok(list.items.some((row: any) => row.id === f.inactive && !row.active));
+    const created = await body(await f.create(f.users.pure), 201);
+    assert.equal(created.metadata.billing, "private fixture");
+    assert.equal(created.active, true);
+    assert.equal((await body(await edit(f))).name, "Changed client");
+    assert.equal((await body(await f.request(f.users.pure, `/organizations/${f.inactive}`, "PATCH", { active: true }))).active, true);
+    const history = await audits(f);
+    assert.equal(history.length, 3);
+    assert.ok(history.every(row => row.scope_kind === "PLATFORM" && row.scope_building_id === null && row.user_id === f.users.pure));
+  }));
+  it("does not let a real legacy flag bypass a disabled platform role", async () => fixture(async f => catalog(async () => {
+    const before = await snapshot(f);
+    await sqlClient`update roles set active=false where key='PLATFORM_ADMIN'`;
+    assert.equal((await f.request(f.users.flag)).status, 403);
+    assert.equal((await f.create(f.users.flag)).status, 403);
+    assert.equal((await edit(f, f.users.flag)).status, 403);
+    assert.deepEqual(await snapshot(f), before); assert.equal((await audits(f)).length, 0);
+  })));
+  it("RLS denies forged app.role and commercial reading inherited from a local membership", async () => fixture(async f => {
+    for (const user of [f.users.local, f.users.outsider, f.users.support]) {
+      assert.equal((await f.request(user)).status, 403);
+      assert.equal((await as(user, tx => tx.execute(sql`select id from organizations`))).length, 0);
+      await assert.rejects(as(user, tx => tx.execute(sql`insert into organizations(id,name,slug) values(${`${f.prefix}-forged`},'Forbidden',${`${f.prefix}-forged`})`)), e => pgErrorCode(e) === "42501");
+      assert.equal((await as(user, tx => tx.execute(sql`update organizations set name='Forbidden' where id=${f.org} returning id`))).length, 0);
+    }
+  }));
+  for (const capability of ["organizations:read", "organizations:manage"]) for (const kind of ["permission", "grant"]) {
+    it(`enforces ${capability} independently after ${kind} revocation on the same token`, async () => fixture(async f => catalog(async () => {
+      assert.equal((await f.request(f.users.flag)).status, 200);
+      const before = await snapshot(f);
+      if (kind === "permission") await sqlClient`update permissions set active=false where key=${capability}`;
+      else await sqlClient`delete from role_permissions where role_key='PLATFORM_ADMIN' and permission_key=${capability}`;
+      assert.equal((await f.request(f.users.flag)).status, capability.endsWith(":read") ? 403 : 200);
+      assert.equal((await f.create(f.users.flag)).status, 403);
+      assert.equal((await edit(f, f.users.flag)).status, 403);
+      await assert.rejects(as(f.users.flag, tx => tx.execute(sql`insert into organizations(id,name,slug) values(${`${f.prefix}-denied`},'Forbidden',${`${f.prefix}-denied`})`)), e => pgErrorCode(e) === "42501");
+      assert.deepEqual(await snapshot(f), before); assert.equal((await audits(f)).length, 0);
+    })));
+  }
+  it("revokes pure RBAC bindings while preserving the explicit legacy flag compatibility", async () => fixture(async f => {
+    for (const mutate of [
+      () => sqlClient`update role_bindings set active=false where id=${f.binding}`,
+      () => sqlClient`update role_bindings set starts_at=clock_timestamp()+interval '1 hour' where id=${f.binding}`,
+      () => sqlClient`update role_bindings set ends_at=clock_timestamp()-interval '1 second' where id=${f.binding}`,
+    ]) {
+      assert.equal((await f.request(f.users.pure)).status, 200);
+      await mutate(); assert.equal((await f.request(f.users.pure)).status, 403); assert.equal((await edit(f)).status, 403);
+      await sqlClient`update role_bindings set active=true,starts_at=null,ends_at=null where id=${f.binding}`;
+    }
+    await sqlClient`update users set is_platform_admin=true where id=${f.users.pure}`;
+    await sqlClient`update role_bindings set active=false where id=${f.binding}`;
+    assert.equal((await f.request(f.users.pure)).status, 200);
+    await sqlClient`update users set is_platform_admin=false where id=${f.users.pure}`;
+    assert.equal((await f.request(f.users.pure)).status, 403);
+  }));
+  it("does not grant DELETE or identity-column updates even to an authorized administrator", async () => fixture(async f => {
+    for (const statement of [sql`delete from organizations where id=${f.inactive}`, sql`update organizations set id=${`${f.inactive}-moved`} where id=${f.inactive}`, sql`update organizations set created_at=clock_timestamp() where id=${f.inactive}`]) {
+      await assert.rejects(as(f.users.flag, tx => tx.execute(statement)), e => pgErrorCode(e) === "42501");
+    }
+    assert.equal((await sqlClient`select id from organizations where id=${f.org}`).length, 1);
+    await assert.rejects(as(f.users.pure, tx => tx.execute(sql`insert into organizations(id,name,slug,created_at)
+      values(${`${f.prefix}-timestamp`},'Forbidden timestamp',${`${f.prefix}-timestamp`},'2000-01-01')`)), e => pgErrorCode(e) === "42501");
+    assert.equal((await appDb.execute(sql`select id from organizations`)).length, 0, "pooled queries without authenticated transaction context must not see organizations");
+  }));
+  it("keeps commercial authority separate from local data and account activity", async () => fixture(async f => {
+    for (const table of ["devices", "alerts", "financial_reports"]) assert.equal((await as(f.users.pure, tx => tx.execute(sql`select id from ${sql.identifier(table)} where building_id=${f.building}`))).length, 0);
+    assert.equal((await f.request(f.users.local, `/buildings/${f.building}`)).status, 200);
+    assert.equal((await f.request(f.users.flag)).status, 200);
+    await sqlClient`update users set active=false where id=${f.users.flag}`;
+    assert.equal((await f.request(f.users.flag)).status, 401);
+    assert.equal((await as(f.users.flag, tx => tx.execute(sql`select id from organizations`))).length, 0);
+    assert.equal((await call(server.url, "/organizations")).status, 401);
+  }));
+  it("requires current authority and a real platform organization for both audit proofs", async () => fixture(async f => catalog(async () => {
+    for (const [building, type, target] of [[f.building, "organization", f.org], [null, "building", f.org], [null, "organization", "missing"]] as const) {
+      await assert.rejects(as(f.users.pure, tx => tx.execute(sql`insert into audit_logs(user_id,building_id,action,resource_type,resource_id)
+        values(${f.users.pure},${building},'ORGANIZATION_UPDATED',${type},${target})`)), e => pgErrorCode(e) === "42501");
+    }
+    await sqlClient`delete from role_permissions where role_key='PLATFORM_ADMIN' and permission_key='organizations:manage'`;
+    await assert.rejects(as(f.users.flag, tx => tx.execute(sql`insert into audit_logs(user_id,action,resource_type,resource_id)
+      values(${f.users.flag},'ORGANIZATION_UPDATED','organization',${f.org})`)), e => pgErrorCode(e) === "42501");
+    const [proofs] = await as(f.users.flag, tx => tx.execute(sql`select
+      app_audit_legacy_insert(null,'ORGANIZATION_UPDATED','organization',${f.org}) legacy,
+      app_audit_platform_insert('PLATFORM',null,'ORGANIZATION_UPDATED','organization',${f.org}) platform`));
+    assert.deepEqual(proofs, { legacy: false, platform: false });
+  })));
+  it("preserves response fields and uniqueness without publishing database errors", async () => fixture(async f => {
+    const response = await f.request(f.users.flag);
+    assert.equal(response.headers.get("cache-control"), "no-store");
+    const row = (await body(response)).items.find((item: any) => item.id === f.org);
+    assert.deepEqual(Object.keys(row).sort(), ["active", "createdAt", "id", "metadata", "name", "slug", "updatedAt"]);
+    assert.equal((await f.request(f.users.flag, `/organizations/${f.org}`, "PATCH", { slug: f.inactive })).status, 409);
+    assert.equal((await f.request(f.users.flag, "/organizations/missing", "PATCH", { name: "Missing" })).status, 404);
+  }));
+
+  async function locked<T>(lock: (owner: any) => Promise<unknown>, start: () => Promise<T>, during: () => Promise<void>) {
+    const require = createRequire(import.meta.url);
+    const postgres = createRequire(require.resolve("@predioon/db"))("postgres") as (url: string, options: object) => typeof sqlClient;
+    const client = postgres(process.env.DATABASE_URL!, { max: 1, connect_timeout: 2 });
+    let release!: () => void, ready!: (pid: number) => void, reject!: (error: unknown) => void;
+    const held = new Promise<void>(resolve => { release = resolve; });
+    const acquired = new Promise<number>((resolve, fail) => { ready = resolve; reject = fail; });
+    let pending: Promise<PromiseSettledResult<T>[]> | undefined, timer: ReturnType<typeof setTimeout> | undefined, started = false, result: T | undefined;
+    const blocker = Promise.allSettled([client.begin(async owner => {
+      await owner`set local lock_timeout='2s'`; await owner`set local statement_timeout='3s'`;
+      await lock(owner); ready((await owner`select pg_backend_pid() as pid`)[0]!.pid); await held;
+    })]);
+    void blocker.then(([outcome]) => { if (outcome?.status === "rejected") reject(outcome.reason); });
+    try {
+      const pid = await Promise.race([acquired, new Promise<never>((_, fail) => { timer = setTimeout(() => fail(new Error("Organization blocker acquisition deadline")), 5000); })]);
+      clearTimeout(timer); started = true; pending = Promise.allSettled([Promise.resolve().then(start)]);
+      let waiting = false;
+      for (let index = 0; index < 250; index++) {
+        const [state] = await sqlClient`select exists(select 1 from pg_stat_activity a where a.usename='predioon_app'
+          and a.wait_event_type='Lock' and ${pid}=any(pg_blocking_pids(a.pid))) waiting`;
+        if (state!.waiting) { waiting = true; break; }
+        await new Promise(resolve => setTimeout(resolve, 20));
+      }
+      assert.equal(waiting, true, "HTTP operation must actually wait on the owned database lock");
+      await during();
+    } finally {
+      clearTimeout(timer); release();
+      if (!started) await client.end({ timeout: 0 });
+      const [blocks, responses] = await Promise.all([blocker, pending ?? Promise.resolve([])]);
+      await client.end({ timeout: 1 });
+      for (const outcome of [...blocks, ...responses]) if (outcome.status === "rejected") throw outcome.reason;
+      if (responses[0]?.status === "fulfilled") result = responses[0].value;
+    }
+    return result as T;
+  }
+  for (const change of ["revoke", "expire"] as const) it(`revalidates current authority after a real organization lock (${change})`, async () => fixture(async f => {
+    await f.request(f.users.pure); // Authenticate before acquiring the blocker.
+    const before = await snapshot(f);
+    const response = await locked(owner => owner`select id from organizations where id=${f.org} for update`, () => edit(f), async () => {
+      if (change === "revoke") await sqlClient`update role_bindings set active=false where id=${f.binding}`;
+      else {
+        await sqlClient`update role_bindings set ends_at=clock_timestamp()+interval '0.1 seconds' where id=${f.binding}`;
+        await sqlClient`select pg_sleep(0.15)`;
+      }
+    });
+    assert.equal(response.status, 403, await response.clone().text());
+    assert.deepEqual(await snapshot(f), before); assert.equal((await audits(f)).length, 0);
+  }));
+  async function auditTrigger(f: Fixture, body: string, run: () => Promise<void>) {
+    const name = `org039_audit_${randomUUID().replaceAll("-", "")}`;
+    await sqlClient.unsafe(`create function ${name}() returns trigger language plpgsql as $$ begin if NEW.user_id=TG_ARGV[0] then ${body}; end if; return NEW; end $$`);
+    await sqlClient.unsafe(`create trigger ${name} before insert on audit_logs for each row execute function ${name}('${f.users.pure}')`);
+    try { await run(); }
+    finally { await sqlClient.unsafe(`drop trigger ${name} on audit_logs`); await sqlClient.unsafe(`drop function ${name}()`); }
+  }
+  for (const method of ["POST", "PATCH"] as const) it(`rolls back ${method} and audit when authority expires while audit waits`, async () => fixture(async f => {
+    await f.request(f.users.pure);
+    const before = await snapshot(f);
+    await auditTrigger(f, "perform pg_advisory_xact_lock(390039,1)", async () => {
+      const response = await locked(owner => owner`select pg_advisory_xact_lock(390039,1)`, () => method === "POST" ? f.create(f.users.pure) : edit(f), async () => {
+        await sqlClient`update role_bindings set ends_at=clock_timestamp()+interval '0.1 seconds' where id=${f.binding}`;
+        await sqlClient`select pg_sleep(0.15)`;
+      });
+      assert.equal(response.status, 403, await response.clone().text());
+    });
+    assert.deepEqual(await snapshot(f), before); assert.equal((await audits(f)).length, 0);
+  }));
+  it("audit rejection rolls back mutations without exposing private database details", async () => fixture(async f => {
+    const before = await snapshot(f), logger = mock.method(console, "error", () => {});
+    try {
+      await auditTrigger(f, "raise exception 'private audit sentinel'", async () => {
+        for (const send of [() => f.create(f.users.pure), () => edit(f)]) {
+          const response = await send(); assert.equal(response.status, 500);
+          assert.equal((await response.text()).includes("sentinel"), false);
+        }
+      });
+      assert.equal(logger.mock.callCount(), 0);
+    } finally { logger.mock.restore(); }
+    assert.deepEqual(await snapshot(f), before); assert.equal((await audits(f)).length, 0);
+  }));
+  it("discards already-read commercial rows if authorization is revoked before the DTO", async () => fixture(async f => {
+    const original = appDb.transaction; let delayed = false;
+    function builder(target: any): any {
+      return new Proxy(target, { get(object, key) {
+        if (key === "then") return (resolve: any, reject: any) => object.then(async (rows: any) => {
+          if (!delayed && object.toSQL().sql.includes('"organizations"')) {
+            delayed = true; await sqlClient`update role_bindings set active=false where id=${f.binding}`;
+          }
+          return resolve(rows);
+        }, reject);
+        const value = Reflect.get(object, key);
+        if (typeof value === "function") return (...args: any[]) => {
+          const result = value.apply(object, args);
+          return result && typeof result === "object" && ("from" in result || "toSQL" in result) ? builder(result) : result;
+        };
+        return value;
+      } });
+    }
+    appDb.transaction = ((callback: any, ...options: any[]) => original.call(appDb, (tx: any) => callback(new Proxy(tx, {
+      get(target, key, receiver) { if (key === "select") return (...args: any[]) => builder(target.select(...args)); return Reflect.get(target, key, receiver); },
+    })), ...options)) as typeof appDb.transaction;
+    try { assert.equal((await f.request(f.users.pure)).status, 403); assert.equal(delayed, true); }
+    finally { appDb.transaction = original; }
+  }));
+  it("migration reapplication preserves revocations, other policies, helpers and runtime roles", async () => {
+    const migration = await readFile(new URL("../../../infrastructure/039-organizations-capabilities.sql", import.meta.url), "utf8");
+    const rollback = new Error("039 reapplication rollback");
+    await assert.rejects(sqlClient.begin(async owner => {
+      await owner`update permissions set active=false where key='organizations:read'`;
+      await owner`delete from role_permissions where role_key='PLATFORM_ADMIN' and permission_key='organizations:manage'`;
+      const before = await owner`select to_jsonb(p) row from permissions p order by key`;
+      const grants = await owner`select to_jsonb(rp) row from role_permissions rp order by role_key,permission_key`;
+      const unrelated = () => owner`select p.oid::regprocedure::text signature,p.prosrc,p.proacl::text,p.proowner,p.proconfig
+        from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and left(p.proname,4)='app_'
+        and p.proname not in ('app_has_global_capability_at','app_audit_legacy_insert','app_audit_platform_insert','app_can_access_organization') order by signature`;
+      const functions = await unrelated();
+      const policies = await owner`select * from pg_policies where schemaname='public' and tablename<>'organizations' order by tablename,policyname`;
+      for (let iteration = 0; iteration < 2; iteration++) {
+        await owner.unsafe(migration);
+        assert.deepEqual(await owner`select to_jsonb(p) row from permissions p order by key`, before);
+        assert.deepEqual(await owner`select to_jsonb(rp) row from role_permissions rp order by role_key,permission_key`, grants);
+        assert.deepEqual(await unrelated(), functions);
+        assert.deepEqual(await owner`select * from pg_policies where schemaname='public' and tablename<>'organizations' order by tablename,policyname`, policies);
+      }
+      await owner`delete from permissions where key in ('organizations:read','organizations:manage')`;
+      await owner.unsafe(migration);
+      assert.equal((await owner`select key from permissions where key in ('organizations:read','organizations:manage')`).length, 0);
+      throw rollback;
+    }), error => error === rollback);
+    const [legacy] = await sqlClient`select has_function_privilege('predioon_app','app_can_access_organization(text)','execute') allowed`;
+    assert.equal(legacy!.allowed, false);
+    const [roles] = await sqlClient`select has_table_privilege('predioon_identity','organizations','select') identity,
+      has_table_privilege('predioon_broker_auth','organizations','select') broker,
+      has_table_privilege('predioon_notifications','organizations','select') notifications`;
+    assert.deepEqual(roles, { identity: true, broker: false, notifications: false });
+  });
+});

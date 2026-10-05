@@ -2,6 +2,8 @@ import type { Capability, ResourceType } from "@predioon/shared";
 
 export type CursorPage<T> = { items: T[]; nextCursor: string | null };
 export type AuthorizationResponse = { buildingId: string; resourceType?: ResourceType; resourceId?: string; capabilities: Capability[] };
+/** Finite commercial projection; it does not enumerate tenants or authorize other admin modules. */
+export type PlatformAuthorizationResponse = { capabilities: Array<Extract<Capability, "organizations:read" | "organizations:manage">> };
 export type BlockView = { id: string; buildingId: string; code: string; name: string };
 export type UnitView = { id: string; buildingId: string; blockId: string | null; code: string; floor: number | null };
 export type TeamView = { id: string; buildingId: string; name: string; kind: string };

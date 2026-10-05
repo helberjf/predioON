@@ -11,12 +11,31 @@ import { call, login, startTestServer, type TestServer } from "./helpers.js";
 
 describe("audit capabilities isolate local history from platform history", () => {
   let server: TestServer, passwordHash: string;
+  const history = {
+    organization: `audit-history-org-${randomUUID()}`,
+    building: `audit-history-building-${randomUUID()}`,
+    ids: [randomUUID(), randomUUID()],
+  };
   before(async () => {
     passwordHash = await hashPassword("predioon123");
     server = await startTestServer();
+    // Authorized platform history may predate this suite. These two current
+    // events also force the older per-test fixtures beyond a two-item page.
+    await sqlClient`insert into organizations(id,name,slug)
+      values(${history.organization},'Independent audit history',${history.organization})`;
+    await sqlClient`insert into buildings(id,organization_id,name,code)
+      values(${history.building},${history.organization},'Independent audit history','AUDIT-HISTORY')`;
+    await sqlClient`insert into audit_logs(id,user_id,action,resource_type,resource_id)
+      values(${history.ids[0]!},'platform_admin','ORGANIZATION_CREATED','organization',${history.organization})`;
+    await sqlClient`insert into audit_logs(id,building_id,user_id,action,resource_type,resource_id)
+      values(${history.ids[1]!},${history.building},'platform_admin','BUILDING_CREATED','building',${history.building})`;
   });
   after(async () => {
     await server?.close();
+    // Delete only the two explicit rows owned here, never prior audit history.
+    await sqlClient`delete from audit_logs where id in ${sqlClient(history.ids)}`;
+    await sqlClient`delete from buildings where id=${history.building}`;
+    await sqlClient`delete from organizations where id=${history.organization}`;
     await closeAppDb(); await sqlClient.end();
   });
 
@@ -77,6 +96,36 @@ describe("audit capabilities isolate local history from platform history", () =>
     return (await response.json()).items as { id: string; buildingId: string | null; [key: string]: unknown }[];
   }
   const sorted = (ids: string[]) => [...ids].sort();
+  type Fixture = Parameters<Parameters<typeof fixture>[0]>[0];
+  async function ownPlatformItems(f: Fixture) {
+    // This serial suite owns an exclusive database. Snapshot the owner count
+    // to bound real HTTP pagination even if the endpoint fails to terminate.
+    const [snapshot] = await sqlClient`select count(*)::int as count from audit_logs`;
+    const pageSize = 2;
+    const maxPages = Math.ceil(snapshot!.count / pageSize) + 1;
+    const seen = new Set<string>();
+    const own = new Set(Object.values(f.logs));
+    const ownedRows: Awaited<ReturnType<typeof items>> = [];
+    for (let page = 0; page < maxPages; page++) {
+      const offset = page * pageSize;
+      const response = await f.request(f.ids.platform, `/audit?limit=${pageSize}&offset=${offset}`);
+      assert.equal(response.status, 200, await response.clone().text());
+      const data = await response.json();
+      assert.equal(data.limit, pageSize);
+      assert.equal(data.offset, offset);
+      assert.ok(Array.isArray(data.items) && data.items.length <= pageSize);
+      if (!data.items.length) {
+        for (const id of history.ids) assert.ok(seen.has(id), "independent platform history remains visible");
+        return ownedRows;
+      }
+      for (const row of data.items as Awaited<ReturnType<typeof items>>) {
+        assert.equal(seen.has(row.id), false, "pagination must not repeat an audit entry");
+        seen.add(row.id);
+        if (own.has(row.id)) ownedRows.push(row);
+      }
+    }
+    assert.fail("audit pagination did not terminate within the owner snapshot bound");
+  }
 
   it("reapplication preserves removed default grants and inactive audit permissions", async () => {
     const migration = await readFile(new URL("../../../infrastructure/036-audit-capabilities.sql", import.meta.url), "utf8");
@@ -106,14 +155,14 @@ describe("audit capabilities isolate local history from platform history", () =>
     }
   }));
   it("platform reading does not include local or unclassified events, even if their actor is a platform admin", async () => fixture(async f => {
-    assert.deepEqual(sorted((await items(await f.request(f.ids.platform))).map(row => row.id)), sorted([f.logs.global,f.logs.provisioned]));
+    assert.deepEqual(sorted((await ownPlatformItems(f)).map(row => row.id)), sorted([f.logs.global,f.logs.provisioned]));
   }));
   it("an explicit local grant combines with global reading without exposing any other tenant", async () => fixture(async f => {
     await sqlClient`insert into role_bindings(user_id,building_id,role_key) values(${f.ids.platform},${f.a},${f.role})`;
-    assert.deepEqual(sorted((await items(await f.request(f.ids.platform))).map(row=>row.id)),sorted([f.logs.global,f.logs.provisioned,f.logs.local,f.logs.other,f.logs.feature]));
+    assert.deepEqual(sorted((await ownPlatformItems(f)).map(row=>row.id)),sorted([f.logs.global,f.logs.provisioned,f.logs.local,f.logs.other,f.logs.feature]));
     assert.deepEqual(sorted((await items(await f.request(f.ids.platform,`/audit?buildingId=${f.a}`))).map(row=>row.id)),sorted([f.logs.provisioned,f.logs.local,f.logs.other,f.logs.feature]));
     await sqlClient`update role_bindings set active=false where user_id=${f.ids.platform} and building_id=${f.a}`;
-    assert.deepEqual(sorted((await items(await f.request(f.ids.platform))).map(row=>row.id)),sorted([f.logs.global,f.logs.provisioned]));
+    assert.deepEqual(sorted((await ownPlatformItems(f)).map(row=>row.id)),sorted([f.logs.global,f.logs.provisioned]));
   }));
   it("building admin A/resident B reads only A, and direct SQL enforces the same scope", async () => fixture(async f => {
     assert.deepEqual(sorted((await items(await f.request(f.ids.legacy))).map(row => row.id)), sorted([f.logs.local,f.logs.other,f.logs.provisioned,f.logs.feature]));

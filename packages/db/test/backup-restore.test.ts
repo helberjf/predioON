@@ -212,7 +212,7 @@ for(const separateCluster of [false,true])it(`restores a real Timescale archive 
     await execute(process.execPath,['--import','tsx','src/bootstrap.ts'],{cwd,env:{...process.env,DATABASE_URL:sourceUrl.toString()},timeout:30_000,windowsHide:true});
     const migrations=await loadInfrastructureMigrations();
     await applyInfrastructure(source,migrations);
-    assert.equal(migrations.length,38,'recovery fixture includes the complete immutable SQL038 ledger');
+    assert.equal(migrations.length,39,'recovery fixture includes the complete immutable SQL039 ledger');
     const sourceConnections=await provisionRuntime(sourceUrl);
     await restrictedRoles(source,true);
     await source`insert into organizations(id,name,slug) values('restore-org','Recovery fixture','restore-org')`;

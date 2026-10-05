@@ -8,6 +8,17 @@ function subject(bindings: AuthorizationSubject["bindings"], supportGrants: Auth
 }
 
 describe("RBAC explícito por capacidade, condomínio e recurso", () => {
+  it("mantém organizações globais separadas dos papéis locais e das operações privadas", () => {
+    for (const role of ["PLATFORM_ADMIN", "PLATFORM_SUPPORT", "BUILDING_ADMIN", "MAINTENANCE_MANAGER", "MAINTENANCE", "RESIDENT"] as const) {
+      for (const capability of ["organizations:read", "organizations:manage"] as const) {
+        assert.equal(roleGrants(role, capability), role === "PLATFORM_ADMIN");
+      }
+    }
+    const platform = subject([{ role: "PLATFORM_ADMIN", buildingId: null, active: true }]);
+    for (const capability of ["organizations:read", "organizations:manage", "telemetry:read", "commands:request"] as const) {
+      assert.equal(allowsCapability(platform, capability, { buildingId: building }), false);
+    }
+  });
   it("separa configuração física, solicitação e histórico sem autoridade global implícita", () => {
     for (const role of ["PLATFORM_ADMIN", "PLATFORM_SUPPORT", "MAINTENANCE_MANAGER", "MAINTENANCE"] as const) {
       for (const capability of ["gates:read", "gates:manage", "commands:read", "commands:read-own"] as const) assert.equal(roleGrants(role, capability), false);

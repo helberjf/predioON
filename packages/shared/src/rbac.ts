@@ -3,6 +3,7 @@ import { z } from "zod";
 /** Capabilities are atomic grants evaluated with tenant/resource scope. */
 export const CAPABILITIES = [
   "platform:read-health",
+  "organizations:read", "organizations:manage",
   "audit:read", "audit:read-platform",
   "buildings:read", "buildings:manage", "buildings:provision", "features:manage",
   "gates:read", "gates:manage", "commands:read-own", "commands:read",
@@ -27,7 +28,7 @@ export const RbacRoleSchema = z.enum(RBAC_ROLES);
 
 /** Complete initial role catalogue. Adding a role requires an explicit set. */
 export const ROLE_CAPABILITIES: Readonly<Record<RbacRole, readonly Capability[]>> = {
-  PLATFORM_ADMIN: ["audit:read-platform", "platform:read-health", "buildings:read", "buildings:manage", "buildings:provision", "features:manage", "plans:read", "plans:manage", "rbac:manage", "support:grant"],
+  PLATFORM_ADMIN: ["organizations:read", "organizations:manage", "audit:read-platform", "platform:read-health", "buildings:read", "buildings:manage", "buildings:provision", "features:manage", "plans:read", "plans:manage", "rbac:manage", "support:grant"],
   PLATFORM_SUPPORT: [],
   BUILDING_ADMIN: ["audit:read", "gates:read", "gates:manage", "commands:read-own", "commands:read", "reservations:create-own", "reservations:read-own", "reservations:cancel-own", "reservations:read-calendar", "reservations:manage", "common-areas:read", "common-areas:manage", "buildings:read", "buildings:manage", "parking:read", "parking:manage", "alert-rules:read", "alert-rules:manage", "notices:read", "notices:manage", "occurrences:create-own", "occurrences:read-own", "occurrences:manage", "telemetry:read", "telemetry:read-published", "alerts:read", "alerts:acknowledge", "alerts:resolve", "work-orders:read-assigned", "work-orders:assign", "work-orders:update-assigned", "devices:read", "devices:configure", "commands:request", "automations:read", "automations:manage", "finance:read", "finance:read-published", "finance:manage", "memberships:read", "memberships:manage", "units:read", "units:manage", "teams:read", "teams:manage", "support:read"],
   MAINTENANCE_MANAGER: ["parking:read", "finance:read-published", "reservations:create-own", "reservations:read-own", "reservations:cancel-own", "reservations:read-calendar", "common-areas:read", "buildings:read", "notices:read", "occurrences:create-own", "occurrences:read-own", "occurrences:manage", "telemetry:read", "telemetry:read-published", "alerts:read", "alerts:acknowledge", "alerts:resolve", "work-orders:read-assigned", "work-orders:assign", "work-orders:update-assigned", "devices:read", "automations:read", "teams:read", "units:read"],
