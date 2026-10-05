@@ -70,10 +70,48 @@ def safe_build_error_signals(payload):
     return payload
 
 
+def safe_runner_ats_policy(payload):
+    keys = {"atsKind", "arbitraryLoadsKind", "arbitraryLoadsEnabled", "exceptionDomainsKind", "exceptionDomainCountCapped"}
+    kinds = {"absent", "bool", "dict", "invalid", "unavailable"}
+    if type(payload) is not dict or set(payload) != keys:
+        raise SecurityViolation("Unexpected ATS diagnostic fields")
+    ats, arbitrary, domains = (payload[key] for key in ["atsKind", "arbitraryLoadsKind", "exceptionDomainsKind"])
+    if any(type(kind) is not str or kind not in kinds for kind in [ats, arbitrary, domains]):
+        raise SecurityViolation("Unexpected ATS diagnostic category")
+    enabled, count = payload["arbitraryLoadsEnabled"], payload["exceptionDomainCountCapped"]
+    if (arbitrary == "bool" and type(enabled) is not bool) or (arbitrary != "bool" and enabled is not None):
+        raise SecurityViolation("Unexpected ATS boolean observation")
+    if (domains == "dict" and (type(count) is not int or not 0 <= count <= 32)) or (domains != "dict" and count is not None):
+        raise SecurityViolation("Unexpected ATS count observation")
+    if (ats != "dict" and (arbitrary != "unavailable" or domains != "unavailable")) or (ats == "dict" and "unavailable" in [arbitrary, domains]):
+        raise SecurityViolation("Inconsistent ATS diagnostic categories")
+    return payload
+
+
+def runner_ats_policy(plist):
+    """Inspect exact native types only; never traverse or stringify domain data."""
+    payload = {"atsKind": "unavailable", "arbitraryLoadsKind": "unavailable", "arbitraryLoadsEnabled": None,
+               "exceptionDomainsKind": "unavailable", "exceptionDomainCountCapped": None}
+    if type(plist) is not dict:
+        return payload
+    missing = object()
+    def kind(value):
+        return "absent" if value is missing else "bool" if type(value) is bool else "dict" if type(value) is dict else "invalid"
+    ats = plist.get("NSAppTransportSecurity", missing)
+    payload["atsKind"] = kind(ats)
+    if type(ats) is dict:
+        arbitrary = ats.get("NSAllowsArbitraryLoads", missing)
+        domains = ats.get("NSExceptionDomains", missing)
+        payload.update(arbitraryLoadsKind=kind(arbitrary), exceptionDomainsKind=kind(domains),
+                       arbitraryLoadsEnabled=arbitrary if type(arbitrary) is bool else None,
+                       exceptionDomainCountCapped=min(len(domains), 32) if type(domains) is dict else None)
+    return payload
+
+
 def safe_failure_diagnostic(payload):
     required = {"stage", "category", "exitCode"}
     optional = {"errorSignals", "signalScanLimited"}
-    if not isinstance(payload, dict) or set(payload) not in (required, required | optional):
+    if not isinstance(payload, dict) or set(payload) not in (required, required | optional, required | {"atsPolicy"}):
         raise SecurityViolation("Unexpected failure diagnostic fields")
     stage, category, code = payload["stage"], payload["category"], payload["exitCode"]
     if not isinstance(stage, str) or stage not in DIAGNOSTIC_STAGES or not isinstance(category, str) or category not in DIAGNOSTIC_CATEGORIES:
@@ -86,6 +124,10 @@ def safe_failure_diagnostic(payload):
         if stage != "runner-build" or category != "nonzero-exit":
             raise SecurityViolation("Build signals require a returned runner build failure")
         safe_build_error_signals({key: payload[key] for key in optional})
+    if "atsPolicy" in payload:
+        if stage != "runner-ats-check" or category != "verification-failed" or code is not None:
+            raise SecurityViolation("ATS observations require the failed runner ATS guard")
+        safe_runner_ats_policy(payload["atsPolicy"])
     return payload
 
 
@@ -102,7 +144,7 @@ class FailureDiagnostic:
         self.observed = False
 
     @contextmanager
-    def stage(self, name):
+    def stage(self, name, *, observe_ats=None):
         try:
             yield
         except Exception as error:
@@ -118,6 +160,11 @@ class FailureDiagnostic:
                     if name == "runner-build" and category == "nonzero-exit":
                         try:
                             payload.update(safe_build_error_signals(getattr(error, "build_signals", None)))
+                        except Exception:
+                            pass
+                    if name == "runner-ats-check" and category == "verification-failed" and observe_ats is not None:
+                        try:
+                            payload["atsPolicy"] = dict(safe_runner_ats_policy(observe_ats()))
                         except Exception:
                             pass
                     self.first = dict(safe_failure_diagnostic(payload))
@@ -663,7 +710,7 @@ def run(private, output, resident, operations):
             runner_info = private / "runner-build/Build/Products/Release-iphonesimulator/AuthJourney-Runner.app/Info.plist"
             with runner_info.open("rb") as source:
                 runner_plist = plistlib.load(source)
-        with diagnostic.stage("runner-ats-check"):
+        with diagnostic.stage("runner-ats-check", observe_ats=lambda: runner_ats_policy(runner_plist)):
             runner_ats = runner_plist.get("NSAppTransportSecurity", {})
             if runner_ats.get("NSAllowsArbitraryLoads") or runner_ats.get("NSExceptionDomains"):
                 raise AssertionError("Standalone runner must use trusted HTTPS without insecure ATS exceptions")

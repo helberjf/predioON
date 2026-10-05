@@ -289,7 +289,8 @@ class ExportTests(unittest.TestCase):
 
 class NativeFailureDiagnosticTests(unittest.TestCase):
     def run_failure(self, failed_stage, *, cleanup_fails=False, rejection=None, outcome="nonzero-exit",
-                    build_message=None, created_id=None, command_trace=None, coordinator_trace=None):
+                    build_message=None, created_id=None, command_trace=None, coordinator_trace=None,
+                    runner_policy=None, ats_observer_fails=False):
         run = load("run_auth")
         secret = "PrivateNativeDiagnosticSentinel123456"
         with tempfile.TemporaryDirectory() as temporary, ExitStack() as patches:
@@ -315,7 +316,7 @@ class NativeFailureDiagnosticTests(unittest.TestCase):
             runner_info = private / "runner-build/Build/Products/Release-iphonesimulator/AuthJourney-Runner.app/Info.plist"
             runner_info.parent.mkdir(parents=True)
             with runner_info.open("wb") as destination:
-                run.plistlib.dump({}, destination)
+                run.plistlib.dump({} if runner_policy is None else runner_policy, destination)
             simulator = created_id if created_id is not None else "f19ce90e-9c36-461d-a499-692ff2570a01"
             runtime = "com.apple.CoreSimulator.SimRuntime.iOS-18-5"
             stages = []
@@ -389,6 +390,8 @@ class NativeFailureDiagnosticTests(unittest.TestCase):
             patches.enter_context(patch.object(run.ssl, "SSLContext", return_value=MagicMock()))
             patches.enter_context(patch.object(run.threading, "Thread", return_value=MagicMock()))
             patches.enter_context(patch.object(run.subprocess, "run", side_effect=respond))
+            if ats_observer_fails:
+                patches.enter_context(patch.object(run, "runner_ats_policy", side_effect=OSError(secret)))
             patches.enter_context(patch.dict(run.os.environ, {"GITHUB_SHA": "b" * 40, "IOS_DB_ROOT": str(database),
                                                            "GITHUB_OUTPUT": str(root / "outputs")}))
             output = root / ".local/ios-auth/evidence"
@@ -400,7 +403,10 @@ class NativeFailureDiagnosticTests(unittest.TestCase):
             self.assertFalse(result["passed"])
             self.assertEqual(result["steps"], [])
             self.assertEqual({item.name for item in output.iterdir()}, {"result.json", "builds.json", "database-source.json"})
-            self.assertIn(failed_stage, stages)
+            if failed_stage == "runner-ats-check":
+                self.assertEqual(result["failureDiagnostic"]["stage"], failed_stage)
+            else:
+                self.assertIn(failed_stage, stages)
             return result, stages
 
     def test_boot_failure_reports_the_boot_stage(self):
@@ -433,6 +439,42 @@ class NativeFailureDiagnosticTests(unittest.TestCase):
         result, stages = self.run_failure("runner-test")
         self.assertEqual(result.get("failureDiagnostic"), {"stage": "runner-test", "category": "nonzero-exit", "exitCode": 65})
         self.assertIn("runner-build", stages)
+
+    def test_ats_guard_failure_is_closed_and_precedes_test_and_cleanup(self):
+        secret = "PrivateATSDomainSentinel123456"
+        cases = [
+            ({"NSAppTransportSecurity": {"NSAllowsArbitraryLoads": True}}, ats_policy(arbitrary="bool", enabled=True)),
+            ({"NSAppTransportSecurity": {"NSExceptionDomains": {secret: {"private": secret}}}}, ats_policy(domains="dict", count=1)),
+            ({"NSAppTransportSecurity": True}, ats_policy(ats="bool", arbitrary="unavailable", domains="unavailable")),
+            ({"NSAppTransportSecurity": False}, ats_policy(ats="bool", arbitrary="unavailable", domains="unavailable")),
+            ({"NSAppTransportSecurity": secret}, ats_policy(ats="invalid", arbitrary="unavailable", domains="unavailable")),
+            ([], ats_policy(ats="unavailable", arbitrary="unavailable", domains="unavailable")),
+        ]
+        for index, (plist, policy) in enumerate(cases):
+            with self.subTest(case=index):
+                result, stages = self.run_failure("runner-ats-check", runner_policy=plist, cleanup_fails=True)
+                self.assertEqual(result["failureDiagnostic"], {"stage": "runner-ats-check", "category": "verification-failed",
+                                                              "exitCode": None, "atsPolicy": policy})
+                self.assertTrue(result["cleanupFailed"])
+                self.assertIn("runner-build", stages)
+                self.assertNotIn("runner-test", stages)
+                self.assertNotIn(secret, json.dumps(result))
+
+    def test_safe_ats_configs_keep_existing_gate_and_never_collect_on_success(self):
+        for plist in [{}, {"NSAppTransportSecurity": {}},
+                      {"NSAppTransportSecurity": {"NSAllowsLocalNetworking": True}},
+                      {"NSAppTransportSecurity": {"NSAllowsArbitraryLoads": False, "NSExceptionDomains": {}}}]:
+            with self.subTest(plist=plist):
+                result, stages = self.run_failure("runner-test", runner_policy=plist, ats_observer_fails=True)
+                self.assertEqual(result["failureDiagnostic"], {"stage": "runner-test", "category": "nonzero-exit", "exitCode": 65})
+                self.assertIn("runner-test", stages)
+
+    def test_failed_ats_observer_omits_only_supplement_and_preserves_first_gate(self):
+        result, stages = self.run_failure("runner-ats-check", runner_policy={"NSAppTransportSecurity": {"NSAllowsArbitraryLoads": True}},
+                                          ats_observer_fails=True, cleanup_fails=True)
+        self.assertEqual(result["failureDiagnostic"], {"stage": "runner-ats-check", "category": "verification-failed", "exitCode": None})
+        self.assertTrue(result["cleanupFailed"])
+        self.assertNotIn("runner-test", stages)
 
     def test_created_simulator_spelling_reaches_all_owned_commands_and_coordinator(self):
         lower = "f19ce90e-9c36-461d-a499-692ff2570a01"
@@ -572,6 +614,103 @@ class NativeFailureDiagnosticTests(unittest.TestCase):
                     with diagnostic.stage("runner-test"):
                         run.command("fixture")
                 self.assertEqual(diagnostic.first["exitCode"], expected)
+
+
+def ats_policy(*, ats="dict", arbitrary="absent", enabled=None, domains="absent", count=None):
+    return {"atsKind": ats, "arbitraryLoadsKind": arbitrary, "arbitraryLoadsEnabled": enabled,
+            "exceptionDomainsKind": domains, "exceptionDomainCountCapped": count}
+
+
+class RunnerATSDiagnosticTests(unittest.TestCase):
+    def test_exact_types_and_absence_are_distinct_without_free_values(self):
+        run = load("run_auth")
+        secret = "PrivateATSDomainSentinel123456"
+        cases = [({}, ats_policy(ats="absent", arbitrary="unavailable", domains="unavailable")),
+                 ([], ats_policy(ats="unavailable", arbitrary="unavailable", domains="unavailable")),
+                 ({"NSAppTransportSecurity": True}, ats_policy(ats="bool", arbitrary="unavailable", domains="unavailable")),
+                 ({"NSAppTransportSecurity": {}}, ats_policy()),
+                 ({"NSAppTransportSecurity": secret}, ats_policy(ats="invalid", arbitrary="unavailable", domains="unavailable")),
+                 ({"NSAppTransportSecurity": {"NSAllowsArbitraryLoads": False}}, ats_policy(arbitrary="bool", enabled=False)),
+                 ({"NSAppTransportSecurity": {"NSAllowsArbitraryLoads": True}}, ats_policy(arbitrary="bool", enabled=True)),
+                 ({"NSAppTransportSecurity": {"NSAllowsArbitraryLoads": {}}}, ats_policy(arbitrary="dict")),
+                 ({"NSAppTransportSecurity": {"NSAllowsArbitraryLoads": secret}}, ats_policy(arbitrary="invalid")),
+                 ({"NSAppTransportSecurity": {"NSAllowsArbitraryLoads": 1}}, ats_policy(arbitrary="invalid")),
+                 ({"NSAppTransportSecurity": {"NSExceptionDomains": {}}}, ats_policy(domains="dict", count=0)),
+                 ({"NSAppTransportSecurity": {"NSExceptionDomains": {secret: {"private": secret}}}}, ats_policy(domains="dict", count=1)),
+                 ({"NSAppTransportSecurity": {"NSExceptionDomains": True}}, ats_policy(domains="bool")),
+                 ({"NSAppTransportSecurity": {"NSExceptionDomains": secret}}, ats_policy(domains="invalid")),
+                 ({"NSAppTransportSecurity": {"NSExceptionDomains": []}}, ats_policy(domains="invalid"))]
+        for index, (plist, expected) in enumerate(cases):
+            with self.subTest(case=index):
+                observed = run.runner_ats_policy(plist)
+                self.assertEqual(observed, expected)
+                self.assertNotIn(secret, json.dumps(observed))
+
+    def test_count_is_capped_without_inspecting_domains_or_invalid_objects(self):
+        run = load("run_auth")
+        class Uninspectable:
+            def __str__(self): raise AssertionError("must not stringify")
+            def __repr__(self): raise AssertionError("must not repr")
+            def __bool__(self): raise AssertionError("must not derive truthiness")
+            def __iter__(self): raise AssertionError("must not iterate")
+        domains = {index: Uninspectable() for index in range(40)}
+        self.assertEqual(run.runner_ats_policy({"NSAppTransportSecurity": {"NSExceptionDomains": domains}}), ats_policy(domains="dict", count=32))
+        self.assertEqual(run.runner_ats_policy({"NSAppTransportSecurity": {"NSAllowsArbitraryLoads": Uninspectable(), "NSExceptionDomains": Uninspectable()}}),
+                         ats_policy(arbitrary="invalid", domains="invalid"))
+        self.assertEqual(run.runner_ats_policy(Uninspectable()), ats_policy(ats="unavailable", arbitrary="unavailable", domains="unavailable"))
+
+    def test_observer_runs_after_first_latch_and_preserves_original_exception(self):
+        run = load("run_auth")
+        diagnostic = run.FailureDiagnostic()
+        original = AssertionError("PrivateATSSentinel123456")
+        calls = []
+        def observe():
+            calls.append(diagnostic.observed)
+            return ats_policy(arbitrary="bool", enabled=True)
+        with self.assertRaises(AssertionError) as caught:
+            with diagnostic.stage("runner-ats-check", observe_ats=observe):
+                raise original
+        self.assertIs(caught.exception, original)
+        self.assertEqual(calls, [True])
+        first = {"stage": "runner-ats-check", "category": "verification-failed", "exitCode": None,
+                 "atsPolicy": ats_policy(arbitrary="bool", enabled=True)}
+        self.assertEqual(diagnostic.first, first)
+        with self.assertRaises(OSError):
+            with diagnostic.stage("simulator-delete", observe_ats=observe):
+                raise OSError("private cleanup")
+        self.assertEqual(calls, [True])
+        self.assertEqual(diagnostic.first, first)
+
+    def test_no_collection_on_success_other_stage_or_wrong_category(self):
+        run = load("run_auth")
+        observer = MagicMock(side_effect=AssertionError("must not observe"))
+        diagnostic = run.FailureDiagnostic()
+        with diagnostic.stage("runner-ats-check", observe_ats=observer):
+            pass
+        self.assertIsNone(diagnostic.first)
+        for stage, error in [("runner-test", AssertionError("private")),
+                             ("runner-ats-check", run.PrivateCommandFailure("nonzero-exit", 65, "private"))]:
+            with self.subTest(stage=stage):
+                diagnostic = run.FailureDiagnostic()
+                with self.assertRaises(type(error)) as caught:
+                    with diagnostic.stage(stage, observe_ats=observer):
+                        raise error
+                self.assertIs(caught.exception, error)
+                self.assertNotIn("atsPolicy", diagnostic.first)
+        observer.assert_not_called()
+
+    def test_broken_or_invalid_observer_preserves_base_and_original_error(self):
+        run = load("run_auth")
+        for observer in [MagicMock(side_effect=OSError("private")), MagicMock(return_value={"domains": "PrivateATSSentinel123456"})]:
+            with self.subTest(observer=True):
+                diagnostic = run.FailureDiagnostic()
+                original = AssertionError("PrivateATSSentinel123456")
+                with self.assertRaises(AssertionError) as caught:
+                    with diagnostic.stage("runner-ats-check", observe_ats=observer):
+                        raise original
+                self.assertIs(caught.exception, original)
+                self.assertEqual(diagnostic.first, {"stage": "runner-ats-check", "category": "verification-failed", "exitCode": None})
+                observer.assert_called_once()
 
 
 class RunnerBuildSignalTests(unittest.TestCase):
@@ -857,6 +996,68 @@ class FailureDiagnosticExportTests(unittest.TestCase):
             root = Path(temporary)
             for index, result in enumerate(invalid):
                 with self.subTest(index=index):
+                    private, public = root / str(index), root / (str(index) + "-public")
+                    private.mkdir()
+                    with self.assertRaises(run.SecurityViolation):
+                        self.export(run, private, public, result)
+                    self.assertFalse(public.exists())
+
+    def test_closed_ats_policy_is_exported_only_in_its_failed_guard(self):
+        run = load("run_auth")
+        for policy in [ats_policy(arbitrary="bool", enabled=True), ats_policy(domains="dict", count=32),
+                       ats_policy(ats="invalid", arbitrary="unavailable", domains="unavailable")]:
+            with self.subTest(policy=policy), tempfile.TemporaryDirectory() as temporary:
+                diagnostic = {"stage": "runner-ats-check", "category": "verification-failed", "exitCode": None, "atsPolicy": policy}
+                private, public = Path(temporary) / "private", Path(temporary) / "public"
+                private.mkdir()
+                self.export(run, private, public, self.result(run, diagnostic))
+                self.assertEqual(json.loads((public / "result.json").read_text())["failureDiagnostic"], diagnostic)
+
+    def test_ats_policy_schema_rejects_names_types_caps_incoherence_and_other_stages(self):
+        run = load("run_auth")
+        policy = ats_policy(arbitrary="bool", enabled=True, domains="dict", count=1)
+        valid = {"stage": "runner-ats-check", "category": "verification-failed", "exitCode": None, "atsPolicy": policy}
+        policies = [None, [], "PrivateExportSentinel123456", {},
+                    {**policy, "domains": {"PrivateExportSentinel123456": {}}},
+                    *[{key: value for key, value in policy.items() if key != omitted} for omitted in policy]]
+        for key in ["atsKind", "arbitraryLoadsKind", "exceptionDomainsKind"]:
+            policies += [{**policy, key: value} for value in [None, True, 1, [], {}, "PrivateExportSentinel123456"]]
+        policies += [{**policy, "arbitraryLoadsEnabled": value} for value in [None, 0, 1, 0.0, "true", [], {}]]
+        policies += [{**policy, "exceptionDomainCountCapped": value} for value in [None, True, False, -1, 33, 1.0, "1", [], {}]]
+        policies += [{**policy, "arbitraryLoadsKind": kind} for kind in ["absent", "dict", "invalid", "unavailable"]]
+        policies += [{**policy, "exceptionDomainsKind": kind} for kind in ["absent", "bool", "invalid", "unavailable"]]
+        policies += [{**policy, "atsKind": kind} for kind in ["absent", "bool", "invalid", "unavailable"]]
+        policies += [ats_policy(arbitrary="unavailable"), ats_policy(domains="unavailable"),
+                     ats_policy(ats="absent", arbitrary="absent", domains="unavailable"),
+                     ats_policy(ats="unavailable", arbitrary="unavailable", domains="dict", count=0)]
+        invalid = [{**valid, "atsPolicy": value} for value in policies]
+        invalid += [{**valid, "stage": stage} for stage in run.DIAGNOSTIC_STAGES if stage != "runner-ats-check"]
+        invalid += [{**valid, "category": category} for category in run.DIAGNOSTIC_CATEGORIES if category != "verification-failed"]
+        invalid += [{**valid, "exitCode": 65}, {**valid, "errorSignals": ["unclassified"], "signalScanLimited": False}]
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            for index, diagnostic in enumerate(invalid):
+                with self.subTest(case=index):
+                    private, public = root / str(index), root / (str(index) + "-public")
+                    private.mkdir()
+                    with self.assertRaises(run.SecurityViolation):
+                        self.export(run, private, public, self.result(run, diagnostic))
+                    self.assertFalse(public.exists())
+
+    def test_ats_policy_cannot_override_success_or_primary_rejection(self):
+        run = load("run_auth")
+        diagnostic = {"stage": "runner-ats-check", "category": "verification-failed", "exitCode": None,
+                      "atsPolicy": ats_policy(arbitrary="bool", enabled=True)}
+        original = self.result(run, diagnostic)
+        success = {**original, "passed": True,
+                   "steps": [{"app": app, "phase": phase, "passed": True} for app, phase in run.expected_order()]}
+        del success["failureKind"]
+        cases = [success, {**original, "failureKind": "phase-rejected"}, {**original, "failureKind": "security-rejection"},
+                 {**original, "securityFailure": {"kind": "private-identity", "observedAt": "2026-10-05T00:00:00Z"}}]
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            for index, result in enumerate(cases):
+                with self.subTest(case=index):
                     private, public = root / str(index), root / (str(index) + "-public")
                     private.mkdir()
                     with self.assertRaises(run.SecurityViolation):

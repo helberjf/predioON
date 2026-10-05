@@ -113,6 +113,32 @@ A cobertura limita-se aos estágios enumerados dentro da execução e à limpeza
 
 Os testes de host injetam falhas nos pontos reais do fluxo de boot, instalação dos dois produtos, `build-for-testing` e `test-without-building`, incluindo primeira negativa, cleanup posterior e falha do coletor. Também executam processos Python reais com sucesso, exit não zero, timeout e executável ausente, sem executar Xcode ou simulador. O suplemento cobre cada enum, múltiplos streams, textos desconhecidos, comandos/linhas de código que não são marcadores de erro, conteúdo omitido, linhas longas e fragmentos cortados. A chamada real do fluxo exige a flag somente no build e preserva o gate quando cleanup também falha; o processo controlado confirma execução única, argumentos, prazo, captura privada, exit e ausência de segredo no suplemento. O exportador recusa tipos/enums/caps, ordem/duplicatas, campo incompleto, `unclassified` combinado, outro estágio/categoria, sucesso e negativas primárias. Esses ensaios verificam o diagnóstico e a fronteira de publicação; uma nova jornada nativa Apple continua necessária.
 
+### Observação fechada da política ATS do runner
+
+O [run f744457/37251180530](https://github.com/helberjf/predioON/actions/runs/37251180530) avançou a compilação e a leitura do plist do runner, mas parou em `runner-ats-check/verification-failed`, antes de chamar `test-without-building`. Seu artefato fechado não informa qual campo ou tipo causou a reprovação. A declaração de `NSAllowsLocalNetworking` no plist de entrada do projeto não demonstra o conteúdo final da app runner. Não há checkpoints autenticados aprovados nessa execução.
+
+Somente uma primeira falha nesse estágio, com categoria `verification-failed` e `exitCode=null`, pode acrescentar o objeto opcional `atsPolicy`:
+
+```json
+{"atsKind":"dict","arbitraryLoadsKind":"bool","arbitraryLoadsEnabled":true,"exceptionDomainsKind":"absent","exceptionDomainCountCapped":null}
+```
+
+Este é um exemplo do contrato, sem atribuir esses valores ao run f744. Os cinco campos são obrigatórios dentro do objeto:
+
+| Campo | Valor permitido |
+| --- | --- |
+| `atsKind` | `absent`, `bool`, `dict`, `invalid` ou `unavailable` |
+| `arbitraryLoadsKind` | Os mesmos enums para `NSAllowsArbitraryLoads` |
+| `arbitraryLoadsEnabled` | Bool exato quando o kind é `bool`; `null` nos demais casos |
+| `exceptionDomainsKind` | Os mesmos enums para `NSExceptionDomains` |
+| `exceptionDomainCountCapped` | Inteiro exato entre 0 e 32 quando o kind é `dict`; `null` nos demais casos |
+
+`absent` distingue a ausência da chave de um bool falso ou dicionário vazio. `invalid` reúne outros tipos sem revelar seu nome, texto ou valor; nenhum bool/count é derivado desses valores. `atsKind=unavailable` indica que a raiz carregada não é um dict exato. Quando `atsKind` não é `dict`, os dois kinds internos são `unavailable` e ambos os scalars são `null`; quando é `dict`, nenhum kind interno pode ser `unavailable`. A contagem é `min(len(domains),32)`: 32 significa **32 ou mais**, sem percorrer nomes ou valores. Bool não é aceito como contagem. Nomes de domínios, regras, conteúdo do plist, paths, argv e ambiente nunca entram no objeto.
+
+O corpo obrigatório do guard permanece literalmente igual: recusa cargas arbitrárias ou exceções ATS truthy, e conserva falhas de formato. O callback interno é habilitado somente nesse estágio e só consulta o plist já carregado após a primeira falha ser fixada. Ele não executa ferramenta, lê outro arquivo, chama `repr`/`str` nem deriva truthiness de objetos inválidos. No sucesso não é chamado. Falha ou retorno inválido do observador omite somente `atsPolicy`, preservando o erro original, diagnóstico base e precedência sobre cleanup. Negativas de segurança/fase continuam primárias. O exportador rejeita keys extras, tipos, caps, combinações incoerentes, outro estágio/categoria/exit, mistura com sinais de build, sucesso e negativas primárias antes de criar staging público.
+
+Onze testes novos tiveram RED verdadeiro antes do produto: seis falhas de integração por detalhe ausente e 28 erros pelas funções/callback/contrato inexistentes. GREEN dirigido comprova seis plists reprovados pelo guard real, configurações conservadoras que continuam chegando ao runner-test, falha do observador, primeiro erro, cleanup, contagem limitada sem inspecionar domains e negativas de exportação. A integral de host contém **137 casos: 137/137 no Linux com TLS/POSIX reais, e 121 aprovados/16 skips explícitos no Windows**. Esses ensaios verificam observabilidade e publicação; não corrigem a política do runner, não relaxam ATS/TLS nem aprovam uma jornada Apple. Nenhum SDK, Swift, scheme, prazo, retry, dependência ou workflow foi alterado.
+
 ### Grafia do UUID criado e seleção de destino
 
 O [run f445c99/37247530449](https://github.com/helberjf/predioON/actions/runs/37247530449) reprovou em `runner-build/nonzero-exit/70`. A inspeção privada autenticada encontrou a mensagem de seleção de dispositivo e nenhuma correspondência textual exata para o ID solicitado. As duas correspondências sem distinguir maiúsculas/minúsculas eram destinos iOS Simulator do mesmo UUID, para arm64 e x86_64, ambos com grafia uppercase; o harness tinha convertido a saída de `simctl create` para lowercase. Isso demonstra a transformação e a diferença de grafia nessa execução. Não demonstra isoladamente sensibilidade do Xcode a maiúsculas/minúsculas, incompatibilidade de SDK ou a causa completa da falha.
