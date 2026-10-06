@@ -491,3 +491,11 @@ Aba **Ordens de serviço** no código móvel compartilhado, visível só no prod
 
 **Provas:** testes do pacote mobile **81/81** (3 novos: navegação por permissão nos dois produtos, ações por estado/responsável, ordenação), tipos dos 15 workspaces, fronteiras e **bundles JavaScript de release dos dois apps** gerados com `react-native bundle --platform android --dev false`, ambos contendo a nova tela. **Não houve execução nativa**: esta máquina não tem Android SDK nem emulador, e os workflows Android/iOS seguem bloqueados pela cobrança da conta GitHub. A API usada pela tela é a mesma coberta pela integral 760/760 e pelo cenário de navegador.
 
+### 06/10: primeira execução nativa local e datas ISO na API
+
+A pedido do proprietário, JDK 17, Android SDK (platform 37.0, build-tools 37.0.0, NDK 27.1.12297006, emulador e imagem Android 35 x86_64) foram instalados neste computador, na pasta do usuário. Os ajustes específicos deste Windows estão em [packages/mobile/README.md](../packages/mobile/README.md#android-neste-windows-o-que-foi-preciso-além-do-sdk). **iOS não pode ser instalado aqui**: exige macOS.
+
+**Executado no emulador (Pixel 7, Android 15, build debug x86_64, Metro, API e PostgreSQL locais com seed descartável):** app Operação — login com a conta de demonstração, escolha do condomínio, Resumo com dados da API e aba Ordens de serviço com lista, ações e histórico. É observação manual desta sessão por `adb`, não uma jornada automatizada; o app Morador ainda não foi compilado localmente e nenhuma ação de escrita foi exercitada no nativo.
+
+**Defeito real encontrado só no nativo e corrigido:** as rotas em SQL bruto (ordens de serviço e convites) devolviam datas no formato de texto do PostgreSQL (`2026-10-06 20:12:34.450329+00`). Os três motores de navegador aceitam; o Hermes não, e o app mostrava “Data indisponível”. A API passa a formatar em ISO-8601 UTC com milissegundos (`apps/api/src/http/sql-time.ts`). RED confirmado nas duas suítes antes da correção; depois, ordens de serviço **7/7**, convites **8/8** e cadastros **11/11**, mais a conferência visual no emulador. **A integral da API e a matriz de navegador não foram repetidas depois desta correção.** A rota de auditoria tem a mesma projeção bruta de `created_at` e é usada só na web; fica registrada para revisão.
+
