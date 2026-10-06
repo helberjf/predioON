@@ -28,6 +28,8 @@ Todas estas rotas exigem a sessão central. Usam a conexão `predioon_app`, auto
 | `GET/POST /v1/tenancy/units` | Consultar/criar unidades | `units:read` / `units:manage`; RLS limita moradores às próprias unidades |
 | `GET/POST /v1/tenancy/teams` | Consultar/criar equipes | `teams:read` / `teams:manage` |
 | `PATCH /v1/tenancy/{blocks,units,teams}/:id` | Corrigir código/nome do bloco, código/bloco/andar da unidade ou nome da equipe | `units:manage` (blocos e unidades) / `teams:manage`; registro fora da projeção do solicitante responde 404; não muda o condomínio nem o estado ativo; auditoria `*_UPDATED` na mesma transação (SQL041) |
+| `PATCH /v1/tenancy/{blocks,units,teams}/:id/status` | Desativar ou reativar (`{ "active": boolean }`) | Mesma capacidade de gestão. O registro e o histórico são preservados; os helpers de RBAC ignoram equipe, unidade ou bloco inativos, então o acesso derivado é suspenso até a reativação. Auditoria `*_DEACTIVATED`/`*_REACTIVATED` gravada antes da mudança, na mesma transação; repetir o mesmo estado não gera auditoria |
+| `GET /v1/tenancy/{blocks,units,teams}?includeInactive=true` | Incluir inativos na listagem | Exige a capacidade de gestão, além da leitura; sem o parâmetro a lista traz só ativos. As projeções passam a informar `active` |
 | `GET/POST /v1/tenancy/unit-memberships` | Consultar/criar vínculos com unidades | `memberships:read` / `memberships:manage` |
 | `GET/POST /v1/tenancy/team-members` | Consultar/adicionar integrantes | `teams:read` / `teams:manage` |
 | `GET/POST /v1/tenancy/role-bindings` | Consultar/conceder papéis do condomínio | `memberships:manage`, limitada às permissões delegáveis que o concedente possui |

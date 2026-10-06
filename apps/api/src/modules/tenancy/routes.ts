@@ -16,6 +16,9 @@ const ListSchema = z.object({ buildingId, after: id.optional(), limit: z.coerce.
 // Users have text IDs; the UUID cursor used by units/teams is not interchangeable.
 const PeopleListSchema = ListSchema.extend({ after: z.string().min(1).max(128).optional() });
 type ListQuery = z.infer<typeof ListSchema>;
+// Inactive records are a management view; the plain list stays the active structure.
+const StructureListSchema = ListSchema.extend({ includeInactive: z.enum(["true", "false"]).optional() });
+type StructureQuery = z.infer<typeof StructureListSchema>;
 const CreateBlock = z.object({ buildingId, code: z.string().trim().min(1).max(40), name }).strict();
 const CreateUnit = z.object({ buildingId, blockId: id.nullable().optional(), code: z.string().trim().min(1).max(40), floor: z.number().int().min(-10).max(300).nullable().optional() }).strict();
 const CreateTeam = z.object({ buildingId, name }).strict();
@@ -28,6 +31,18 @@ const CreateBinding = z.object({
   roleKey: z.enum(["BUILDING_ADMIN", "MAINTENANCE_MANAGER", "MAINTENANCE", "RESIDENT"]),
   reason: z.string().trim().min(3).max(500), ...validity,
 }).strict().refine(value => Boolean(value.userId) !== Boolean(value.teamId), "Informe uma pessoa ou equipe").refine(validDates, "Vigência inválida");
+
+const blockView = { id: blocks.id, buildingId: blocks.buildingId, code: blocks.code, name: blocks.name, active: blocks.active };
+const unitView = { id: units.id, buildingId: units.buildingId, blockId: units.blockId, code: units.code, floor: units.floor, active: units.active };
+const teamView = { id: teams.id, buildingId: teams.buildingId, name: teams.name, kind: teams.kind, active: teams.active };
+
+/** Listing inactive records needs the management capability, not only the read one. */
+async function listScope(tx: AppTransaction, q: StructureQuery, read: "units:read" | "teams:read", manage: "units:manage" | "teams:manage"): Promise<boolean> {
+  await assertCapability(tx, read, q.buildingId);
+  if (q.includeInactive !== "true") return false;
+  await assertCapability(tx, manage, q.buildingId);
+  return true;
+}
 
 function page<T extends { id: string }>(rows: T[], limit: number) {
   const items = rows.slice(0, limit);
@@ -59,12 +74,12 @@ tenancyRouter.get("/people", validateQuery(PeopleListSchema), async (req, res) =
   res.json(result);
 });
 
-tenancyRouter.get("/blocks", validateQuery(ListSchema), async (req, res) => {
-  const q = query<ListQuery>(req);
+tenancyRouter.get("/blocks", validateQuery(StructureListSchema), async (req, res) => {
+  const q = query<StructureQuery>(req);
   res.json(await inTenancy(req, async tx => {
-    await assertCapability(tx, "units:read", q.buildingId);
-    return page(await tx.select({ id: blocks.id, buildingId: blocks.buildingId, code: blocks.code, name: blocks.name }).from(blocks)
-      .where(and(eq(blocks.buildingId, q.buildingId), eq(blocks.active, true), q.after ? gt(blocks.id, q.after) : undefined)).orderBy(asc(blocks.id)).limit(q.limit + 1), q.limit);
+    const all = await listScope(tx, q, "units:read", "units:manage");
+    return page(await tx.select(blockView).from(blocks)
+      .where(and(eq(blocks.buildingId, q.buildingId), all ? undefined : eq(blocks.active, true), q.after ? gt(blocks.id, q.after) : undefined)).orderBy(asc(blocks.id)).limit(q.limit + 1), q.limit);
   }));
 });
 tenancyRouter.post("/blocks", validateBody(CreateBlock), async (req, res) => {
@@ -78,12 +93,12 @@ tenancyRouter.post("/blocks", validateBody(CreateBlock), async (req, res) => {
   res.status(201).json(row);
 });
 
-tenancyRouter.get("/units", validateQuery(ListSchema), async (req, res) => {
-  const q = query<ListQuery>(req);
+tenancyRouter.get("/units", validateQuery(StructureListSchema), async (req, res) => {
+  const q = query<StructureQuery>(req);
   res.json(await inTenancy(req, async tx => {
-    await assertCapability(tx, "units:read", q.buildingId);
-    return page(await tx.select({ id: units.id, buildingId: units.buildingId, blockId: units.blockId, code: units.code, floor: units.floor }).from(units)
-      .where(and(eq(units.buildingId, q.buildingId), eq(units.active, true), q.after ? gt(units.id, q.after) : undefined)).orderBy(asc(units.id)).limit(q.limit + 1), q.limit);
+    const all = await listScope(tx, q, "units:read", "units:manage");
+    return page(await tx.select(unitView).from(units)
+      .where(and(eq(units.buildingId, q.buildingId), all ? undefined : eq(units.active, true), q.after ? gt(units.id, q.after) : undefined)).orderBy(asc(units.id)).limit(q.limit + 1), q.limit);
   }));
 });
 tenancyRouter.post("/units", validateBody(CreateUnit), async (req, res) => {
@@ -97,12 +112,12 @@ tenancyRouter.post("/units", validateBody(CreateUnit), async (req, res) => {
   res.status(201).json(row);
 });
 
-tenancyRouter.get("/teams", validateQuery(ListSchema), async (req, res) => {
-  const q = query<ListQuery>(req);
+tenancyRouter.get("/teams", validateQuery(StructureListSchema), async (req, res) => {
+  const q = query<StructureQuery>(req);
   res.json(await inTenancy(req, async tx => {
-    await assertCapability(tx, "teams:read", q.buildingId);
-    return page(await tx.select({ id: teams.id, buildingId: teams.buildingId, name: teams.name, kind: teams.kind }).from(teams)
-      .where(and(eq(teams.buildingId, q.buildingId), eq(teams.active, true), q.after ? gt(teams.id, q.after) : undefined)).orderBy(asc(teams.id)).limit(q.limit + 1), q.limit);
+    const all = await listScope(tx, q, "teams:read", "teams:manage");
+    return page(await tx.select(teamView).from(teams)
+      .where(and(eq(teams.buildingId, q.buildingId), all ? undefined : eq(teams.active, true), q.after ? gt(teams.id, q.after) : undefined)).orderBy(asc(teams.id)).limit(q.limit + 1), q.limit);
   }));
 });
 tenancyRouter.post("/teams", validateBody(CreateTeam), async (req, res) => {
@@ -186,9 +201,6 @@ const changed = (value: object) => Object.keys(value).length > 0;
 const UpdateBlock = z.object({ code: CreateBlock.shape.code.optional(), name: name.optional() }).strict().refine(changed, "Informe ao menos um campo");
 const UpdateUnit = z.object({ code: CreateUnit.shape.code.optional(), blockId: id.nullable().optional(), floor: CreateUnit.shape.floor }).strict().refine(changed, "Informe ao menos um campo");
 const UpdateTeam = z.object({ name: name.optional() }).strict().refine(changed, "Informe ao menos um campo");
-const blockView = { id: blocks.id, buildingId: blocks.buildingId, code: blocks.code, name: blocks.name };
-const unitView = { id: units.id, buildingId: units.buildingId, blockId: units.blockId, code: units.code, floor: units.floor };
-const teamView = { id: teams.id, buildingId: teams.buildingId, name: teams.name, kind: teams.kind };
 
 /**
  * The first read uses the caller's own projection, so a record outside it is
@@ -232,6 +244,52 @@ tenancyRouter.patch("/teams/:id", validateBody(UpdateTeam), async (req, res) => 
   res.json(await edit(req, "teams:manage", "TEAM_UPDATED", "team",
     (tx, recordId) => tx.select({ buildingId: teams.buildingId }).from(teams).where(live(recordId)).limit(1),
     (tx, recordId) => tx.update(teams).set({ ...input, updatedAt: new Date() }).where(live(recordId)).returning(teamView)));
+});
+
+// Deactivation keeps the record and its history. The RBAC helpers already
+// ignore an inactive team, unit or block, so derived access ends with it and
+// returns on reactivation.
+const UpdateStatus = z.object({ active: z.boolean() }).strict();
+type StatusRow = { buildingId: string; active: boolean };
+async function setStatus<T>(req: Request, capability: "units:manage" | "teams:manage", prefix: string, resourceType: string,
+  find: (tx: AppTransaction, recordId: string, lock: boolean) => Promise<StatusRow[]>,
+  update: (tx: AppTransaction, recordId: string, active: boolean) => Promise<T[]>,
+  read: (tx: AppTransaction, recordId: string) => Promise<T[]>): Promise<T> {
+  const parsed = id.safeParse(param(req, "id"));
+  if (!parsed.success) throw notFound();
+  const { active } = req.body as z.infer<typeof UpdateStatus>;
+  return inTenancy(req, async tx => {
+    const [visible] = await find(tx, parsed.data, false);
+    if (!visible) throw notFound();
+    await assertCapability(tx, capability, visible.buildingId);
+    const [current] = await find(tx, parsed.data, true);
+    if (!current) throw notFound();
+    if (current.active === active) return (await read(tx, parsed.data))[0]!;
+    // Audit while the actor still has the grant: deactivating their own team may end it.
+    await recordAudit(tx, req, { userId: currentAuth(req).userId, buildingId: current.buildingId, action: `${prefix}_${active ? "REACTIVATED" : "DEACTIVATED"}`, resourceType, resourceId: parsed.data });
+    const [updated] = await update(tx, parsed.data, active);
+    if (!updated) throw notFound();
+    return updated;
+  });
+}
+
+tenancyRouter.patch("/blocks/:id/status", validateBody(UpdateStatus), async (req, res) => {
+  res.json(await setStatus(req, "units:manage", "BLOCK", "block",
+    async (tx, recordId, lock) => { const rows = tx.select({ buildingId: blocks.buildingId, active: blocks.active }).from(blocks).where(eq(blocks.id, recordId)); return lock ? rows.for("update") : rows; },
+    (tx, recordId, active) => tx.update(blocks).set({ active, updatedAt: new Date() }).where(eq(blocks.id, recordId)).returning(blockView),
+    (tx, recordId) => tx.select(blockView).from(blocks).where(eq(blocks.id, recordId))));
+});
+tenancyRouter.patch("/units/:id/status", validateBody(UpdateStatus), async (req, res) => {
+  res.json(await setStatus(req, "units:manage", "UNIT", "unit",
+    async (tx, recordId, lock) => { const rows = tx.select({ buildingId: units.buildingId, active: units.active }).from(units).where(eq(units.id, recordId)); return lock ? rows.for("update") : rows; },
+    (tx, recordId, active) => tx.update(units).set({ active, updatedAt: new Date() }).where(eq(units.id, recordId)).returning(unitView),
+    (tx, recordId) => tx.select(unitView).from(units).where(eq(units.id, recordId))));
+});
+tenancyRouter.patch("/teams/:id/status", validateBody(UpdateStatus), async (req, res) => {
+  res.json(await setStatus(req, "teams:manage", "TEAM", "team",
+    async (tx, recordId, lock) => { const rows = tx.select({ buildingId: teams.buildingId, active: teams.active }).from(teams).where(eq(teams.id, recordId)); return lock ? rows.for("update") : rows; },
+    (tx, recordId, active) => tx.update(teams).set({ active, updatedAt: new Date() }).where(eq(teams.id, recordId)).returning(teamView),
+    (tx, recordId) => tx.select(teamView).from(teams).where(eq(teams.id, recordId))));
 });
 
 // Grants are revoked rather than deleted so their audit references remain useful.

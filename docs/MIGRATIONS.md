@@ -220,8 +220,8 @@ O motivo é o RED registrado em 05/10/2026: com a role da API, uma sessão SQL c
 
 Coordenar com a release da API: qualquer consulta do runtime que selecione `users.*` passa a falhar com 42501. Credenciais continuam sendo lidas e trocadas somente pela conexão de identidade e pelo helper da 037.
 
-## Release 041: auditoria da edição de blocos, unidades e equipes
+## Release 041: auditoria da edição e do estado de blocos, unidades e equipes
 
-`041-tenancy-edit-audit.sql` acrescenta `BLOCK_UPDATED`, `UNIT_UPDATED` e `TEAM_UPDATED` aos três ramos correspondentes de `app_audit_legacy_insert`, com a mesma prova da criação: capacidade de gestão vigente no condomínio e registro pertencente a ele. A alteração é feita por substituição exata do ramo; ramo ausente, duplicado ou divergente interrompe a migration dentro da transação. Reaplicar não muda função, ACL nem policy. Privilégios de tabela e RLS da 014 já cobriam o `UPDATE`; a 041 não concede nada novo.
+`041-tenancy-edit-audit.sql` acrescenta as ações `*_UPDATED`, `*_DEACTIVATED` e `*_REACTIVATED` de bloco, unidade e equipe aos três ramos correspondentes de `app_audit_legacy_insert`, com a mesma prova da criação: capacidade de gestão vigente no condomínio e registro pertencente a ele. A alteração é feita por substituição exata do ramo; ramo ausente, duplicado ou divergente interrompe a migration dentro da transação. Reaplicar não muda função, ACL nem policy. Privilégios de tabela e RLS da 014 já cobriam o `UPDATE`; a 041 não concede nada novo.
 
-A API passa a publicar `PATCH /v1/tenancy/{blocks,units,teams}/:id` (ver [AUTORIZACAO.md](AUTORIZACAO.md)). Um processo antigo da API continua funcionando com a 041 aplicada; a API nova exige a 041, pois sem ela a auditoria obrigatória é recusada e a edição é revertida.
+A API passa a publicar `PATCH /v1/tenancy/{blocks,units,teams}/:id` e `.../:id/status` (ver [AUTORIZACAO.md](AUTORIZACAO.md)). Um processo antigo da API continua funcionando com a 041 aplicada; a API nova exige a 041, pois sem ela a auditoria obrigatória é recusada e a edição é revertida.

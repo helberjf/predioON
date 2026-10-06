@@ -86,3 +86,58 @@ test("síndico corrige bloco, unidade e equipe; edição intacta não envia requ
   expect((await stored("units")).find(row => row.id === unit.id)).toMatchObject({ code: "101-B", blockId: null, floor: null });
   expect((await stored("teams")).find(row => row.id === team.id)).toMatchObject({ name: renamedTeam });
 });
+
+test("síndico desativa e reativa unidade e equipe com confirmação; inativos só aparecem a pedido", async ({ page, request }) => {
+  const fixture = await isolatedTenant(request);
+  const buildingId = fixture.building.id;
+  const teamName = `Jardinagem ${fixture.suffix}`;
+  const unit = await fixture.managerApi.create<Row>("/v1/tenancy/units", { buildingId, code: "305" });
+  await fixture.managerApi.create<Row>("/v1/tenancy/units", { buildingId, code: "306" });
+  const team = await fixture.managerApi.create<Row>("/v1/tenancy/teams", { buildingId, name: teamName });
+  const item = (text: string) => page.getByRole("listitem").filter({ hasText: text });
+  const changeStatus = async (action: () => Promise<void>) => {
+    const response = page.waitForResponse(received => received.request().method() === "PATCH" && received.url().endsWith("/status"));
+    await action();
+    expect((await response).status()).toBe(200);
+  };
+  const stored = async (name: string, id: string, query = "") => {
+    const response = await fixture.managerApi.get(`/v1/tenancy/${name}?buildingId=${buildingId}${query}`);
+    expect(response.status()).toBe(200);
+    return ((await response.json()).items as Array<Row & { active: boolean }>).find(row => row.id === id);
+  };
+
+  await signIn(page, BUILDING_URL, fixture.manager.email);
+  await page.getByRole("link", { name: "Unidades e equipes", exact: true }).click();
+  await expect(item("305")).toBeVisible();
+
+  // Declining the confirmation changes nothing.
+  await item("305").getByRole("button", { name: "Desativar", exact: true }).click();
+  await expect(page.getByText("Confirme a desativação de unidade 305.", { exact: false })).toBeVisible();
+  await page.getByRole("button", { name: "Manter ativo", exact: true }).click();
+  expect((await stored("units", unit.id))?.active).toBe(true);
+
+  await item("305").getByRole("button", { name: "Desativar", exact: true }).click();
+  await changeStatus(() => page.getByRole("button", { name: "Confirmar desativação", exact: true }).click());
+  await expect(page.getByText("Cadastro desativado.", { exact: true })).toBeVisible();
+  await expect(item("305")).toHaveCount(0);
+  await expect(item("306")).toBeVisible();
+  expect(await stored("units", unit.id)).toBeUndefined();
+  expect((await stored("units", unit.id, "&includeInactive=true"))?.active).toBe(false);
+
+  await page.getByLabel("Mostrar inativos", { exact: true }).check();
+  await expect(item("305")).toContainText("Inativo");
+  await expect(item("305").getByRole("button", { name: "Editar", exact: true })).toHaveCount(0);
+  await expect(item("306")).not.toContainText("Inativo");
+  await changeStatus(() => item("305").getByRole("button", { name: "Reativar", exact: true }).click());
+  await expect(page.getByText("Cadastro reativado.", { exact: true })).toBeVisible();
+  await expect(item("305")).not.toContainText("Inativo");
+  expect((await stored("units", unit.id))?.active).toBe(true);
+
+  await page.getByRole("button", { name: "Equipes", exact: true }).click();
+  await item(teamName).getByRole("button", { name: "Desativar", exact: true }).click();
+  await changeStatus(() => page.getByRole("button", { name: "Confirmar desativação", exact: true }).click());
+  await expect(item(teamName)).toContainText("Inativo");
+  await page.getByLabel("Mostrar inativos", { exact: true }).uncheck();
+  await expect(page.getByText("Nenhuma equipe cadastrada.", { exact: true })).toBeVisible();
+  expect((await stored("teams", team.id, "&includeInactive=true"))?.active).toBe(false);
+});
