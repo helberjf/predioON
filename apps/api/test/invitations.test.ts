@@ -69,6 +69,10 @@ describe("resident invitations", () => {
   it("stores only the hash, lists without secrets and audits the inviter", async () => {
     const { invitation, token } = await invite("stored", { unitId, kind: "OCCUPANT" });
     assert.equal(invitation.status, "PENDING");
+    for (const key of ["createdAt", "expiresAt"] as const) {
+      const value = (invitation as unknown as Record<string, string>)[key]!;
+      assert.equal(new Date(value).toISOString(), value, `${key} is strict ISO-8601`);
+    }
     assert.deepEqual(Object.keys(invitation).sort(), ["buildingId", "createdAt", "email", "expiresAt", "id", "kind", "name", "status", "unitId"]);
     const row = await stored(invitation.id);
     assert.deepEqual(Buffer.from(row.token_hash), createHash("sha256").update(Buffer.from(token, "base64url")).digest());

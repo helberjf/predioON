@@ -54,3 +54,20 @@ Ainda exigem implementação/validação: push FCM/APNs e instalações móveis;
 Os projetos nativos vêm de `@react-native-community/template` **0.87.2**, com React Native **0.87.1**, React **19.2.3** e CLI **20.2.0**. A licença original está em `TEMPLATE-LICENSE` de cada app. Identificadores, Metro para o monorepo e assinatura Android de release foram adaptados. A chave pública de debug do template serve apenas ao desenvolvimento; a release não é assinada com ela. Defina chaves próprias e equipe Apple fora do Git antes da publicação.
 
 Referências oficiais: [React Native sem framework](https://reactnative.dev/docs/getting-started-without-a-framework), [preparação de ambiente](https://reactnative.dev/docs/set-up-your-environment), [React Native Keychain](https://github.com/oblador/react-native-keychain).
+
+## Android neste Windows: o que foi preciso além do SDK
+
+Registrado em 06/10/2026, ao rodar o app Operação num emulador local pela primeira vez. São condições desta máquina; em outra podem não se aplicar.
+
+| Sintoma | Causa | Ajuste |
+| --- | --- | --- |
+| `PKIX path building failed` ao baixar o Gradle | Antivírus com inspeção HTTPS reassina os certificados com uma raiz que só o Windows conhece | `-Djavax.net.ssl.trustStoreType=Windows-ROOT` (o Java passa a usar o repositório do Windows; nenhuma verificação é desligada) |
+| `Unable to establish loopback connection` | O Java 17 cria sockets internos na pasta temporária, e o caminho do perfil deste usuário não serve | `-Djdk.net.unixdomain.tmpdir=C:/ptmp`, com a pasta criada |
+| As duas opções não chegam ao daemon do Gradle | Propriedades em `gradle.properties` são aplicadas tarde demais | Definir em `JAVA_TOOL_OPTIONS`, lida por toda JVM |
+| `Filename longer than 260 characters` no ninja | Caminho longo do repositório somado ao de `node_modules` | `subst P: <raiz do repositório>` e compilar a partir de `P:`. Uma junção de pasta não resolve: o Gradle a converte de volta |
+| Emulador encerra com `Insufficient RAM` ou trava | Memória comprometida no limite (16 GB com Docker e navegador abertos) | `-memory 1536`, fechar programas pesados e não compilar com o emulador aberto |
+| Emulador parado sem janela útil | Diálogo pedindo consentimento para enviar o relatório de uma falha anterior | Responder o diálogo, ou apagar `%TEMP%AndroidEmulator` e iniciar com `-no-metrics` |
+| `sdkmanager` não acha os pacotes | Foi substituído pelo `android sdk`, com nomes separados por barra | `android sdk install platforms/android-37.0 build-tools/37.0.0 ndk/27.1.12297006 system-images/android-35/google_apis/x86_64` |
+
+Sequência usada: banco descartável e API em `:3000`, Metro em `:8081`, `gradlew app:assembleDebug -PreactNativeArchitectures=x86_64 --max-workers=2`, emulador, `adb install -r`. iOS continua exigindo macOS.
+

@@ -58,6 +58,10 @@ describe("work orders are distributed by managers and executed by their assignee
     const order = await create({ description: "Setor B", priority: "HIGH", dueAt: "2026-12-01T12:00:00.000Z" });
     assert.deepEqual({ status: order.status, version: order.version, priority: order.priority, createdBy: order.createdBy, assignedToMe: order.assignedToMe, startedAt: order.startedAt, closedAt: order.closedAt },
       { status: "OPEN", version: 1, priority: "HIGH", createdBy: people.manager, assignedToMe: false, startedAt: null, closedAt: null });
+    // Strict ISO-8601: the mobile JavaScript engine rejects PostgreSQL's text format.
+    const iso = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+    assert.equal(order.dueAt, "2026-12-01T12:00:00.000Z");
+    for (const key of ["createdAt", "updatedAt"]) assert.match(String(order[key]), iso, key);
     const edited = await ok(`/${order.id}`, "manager", "PATCH", { version: 1, title: "Trocar lâmpadas", assignedTeamId: teamId });
     assert.deepEqual({ title: edited.title, team: edited.assignedTeamId, user: edited.assignedUserId, version: edited.version }, { title: "Trocar lâmpadas", team: teamId, user: null, version: 2 });
     assert.equal((await api(`/${order.id}`, "manager", "PATCH", { version: 1, priority: "LOW" })).status, 409, "stale version");
@@ -65,7 +69,8 @@ describe("work orders are distributed by managers and executed by their assignee
     assert.deepEqual({ team: personal.assignedTeamId, user: personal.assignedUserId }, { team: null, user: people.worker }, "choosing a person clears the team");
     const cleared = await ok(`/${order.id}`, "manager", "PATCH", { version: 3, assignedUserId: null, dueAt: null });
     assert.deepEqual({ team: cleared.assignedTeamId, user: cleared.assignedUserId, dueAt: cleared.dueAt }, { team: null, user: null, dueAt: null });
-    const detail = await ok<Order & { events: Array<{ kind: string; actorId: string }> }>(`/${order.id}`, "manager");
+    const detail = await ok<Order & { events: Array<{ kind: string; actorId: string; createdAt: string }> }>(`/${order.id}`, "manager");
+    assert.ok(detail.events.every(event => iso.test(event.createdAt)));
     assert.deepEqual(detail.events.map(event => `${event.kind}:${event.actorId}`), ["CREATED", "ASSIGNED", "ASSIGNED", "ASSIGNED"].map(kind => `${kind}:${people.manager}`));
     assert.deepEqual(await audits(order.id), ["WORK_ORDER_CREATED", "WORK_ORDER_UPDATED", "WORK_ORDER_UPDATED", "WORK_ORDER_UPDATED"].map(action => `${action}:${people.manager}`));
   });
@@ -109,8 +114,10 @@ describe("work orders are distributed by managers and executed by their assignee
     assert.equal((await api("", "worker", "POST", { buildingId: building, title: "Criada pelo executor" })).status, 403);
     const started = await ok(`/${order.id}/status`, "worker", "POST", { version: 1, status: "IN_PROGRESS" });
     assert.ok(started.startedAt && !started.closedAt && started.version === 2);
+    assert.equal(new Date(String(started.startedAt)).toISOString(), started.startedAt);
     assert.equal((await api(`/${order.id}/status`, "teammate", "POST", { version: 1, status: "DONE" })).status, 409, "stale version from a teammate");
     const noted = await ok<{ kind: string; actorId: string; note: string }>(`/${order.id}/notes`, "teammate", "POST", { note: "Peça solicitada ao fornecedor" }, 201);
+    assert.equal(new Date((noted as unknown as { createdAt: string }).createdAt).toISOString(), (noted as unknown as { createdAt: string }).createdAt);
     assert.deepEqual({ kind: noted.kind, actorId: noted.actorId, note: noted.note }, { kind: "NOTE", actorId: people.teammate, note: "Peça solicitada ao fornecedor" });
     const paused = await ok(`/${order.id}/status`, "teammate", "POST", { version: 2, status: "OPEN", note: "Aguardando peça" });
     assert.equal(paused.startedAt, null);

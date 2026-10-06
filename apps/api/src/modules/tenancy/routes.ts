@@ -7,6 +7,7 @@ import { badRequest, conflict, forbidden, notFound, pgErrorCode } from "../../ht
 import { param } from "../../http/params.js";
 import { query, validateBody, validateQuery } from "../../http/validate.js";
 import { recordAudit } from "../audit/repo.js";
+import { isoTime } from "../../http/sql-time.js";
 import { createInvitationToken } from "../../auth/invitations.js";
 
 export const tenancyRouter = Router();
@@ -299,8 +300,8 @@ const CreateInvitation = z.object({
   buildingId, name, email: z.string().trim().toLowerCase().email().max(254),
   unitId: id.optional(), kind: z.enum(["OWNER", "OCCUPANT", "DEPENDENT"]).optional(),
 }).strict().refine(value => Boolean(value.unitId) === Boolean(value.kind), "Informe a unidade e o tipo de vínculo juntos");
-type InvitationRow = { id: string; buildingId: string; email: string; name: string; unitId: string | null; kind: string | null; status: string; createdAt: Date; expiresAt: Date };
-const invitationView = sql`id, building_id as "buildingId", email, name, unit_id as "unitId", unit_kind as "kind", created_at as "createdAt", expires_at as "expiresAt",
+type InvitationRow = { id: string; buildingId: string; email: string; name: string; unitId: string | null; kind: string | null; status: string; createdAt: string; expiresAt: string };
+const invitationView = sql`id, building_id as "buildingId", email, name, unit_id as "unitId", unit_kind as "kind", ${isoTime(sql`created_at`)} as "createdAt", ${isoTime(sql`expires_at`)} as "expiresAt",
   case when accepted_at is not null then 'ACCEPTED' when revoked_at is not null then 'REVOKED'
     when expires_at <= clock_timestamp() then 'EXPIRED' else 'PENDING' end as status`;
 

@@ -6,6 +6,7 @@ import { currentAuth, inTenantContext } from "../../auth/middleware.js";
 import { badRequest, conflict, forbidden, notFound, pgErrorCode } from "../../http/errors.js";
 import { param } from "../../http/params.js";
 import { query, validateBody, validateQuery } from "../../http/validate.js";
+import { isoTime } from "../../http/sql-time.js";
 import { recordAudit } from "../audit/repo.js";
 
 export const workOrdersRouter = Router();
@@ -32,8 +33,9 @@ const Note = z.object({ note }).strict();
 
 type WorkOrder = { id: string; buildingId: string; status: z.infer<typeof Status>; version: number; assignedUserId: string | null; assignedTeamId: string | null };
 const view = sql`w.id, w.building_id as "buildingId", w.title, w.description, w.priority, w.status, w.occurrence_id as "occurrenceId",
-  w.assigned_user_id as "assignedUserId", w.assigned_team_id as "assignedTeamId", w.due_at as "dueAt", w.created_by as "createdBy", w.version,
-  w.created_at as "createdAt", w.updated_at as "updatedAt", w.started_at as "startedAt", w.closed_at as "closedAt",
+  w.assigned_user_id as "assignedUserId", w.assigned_team_id as "assignedTeamId", ${isoTime(sql`w.due_at`)} as "dueAt", w.created_by as "createdBy", w.version,
+  ${isoTime(sql`w.created_at`)} as "createdAt", ${isoTime(sql`w.updated_at`)} as "updatedAt",
+  ${isoTime(sql`w.started_at`)} as "startedAt", ${isoTime(sql`w.closed_at`)} as "closedAt",
   app_work_order_assigned(w.building_id, w.assigned_user_id, w.assigned_team_id) as "assignedToMe"`;
 
 /** RLS and the table guard decide; constraint details never reach the client. */
@@ -61,6 +63,7 @@ async function visible(tx: AppTransaction, target: string): Promise<WorkOrder> {
   if (!order) throw notFound("Ordem de serviço não encontrada");
   return order;
 }
+const eventView = sql`id, actor_id as "actorId", kind, from_status as "fromStatus", to_status as "toStatus", note, ${isoTime(sql`created_at`)} as "createdAt"`;
 const event = (tx: AppTransaction, order: { id: string; buildingId: string }, actor: string, kind: string, extra: { from?: string; to?: string; note?: string } = {}) =>
   tx.execute(sql`insert into work_order_events(work_order_id,building_id,actor_id,kind,from_status,to_status,note)
     values(${order.id},${order.buildingId},${actor},${kind},${extra.from ?? null},${extra.to ?? null},${extra.note ?? ""})`);
@@ -98,7 +101,7 @@ workOrdersRouter.get("/:id", async (req, res) => {
   const target = orderId(req);
   res.json(await inWorkOrders(req, async tx => {
     const order = await visible(tx, target);
-    const events = await rows(tx, sql`select id, actor_id as "actorId", kind, from_status as "fromStatus", to_status as "toStatus", note, created_at as "createdAt"
+    const events = await rows(tx, sql`select ${eventView}
       from work_order_events where work_order_id=${target} order by created_at, id`);
     return { ...order, events };
   }));
@@ -155,7 +158,7 @@ workOrdersRouter.post("/:id/notes", validateBody(Note), async (req, res) => {
     const order = await visible(tx, target);
     const [row] = await rows(tx, sql`insert into work_order_events(work_order_id,building_id,actor_id,kind,note)
       values(${order.id},${order.buildingId},${actor},'NOTE',${(req.body as z.infer<typeof Note>).note})
-      returning id, actor_id as "actorId", kind, from_status as "fromStatus", to_status as "toStatus", note, created_at as "createdAt"`);
+      returning ${eventView}`);
     return row;
   });
   res.status(201).json(created);
