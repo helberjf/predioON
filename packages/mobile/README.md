@@ -69,5 +69,7 @@ Registrado em 06/10/2026, ao rodar o app Operação num emulador local pela prim
 | Emulador parado sem janela útil | Diálogo pedindo consentimento para enviar o relatório de uma falha anterior | Responder o diálogo, ou apagar `%TEMP%AndroidEmulator` e iniciar com `-no-metrics` |
 | `sdkmanager` não acha os pacotes | Foi substituído pelo `android sdk`, com nomes separados por barra | `android sdk install platforms/android-37.0 build-tools/37.0.0 ndk/27.1.12297006 system-images/android-35/google_apis/x86_64` |
 
-Sequência usada: banco descartável e API em `:3000`, Metro em `:8081`, `gradlew app:assembleDebug -PreactNativeArchitectures=x86_64 --max-workers=2`, emulador, `adb install -r`. iOS continua exigindo macOS.
+| Daemon do Gradle some no meio do C++ (`insufficient memory`) | Memória virtual esgotada | Encerrar processos `java` remanescentes e usar `--max-workers=1` |
+
+Sequência usada: banco descartável e API em `:3000`, um Metro por app (`:8081` para Operação e `:8088` para Morador), `gradlew app:assembleDebug -PreactNativeArchitectures=x86_64 --max-workers=1` — acrescentando `-PreactNativeDevServerPort=8088` no Morador —, emulador e `adb install -r`. Se o app abrir antes do Metro responder, aparece a tela vermelha de bundle; basta reabrir o app. iOS continua exigindo macOS.
 
