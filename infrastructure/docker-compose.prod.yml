@@ -138,6 +138,7 @@ services:
       dockerfile: infrastructure/Dockerfile.web
       args:
         VITE_API_URL: https://api.${DOMAIN}
+        VITE_RESIDENT_URL: https://morador.${DOMAIN}
     restart: unless-stopped
     depends_on:
       - api

@@ -38,3 +38,8 @@ export type SessionView = {
   current: boolean;
 };
 export type ApiErrorResponse = { error: string };
+/** What the bearer of a valid invitation secret may see before accepting. */
+export type InvitationPreview = { email: string; name: string; buildingName: string; accountExists: boolean; expiresAt: string };
+export type InvitationPreviewRequest = { token: string };
+/** For a new account `password` becomes the credential; for an existing one it only proves ownership. */
+export type InvitationAcceptRequest = { token: string; password: string };

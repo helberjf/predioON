@@ -62,7 +62,8 @@ export default defineConfig({
     ] as const).map(([workspace, url]) => ({
       command: `pnpm --filter @predioon/${workspace} build && pnpm --filter @predioon/${workspace} exec vite preview --host 127.0.0.1 --port ${new URL(url).port} --strictPort`,
       url,
-      env: { VITE_API_URL: API_URL },
+      // Empty on purpose: the suite reads the invitation as a code, whatever a local .env says.
+      env: { VITE_API_URL: API_URL, VITE_RESIDENT_URL: "" },
       timeout: 90_000,
       reuseExistingServer: false,
     })),

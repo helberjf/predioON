@@ -5,7 +5,7 @@ import { Button, ErrorBanner } from "./primitives.js";
 import { Field, Input } from "./fields.js";
 
 /** Same sign-in screen for the three panels; only the subtitle changes. */
-export function LoginScreen({ subtitle }: { subtitle: string }) {
+export function LoginScreen({ subtitle, invitationHref }: { subtitle: string; invitationHref?: string }) {
   const { signIn, error: sessionError, retryRestore } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -51,6 +51,7 @@ export function LoginScreen({ subtitle }: { subtitle: string }) {
         <Button type="submit" full disabled={busy}>
           {busy ? "Entrando..." : "Entrar"}
         </Button>
+        {invitationHref && <a href={invitationHref} className="block text-center text-sm text-slate-500 underline">Tenho um convite</a>}
       </form>
     </main>
   );

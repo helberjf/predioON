@@ -62,3 +62,28 @@ No Compose de produção, somente Caddy e API participam de `edge_proxy`. O ende
 O backend web passou em dez testes HTTP/PostgreSQL específicos. A integração dos portais passou em **45/45 execuções dirigidas** nos três motores de navegador, com API real, além de **48/48** testes do cliente, **64/64** da UI, tipos e builds dos três portais. A regressão integral da API até 032 passou em **537/537**. A matriz completa de 105 execuções de navegador está em andamento; os resultados dirigidos não a substituem.
 
 A comparação de senha executa trabalho Argon2 também para conta inexistente ou hash malformado, sem aceitar o resultado fictício como credencial. [Correção e testes](superpowers/plans/2026-10-02-password-verification-work.md). A limitação persistente passou 24 testes próprios, 29 de regressão de autenticação, teste do Caddy e 26 testes de banco com restauração de 44 tabelas/35 migrations. [Política e evidências de035](superpowers/plans/2026-10-02-login-throttling.md). MFA, verificação adicional para ações privilegiadas, convites e recuperação continuam pendentes da etapa 2C.
+
+## Convites de moradores
+
+Antes deste recorte só a administração da plataforma criava contas, definindo a senha por terceiros. Agora quem gerencia o condomínio convida a pessoa e ela escolhe a própria senha.
+
+**Fluxo**
+
+1. No painel **Unidades e equipes → Moradores e vínculos**, o síndico informa nome, e-mail e, se quiser, unidade e tipo de vínculo. A API gera 32 bytes aleatórios e devolve o segredo **uma única vez**; no banco fica apenas o SHA-256. O convite vale 7 dias.
+2. O síndico entrega o segredo por um canal próprio (a plataforma não envia e-mail). Com `VITE_RESIDENT_URL` configurado no build, o painel mostra um link `https://morador.../convite#<segredo>`; sem ele, mostra o código para colar em **Tenho um convite**. O segredo vai no fragmento da URL, que o navegador não envia a servidores nem a proxies, e é retirado da barra de endereço ao abrir.
+3. `POST /auth/invitations/preview` mostra a quem tem o segredo o nome, o e-mail, o condomínio, a validade e se o e-mail já tem conta.
+4. `POST /auth/invitations/accept` consome o convite. E-mail sem conta: a senha informada vira a credencial, com a mesma política da troca de senha (15 caracteres). E-mail com conta: a senha serve só para provar a posse daquela conta e **não é alterada**. A resposta é 204, sem sessão; a pessoa entra depois pela tela normal.
+
+**Por que assim**
+
+| Decisão | Motivo |
+| --- | --- |
+| Convite concede somente `RESIDENT` e, opcionalmente, um vínculo de unidade | A arquitetura proíbe que um cadastro público escolha papéis privilegiados. Equipe e gestão continuam sendo concedidas em **Permissões**, por quem pode delegá-las. |
+| A autoridade de quem convidou é reavaliada no aceite | Um convite emitido por alguém que perdeu a gestão, ou para uma unidade ou condomínio desativados, deixa de valer sem precisar ser revogado. |
+| Aceite por função `SECURITY DEFINER` na conexão de identidade | A role da API não lê o hash do segredo, não altera o desfecho do convite e, desde a 040, não escreve credenciais. Conta, concessão, vínculo, consumo e auditoria confirmam na mesma transação. |
+| Uma resposta para todo convite não aceitável | Segredo errado, expirado, revogado, já usado ou com autoridade perdida respondem igual (404), sem revelar qual condição falhou. |
+| Limite de tentativas pelo segredo e pela rede; pela conta quando há senha a comparar | Reaproveita o orçamento persistente de login (035). Um convite não vira caminho alternativo para testar senhas de uma conta existente. |
+| Aceite não cria sessão | Mantém um único ponto de emissão de sessão, com cookie/CSRF na web e Keychain/Keystore nos apps. |
+
+**Limites atuais:** não há envio de e-mail nem recuperação de senha; o convite não renomeia conta existente; o aceite existe no portal web do morador, ainda não nos apps; MFA continua pendente. Quem gerencia consegue saber, emitindo um convite e consultando a prévia com o segredo, se um e-mail já tem conta na plataforma.
+

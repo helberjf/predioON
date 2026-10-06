@@ -24,3 +24,12 @@ export type CreateRoleBindingRequest = MembershipValidity & {
   roleKey: "BUILDING_ADMIN" | "MAINTENANCE_MANAGER" | "MAINTENANCE" | "RESIDENT";
   reason: string;
 } & ({ userId: string; teamId?: never } | { userId?: never; teamId: string });
+/** A resident invitation as managers see it. The secret is not part of the view. */
+export type InvitationView = {
+  id: string; buildingId: string; email: string; name: string; unitId: string | null;
+  kind: "OWNER" | "OCCUPANT" | "DEPENDENT" | null; status: "PENDING" | "ACCEPTED" | "REVOKED" | "EXPIRED";
+  createdAt: string; expiresAt: string;
+};
+export type CreateInvitationRequest = { buildingId: string; name: string; email: string } & ({ unitId: string; kind: "OWNER" | "OCCUPANT" | "DEPENDENT" } | { unitId?: never; kind?: never });
+/** `token` is returned only here, once. */
+export type CreateInvitationResponse = { invitation: InvitationView; token: string };

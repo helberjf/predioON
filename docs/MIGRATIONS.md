@@ -225,3 +225,10 @@ Coordenar com a release da API: qualquer consulta do runtime que selecione `user
 `041-tenancy-edit-audit.sql` acrescenta as ações `*_UPDATED`, `*_DEACTIVATED` e `*_REACTIVATED` de bloco, unidade e equipe aos três ramos correspondentes de `app_audit_legacy_insert`, com a mesma prova da criação: capacidade de gestão vigente no condomínio e registro pertencente a ele. A alteração é feita por substituição exata do ramo; ramo ausente, duplicado ou divergente interrompe a migration dentro da transação. Reaplicar não muda função, ACL nem policy. Privilégios de tabela e RLS da 014 já cobriam o `UPDATE`; a 041 não concede nada novo.
 
 A API passa a publicar `PATCH /v1/tenancy/{blocks,units,teams}/:id` e `.../:id/status` (ver [AUTORIZACAO.md](AUTORIZACAO.md)). Um processo antigo da API continua funcionando com a 041 aplicada; a API nova exige a 041, pois sem ela a auditoria obrigatória é recusada e a edição é revertida.
+
+## Release 042: convites de moradores
+
+`042-resident-invitations.sql` cria a tabela `invitations` (a 50ª tabela pública), com RLS e privilégios por coluna para `predioon_app`: leitura sem `token_hash`, inserção e atualização apenas de `revoked_at`/`revoked_by`. Acrescenta o ramo `INVITATION_CREATED`/`INVITATION_REVOKED` à prova de auditoria, falhando fechado se a função não terminar no ramo único de negação, e dois helpers de identidade com `EXECUTE` somente para `predioon_identity`: `identity_invitation_preview` e `identity_accept_invitation`. Contrato e motivos em [AUTENTICACAO.md](AUTENTICACAO.md#convites-de-moradores).
+
+A API nova exige a 042. Uma API antiga continua funcionando com a 042 aplicada. No build dos portais, `VITE_RESIDENT_URL` é opcional; o Compose de produção passa `https://morador.${DOMAIN}`.
+

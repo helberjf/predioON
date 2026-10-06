@@ -7,6 +7,7 @@ import { badRequest, conflict, forbidden, notFound, pgErrorCode } from "../../ht
 import { param } from "../../http/params.js";
 import { query, validateBody, validateQuery } from "../../http/validate.js";
 import { recordAudit } from "../audit/repo.js";
+import { createInvitationToken } from "../../auth/invitations.js";
 
 export const tenancyRouter = Router();
 const buildingId = z.string().trim().min(1).max(128);
@@ -290,6 +291,63 @@ tenancyRouter.patch("/teams/:id/status", validateBody(UpdateStatus), async (req,
     async (tx, recordId, lock) => { const rows = tx.select({ buildingId: teams.buildingId, active: teams.active }).from(teams).where(eq(teams.id, recordId)); return lock ? rows.for("update") : rows; },
     (tx, recordId, active) => tx.update(teams).set({ active, updatedAt: new Date() }).where(eq(teams.id, recordId)).returning(teamView),
     (tx, recordId) => tx.select(teamView).from(teams).where(eq(teams.id, recordId))));
+});
+
+// Resident invitations. The secret leaves the API once, in the creation
+// response; the row keeps only its hash, which this role cannot read back.
+const CreateInvitation = z.object({
+  buildingId, name, email: z.string().trim().toLowerCase().email().max(254),
+  unitId: id.optional(), kind: z.enum(["OWNER", "OCCUPANT", "DEPENDENT"]).optional(),
+}).strict().refine(value => Boolean(value.unitId) === Boolean(value.kind), "Informe a unidade e o tipo de vínculo juntos");
+type InvitationRow = { id: string; buildingId: string; email: string; name: string; unitId: string | null; kind: string | null; status: string; createdAt: Date; expiresAt: Date };
+const invitationView = sql`id, building_id as "buildingId", email, name, unit_id as "unitId", unit_kind as "kind", created_at as "createdAt", expires_at as "expiresAt",
+  case when accepted_at is not null then 'ACCEPTED' when revoked_at is not null then 'REVOKED'
+    when expires_at <= clock_timestamp() then 'EXPIRED' else 'PENDING' end as status`;
+
+tenancyRouter.get("/invitations", validateQuery(ListSchema), async (req, res) => {
+  const q = query<ListQuery>(req);
+  res.json(await inTenancy(req, async tx => {
+    await assertCapability(tx, "memberships:manage", q.buildingId);
+    const rows = await tx.execute(sql`select ${invitationView} from invitations where building_id=${q.buildingId}
+      and (${q.after ?? null}::uuid is null or id > ${q.after ?? null}::uuid) order by id limit ${q.limit + 1}`);
+    return page(rows as unknown as InvitationRow[], q.limit);
+  }));
+});
+tenancyRouter.post("/invitations", validateBody(CreateInvitation), async (req, res) => {
+  const input = req.body as z.infer<typeof CreateInvitation>;
+  const actor = currentAuth(req).userId;
+  const { token, hash } = createInvitationToken();
+  const row = await inTenancy(req, async tx => {
+    await assertCapability(tx, "memberships:manage", input.buildingId);
+    // A new invitation for the same address replaces the open one, expired or not.
+    const replaced = await tx.execute(sql`update invitations set revoked_at=clock_timestamp(), revoked_by=${actor}
+      where building_id=${input.buildingId} and email=${input.email} and accepted_at is null and revoked_at is null returning id`);
+    for (const previous of replaced as unknown as Array<{ id: string }>) {
+      await recordAudit(tx, req, { userId: actor, buildingId: input.buildingId, action: "INVITATION_REVOKED", resourceType: "invitation", resourceId: previous.id });
+    }
+    const [created] = await tx.execute(sql`insert into invitations(building_id,email,name,unit_id,unit_kind,token_hash,invited_by,expires_at)
+      values(${input.buildingId},${input.email},${input.name},${input.unitId ?? null},${input.kind ?? null},${hash},${actor},clock_timestamp()+interval '7 days')
+      returning ${invitationView}`) as unknown as InvitationRow[];
+    await recordAudit(tx, req, { userId: actor, buildingId: input.buildingId, action: "INVITATION_CREATED", resourceType: "invitation", resourceId: created!.id });
+    return created!;
+  });
+  res.status(201).json({ invitation: row, token });
+});
+tenancyRouter.delete("/invitations/:id", async (req, res) => {
+  const parsed = id.safeParse(param(req, "id"));
+  if (!parsed.success) throw notFound();
+  const actor = currentAuth(req).userId;
+  await inTenancy(req, async tx => {
+    const [current] = await tx.execute(sql`select building_id as "buildingId", accepted_at is null and revoked_at is null as open from invitations where id=${parsed.data}`) as unknown as Array<{ buildingId: string; open: boolean }>;
+    if (!current) throw notFound();
+    await assertCapability(tx, "memberships:manage", current.buildingId);
+    if (!current.open) return;
+    const revoked = await tx.execute(sql`update invitations set revoked_at=clock_timestamp(), revoked_by=${actor}
+      where id=${parsed.data} and accepted_at is null and revoked_at is null returning id`);
+    // Accepted in the meantime: nothing was revoked, so nothing is audited.
+    if (revoked.length) await recordAudit(tx, req, { userId: actor, buildingId: current.buildingId, action: "INVITATION_REVOKED", resourceType: "invitation", resourceId: parsed.data });
+  });
+  res.status(204).end();
 });
 
 // Grants are revoked rather than deleted so their audit references remain useful.

@@ -21,3 +21,16 @@ export const api = createWebApiClient({
 
 /** Compatibility access for SSE; credentials exist only in this page's memory. */
 export const tokens = { access: () => api.accessToken(), clear: () => api.clearMemory() };
+
+/** Invitation endpoints are public: no cookie, token or session renewal is involved. */
+export async function openInvitation<T = void>(step: "preview" | "accept", body: object): Promise<T> {
+  let response: Response;
+  try {
+    response = await globalThis.fetch(`${BASE_URL}/auth/invitations/${step}`, { method: "POST", credentials: "omit", cache: "no-store",
+      headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  } catch { throw new Error("Sem conexão com o servidor. Tente novamente."); }
+  if (response.status === 204) return undefined as T;
+  const data = await response.json().catch(() => null) as { error?: string } | null;
+  if (!response.ok) throw new Error(data?.error ?? "Não foi possível concluir. Tente novamente.");
+  return data as T;
+}

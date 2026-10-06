@@ -8,10 +8,12 @@ import { webAuthRouter } from "./web-routes.js";
 import { LoginSchema } from "./login-schema.js";
 import { admitLogin, admitPasswordChange } from "./login-budget.js";
 import { PasswordChangeSchema } from "./password-change-schema.js";
+import { invitationAuthRouter } from "./invitations.js";
 
 export const authRouter = Router();
 authRouter.use((_req, res, next) => { res.setHeader("Cache-Control", "no-store"); next(); });
 authRouter.use("/web", webAuthRouter);
+authRouter.use("/invitations", invitationAuthRouter);
 
 const RefreshSchema = z.object({ refreshToken: z.string().min(10) });
 

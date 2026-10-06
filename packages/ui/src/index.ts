@@ -13,6 +13,7 @@ export * from "./overview-state.js";
 export * from "./components/primitives.js";
 export * from "./components/fields.js";
 export * from "./components/login.js";
+export * from "./components/invitation.js";
 export * from "./components/sessions-panel.js";
 export * from "./components/audit-panel.js";
 export * from "./components/water-tank.js";
