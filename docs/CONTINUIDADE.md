@@ -473,3 +473,15 @@ Mesmo branch local, sem push. A 041 **foi estendida antes de qualquer publicaç�
 
 **Limites:** sem envio de e-mail, sem recuperação de senha, sem aceite nos apps nativos, sem MFA. O morador convidado tem somente concessão RBAC, sem vínculo legado em `memberships`; o portal do morador abriu normalmente nesse estado no cenário de navegador, mas os apps nativos não foram exercitados com esse tipo de conta.
 
+### 06/10: convites publicados e ordens de serviço (043)
+
+**Publicação:** convites enviados à main (`3ecc1e9..4aa52f6`) com autorização do proprietário. O CI continua bloqueado pela cobrança da conta GitHub; nenhum workflow rodou para esses commits. Os substitutos locais estão no registro anterior (API 753/753, navegador 324/324).
+
+**Ordens de serviço, primeiro domínio da etapa 4:** migration 043, API `/v1/work-orders`, contratos, painel no portal de operação e item de menu. Regras e motivos em [ORDENS_DE_SERVICO.md](ORDENS_DE_SERVICO.md). A reserva da inbox passa a **044**.
+
+**Provas:** dirigido API **7/7** na primeira execução, escrito junto com a implementação (sem RED prévio): distribuição com concorrência otimista, visão do executor por pessoa e por equipe, execução sem edição/cancelamento, perda de acesso por reatribuição/equipe inativa/papel revogado, entradas inválidas, fronteira SQL (leitura, colunas, transições, histórico e prova de auditoria) e reaplicação da 043. Cenário de navegador com dois contextos (gestor e técnico), incluindo a recusa 409 de uma lista desatualizada; nele apareceu uma falha real, corrigida: a rota de anotações respondia 201 sem corpo e o cliente web não lia a resposta. Restauração **2/2** com 43 migrations, notificações **54/54**, UI 90/90, cliente 64/64, mobile 78/78, tipos e fronteiras. Integral API **760/760, 58 suítes, zero falhas/skips, 901 s**, Linux/Node 24 no relógio do banco. Playwright **327/327, 109 por Chromium/Firefox/WebKit, zero falhas**, 18 min, imagem oficial 1.63.0-noble; as duas execuções usaram a árvore de trabalho exata que foi commitada em seguida e rodaram ao mesmo tempo na mesma máquina.
+
+**Decisão registrada, sem implementação:** recuperação de senha fica à espera de um provedor de e-mail, pelo motivo descrito em [MELHORIAS_E_EVOLUCOES.md](MELHORIAS_E_EVOLUCOES.md).
+
+**Limites:** sem tela nos apps nativos, sem anexos/checklists/ativos, sem push. Nada aplicado à demonstração 037 nem a produção. Jobs nativos Android/iOS continuam sem execução desde o bloqueio do CI.
+
