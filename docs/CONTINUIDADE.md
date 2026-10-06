@@ -485,3 +485,9 @@ Mesmo branch local, sem push. A 041 **foi estendida antes de qualquer publicaç�
 
 **Limites:** sem tela nos apps nativos, sem anexos/checklists/ativos, sem push. Nada aplicado à demonstração 037 nem a produção. Jobs nativos Android/iOS continuam sem execução desde o bloqueio do CI.
 
+### 06/10: ordens de serviço no app Operação
+
+Aba **Ordens de serviço** no código móvel compartilhado, visível só no produto Operação e decidida pelas permissões `work-orders:*`, não pelo resumo do condomínio. Execução (iniciar, pausar, concluir com confirmação), histórico e anotações; distribuição e cancelamento continuam no portal web. Ordenação: em aberto primeiro, depois prioridade, prazo mais próximo e mais recente.
+
+**Provas:** testes do pacote mobile **81/81** (3 novos: navegação por permissão nos dois produtos, ações por estado/responsável, ordenação), tipos dos 15 workspaces, fronteiras e **bundles JavaScript de release dos dois apps** gerados com `react-native bundle --platform android --dev false`, ambos contendo a nova tela. **Não houve execução nativa**: esta máquina não tem Android SDK nem emulador, e os workflows Android/iOS seguem bloqueados pela cobrança da conta GitHub. A API usada pela tela é a mesma coberta pela integral 760/760 e pelo cenário de navegador.
+

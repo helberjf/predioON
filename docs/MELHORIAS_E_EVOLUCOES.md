@@ -244,6 +244,6 @@ Identidade autenticada 37307304828 e os dois jobs de inicialização 37307304855
 
 - **Recuperação de senha depende de um canal de entrega.** Sem e-mail, a única recuperação possível seria um link gerado por terceiros (síndico ou plataforma), o que daria a quem gera o link o poder de assumir a conta. Decidir o provedor de e-mail antes de implementar; até lá a troca de senha exige a senha atual.
 - **Convites nos apps nativos:** o aceite existe só no portal web do morador.
-- **Ordens de serviço:** faltam tela nos apps Operação, anexos e checklists, vínculo com chamado na tela, paginação além de 100, notificação ao responsável e abertura automática a partir de alerta. Avaliar uma chave de funcionalidade por condomínio.
+- **Ordens de serviço:** faltam abertura/atribuição no app Operação, anexos e checklists, vínculo com chamado na tela, paginação além de 100, notificação ao responsável e abertura automática a partir de alerta. Avaliar uma chave de funcionalidade por condomínio.
 - **Cliente HTTP web:** só trata 204 como resposta vazia; um 201 sem corpo quebra a leitura. A rota de anotações passou a devolver o registro criado; convém o cliente aceitar corpo vazio em qualquer 2xx.
 
