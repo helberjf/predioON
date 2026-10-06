@@ -232,3 +232,9 @@ A API passa a publicar `PATCH /v1/tenancy/{blocks,units,teams}/:id` e `.../:id/s
 
 A API nova exige a 042. Uma API antiga continua funcionando com a 042 aplicada. No build dos portais, `VITE_RESIDENT_URL` é opcional; o Compose de produção passa `https://morador.${DOMAIN}`.
 
+## Release 043: ordens de serviço
+
+`043-work-orders.sql` cria `work_orders` e `work_order_events`, quatro helpers de acesso, o gatilho de campos e transições, as policies de RLS para `predioon_app` e o ramo de auditoria `WORK_ORDER_CREATED`/`UPDATED`/`STATUS_CHANGED`. Não cria permissões: as três `work-orders:*` vêm da 014. Contrato e motivos em [ORDENS_DE_SERVICO.md](ORDENS_DE_SERVICO.md).
+
+A API nova exige a 043; uma API antiga continua funcionando com ela aplicada. O gatilho não restringe manutenção administrativa feita fora de um contexto de usuário (conexão proprietária sem `app.user_id`).
+

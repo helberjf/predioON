@@ -25,6 +25,7 @@ export * from "./components/parking-panel.js";
 export * from "./components/occurrences-panel.js";
 export * from "./components/transparency-panel.js";
 export * from "./components/tenancy-panel.js";
+export * from "./components/work-orders-panel.js";
 export * from "./components/reservation-availability.js";
 export * from "./feature-state.js";
 export * from "./features.js";

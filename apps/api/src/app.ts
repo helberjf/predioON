@@ -29,6 +29,7 @@ import { financeRouter } from "./modules/finance/routes.js";
 import { featuresRouter } from "./modules/features/routes.js";
 import { tenancyRouter } from "./modules/tenancy/routes.js";
 import { authorizationRouter } from "./modules/authorization/routes.js";
+import { workOrdersRouter } from "./modules/work-orders/routes.js";
 
 export const app = express();
 app.set("trust proxy", config.trustedProxyCidrs.length ? config.trustedProxyCidrs : false);
@@ -48,6 +49,7 @@ app.use("/events", eventsRouter);
 app.use(authenticate);
 app.use("/v1/tenancy", tenancyRouter);
 app.use("/v1/authorization", authorizationRouter);
+app.use("/v1/work-orders", workOrdersRouter);
 app.use("/features", featuresRouter);
 app.use("/organizations", organizationsRouter);
 app.use("/buildings", buildingsRouter);

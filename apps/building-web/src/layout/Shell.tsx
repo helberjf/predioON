@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { AlertTriangle, CalendarDays, Car, ChartNoAxesCombined, Cpu, DoorOpen, Droplets, House, Megaphone, Monitor, ScrollText, ShieldCheck, SlidersHorizontal, Wrench, Zap } from "lucide-react";
+import { AlertTriangle, CalendarDays, Car, ClipboardList, ChartNoAxesCombined, Cpu, DoorOpen, Droplets, House, Megaphone, Monitor, ScrollText, ShieldCheck, SlidersHorizontal, Wrench, Zap } from "lucide-react";
 import { BuildingSelector, DashboardFrame, useFeatures, useAuth, useBuildingScope, useResource } from "@predioon/ui";
 const LINKS = [
   { to: "/", label: "Início", icon: House },
@@ -12,6 +12,7 @@ const LINKS = [
   { to: "/vagas", label: "Vagas de carros e motos", icon: Car },
   { to: "/alertas", label: "Alertas", icon: AlertTriangle },
   { to: "/chamados", label: "Ocorrências", icon: Wrench },
+  { to: "/ordens-servico", label: "Ordens de serviço", icon: ClipboardList },
   { to: "/transparencia", label: "Transparência e contas", icon: ChartNoAxesCombined },
   { to: "/avisos", label: "Avisos", icon: Megaphone },
   { to: "/dispositivos", label: "Equipamentos", icon: Cpu },
