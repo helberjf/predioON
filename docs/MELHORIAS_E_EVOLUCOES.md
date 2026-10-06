@@ -233,3 +233,9 @@ O [plano do observador Android](superpowers/plans/2026-10-05-android-renderer-ob
 ### Apple 0e72f64: duas fixtures host reprovadas antes do nativo
 
 Identidade autenticada 37307304828 e os dois jobs de inicialização 37307304855 tiveram **143 testes: 141 aprovados, duas falhas, zero skips em cada job**. Falharam os casos de origem válida e do descendente após saída do líder. Banco, builds, geração real do agente Apple e XCTest não foram alcançados; metadados oficiais registram zero artefatos nos dois runs. [Prova 31 e hashes dos logs host](evidencias/ios-0e72f64.json). A causa ainda não está estabelecida. Alias de caminho macOS e interação da captura ps com o mock da fixture estão sendo reproduzidos; não alterar produto, guard ATS, prazos ou critérios sem evidência. Os 143 aprovados no Linux continuam uma execução histórica distinta.
+
+### 06/10: relógio do estacionamento e edição de cadastros
+
+- **Estacionamento sensível a diferença de relógio:** a disponibilidade vira UNKNOWN quando o relógio do banco está poucos milissegundos à frente do processo da API, pois `observedAt` vem do PostgreSQL e a comparação usa o relógio da API. Reproduzido como falha intermitente da suíte no Docker Desktop (−30 a +34 ms). Avaliar a leitura com o relógio do banco na mesma transação, preservando a recusa de leituras de sensor realmente futuras.
+- **Cadastros 2B.4:** edição de bloco/unidade/equipe entregue em branch local com a 041. Faltam desativação e reativação com regra explícita para vínculos e concessões existentes, e o código de bloco/unidade continua reservado por registros inativos.
+
