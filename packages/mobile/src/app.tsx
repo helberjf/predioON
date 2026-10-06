@@ -36,6 +36,7 @@ import { useReadResource, useResource } from "./resource.ts";
 import { BuildingScreen } from "./building-screen.tsx";
 import { readOperationsAccess, readResidentAccess } from "./authorization.ts";
 import { Alerts, Overview, Readings } from "./operations.tsx";
+import { WorkOrders } from "./work-orders-screen.tsx";
 import { Notices, Reservations, Tickets, Transparency } from "./resident.tsx";
 import { Access } from "./access.tsx";
 import { Account } from "./account.tsx";
@@ -64,6 +65,7 @@ const titles: Record<Screen, string> = {
   overview: "Resumo",
   alerts: "Alertas",
   readings: "Sensores",
+  workOrders: "Ordens de serviço",
 };
 const productTitles: Record<Product, string> = {
   resident: "Prédio ON Morador",
@@ -543,6 +545,9 @@ function BuildingApp({
             )}
             {current === "readings" && (
               <Readings api={api} buildingId={building.id} />
+            )}
+            {current === "workOrders" && (
+              <WorkOrders api={api} buildingId={building.id} />
             )}
           </>
         )}

@@ -10,7 +10,8 @@ export type Screen =
   | "access"
   | "overview"
   | "alerts"
-  | "readings";
+  | "readings"
+  | "workOrders";
 export type Grant = AuthorizationResponse["capabilities"][number];
 export type Feature = { key: string; enabled: boolean };
 export type Scope = {
@@ -78,10 +79,15 @@ export function screensFor(product: Product, scope: Scope): Screen[] {
         ? ["access" as const]
         : []),
     ];
+  // Work orders have their own permissions; the summary projection does not gate them.
+  const workOrders =
+    has("work-orders:assign") || has("work-orders:read-assigned")
+      ? ["workOrders" as const]
+      : [];
   if ("overview" in scope) {
     const overview =
       scope.overview?.buildingId === scope.buildingId ? scope.overview : null;
-    if (!overview) return [];
+    if (!overview) return workOrders;
     const tickets =
       feature("TICKETS") &&
       overview.coverage.occurrences !== "none" &&
@@ -99,6 +105,7 @@ export function screensFor(product: Product, scope: Scope): Screen[] {
       ...(overview.coverage.alerts !== "none" ? ["alerts" as const] : []),
       ...(overview.coverage.telemetry !== "none" ? ["readings" as const] : []),
       ...(tickets ? ["tickets" as const] : []),
+      ...workOrders,
     ];
   }
   return [
@@ -112,6 +119,7 @@ export function screensFor(product: Product, scope: Scope): Screen[] {
     ...(has("occurrences:manage") && feature("TICKETS")
       ? ["tickets" as const]
       : []),
+    ...workOrders,
   ];
 }
 

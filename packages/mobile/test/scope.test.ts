@@ -417,3 +417,16 @@ test("reservation validation prevents normalized invalid dates and durations", (
     5_400_000,
   );
 });
+test("work orders follow their own permissions in the operations app only", () => {
+  const technician: Scope = {
+    buildingId: "one",
+    capabilities: ["work-orders:read-assigned", "work-orders:update-assigned"],
+    features: [],
+  };
+  assert.deepEqual(screensFor("operations", technician), ["workOrders"]);
+  assert.deepEqual(screensFor("resident", technician), []);
+  assert.deepEqual(screensFor("operations", { ...technician, overview: null }), ["workOrders"], "a missing summary does not hide assigned work");
+  assert.deepEqual(screensFor("operations", { ...technician, capabilities: ["work-orders:assign"], overview: partialOverview, features: [] }), ["overview", "alerts", "workOrders"]);
+  assert.deepEqual(screensFor("operations", { ...technician, capabilities: ["work-orders:update-assigned"] }), [], "updating alone never lists orders");
+});
+
