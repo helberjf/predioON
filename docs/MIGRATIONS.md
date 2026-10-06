@@ -211,3 +211,17 @@ Coordenar aplicação039 e releaseAPI; um processo antigo com guard por role nã
 Em 05/10/2026, a segunda integral da API em cluster próprio passou **721/721 testes, 54 suítes, zero falhas/skips/cancelamentos**. A duração registrada foi 28.983.317,949 ms, incluindo um grande intervalo de relógio durante a telemetria; a causa dessa interrupção não foi estabelecida. A primeira rodada, 719/721, permanece registrada: duas expectativas de auditoria global ignoravam eventos legítimos anteriores. A fixture agora pagina o endpoint real, confirma o histórico independente e compara somente seus próprios IDs, preservando as negativas e todos os registros anteriores.
 
 São provas separadas: 161/161 adjacentes, SQL de notificações 54/54 e restauração **2/2**, nos modos mesmo cluster e dois clusters físicos separados, com **49 tabelas e 39 migrations** em cada modo. A restauração independente veio do archive, sem reaplicar migrations no destino; dados, helpers, ACL/RLS, ledger e estado de notificações foram verificados. Esses ensaios descartáveis não estabelecem RPO/RTO nem homologam implantação real. O consumidor administrativo e a matriz de navegador continuam em validação. [CONTINUIDADE.md](CONTINUIDADE.md) conserva fontes, falhas, resultados e pendências.
+
+## Release de privilégio mínimo 040: ACL de `users`
+
+`040-users-runtime-acl.sql` retira de `predioon_app` a leitura de `password_hash`/`updated_at` e todo `UPDATE`/`DELETE` direto em `users`, inclusive concessões residuais por coluna. Permanecem o `INSERT` do cadastro legado e o `SELECT` de exatamente sete colunas públicas: `id`, `name`, `email`, `phone`, `is_platform_admin`, `active` e `created_at`. RLS, helpers `SECURITY DEFINER`, a role de identidade e os demais papéis não mudam. Não há fallback pela conexão proprietária.
+
+O motivo é o RED registrado em 05/10/2026: com a role da API, uma sessão SQL conseguia ler o próprio hash, elevar a própria flag administrativa, substituir o hash e apagar a própria linha. Não se alega exploração por HTTP; o recorte fecha a fronteira no banco.
+
+Coordenar com a release da API: qualquer consulta do runtime que selecione `users.*` passa a falhar com 42501. Credenciais continuam sendo lidas e trocadas somente pela conexão de identidade e pelo helper da 037.
+
+## Release 041: auditoria da edição de blocos, unidades e equipes
+
+`041-tenancy-edit-audit.sql` acrescenta `BLOCK_UPDATED`, `UNIT_UPDATED` e `TEAM_UPDATED` aos três ramos correspondentes de `app_audit_legacy_insert`, com a mesma prova da criação: capacidade de gestão vigente no condomínio e registro pertencente a ele. A alteração é feita por substituição exata do ramo; ramo ausente, duplicado ou divergente interrompe a migration dentro da transação. Reaplicar não muda função, ACL nem policy. Privilégios de tabela e RLS da 014 já cobriam o `UPDATE`; a 041 não concede nada novo.
+
+A API passa a publicar `PATCH /v1/tenancy/{blocks,units,teams}/:id` (ver [AUTORIZACAO.md](AUTORIZACAO.md)). Um processo antigo da API continua funcionando com a 041 aplicada; a API nova exige a 041, pois sem ela a auditoria obrigatória é recusada e a edição é revertida.

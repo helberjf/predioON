@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
-import { loadTenancyCollection, membershipStatus, membershipValidity } from "../src/tenancy-state.ts";
+import { changedFields, loadTenancyCollection, membershipStatus, membershipValidity } from "../src/tenancy-state.ts";
 
 it("carrega páginas sem perder o condomínio e elimina registros sobrepostos", async () => {
   const paths: string[] = [];
@@ -39,4 +39,11 @@ it("valida e converte vigência sem transformar datas inválidas em concessões 
   assert.equal(membershipStatus(validity, Date.parse(validity.startsAt!) - 1), "Agendado");
   assert.equal(membershipStatus(validity, Date.parse(validity.startsAt!)), "Vigente");
   assert.equal(membershipStatus(validity, Date.parse(validity.endsAt!)), "Expirado");
+});
+
+it("envia somente os campos alterados de um cadastro, inclusive a remoção do bloco e do andar", () => {
+  const current = { code: "101", blockId: "b1" as string | null, floor: 1 as number | null };
+  assert.deepEqual(changedFields(current, { ...current }), {});
+  assert.deepEqual(changedFields(current, { code: "101", blockId: null, floor: null }), { blockId: null, floor: null });
+  assert.deepEqual(changedFields(current, { code: "102", blockId: "b1", floor: 0 }), { code: "102", floor: 0 });
 });

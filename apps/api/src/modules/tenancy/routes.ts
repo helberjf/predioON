@@ -181,6 +181,59 @@ tenancyRouter.post("/role-bindings", validateBody(CreateBinding), async (req, re
   res.status(201).json(row);
 });
 
+// Edits never move a record to another condominium nor change its active state.
+const changed = (value: object) => Object.keys(value).length > 0;
+const UpdateBlock = z.object({ code: CreateBlock.shape.code.optional(), name: name.optional() }).strict().refine(changed, "Informe ao menos um campo");
+const UpdateUnit = z.object({ code: CreateUnit.shape.code.optional(), blockId: id.nullable().optional(), floor: CreateUnit.shape.floor }).strict().refine(changed, "Informe ao menos um campo");
+const UpdateTeam = z.object({ name: name.optional() }).strict().refine(changed, "Informe ao menos um campo");
+const blockView = { id: blocks.id, buildingId: blocks.buildingId, code: blocks.code, name: blocks.name };
+const unitView = { id: units.id, buildingId: units.buildingId, blockId: units.blockId, code: units.code, floor: units.floor };
+const teamView = { id: teams.id, buildingId: teams.buildingId, name: teams.name, kind: teams.kind };
+
+/**
+ * The first read uses the caller's own projection, so a record outside it is
+ * a 404. The capability is rechecked before the write, and the audit proof
+ * runs after it in the same transaction.
+ */
+async function edit<T>(req: Request, capability: "units:manage" | "teams:manage", action: string, resourceType: string,
+  find: (tx: AppTransaction, recordId: string) => Promise<Array<{ buildingId: string }>>,
+  update: (tx: AppTransaction, recordId: string) => Promise<T[]>): Promise<T> {
+  const parsed = id.safeParse(param(req, "id"));
+  if (!parsed.success) throw notFound();
+  return inTenancy(req, async tx => {
+    const [current] = await find(tx, parsed.data);
+    if (!current) throw notFound();
+    await assertCapability(tx, capability, current.buildingId);
+    const [updated] = await update(tx, parsed.data);
+    if (!updated) throw notFound();
+    await recordAudit(tx, req, { userId: currentAuth(req).userId, buildingId: current.buildingId, action, resourceType, resourceId: parsed.data,
+      metadata: { fields: Object.keys(req.body as object).sort() } });
+    return updated;
+  });
+}
+
+tenancyRouter.patch("/blocks/:id", validateBody(UpdateBlock), async (req, res) => {
+  const input = req.body as z.infer<typeof UpdateBlock>;
+  const live = (recordId: string) => and(eq(blocks.id, recordId), eq(blocks.active, true));
+  res.json(await edit(req, "units:manage", "BLOCK_UPDATED", "block",
+    (tx, recordId) => tx.select({ buildingId: blocks.buildingId }).from(blocks).where(live(recordId)).limit(1),
+    (tx, recordId) => tx.update(blocks).set({ ...input, updatedAt: new Date() }).where(live(recordId)).returning(blockView)));
+});
+tenancyRouter.patch("/units/:id", validateBody(UpdateUnit), async (req, res) => {
+  const input = req.body as z.infer<typeof UpdateUnit>;
+  const live = (recordId: string) => and(eq(units.id, recordId), eq(units.active, true));
+  res.json(await edit(req, "units:manage", "UNIT_UPDATED", "unit",
+    (tx, recordId) => tx.select({ buildingId: units.buildingId }).from(units).where(live(recordId)).limit(1),
+    (tx, recordId) => tx.update(units).set({ ...input, updatedAt: new Date() }).where(live(recordId)).returning(unitView)));
+});
+tenancyRouter.patch("/teams/:id", validateBody(UpdateTeam), async (req, res) => {
+  const input = req.body as z.infer<typeof UpdateTeam>;
+  const live = (recordId: string) => and(eq(teams.id, recordId), eq(teams.active, true));
+  res.json(await edit(req, "teams:manage", "TEAM_UPDATED", "team",
+    (tx, recordId) => tx.select({ buildingId: teams.buildingId }).from(teams).where(live(recordId)).limit(1),
+    (tx, recordId) => tx.update(teams).set({ ...input, updatedAt: new Date() }).where(live(recordId)).returning(teamView)));
+});
+
 // Grants are revoked rather than deleted so their audit references remain useful.
 for (const [path, table, capability, action] of [
   ["unit-memberships", unitMemberships, "memberships:manage", "UNIT_MEMBERSHIP_REVOKED"],

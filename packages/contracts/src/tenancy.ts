@@ -11,6 +11,10 @@ export type MembershipValidity = { startsAt?: string | null; endsAt?: string | n
 export type CreateBlockRequest = { buildingId: string; code: string; name: string };
 export type CreateUnitRequest = { buildingId: string; blockId?: string | null; code: string; floor?: number | null };
 export type CreateTeamRequest = { buildingId: string; name: string };
+/** Edits keep the condominium and the active state; send only the fields to change. */
+export type UpdateBlockRequest = { code?: string; name?: string };
+export type UpdateUnitRequest = { blockId?: string | null; code?: string; floor?: number | null };
+export type UpdateTeamRequest = { name?: string };
 export type CreateUnitMembershipRequest = MembershipValidity & { buildingId: string; unitId: string; userId: string; kind: "OWNER" | "OCCUPANT" | "DEPENDENT" };
 export type CreateTeamMemberRequest = MembershipValidity & { buildingId: string; teamId: string; userId: string };
 export type CreateRoleBindingRequest = MembershipValidity & {

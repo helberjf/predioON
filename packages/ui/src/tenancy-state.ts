@@ -35,3 +35,8 @@ export function membershipStatus(value: { startsAt?: string | null; endsAt?: str
   if (value.startsAt && Date.parse(value.startsAt) > now) return "Agendado";
   return "Vigente";
 }
+
+/** Only the fields that differ: an untouched form sends nothing and the audit names real changes. */
+export function changedFields<T extends Record<string, unknown>>(current: T, next: T): Partial<T> {
+  return Object.fromEntries(Object.entries(next).filter(([key, value]) => current[key] !== value)) as Partial<T>;
+}

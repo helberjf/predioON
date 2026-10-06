@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import type { AuthorizationResponse, BlockView, UnitView, TeamView } from "@predioon/contracts/tenancy";
+import type { AuthorizationResponse, BlockView, UnitView, TeamView, UpdateBlockRequest, UpdateUnitRequest, UpdateTeamRequest } from "@predioon/contracts/tenancy";
 import { api } from "../api.js";
 import { useResource } from "../use-resource.js";
 import { useTenancyCollection } from "../use-tenancy-collection.js";
-import { membershipStatus, membershipValidity } from "../tenancy-state.js";
+import { changedFields, membershipStatus, membershipValidity } from "../tenancy-state.js";
 import { formatDateTime } from "../format.js";
 import { Badge, Button, Card, EmptyState, ErrorBanner, ResourceFeedback } from "./primitives.js";
 import { Field, Input, Select } from "./fields.js";
@@ -12,6 +12,8 @@ type Person = { id: string; name: string; email: string };
 type Membership = { id: string; userId: string; unitId?: string; teamId?: string; kind?: string; startsAt: string | null; endsAt: string | null };
 type Binding = { id: string; userId: string | null; teamId: string | null; roleKey: string; reason: string | null; startsAt: string | null; endsAt: string | null };
 type Resource<T> = { data: T[]; loading: boolean; error: string | null; reload: () => void };
+type Editing = { kind: "block"; id: string; code: string; name: string } | { kind: "unit"; id: string; code: string; blockId: string; floor: string } | { kind: "team"; id: string; name: string };
+const EDIT_LABEL = { block: "bloco", unit: "unidade", team: "equipe" };
 const ROLES = [{ value: "RESIDENT", label: "Morador" }, { value: "MAINTENANCE", label: "Manutenção" }, { value: "MAINTENANCE_MANAGER", label: "Gestor de manutenção" }, { value: "BUILDING_ADMIN", label: "Administrador do condomínio" }];
 const KINDS = [{ value: "OWNER", label: "Proprietário" }, { value: "OCCUPANT", label: "Ocupante" }, { value: "DEPENDENT", label: "Dependente" }];
 
@@ -45,6 +47,7 @@ function TenancyWorkspace({ buildingId, capabilities, refreshAuthorization }: { 
   const [pending, setPending] = useState(false);
   const busy = useRef(false);
   const [confirmation, setConfirmation] = useState<{ path: string; label: string } | null>(null);
+  const [editing, setEditing] = useState<Editing | null>(null);
   const [blockForm, setBlockForm] = useState({ code: "", name: "" });
   const [unitForm, setUnitForm] = useState({ blockId: "", code: "", floor: "" });
   const [teamName, setTeamName] = useState("");
@@ -72,31 +75,48 @@ function TenancyWorkspace({ buildingId, capabilities, refreshAuthorization }: { 
   }
   const post = (name: string, payload: object) => api.post(`/v1/tenancy/${name}`, { buildingId, ...payload });
   const personField = (value: string, onChange: (id: string) => void) => <Field label="Pessoa"><Select required value={value} onChange={onChange} options={personOptions} disabled={people.loading || pending} /></Field>;
+  const editButton = (next: Editing) => <Button variant="ghost" disabled={pending} onClick={() => { setEditing(next); setConfirmation(null); setError(null); setSuccess(""); }}>Editar</Button>;
+  function saveEdit(draft: Editing) {
+    // Compare with the record as last loaded; an untouched form makes no request.
+    let patch: UpdateBlockRequest | UpdateUnitRequest | UpdateTeamRequest = {};
+    if (draft.kind === "block") { const current = blocks.data.find(row => row.id === draft.id); if (current) patch = changedFields({ code: current.code, name: current.name }, { code: draft.code.trim(), name: draft.name.trim() }); }
+    if (draft.kind === "unit") { const current = units.data.find(row => row.id === draft.id); if (current) patch = changedFields({ code: current.code, blockId: current.blockId, floor: current.floor }, { code: draft.code.trim(), blockId: draft.blockId || null, floor: draft.floor === "" ? null : Number(draft.floor) }); }
+    if (draft.kind === "team") { const current = teams.data.find(row => row.id === draft.id); if (current) patch = changedFields({ name: current.name }, { name: draft.name.trim() }); }
+    if (!Object.keys(patch).length) { setEditing(null); setSuccess("Nenhuma alteração para salvar."); return; }
+    void mutate(() => api.patch(`/v1/tenancy/${draft.kind}s/${draft.id}`, patch), "Cadastro atualizado.", () => setEditing(null));
+  }
   const revokeButton = (path: string, label: string) => <Button variant="ghost" disabled={pending} onClick={() => { setConfirmation({ path, label }); setError(null); setSuccess(""); }}>Revogar</Button>;
 
   return <>
     <div className="flex flex-wrap items-center justify-between gap-3"><div><h1 className="text-2xl font-bold text-slate-900">Unidades e equipes</h1><p className="mt-1 text-sm text-slate-500">Organize o condomínio e conceda somente o acesso necessário.</p></div><Button variant="secondary" disabled={pending} onClick={refresh}>Atualizar cadastros</Button></div>
-    <nav aria-label="Cadastros do condomínio" className="flex flex-wrap gap-2">{tabs.map(item => <button key={item.value} type="button" aria-pressed={currentTab === item.value} onClick={() => { setTab(item.value); setError(null); setSuccess(""); setConfirmation(null); }} className={`rounded-lg border px-4 py-2 text-sm font-medium ${currentTab === item.value ? "border-emerald-600 bg-emerald-600 text-white" : "border-slate-200 bg-white text-slate-700"}`}>{item.label}</button>)}</nav>
+    <nav aria-label="Cadastros do condomínio" className="flex flex-wrap gap-2">{tabs.map(item => <button key={item.value} type="button" aria-pressed={currentTab === item.value} onClick={() => { setTab(item.value); setError(null); setSuccess(""); setConfirmation(null); setEditing(null); }} className={`rounded-lg border px-4 py-2 text-sm font-medium ${currentTab === item.value ? "border-emerald-600 bg-emerald-600 text-white" : "border-slate-200 bg-white text-slate-700"}`}>{item.label}</button>)}</nav>
     {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
     {success && <p role="status" className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">{success}</p>}
     {confirmation && <Card title="Revogar vínculo"><p className="mb-4 text-sm text-slate-600">Confirme a revogação de {confirmation.label}. O histórico será preservado. Revogar sua própria permissão pode encerrar seu acesso ao cadastro.</p><div className="flex flex-wrap gap-2"><Button variant="danger" disabled={pending} onClick={() => void mutate(() => api.delete(confirmation.path), "Vínculo revogado.", () => setConfirmation(null))}>{pending ? "Revogando…" : "Confirmar revogação"}</Button><Button variant="secondary" disabled={pending} onClick={() => setConfirmation(null)}>Manter vínculo</Button></div></Card>}
+    {editing && <Card title={`Editar ${EDIT_LABEL[editing.kind]}`}><form aria-label={`Editar ${EDIT_LABEL[editing.kind]}`} className="space-y-3" onSubmit={event => { event.preventDefault(); saveEdit(editing); }}><fieldset disabled={pending} className="space-y-3">
+      {editing.kind === "unit" && <Field label="Bloco"><Select value={editing.blockId} onChange={blockId => setEditing({ ...editing, blockId })} options={[{ value: "", label: "Sem bloco" }, ...blocks.data.map(block => ({ value: block.id, label: `${block.code} · ${block.name}` }))]} /></Field>}
+      {editing.kind !== "team" && <Field label="Código"><Input required maxLength={40} value={editing.code} onChange={code => setEditing({ ...editing, code })} /></Field>}
+      {editing.kind !== "unit" && <Field label="Nome"><Input required maxLength={120} value={editing.name} onChange={name => setEditing({ ...editing, name })} /></Field>}
+      {editing.kind === "unit" && <Field label="Andar (opcional)"><Input type="number" min={-10} max={300} step={1} value={editing.floor} onChange={floor => setEditing({ ...editing, floor })} /></Field>}
+      <div className="flex flex-wrap gap-2"><Button type="submit" disabled={pending}>{pending ? "Salvando…" : "Salvar alterações"}</Button><Button variant="secondary" disabled={pending} onClick={() => setEditing(null)}>Cancelar edição</Button></div>
+    </fieldset></form></Card>}
     {people.error && ["teams", "people", "roles"].includes(currentTab ?? "") && <Card><ErrorBanner message={`Não foi possível carregar as pessoas: ${people.error}`} /><Button variant="secondary" onClick={people.reload}>Tentar carregar pessoas</Button></Card>}
 
     {currentTab === "units" && <div className="grid gap-4 xl:grid-cols-2">
       <Card title="Blocos">
         {can("units:manage") && <form className="mb-5 space-y-3" onSubmit={event => { event.preventDefault(); void mutate(() => post("blocks", { code: blockForm.code.trim(), name: blockForm.name.trim() }), "Bloco cadastrado.", () => setBlockForm({ code: "", name: "" })); }}><fieldset disabled={pending} className="space-y-3"><Field label="Código do bloco"><Input required maxLength={40} value={blockForm.code} onChange={code => setBlockForm({ ...blockForm, code })} placeholder="A" /></Field><Field label="Nome do bloco"><Input required maxLength={120} value={blockForm.name} onChange={name => setBlockForm({ ...blockForm, name })} placeholder="Torre A" /></Field><Button type="submit" disabled={pending}>Cadastrar bloco</Button></fieldset></form>}
-        <Rows resource={blocks} empty="Nenhum bloco cadastrado." render={block => <><strong>{block.code}</strong><span className="ml-2">{block.name}</span></>} />
+        <Rows resource={blocks} empty="Nenhum bloco cadastrado." render={block => <><div><strong>{block.code}</strong><span className="ml-2">{block.name}</span></div>{can("units:manage") && editButton({ kind: "block", id: block.id, code: block.code, name: block.name })}</>} />
       </Card>
       <Card title="Unidades">
         {can("units:manage") && <form className="mb-5 space-y-3" onSubmit={event => { event.preventDefault(); void mutate(() => post("units", { code: unitForm.code.trim(), blockId: unitForm.blockId || null, floor: unitForm.floor === "" ? null : Number(unitForm.floor) }), "Unidade cadastrada.", () => setUnitForm({ ...unitForm, code: "", floor: "" })); }}><fieldset disabled={pending} className="space-y-3"><Field label="Bloco"><Select value={unitForm.blockId} onChange={blockId => setUnitForm({ ...unitForm, blockId })} options={[{ value: "", label: "Sem bloco" }, ...blocks.data.map(block => ({ value: block.id, label: `${block.code} · ${block.name}` }))]} /></Field><div className="grid grid-cols-2 gap-3"><Field label="Código da unidade"><Input required maxLength={40} value={unitForm.code} onChange={code => setUnitForm({ ...unitForm, code })} placeholder="101" /></Field><Field label="Andar (opcional)"><Input type="number" min={-10} max={300} step={1} value={unitForm.floor} onChange={floor => setUnitForm({ ...unitForm, floor })} /></Field></div><Button type="submit" disabled={pending}>Cadastrar unidade</Button></fieldset></form>}
-        <Rows resource={units} empty="Nenhuma unidade cadastrada." render={unit => <><strong>{unitLabel(unit.id)}</strong>{unit.floor !== null && <span className="ml-2 text-slate-500">Andar {unit.floor}</span>}</>} />
+        <Rows resource={units} empty="Nenhuma unidade cadastrada." render={unit => <><div><strong>{unitLabel(unit.id)}</strong>{unit.floor !== null && <span className="ml-2 text-slate-500">Andar {unit.floor}</span>}</div>{can("units:manage") && editButton({ kind: "unit", id: unit.id, code: unit.code, blockId: unit.blockId ?? "", floor: unit.floor === null ? "" : String(unit.floor) })}</>} />
       </Card>
     </div>}
 
     {currentTab === "teams" && <div className="grid gap-4 xl:grid-cols-2">
       <Card title="Equipes">
         {can("teams:manage") && <form className="mb-5 space-y-3" onSubmit={event => { event.preventDefault(); void mutate(() => post("teams", { name: teamName.trim() }), "Equipe cadastrada.", () => setTeamName("")); }}><Field label="Nome da equipe"><Input required maxLength={120} disabled={pending} value={teamName} onChange={setTeamName} placeholder="Manutenção predial" /></Field><Button type="submit" disabled={pending}>Cadastrar equipe</Button></form>}
-        <Rows resource={teams} empty="Nenhuma equipe cadastrada." render={team => <strong>{team.name}</strong>} />
+        <Rows resource={teams} empty="Nenhuma equipe cadastrada." render={team => <><strong>{team.name}</strong>{can("teams:manage") && editButton({ kind: "team", id: team.id, name: team.name })}</>} />
       </Card>
       <Card title="Integrantes das equipes" subtitle="O acesso da equipe é definido na aba Permissões.">
         {can("teams:manage") && <form className="mb-5 space-y-3" onSubmit={event => { event.preventDefault(); void mutate(() => post("team-members", { userId: teamMember.userId, teamId: teamMember.teamId, ...membershipValidity(teamMember.startsAt, teamMember.endsAt) }), "Integrante incluído na equipe.", () => setTeamMember({ ...teamMember, userId: "" })); }}><fieldset disabled={pending} className="space-y-3">{personField(teamMember.userId, userId => setTeamMember({ ...teamMember, userId }))}<Field label="Equipe"><Select required value={teamMember.teamId} onChange={teamId => setTeamMember({ ...teamMember, teamId })} options={teamOptions} /></Field><ValidityFields value={teamMember} onChange={value => setTeamMember({ ...teamMember, ...value })} /><Button type="submit" disabled={pending || !teamMember.userId || !teamMember.teamId}>Adicionar integrante</Button></fieldset></form>}
