@@ -237,5 +237,6 @@ Identidade autenticada 37307304828 e os dois jobs de inicialização 37307304855
 ### 06/10: relógio do estacionamento e edição de cadastros
 
 - **Estacionamento sensível a diferença de relógio:** a disponibilidade vira UNKNOWN quando o relógio do banco está poucos milissegundos à frente do processo da API, pois `observedAt` vem do PostgreSQL e a comparação usa o relógio da API. Reproduzido como falha intermitente da suíte no Docker Desktop (−30 a +34 ms). Avaliar a leitura com o relógio do banco na mesma transação, preservando a recusa de leituras de sensor realmente futuras.
-- **Cadastros 2B.4:** edição de bloco/unidade/equipe entregue em branch local com a 041. Faltam desativação e reativação com regra explícita para vínculos e concessões existentes, e o código de bloco/unidade continua reservado por registros inativos.
+- **Cadastros 2B.4:** edição, desativação e reativação de bloco/unidade/equipe entregues em branch local com a 041. O código de bloco/unidade continua reservado por registros inativos; avaliar liberar o código ou permitir renomear o inativo.
+- **Ordem das suítes de banco:** a restauração no mesmo cluster falhou quando rodada após a suíte SQL de notificações no mesmo cluster físico; investigar se a fixture depende de não haver outra entrega reivindicável.
 
