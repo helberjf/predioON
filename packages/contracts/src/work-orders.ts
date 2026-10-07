@@ -5,6 +5,8 @@ export type WorkOrderPriority = "LOW" | "NORMAL" | "HIGH" | "URGENT";
 export type WorkOrderView = {
   id: string; buildingId: string; title: string; description: string;
   priority: WorkOrderPriority; status: WorkOrderStatus; occurrenceId: string | null; assetId: string | null;
+  /** Name of the linked asset when the caller may read it; `null` otherwise, even with an `assetId`. */
+  assetName: string | null;
   assignedUserId: string | null; assignedTeamId: string | null; dueAt: string | null;
   createdBy: string; version: number; createdAt: string; updatedAt: string;
   startedAt: string | null; closedAt: string | null;

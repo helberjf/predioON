@@ -118,6 +118,13 @@ describe("assets are managed with the equipment permissions and collect maintena
     const mine = await order({ assignedUserId: people.technician });
     const unassigned = await order({ title: "Lubrificar mancais" });
     assert.equal(mine.assetId, asset.id);
+    const named = async (who: keyof typeof people) => (await ok<{ assetId: string | null; assetName: string | null }>(`/v1/work-orders/${mine.id}`, who)).assetName;
+    assert.equal(await named("manager"), "Bomba de recalque 1");
+    assert.equal(await named("technician"), "Bomba de recalque 1");
+    // Without the equipment permission the order stays visible but the asset is not named.
+    await sqlClient`delete from role_permissions where role_key='MAINTENANCE' and permission_key='devices:read'`;
+    try { assert.equal(await named("technician"), null); }
+    finally { await sqlClient`insert into role_permissions(role_key,permission_key) values('MAINTENANCE','devices:read') on conflict do nothing`; }
     const history = async (who: keyof typeof people) => (await ok<Asset & { workOrders: Array<{ id: string; status: string }> }>(`/v1/assets/${asset.id}`, who)).workOrders.map(item => item.id);
     assert.deepEqual((await history("manager")).sort(), [mine.id, unassigned.id].sort());
     assert.deepEqual(await history("technician"), [mine.id]);

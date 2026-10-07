@@ -42,6 +42,7 @@ export function WorkOrders({ api, buildingId }: Props) {
         <Card key={order.id}>
           <Text style={styles.subtitle}>{order.title}</Text>
           {order.description ? <Text style={styles.text}>{order.description}</Text> : null}
+          {order.assetName ? <Text style={styles.muted}>Ativo: {order.assetName}</Text> : null}
           <View style={styles.row}>
             <Badge value={workOrderStatusLabels[order.status]} />
             <Badge value={workOrderPriorityLabels[order.priority]} />

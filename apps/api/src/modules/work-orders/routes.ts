@@ -33,6 +33,7 @@ const Note = z.object({ note }).strict();
 
 type WorkOrder = { id: string; buildingId: string; status: z.infer<typeof Status>; version: number; assignedUserId: string | null; assignedTeamId: string | null };
 const view = sql`w.id, w.building_id as "buildingId", w.title, w.description, w.priority, w.status, w.occurrence_id as "occurrenceId", w.asset_id as "assetId",
+  (select s.name from assets s where s.id=w.asset_id) as "assetName",
   w.assigned_user_id as "assignedUserId", w.assigned_team_id as "assignedTeamId", ${isoTime(sql`w.due_at`)} as "dueAt", w.created_by as "createdBy", w.version,
   ${isoTime(sql`w.created_at`)} as "createdAt", ${isoTime(sql`w.updated_at`)} as "updatedAt",
   ${isoTime(sql`w.started_at`)} as "startedAt", ${isoTime(sql`w.closed_at`)} as "closedAt",

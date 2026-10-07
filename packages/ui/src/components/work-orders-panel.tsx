@@ -32,9 +32,8 @@ export function WorkOrdersPanel({ buildingId }: { buildingId: string }) {
   // The directories need their own permissions; without them the picker simply has fewer options.
   const teams = useTenancyCollection<TeamView>(canDistribute ? `/v1/tenancy/teams?${scope}` : null);
   const people = useTenancyCollection<Person>(canDistribute ? `/v1/tenancy/people?${scope}` : null);
-  // Assets need the equipment permission; without it orders simply show no asset name.
+  // Offered when opening an order; listing needs the equipment permission.
   const assets = useResource<AssetListResponse>(`/v1/assets?${scope}&limit=100`);
-  const assetName = (id: string | null) => id ? assets.data?.items.find(asset => asset.id === id)?.name ?? "Ativo" : null;
   const [onlyOpen, setOnlyOpen] = useState(true);
   const [form, setForm] = useState(EMPTY_FORM);
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -99,7 +98,7 @@ export function WorkOrdersPanel({ buildingId }: { buildingId: string }) {
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div><strong className="text-slate-900">{order.title}</strong>{order.description && <p className="mt-1 text-slate-600">{order.description}</p>}
               <div className="mt-2 flex flex-wrap items-center gap-2"><Badge tone={STATUS[order.status].tone}>{STATUS[order.status].label}</Badge><Badge tone={PRIORITY[order.priority].tone}>{`Prioridade ${PRIORITY[order.priority].label.toLowerCase()}`}</Badge>
-                <span className="text-xs text-slate-500">{assigneeLabel(order)}{order.assetId ? ` · ${assetName(order.assetId)}` : ""}{order.dueAt ? ` · Prazo ${formatDateTime(order.dueAt)}` : ""}</span></div></div>
+                <span className="text-xs text-slate-500">{assigneeLabel(order)}{order.assetId ? ` · ${order.assetName ?? "Ativo"}` : ""}{order.dueAt ? ` · Prazo ${formatDateTime(order.dueAt)}` : ""}</span></div></div>
             <div className="flex flex-wrap items-center gap-1">
               {executes && order.status === "OPEN" && <Button variant="secondary" disabled={pending} onClick={() => void transition(order, "IN_PROGRESS", "Execução iniciada.")}>Iniciar</Button>}
               {executes && order.status === "IN_PROGRESS" && <><Button disabled={pending} onClick={() => void transition(order, "DONE", "Ordem de serviço concluída.")}>Concluir</Button><Button variant="ghost" disabled={pending} onClick={() => void transition(order, "OPEN", "Execução pausada.")}>Pausar</Button></>}
