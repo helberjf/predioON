@@ -244,3 +244,9 @@ A API nova exige a 043; uma API antiga continua funcionando com ela aplicada. O 
 
 A API nova exige a 044. Uma API antiga continua funcionando com ela aplicada, pois a coluna nova é opcional.
 
+## Release 045: automações
+
+`045-automations.sql` cria `automation_rules`, `automation_versions` e `automation_runs`, a função única de correspondência, os gatilhos de guarda, a simulação e o ramo de auditoria. **Acrescenta o gatilho `alerts_automations` (AFTER INSERT) na tabela `alerts`**, que é gravada pela ingestão: ele só age para regras ativas com versão publicada, isola cada regra e nunca impede a gravação do alerta. Não cria permissões. Contrato e motivos em [AUTOMACOES.md](AUTOMACOES.md).
+
+A API nova exige a 045. A ingestão não muda de versão: sem regras ativas o gatilho apenas consulta e sai.
+

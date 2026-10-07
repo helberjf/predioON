@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import { AccessPanel, AssetsPanel, AuditPanel, BuildingScopeProvider, BuildingScopeFeedback, FeatureProvider, FeatureContent, LoginScreen, MonitoringPanel, ParkingPanel, SessionsPanel, TenancyPanel, TransparencyPanel, WorkOrdersPanel, useAuth, useBuildingScope, useResource } from "@predioon/ui";
+import { AccessPanel, AssetsPanel, AuditPanel, AutomationsPanel, BuildingScopeProvider, BuildingScopeFeedback, FeatureProvider, FeatureContent, LoginScreen, MonitoringPanel, ParkingPanel, SessionsPanel, TenancyPanel, TransparencyPanel, WorkOrdersPanel, useAuth, useBuildingScope, useResource } from "@predioon/ui";
 import { Shell } from "./layout/Shell.js";
 import { Dashboard } from "./pages/Dashboard.js";
 import { Water } from "./pages/Water.js";
@@ -52,6 +52,7 @@ function BuildingApp() {
         <Route path="/areas" element={<FeatureContent path="/areas"><Areas buildingId={buildingId} canManage={can("reservations:manage") && can("common-areas:read")} /></FeatureContent>} />
         <Route path="/ordens-servico" element={<WorkOrdersPanel key={buildingId} buildingId={buildingId} />} />
         <Route path="/ativos" element={<AssetsPanel key={buildingId} buildingId={buildingId} />} />
+        <Route path="/automacoes" element={<AutomationsPanel key={buildingId} buildingId={buildingId} />} />
         <Route path="/unidades-equipes" element={<TenancyPanel buildingId={buildingId} />} />
         <Route path="/sessoes" element={<SessionsPanel />} />
         <Route path="/auditoria" element={<AuditPanel buildingId={buildingId} />} />

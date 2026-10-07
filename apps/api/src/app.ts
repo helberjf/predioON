@@ -31,12 +31,13 @@ import { tenancyRouter } from "./modules/tenancy/routes.js";
 import { authorizationRouter } from "./modules/authorization/routes.js";
 import { workOrdersRouter } from "./modules/work-orders/routes.js";
 import { assetsRouter } from "./modules/assets/routes.js";
+import { automationsRouter } from "./modules/automations/routes.js";
 
 export const app = express();
 app.set("trust proxy", config.trustedProxyCidrs.length ? config.trustedProxyCidrs : false);
 
 app.use(cors({ origin: config.corsOrigins, credentials: true }));
-app.use(["/auth/login", "/auth/web/login", "/auth/password", "/auth/web/password", "/auth/invitations"], express.json({ limit: "8kb" }));
+app.use(["/auth/login", "/auth/web/login", "/auth/password", "/auth/web/password", "/auth/invitations", "/auth/mfa"], express.json({ limit: "8kb" }));
 app.use(express.json({ limit: "1mb" }));
 
 app.get("/", (_req, res) => res.json({ name: "Prédio ON API", version: 1 }));
@@ -52,6 +53,7 @@ app.use("/v1/tenancy", tenancyRouter);
 app.use("/v1/authorization", authorizationRouter);
 app.use("/v1/work-orders", workOrdersRouter);
 app.use("/v1/assets", assetsRouter);
+app.use("/v1/automations", automationsRouter);
 app.use("/features", featuresRouter);
 app.use("/organizations", organizationsRouter);
 app.use("/buildings", buildingsRouter);
