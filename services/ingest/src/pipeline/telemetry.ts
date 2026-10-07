@@ -1,5 +1,5 @@
 import { and, eq, getTableColumns, sql } from "drizzle-orm";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { db, buildings, devices, gateways, ingestEvents, telemetry, lockFeatures, readFeatures } from "@predioon/db";
 import type { Telemetry } from "@predioon/shared";
 import { assertPersisted, PersistenceChecks, type AlertNotification } from "../notify/index.js";
@@ -17,49 +17,86 @@ const telemetryProjection = { ...getTableColumns(telemetry),
   value: sql<Telemetry["value"]>`${telemetry.value}::text`.mapWith((encoded: string): Telemetry["value"] => JSON.parse(encoded)),
 };
 
-/** Persist an envelope atomically, then publish only accepted readings. */
-export async function handleTelemetry(topic: string, raw: Buffer): Promise<void> {
+export type RejectionCategory = "INVALID_ENVELOPE" | "FUTURE_TIMESTAMP" | "UNKNOWN_SOURCE" | "CONTENT_CONFLICT" | "RETAINED_REPLAY";
+type Executor = Pick<typeof db, "execute">;
+
+/**
+ * Bounded counters of what was refused or set aside: day, category and, only
+ * for a validated source, the condominium. Never the payload or its identifiers.
+ */
+async function countRejection(executor: Executor, category: RejectionCategory, buildingId = ""): Promise<void> {
+  await executor.execute(sql`insert into ingest_rejections(day,building_id,category) values((clock_timestamp() at time zone 'UTC')::date,${buildingId},${category})
+    on conflict (day,building_id,category) do update set total=ingest_rejections.total+1, last_at=clock_timestamp()`);
+}
+
+/**
+ * What makes two deliveries the same reading. Transport facts (QoS, DUP,
+ * retain, arrival time) are deliberately left out; the value's type is kept,
+ * so the text "10" never equals the number 10.
+ */
+export function readingFingerprint(data: Telemetry): string {
+  return createHash("sha256").update(JSON.stringify([1, data.buildingId, data.deviceId, data.eventId, data.metric,
+    typeof data.value, data.value, data.unit ?? null, data.quality, new Date(data.timestamp).toISOString()])).digest("hex");
+}
+
+/**
+ * Persist an envelope atomically, then publish only accepted readings. The
+ * broker receives the acknowledgement only after this function returns, so a
+ * QoS 1 reading is either committed here or delivered again.
+ *
+ * A retained delivery is the broker replaying its last stored message, not a
+ * new contact: it is kept as history once, without heartbeat, consumption,
+ * parking, alerts or a live update.
+ */
+export async function handleTelemetry(topic: string, raw: Buffer, delivery: { retain?: boolean } = {}): Promise<void> {
+  const retained = delivery.retain === true;
   const readings = normalizeTelemetry(topic, raw);
-  if (readings.some(reading => Date.parse(reading.timestamp) > Date.now() + 60_000)) return;
   const identity = readings[0];
-  if (!identity) return;
+  if (!identity) return countRejection(db, "INVALID_ENVELOPE");
+  if (readings.some(reading => Date.parse(reading.timestamp) > Date.now() + 60_000)) return countRejection(db, "FUTURE_TIMESTAMP");
 
   const result = await db.transaction(async (tx) => {
     await lockFeatures(tx);
     const accepted: Telemetry[] = [];
     const createdAlerts: AlertNotification[] = [];
     const checks = new PersistenceChecks();
+    const unknown = { accepted, createdAlerts, unknown: true };
     // Serialize a sensor's messages so concurrent deliveries share one cooldown check.
     const [device] = await tx.select().from(devices).where(and(
       eq(devices.id, identity.deviceId), eq(devices.buildingId, identity.buildingId), eq(devices.enabled, true),
     )).limit(1).for("update");
-    if (!device) return { accepted, createdAlerts };
+    if (!device) return unknown;
     const [building] = await tx.select({ active: buildings.active }).from(buildings).where(eq(buildings.id, identity.buildingId)).limit(1);
-    if (!building?.active) return { accepted, createdAlerts };
+    if (!building?.active) return unknown;
     let gateway: typeof gateways.$inferSelect | undefined;
     if (device.gatewayId) {
       [gateway] = await tx.select().from(gateways).where(and(
         eq(gateways.id, device.gatewayId), eq(gateways.buildingId, identity.buildingId),
       )).limit(1).for("update");
-      if (!gateway?.enabled) return { accepted, createdAlerts };
+      if (!gateway?.enabled) return unknown;
     }
 
     const features = await readFeatures(tx, identity.buildingId);
     for (const data of readings) {
       const time = new Date(data.timestamp);
       if (!await permitsReading(tx, features, data.buildingId, device, data.metric, time)) continue;
-      const receipt: typeof ingestEvents.$inferSelect = { eventId: data.eventId, buildingId: data.buildingId, deviceId: data.deviceId, source: "MQTT", receivedAt: new Date() };
+      const receipt: typeof ingestEvents.$inferSelect = { eventId: data.eventId, buildingId: data.buildingId, deviceId: data.deviceId, source: "MQTT", receivedAt: new Date(), fingerprint: readingFingerprint(data) };
+      // The event belongs to its condominium and device: a homonym elsewhere is another reading.
+      const sameEvent = and(eq(ingestEvents.buildingId, data.buildingId), eq(ingestEvents.deviceId, data.deviceId), eq(ingestEvents.eventId, data.eventId));
       const receipts = await tx.insert(ingestEvents).values(receipt).onConflictDoNothing().returning();
       if (!receipts.length) {
-        const [duplicate] = await tx.select().from(ingestEvents).where(eq(ingestEvents.eventId, data.eventId)).limit(1);
+        const [duplicate] = await tx.select().from(ingestEvents).where(sameEvent).limit(1);
         if (!duplicate) throw new Error("Telemetry receipt write was not persisted");
+        // The first body stands. A different body under the same identity produces no effect;
+        // a row older than the fingerprint cannot be compared and keeps suppressing its identity.
+        if (duplicate.fingerprint !== null && duplicate.fingerprint !== receipt.fingerprint) await countRejection(tx, "CONTENT_CONFLICT", data.buildingId);
         continue;
       }
       assertPersisted(receipts.length === 1 ? receipts[0] : undefined, receipt, "Telemetry receipt");
-      const [persistedReceipt] = await tx.select().from(ingestEvents).where(eq(ingestEvents.eventId, data.eventId)).limit(1);
+      const [persistedReceipt] = await tx.select().from(ingestEvents).where(sameEvent).limit(1);
       assertPersisted(persistedReceipt, receipt, "Telemetry receipt");
-      checks.remember(`receipt:${receipt.eventId}`, async () => {
-        const [persisted] = await tx.select().from(ingestEvents).where(eq(ingestEvents.eventId, receipt.eventId)).limit(1);
+      checks.remember(`receipt:${receipt.buildingId}:${receipt.deviceId}:${receipt.eventId}`, async () => {
+        const [persisted] = await tx.select().from(ingestEvents).where(sameEvent).limit(1);
         assertPersisted(persisted, receipt, "Telemetry receipt");
       });
       const sample: typeof telemetry.$inferSelect = {
@@ -77,6 +114,7 @@ export async function handleTelemetry(topic: string, raw: Buffer): Promise<void>
         const [persisted] = await tx.select(telemetryProjection).from(telemetry).where(and(eq(telemetry.id, sample.id), eq(telemetry.time, sample.time))).limit(1);
         assertPersisted(persisted, sample, "Telemetry source");
       });
+      if (retained) { await countRejection(tx, "RETAINED_REPLAY", data.buildingId); continue; }
       accepted.push(data);
       createdAlerts.push(...await accountUsage(tx, data, features, checks));
       await applyParkingTelemetry(tx, data);
@@ -87,8 +125,9 @@ export async function handleTelemetry(topic: string, raw: Buffer): Promise<void>
       }
     }
 
-    // A valid packet proves transport liveness even when every module is paused.
-    {
+    // A valid packet proves transport liveness even when every module is paused;
+    // a retained replay proves nothing about the source being alive now.
+    if (!retained) {
       const now = new Date();
       const expectedDevice = { ...device, status: "ONLINE" as const, lastSeenAt: now, updatedAt: now };
       const updatedDevices = await tx.update(devices).set({ status: "ONLINE", lastSeenAt: now, updatedAt: now }).where(eq(devices.id, device.id)).returning();
@@ -114,8 +153,9 @@ export async function handleTelemetry(topic: string, raw: Buffer): Promise<void>
     // Immediate triggers from later alerts, parking or heartbeats must not
     // invalidate a source already confirmed earlier in this transaction.
     await checks.verify();
-    return { accepted, createdAlerts };
+    return { accepted, createdAlerts, unknown: false };
   });
+  if (result.unknown) await countRejection(db, "UNKNOWN_SOURCE");
 
   for (const data of result.accepted) {
     await publishRealtime({ kind: "telemetry", buildingId: data.buildingId, deviceId: data.deviceId,

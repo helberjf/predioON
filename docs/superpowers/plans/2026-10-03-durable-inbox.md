@@ -1,3 +1,5 @@
+> **Decisão de 07/10/2026:** o proprietário delegou as decisões pendentes da seção 13. A fila com worker separado **foi adiada**; identidade por condomínio/dispositivo, conflito de conteúdo, retained e a janela de 300 s das regras foram entregues no caminho síncrono existente pela migration **048**, e o ensaio do EMQX 6.3.1 foi executado. Registro e motivos em [INBOX_DECISOES.md](../../INBOX_DECISOES.md). O restante deste arquivo é o desenho original, preservado para retomada.
+
 > Coordenação de05/10/2026: **041** é o próximo número reservado desta proposta.039 jápublicou organizações comerciais;040 é o recorte deACLusers em implementação. Referências040 abaixo conservam o desenho histórico e devem ser ajustadas ao implementar. Nenhum SQL041/receiver/worker de inbox foi entregue.
 
 # Inbox durável de telemetria — proposta do incremento 040

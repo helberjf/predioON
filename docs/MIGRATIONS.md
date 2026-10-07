@@ -261,3 +261,9 @@ A API nova exige a 046, porque todo login consulta se a conta tem fator ativo. D
 `047-password-recovery.sql` cria `password_resets`, com RLS e **sem privilégio para nenhuma role de execução**, e as funções `identity_issue_password_reset` e `identity_reset_password`, executáveis somente por `predioon_identity`. Contrato e motivos em [AUTENTICACAO.md](AUTENTICACAO.md#recuperação-de-senha-por-e-mail).
 
 A API nova exige a 047 só nas duas rotas de recuperação; entrada, sessões e MFA não dependem dela. O envio precisa de `RESEND_API_KEY`; sem a chave as rotas respondem normalmente e nenhum e-mail sai.
+
+## Release 048: identidade do recibo de telemetria
+
+`048-telemetry-receipt-scope.sql` troca a chave de `ingest_events` de `event_id` para `(building_id, device_id, event_id)`, acrescenta a coluna `fingerprint` (nula nas linhas antigas) e cria `ingest_rejections`, contadores sem conteúdo e sem privilégio para as roles da API. Motivos em [INBOX_DECISOES.md](INBOX_DECISOES.md).
+
+**Ordem de implantação:** parar a ingestão, aplicar a 048 e subir a ingestão nova. A ingestão antiga procura duplicata só por `event_id` e não deve gravar depois da troca de chave. A API não depende da 048. A troca de chave é segura sobre dados existentes, porque a chave antiga já garantia unicidade.
