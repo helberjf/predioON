@@ -499,3 +499,11 @@ A pedido do proprietário, JDK 17, Android SDK (platform 37.0, build-tools 37.0.
 
 **Defeito real encontrado só no nativo e corrigido:** as rotas em SQL bruto (ordens de serviço e convites) devolviam datas no formato de texto do PostgreSQL (`2026-10-06 20:12:34.450329+00`). Os três motores de navegador aceitam; o Hermes não, e o app mostrava “Data indisponível”. A API passa a formatar em ISO-8601 UTC com milissegundos (`apps/api/src/http/sql-time.ts`). RED confirmado nas duas suítes antes da correção; depois, ordens de serviço **7/7**, convites **8/8** e cadastros **11/11**, mais a conferência visual no emulador. **A integral da API e a matriz de navegador não foram repetidas depois desta correção.** A rota de auditoria tem a mesma projeção bruta de `created_at` e é usada só na web; fica registrada para revisão.
 
+### 06/10: ativos (044)
+
+Segundo domínio da etapa 4: cadastro de ativos, vínculo com equipamentos monitorados e com ordens de serviço, painel **Ativos** no portal de operação e campo de ativo na abertura da ordem. Regras e motivos em [ATIVOS.md](ATIVOS.md). A reserva da inbox passa a **045**.
+
+**Provas:** dirigido API **6/6** (gestão com concorrência otimista; leitor só vê ativos em uso; vínculo de equipamentos com recusa de outro condomínio; histórico filtrado por quem lê e ativo imutável para o executor; fronteira SQL; reaplicação da 044). O teste de reaplicação da 043 foi retirado, com o motivo registrado no próprio arquivo: a 044 substitui a função de guarda. Uma asserção minha estava errada e foi corrigida, não o produto: `UPDATE` de um leitor não gera erro, atinge zero linhas. Ordens de serviço **6/6**. Cenário de navegador novo aprovado no Chromium. Restauração **2/2** com 44 migrations, notificações **54/54**, UI 90/90, cliente 64/64, mobile 81/81, tipos e fronteiras. Integral API **765/765, 59 suítes, zero falhas/skips, 634 s**, Linux/Node 24 no relógio do banco — a primeira integral depois da correção das datas ISO. Playwright **330/330, 110 por Chromium/Firefox/WebKit, zero falhas**, 23,5 min, imagem oficial 1.63.0-noble; ambas sobre a árvore de trabalho commitada em seguida.
+
+**Ambiente:** com 16 GB, esta máquina não comporta emulador Android, dois Metros e a suíte de navegador ao mesmo tempo; o emulador e os Metros foram fechados durante a validação.
+
