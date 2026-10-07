@@ -558,3 +558,20 @@ Ordem definida pelo proprietário: **planos e assinaturas por último**; antes, 
 **Incidente desta sessão, já corrigido:** uma primeira tentativa de subir os bancos descartáveis na porta 5436 falhou porque **outra sessão (Codex, `predioon-current-plan`) já usava essa porta**, e os testes de notificação, que trocam as senhas das roles do cluster inteiro, rodaram contra o banco dela. As quatro credenciais foram restauradas com `db:provision-runtime` e conferidas por conexão real; não ficou banco nem vínculo de role para trás. Os resultados acima são da repetição em cluster próprio, na porta 5446. **Regra daqui em diante:** conferir que a porta está livre e que o contêiner subiu antes de apontar qualquer teste para ela; não reutilizar 5436/5437 enquanto houver outra sessão ativa.
 
 **Não verificado:** capacidade (leituras por segundo), TLS/autenticação reais do broker no ensaio, firmware real publicando retained, e a troca de chave sobre um banco de produção com volume. A matriz de navegadores não foi repetida porque nenhuma tela ou rota da API mudou.
+
+### 07/10: redesenho visual e de navegação dos três portais
+
+**Pedido do proprietário:** deixar o front-end web o mais profissional e fácil de navegar, parecido com o mockup de aplicativo que ele enviou (início com saudação e atalhos, Reservas, Acessos, barra inferior Início/Reservas/Acessos/Ocorrências/Mais).
+
+**Entrega, sem mudar API, rotas ou regras:**
+
+- **Portal do morador:** barra inferior com as quatro primeiras funções habilitadas no condomínio e **Mais**, que abre as demais (Avisos, Vagas, Consumo, Transparência, Perfil); antes, vagas, consumo, transparência e acessos só eram alcançáveis pelos atalhos do início. Início com seis atalhos em vez de dez, avisos com ícone por categoria e data ("Hoje, 19:00") quando o aviso tem agenda. Avisos com filtro por categoria e sem o painel de vagas, que tem tela própria. Cabeçalho interno fixo com voltar e atalho do perfil; telas que já têm título próprio deixam de exibir dois títulos.
+- **Portais de operação e administração:** menu lateral agrupado por assunto (20 itens soltos viraram seis grupos no de operação), com rolagem própria e a conta com o botão de sair no rodapé.
+- **Entrada, recuperação de senha e convite:** uma moldura comum (`AuthLayout`), com painel da marca em telas largas.
+- **Base compartilhada:** cartões, botões e etiquetas de `packages/ui` com um só padrão de raio, sombra e área de toque.
+
+**Decisões:** nada do mockup que dependeria de dado inexistente foi simulado: sem previsão do tempo, sem contador de avisos não lidos (não há registro de leitura), sem fotos das áreas comuns (não há upload). Os rótulos acessíveis foram preservados; o único teste alterado é o que navegava para Avisos e Perfil pela barra, que agora passa por **Mais**.
+
+**Provas:** matriz de navegadores em Chromium, Firefox e WebKit. A primeira execução deu **336/339**: as três falhas eram um só teste, que acusou um defeito real do redesenho (o nome do usuário passou a aparecer duas vezes no portal de gestão, no topo e no rodapé do menu); o rodapé voltou a mostrar a marca. A segunda execução completa deu **338/339**, com uma falha de rede (`socket hang up` numa chamada de preparação à API, fora de qualquer tela), e os dois arquivos envolvidos repetidos nos três motores passaram **18/18**. UI 90/90, tipos e fronteiras de arquitetura. Capturas em [imagens/2026-10-07](imagens/2026-10-07/).
+
+**Não verificado:** leitor de tela real (os papéis e nomes acessíveis foram mantidos e exercitados pelos testes, mas não houve sessão com NVDA/VoiceOver) e aparelho físico; as capturas são de Chromium em 390 px e 1440 px.

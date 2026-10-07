@@ -1,10 +1,10 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Building2 } from "lucide-react";
 import type { InvitationPreview } from "@predioon/contracts/auth";
 import { openInvitation } from "../api.js";
 import { formatDateTime } from "../format.js";
 import { Button, ErrorBanner } from "./primitives.js";
 import { Field, Input } from "./fields.js";
+import { AuthLayout, AuthLink } from "./auth-layout.js";
 
 /** The secret travels in the URL fragment, which browsers do not send to servers or proxies. */
 function fragmentCode(): string {
@@ -43,13 +43,7 @@ export function InvitationScreen({ entryHref = "/" }: { entryHref?: string }) {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#111c2e] p-4">
-      <form onSubmit={submit} aria-label="Aceitar convite" className="w-full max-w-sm space-y-5 rounded-2xl border border-slate-200 bg-white p-7 shadow-sm">
-        <div className="text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-600 text-white"><Building2 size={24} /></div>
-          <h1 className="mt-4 text-xl font-bold text-slate-900">Convite Prédio ON</h1>
-          <p className="mt-1 text-sm text-slate-500">{invitation ? invitation.buildingName : "Portal do morador"}</p>
-        </div>
+    <AuthLayout title="Convite Prédio ON" subtitle={invitation ? invitation.buildingName : "Portal do morador"} label="Aceitar convite" onSubmit={submit}>
         {error && <ErrorBanner message={error} />}
 
         {accepted ? <>
@@ -58,7 +52,7 @@ export function InvitationScreen({ entryHref = "/" }: { entryHref?: string }) {
         </> : !invitation ? <>
           <Field label="Código do convite" hint="Recebido da administração do condomínio"><Input value={code} onChange={setCode} required maxLength={64} autoComplete="off" /></Field>
           <Button type="submit" full disabled={busy}>{busy ? "Verificando..." : "Continuar"}</Button>
-          <a href={entryHref} className="block text-center text-sm text-slate-500 underline">Já tenho conta</a>
+          <AuthLink href={entryHref}>Já tenho conta</AuthLink>
         </> : <>
           <p className="text-sm text-slate-700">Olá, <strong>{invitation.name}</strong>. Você foi convidado para o condomínio <strong>{invitation.buildingName}</strong> com o e-mail <strong>{invitation.email}</strong>.</p>
           <p className="text-xs text-slate-500">Convite válido até {formatDateTime(invitation.expiresAt)}.</p>
@@ -70,7 +64,6 @@ export function InvitationScreen({ entryHref = "/" }: { entryHref?: string }) {
             </>}
           <Button type="submit" full disabled={busy}>{busy ? "Enviando..." : "Aceitar convite"}</Button>
         </>}
-      </form>
-    </main>
+    </AuthLayout>
   );
 }

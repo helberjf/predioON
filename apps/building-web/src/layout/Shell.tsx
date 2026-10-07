@@ -2,27 +2,28 @@ import type { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { AlertTriangle, Boxes, CalendarDays, Car, ClipboardList, ChartNoAxesCombined, Cpu, DoorOpen, Droplets, House, Megaphone, Monitor, ScrollText, ShieldCheck, SlidersHorizontal, Workflow, Wrench, Zap } from "lucide-react";
 import { BuildingSelector, DashboardFrame, useFeatures, useAuth, useBuildingScope, useResource } from "@predioon/ui";
+// Order and grouping are what the menu shows; each group gets one heading.
 const LINKS = [
-  { to: "/", label: "Início", icon: House },
-  { to: "/agua", label: "Água e reservatórios", icon: Droplets },
-  { to: "/energia", label: "Energia e fases", icon: Zap },
-  { to: "/consumo", label: "Consumo e análise", icon: ChartNoAxesCombined },
-  { to: "/sensores", label: "Gás, fumaça e vazamentos", icon: ShieldCheck },
-  { to: "/acessos", label: "Portões e acessos", icon: DoorOpen },
-  { to: "/vagas", label: "Vagas de carros e motos", icon: Car },
-  { to: "/alertas", label: "Alertas", icon: AlertTriangle },
-  { to: "/chamados", label: "Ocorrências", icon: Wrench },
-  { to: "/ordens-servico", label: "Ordens de serviço", icon: ClipboardList },
-  { to: "/ativos", label: "Ativos", icon: Boxes },
-  { to: "/transparencia", label: "Transparência e contas", icon: ChartNoAxesCombined },
-  { to: "/avisos", label: "Avisos", icon: Megaphone },
-  { to: "/dispositivos", label: "Equipamentos", icon: Cpu },
-  { to: "/areas", label: "Áreas comuns", icon: CalendarDays },
-  { to: "/unidades-equipes", label: "Unidades e equipes", icon: House },
-  { to: "/regras", label: "Regras de alerta", icon: SlidersHorizontal },
-  { to: "/automacoes", label: "Automações", icon: Workflow },
-  { to: "/sessoes", label: "Minhas sessões", icon: Monitor },
-  { to: "/auditoria", label: "Histórico de atividades", icon: ScrollText },
+  { group: "Visão geral", to: "/", label: "Início", icon: House },
+  { group: "Visão geral", to: "/alertas", label: "Alertas", icon: AlertTriangle },
+  { group: "Monitoramento", to: "/agua", label: "Água e reservatórios", icon: Droplets },
+  { group: "Monitoramento", to: "/energia", label: "Energia e fases", icon: Zap },
+  { group: "Monitoramento", to: "/consumo", label: "Consumo e análise", icon: ChartNoAxesCombined },
+  { group: "Monitoramento", to: "/sensores", label: "Gás, fumaça e vazamentos", icon: ShieldCheck },
+  { group: "Monitoramento", to: "/dispositivos", label: "Equipamentos", icon: Cpu },
+  { group: "Acessos e vagas", to: "/acessos", label: "Portões e acessos", icon: DoorOpen },
+  { group: "Acessos e vagas", to: "/vagas", label: "Vagas de carros e motos", icon: Car },
+  { group: "Atendimento", to: "/chamados", label: "Ocorrências", icon: Wrench },
+  { group: "Atendimento", to: "/ordens-servico", label: "Ordens de serviço", icon: ClipboardList },
+  { group: "Atendimento", to: "/ativos", label: "Ativos", icon: Boxes },
+  { group: "Comunidade", to: "/avisos", label: "Avisos", icon: Megaphone },
+  { group: "Comunidade", to: "/areas", label: "Áreas comuns", icon: CalendarDays },
+  { group: "Comunidade", to: "/transparencia", label: "Transparência e contas", icon: ChartNoAxesCombined },
+  { group: "Administração", to: "/unidades-equipes", label: "Unidades e equipes", icon: House },
+  { group: "Administração", to: "/regras", label: "Regras de alerta", icon: SlidersHorizontal },
+  { group: "Administração", to: "/automacoes", label: "Automações", icon: Workflow },
+  { group: "Administração", to: "/auditoria", label: "Histórico de atividades", icon: ScrollText },
+  { group: "Administração", to: "/sessoes", label: "Minhas sessões", icon: Monitor },
 ];
 export function Shell({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();

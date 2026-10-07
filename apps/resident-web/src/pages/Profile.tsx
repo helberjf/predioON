@@ -6,15 +6,11 @@ export function Profile() {
 
   return (
     <><Card title="Meu perfil">
-      <dl className="space-y-3 text-sm">
-        <div>
-          <dt className="text-xs text-slate-400">Nome</dt>
-          <dd className="font-medium text-slate-800">{user?.name}</dd>
-        </div>
-        <div>
-          <dt className="text-xs text-slate-400">E-mail</dt>
-          <dd className="font-medium text-slate-800">{user?.email}</dd>
-        </div>
+      <div className="mb-5 flex items-center gap-4">
+        <span aria-hidden="true" className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#1b3f60] text-lg font-semibold text-white">{user?.name.split(" ").filter(Boolean).map(part => part[0]).slice(0, 2).join("")}</span>
+        <div className="min-w-0"><p className="truncate text-base font-bold text-[#142f50]">{user?.name}</p><p className="truncate text-sm text-slate-500">{user?.email}</p></div>
+      </div>
+      <dl className="space-y-3 border-t border-slate-100 pt-4 text-sm">
         <div>
           <dt className="text-xs text-slate-400">Condomínios disponíveis</dt>
           <dd className="font-medium text-slate-800">{buildings.length}</dd>

@@ -263,3 +263,11 @@ Identidade autenticada 37307304828 e os dois jobs de inicialização 37307304855
 - **Tela dos contadores de recusa** para a administração da plataforma.
 - **Tirar a conexão dona do banco da ingestão**, independentemente da fila.
 - **Preservar a memória de eventos** quando um dispositivo é excluído e recriado com o mesmo identificador.
+
+### 07/10: front-end
+
+- **Fotos das áreas comuns** (upload pela administração) para os cartões de reserva, como no mockup.
+- **Avisos não lidos:** registrar leitura por morador para mostrar o contador no sino.
+- **Tela de Acessos do morador** no formato do mockup (dois botões grandes e últimos acessos) e **abertura de ocorrência por categoria** em grade de ícones; hoje usam os painéis compartilhados com a operação.
+- **Unificar "Chamados" e "Ocorrências":** a navegação diz Ocorrências e o painel diz Chamados.
+- **Minhas sessões:** mostrar "Chrome no Windows" em vez do identificador completo do navegador.

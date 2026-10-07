@@ -1,9 +1,9 @@
 import { useState, type FormEvent } from "react";
-import { Building2 } from "lucide-react";
 import { MFA_REQUIRED_MESSAGE } from "@predioon/contracts/auth";
 import { useAuth } from "../auth.js";
 import { Button, ErrorBanner } from "./primitives.js";
 import { Field, Input } from "./fields.js";
+import { AuthLayout, AuthLink } from "./auth-layout.js";
 
 /** Same sign-in screen for the three panels; only the subtitle changes. */
 export function LoginScreen({ subtitle, invitationHref }: { subtitle: string; invitationHref?: string }) {
@@ -31,15 +31,7 @@ export function LoginScreen({ subtitle, invitationHref }: { subtitle: string; in
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#111c2e] p-4">
-      <form onSubmit={submit} className="w-full max-w-sm space-y-5 rounded-2xl border border-slate-200 bg-white p-7 shadow-sm">
-        <div className="text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-600 text-white">
-            <Building2 size={24} />
-          </div>
-          <h1 className="mt-4 text-xl font-bold text-slate-900">Prédio ON</h1>
-          <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
-        </div>
+    <AuthLayout title="Prédio ON" subtitle={subtitle} onSubmit={submit}>
 
         {error && <ErrorBanner message={error} />}
         {sessionError && <div className="space-y-2"><ErrorBanner message={sessionError} />
@@ -59,9 +51,10 @@ export function LoginScreen({ subtitle, invitationHref }: { subtitle: string; in
         <Button type="submit" full disabled={busy}>
           {busy ? "Entrando..." : "Entrar"}
         </Button>
-        <a href="/redefinir-senha" className="block text-center text-sm text-slate-500 underline">Esqueci minha senha</a>
-        {invitationHref && <a href={invitationHref} className="block text-center text-sm text-slate-500 underline">Tenho um convite</a>}
-      </form>
-    </main>
+        <div className="space-y-1">
+          <AuthLink href="/redefinir-senha">Esqueci minha senha</AuthLink>
+          {invitationHref && <AuthLink href={invitationHref}>Tenho um convite</AuthLink>}
+        </div>
+    </AuthLayout>
   );
 }

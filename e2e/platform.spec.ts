@@ -61,9 +61,15 @@ test("portal do morador apresenta avisos e não oferece ferramentas de gestão",
   await expect(page.getByRole("heading", { name: "Olá, Morador!", exact: true })).toBeVisible();
   const navigation = page.getByRole("navigation", { name: "Navegação do morador" });
   await expect(navigation.getByRole("link", { name: "Unidades e equipes", exact: true })).toHaveCount(0);
+  // Less used destinations sit one tap away, under "Mais".
+  const more = navigation.getByRole("button", { name: "Mais", exact: true });
+  await more.click();
+  await expect(more).toHaveAttribute("aria-expanded", "true");
   await navigation.getByRole("link", { name: "Avisos", exact: true }).click();
+  await expect(more).toHaveAttribute("aria-expanded", "false");
   await expect(page.getByRole("heading", { name: "Coleta de lixo", exact: true }).first()).toBeVisible();
   await expect(page.getByRole("button", { name: /Publicar para os moradores|Cadastrar bloco|Conceder permissão|Editar/ })).toHaveCount(0);
+  await more.click();
   await navigation.getByRole("link", { name: "Perfil", exact: true }).click();
   await signOut(page);
   await expect(page.getByRole("navigation", { name: "Navegação do morador" })).toHaveCount(0);

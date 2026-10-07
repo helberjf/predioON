@@ -1,8 +1,8 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Building2 } from "lucide-react";
 import { recoverPassword } from "../api.js";
 import { Button, ErrorBanner } from "./primitives.js";
 import { Field, Input } from "./fields.js";
+import { AuthLayout, AuthLink } from "./auth-layout.js";
 
 /** The secret travels in the URL fragment, which browsers do not send to servers or proxies. */
 function fragmentToken(): string {
@@ -42,16 +42,10 @@ export function PasswordRecoveryScreen({ entryHref = "/" }: { entryHref?: string
     if (password !== confirmation) { setError("As senhas informadas são diferentes."); return; }
     void run(async () => { await recoverPassword("reset", { token, newPassword: password }); setDone("changed"); setPassword(""); setConfirmation(""); });
   }
-  const entry = <a href={entryHref} className="block text-center text-sm text-slate-500 underline">Voltar para a entrada</a>;
+  const entry = <AuthLink href={entryHref}>Voltar para a entrada</AuthLink>;
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#111c2e] p-4">
-      <form onSubmit={submit} aria-label="Recuperar senha" className="w-full max-w-sm space-y-5 rounded-2xl border border-slate-200 bg-white p-7 shadow-sm">
-        <div className="text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-600 text-white"><Building2 size={24} /></div>
-          <h1 className="mt-4 text-xl font-bold text-slate-900">Prédio ON</h1>
-          <p className="mt-1 text-sm text-slate-500">{token ? "Criar nova senha" : "Recuperar senha"}</p>
-        </div>
+    <AuthLayout title="Prédio ON" subtitle={token ? "Criar nova senha" : "Recuperar senha"} label="Recuperar senha" onSubmit={submit}>
         {error && <ErrorBanner message={error} />}
 
         {done === "changed" ? <>
@@ -64,13 +58,12 @@ export function PasswordRecoveryScreen({ entryHref = "/" }: { entryHref?: string
           <Field label="Nova senha" hint="Pelo menos 15 caracteres"><Input type="password" value={password} onChange={setPassword} required minLength={15} autoComplete="new-password" /></Field>
           <Field label="Repita a nova senha"><Input type="password" value={confirmation} onChange={setConfirmation} required minLength={15} autoComplete="new-password" /></Field>
           <Button type="submit" full disabled={busy}>{busy ? "Salvando..." : "Salvar nova senha"}</Button>
-          <button type="button" className="block w-full text-center text-sm text-slate-500 underline" onClick={() => { setToken(""); setError(null); }}>Pedir um novo link</button>
+          <button type="button" className="block w-full rounded-lg py-1 text-center text-sm font-medium text-emerald-700 hover:underline" onClick={() => { setToken(""); setError(null); }}>Pedir um novo link</button>
         </> : <>
           <Field label="E-mail da conta"><Input type="email" value={email} onChange={setEmail} placeholder="voce@condominio.com" required maxLength={254} /></Field>
           <Button type="submit" full disabled={busy}>{busy ? "Enviando..." : "Enviar link"}</Button>
           {entry}
         </>}
-      </form>
-    </main>
+    </AuthLayout>
   );
 }

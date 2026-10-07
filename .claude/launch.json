@@ -4,20 +4,42 @@
     {
       "name": "building-web",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@predioon/building-web", "dev"],
+      "runtimeArgs": [
+        "--filter",
+        "@predioon/building-web",
+        "dev"
+      ],
       "port": 5174
     },
     {
       "name": "resident-web",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@predioon/resident-web", "dev"],
+      "runtimeArgs": [
+        "--filter",
+        "@predioon/resident-web",
+        "dev"
+      ],
       "port": 5175
     },
     {
       "name": "admin-web",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@predioon/admin-web", "dev"],
+      "runtimeArgs": [
+        "--filter",
+        "@predioon/admin-web",
+        "dev"
+      ],
       "port": 5173
+    },
+    {
+      "name": "api",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--filter",
+        "@predioon/api",
+        "dev"
+      ],
+      "port": 3000
     }
   ]
 }
