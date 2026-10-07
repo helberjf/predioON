@@ -513,3 +513,11 @@ A ordem de serviço passou a trazer `assetName`, resolvido no banco sob as regra
 
 **Ambiente local:** o emulador caiu mais duas vezes por falta de memória, uma delas com dois Metros compilando ao mesmo tempo. Manter um Metro por vez e aquecer o bundle (`curl` em `/index.bundle?platform=android`) antes de abrir o app evita a tela vermelha.
 
+### 06/10: automações versionadas (045)
+
+Ordem definida pelo proprietário: **planos e assinaturas por último**; antes, automações, MFA, inbox dos gateways e push. Este registro cobre as automações. A reserva da inbox passa a **046**.
+
+**Entrega:** migration 045, API `/v1/automations`, contratos, painel **Automações** no portal de operação. Regras e motivos em [AUTOMACOES.md](AUTOMACOES.md), inclusive por que a execução ficou num gatilho transacional em vez de um worker.
+
+**Provas:** dirigido API **8/8**. A primeira execução deu 6/7 e revelou dois defeitos reais da própria 045, corrigidos nela antes de qualquer publicação: correspondência com equipamento nulo e trava de imutabilidade bloqueando exclusão em cascata. O cenário de navegador também achou um defeito de tela (detalhes abertos não recarregavam ao atualizar). Restauração **2/2** com 45 migrations, notificações **54/54**, UI 90/90, cliente 64/64, mobile 81/81, tipos e fronteiras. Integral API **773/773, 60 suítes, zero falhas/skips, 743 s** e ingestão **121/121, 15 suítes** (a suíte que grava alertas, agora com o gatilho novo), ambas em Linux/Node 24 no relógio do banco. Playwright **333/333, 111 por Chromium/Firefox/WebKit, zero falhas**, 16,6 min; a primeira tentativa da matriz foi perdida numa reinicialização do Docker e repetida a partir do mesmo pacote de fonte, sem alterações.
+
