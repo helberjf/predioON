@@ -507,3 +507,9 @@ Segundo domínio da etapa 4: cadastro de ativos, vínculo com equipamentos monit
 
 **Ambiente:** com 16 GB, esta máquina não comporta emulador Android, dois Metros e a suíte de navegador ao mesmo tempo; o emulador e os Metros foram fechados durante a validação.
 
+### 06/10: nome do ativo na ordem de serviço, web e app
+
+A ordem de serviço passou a trazer `assetName`, resolvido no banco sob as regras de leitura de quem consulta: sem `devices:read` a ordem continua visível e o nome vem nulo (provado retirando a permissão do papel dentro do teste). O portal deixou de depender da lista de ativos para rotular a ordem e o app Operação mostra “Ativo: …”. Provas: ativos **6/6**, ordens de serviço **6/6**, mobile 81/81, UI 90/90, tipos, os dois cenários de navegador no Chromium e conferência no emulador Android. **Sem nova integral nem matriz de três motores para este ajuste.**
+
+**Ambiente local:** o emulador caiu mais duas vezes por falta de memória, uma delas com dois Metros compilando ao mesmo tempo. Manter um Metro por vez e aquecer o bundle (`curl` em `/index.bundle?platform=android`) antes de abrir o app evita a tela vermelha.
+

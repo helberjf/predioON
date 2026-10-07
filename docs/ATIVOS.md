@@ -47,6 +47,6 @@ A 044 substitui a função `app_work_order_guard` criada na 043 para incluir o a
 
 ## Limites atuais
 
-- Tela no portal de operação web (`/ativos`). Não há tela de ativos nos apps; a ordem de serviço no app Operação ainda não mostra o ativo.
+- Tela no portal de operação web (`/ativos`). Não há tela de ativos nos apps. A ordem de serviço traz `assetName` e o app Operação o exibe; o nome vem vazio para quem não pode consultar o ativo.
 - Sem fotos, documentos, plano de manutenção preventiva ou leitura dos sensores na ficha do ativo.
 - Categorias fixas: bomba, elevador, gerador, portão, climatização, combate a incêndio, elétrica, hidráulica e outro.
