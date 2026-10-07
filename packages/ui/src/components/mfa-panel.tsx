@@ -1,0 +1,73 @@
+import { useRef, useState, type FormEvent } from "react";
+import type { MfaConfirmResponse, MfaEnrollResponse, MfaStatus } from "@predioon/contracts/auth";
+import { api } from "../api.js";
+import { useResource } from "../use-resource.js";
+import { Field, Input } from "./fields.js";
+import { Badge, Button, Card, ErrorBanner, ResourceFeedback } from "./primitives.js";
+
+type Step = { kind: "idle" } | { kind: "password"; purpose: "enroll" | "disable" } | { kind: "confirm"; enrollment: MfaEnrollResponse } | { kind: "codes"; codes: string[] };
+
+/** Two-step verification for the signed-in account. Lives beside the password panel in every portal. */
+export function MfaPanel() {
+  const status = useResource<MfaStatus>("/auth/mfa");
+  const [step, setStep] = useState<Step>({ kind: "idle" });
+  const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+  const busy = useRef(false);
+
+  async function run(action: () => Promise<void>) {
+    if (busy.current) return;
+    busy.current = true; setPending(true); setError(null);
+    try { await action(); }
+    catch (cause) { setError(cause instanceof Error ? cause.message : "Não foi possível concluir. Tente novamente."); }
+    finally { busy.current = false; setPending(false); }
+  }
+  const reset = () => { setStep({ kind: "idle" }); setPassword(""); setCode(""); setError(null); status.reload(); };
+  function submit(event: FormEvent) {
+    event.preventDefault();
+    if (step.kind === "password" && step.purpose === "enroll") void run(async () => {
+      const enrollment = await api.post<MfaEnrollResponse>("/auth/mfa/enroll", { currentPassword: password });
+      setPassword(""); setCode(""); setStep({ kind: "confirm", enrollment });
+    });
+    if (step.kind === "password" && step.purpose === "disable") void run(async () => {
+      await api.post("/auth/mfa/disable", { currentPassword: password, code: code.trim() });
+      reset();
+    });
+    if (step.kind === "confirm") void run(async () => {
+      const result = await api.post<MfaConfirmResponse>("/auth/mfa/confirm", { code: code.trim() });
+      setCode(""); setStep({ kind: "codes", codes: result.recoveryCodes }); status.reload();
+    });
+  }
+
+  if (!status.data) return <Card title="Verificação em duas etapas"><ResourceFeedback resource={status} emptyText="Indisponível no momento." /></Card>;
+  const enabled = status.data.enabled;
+  return <Card title="Verificação em duas etapas" subtitle="Além da senha, a entrada pede um código do seu aplicativo autenticador">
+    {error && <div className="mb-3"><ErrorBanner message={error} onDismiss={() => setError(null)} /></div>}
+    {step.kind === "idle" && <>
+      <div className="mb-4 flex flex-wrap items-center gap-2"><Badge tone={enabled ? "success" : "neutral"}>{enabled ? "Ativada" : "Desativada"}</Badge>
+        {enabled && <span className="text-sm text-slate-600">{status.data.recoveryCodesRemaining} código(s) de recuperação disponível(is)</span>}</div>
+      {!status.data.available && !enabled ? <p className="text-sm text-slate-600">Este ambiente ainda não foi configurado para a verificação em duas etapas.</p>
+        : enabled ? <Button variant="secondary" onClick={() => setStep({ kind: "password", purpose: "disable" })}>Desativar verificação</Button>
+        : <><p className="mb-4 text-sm text-slate-600">Use um aplicativo como Google Authenticator, Microsoft Authenticator ou 1Password. Você vai precisar dele toda vez que entrar.</p>
+          <Button variant="secondary" onClick={() => setStep({ kind: "password", purpose: "enroll" })}>Ativar verificação</Button></>}
+    </>}
+    {step.kind === "password" && <form aria-label={step.purpose === "enroll" ? "Ativar verificação em duas etapas" : "Desativar verificação em duas etapas"} className="space-y-3" onSubmit={submit}><fieldset disabled={pending} className="space-y-3">
+      <Field label="Senha atual"><Input type="password" required autoComplete="current-password" value={password} onChange={setPassword} /></Field>
+      {step.purpose === "disable" && <Field label="Código de verificação" hint="Do aplicativo autenticador ou um código de recuperação"><Input required maxLength={16} autoComplete="one-time-code" value={code} onChange={setCode} /></Field>}
+      <div className="flex flex-wrap gap-2"><Button type="submit" disabled={pending}>{pending ? "Enviando…" : step.purpose === "enroll" ? "Continuar" : "Desativar"}</Button><Button variant="secondary" disabled={pending} onClick={reset}>Cancelar</Button></div>
+    </fieldset></form>}
+    {step.kind === "confirm" && <form aria-label="Confirmar código do autenticador" className="space-y-3" onSubmit={submit}><fieldset disabled={pending} className="space-y-3">
+      <p className="text-sm text-slate-600">No aplicativo autenticador, adicione uma conta informando a chave abaixo (tipo: baseado em tempo). Depois digite o código de seis dígitos que ele mostrar.</p>
+      <Field label="Chave de configuração"><Input readOnly value={step.enrollment.secret} onChange={() => {}} onFocus={event => event.currentTarget.select()} /></Field>
+      <Field label="Código do aplicativo"><Input required inputMode="numeric" pattern="[0-9]{6}" maxLength={6} autoComplete="one-time-code" value={code} onChange={setCode} /></Field>
+      <div className="flex flex-wrap gap-2"><Button type="submit" disabled={pending}>{pending ? "Verificando…" : "Confirmar e ativar"}</Button><Button variant="secondary" disabled={pending} onClick={reset}>Cancelar</Button></div>
+    </fieldset></form>}
+    {step.kind === "codes" && <div role="status" className="space-y-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
+      <p><strong>Verificação em duas etapas ativada.</strong> Guarde estes códigos de recuperação em local seguro: cada um entra uma única vez se você ficar sem o aplicativo, e eles <strong>não serão exibidos novamente</strong>.</p>
+      <ul aria-label="Códigos de recuperação" className="grid grid-cols-2 gap-1 font-mono">{step.codes.map(item => <li key={item}>{item}</li>)}</ul>
+      <Button variant="secondary" onClick={reset}>Já guardei os códigos</Button>
+    </div>}
+  </Card>;
+}

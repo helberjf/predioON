@@ -9,11 +9,13 @@ import { LoginSchema } from "./login-schema.js";
 import { admitLogin, admitPasswordChange } from "./login-budget.js";
 import { PasswordChangeSchema } from "./password-change-schema.js";
 import { invitationAuthRouter } from "./invitations.js";
+import { mfaRouter } from "./mfa.js";
 
 export const authRouter = Router();
 authRouter.use((_req, res, next) => { res.setHeader("Cache-Control", "no-store"); next(); });
 authRouter.use("/web", webAuthRouter);
 authRouter.use("/invitations", invitationAuthRouter);
+authRouter.use("/mfa", mfaRouter);
 
 const RefreshSchema = z.object({ refreshToken: z.string().min(10) });
 
@@ -32,11 +34,11 @@ function sessionResponse(session: SessionTokens) {
 }
 
 authRouter.post("/login", validateBody(LoginSchema), admitLogin, async (req, res) => {
-  const { email, password } = req.body as z.infer<typeof LoginSchema>;
+  const { email, password, code } = req.body as z.infer<typeof LoginSchema>;
   const session = await login(email, password, {
     userAgent: req.header("user-agent"),
     ipAddress: req.ip,
-  });
+  }, code);
   res.json(sessionResponse(session));
 });
 

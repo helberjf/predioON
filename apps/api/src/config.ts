@@ -22,6 +22,10 @@ const EnvSchema = z.object({
   CORS_ORIGINS: z.string().default("http://localhost:5173,http://localhost:5174,http://localhost:5175"),
   TRUST_PROXY_CIDRS: z.string().optional(),
   AUTH_RATE_LIMIT_KEY: z.string().optional(),
+  // Optional: without it, two-step verification cannot be enrolled in production.
+  // An empty value (the Compose default) means "not configured", not "invalid".
+  MFA_ENCRYPTION_KEY: z.preprocess(value => value === "" ? undefined : value,
+    z.string().refine(value => Buffer.byteLength(value, "utf8") >= 32 && value.trim() === value, "MFA_ENCRYPTION_KEY exige pelo menos 32 bytes").optional()),
   MQTT_AUTH_SECRET: z.string().min(32).optional(),
   MQTT_INGEST_USERNAME: z.string().default("predioon_ingest"),
   MQTT_INGEST_PASSWORD: z.string().min(1).optional(),
@@ -42,6 +46,8 @@ if (!signingConfigured && (parsed.data.NODE_ENV === "production" || [parsed.data
 export const config = {
   ...parsed.data,
   authRateLimitKey: loginBudgetSecret(parsed.data.AUTH_RATE_LIMIT_KEY, parsed.data.NODE_ENV),
+  // Development and test use a fixed local key; production must supply its own.
+  mfaEncryptionKey: parsed.data.MFA_ENCRYPTION_KEY ?? (parsed.data.NODE_ENV === "production" ? null : "predioon-local-only-mfa-key-do-not-use-in-production"),
   trustedProxyCidrs: parseTrustedProxyCidrs(parsed.data.TRUST_PROXY_CIDRS),
   corsOrigins: parsed.data.CORS_ORIGINS.split(",").map((origin) => origin.trim()).filter(Boolean),
 };

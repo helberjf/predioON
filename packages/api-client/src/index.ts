@@ -29,7 +29,7 @@ export function createApiClient(options: ApiClientOptions) {
   const { restore: _restore, ...client } = createBearerClient<SessionTokens, Session>({
     ...options,
     protocol: {
-      login: (email, password) => authRequest("/auth/login", { email, password }),
+      login: (email, password, code) => authRequest("/auth/login", code ? { email, password, code } : { email, password }),
       refresh: tokens => tokens?.refreshToken ? authRequest("/auth/refresh", { refreshToken: tokens.refreshToken }) : null,
       logout: tokens => tokens?.refreshToken ? authRequest("/auth/logout", { refreshToken: tokens.refreshToken }) : null,
       password: body => authRequest("/auth/password", body),

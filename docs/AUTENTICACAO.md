@@ -87,3 +87,33 @@ Antes deste recorte só a administração da plataforma criava contas, definindo
 
 **Limites atuais:** não há envio de e-mail nem recuperação de senha; o convite não renomeia conta existente; o aceite existe no portal web do morador, ainda não nos apps; MFA continua pendente. Quem gerencia consegue saber, emitindo um convite e consultando a prévia com o segredo, se um e-mail já tem conta na plataforma.
 
+## Verificação em duas etapas (MFA)
+
+Qualquer conta pode exigir, além da senha, um código de seis dígitos gerado por um aplicativo autenticador (TOTP, RFC 6238 — Google Authenticator, Microsoft Authenticator, 1Password e similares).
+
+**Ativar** (portais, em **Minhas sessões**): informar a senha atual, cadastrar no aplicativo a chave exibida e digitar o código que ele mostrar. Só depois dessa confirmação a verificação passa a valer; uma ativação abandonada no meio não tranca a conta. Na confirmação são entregues **dez códigos de recuperação**, exibidos uma única vez.
+
+**Entrar:** a tela pede e-mail e senha como sempre. Se a conta tem a verificação ativa, o servidor responde pedindo o código e a tela mostra o campo. Vale um código do aplicativo ou um código de recuperação. Portais e os dois apps têm esse campo.
+
+**Desativar:** exige a senha atual **e** um código válido.
+
+| Decisão | Motivo |
+| --- | --- |
+| O pedido de código só vem depois da senha correta | Com senha errada a resposta é a mesma de qualquer conta; não se descobre quem usa MFA. |
+| Um código nunca vale duas vezes | O servidor guarda o último intervalo de 30 s aceito e só aceita intervalos posteriores, por `UPDATE` condicional. Dois logins simultâneos com o mesmo código: um entra, o outro não. |
+| Tolerância de um intervalo para mais ou para menos | Relógio de celular raramente está exato; mais que isso ampliaria a janela de um código vazado. |
+| Segredo cifrado (AES-256-GCM) com chave fora do banco | O segredo precisa ser recuperável para conferir o código, então não pode ser só um hash. Um vazamento do banco, sozinho, não permite gerar códigos. A cifra é amarrada à conta: a linha de um usuário não serve em outro. |
+| Códigos de recuperação guardados só como hash | São senhas de uso único; ninguém precisa lê-los de volta. |
+| Tabelas acessíveis só pela role de identidade | A role da API de negócio e a do broker não leem nem apagam fatores. |
+| Tentativas contam no mesmo limite do login | Evita que o código vire um segundo alvo de força bruta por fora do limite existente. |
+
+**Configuração:** `MFA_ENCRYPTION_KEY`, com 32 bytes aleatórios ou mais. Em desenvolvimento e teste há uma chave local fixa. Em produção, sem a variável, a ativação responde que o recurso não está configurado e o resto do sistema funciona normalmente. **Não troque essa chave depois que houver contas com a verificação ativa:** os segredos deixam de abrir e essas contas só entram com código de recuperação.
+
+**Limites atuais:**
+
+- A verificação é **opcional por conta**. A arquitetura pede que seja obrigatória para administradores da plataforma e para ações privilegiadas do síndico; essa exigência ainda não existe.
+- A ativação e a desativação estão só nos portais web; os apps pedem o código na entrada, mas não ativam.
+- A chave é mostrada como texto para digitar no aplicativo; não há QR code.
+- Ativar não encerra as outras sessões já abertas, e não há como um administrador remover o fator de outra pessoa que perdeu aplicativo e códigos.
+- A resposta pedindo o código confirma, para quem já sabe a senha, que a conta usa MFA.
+

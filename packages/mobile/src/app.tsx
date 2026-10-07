@@ -20,7 +20,7 @@ import {
   createApiClient,
   type ApiClient,
 } from "@predioon/api-client";
-import type { AuthUser } from "@predioon/contracts/auth";
+import { MFA_REQUIRED_MESSAGE, type AuthUser } from "@predioon/contracts/auth";
 import { nativeTokenStorage } from "./keychain.ts";
 import { createBoundedFetch } from "./bounded-fetch.ts";
 import { createSessionActionScope } from "./session-actions.ts";
@@ -295,6 +295,9 @@ function Login({
 }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  // Asked for only after the server says this account uses two-step verification.
+  const [needsCode, setNeedsCode] = useState(false);
+  const [code, setCode] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   async function login() {
@@ -303,10 +306,15 @@ function Login({
     setPending(true);
     setError(null);
     try {
-      const session = await api.login(email.trim(), password);
+      const session = await api.login(email.trim(), password, needsCode ? code.trim() : undefined);
       setPassword("");
+      setCode("");
       signedIn(session.user);
     } catch (cause) {
+      if (cause instanceof Error && cause.message === MFA_REQUIRED_MESSAGE && !needsCode) {
+        setNeedsCode(true);
+        return;
+      }
       setError(
         cause instanceof Error ? cause.message : "Não foi possível entrar.",
       );
@@ -369,6 +377,25 @@ function Login({
             editable={!pending}
             onSubmitEditing={() => void login()}
           />
+          {needsCode && (
+            <Field
+              label="Código de verificação"
+              value={code}
+              onChangeText={setCode}
+              autoCapitalize="characters"
+              autoComplete="one-time-code"
+              textContentType="oneTimeCode"
+              maxLength={16}
+              editable={!pending}
+              onSubmitEditing={() => void login()}
+            />
+          )}
+          {needsCode && !error && (
+            <Text style={styles.muted}>
+              Esta conta usa verificação em duas etapas. Informe o código do
+              aplicativo autenticador ou um código de recuperação.
+            </Text>
+          )}
           {error && <ErrorMessage message={error} />}
           <Button
             label={pending ? "Entrando…" : "Entrar"}

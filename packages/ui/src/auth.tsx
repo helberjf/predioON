@@ -26,7 +26,7 @@ type AuthState = {
   loading: boolean;
   error: string | null;
   retryRestore: () => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string, code?: string) => Promise<void>;
   signOut: () => Promise<void>;
   signOutAfter: (operation: () => Promise<void>) => Promise<void>;
   accessIntents: AccessIntentStore;

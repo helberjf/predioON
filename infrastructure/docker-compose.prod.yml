@@ -79,6 +79,8 @@ services:
       JWT_ACCESS_TTL_MINUTES: 5
       JWT_REFRESH_TTL_DAYS: 30
       AUTH_RATE_LIMIT_KEY: ${AUTH_RATE_LIMIT_KEY:?defina AUTH_RATE_LIMIT_KEY}
+      # Opcional: sem ela a verificação em duas etapas fica indisponível para novas ativações.
+      MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY:-}
       # Trust only the concrete Caddy peer, never the default application network.
       TRUST_PROXY_CIDRS: ${PROXY_IPV4_ADDRESS:-172.30.250.2}/32
       MQTT_AUTH_SECRET: ${MQTT_AUTH_SECRET}

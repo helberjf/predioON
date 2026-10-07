@@ -54,7 +54,7 @@ webAuthRouter.use((req,_res,next)=>{
 
 webAuthRouter.post('/login',validateBody(LoginSchema),admitLogin,async(req,res)=>{
   const policy=cookiePolicy(req);
-  const session=await login(req.body.email,req.body.password,{userAgent:req.header('user-agent'),ipAddress:req.ip});
+  const session=await login(req.body.email,req.body.password,{userAgent:req.header('user-agent'),ipAddress:req.ip},req.body.code);
   res.cookie(policy.name,session.refreshToken,{...policy.options,expires:session.expiresAt,
     maxAge:Math.max(0,session.expiresAt.getTime()-Date.now())});
   res.json(publicSession(session));

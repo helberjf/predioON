@@ -55,11 +55,11 @@ export function createAuthActions(options: Options) {
       }
     },
 
-    async signIn(email: string, password: string): Promise<void> {
+    async signIn(email: string, password: string, code?: string): Promise<void> {
       clearIdentity();
       options.onErrorChange(null);
       const expected = generation;
-      const session = await options.api.login(email, password);
+      const session = await options.api.login(email, password, code);
       if (generation === expected) options.onUserChange(session.user);
     },
 

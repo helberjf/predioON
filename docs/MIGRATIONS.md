@@ -250,3 +250,9 @@ A API nova exige a 044. Uma API antiga continua funcionando com ela aplicada, po
 
 A API nova exige a 045. A ingestão não muda de versão: sem regras ativas o gatilho apenas consulta e sai.
 
+## Release 046: verificação em duas etapas
+
+`046-mfa.sql` cria `mfa_factors` e `mfa_recovery_codes`, com RLS e privilégios somente para `predioon_identity` (nas colunas mutáveis: confirmação, último intervalo aceito e uso do código de recuperação). Nenhuma outra role as alcança. Contrato e motivos em [AUTENTICACAO.md](AUTENTICACAO.md#verificação-em-duas-etapas-mfa).
+
+A API nova exige a 046, porque todo login consulta se a conta tem fator ativo. Definir `MFA_ENCRYPTION_KEY` antes de liberar a ativação em produção.
+

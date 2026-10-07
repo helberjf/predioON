@@ -4,6 +4,7 @@ import { identityDb as db } from "@predioon/db/identity";
 import type { Role } from "@predioon/shared";
 import { HttpError, badRequest, notFound, unauthorized } from "../http/errors.js";
 import { hashPassword, verifyPassword } from "./passwords.js";
+import { consumeMfaCode, mfaEnabled, MFA_REQUIRED_MESSAGE } from "./mfa-factor.js";
 import { createRefreshToken, hashRefreshToken, refreshTokenExpiry, signAccessToken, type AccessTokenClaims } from "./tokens.js";
 
 type ClientMeta = { userAgent?: string | null; ipAddress?: string | null };
@@ -63,11 +64,17 @@ async function issueTokens(userId: string, sessionId: string, refreshToken: stri
   return { accessToken: await signAccessToken({ sub: userId, sid: sessionId }), refreshToken, identity, expiresAt };
 }
 
-export async function login(email: string, password: string, meta: ClientMeta): Promise<SessionTokens> {
+export async function login(email: string, password: string, meta: ClientMeta, code?: string): Promise<SessionTokens> {
   const [user] = await db.select().from(users).where(eq(users.email, email.toLowerCase())).limit(1);
   // Never reveal whether the address or password was wrong.
   const ok = await verifyPassword(password, user?.passwordHash ?? null);
   if (!user?.active || !ok) throw unauthorized("E-mail ou senha inválidos");
+  // The second factor is asked for only after the password is right, and a
+  // consumed code is spent even if the session is not created afterwards.
+  if (await mfaEnabled(user.id)) {
+    if (!code) throw unauthorized(MFA_REQUIRED_MESSAGE);
+    if (!await consumeMfaCode(user.id, code)) throw unauthorized("Código de verificação inválido");
+  }
   await buildIdentity(user.id);
   const expiresAt = refreshTokenExpiry();
   const { token, tokenHash } = createRefreshToken();

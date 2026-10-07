@@ -43,7 +43,7 @@ export function createWebApiClient(options: WebApiClientOptions) {
     onAuthLost: () => { session = null; try { coordinator.blockSession(); } finally { options.onAuthLost?.(); } },
     protocol: {
       beforeLogin: () => webRequest("logout"),
-      login: (email, password) => webRequest("login", { email, password }),
+      login: (email, password, code) => webRequest("login", code ? { email, password, code } : { email, password }),
       refresh: () => coordinator.blocked() ? null : webRequest("refresh"),
       logout: () => webRequest("logout"),
       password: body => webRequest("password", body),
@@ -72,12 +72,12 @@ export function createWebApiClient(options: WebApiClientOptions) {
       if (coordinator.blocked()) return null;
       return core.restore();
     },
-    async login(email: string, password: string): Promise<WebSession> {
+    async login(email: string, password: string, code?: string): Promise<WebSession> {
       invalidate();
       const expected = intent;
       try {
         coordinator.beginIdentityChange();
-        return await core.login(email, password);
+        return await core.login(email, password, code);
       } catch (error) {
         // A storage/coordination failure after the HTTP response must not leave
         // usable credentials behind, nor clear a newer explicit identity.

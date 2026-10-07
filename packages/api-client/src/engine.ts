@@ -20,7 +20,7 @@ type Options<C extends { accessToken: string }, S extends C> = {
   domainCredentials?: RequestCredentials;
   authTimeoutMs?: number;
   protocol: {
-    login(email: string, password: string): AuthRequest;
+    login(email: string, password: string, code?: string): AuthRequest;
     beforeLogin?: () => AuthRequest;
     refresh(tokens: C | null): AuthRequest | null;
     logout(tokens: C | null): AuthRequest | null;
@@ -224,7 +224,7 @@ export function createBearerClient<C extends { accessToken: string }, S extends 
       await refreshSession(expected);
       return readTokens(expected);
     },
-    async login(email: string, password: string): Promise<S> {
+    async login(email: string, password: string, code?: string): Promise<S> {
       const expected = ++version;
       locallySignedOut = true;
       const gate = options.authGate?.("login") ?? direct;
@@ -234,7 +234,7 @@ export function createBearerClient<C extends { accessToken: string }, S extends 
           const revoked = await checkedAuth(options.protocol.beforeLogin(), expected, signal);
           if (!revoked.ok) { const error = await responseError(revoked); assertCurrent(expected); if (signal?.aborted) throw networkError(); throw error; }
         }
-        const response = await checkedAuth(options.protocol.login(email, password), expected, signal);
+        const response = await checkedAuth(options.protocol.login(email, password, code), expected, signal);
         if (!response.ok) { const error = await responseError(response); assertCurrent(expected); if (signal?.aborted) throw networkError(); throw error; }
         const session = await readJson<S>(response, expected, signal);
         await saveTokens(session, expected);

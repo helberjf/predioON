@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Building2 } from "lucide-react";
+import { MFA_REQUIRED_MESSAGE } from "@predioon/contracts/auth";
 import { useAuth } from "../auth.js";
 import { Button, ErrorBanner } from "./primitives.js";
 import { Field, Input } from "./fields.js";
@@ -9,6 +10,9 @@ export function LoginScreen({ subtitle, invitationHref }: { subtitle: string; in
   const { signIn, error: sessionError, retryRestore } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  // Asked for only after the server says this account uses two-step verification.
+  const [needsCode, setNeedsCode] = useState(false);
+  const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -17,8 +21,9 @@ export function LoginScreen({ subtitle, invitationHref }: { subtitle: string; in
     setBusy(true);
     setError(null);
     try {
-      await signIn(email, password);
+      await signIn(email, password, needsCode ? code.trim() : undefined);
     } catch (cause) {
+      if (cause instanceof Error && cause.message === MFA_REQUIRED_MESSAGE && !needsCode) { setNeedsCode(true); return; }
       setError(cause instanceof Error ? cause.message : "Não foi possível entrar");
     } finally {
       setBusy(false);
@@ -47,6 +52,9 @@ export function LoginScreen({ subtitle, invitationHref }: { subtitle: string; in
         <Field label="Senha">
           <Input type="password" value={password} onChange={setPassword} required />
         </Field>
+        {needsCode && <Field label="Código de verificação" hint="Do aplicativo autenticador ou um código de recuperação">
+          <Input value={code} onChange={setCode} required maxLength={16} autoComplete="one-time-code" autoFocus />
+        </Field>}
 
         <Button type="submit" full disabled={busy}>
           {busy ? "Entrando..." : "Entrar"}
