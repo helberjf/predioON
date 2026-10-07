@@ -1,6 +1,7 @@
-import type { Session, SessionTokens } from "@predioon/contracts/auth";
+import type { PasswordForgotRequest, Session, SessionTokens } from "@predioon/contracts/auth";
 import type { ReservationAvailabilityQuery } from "@predioon/contracts";
 import { createBearerClient, type CredentialStorage } from "#engine";
+import { ApiError } from "#errors";
 
 export { ApiError, type ApiErrorCode } from "#errors";
 export type { PasswordChangeRequest, Session, SessionTokens, WebSession } from "@predioon/contracts/auth";
@@ -21,6 +22,32 @@ export type ApiClientOptions = {
   storage: TokenStorage;
   onAuthLost?: () => void;
 };
+
+/** Public recovery deliberately bypasses authenticated storage and session effects. */
+export async function requestPasswordRecovery(
+  options: Pick<ApiClientOptions, "baseUrl" | "fetch">,
+  email: string,
+  signal?: AbortSignal,
+): Promise<void> {
+  const generic = "Não foi possível solicitar a recuperação. Tente novamente mais tarde.";
+  const body: PasswordForgotRequest = { email: email.trim().toLowerCase() };
+  let response: Response;
+  try {
+    response = await options.fetch(`${options.baseUrl.replace(/\/+$/, "")}/auth/password/forgot`, {
+      method: "POST", credentials: "omit", cache: "no-store", redirect: "error",
+      headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal,
+    });
+  } catch {
+    throw new ApiError(0, generic, "NETWORK_ERROR");
+  }
+  if (response.status === 204) return;
+  const message = response.status === 400 ? "Informe um e-mail válido."
+    : response.status === 429 ? "Muitas tentativas. Aguarde alguns minutos antes de tentar novamente."
+    : generic;
+  throw new ApiError(response.status, message,
+    response.status >= 200 && response.status < 300 ? "INVALID_RESPONSE" : "HTTP_ERROR");
+}
+
 function authRequest(path: string, body: unknown) {
   return { path, init: { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } };
 }

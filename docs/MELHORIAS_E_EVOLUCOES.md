@@ -242,7 +242,7 @@ Identidade autenticada 37307304828 e os dois jobs de inicialização 37307304855
 
 ### 06/10: convites e ordens de serviço
 
-- **Resolvido em 07/10 (047):** o provedor escolhido foi o Resend e a recuperação foi entregue. Faltam o botão nos apps nativos, o webhook de devolução do Resend e o ensaio de entrega real. Registro original: **Recuperação de senha depende de um canal de entrega.** Sem e-mail, a única recuperação possível seria um link gerado por terceiros (síndico ou plataforma), o que daria a quem gera o link o poder de assumir a conta. Decidir o provedor de e-mail antes de implementar; até lá a troca de senha exige a senha atual.
+- **Resolvido em 07/10 (047):** o provedor escolhido foi o Resend e a recuperação foi entregue. A solicitação foi acrescentada aos dois apps na continuação de 07/10. Faltam o webhook de devolução do Resend e o ensaio de entrega real. Registro original: **Recuperação de senha depende de um canal de entrega.** Sem e-mail, a única recuperação possível seria um link gerado por terceiros (síndico ou plataforma), o que daria a quem gera o link o poder de assumir a conta. Decidir o provedor de e-mail antes de implementar; até lá a troca de senha exige a senha atual.
 - **Convites nos apps nativos:** o aceite existe só no portal web do morador.
 - **Ordens de serviço:** faltam abertura/atribuição no app Operação, anexos e checklists, vínculo com chamado na tela, paginação além de 100, notificação ao responsável e abertura automática a partir de alerta. Avaliar uma chave de funcionalidade por condomínio.
 - **Cliente HTTP web:** só trata 204 como resposta vazia; um 201 sem corpo quebra a leitura. A rota de anotações passou a devolver o registro criado; convém o cliente aceitar corpo vazio em qualquer 2xx.
@@ -250,7 +250,7 @@ Identidade autenticada 37307304828 e os dois jobs de inicialização 37307304855
 ### 07/10: recuperação de senha e e-mail
 
 - **Ativar o Resend em produção:** verificar o domínio, preencher `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `PASSWORD_RESET_URL` e `RESIDENT_PORTAL_URL`, e ensaiar uma entrega real. Sem isso a recuperação existe mas não entrega nada.
-- **Botão "Esqueci minha senha" nos apps nativos:** hoje só nos portais.
+- **Botão "Esqueci minha senha" nos apps nativos — código e provas de host entregues em 07/10:** formulário compartilhado Morador/Operação, transporte público sem sessão, cancelamento e confirmação genérica. Cliente 75/75, mobile 127/127 e quatro bundles JS Android/iOS; falta observação em aparelho e entrega real. [Evidência](evidencias/native-password-recovery-2026-10-07.json).
 - **Webhook do Resend** para devoluções e reclamações, e reenvio de falhas do provedor; hoje a falha fica só no log.
 - **Outros e-mails pelo mesmo módulo:** aviso de senha alterada, de MFA ativada/desativada e de novo acesso.
 - **Push (APNs/FCM) saiu do escopo** por decisão do proprietário; os avisos seguem pelos canais já existentes.

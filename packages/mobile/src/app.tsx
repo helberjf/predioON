@@ -18,9 +18,10 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import {
   ApiError,
   createApiClient,
+  requestPasswordRecovery,
   type ApiClient,
 } from "@predioon/api-client";
-import { MFA_REQUIRED_MESSAGE, type AuthUser } from "@predioon/contracts/auth";
+import type { AuthUser } from "@predioon/contracts/auth";
 import { nativeTokenStorage } from "./keychain.ts";
 import { createBoundedFetch } from "./bounded-fetch.ts";
 import { createSessionActionScope } from "./session-actions.ts";
@@ -40,6 +41,7 @@ import { WorkOrders } from "./work-orders-screen.tsx";
 import { Notices, Reservations, Tickets, Transparency } from "./resident.tsx";
 import { Access } from "./access.tsx";
 import { Account } from "./account.tsx";
+import { Login } from "./login.tsx";
 import {
   createAccessIntentStore,
   type AccessIntentStore,
@@ -51,7 +53,6 @@ import {
   colors,
   ErrorMessage,
   Feedback,
-  Field,
   Refresh,
   styles,
 } from "./ui.tsx";
@@ -147,6 +148,8 @@ function ConnectedApp({
       }),
     [baseUrl, storage],
   );
+  const recoverPassword = useCallback((email: string, signal?: AbortSignal) =>
+    requestPasswordRecovery({ baseUrl: api.baseUrl, fetch: boundedFetch }, email, signal), [api]);
   useEffect(() => {
     let live = true;
     setBooting(true);
@@ -227,6 +230,7 @@ function ConnectedApp({
         key={product}
         api={api}
         product={product}
+        requestPasswordRecovery={recoverPassword}
         beginSignIn={() => {
           actions.begin();
           accessRef.current.invalidate();
@@ -279,140 +283,6 @@ function ConnectedApp({
         <BuildingPicker {...{ api }} choose={setSelected} />
       )}
     </>
-  );
-}
-
-function Login({
-  api,
-  product,
-  beginSignIn,
-  signedIn,
-}: {
-  api: ApiClient;
-  product: Product;
-  beginSignIn(): void;
-  signedIn(user: AuthUser): void;
-}) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  // Asked for only after the server says this account uses two-step verification.
-  const [needsCode, setNeedsCode] = useState(false);
-  const [code, setCode] = useState("");
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  async function login() {
-    if (pending) return;
-    beginSignIn();
-    setPending(true);
-    setError(null);
-    try {
-      const session = await api.login(email.trim(), password, needsCode ? code.trim() : undefined);
-      setPassword("");
-      setCode("");
-      signedIn(session.user);
-    } catch (cause) {
-      if (cause instanceof Error && cause.message === MFA_REQUIRED_MESSAGE && !needsCode) {
-        setNeedsCode(true);
-        return;
-      }
-      setError(
-        cause instanceof Error ? cause.message : "Não foi possível entrar.",
-      );
-    } finally {
-      setPending(false);
-    }
-  }
-  return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      <ScrollView
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={styles.page}
-      >
-        <View style={{ paddingVertical: 28, gap: 12 }}>
-          <Text
-            style={{
-              color: colors.green,
-              fontSize: 15,
-              fontWeight: "700",
-              letterSpacing: 2,
-            }}
-          >
-            PRÉDIO ON
-          </Text>
-          <Text style={styles.title}>
-            {product === "resident"
-              ? "Seu condomínio, por perto."
-              : "A operação, em suas mãos."}
-          </Text>
-          <Text style={styles.text}>
-            {product === "resident"
-              ? "Acompanhe os avisos, envie solicitações e reserve espaços."
-              : "Acompanhe leituras, alertas e a rotina da equipe."}
-          </Text>
-        </View>
-        <Card>
-          <Text style={styles.subtitle}>Entrar</Text>
-          <Field
-            label="E-mail"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            autoCorrect={false}
-            keyboardType="email-address"
-            autoComplete="email"
-            textContentType="username"
-            editable={!pending}
-          />
-          <Field
-            label="Senha"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            autoCapitalize="none"
-            autoComplete="current-password"
-            textContentType="password"
-            editable={!pending}
-            onSubmitEditing={() => void login()}
-          />
-          {needsCode && (
-            <Field
-              label="Código de verificação"
-              value={code}
-              onChangeText={setCode}
-              autoCapitalize="characters"
-              autoComplete="one-time-code"
-              textContentType="oneTimeCode"
-              maxLength={16}
-              editable={!pending}
-              onSubmitEditing={() => void login()}
-            />
-          )}
-          {needsCode && !error && (
-            <Text style={styles.muted}>
-              Esta conta usa verificação em duas etapas. Informe o código do
-              aplicativo autenticador ou um código de recuperação.
-            </Text>
-          )}
-          {error && <ErrorMessage message={error} />}
-          <Button
-            label={pending ? "Entrando…" : "Entrar"}
-            disabled={pending || !email.trim() || !password}
-            onPress={() => void login()}
-          />
-        </Card>
-        <Text style={styles.muted}>
-          Use sua conta cadastrada pela administração do condomínio.
-        </Text>
-        {__DEV__ && (
-          <Text style={styles.muted}>
-            Ambiente de desenvolvimento: {api.baseUrl}
-          </Text>
-        )}
-      </ScrollView>
-    </KeyboardAvoidingView>
   );
 }
 

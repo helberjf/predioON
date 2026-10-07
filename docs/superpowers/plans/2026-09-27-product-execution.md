@@ -6,9 +6,9 @@ Base aprovada: [arquitetura](../specs/2026-09-27-arquitetura-produto-design.md).
 
 - [x] 1. Contratos e cliente HTTP: separar DTOs e cliente portátil da UI, preservar consumidores web, testar renovação concorrente, troca de sessão, falhas de rede e fronteiras entre pacotes.
 - [ ] 2. Identidade e RBAC: políticas por capacidade/condomínio; sessões com rotação atômica/revogação; migrations e RLS; vínculos/equipes; adaptação de consumidores e testes negativos de autorização.
-- [ ] 3. Processamento durável: outbox de alertas038 e worker restrito publicados com CI aprovado; [proposta039](2026-10-03-durable-inbox.md) publicada somente como desenho. Faltam inbox/worker compatível, consumidores restantes, comandos/scheduler, retenção/replay e operação. Preservar recuperação/deduplicação e a política de comandos físicos.
+- [ ] 3. Processamento durável: outbox de alertas038 e worker restrito publicados com CI aprovado; [proposta de inbox, reserva atual048](2026-10-03-durable-inbox.md) publicada somente como desenho. Faltam inbox/worker compatível, consumidores restantes, comandos/scheduler, retenção/replay e operação. Preservar recuperação/deduplicação e a política de comandos físicos.
 - [ ] 4. Domínios de produto: ativos e ordens de serviço, automações versionadas, planos/assinaturas e suporte com concessão explícita; API e gestão web integradas.
-- [ ] 5. Aplicativos Morador/Operação: React Native sem Expo, armazenamento seguro, telas próprias por público, chamadas à API real, notificações e configurações nativas Android/iOS.
+- [ ] 5. Aplicativos Morador/Operação: React Native sem Expo, armazenamento seguro, telas próprias por público, chamadas à API real e configurações nativas Android/iOS. Push saiu do escopo por decisão do proprietário em07/10; os canais existentes permanecem.
 - [ ] 6. Implantação e operação: Compose, migrations registradas, credenciais restritas, backup/restauração, observabilidade, verificação de builds, regressão e documentação das dependências externas.
 
 ## Regras de execução
@@ -419,3 +419,9 @@ O [plano do observador Android](2026-10-05-android-renderer-observer.md) agora a
 ### Apple 0e72f64: duas fixtures host reprovadas antes do nativo
 
 Identidade autenticada 37307304828 e os dois jobs de inicialização 37307304855 tiveram **143 testes: 141 aprovados, duas falhas, zero skips em cada job**. Falharam os casos de origem válida e do descendente após saída do líder. Banco, builds, geração real do agente Apple e XCTest não foram alcançados; metadados oficiais registram zero artefatos nos dois runs. [Prova 31 e hashes dos logs host](../../evidencias/ios-0e72f64.json). A causa ainda não está estabelecida. Alias de caminho macOS e interação da captura ps com o mock da fixture estão sendo reproduzidos; não alterar produto, guard ATS, prazos ou critérios sem evidência. Os 143 aprovados no Linux continuam uma execução histórica distinta.
+
+### Continuação de07/10 sobre main047 — recuperação nativa
+
+Base `425f5ac` reconciliada no branch `codex/continue-product-plan`; o antigo rascunho de avisos025 foi preservado e está superado pela026 vigente. Migrations001–047 permanecem publicadas; inbox reservada048, push fora do escopo e planos/assinaturas por último. Recuperação por e-mail, MFA, ativos, ordens e automações já constam da main. Os registros antigos deste tracker são históricos; o ponto de retomada está em CONTINUIDADE.md.
+
+Recorte nativo de2C/5: Esqueci minha senha nos dois apps, transporte público isolado da sessão, cancelamento/gerações/StrictMode e confirmação sem revelar conta; login/MFA preservados. REDs reais e revisões independentes aprovados. Integrais próprias da raiz: cliente75/75 e mobile127/127, zero falhas/skips/cancelamentos; quatro tipos, fronteiras/diff e quatro bundles JS de release Android/iOS. [Plano](2026-10-07-native-password-recovery.md) e [evidência](../../evidencias/native-password-recovery-2026-10-07.json). Sem aceite de aparelho/Fabric/Apple ou entrega real pelo Resend. Etapas maiores2–6 permanecem abertas.
