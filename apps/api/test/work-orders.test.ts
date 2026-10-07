@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
-import { readFile } from "node:fs/promises";
 import { after, before, describe, it } from "node:test";
 import { sql } from "drizzle-orm";
 import { sqlClient } from "@predioon/db";
@@ -212,22 +211,6 @@ describe("work orders are distributed by managers and executed by their assignee
     assert.deepEqual({ ...row }, { title: "Trocar lâmpada da garagem", status: "OPEN", version: 1, assigned_user_id: people.worker });
   });
 
-  it("reapplies 043 without changing functions, policies or grants", async () => {
-    const migration = await readFile(new URL("../../../infrastructure/043-work-orders.sql", import.meta.url), "utf8");
-    const rollback = new Error("043 reapplication rollback");
-    await assert.rejects(sqlClient.begin(async owner => {
-      const invariant = async () => ({
-        functions: await owner`select p.oid::regprocedure::text as signature,p.prosrc,p.proacl::text,p.proowner,p.proconfig,p.prosecdef
-          from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' order by signature`,
-        policies: await owner`select * from pg_policies where schemaname='public' order by tablename,policyname`,
-        tables: await owner`select c.relname,c.relrowsecurity,c.relacl::text from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind='r' order by c.relname`,
-        columns: await owner`select a.attrelid::regclass::text as relation,a.attname,a.attacl::text from pg_attribute a join pg_class c on c.oid=a.attrelid
-          join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and a.attacl is not null order by 1,2`,
-      });
-      const before = await invariant();
-      await owner.unsafe(migration);
-      assert.deepEqual(await invariant(), before);
-      throw rollback;
-    }), error => error === rollback);
-  });
+  // Reapplying 043 is no longer an invariant: 044 replaces the guard and adds
+  // the asset column to these grants. The reapplication proof lives with 044.
 });

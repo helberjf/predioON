@@ -4,7 +4,7 @@ export type WorkOrderPriority = "LOW" | "NORMAL" | "HIGH" | "URGENT";
 
 export type WorkOrderView = {
   id: string; buildingId: string; title: string; description: string;
-  priority: WorkOrderPriority; status: WorkOrderStatus; occurrenceId: string | null;
+  priority: WorkOrderPriority; status: WorkOrderStatus; occurrenceId: string | null; assetId: string | null;
   assignedUserId: string | null; assignedTeamId: string | null; dueAt: string | null;
   createdBy: string; version: number; createdAt: string; updatedAt: string;
   startedAt: string | null; closedAt: string | null;
@@ -22,12 +22,12 @@ export type WorkOrderListResponse = { items: WorkOrderView[]; nextCursor: string
 type Assignee = { assignedUserId?: string | null; assignedTeamId?: string | null };
 export type CreateWorkOrderRequest = Assignee & {
   buildingId: string; title: string; description?: string; priority?: WorkOrderPriority;
-  dueAt?: string | null; occurrenceId?: string | null;
+  dueAt?: string | null; occurrenceId?: string | null; assetId?: string | null;
 };
 /** `version` is the one last read; a stale value is answered with 409. */
 export type UpdateWorkOrderRequest = Assignee & {
   version: number; title?: string; description?: string; priority?: WorkOrderPriority;
-  dueAt?: string | null; occurrenceId?: string | null;
+  dueAt?: string | null; occurrenceId?: string | null; assetId?: string | null;
 };
 export type WorkOrderTransitionRequest = { version: number; status: WorkOrderStatus; note?: string };
 export type WorkOrderNoteRequest = { note: string };

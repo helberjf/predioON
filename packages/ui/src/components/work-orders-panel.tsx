@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import type { TeamView } from "@predioon/contracts/tenancy";
+import type { AssetListResponse } from "@predioon/contracts/assets";
 import type { CreateWorkOrderRequest, UpdateWorkOrderRequest, WorkOrderDetail, WorkOrderListResponse, WorkOrderPriority, WorkOrderStatus, WorkOrderTransitionRequest, WorkOrderView } from "@predioon/contracts/work-orders";
 import { api } from "../api.js";
 import { useAuth } from "../auth.js";
@@ -20,7 +21,7 @@ const PRIORITY: Record<WorkOrderPriority, { label: string; tone: Tone }> = {
 };
 const PRIORITIES = (Object.keys(PRIORITY) as WorkOrderPriority[]).map(value => ({ value, label: PRIORITY[value].label }));
 const EVENT = { CREATED: "Ordem aberta", UPDATED: "Dados alterados", ASSIGNED: "Responsável alterado", NOTE: "Anotação", STATUS_CHANGED: "Estado alterado" };
-const EMPTY_FORM = { title: "", description: "", priority: "NORMAL", dueAt: "", assignee: "" };
+const EMPTY_FORM = { title: "", description: "", priority: "NORMAL", dueAt: "", assignee: "", assetId: "" };
 
 /** Distribution and execution of maintenance work; the server decides which of the two applies. */
 export function WorkOrdersPanel({ buildingId }: { buildingId: string }) {
@@ -31,6 +32,9 @@ export function WorkOrdersPanel({ buildingId }: { buildingId: string }) {
   // The directories need their own permissions; without them the picker simply has fewer options.
   const teams = useTenancyCollection<TeamView>(canDistribute ? `/v1/tenancy/teams?${scope}` : null);
   const people = useTenancyCollection<Person>(canDistribute ? `/v1/tenancy/people?${scope}` : null);
+  // Assets need the equipment permission; without it orders simply show no asset name.
+  const assets = useResource<AssetListResponse>(`/v1/assets?${scope}&limit=100`);
+  const assetName = (id: string | null) => id ? assets.data?.items.find(asset => asset.id === id)?.name ?? "Ativo" : null;
   const [onlyOpen, setOnlyOpen] = useState(true);
   const [form, setForm] = useState(EMPTY_FORM);
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -63,7 +67,7 @@ export function WorkOrdersPanel({ buildingId }: { buildingId: string }) {
     mutate(() => api.post(`/v1/work-orders/${order.id}/status`, { version: order.version, status } satisfies WorkOrderTransitionRequest), message, after);
   function create() {
     const payload: CreateWorkOrderRequest = { buildingId, title: form.title.trim(), description: form.description.trim(), priority: form.priority as WorkOrderPriority,
-      dueAt: form.dueAt ? new Date(form.dueAt).toISOString() : null, ...(form.assignee ? assignment(form.assignee) : {}) };
+      dueAt: form.dueAt ? new Date(form.dueAt).toISOString() : null, ...(form.assetId ? { assetId: form.assetId } : {}), ...(form.assignee ? assignment(form.assignee) : {}) };
     void mutate(() => api.post("/v1/work-orders", payload), "Ordem de serviço aberta.", () => setForm(EMPTY_FORM));
   }
 
@@ -83,6 +87,7 @@ export function WorkOrdersPanel({ buildingId }: { buildingId: string }) {
       <Field label="Prioridade"><Select value={form.priority} onChange={priority => setForm({ ...form, priority })} options={PRIORITIES} /></Field>
       <Field label="Prazo (opcional)"><Input type="datetime-local" value={form.dueAt} onChange={dueAt => setForm({ ...form, dueAt })} /></Field>
       <Field label="Responsável"><Select value={form.assignee} onChange={assignee => setForm({ ...form, assignee })} options={assigneeOptions} /></Field>
+      {Boolean(assets.data?.items.length) && <Field label="Ativo (opcional)"><Select value={form.assetId} onChange={assetId => setForm({ ...form, assetId })} options={[{ value: "", label: "Sem ativo" }, ...assets.data!.items.map(asset => ({ value: asset.id, label: asset.name }))]} /></Field>}
       <div className="md:col-span-2"><Button type="submit" disabled={pending}>{pending ? "Abrindo…" : "Abrir ordem de serviço"}</Button></div>
     </fieldset></form></Card>}
 
@@ -94,7 +99,7 @@ export function WorkOrdersPanel({ buildingId }: { buildingId: string }) {
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div><strong className="text-slate-900">{order.title}</strong>{order.description && <p className="mt-1 text-slate-600">{order.description}</p>}
               <div className="mt-2 flex flex-wrap items-center gap-2"><Badge tone={STATUS[order.status].tone}>{STATUS[order.status].label}</Badge><Badge tone={PRIORITY[order.priority].tone}>{`Prioridade ${PRIORITY[order.priority].label.toLowerCase()}`}</Badge>
-                <span className="text-xs text-slate-500">{assigneeLabel(order)}{order.dueAt ? ` · Prazo ${formatDateTime(order.dueAt)}` : ""}</span></div></div>
+                <span className="text-xs text-slate-500">{assigneeLabel(order)}{order.assetId ? ` · ${assetName(order.assetId)}` : ""}{order.dueAt ? ` · Prazo ${formatDateTime(order.dueAt)}` : ""}</span></div></div>
             <div className="flex flex-wrap items-center gap-1">
               {executes && order.status === "OPEN" && <Button variant="secondary" disabled={pending} onClick={() => void transition(order, "IN_PROGRESS", "Execução iniciada.")}>Iniciar</Button>}
               {executes && order.status === "IN_PROGRESS" && <><Button disabled={pending} onClick={() => void transition(order, "DONE", "Ordem de serviço concluída.")}>Concluir</Button><Button variant="ghost" disabled={pending} onClick={() => void transition(order, "OPEN", "Execução pausada.")}>Pausar</Button></>}

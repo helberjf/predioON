@@ -24,15 +24,15 @@ const assignee = { assignedUserId: z.string().min(1).max(128).nullable().optiona
 const oneAssignee = (value: { assignedUserId?: string | null; assignedTeamId?: string | null }) => !value.assignedUserId || !value.assignedTeamId;
 const List = z.object({ buildingId, status: Status.optional(), after: id.optional(), limit: z.coerce.number().int().min(1).max(100).default(50) });
 const Create = z.object({ buildingId, title, description: description.default(""), priority: Priority.default("NORMAL"),
-  dueAt: z.coerce.date().nullable().optional(), occurrenceId: id.nullable().optional(), ...assignee }).strict().refine(oneAssignee, "Atribua a uma pessoa ou a uma equipe");
+  dueAt: z.coerce.date().nullable().optional(), occurrenceId: id.nullable().optional(), assetId: id.nullable().optional(), ...assignee }).strict().refine(oneAssignee, "Atribua a uma pessoa ou a uma equipe");
 const Update = z.object({ version, title: title.optional(), description: description.optional(), priority: Priority.optional(),
-  dueAt: z.coerce.date().nullable().optional(), occurrenceId: id.nullable().optional(), ...assignee }).strict()
+  dueAt: z.coerce.date().nullable().optional(), occurrenceId: id.nullable().optional(), assetId: id.nullable().optional(), ...assignee }).strict()
   .refine(oneAssignee, "Atribua a uma pessoa ou a uma equipe").refine(value => Object.keys(value).length > 1, "Informe ao menos um campo");
 const Transition = z.object({ version, status: Status, note: note.optional() }).strict();
 const Note = z.object({ note }).strict();
 
 type WorkOrder = { id: string; buildingId: string; status: z.infer<typeof Status>; version: number; assignedUserId: string | null; assignedTeamId: string | null };
-const view = sql`w.id, w.building_id as "buildingId", w.title, w.description, w.priority, w.status, w.occurrence_id as "occurrenceId",
+const view = sql`w.id, w.building_id as "buildingId", w.title, w.description, w.priority, w.status, w.occurrence_id as "occurrenceId", w.asset_id as "assetId",
   w.assigned_user_id as "assignedUserId", w.assigned_team_id as "assignedTeamId", ${isoTime(sql`w.due_at`)} as "dueAt", w.created_by as "createdBy", w.version,
   ${isoTime(sql`w.created_at`)} as "createdAt", ${isoTime(sql`w.updated_at`)} as "updatedAt",
   ${isoTime(sql`w.started_at`)} as "startedAt", ${isoTime(sql`w.closed_at`)} as "closedAt",
@@ -44,7 +44,7 @@ async function inWorkOrders<T>(req: Request, run: (tx: AppTransaction) => Promis
   catch (error) {
     const code = pgErrorCode(error);
     if (code === "42501") throw forbidden("Sem a permissão necessária para esta ordem de serviço");
-    if (code === "23503" || code === "23514") throw badRequest("Responsável, equipe ou chamado inválidos para este condomínio");
+    if (code === "23503" || code === "23514") throw badRequest("Responsável, equipe, chamado ou ativo inválidos para este condomínio");
     if (code === "P0409" || code === "40001") throw conflict("A ordem de serviço foi alterada. Recarregue antes de tentar novamente.");
     if (code === "55000") throw conflict("Esta ordem de serviço já foi encerrada ou não admite essa mudança de estado.");
     throw error;
@@ -87,8 +87,8 @@ workOrdersRouter.post("/", validateBody(Create), async (req, res) => {
   const input = req.body as z.infer<typeof Create>;
   const actor = currentAuth(req).userId;
   const created = await inWorkOrders(req, async tx => {
-    const [order] = await rows<WorkOrder>(tx, sql`insert into work_orders as w(building_id,title,description,priority,occurrence_id,assigned_user_id,assigned_team_id,due_at,created_by)
-      values(${input.buildingId},${input.title},${input.description},${input.priority},${input.occurrenceId ?? null},${input.assignedUserId ?? null},
+    const [order] = await rows<WorkOrder>(tx, sql`insert into work_orders as w(building_id,title,description,priority,occurrence_id,asset_id,assigned_user_id,assigned_team_id,due_at,created_by)
+      values(${input.buildingId},${input.title},${input.description},${input.priority},${input.occurrenceId ?? null},${input.assetId ?? null},${input.assignedUserId ?? null},
         ${input.assignedTeamId ?? null},${input.dueAt?.toISOString() ?? null}::timestamptz,${actor}) returning ${view}`);
     await event(tx, order!, actor, "CREATED");
     await recordAudit(tx, req, { userId: actor, buildingId: input.buildingId, action: "WORK_ORDER_CREATED", resourceType: "work_order", resourceId: order!.id });
@@ -123,6 +123,7 @@ workOrdersRouter.patch("/:id", validateBody(Update), async (req, res) => {
       priority=case when ${has("priority")} then ${changes.priority ?? null} else w.priority end,
       due_at=case when ${has("dueAt")} then ${changes.dueAt?.toISOString() ?? null}::timestamptz else w.due_at end,
       occurrence_id=case when ${has("occurrenceId")} then ${changes.occurrenceId ?? null}::uuid else w.occurrence_id end,
+      asset_id=case when ${has("assetId")} then ${changes.assetId ?? null}::uuid else w.asset_id end,
       assigned_user_id=${user}, assigned_team_id=${team}::uuid
       where w.id=${target} and w.version=${expected} returning ${view}`);
     if (!updated) throw conflict("A ordem de serviço foi alterada. Recarregue antes de tentar novamente.");

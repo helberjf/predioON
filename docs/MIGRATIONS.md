@@ -238,3 +238,9 @@ A API nova exige a 042. Uma API antiga continua funcionando com a 042 aplicada. 
 
 A API nova exige a 043; uma API antiga continua funcionando com ela aplicada. O gatilho não restringe manutenção administrativa feita fora de um contexto de usuário (conexão proprietária sem `app.user_id`).
 
+## Release 044: ativos
+
+`044-assets.sql` cria `assets` e `asset_device_links`, acrescenta `work_orders.asset_id`, o gatilho de ativos, as policies de RLS e o ramo de auditoria `ASSET_CREATED`/`ASSET_UPDATED`. **Substitui a função `app_work_order_guard` da 043**, que passa a tratar o ativo; nenhuma migration publicada foi editada. Não cria permissões. Contrato e motivos em [ATIVOS.md](ATIVOS.md).
+
+A API nova exige a 044. Uma API antiga continua funcionando com ela aplicada, pois a coluna nova é opcional.
+

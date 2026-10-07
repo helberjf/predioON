@@ -55,7 +55,7 @@ Uma ordem fora da visão do solicitante responde 404, igual a uma inexistente. `
 
 - Portal de operação web (`/ordens-servico`): distribuição e execução completas.
 - App Operação (Android/iOS): aba **Ordens de serviço**, aberta por `work-orders:assign` ou `work-orders:read-assigned`, independente do resumo do condomínio. Permite iniciar, pausar, concluir (com confirmação), ver o histórico e anotar. Abrir, editar, atribuir e cancelar ficam no portal web. **Sem execução nativa verificada**: ver [CONTINUIDADE.md](CONTINUIDADE.md).
-- Sem anexos, checklists, ativos, notificações push ou criação automática por alerta/automação.
+- Sem anexos, checklists, notificações push ou criação automática por alerta/automação. O vínculo com ativo existe desde a 044: ver [ATIVOS.md](ATIVOS.md).
 - O vínculo com chamado existe na API (`occurrenceId`, exige `occurrences:manage`), sem controle na tela.
 - A lista traz até 100 ordens por página; a tela ainda não pagina além disso.
 - Não há chave de funcionalidade por condomínio para este módulo: quem tem a permissão vê o item de menu.
