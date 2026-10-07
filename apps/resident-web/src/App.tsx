@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import { AccessPanel, BuildingScopeProvider, BuildingScopeFeedback, FeatureProvider, FeatureContent, InvitationScreen, LoginScreen, MonitoringPanel, ParkingPanel, TransparencyPanel, useAuth, useBuildingScope } from "@predioon/ui";
+import { AccessPanel, BuildingScopeProvider, BuildingScopeFeedback, FeatureProvider, FeatureContent, InvitationScreen, LoginScreen, PasswordRecoveryScreen, MonitoringPanel, ParkingPanel, TransparencyPanel, useAuth, useBuildingScope } from "@predioon/ui";
 import { MobileShell } from "./layout/MobileShell.js";
 import { Home } from "./pages/Home.js";
 import { Notices } from "./pages/Notices.js";
@@ -12,6 +12,8 @@ export function App() {
 
   // An invitation is accepted without a session, whoever is signed in on this browser.
   if (window.location.pathname === "/convite") return <InvitationScreen />;
+  // A recovery link is honoured whoever is signed in on this browser; it ends every session anyway.
+  if (window.location.pathname === "/redefinir-senha") return <PasswordRecoveryScreen />;
   if (loading) return <p className="p-8 text-slate-500">Carregando...</p>;
   if (!user) return <LoginScreen subtitle="Portal do morador" invitationHref="/convite" />;
 

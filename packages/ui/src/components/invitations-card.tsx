@@ -17,7 +17,7 @@ const RESIDENT_URL = (import.meta.env?.VITE_RESIDENT_URL as string | undefined)?
 export function InvitationsCard({ buildingId, units }: { buildingId: string; units: Array<{ value: string; label: string }> }) {
   const invitations = useTenancyCollection<InvitationView>(`/v1/tenancy/invitations?buildingId=${encodeURIComponent(buildingId)}`);
   const [form, setForm] = useState({ name: "", email: "", unitId: "", kind: "OCCUPANT" });
-  const [issued, setIssued] = useState<{ name: string; token: string } | null>(null);
+  const [issued, setIssued] = useState<{ name: string; token: string; emailed: boolean } | null>(null);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -34,7 +34,7 @@ export function InvitationsCard({ buildingId, units }: { buildingId: string; uni
     const person = { buildingId, name: form.name.trim(), email: form.email.trim() };
     const payload: CreateInvitationRequest = form.unitId ? { ...person, unitId: form.unitId, kind: form.kind as "OWNER" | "OCCUPANT" | "DEPENDENT" } : person;
     const result = await api.post<CreateInvitationResponse>("/v1/tenancy/invitations", payload);
-    setIssued({ name: result.invitation.name, token: result.token }); setCopied(false);
+    setIssued({ name: result.invitation.name, token: result.token, emailed: result.emailRequested }); setCopied(false);
     setForm({ ...form, name: "", email: "" });
   });
   const shared = issued ? (RESIDENT_URL ? `${RESIDENT_URL}/convite#${issued.token}` : issued.token) : "";
@@ -51,6 +51,7 @@ export function InvitationsCard({ buildingId, units }: { buildingId: string; uni
     </fieldset></form>
     {issued && <div role="status" className="mb-5 space-y-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
       <p>Convite de <strong>{issued.name}</strong> gerado. Entregue {RESIDENT_URL ? "este link" : "este código"} somente a essa pessoa: ele vale por 7 dias, funciona uma vez e <strong>não será exibido novamente</strong>.</p>
+      {issued.emailed && <p>Também enviamos o convite para o e-mail informado.</p>}
       <Field label={RESIDENT_URL ? "Link do convite" : "Código do convite"}><Input readOnly value={shared} onChange={() => {}} onFocus={event => event.currentTarget.select()} /></Field>
       <div className="flex flex-wrap gap-2">
         <Button variant="secondary" onClick={() => { void navigator.clipboard?.writeText(shared).then(() => setCopied(true), () => setCopied(false)); }}>{copied ? "Copiado" : "Copiar"}</Button>

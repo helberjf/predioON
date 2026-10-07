@@ -61,7 +61,7 @@ No Compose de produção, somente Caddy e API participam de `edge_proxy`. O ende
 
 O backend web passou em dez testes HTTP/PostgreSQL específicos. A integração dos portais passou em **45/45 execuções dirigidas** nos três motores de navegador, com API real, além de **48/48** testes do cliente, **64/64** da UI, tipos e builds dos três portais. A regressão integral da API até 032 passou em **537/537**. A matriz completa de 105 execuções de navegador está em andamento; os resultados dirigidos não a substituem.
 
-A comparação de senha executa trabalho Argon2 também para conta inexistente ou hash malformado, sem aceitar o resultado fictício como credencial. [Correção e testes](superpowers/plans/2026-10-02-password-verification-work.md). A limitação persistente passou 24 testes próprios, 29 de regressão de autenticação, teste do Caddy e 26 testes de banco com restauração de 44 tabelas/35 migrations. [Política e evidências de035](superpowers/plans/2026-10-02-login-throttling.md). MFA, verificação adicional para ações privilegiadas, convites e recuperação continuam pendentes da etapa 2C.
+A comparação de senha executa trabalho Argon2 também para conta inexistente ou hash malformado, sem aceitar o resultado fictício como credencial. [Correção e testes](superpowers/plans/2026-10-02-password-verification-work.md). A limitação persistente passou 24 testes próprios, 29 de regressão de autenticação, teste do Caddy e 26 testes de banco com restauração de 44 tabelas/35 migrations. [Política e evidências de035](superpowers/plans/2026-10-02-login-throttling.md). Convites, MFA e recuperação de senha foram entregues depois e têm seções próprias abaixo; verificação adicional para ações privilegiadas continua pendente.
 
 ## Convites de moradores
 
@@ -117,3 +117,49 @@ Qualquer conta pode exigir, além da senha, um código de seis dígitos gerado p
 - Ativar não encerra as outras sessões já abertas, e não há como um administrador remover o fator de outra pessoa que perdeu aplicativo e códigos.
 - A resposta pedindo o código confirma, para quem já sabe a senha, que a conta usa MFA.
 
+## Recuperação de senha por e-mail
+
+Quem esqueceu a senha pede um link pelo próprio e-mail e cria uma nova. Ninguém mais participa: um link gerado pelo síndico ou pela plataforma daria a essa pessoa o poder de assumir a conta.
+
+**Fluxo**
+
+1. Na entrada de qualquer portal, **Esqueci minha senha** leva a `/redefinir-senha`, que pede o e-mail e chama `POST /auth/password/forgot`.
+2. A resposta é sempre **204**, exista a conta ou não, e sai antes de a conta ser consultada e de o provedor ser chamado. Nem o conteúdo nem o tempo da resposta revelam se o endereço tem cadastro.
+3. Para conta ativa, a API grava o SHA-256 de um segredo de 32 bytes e envia o link `<portal>/redefinir-senha#<segredo>`. O segredo vai no fragmento da URL, que o navegador não manda a servidores nem a proxies, e a tela o remove da barra de endereço ao abrir.
+4. A tela pede a nova senha (mesma política da troca: 15 caracteres ou mais) e chama `POST /auth/password/reset`.
+5. Numa única transação a senha é substituída, o link e os demais links pendentes da conta são gastos e **todas as sessões são encerradas** (motivo `PASSWORD_RESET`).
+
+**Regras e motivos**
+
+| Regra | Motivo |
+|---|---|
+| Link vale 60 minutos e funciona uma vez | Uma caixa de e-mail lida depois não reabre a conta |
+| Um novo link invalida os anteriores | Só o e-mail mais recente vale |
+| Novo link só depois de 2 minutos do anterior, e 20 pedidos por endereço a cada 15 minutos | Ninguém consegue lotar a caixa de outra pessoa |
+| O limite de pedidos tem orçamento próprio | Pedir links em nome de alguém não bloqueia a entrada dessa pessoa |
+| O destino do link é a origem do pedido, se for um dos portais em `CORS_ORIGINS`; senão, `PASSWORD_RESET_URL` | Nenhum campo do pedido escolhe para onde o e-mail aponta |
+| Tabela `password_resets` sem privilégio para nenhuma role de execução | Emissão e consumo passam só por duas funções, executáveis apenas pela role de identidade |
+| A verificação em duas etapas continua ativa após a redefinição | Acesso à caixa de e-mail sozinho não basta para entrar numa conta protegida |
+| Senha fraca não gasta o link | A pessoa corrige e tenta de novo |
+
+**E-mail (Resend)**
+
+O envio usa a API HTTP do Resend, com os mesmos nomes de variável do projeto Menu Hóspede, sem dependência nova: `apps/api/src/mail/mailer.ts`.
+
+| Variável | Uso |
+|---|---|
+| `RESEND_API_KEY` | Chave da conta. **Sem ela nada é enviado** e o resto do sistema funciona normalmente |
+| `RESEND_FROM_EMAIL` | Remetente, de um domínio verificado no Resend. O padrão `onboarding@resend.dev` só entrega para o dono da conta |
+| `PASSWORD_RESET_URL` | Portal aberto pelo link quando o pedido não vem de um portal (apps) |
+| `RESIDENT_PORTAL_URL` | Portal do morador. Com ele e a chave, o convite de morador também segue por e-mail; o código continua aparecendo na tela de quem convidou |
+
+Em desenvolvimento, sem a chave, a API escreve o link de recuperação no próprio log para o fluxo poder ser exercitado. Em produção isso nunca acontece.
+
+**Para ligar em produção:** verificar o domínio no Resend, preencher as quatro variáveis em `infrastructure/.env.prod`, aplicar a migration 047 e reiniciar a API. Depois, pedir um link para uma conta real e conferir a entrega.
+
+**Limites conhecidos**
+
+- A entrega real pelo Resend não foi exercitada: os testes substituem o transporte e conferem a mensagem produzida.
+- Falha do provedor não é reenviada nem avisada a quem pediu (a resposta já saiu); fica no log da API. A pessoa pede de novo após 2 minutos.
+- Os apps nativos não têm o botão; a recuperação é feita pelo portal, e a nova senha vale nos apps.
+- Não há webhook de devolução/reclamação do Resend.

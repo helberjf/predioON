@@ -32,4 +32,4 @@ export type InvitationView = {
 };
 export type CreateInvitationRequest = { buildingId: string; name: string; email: string } & ({ unitId: string; kind: "OWNER" | "OCCUPANT" | "DEPENDENT" } | { unitId?: never; kind?: never });
 /** `token` is returned only here, once. */
-export type CreateInvitationResponse = { invitation: InvitationView; token: string };
+export type CreateInvitationResponse = { invitation: InvitationView; token: string; /** True when the server also e-mailed the link; delivery is not confirmed here. */ emailRequested: boolean };

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Link, Navigate, Route, Routes } from "react-router-dom";
-import { Button, FeatureProvider, FeatureContent, LoginScreen, SessionsPanel, useAuth } from "@predioon/ui";
+import { Button, FeatureProvider, FeatureContent, LoginScreen, PasswordRecoveryScreen, SessionsPanel, useAuth } from "@predioon/ui";
 import { Shell } from "./layout/Shell.js";
 import { Overview } from "./pages/Overview.js";
 import { Clients } from "./pages/Clients.js";
@@ -19,6 +19,8 @@ import { OrganizationAccessFeedback, OrganizationAccessProvider, useOrganization
 export function App() {
   const { user, loading } = useAuth();
 
+  // A recovery link is honoured whoever is signed in on this browser; it ends every session anyway.
+  if (window.location.pathname === "/redefinir-senha") return <PasswordRecoveryScreen />;
   if (loading) return <p className="p-8 text-slate-500">Carregando...</p>;
   if (!user) return <LoginScreen subtitle="Administração da plataforma" />;
 

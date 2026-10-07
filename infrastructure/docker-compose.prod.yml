@@ -81,6 +81,11 @@ services:
       AUTH_RATE_LIMIT_KEY: ${AUTH_RATE_LIMIT_KEY:?defina AUTH_RATE_LIMIT_KEY}
       # Opcional: sem ela a verificação em duas etapas fica indisponível para novas ativações.
       MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY:-}
+      # Opcionais: sem a chave do Resend nenhum e-mail é enviado.
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-}
+      PASSWORD_RESET_URL: ${PASSWORD_RESET_URL:-}
+      RESIDENT_PORTAL_URL: ${RESIDENT_PORTAL_URL:-}
       # Trust only the concrete Caddy peer, never the default application network.
       TRUST_PROXY_CIDRS: ${PROXY_IPV4_ADDRESS:-172.30.250.2}/32
       MQTT_AUTH_SECRET: ${MQTT_AUTH_SECRET}

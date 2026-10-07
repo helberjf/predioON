@@ -224,7 +224,7 @@ describe("durable alert delivery SQL038, real restricted connections", { skip: !
   it("preserves delivery state on ledger reapplication", async () => {
     await enqueue(await alert()); const migrations = await loadInfrastructureMigrations();
     assert.deepEqual(await applyInfrastructure(owner, migrations), []);
-    assert.equal((await owner`select count(*)::int as count from schema_migrations`)[0]!.count, 46);
+    assert.equal((await owner`select count(*)::int as count from schema_migrations`)[0]!.count, 47);
     assert.equal((await owner`select count(*)::int as count from event_deliveries`)[0]!.count, 1);
   });
   it("removes preexisting runtime column grants, PUBLIC column grants and memberships", async () => {

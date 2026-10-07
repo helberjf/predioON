@@ -59,6 +59,7 @@ export function LoginScreen({ subtitle, invitationHref }: { subtitle: string; in
         <Button type="submit" full disabled={busy}>
           {busy ? "Entrando..." : "Entrar"}
         </Button>
+        <a href="/redefinir-senha" className="block text-center text-sm text-slate-500 underline">Esqueci minha senha</a>
         {invitationHref && <a href={invitationHref} className="block text-center text-sm text-slate-500 underline">Tenho um convite</a>}
       </form>
     </main>

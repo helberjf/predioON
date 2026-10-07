@@ -8,6 +8,9 @@ function runtimeUrlSchema(role: string) {
   return process.env.NODE_ENV === "production" ? required : required.default(`postgres://${role}:${role}@localhost:5434/predioon`);
 }
 
+/** Compose passes unset variables as empty strings; treat them as absent. */
+const blank = (value: unknown) => value === "" ? undefined : value;
+
 const EnvSchema = z.object({
   API_PORT: z.coerce.number().int().positive().default(3000),
   DATABASE_URL_APP: runtimeUrlSchema("predioon_app"),
@@ -24,8 +27,15 @@ const EnvSchema = z.object({
   AUTH_RATE_LIMIT_KEY: z.string().optional(),
   // Optional: without it, two-step verification cannot be enrolled in production.
   // An empty value (the Compose default) means "not configured", not "invalid".
-  MFA_ENCRYPTION_KEY: z.preprocess(value => value === "" ? undefined : value,
+  MFA_ENCRYPTION_KEY: z.preprocess(blank,
     z.string().refine(value => Buffer.byteLength(value, "utf8") >= 32 && value.trim() === value, "MFA_ENCRYPTION_KEY exige pelo menos 32 bytes").optional()),
+  // E-mail by Resend, same variable names as our other projects. Optional: without the key nothing is sent.
+  RESEND_API_KEY: z.preprocess(blank, z.string().min(1).optional()),
+  RESEND_FROM_EMAIL: z.preprocess(blank, z.string().min(3).max(200).default("Prédio ON <onboarding@resend.dev>")),
+  // Portal opened by a recovery link when the request did not come from one of our portals (mobile apps).
+  PASSWORD_RESET_URL: z.preprocess(blank, z.string().url().optional()),
+  // Resident portal, where an e-mailed invitation is accepted.
+  RESIDENT_PORTAL_URL: z.preprocess(blank, z.string().url().optional()),
   MQTT_AUTH_SECRET: z.string().min(32).optional(),
   MQTT_INGEST_USERNAME: z.string().default("predioon_ingest"),
   MQTT_INGEST_PASSWORD: z.string().min(1).optional(),
@@ -48,6 +58,10 @@ export const config = {
   authRateLimitKey: loginBudgetSecret(parsed.data.AUTH_RATE_LIMIT_KEY, parsed.data.NODE_ENV),
   // Development and test use a fixed local key; production must supply its own.
   mfaEncryptionKey: parsed.data.MFA_ENCRYPTION_KEY ?? (parsed.data.NODE_ENV === "production" ? null : "predioon-local-only-mfa-key-do-not-use-in-production"),
+  resendApiKey: parsed.data.RESEND_API_KEY ?? null,
+  resendFromEmail: parsed.data.RESEND_FROM_EMAIL,
+  passwordResetUrl: parsed.data.PASSWORD_RESET_URL?.replace(/\/+$/, "") ?? null,
+  residentPortalUrl: parsed.data.RESIDENT_PORTAL_URL?.replace(/\/+$/, "") ?? null,
   trustedProxyCidrs: parseTrustedProxyCidrs(parsed.data.TRUST_PROXY_CIDRS),
   corsOrigins: parsed.data.CORS_ORIGINS.split(",").map((origin) => origin.trim()).filter(Boolean),
 };

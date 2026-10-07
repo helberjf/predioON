@@ -11,6 +11,7 @@ import { hashPassword } from "../src/auth/passwords.js";
 import { loginBudgetKeys } from "../src/auth/login-budget-keys.js";
 import { config } from "../src/config.js";
 import { pgErrorCode } from "../src/http/errors.js";
+import { setMailTransport, type Mail } from "../src/mail/mailer.js";
 import { call, login, startTestServer, type TestServer } from "./helpers.js";
 
 const strongPassword = "Senha convidada 2026 segura";
@@ -86,6 +87,25 @@ describe("resident invitations", () => {
     assert.ok(body.includes(invitation.id) && !body.includes(token) && !/token|hash/i.test(body));
     const audit = await sqlClient`select user_id,building_id from audit_logs where resource_id=${invitation.id} and action='INVITATION_CREATED'`;
     assert.deepEqual(audit.map(entry => ({ ...entry })), [{ user_id: manager, building_id: building }]);
+  });
+
+  it("also e-mails the link only when the resident portal and a provider are configured", async () => {
+    const settings = config as { residentPortalUrl: string | null }, outbox: Mail[] = [];
+    assert.equal((await invite("unmailed") as unknown as { emailRequested: boolean }).emailRequested, false);
+    setMailTransport(async mail => { outbox.push(mail); return { sent: true }; });
+    try {
+      assert.equal((await invite("portalless") as unknown as { emailRequested: boolean }).emailRequested, false, "no portal, no link to send");
+      settings.residentPortalUrl = "https://morador.example";
+      const { token, emailRequested } = await invite("mailed") as unknown as { token: string; emailRequested: boolean };
+      assert.equal(emailRequested, true);
+      for (let attempt = 0; attempt < 100 && !outbox.length; attempt++) await delay(20);
+      assert.deepEqual(outbox.map(mail => mail.to), [address("mailed")]);
+      const url = `https://morador.example/convite#${token}`;
+      assert.ok(outbox[0]!.text.includes(url) && outbox[0]!.html.includes(`href="${url}"`) && outbox[0]!.text.includes("Convidado mailed"));
+      // A provider failure never fails the invitation: the code is still handed over on screen.
+      setMailTransport(async () => { throw new Error("provider down"); });
+      assert.equal((await invite("provider-down") as unknown as { emailRequested: boolean }).emailRequested, true);
+    } finally { setMailTransport(null); settings.residentPortalUrl = null; }
   });
 
   it("previews a valid secret and treats every other value alike", async () => {

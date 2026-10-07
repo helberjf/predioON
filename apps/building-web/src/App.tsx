@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import { AccessPanel, AssetsPanel, AuditPanel, AutomationsPanel, BuildingScopeProvider, BuildingScopeFeedback, FeatureProvider, FeatureContent, LoginScreen, MonitoringPanel, ParkingPanel, SessionsPanel, TenancyPanel, TransparencyPanel, WorkOrdersPanel, useAuth, useBuildingScope, useResource } from "@predioon/ui";
+import { AccessPanel, AssetsPanel, AuditPanel, AutomationsPanel, BuildingScopeProvider, BuildingScopeFeedback, FeatureProvider, FeatureContent, LoginScreen, PasswordRecoveryScreen, MonitoringPanel, ParkingPanel, SessionsPanel, TenancyPanel, TransparencyPanel, WorkOrdersPanel, useAuth, useBuildingScope, useResource } from "@predioon/ui";
 import { Shell } from "./layout/Shell.js";
 import { Dashboard } from "./pages/Dashboard.js";
 import { Water } from "./pages/Water.js";
@@ -16,6 +16,8 @@ import { Safety } from "./pages/Safety.js";
 export function App() {
   const { user, loading } = useAuth();
 
+  // A recovery link is honoured whoever is signed in on this browser; it ends every session anyway.
+  if (window.location.pathname === "/redefinir-senha") return <PasswordRecoveryScreen />;
   if (loading) return <p className="p-8 text-slate-500">Carregando...</p>;
   if (!user) return <LoginScreen subtitle="Operação do condomínio" />;
 

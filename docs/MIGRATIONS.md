@@ -256,3 +256,8 @@ A API nova exige a 045. A ingestão não muda de versão: sem regras ativas o ga
 
 A API nova exige a 046, porque todo login consulta se a conta tem fator ativo. Definir `MFA_ENCRYPTION_KEY` antes de liberar a ativação em produção.
 
+## Release 047: recuperação de senha
+
+`047-password-recovery.sql` cria `password_resets`, com RLS e **sem privilégio para nenhuma role de execução**, e as funções `identity_issue_password_reset` e `identity_reset_password`, executáveis somente por `predioon_identity`. Contrato e motivos em [AUTENTICACAO.md](AUTENTICACAO.md#recuperação-de-senha-por-e-mail).
+
+A API nova exige a 047 só nas duas rotas de recuperação; entrada, sessões e MFA não dependem dela. O envio precisa de `RESEND_API_KEY`; sem a chave as rotas respondem normalmente e nenhum e-mail sai.

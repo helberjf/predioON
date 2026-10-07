@@ -9,6 +9,8 @@ import { query, validateBody, validateQuery } from "../../http/validate.js";
 import { recordAudit } from "../audit/repo.js";
 import { isoTime } from "../../http/sql-time.js";
 import { createInvitationToken } from "../../auth/invitations.js";
+import { config } from "../../config.js";
+import { actionMail, mailConfigured, sendMail } from "../../mail/mailer.js";
 
 export const tenancyRouter = Router();
 const buildingId = z.string().trim().min(1).max(128);
@@ -332,7 +334,13 @@ tenancyRouter.post("/invitations", validateBody(CreateInvitation), async (req, r
     await recordAudit(tx, req, { userId: actor, buildingId: input.buildingId, action: "INVITATION_CREATED", resourceType: "invitation", resourceId: created!.id });
     return created!;
   });
-  res.status(201).json({ invitation: row, token });
+  // The code is still returned for hand delivery; the e-mail is a convenience and never blocks the answer.
+  const emailRequested = Boolean(config.residentPortalUrl) && mailConfigured();
+  if (emailRequested) void sendMail(actionMail(row.email, "Convite para o Prédio ON",
+    [`Olá, ${row.name}.`, "A administração do seu condomínio convidou você para o portal do morador do Prédio ON."],
+    { label: "Aceitar convite", url: `${config.residentPortalUrl}/convite#${token}` },
+    "O convite vale por 7 dias e funciona uma única vez. Você vai criar a sua própria senha.")).catch(() => { console.error("[mail] invitation e-mail failed"); });
+  res.status(201).json({ invitation: row, token, emailRequested });
 });
 tenancyRouter.delete("/invitations/:id", async (req, res) => {
   const parsed = id.safeParse(param(req, "id"));

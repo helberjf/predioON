@@ -51,4 +51,7 @@ export type MfaStatus = { enabled: boolean; pending: boolean; recoveryCodesRemai
 export type MfaEnrollResponse = { secret: string; otpauthUri: string };
 /** Recovery codes are shown only here. */
 export type MfaConfirmResponse = { recoveryCodes: string[] };
+/** Always answered with 204, whether or not the address has an account. */
+export type PasswordForgotRequest = { email: string };
+export type PasswordResetRequest = { token: string; newPassword: string };
 

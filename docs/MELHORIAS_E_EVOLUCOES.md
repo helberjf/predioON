@@ -68,7 +68,7 @@ Companion iOSf445 publicado/revisado:Linux121Python/12Node e Windows105+16skips/
 |---|---|---|---|
 | P0 | Concluir autorização por capacidade nos domínios restantes | Acesso depende da concessão atual ao condomínio e ao recurso | HTTP e SQL negativos; revogação, expiração, equipe inativa e troca de condomínio sem vazamentos; nenhum privilégio global implícito sobre dados privados |
 | P0 | MFA e verificação adicional para ações privilegiadas | Proteção adicional da administração e de operações sensíveis | Cadastro, desafio, recuperação e revogação; limites de tentativas; proteção contra reutilização; testes sem segredos reais |
-| P1 | Convites e recuperação de senha | Entrada e recuperação sem distribuição manual de senhas | Tokens de uso único, expiração, revogação e respostas sem enumeração de contas; provedor de envio configurável |
+| Entregue (042, 047) | Convites e recuperação de senha | Entrada e recuperação sem distribuição manual de senhas | Tokens de uso único, expiração, revogação e respostas sem enumeração de contas; provedor de envio configurável |
 | P0 | Inbox e consumidores duráveis restantes | Trabalho obrigatório sobrevive à queda de processo; preservar outbox038 já entregue | Ensaios de interrupção antes/depois do commit, deduplicação, reserva com prazo e recuperação; filas não repetem comandos físicos indiscriminadamente |
 | P0 | Credenciais restritas para ingestão e demais workers | Separar as responsabilidades legadas ainda proprietárias; preservar a role de notificações038 | Matriz de privilégios e testes de operações negadas por processo; bootstrap/migrations continuam separados |
 | P1 | Ativos e ordens de serviço | Manutenção com responsável e histórico do equipamento | Criar, atribuir, executar, concluir e reabrir conforme permissão; histórico auditável; relação explícita com chamados |
@@ -171,7 +171,7 @@ Para cada item aprovado, registrar: problema observado, público, fluxo esperado
 
 ## 10. Atualização após senha037
 
-Troca de senha e revogação atômica de todas as famílias já foram entregues na API, três portais e dois apps. MFA, convites e recuperação continuam no escopo pendente; não confundir recuperação com troca autenticada. Priorizar aceite Android/iOS e os consumidores duráveis restantes, preservando 038, credenciais restritas, pausa e testes negativos.
+Troca de senha e revogação atômica de todas as famílias já foram entregues na API, três portais e dois apps. Convites (042), MFA (046) e recuperação por e-mail (047) foram entregues depois; não confundir recuperação com troca autenticada. Priorizar aceite Android/iOS e os consumidores duráveis restantes, preservando 038, credenciais restritas, pausa e testes negativos.
 
 Como melhoria P1, ampliar o [índice de evidências038](evidencias/notification038-ci.json) para cada incremento, com fonte, execução integral, skips/retries explícitos e limites de cada imagem. Um teste React host não aprova Fabric, build não aprova sessão nativa e capturas de uma fase não aprovam toda a jornada. [Galeria com 31 imagens versionadas](IMAGENS_DOS_SISTEMAS.md): **9 Android, 16 web e 6 iOS**, incluindo duas entradas históricas, duas de novo processo Release deb20b1 e duas de6298065. Cinco vídeos ainda pendentes; referências estáticas/hashes conferidos, sem novo aceite dos controles pelo navegador 8765 bloqueado. O monitor Android reprova na primeira MissingViewState ou removeViewAt/index-mismatch com fase/seq/horário/PID. Seu histórico conserva a rejeição inicial do formato do log e as execuções limpas [c949299](evidencias/android-renderer-c949299.json) e [77adf128](evidencias/android-77adf128.json) após corrigir o parser. Repetições e investigação dos 20+1 avisos anteriores continuam necessárias; não declarar causa por correlação com GC ou teclado.
 
@@ -242,8 +242,15 @@ Identidade autenticada 37307304828 e os dois jobs de inicialização 37307304855
 
 ### 06/10: convites e ordens de serviço
 
-- **Recuperação de senha depende de um canal de entrega.** Sem e-mail, a única recuperação possível seria um link gerado por terceiros (síndico ou plataforma), o que daria a quem gera o link o poder de assumir a conta. Decidir o provedor de e-mail antes de implementar; até lá a troca de senha exige a senha atual.
+- **Resolvido em 07/10 (047):** o provedor escolhido foi o Resend e a recuperação foi entregue. Faltam o botão nos apps nativos, o webhook de devolução do Resend e o ensaio de entrega real. Registro original: **Recuperação de senha depende de um canal de entrega.** Sem e-mail, a única recuperação possível seria um link gerado por terceiros (síndico ou plataforma), o que daria a quem gera o link o poder de assumir a conta. Decidir o provedor de e-mail antes de implementar; até lá a troca de senha exige a senha atual.
 - **Convites nos apps nativos:** o aceite existe só no portal web do morador.
 - **Ordens de serviço:** faltam abertura/atribuição no app Operação, anexos e checklists, vínculo com chamado na tela, paginação além de 100, notificação ao responsável e abertura automática a partir de alerta. Avaliar uma chave de funcionalidade por condomínio.
 - **Cliente HTTP web:** só trata 204 como resposta vazia; um 201 sem corpo quebra a leitura. A rota de anotações passou a devolver o registro criado; convém o cliente aceitar corpo vazio em qualquer 2xx.
 
+### 07/10: recuperação de senha e e-mail
+
+- **Ativar o Resend em produção:** verificar o domínio, preencher `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `PASSWORD_RESET_URL` e `RESIDENT_PORTAL_URL`, e ensaiar uma entrega real. Sem isso a recuperação existe mas não entrega nada.
+- **Botão "Esqueci minha senha" nos apps nativos:** hoje só nos portais.
+- **Webhook do Resend** para devoluções e reclamações, e reenvio de falhas do provedor; hoje a falha fica só no log.
+- **Outros e-mails pelo mesmo módulo:** aviso de senha alterada, de MFA ativada/desativada e de novo acesso.
+- **Push (APNs/FCM) saiu do escopo** por decisão do proprietário; os avisos seguem pelos canais já existentes.
