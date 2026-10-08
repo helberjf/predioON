@@ -575,3 +575,25 @@ Ordem definida pelo proprietário: **planos e assinaturas por último**; antes, 
 **Provas:** matriz de navegadores em Chromium, Firefox e WebKit. A primeira execução deu **336/339**: as três falhas eram um só teste, que acusou um defeito real do redesenho (o nome do usuário passou a aparecer duas vezes no portal de gestão, no topo e no rodapé do menu); o rodapé voltou a mostrar a marca. A segunda execução completa deu **338/339**, com uma falha de rede (`socket hang up` numa chamada de preparação à API, fora de qualquer tela), e os dois arquivos envolvidos repetidos nos três motores passaram **18/18**. UI 90/90, tipos e fronteiras de arquitetura. Capturas em [imagens/2026-10-07](imagens/2026-10-07/).
 
 **Não verificado:** leitor de tela real (os papéis e nomes acessíveis foram mantidos e exercitados pelos testes, mas não houve sessão com NVDA/VoiceOver) e aparelho físico; as capturas são de Chromium em 390 px e 1440 px.
+
+### 08/10: teste visual de botões e funcionalidades nos três portais
+
+**Pedido do proprietário:** abrir o sistema e testar visualmente botões e funcionalidades.
+
+**Como foi feito:** `scripts/visual-walkthrough.mjs` percorre os três portais num navegador real contra a pilha local (API, portais e banco de demonstração descartável), clica em cada atalho, aba, item de menu e formulário principal, confere a tela resultante e salva uma captura por passo. São **69 passos**: 26 no portal do morador (390 px, mais a verificação de largura em 320 px), 25 no de operação e 18 no de administração (1440 px e menu no celular). As capturas foram revisadas uma a uma; folhas de contato em [imagens/2026-10-08](imagens/2026-10-08/).
+
+**Resultado:** primeira execução **66/69**. As três falhas eram o mesmo tipo de problema, e não defeito do redesenho de 07/10: telas que mostravam erro vermelho, em dobro, com "Tentar novamente", para uma situação normal (perfil sem concessão): **Consumo** no portal do morador, **Operação dos imóveis** e **Unidades e equipes** na administração. Agora essas telas explicam, em um cartão neutro, que o perfil não tem concessão naquele condomínio; erros reais continuam vermelhos. Segunda execução **69/69**. Os cinco arquivos de teste de navegador que tocam esses painéis passaram **117/117** em Chromium, Firefox e WebKit; UI 90/90 e tipos.
+
+**Funcionou no percurso:** entrada e saída nos três portais; os seis atalhos e as abas do morador; "Mais" abrindo e fechando por X, fundo e Esc; filtros de avisos; abrir ocorrência e vê-la na lista e no painel de operação; reservar, confirmar e cancelar; abrir e cancelar a troca de senha; os 20 itens do menu de operação e os 13 da administração; busca; sino; menu no celular; nenhuma tela com rolagem lateral em 320 px; nenhuma resposta 5xx nem exceção de script.
+
+**Achados que não foram corrigidos (precisam de decisão ou são trabalho maior):**
+
+- **A administração da plataforma não opera nenhum condomínio.** Com a conta de administrador, "Unidades e equipes" e "Operação dos imóveis" ficam sem conteúdo em todos os condomínios, inclusive o piloto, porque a conta de plataforma não tem concessão local. É regra de autorização, mas hoje não há na tela um caminho para obter a concessão. Decidir: tirar esses itens do menu dessa conta, ou oferecer o pedido/atribuição de concessão.
+- **"Consumo" aparece para todo morador**, mesmo sem medidor liberado. Não foi escondido porque a concessão pode ser por medidor, e a lista de capacidades do condomínio não mostra isso.
+- **Morador de demonstração não consegue abrir portão:** os dois botões aparecem desativados com "Você não tem permissão atual". É concessão que falta no seed, não defeito de tela.
+- **Textos técnicos à mostra na operação:** tipos de equipamento (`PUMP_MONITOR`, `WATER_LEVEL_SENSOR`), ações do histórico (`RESERVATION CANCELLED`) e a gravidade `HIGH` no formulário de regras.
+- **"Avisos e agenda" da operação começa pelo painel de vagas**, como acontecia no portal do morador.
+- **"Próximas reservas" lista também as canceladas.**
+- **"Minhas sessões" mostra o identificador completo do navegador.**
+
+**Não coberto:** aplicativos Android (o emulador não foi aberto nesta rodada), Firefox e WebKit no percurso visual (ele roda em Chromium; os outros motores são cobertos pela matriz automática), abertura real de portão, e formulários de cadastro da operação além de ocorrências (regras, automações, ativos, ordens de serviço têm testes automáticos próprios).

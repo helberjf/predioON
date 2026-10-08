@@ -24,6 +24,8 @@ export function TenancyPanel({ buildingId }: { buildingId: string }) {
     window.addEventListener("focus", authorization.reload);
     return () => window.removeEventListener("focus", authorization.reload);
   }, [authorization.reload]);
+  // No grant in this condominium is an ordinary situation for a platform account, not a failure to retry.
+  if (!authorization.data && authorization.errorStatus === 403) return <Card title="Unidades, equipes e permissões"><p role="status" className="text-sm font-semibold text-[#153451]">Sua conta não tem concessão neste condomínio.</p><p className="mt-2 text-sm leading-6 text-slate-600">Os cadastros exigem uma concessão no condomínio. A conta de administração da plataforma, sozinha, não concede acesso operacional.</p></Card>;
   if (!authorization.data) return <Card title="Unidades, equipes e permissões"><ResourceFeedback resource={authorization} emptyText="Não há permissões disponíveis para este condomínio." /><p className="mt-3 text-sm text-slate-500">Os cadastros exigem uma concessão no condomínio. A conta de administração da plataforma, sozinha, não concede acesso operacional.</p></Card>;
   const capabilities = authorization.data.capabilities;
   if (!capabilities.some(capability => ["units:read", "teams:read", "memberships:read", "memberships:manage"].includes(capability))) return <Card><EmptyState text="Sua conta não tem permissão para consultar estes cadastros." /></Card>;
