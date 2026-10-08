@@ -1,9 +1,8 @@
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { CalendarDays, Car, ChartNoAxesCombined, ChevronRight, CheckCircle2, Droplets, KeyRound, Leaf, Megaphone, ScrollText, Wrench } from "lucide-react";
+import { CalendarDays, Car, ChartNoAxesCombined, ChevronRight, CheckCircle2, KeyRound, Leaf, Megaphone, ScrollText, Wrench } from "lucide-react";
 import { noticeIsVisible } from "@predioon/shared";
-import { Feature, useFeatures, Badge, Card, cls, ResourceFeedback, formatNumber, formatRelative, numericReading, readingStatus, useResource } from "@predioon/ui";
-import type { LatestReading, Occurrence, Paged } from "@predioon/ui";
+import { Feature, useFeatures, Badge, Card, cls, ResourceFeedback, useResource } from "@predioon/ui";
+import type { Occurrence, Paged } from "@predioon/ui";
 import { noticeLook, whenLabel, type ResidentNotice } from "../notices.js";
 import { useConsumptionAvailable } from "../consumption.js";
 
@@ -23,11 +22,7 @@ export function Home({ buildingId }: { buildingId: string }) {
   const flags = useFeatures();
   const consumption = useConsumptionAvailable(buildingId);
   const notices = useResource<Paged<ResidentNotice>>(flags.enabled("NOTICES") ? `/notices?buildingId=${buildingId}` : null);
-  const readings = useResource<Paged<LatestReading>>(flags.enabled("WATER_TANK") ? `/telemetry/latest?buildingId=${buildingId}` : null);
   const mine = useResource<Paged<Occurrence>>(flags.enabled("TICKETS") ? `/occurrences?buildingId=${buildingId}&limit=5` : null);
-  useEffect(() => { const timer = setInterval(readings.reload, 10000); return () => clearInterval(timer); }, [readings.reload]);
-  const level = readings.data?.items.find(reading => reading.metric === "water_level_percent");
-  const percent = numericReading(level);
   const now = new Date();
   const current = notices.data?.items.filter(notice => noticeIsVisible(notice, now)).slice(0, 3) ?? [];
   return <>
@@ -49,12 +44,6 @@ export function Home({ buildingId }: { buildingId: string }) {
         </Link></li>;
       })}</ul> : <ResourceFeedback resource={notices} emptyText="Nenhum aviso publicado." />}
     </Card></Feature>
-
-    <Feature name="WATER_TANK"><div id="monitoramento" className="scroll-mt-20"><Card title="Nível da caixa d’água" action={<Droplets size={21} className="text-sky-500" />}>{percent !== null ? <>
-      <div className="flex items-end justify-between"><p className="text-[32px] font-bold leading-none text-[#173451]">{formatNumber(percent, 0)}%</p><span className="text-[11px] text-slate-500">{level?.device_name}</span></div>
-      <div className="mt-3 h-3 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-[#21a6e5]" style={{ width: `${Math.min(100, Math.max(0, percent))}%` }} /></div>
-      <p className="mt-3 text-[11px] text-slate-500">{readingStatus(level)} · {formatRelative(level?.time)}</p>
-    </> : <ResourceFeedback resource={readings} emptyText="Sem leitura validada no momento." />}</Card></div></Feature>
 
     <Feature name="TICKETS"><Card title="Minhas ocorrências" action={<Link to="/chamados" className={SEE_ALL}>Ver todas</Link>}>
       {mine.data?.items.length ? <ul className="-my-1 divide-y divide-slate-100">{mine.data.items.map(occurrence => <li key={occurrence.id} className="flex items-center gap-3 py-3">

@@ -647,3 +647,13 @@ Ordem definida pelo proprietário: **planos e assinaturas por último**; antes, 
 **Provas:** teste novo da migration **3/3** em banco real (instalação nova; instalação em uso com comandos pendentes, vagas contadas e uma pausa local preexistente; configuração global registrada preservada). Diretório de testes de banco 30 aprovados e 9 pulados por falta de ambiente; restauração **2/2** com 50 migrations; notificações **54/54**. Integral em Linux com banco zerado: API **792/792**, ingestão **129/129**. Matriz de navegadores **339/339** em Chromium, Firefox e WebKit. A 050 aplicada ao banco de demonstração local não alterou nada, porque ali as quatro já tinham sido desligadas pela API. Capturas em [imagens/2026-10-08](imagens/2026-10-08/).
 
 **Não verificado:** a 050 sobre a instalação de demonstração do proprietário (o caminho ativo foi exercitado só no teste); o app Operação no Android; aparelho físico.
+
+### 08/10: nível da caixa d'água fora do portal do morador
+
+**Correção do proprietário:** o morador não deve ver a quantidade de água; não interessa a ele. O [PRD](PRD.md) confirma: o morador tem avisos, chamados e reservas próprios, contas publicadas e acesso concedido, "sem dashboards de operação".
+
+**Origem:** o cartão "Nível da caixa d'água" está no início do portal do morador desde a fase 5 (commit `e05b89e`), anterior a esta sequência de trabalho; o redesenho de 07/10 o manteve sem conferir contra o PRD. Foi removido, junto com a consulta de leituras que ele fazia a cada 10 segundos. A captura do morador com dados fictícios, que mostrava o cartão, foi retirada.
+
+**Provas:** tipos e os nove arquivos de teste de navegador que usam o portal do morador, **129/129** em Chromium, Firefox e WebKit.
+
+**Pendente de decisão:** a API ainda entrega ao morador o nível publicado (capacidade `telemetry:read-published`, criada na 017). Nenhuma tela usa mais; retirar a capacidade é mudança de autorização com migration e testes próprios. O item "Consumo" continua existindo para o morador, mas só aparece para quem recebeu a leitura de algum medidor.
