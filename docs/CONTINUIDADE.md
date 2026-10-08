@@ -598,7 +598,7 @@ Ordem definida pelo proprietário: **planos e assinaturas por último**; antes, 
 
 **Não coberto:** aplicativos Android (o emulador não foi aberto nesta rodada), Firefox e WebKit no percurso visual (ele roda em Chromium; os outros motores são cobertos pela matriz automática), abertura real de portão, e formulários de cadastro da operação além de ocorrências (regras, automações, ativos, ordens de serviço têm testes automáticos próprios).
 
-### 08/10: correção dos achados do teste visual (no branch, validação no navegador pendente)
+### 08/10: correção dos achados do teste visual
 
 **Pedido do proprietário:** corrigir tudo o que o teste visual apontou.
 
@@ -616,4 +616,4 @@ Ordem definida pelo proprietário: **planos e assinaturas por último**; antes, 
 
 **Provas até aqui:** tipos, build dos três portais, UI **93/93** (três testes novos das traduções e do nome de navegador), cliente 64/64 e fronteiras de arquitetura.
 
-**Pendente:** o Docker Desktop caiu e não voltou a subir nesta máquina (1,2 GB de memória livre), então **não houve banco para repetir o percurso visual nem a matriz de navegadores**. O commit está no branch `claude/sistemas-web-app-status-07085d` e **não foi enviado à `main`**. Com o Docker de volta: `node scripts/visual-walkthrough.mjs <pasta>` contra a pilha local e a matriz dos três motores; só então publicar.
+**Validação no navegador:** o Docker caiu durante o trabalho e o commit ficou no branch até ele voltar. Com a pilha de pé, o percurso visual passou **69/69** (o passo de Consumo agora confere que o item não é oferecido a quem não tem medidor) e as telas alteradas foram revisadas em captura. A matriz de navegadores deu **339/339** em Chromium, Firefox e WebKit numa única execução. Publicado na `main`.
