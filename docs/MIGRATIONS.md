@@ -267,3 +267,13 @@ A API nova exige a 047 só nas duas rotas de recuperação; entrada, sessões e 
 `048-telemetry-receipt-scope.sql` troca a chave de `ingest_events` de `event_id` para `(building_id, device_id, event_id)`, acrescenta a coluna `fingerprint` (nula nas linhas antigas) e cria `ingest_rejections`, contadores sem conteúdo e sem privilégio para as roles da API. Motivos em [INBOX_DECISOES.md](INBOX_DECISOES.md).
 
 **Ordem de implantação:** parar a ingestão, aplicar a 048 e subir a ingestão nova. A ingestão antiga procura duplicata só por `event_id` e não deve gravar depois da troca de chave. A API não depende da 048. A troca de chave é segura sobre dados existentes, porque a chave antiga já garantia unicidade.
+
+## Release 049: portões e vagas desligados por padrão
+
+`049-physical-features-opt-in.sql` grava `GARAGE_ACCESS`, `PEDESTRIAN_ACCESS`, `CAR_PARKING` e `MOTORCYCLE_PARKING` como **desligadas no nível global** numa instalação que ainda não tem condomínios. As demais funcionalidades seguem a regra da 012: sem configuração, ligadas.
+
+**Instalação que já tem condomínios não é alterada pela migration.** Desligar uma funcionalidade tem efeitos (cancela comandos de portão pendentes, limpa a ocupação das vagas) que pertencem à transição auditada da API. Faça pela tela: administração → Funcionalidades → desligar as quatro.
+
+**Para ligar:** administração → Funcionalidades. O desligamento global é teto: enquanto estiver desligado, nenhum condomínio consegue ligar localmente.
+
+**Ambientes de teste** que exercitam portões e vagas precisam ligá-las de forma explícita: `SEED_PHYSICAL_FEATURES=enabled pnpm db:seed` (já está nos workflows). Testes que montam o próprio banco só com migrations fazem o `update` na preparação.

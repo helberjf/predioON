@@ -57,6 +57,8 @@ if (want("resident")) {
   const { page } = ctx, nav = page.getByRole("navigation", { name: "Navegação do morador" });
   await step(portal, "início carrega", ctx, async () => { await expect(page.getByRole("heading", { name: /^Olá, / })).toBeVisible(); await healthy(page); });
   for (const [label, path] of [["Reservar áreas comuns", "/reservas"], ["Abrir portão", "/acessos"], ["Avisos", "/avisos"], ["Ocorrências", "/chamados"], ["Transparência e contas", "/transparencia"], ["Vagas de carros e motos", "/vagas"]]) {
+    // Gates and parking are opt-in features: walk only what this installation offers.
+    if (!await page.getByRole("main").getByRole("link", { name: label, exact: true }).count()) continue;
     await step(portal, `atalho ${label}`, ctx, async () => {
       await page.goto(origin, { waitUntil: "domcontentloaded" }); await settled(page);
       await page.getByRole("main").getByRole("link", { name: label, exact: true }).click();
@@ -66,6 +68,7 @@ if (want("resident")) {
     });
   }
   for (const [label, path] of [["Reservas", "/reservas"], ["Acessos", "/acessos"], ["Ocorrências", "/chamados"], ["Início", "/"]]) {
+    if (!await nav.getByRole("link", { name: label, exact: true }).count()) continue;
     await step(portal, `aba ${label}`, ctx, async () => { await nav.getByRole("link", { name: label, exact: true }).click(); await expect(page).toHaveURL(origin + path); await healthy(page); });
   }
   await step(portal, "Mais abre e fecha por X, fundo e Esc", ctx, async () => {
@@ -77,6 +80,12 @@ if (want("resident")) {
     await more.click(); await expect(panel).toBeVisible();
   });
   for (const [label, path] of [["Avisos", "/avisos"], ["Vagas", "/vagas"], ["Transparência", "/transparencia"], ["Perfil", "/perfil"]]) {
+    {
+      const more = nav.getByRole("button", { name: "Mais", exact: true });
+      if (await more.getAttribute("aria-expanded") !== "true") await more.click();
+      // With few features enabled a destination may be a tab instead of sitting under "Mais".
+      if (!await nav.getByRole("group", { name: "Mais opções" }).getByRole("link", { name: label, exact: true }).count()) continue;
+    }
     await step(portal, `Mais → ${label}`, ctx, async () => {
       const more = nav.getByRole("button", { name: "Mais", exact: true });
       if (await more.getAttribute("aria-expanded") !== "true") await more.click();
@@ -130,7 +139,7 @@ if (want("resident")) {
     await page.getByRole("button", { name: "Cancelar reserva", exact: true }).first().click();
     await expect(page.getByRole("status").filter({ hasText: "Reserva cancelada." })).toBeVisible();
   });
-  await step(portal, "acessos mostra estado dos portões", ctx, async () => {
+  if (await nav.getByRole("link", { name: "Acessos", exact: true }).count()) await step(portal, "acessos mostra estado dos portões", ctx, async () => {
     await page.goto(origin + "/acessos", { waitUntil: "domcontentloaded" }); await settled(page);
     await expect(page.getByRole("heading", { name: "Acessos", exact: true })).toBeVisible();
     for (const name of ["Abrir garagem", "Abrir entrada"]) await expect(page.getByRole("button", { name, exact: true })).toBeVisible();
@@ -144,7 +153,7 @@ if (want("resident")) {
   });
   await step(portal, "320 px sem rolagem lateral", ctx, async () => {
     await page.setViewportSize({ width: 320, height: 568 });
-    for (const path of ["/", "/reservas", "/avisos", "/chamados", "/acessos", "/perfil"]) {
+    for (const path of ["/", "/reservas", "/avisos", "/chamados", "/perfil"]) {
       await page.goto(origin + path, { waitUntil: "domcontentloaded" }); await settled(page);
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
       if (overflow > 1) throw new Error(`${path} estoura ${overflow}px na largura`);

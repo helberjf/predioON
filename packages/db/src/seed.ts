@@ -11,6 +11,7 @@ import {
   memberships,
   notices,
   organizations,
+  sqlClient,
   users,
 } from "./index.js";
 
@@ -164,8 +165,16 @@ await db
   .onConflictDoNothing();
 
 await seedFeatures();
+// Gate opening and parking counting start switched off (migration 049). Test stacks that
+// exercise them say so explicitly; a demonstration keeps the product default.
+const physicalFeatures = process.env.SEED_PHYSICAL_FEATURES === "enabled";
+if (physicalFeatures) {
+  await sqlClient`update global_feature_settings set enabled=true, version=version+1, updated_at=now()
+    where feature_key in ('GARAGE_ACCESS','PEDESTRIAN_ACCESS','CAR_PARKING','MOTORCYCLE_PARKING') and not enabled`;
+}
 console.log("Seed concluído. Usuários de demonstração (senha definida por SEED_PASSWORD ou padrão local):");
 console.log("  admin@predioon.local    (administrador da plataforma)");
 console.log("  sindico@predioon.local  (administrador do prédio)");
 console.log("  morador@predioon.local  (morador)");
+console.log(physicalFeatures ? "Portões e vagas: funcionalidades ligadas por SEED_PHYSICAL_FEATURES=enabled." : "Portões e vagas: desligados por padrão; ligue em Funcionalidades, na administração, se o condomínio tiver o equipamento.");
 process.exit(0);

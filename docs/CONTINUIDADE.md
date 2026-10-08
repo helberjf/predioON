@@ -612,8 +612,24 @@ Ordem definida pelo proprietário: **planos e assinaturas por último**; antes, 
 - **Minhas sessões:** "Chrome no Windows" no lugar do identificador completo, que continua disponível ao passar o mouse; o que não é reconhecido é mostrado sem alteração.
 - **Portão indisponível para o morador:** a mensagem agora diz que o acesso não está liberado para o perfil e que a administração pode liberá-lo.
 
-**Não alterado, de propósito:** o morador de demonstração continua sem poder abrir portão. Portões nascem desativados e sem liberação para moradores por segurança física; quem libera é o síndico, em Portões e acessos → Configurar.
+**Substituído no registro seguinte (049):** portões e vagas passaram a vir desligados por padrão. Texto original: o morador de demonstração continua sem poder abrir portão. Portões nascem desativados e sem liberação para moradores por segurança física; quem libera é o síndico, em Portões e acessos → Configurar.
 
 **Provas até aqui:** tipos, build dos três portais, UI **93/93** (três testes novos das traduções e do nome de navegador), cliente 64/64 e fronteiras de arquitetura.
 
 **Validação no navegador:** o Docker caiu durante o trabalho e o commit ficou no branch até ele voltar. Com a pilha de pé, o percurso visual passou **69/69** (o passo de Consumo agora confere que o item não é oferecido a quem não tem medidor) e as telas alteradas foram revisadas em captura. A matriz de navegadores deu **339/339** em Chromium, Firefox e WebKit numa única execução. Publicado na `main`.
+
+### 08/10: portões e vagas desligados por padrão (049)
+
+**Correção de rumo do proprietário:** abrir portão não era para ser funcionalidade ativa; **portões e vagas devem vir desligados e fora do produto por padrão**. Até aqui toda funcionalidade sem configuração nascia ligada (regra da 012), então as telas de Acessos e Vagas apareciam em qualquer instalação. Isso contraria o que ele pediu e foi corrigido.
+
+**Entrega:** migration 049 desliga as quatro funcionalidades (`GARAGE_ACCESS`, `PEDESTRIAN_ACCESS`, `CAR_PARKING`, `MOTORCYCLE_PARKING`) no nível global em instalação nova. Com isso o portal do morador não mostra Acessos nem Vagas, o de operação não lista "Portões e acessos" nem "Vagas de carros e motos", a ingestão não aceita leituras desses módulos e a API recusa as rotas. O código continua no repositório; ligar é uma decisão explícita em administração → Funcionalidades. Detalhes em [MIGRATIONS.md](MIGRATIONS.md).
+
+**Instalações existentes (inclusive a de demonstração) não mudam sozinhas:** desligar passa pela transição auditada da API. Passo manual: administração → Funcionalidades → desligar as quatro.
+
+**Testes:** as pilhas de teste ligam os módulos com `SEED_PHYSICAL_FEATURES=enabled`; duas preparações de banco (notificações e restauração) passaram a ligá-los explicitamente. Nenhuma asserção foi alterada.
+
+**Também corrigido:** a mensagem de portão indisponível, alterada no commit anterior, tinha deixado de conter "permissão" e quebrava um teste de política da API que **não rodei antes de publicar aquele commit** (rodei só UI e navegadores). A mensagem voltou a dizer "Você não tem permissão para este acesso" e manteve a orientação. A `main` ficou com esse teste falhando entre `155b3a6` e este commit.
+
+**Provas:** integral em Linux com banco zerado: API **791/792** na primeira execução, e a falha era o teste de política citado acima; corrigida a mensagem, esse arquivo passou 5/5 (a suíte completa não foi repetida). Ingestão **129/129**. Notificações de banco **53/54** antes do ajuste de preparação e **54/54** depois; worker de notificações 35 aprovados, 0 falhas; produtores **40/40**; restauração **2/2** com 49 migrations. Matriz de navegadores **339/339** em Chromium, Firefox e WebKit. A 049 aplicada ao banco de demonstração local, que já tem condomínios, não alterou nada, como previsto; ali as quatro funcionalidades foram desligadas pela API de administração (quatro respostas 200) e o percurso visual passou **61/61**, sem nenhum passo de portões ou vagas. Capturas em [imagens/2026-10-08](imagens/2026-10-08/).
+
+**Não verificado:** os aplicativos Android com as funcionalidades desligadas, e a instalação de demonstração do proprietário, que continua com elas ligadas até o passo manual.

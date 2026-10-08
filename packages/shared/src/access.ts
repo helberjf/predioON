@@ -32,7 +32,7 @@ export type AccessCommandStatus = "PENDING" | "SENT" | "ACKNOWLEDGED" | "FAILED"
 type Hardware = { enabled: boolean; status: string; lastSeenAt: Date | null };
 /** Permission is evaluated from current scoped grants by the API, never a role. */
 export function accessCapabilityAvailability(gate: { enabled: boolean }, gateway: Hardware | null | undefined, device: Hardware | null | undefined, requestPermitted: boolean, now = new Date()): string | null {
-  if (!requestPermitted) return "Este acesso não está liberado para o seu perfil. A administração do condomínio pode liberá-lo.";
+  if (!requestPermitted) return "Você não tem permissão para este acesso. A administração do condomínio pode liberá-lo.";
   if (!gate.enabled) return "Acesso desativado pela administração";
   for (const hardware of [gateway, device]) {
     if (!hardware?.enabled || hardware.status !== "ONLINE" || !hardware.lastSeenAt || now.getTime() - hardware.lastSeenAt.getTime() > ACCESS_LIVE_MAX_AGE_MS || hardware.lastSeenAt.getTime() > now.getTime() + 5000) return "Equipamento sem conexão recente. Tente novamente quando estiver online";
