@@ -1,4 +1,4 @@
-import { Badge, Card, EmptyState, formatRelative, useResource } from "@predioon/ui";
+import { Badge, Card, deviceTypeLabel, EmptyState, formatRelative, useResource } from "@predioon/ui";
 import type { Device, Paged } from "@predioon/ui";
 
 export function Devices({ buildingId }: { buildingId: string }) {
@@ -27,7 +27,7 @@ export function Devices({ buildingId }: { buildingId: string }) {
                       <p className="font-medium text-slate-800">{device.name}</p>
                       <p className="text-xs text-slate-400">{device.id}</p>
                     </td>
-                    <td className="text-slate-600">{device.type}</td>
+                    <td className="text-slate-600">{deviceTypeLabel(device.type)}</td>
                     <td className="text-slate-600">{device.gatewayId ?? "—"}</td>
                     <td className="text-slate-600">{formatRelative(device.lastSeenAt)}</td>
                     <td>

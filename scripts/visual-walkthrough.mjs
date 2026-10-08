@@ -76,7 +76,7 @@ if (want("resident")) {
     await more.click(); await expect(panel).toBeVisible(); await page.keyboard.press("Escape"); await expect(panel).toHaveCount(0);
     await more.click(); await expect(panel).toBeVisible();
   });
-  for (const [label, path] of [["Avisos", "/avisos"], ["Vagas", "/vagas"], ["Consumo", "/consumo"], ["Transparência", "/transparencia"], ["Perfil", "/perfil"]]) {
+  for (const [label, path] of [["Avisos", "/avisos"], ["Vagas", "/vagas"], ["Transparência", "/transparencia"], ["Perfil", "/perfil"]]) {
     await step(portal, `Mais → ${label}`, ctx, async () => {
       const more = nav.getByRole("button", { name: "Mais", exact: true });
       if (await more.getAttribute("aria-expanded") !== "true") await more.click();
@@ -84,6 +84,13 @@ if (want("resident")) {
       await expect(page).toHaveURL(origin + path); await expect(more).toHaveAttribute("aria-expanded", "false"); await healthy(page);
     });
   }
+  await step(portal, "Consumo não é oferecido a quem não tem medidor liberado", ctx, async () => {
+    const more = nav.getByRole("button", { name: "Mais", exact: true });
+    await more.click();
+    await expect(nav.getByRole("link", { name: "Perfil", exact: true })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "Consumo", exact: true })).toHaveCount(0);
+    await more.click();
+  });
   await step(portal, "avisos filtros", ctx, async () => {
     await page.goto(origin + "/avisos", { waitUntil: "domcontentloaded" }); await settled(page);
     const filters = page.getByRole("group", { name: "Filtrar avisos" });

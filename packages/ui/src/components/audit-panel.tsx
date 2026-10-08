@@ -4,6 +4,7 @@ import { useAuth } from "../auth.js";
 import { formatDateTime } from "../format.js";
 import { useResource } from "../use-resource.js";
 import { Badge, Button, Card, PageHeading, ResourceFeedback } from "./primitives.js";
+import { auditActionLabel, resourceTypeLabel } from "../labels.js";
 
 const PAGE_SIZE = 25;
 
@@ -41,11 +42,11 @@ function AuditWorkspace({ buildingId }: { buildingId?: string }) {
         : logs.data!.items.length ? <ul className="divide-y divide-slate-100">{logs.data!.items.map(log => <li key={log.id}>
           <article aria-label="Registro de auditoria" className="flex flex-wrap items-start justify-between gap-3 py-4">
             <div className="min-w-0 flex-1 space-y-2">
-              <p className="break-words text-sm font-medium text-slate-800">{log.action.replaceAll("_", " ")}</p>
+              <p className="break-words text-sm font-medium text-slate-800">{auditActionLabel(log.action)}</p>
               <Badge tone={log.scopeKind === "PLATFORM" ? "info" : "neutral"}>{log.scopeKind === "PLATFORM" ? "Plataforma" : "Condomínio"}</Badge>
               <dl className="space-y-1 break-words text-xs text-slate-500">
                 <div><dt className="inline">Responsável: </dt><dd className="inline">{log.userId ?? (log.actorType === "USER" ? "Conta não identificada" : log.actorType === "GATEWAY" ? "Controlador" : "Sistema")}</dd></div>
-                <div><dt className="inline">Recurso: </dt><dd className="inline">{log.resourceType}{log.resourceId ? ` · ${log.resourceId}` : ""}</dd></div>
+                <div><dt className="inline">Recurso: </dt><dd className="inline">{resourceTypeLabel(log.resourceType)}{log.resourceId ? ` · ${log.resourceId}` : ""}</dd></div>
                 {log.buildingId && <div><dt className="inline">Condomínio: </dt><dd className="inline">{log.buildingId}</dd></div>}
               </dl>
             </div>

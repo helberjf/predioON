@@ -3,6 +3,8 @@ export * from "./auth.js";
 export * from "./building-scope.js";
 export * from "./sse.js";
 export * from "./format.js";
+export * from "./labels.js";
+export * from "./device-labels.js";
 export * from "./types.js";
 export * from "./use-resource.js";
 export * from "./use-current-authorization.js";

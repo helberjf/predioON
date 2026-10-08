@@ -5,6 +5,7 @@ import { useAuth } from "../auth.js";
 import { formatDateTime } from "../format.js";
 import { useResource } from "../use-resource.js";
 import { Badge, Button, Card, ErrorBanner, ResourceFeedback } from "./primitives.js";
+import { describeUserAgent } from "../labels.js";
 import { PasswordChangePanel } from "./password-change-panel.js";
 import { MfaPanel } from "./mfa-panel.js";
 
@@ -79,7 +80,7 @@ function SessionsWorkspace() {
         {row.current && <Badge tone="success">Este navegador</Badge>}
         <Badge>{row.revokedAt ? "Encerrada" : active(row) ? "Ativa" : "Expirada"}</Badge>
       </div>
-      <p className="mt-3 break-words text-sm font-medium text-slate-800">{row.userAgent || "Dispositivo não identificado"}</p>
+      <p title={row.userAgent ?? undefined} className="mt-3 break-words text-sm font-medium text-slate-800">{row.userAgent ? describeUserAgent(row.userAgent) : "Dispositivo não identificado"}</p>
       <dl className="mt-3 grid gap-x-6 gap-y-2 text-xs sm:grid-cols-2">
         <div><dt className="text-slate-500">Iniciada em</dt><dd>{formatDateTime(row.createdAt)}</dd></div>
         <div><dt className="text-slate-500">Última utilização registrada</dt><dd>{formatDateTime(row.lastUsedAt)}</dd></div>

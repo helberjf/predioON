@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type ComponentType, type ReactNode } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { ArrowLeft, Bell, CalendarDays, Car, ChartNoAxesCombined, Ellipsis, Home, KeyRound, Megaphone, ScrollText, User, Wrench, X } from "lucide-react";
+import { useConsumptionAvailable } from "../consumption.js";
 import { Brand, BuildingSelector, buildingImage, cls, useFeatures, useAuth, useBuildingScope, useResource } from "@predioon/ui";
 
 type Destination = { to: string; label: string; title?: string; icon: ComponentType<{ size?: number; strokeWidth?: number }>; ownHeading?: boolean };
@@ -32,7 +33,8 @@ export function MobileShell({ children }: { children: ReactNode }) {
   const moreRef = useRef<HTMLDivElement>(null);
   const home = location.pathname === "/";
   const building = useResource<{ name: string }>(buildingId ? `/buildings/${encodeURIComponent(buildingId)}` : null);
-  const allowed = DESTINATIONS.filter(item => flags.routeAllowed(item.to));
+  const consumption = useConsumptionAvailable(buildingId);
+  const allowed = DESTINATIONS.filter(item => flags.routeAllowed(item.to) && (item.to !== "/consumo" || consumption));
   const tabs = allowed.slice(0, 4), more = [...allowed.slice(4), PROFILE];
   const current = [...DESTINATIONS, PROFILE].find(item => item.to === location.pathname);
   const inMore = more.some(item => item.to === location.pathname);

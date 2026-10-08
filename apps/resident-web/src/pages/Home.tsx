@@ -5,6 +5,7 @@ import { noticeIsVisible } from "@predioon/shared";
 import { Feature, useFeatures, Badge, Card, cls, ResourceFeedback, formatNumber, formatRelative, numericReading, readingStatus, useResource } from "@predioon/ui";
 import type { LatestReading, Occurrence, Paged } from "@predioon/ui";
 import { noticeLook, whenLabel, type ResidentNotice } from "../notices.js";
+import { useConsumptionAvailable } from "../consumption.js";
 
 /** The six most used destinations the condominium has enabled; the rest live under "Mais". */
 const SHORTCUTS = [
@@ -20,6 +21,7 @@ const SEE_ALL = "rounded-md text-xs font-semibold text-sky-700 hover:underline";
 
 export function Home({ buildingId }: { buildingId: string }) {
   const flags = useFeatures();
+  const consumption = useConsumptionAvailable(buildingId);
   const notices = useResource<Paged<ResidentNotice>>(flags.enabled("NOTICES") ? `/notices?buildingId=${buildingId}` : null);
   const readings = useResource<Paged<LatestReading>>(flags.enabled("WATER_TANK") ? `/telemetry/latest?buildingId=${buildingId}` : null);
   const mine = useResource<Paged<Occurrence>>(flags.enabled("TICKETS") ? `/occurrences?buildingId=${buildingId}&limit=5` : null);
@@ -29,7 +31,7 @@ export function Home({ buildingId }: { buildingId: string }) {
   const now = new Date();
   const current = notices.data?.items.filter(notice => noticeIsVisible(notice, now)).slice(0, 3) ?? [];
   return <>
-    <div className="grid grid-cols-3 gap-2.5">{SHORTCUTS.filter(link => flags.routeAllowed(link.to)).slice(0, 6).map(({ to, label, icon: Icon, tone }) => <Link key={to} to={to} className="flex min-h-[108px] flex-col items-center justify-center gap-2.5 rounded-2xl border border-white bg-white px-2 py-3 text-center shadow-[0_1px_2px_rgba(16,40,70,0.04),0_6px_18px_-12px_rgba(16,40,70,0.12)] transition hover:border-emerald-200 active:scale-[0.98]">
+    <div className="grid grid-cols-3 gap-2.5">{SHORTCUTS.filter(link => flags.routeAllowed(link.to) && (link.to !== "/consumo" || consumption)).slice(0, 6).map(({ to, label, icon: Icon, tone }) => <Link key={to} to={to} className="flex min-h-[108px] flex-col items-center justify-center gap-2.5 rounded-2xl border border-white bg-white px-2 py-3 text-center shadow-[0_1px_2px_rgba(16,40,70,0.04),0_6px_18px_-12px_rgba(16,40,70,0.12)] transition hover:border-emerald-200 active:scale-[0.98]">
       <span className={cls("flex h-12 w-12 items-center justify-center rounded-2xl", tone)}><Icon size={26} strokeWidth={2.2} /></span>
       <span className="max-w-[6.5rem] text-[11.5px] font-semibold leading-4 text-[#152d4b]">{label}</span>
     </Link>)}</div>

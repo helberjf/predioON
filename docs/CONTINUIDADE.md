@@ -597,3 +597,23 @@ Ordem definida pelo proprietário: **planos e assinaturas por último**; antes, 
 - **"Minhas sessões" mostra o identificador completo do navegador.**
 
 **Não coberto:** aplicativos Android (o emulador não foi aberto nesta rodada), Firefox e WebKit no percurso visual (ele roda em Chromium; os outros motores são cobertos pela matriz automática), abertura real de portão, e formulários de cadastro da operação além de ocorrências (regras, automações, ativos, ordens de serviço têm testes automáticos próprios).
+
+### 08/10: correção dos achados do teste visual (no branch, validação no navegador pendente)
+
+**Pedido do proprietário:** corrigir tudo o que o teste visual apontou.
+
+**Corrigido:**
+
+- **Administração sem concessão:** "Unidades e equipes" e "Operação dos imóveis" passam a listar só os condomínios em que a conta tem concessão. Sem nenhuma, a tela explica o papel da conta de plataforma e onde a concessão é dada (portal de operação, Unidades e equipes → Permissões), em vez de um seletor que só leva a recusas.
+- **"Consumo" no portal do morador** só aparece (menu "Mais" e atalhos) para quem tem leitura de algum medidor; a verificação é uma consulta à própria rota de consumo, porque a concessão é por medidor.
+- **Textos técnicos:** histórico de atividades com ações e recursos em português (`RESERVATION_CANCELLED` → "Reserva cancelada"), tipos de equipamento ("Monitor de bomba"), gravidade das regras ("Alta"). Código desconhecido continua aparecendo como veio, nunca escondido. `packages/ui/src/labels.ts`.
+- **Avisos e agenda** da operação sem o painel de vagas, que tem tela própria.
+- **Reservas do morador:** o cartão passa a se chamar "Suas reservas", porque também lista canceladas.
+- **Minhas sessões:** "Chrome no Windows" no lugar do identificador completo, que continua disponível ao passar o mouse; o que não é reconhecido é mostrado sem alteração.
+- **Portão indisponível para o morador:** a mensagem agora diz que o acesso não está liberado para o perfil e que a administração pode liberá-lo.
+
+**Não alterado, de propósito:** o morador de demonstração continua sem poder abrir portão. Portões nascem desativados e sem liberação para moradores por segurança física; quem libera é o síndico, em Portões e acessos → Configurar.
+
+**Provas até aqui:** tipos, build dos três portais, UI **93/93** (três testes novos das traduções e do nome de navegador), cliente 64/64 e fronteiras de arquitetura.
+
+**Pendente:** o Docker Desktop caiu e não voltou a subir nesta máquina (1,2 GB de memória livre), então **não houve banco para repetir o percurso visual nem a matriz de navegadores**. O commit está no branch `claude/sistemas-web-app-status-07085d` e **não foi enviado à `main`**. Com o Docker de volta: `node scripts/visual-walkthrough.mjs <pasta>` contra a pilha local e a matriz dos três motores; só então publicar.
