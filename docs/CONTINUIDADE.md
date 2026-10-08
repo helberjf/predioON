@@ -633,3 +633,17 @@ Ordem definida pelo proprietário: **planos e assinaturas por último**; antes, 
 **Provas:** integral em Linux com banco zerado: API **791/792** na primeira execução, e a falha era o teste de política citado acima; corrigida a mensagem, esse arquivo passou 5/5 (a suíte completa não foi repetida). Ingestão **129/129**. Notificações de banco **53/54** antes do ajuste de preparação e **54/54** depois; worker de notificações 35 aprovados, 0 falhas; produtores **40/40**; restauração **2/2** com 49 migrations. Matriz de navegadores **339/339** em Chromium, Firefox e WebKit. A 049 aplicada ao banco de demonstração local, que já tem condomínios, não alterou nada, como previsto; ali as quatro funcionalidades foram desligadas pela API de administração (quatro respostas 200) e o percurso visual passou **61/61**, sem nenhum passo de portões ou vagas. Capturas em [imagens/2026-10-08](imagens/2026-10-08/).
 
 **Não verificado:** os aplicativos Android com as funcionalidades desligadas, e a instalação de demonstração do proprietário, que continua com elas ligadas até o passo manual.
+
+### 08/10: portões e vagas desligados em instalações existentes (050), dados fictícios e Android
+
+**Pedido do proprietário:** resolver o passo manual que a 049 deixava para instalações existentes; gerar imagem do painel com dados fictícios; print do Morador num Android.
+
+**050:** desliga as quatro funcionalidades também onde já há condomínios, com os mesmos efeitos da transição auditada, respeitando qualquer configuração global já registrada. Detalhes em [MIGRATIONS.md](MIGRATIONS.md). O seed deixou de criar os equipamentos de demonstração de portão e vagas, a não ser com `SEED_PHYSICAL_FEATURES=enabled`; antes eles apareciam em Equipamentos como "Em configuração" mesmo com os módulos desligados.
+
+**Dados fictícios:** `pnpm --filter @predioon/ingest demo:data` gera 7 dias de leituras pelo pipeline real de ingestão, sem broker nem hardware (`--follow` continua enviando a cada 10 s). Recusa rodar duas vezes sobre o mesmo período, porque os medidores andariam para trás, e ajusta os limites de consumo do seed ao porte do prédio simulado. **Só para banco de demonstração.** Leva cerca de 20 minutos nesta máquina (11.424 leituras, uma transação por leitura).
+
+**Android:** o app Morador rodou no emulador (Pixel 7, Android 15) contra a API local: entrada, escolha do condomínio, Avisos, Solicitações e Reservas. Com as funcionalidades desligadas, a aba de Acessos não aparece. O app nativo **não recebeu o redesenho dos portais web**; continua com o visual anterior.
+
+**Provas:** teste novo da migration **3/3** em banco real (instalação nova; instalação em uso com comandos pendentes, vagas contadas e uma pausa local preexistente; configuração global registrada preservada). Diretório de testes de banco 30 aprovados e 9 pulados por falta de ambiente; restauração **2/2** com 50 migrations; notificações **54/54**. Integral em Linux com banco zerado: API **792/792**, ingestão **129/129**. Matriz de navegadores **339/339** em Chromium, Firefox e WebKit. A 050 aplicada ao banco de demonstração local não alterou nada, porque ali as quatro já tinham sido desligadas pela API. Capturas em [imagens/2026-10-08](imagens/2026-10-08/).
+
+**Não verificado:** a 050 sobre a instalação de demonstração do proprietário (o caminho ativo foi exercitado só no teste); o app Operação no Android; aparelho físico.

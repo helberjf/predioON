@@ -11,6 +11,9 @@ export async function seedFeatures() {
     { buildingId: "bld_001", deviceId: "water_meter_01", kind: "WATER", tariff: null, dailyLimit: 20 },
     { buildingId: "bld_001", deviceId: "pump_01", kind: "PUMP", dailyLimit: 60, continuousLimitMinutes: 60 },
   ]).onConflictDoNothing();
+  // Gate opening and parking counting are opt-in (migration 049): their demo equipment
+  // is only created for a stack that asks for those features.
+  if (process.env.SEED_PHYSICAL_FEATURES !== "enabled") return;
   await db.insert(devices).values([
     { id: "gate_garage_01", name: "Controlador da garagem", type: "GATE_CONTROLLER" },
     { id: "gate_pedestrian_01", name: "Controlador do portão de pedestres", type: "GATE_CONTROLLER" },
@@ -27,6 +30,6 @@ export async function seedFeatures() {
   ]).onConflictDoNothing();
 }
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  try { await seedFeatures(); console.log("Recursos de demonstração cadastrados. Tarifa de energia ilustrativa: R$ 1/kWh. Portões desativados."); }
+  try { await seedFeatures(); console.log("Recursos de demonstração cadastrados. Tarifa de energia ilustrativa: R$ 1/kWh."); }
   finally { await sqlClient.end(); }
 }

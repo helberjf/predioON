@@ -7,6 +7,7 @@
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "simulator": "tsx src/hardware-simulator.ts",
+    "demo:data": "tsx src/demo-data.ts",
     "test": "node --import tsx --test --test-concurrency=1 test/*.test.ts"
   },
   "dependencies": {

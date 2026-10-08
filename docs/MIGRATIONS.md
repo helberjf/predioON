@@ -272,8 +272,16 @@ A API nova exige a 047 só nas duas rotas de recuperação; entrada, sessões e 
 
 `049-physical-features-opt-in.sql` grava `GARAGE_ACCESS`, `PEDESTRIAN_ACCESS`, `CAR_PARKING` e `MOTORCYCLE_PARKING` como **desligadas no nível global** numa instalação que ainda não tem condomínios. As demais funcionalidades seguem a regra da 012: sem configuração, ligadas.
 
-**Instalação que já tem condomínios não é alterada pela migration.** Desligar uma funcionalidade tem efeitos (cancela comandos de portão pendentes, limpa a ocupação das vagas) que pertencem à transição auditada da API. Faça pela tela: administração → Funcionalidades → desligar as quatro.
+**Instalação que já tem condomínios** não é alterada pela 049; quem cuida dela é a 050, abaixo.
 
 **Para ligar:** administração → Funcionalidades. O desligamento global é teto: enquanto estiver desligado, nenhum condomínio consegue ligar localmente.
 
 **Ambientes de teste** que exercitam portões e vagas precisam ligá-las de forma explícita: `SEED_PHYSICAL_FEATURES=enabled pnpm db:seed` (já está nos workflows). Testes que montam o próprio banco só com migrations fazem o `update` na preparação.
+
+## Release 050: portões e vagas desligados também em instalações existentes
+
+`050-physical-features-off-existing.sql` aplica o padrão da 049 a instalações que já têm condomínios, sem passo manual. Para cada uma das quatro funcionalidades **sem configuração global registrada**, grava o desligamento e, em cada condomínio onde ela estava de fato ligada, reproduz os efeitos da transição auditada da API (SQL038): avança a geração de execução, limpa a ocupação das vagas, cancela e audita os comandos de portão pendentes e cancela entregas de alerta que deixaram de ser elegíveis. Os registros de auditoria saem como `SYSTEM`, sem nomear uma pessoa.
+
+**O que ela não toca:** uma configuração global que alguém já registrou, ligada ou desligada, fica como está; cadastros de portões, vagas e equipamentos são mantidos; comandos já enviados não são reescritos.
+
+**Efeito ao aplicar:** as telas de Acessos e Vagas somem dos portais e dos aplicativos, e a ingestão passa a recusar leituras desses módulos. Para religar: administração → Funcionalidades.
