@@ -285,3 +285,15 @@ A API nova exige a 047 só nas duas rotas de recuperação; entrada, sessões e 
 **O que ela não toca:** uma configuração global que alguém já registrou, ligada ou desligada, fica como está; cadastros de portões, vagas e equipamentos são mantidos; comandos já enviados não são reescritos.
 
 **Efeito ao aplicar:** as telas de Acessos e Vagas somem dos portais e dos aplicativos, e a ingestão passa a recusar leituras desses módulos. Para religar: administração → Funcionalidades.
+
+## Release 051: morador sem nível da caixa d'água; consumo só com liberação do síndico
+
+`051-resident-consumption-opt-in.sql`:
+
+- retira do papel **Morador** a leitura do nível publicado da caixa d'água (`telemetry:read-published`). O vínculo antigo de morador (tabela `memberships`) perde a leitura junto, porque segue o mesmo catálogo. A equipe do condomínio continua com a leitura.
+- cria a capacidade `monitoring:read-published` para o papel Morador e a tabela `resident_consumption_settings`, sem privilégio para nenhuma role de execução. **Sem linha, o consumo não está liberado.**
+- cria três funções: `app_resident_consumption_released`, `app_set_resident_consumption` (só quem administra o condomínio; audita `RESIDENT_CONSUMPTION_CHANGED` na mesma transação) e `app_published_consumption`, a projeção fixa entregue ao morador.
+
+**O que o morador recebe quando liberado:** quantidade diária de energia e de água dos últimos 7 dias, somando os medidores do mesmo tipo. Nunca tarifa, custo, limite, bomba, referência aprendida, leitura bruta ou identificação de equipamento.
+
+**Efeito ao aplicar:** nenhum condomínio fica liberado. Quem já mostrava o nível da caixa d'água ao morador deixa de mostrar.

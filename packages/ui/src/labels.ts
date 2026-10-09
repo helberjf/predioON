@@ -52,6 +52,7 @@ const AUDIT_ACTIONS: Record<string, string> = {
   PARKING_OCCUPANCY_UPDATED: "Ocupação de vagas informada",
   PASSWORD_CHANGED: "Senha alterada",
   PRIORITY_CHANGED: "Gravidade do chamado alterada",
+  RESIDENT_CONSUMPTION_CHANGED: "Consumo para moradores alterado",
   RESERVATION_CANCELLED: "Reserva cancelada",
   RESERVATION_CREATED: "Reserva criada",
   RESERVATION_REJECTED: "Reserva recusada",

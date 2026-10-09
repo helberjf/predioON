@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { after, before, describe, it } from "node:test";
+import { createPublishedReaderRole, dropPublishedReaderRole } from "./published-reader.js";
 import { decodeJwt } from "jose";
 import { sqlClient } from "@predioon/db";
 import { closeAppDb, withUserContext } from "@predioon/db/runtime";
@@ -11,8 +12,9 @@ import { login, startTestServer } from "./helpers.js";
 
 describe("live telemetry SSE capabilities", () => {
   let server: Awaited<ReturnType<typeof startTestServer>>, passwordHash: string;
-  before(async () => { passwordHash = await hashPassword("predioon123"); server = await startTestServer(); await startRealtimeBus(); });
-  after(async () => { await server?.close(); await closeAppDb(); await sqlClient.end(); });
+  let reader: string;
+  before(async () => { passwordHash = await hashPassword("predioon123"); server = await startTestServer(); await startRealtimeBus(); reader = await createPublishedReaderRole(); });
+  after(async () => { await server?.close(); await dropPublishedReaderRole(reader); await closeAppDb(); await sqlClient.end(); });
 
   async function create() {
     const suffix = randomUUID(), org = `sse-org-${suffix}`, a = `sse-a-${suffix}`, b = `sse-b-${suffix}`;
@@ -29,7 +31,7 @@ describe("live telemetry SSE capabilities", () => {
     await sqlClient`insert into teams(id,building_id,name) values(${team},${a},'SSE maintenance')`;
     await sqlClient`insert into team_members(team_id,building_id,user_id) values(${team},${a},${worker})`;
     await sqlClient`insert into role_bindings(id,team_id,building_id,role_key) values(${teamBinding},${team},${a},'MAINTENANCE')`;
-    await sqlClient`insert into role_bindings(id,user_id,building_id,role_key) values(${directBinding},${direct},${a},'MAINTENANCE'),(${residentBinding},${resident},${a},'RESIDENT')`;
+    await sqlClient`insert into role_bindings(id,user_id,building_id,role_key) values(${directBinding},${direct},${a},'MAINTENANCE'),(${residentBinding},${resident},${a},${reader})`;
     await sqlClient`insert into role_bindings(id,user_id,building_id,role_key,resource_type,resource_id) values(${scopedBinding},${scoped},${a},'MAINTENANCE','device',${d1})`;
     await sqlClient`insert into role_bindings(id,user_id,role_key) values(${supportBinding},${support},'PLATFORM_SUPPORT'),(${randomUUID()},${platform},'PLATFORM_ADMIN')`;
     await sqlClient`insert into memberships(user_id,building_id,role) values(${legacy},${a},'RESIDENT')`;
@@ -104,8 +106,10 @@ describe("live telemetry SSE capabilities", () => {
     assert.equal(scope.allowed,false);
     assert.deepEqual(await s.batch([f.event({deviceId:f.d2}),f.event()]),[f.event()]);
   })));
-  it("publishes water for resident bindings and prevents legacy resident private readings", async () => fixture(async f => {
-    for (const user of [f.legacy,f.resident]) await stream(f,user,async s => {
+  it("publishes only the safe water fields to a published reader and nothing to a legacy resident", async () => fixture(async f => {
+    // SQL051: a resident, legacy or not, no longer receives the published water level.
+    await stream(f,f.legacy,async s => { assert.deepEqual(await s.batch([f.event({privateMetadata:'secret'})]),[]); });
+    for (const user of [f.resident]) await stream(f,user,async s => {
       const rows = await s.batch([f.event({metric:'energy_total_kwh',value:'secret-energy'}),f.event({privateMetadata:'secret'})]);
       const row = only(rows);
       assert.deepEqual(Object.keys(row).sort(),['kind','buildingId','deviceId','metric','value','unit','quality','time'].sort());
@@ -136,7 +140,7 @@ describe("live telemetry SSE capabilities", () => {
     });
   }));
   it("keeps raw precedence and delivers overlapping capabilities once", async () => fixture(async f => {
-    await sqlClient`insert into role_bindings(user_id,building_id,role_key) values(${f.scoped},${f.a},'RESIDENT')`;
+    await sqlClient`insert into role_bindings(user_id,building_id,role_key) values(${f.scoped},${f.a},${reader})`;
     await stream(f,f.scoped,async s => {
       const rows = await s.batch([f.event(),f.event({deviceId:f.d2})]);
       assert.equal(rows.length,2); assert.equal(rows[0].unit,'private-unit'); assert.equal(rows[1].unit,'%');

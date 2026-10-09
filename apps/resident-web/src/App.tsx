@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import { AccessPanel, BuildingScopeProvider, BuildingScopeFeedback, FeatureProvider, FeatureContent, InvitationScreen, LoginScreen, PasswordRecoveryScreen, MonitoringPanel, ParkingPanel, TransparencyPanel, useAuth, useBuildingScope } from "@predioon/ui";
+import { AccessPanel, BuildingScopeProvider, BuildingScopeFeedback, FeatureProvider, FeatureContent, InvitationScreen, LoginScreen, PasswordRecoveryScreen, PublishedConsumption, ParkingPanel, TransparencyPanel, useAuth, useBuildingScope } from "@predioon/ui";
 import { MobileShell } from "./layout/MobileShell.js";
 import { Home } from "./pages/Home.js";
 import { Notices } from "./pages/Notices.js";
@@ -30,7 +30,7 @@ function ResidentApp() {
         <Route path="/" element={<FeatureContent path="/"><Home buildingId={buildingId} /></FeatureContent>} />
         <Route path="/avisos" element={<FeatureContent path="/avisos"><Notices buildingId={buildingId} /></FeatureContent>} />
         <Route path="/acessos" element={<FeatureContent path="/acessos"><AccessPanel buildingId={buildingId} /></FeatureContent>} />
-        <Route path="/consumo" element={<FeatureContent path="/consumo"><MonitoringPanel buildingId={buildingId} /></FeatureContent>} />
+        <Route path="/consumo" element={<FeatureContent path="/consumo"><PublishedConsumption buildingId={buildingId} /></FeatureContent>} />
         <Route path="/vagas" element={<FeatureContent path="/vagas"><ParkingPanel buildingId={buildingId} /></FeatureContent>} />
         <Route path="/chamados" element={<FeatureContent path="/chamados"><Occurrences buildingId={buildingId} /></FeatureContent>} />
         <Route path="/transparencia" element={<FeatureContent path="/transparencia"><TransparencyPanel buildingId={buildingId} /></FeatureContent>} />

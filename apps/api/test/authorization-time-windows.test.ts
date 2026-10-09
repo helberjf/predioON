@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { createRequire } from "node:module";
 import { after, before, describe, it } from "node:test";
+import { createPublishedReaderRole, dropPublishedReaderRole } from "./published-reader.js";
 import { sql } from "drizzle-orm";
 import { sqlClient } from "@predioon/db";
 import { closeAppDb, withUserContext, type AppTransaction } from "@predioon/db/runtime";
@@ -11,8 +12,9 @@ import { startTestServer, login, call } from "./helpers.js";
 
 describe("authorization uses current statement time and fresh time after controlled lock waits", () => {
   let server: Awaited<ReturnType<typeof startTestServer>>, passwordHash: string;
-  before(async () => { passwordHash = await hashPassword("predioon123"); server = await startTestServer(); });
-  after(async () => { await server?.close(); await closeAppDb(); await sqlClient.end(); });
+  let reader: string;
+  before(async () => { passwordHash = await hashPassword("predioon123"); server = await startTestServer(); reader = await createPublishedReaderRole(); });
+  after(async () => { await server?.close(); await dropPublishedReaderRole(reader); await closeAppDb(); await sqlClient.end(); });
   const as = <T>(userId: string, run: (tx: AppTransaction) => Promise<T>) => withUserContext({userId, role:"PLATFORM_ADMIN"}, run);
   async function create() {
     const suffix = randomUUID(), org = `tw-org-${suffix}`, building = `tw-building-${suffix}`;
@@ -156,7 +158,7 @@ describe("authorization uses current statement time and fresh time after control
       await waitPast(await expire(f,'direct'));
       assert.equal((await read()).length,0);
     });
-    await sqlClient`insert into role_bindings(user_id,building_id,role_key) values(${f.support},${f.building},'RESIDENT')`;
+    await sqlClient`insert into role_bindings(user_id,building_id,role_key) values(${f.support},${f.building},${reader})`;
     assert.equal((await as(f.support,tx=>tx.execute(sql`select device_id from telemetry`))).length,0);
     assert.equal((await as(f.support,tx=>tx.execute(sql`select device_id from app_published_water_levels(${f.building})`))).length,1);
     assert.equal((await as(f.platform,tx=>tx.execute(sql`select device_id from telemetry`))).length,0);
@@ -318,7 +320,7 @@ describe("authorization uses current statement time and fresh time after control
     it(`SQL alert transition rechecks ${kind} expiry inside one outer statement after the row lock`,async()=>fixture(async f=>{
       if(kind==='action') {
         await sqlClient`update role_bindings set role_key='MAINTENANCE' where id=${f.binding}`;
-        await sqlClient`insert into role_bindings(user_id,building_id,role_key) values(${f.direct},${f.building},'RESIDENT')`;
+        await sqlClient`insert into role_bindings(user_id,building_id,role_key) values(${f.direct},${f.building},${reader})`;
         // Keep read authority separate from the timed action binding.
         await sqlClient`insert into support_grants(building_id,support_user_id,capability,reason,expires_at,granted_by) values(${f.building},${f.direct},'alerts:read','Independent read',clock_timestamp()+interval '1 hour',${f.platform})`;
         await sqlClient`insert into role_bindings(user_id,role_key) values(${f.direct},'PLATFORM_SUPPORT')`;

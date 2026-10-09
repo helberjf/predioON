@@ -657,3 +657,26 @@ Ordem definida pelo proprietário: **planos e assinaturas por último**; antes, 
 **Provas:** tipos e os nove arquivos de teste de navegador que usam o portal do morador, **129/129** em Chromium, Firefox e WebKit.
 
 **Pendente de decisão:** a API ainda entrega ao morador o nível publicado (capacidade `telemetry:read-published`, criada na 017). Nenhuma tela usa mais; retirar a capacidade é mudança de autorização com migration e testes próprios. O item "Consumo" continua existindo para o morador, mas só aparece para quem recebeu a leitura de algum medidor.
+
+### 09/10: morador sem nível da caixa d'água na API; consumo só com liberação do síndico (051)
+
+**Decisões do proprietário:** retirar do morador também a permissão de ler o nível da caixa d'água; consumo para o morador **só se o síndico autorizar, e não autorizado por padrão**.
+
+**Por que foi preciso construir algo:** o síndico só conseguia conceder papéis amplos (como Manutenção). Não existia uma autorização que liberasse apenas o consumo.
+
+**Entrega (migration 051, detalhes em [MIGRATIONS.md](MIGRATIONS.md)):**
+
+- o papel Morador perde `telemetry:read-published`; o vínculo antigo de morador perde junto;
+- chave por condomínio, **desligada por padrão**: em Consumo e análise, no portal de operação, o cartão "Consumo para moradores" com "Liberar para moradores". A decisão é auditada;
+- com a liberação, o morador vê em "Consumo" só a quantidade diária de energia e de água dos últimos 7 dias. Sem a liberação, o item nem aparece;
+- o painel completo de consumo (custos, tarifas, limites, bomba, configuração) continua fechado ao morador nos dois casos.
+
+**Achado durante a validação, corrigido antes de publicar:** uma regra existente diz que só concede um papel quem tem todas as permissões dele. Dar a permissão nova apenas ao Morador **impedia o síndico de convidar e vincular moradores** (9 testes de convite falharam na primeira integral). O papel Administrador do condomínio recebeu a mesma permissão; a consequência é que o síndico também enxerga, quando liberado, a mesma visão reduzida do morador.
+
+**Testes ajustados, sem enfraquecer o que protegem:** três suítes usavam o morador como o leitor da "publicação reduzida" do nível de água. Como nenhum papel de produção tem mais essa leitura isolada (a equipe lê as medições completas), essas suítes passaram a usar um papel criado só para o teste (`apps/api/test/published-reader.ts`), e a projeção reduzida continua coberta. Mudaram de expectativa, por ser a regra nova: morador com vínculo antigo recebe recusa em vez do nível; o catálogo lista três papéis de equipe em vez de quatro.
+
+**Provas:** teste novo da API **5/5** (padrão desligado; só a administração decide, com auditoria; o que é entregue e o que nunca é; fim imediato ao retirar a liberação ou o vínculo; tabela e funções fora do alcance das outras roles). Integral em Linux com banco zerado: a primeira execução deu **787/797**, com os 9 testes de convite falhando pelo achado acima e 1 de recuperação de senha que passou ao ser repetido junto com os demais; após a correção, **797/797**. Ingestão **129/129**. Matriz de navegadores **342/342** em Chromium, Firefox e WebKit, incluindo o cenário novo (síndico libera, morador vê só quantidades, síndico retira, morador deixa de ver). Testes de banco: diretório 30 aprovados e 9 pulados; notificações **54/54**; restauração **2/2** com 51 migrations na terceira tentativa, pela corrida de relógio já registrada na linha 150 do teste. UI 93/93, mobile 81/81, cliente 64/64, tipos e fronteiras.
+
+**Ajuste na restauração:** o teste verificava que o morador lia o nível publicado depois de restaurar; passou a verificar que não lê, pela regra nova.
+
+**Não verificado:** os aplicativos Android (o app Morador não tem tela de consumo; continua sem); a migration sobre a instalação de demonstração do proprietário.
