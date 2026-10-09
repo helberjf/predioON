@@ -15,7 +15,7 @@ type Binding = { id: string; userId: string | null; teamId: string | null; roleK
 type Resource<T> = { data: T[]; loading: boolean; error: string | null; reload: () => void };
 type Editing = { kind: "block"; id: string; code: string; name: string } | { kind: "unit"; id: string; code: string; blockId: string; floor: string } | { kind: "team"; id: string; name: string };
 const EDIT_LABEL = { block: "bloco", unit: "unidade", team: "equipe" };
-const ROLES = [{ value: "RESIDENT", label: "Morador" }, { value: "MAINTENANCE", label: "Manutenção" }, { value: "MAINTENANCE_MANAGER", label: "Gestor de manutenção" }, { value: "BUILDING_ADMIN", label: "Administrador do condomínio" }];
+const ROLES = [{ value: "RESIDENT", label: "Morador" }, { value: "MAINTENANCE", label: "Manutenção" }, { value: "MAINTENANCE_MANAGER", label: "Gestor de manutenção" }, { value: "BUILDING_ADMIN", label: "Síndico" }];
 const KINDS = [{ value: "OWNER", label: "Proprietário" }, { value: "OCCUPANT", label: "Ocupante" }, { value: "DEPENDENT", label: "Dependente" }];
 
 export function TenancyPanel({ buildingId }: { buildingId: string }) {

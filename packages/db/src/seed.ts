@@ -174,7 +174,7 @@ if (physicalFeatures) {
 }
 console.log("Seed concluído. Usuários de demonstração (senha definida por SEED_PASSWORD ou padrão local):");
 console.log("  admin@predioon.local    (administrador da plataforma)");
-console.log("  sindico@predioon.local  (administrador do prédio)");
+console.log("  sindico@predioon.local  (síndico)");
 console.log("  morador@predioon.local  (morador)");
 console.log(physicalFeatures ? "Portões e vagas: funcionalidades ligadas por SEED_PHYSICAL_FEATURES=enabled." : "Portões e vagas: desligados por padrão; ligue em Funcionalidades, na administração, se o condomínio tiver o equipamento.");
 process.exit(0);

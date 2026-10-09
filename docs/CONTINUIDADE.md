@@ -680,3 +680,7 @@ Ordem definida pelo proprietário: **planos e assinaturas por último**; antes, 
 **Ajuste na restauração:** o teste verificava que o morador lia o nível publicado depois de restaurar; passou a verificar que não lê, pela regra nova.
 
 **Não verificado:** os aplicativos Android (o app Morador não tem tela de consumo; continua sem); a migration sobre a instalação de demonstração do proprietário.
+
+### 09/10: um nome só para o papel do síndico
+
+O relato da 051 falava em "síndico" e em "administrador do condomínio" como se fossem dois. **É um papel só**, `BUILDING_ADMIN`. O catálogo no banco sempre o chamou de "Síndico"; duas telas (Concessões de acesso, na operação, e Usuários, na administração) o mostravam como "Administrador do condomínio". As telas passaram a dizer "Síndico". Não houve mudança de permissão. Provas: tipos e UI 93/93; nenhum teste de navegador escolhe o papel pelo rótulo, e a matriz não foi repetida para essa troca de texto.

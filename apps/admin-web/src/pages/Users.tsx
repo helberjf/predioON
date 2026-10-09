@@ -96,7 +96,7 @@ export function Users() {
                   onChange={(role) => setForm({ ...form, role })}
                   options={[
                     { value: "RESIDENT", label: "Morador" },
-                    { value: "BUILDING_ADMIN", label: "Administrador do condomínio" },
+                    { value: "BUILDING_ADMIN", label: "Síndico" },
                   ]}
                 />
               </Field>
@@ -136,7 +136,7 @@ export function Users() {
         <form onSubmit={event => { event.preventDefault(); void linkMembership(); }}><fieldset disabled={pending} className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <Field label="Pessoa"><Select required value={membership.userId} onChange={userId => setMembership({ ...membership, userId })} options={[{ value: "", label: "Selecione uma pessoa" }, ...(users.data?.items ?? []).filter(user => user.active).map(user => ({ value: user.id, label: `${user.name} · ${user.email}` }))]} /></Field>
           <Field label="Condomínio"><Select required value={membership.buildingId} onChange={buildingId => setMembership({ ...membership, buildingId })} options={[{ value: "", label: "Selecione um condomínio" }, ...(buildings.data?.items ?? []).map(building => ({ value: building.id, label: building.name }))]} /></Field>
-          <Field label="Papel"><Select value={membership.role} onChange={role => setMembership({ ...membership, role })} options={[{ value: "RESIDENT", label: "Morador" }, { value: "BUILDING_ADMIN", label: "Administrador do condomínio" }]} /></Field>
+          <Field label="Papel"><Select value={membership.role} onChange={role => setMembership({ ...membership, role })} options={[{ value: "RESIDENT", label: "Morador" }, { value: "BUILDING_ADMIN", label: "Síndico" }]} /></Field>
           <Field label="Unidade"><Input maxLength={40} value={membership.unit} onChange={unit => setMembership({ ...membership, unit })} placeholder="101" /></Field>
           <div><Button type="submit" disabled={pending || !membership.userId || !membership.buildingId}>{pending ? "Salvando…" : "Salvar vínculo"}</Button></div>
         </fieldset></form>
