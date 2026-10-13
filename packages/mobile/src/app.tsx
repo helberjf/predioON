@@ -29,12 +29,18 @@ import {
   type Feature,
   type Product,
   type Screen,
+  consumptionItems,
   screensFor,
   validateApiUrl,
 } from "./scope.ts";
 import type { Building, List } from "./models.ts";
 import { useReadResource, useResource } from "./resource.ts";
 import { BuildingScreen } from "./building-screen.tsx";
+import {
+  readResidentConsumption,
+  residentConsumptionKey,
+} from "./resident-consumption.ts";
+import { ResidentConsumptionScreen } from "./resident-consumption-screen.tsx";
 import { readOperationsAccess, readResidentAccess } from "./authorization.ts";
 import { Alerts, Overview, Readings } from "./operations.tsx";
 import { WorkOrders } from "./work-orders-screen.tsx";
@@ -63,6 +69,7 @@ const titles: Record<Screen, string> = {
   reservations: "Reservas",
   transparency: "Transparência",
   access: "Acessos",
+  consumption: "Consumo",
   overview: "Resumo",
   alerts: "Alertas",
   readings: "Sensores",
@@ -350,7 +357,7 @@ function BuildingApp({
     `/features/buildings/${encodeURIComponent(building.id)}`,
   );
   const [selected, setSelected] = useState<Screen | null>(null);
-  const scope = {
+  const authority = {
     buildingId: building.id,
     capabilities:
       (product === "operations" ? operationsAccess.data : authorization.data)
@@ -360,6 +367,15 @@ function BuildingApp({
       ? { overview: operationsAccess.data?.overview ?? null }
       : { access: authorization.data?.access ?? null }),
   };
+  const readConsumption = useCallback(
+    () => readResidentConsumption(api, building.id),
+    [api, building.id],
+  );
+  const consumption = useReadResource(
+    residentConsumptionKey(product, user.id, authority),
+    readConsumption,
+  );
+  const scope = { ...authority, consumption: consumption.data };
   const screens = screensFor(product, scope);
   const ready = Boolean(
     (product === "operations" ? operationsAccess.data : authorization.data) &&
@@ -401,6 +417,9 @@ function BuildingApp({
           resource={product === "operations" ? operationsAccess : authorization}
         />
         <Feedback resource={features} />
+        {consumption.error && (
+          <ErrorMessage message={consumption.error} retry={consumption.reload} />
+        )}
         {ready && !current && (
           <Card>
             <Text style={styles.subtitle}>Sem módulos disponíveis</Text>
@@ -412,7 +431,15 @@ function BuildingApp({
         )}
         {ready && current && (
           <>
-            <Text style={styles.title}>{titles[current]}</Text>
+            <Text style={styles.title}>
+              {current === "consumption" ? "Consumo do condomínio" : titles[current]}
+            </Text>
+            {current === "consumption" && (
+              <ResidentConsumptionScreen
+                resource={consumption}
+                items={consumptionItems(scope)}
+              />
+            )}
             {current === "notices" && (
               <Notices api={api} buildingId={building.id} />
             )}

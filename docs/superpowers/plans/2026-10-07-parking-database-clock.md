@@ -67,11 +67,11 @@ async function databaseNow(tx: AppTransaction): Promise<Date> {
 - [x] Executar a regressão integral da API em ambiente isolado; registrar o resultado próprio sem somar suítes dirigidas à integral.
 - [x] Executar tipos da API/DB/shared, fronteiras e `git diff --check`.
 - [x] Atualizar o tracker, continuidade e melhorias com a evidência e os limites reais. Nenhum teste HTTP aceita Android/iOS, aparelhos, Resend real, firmware ou produção.
-- [ ] Commitar somente a entrega verificada, fazer push do branch de continuação e conferir que o SHA remoto corresponde ao local.
+- [x] Commitar somente a entrega verificada, fazer push do branch de continuação e conferir que o SHA remoto corresponde ao local.
 
 ## Estado
 
-Implementação e verificação concluídas em 12/10; commit/push é o último checkpoint.
+Publicado em `40fa2c3d3076e8aac9649d3cbaee86718691092a` em 12/10; push confirmado pelo SHA remoto.
 
 RED original:7 casos,2 aprovados/5 falhas de estado. As três fontes conservaram os hashes congelados nas revisões originais e nas duas revisões atuais após integrar a main. Dirigido atual54/54,5 suítes,32.188,410742ms; integral API própria804/804,63 suítes,645.143,501119ms; ingestão própria129/129,16 suítes,12.837,180992ms. Zero falhas/skips/cancelamentos nessas execuções; não somar dirigidos às integrais.
 

@@ -271,3 +271,9 @@ Identidade autenticada 37307304828 e os dois jobs de inicialização 37307304855
 - **Tela de Acessos do morador** no formato do mockup (dois botões grandes e últimos acessos) e **abertura de ocorrência por categoria** em grade de ícones; hoje usam os painéis compartilhados com a operação.
 - **Unificar "Chamados" e "Ocorrências":** a navegação diz Ocorrências e o painel diz Chamados.
 - **Minhas sessões:** mostrar "Chrome no Windows" em vez do identificador completo do navegador.
+
+### 12/10: Consumo nativo sob liberação do síndico
+
+- **Tela de Consumo do app Morador — código e provas de host/bundle verificados:** somente projeção diária 051 liberada, com menu e conteúdo na mesma leitura. Mobile 157/157, cliente 75/75, UI 93/93, quatro tipos e quatro bundles JS; duas revisões independentes aprovadas. [Evidência](evidencias/native-resident-consumption-2026-10-12.json). Falta observação em aparelho; empacotamento JS não aceita renderer nativo.
+- **Retirada remota de acesso:** observada numa nova leitura; o polling de 15 s é agendado após o término do pedido. Não há retirada instantânea ou prazo máximo fixo.
+- **Relógio do estacionamento:** publicado em `40fa2c3`, com SHA remoto confirmado; a fonte integrada manteve catálogo/ledger/credenciais e zero fixtures pendentes.

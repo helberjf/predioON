@@ -53,6 +53,22 @@ const resident: Scope = {
     enabled: true,
   })),
 };
+
+test("consumption navigation requires current resident grants, a compatible module and current building evidence", () => {
+  const base = { buildingId: "one", capabilities: ["monitoring:read-published"] as Scope["capabilities"], features: [{ key: "ENERGY_CONSUMPTION", enabled: true }] };
+  const publication = { buildingId: "one", day: "2024-03-02", items: [{ kind: "ENERGY" as const, unit: "kWh" as const, today: null, history: [] }] };
+  assert.deepEqual(screensFor("resident", base), []);
+  assert.deepEqual(screensFor("resident", { ...base, consumption: null }), []);
+  assert.deepEqual(screensFor("resident", { ...base, consumption: publication }), ["consumption"]);
+  assert.deepEqual(screensFor("operations", { ...base, consumption: publication }), []);
+  assert.deepEqual(screensFor("resident", { ...base, consumption: { ...publication, buildingId: "other" } }), []);
+  assert.deepEqual(screensFor("resident", { ...base, consumption: { ...publication, items: [] } }), []);
+  assert.deepEqual(screensFor("resident", { ...base, consumption: publication, capabilities: ["telemetry:read", "buildings:manage"] }), []);
+  assert.deepEqual(screensFor("resident", { ...base, consumption: publication, features: [{ key: "ENERGY_CONSUMPTION", enabled: false }] }), []);
+  for (const key of ["PUMP", "WATER_TANK", "WATER_CONSUMPTION"]) assert.deepEqual(screensFor("resident", { ...base, consumption: publication, features: [{ key, enabled: true }] }), []);
+  const water = { ...publication, items: [{ kind: "WATER" as const, unit: "m³" as const, today: null, history: [] }] };
+  assert.deepEqual(screensFor("resident", { ...base, consumption: water, features: [{ key: "WATER_CONSUMPTION", enabled: true }] }), ["consumption"]);
+});
 test("resident audience never exposes operational screens even for a manager account", () => {
   const manager: Scope = {
     ...resident,
@@ -429,4 +445,3 @@ test("work orders follow their own permissions in the operations app only", () =
   assert.deepEqual(screensFor("operations", { ...technician, capabilities: ["work-orders:assign"], overview: partialOverview, features: [] }), ["overview", "alerts", "workOrders"]);
   assert.deepEqual(screensFor("operations", { ...technician, capabilities: ["work-orders:update-assigned"] }), [], "updating alone never lists orders");
 });
-

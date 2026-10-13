@@ -1,5 +1,6 @@
 import type { AuthorizationResponse } from "@predioon/contracts/tenancy";
 import type { BuildingOverview } from "@predioon/contracts";
+import type { ResidentConsumption } from "./resident-consumption.ts";
 
 export type Product = "resident" | "operations";
 export type Screen =
@@ -8,12 +9,19 @@ export type Screen =
   | "reservations"
   | "transparency"
   | "access"
+  | "consumption"
   | "overview"
   | "alerts"
   | "readings"
   | "workOrders";
 export type Grant = AuthorizationResponse["capabilities"][number];
-export type Feature = { key: string; enabled: boolean };
+export type Feature = {
+  key: string;
+  enabled: boolean;
+  version?: number;
+  globalVersion?: number;
+  resumedAt?: string | null;
+};
 export type Scope = {
   buildingId: string;
   capabilities: readonly Grant[];
@@ -22,7 +30,21 @@ export type Scope = {
   overview?: BuildingOverview | null;
   /** Current authorized gate collection; never an action or inventory grant. */
   access?: { buildingId: string; readable: boolean } | null;
+  /** Current validated public response for this building; never an action grant. */
+  consumption?: ResidentConsumption | null;
 };
+
+export function consumptionItems(scope: Scope) {
+  if (
+    !scope.capabilities.includes("monitoring:read-published") ||
+    scope.consumption?.buildingId !== scope.buildingId
+  ) return [];
+  return scope.consumption.items.filter((item) =>
+    scope.features.some(
+      (feature) => feature.key === `${item.kind}_CONSUMPTION` && feature.enabled,
+    ),
+  );
+}
 
 export function transparencySections(scope: Scope) {
   const enabled = (key: string) =>
@@ -69,6 +91,7 @@ export function screensFor(product: Product, scope: Scope): Screen[] {
         ? ["tickets" as const]
         : []),
       ...(reservationActions(scope).read ? ["reservations" as const] : []),
+      ...(consumptionItems(scope).length ? ["consumption" as const] : []),
       ...(transparency.notices || transparency.finance
         ? ["transparency" as const]
         : []),
