@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { instantToLocalDateTime, localDateTimeToIso, type ScheduledNotice } from "@predioon/shared";
-import { api, Badge, Button, Card, ErrorBanner, Field, Input, Select, TextArea, useResource, ResourceFeedback, ParkingPanel, useFeatures } from "@predioon/ui";
+import { api, Badge, Button, Card, ErrorBanner, Field, Input, Select, TextArea, useResource, ResourceFeedback, useFeatures } from "@predioon/ui";
 import type { Notice, Paged } from "@predioon/ui";
 
 const CATEGORIES = [
@@ -63,7 +63,6 @@ export function Notices({ buildingId, canManage = false }: { buildingId: string;
     <h1 className="text-2xl font-bold text-slate-900">Avisos e agenda</h1>
     {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
     {message && <p role="status" className="rounded-xl bg-emerald-50 p-3 text-sm text-emerald-700">{message}</p>}
-    <ParkingPanel buildingId={buildingId} />
     <div className="grid items-start gap-5 xl:grid-cols-3">
       {canManage && <Card title={editing ? "Editar aviso" : "Novo aviso"}>
         <div className="space-y-3">

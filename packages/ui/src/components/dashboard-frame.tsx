@@ -1,10 +1,10 @@
 import { useEffect, useId, useRef, useState, type ComponentType, type KeyboardEvent, type ReactNode } from "react";
-import { Bell, ChevronRight, LogOut, Menu, Search, MapPin, X } from "lucide-react";
+import { Bell, LogOut, Menu, Search, MapPin, X } from "lucide-react";
 import { Brand } from "./primitives.js";
-import { buildingImage } from "../assets.js";
 import { cls } from "../format.js";
 
-export type NavigationItem = { to: string; label: string; icon: ComponentType<{ size?: number; className?: string }> };
+/** `group` names the section a destination is listed under; consecutive items of a group share one heading. */
+export type NavigationItem = { to: string; label: string; icon: ComponentType<{ size?: number; className?: string }>; group?: string };
 type Props = {
   children: ReactNode; title: string; subtitle: string; userName: string; role: string;
   links: NavigationItem[]; pathname: string; signOut: () => void;
@@ -73,32 +73,31 @@ export function DashboardFrame({ children, title, subtitle, userName, role, link
     }
   };
 
-  const nav = () => links.map(({ to, label, icon: Icon }) => <div key={to}>{renderLink(to, <><Icon size={20}/><span>{label}</span><ChevronRight size={14} className="ml-auto opacity-40"/></>, cls("flex h-11 items-center gap-3 rounded-md px-3 text-[13px] transition", pathname === to ? "bg-[#0b5155] font-semibold text-[#33d6a4]" : "text-slate-200 hover:bg-white/5 hover:text-white"))}</div>);
+  const nav = () => links.map(({ to, label, icon: Icon, group }, index) => <div key={to}>
+    {group && group !== links[index - 1]?.group && <p className={cls("px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400/80", index ? "pt-5" : "pt-1")}>{group}</p>}
+    {renderLink(to, <><span className={cls("absolute inset-y-2 left-0 w-[3px] rounded-full", pathname === to ? "bg-emerald-400" : "bg-transparent")}/><Icon size={18}/><span className="min-w-0 truncate">{label}</span></>, cls("relative flex h-10 items-center gap-3 rounded-lg pl-4 pr-3 text-[13px] transition", pathname === to ? "bg-white/[0.08] font-semibold text-white" : "text-slate-300 hover:bg-white/5 hover:text-white"))}
+  </div>);
 
   // Mesma coluna escura serve à barra fixa do desktop e ao painel deslizante do celular.
   const sidebar = (onClose?: () => void) => <>
-    <div className="flex items-start justify-between px-5 pb-6 pt-5">
+    <div className="flex shrink-0 items-start justify-between px-5 pb-5 pt-5">
       <Brand dark/>
       {onClose && <button ref={closeRef} aria-label="Fechar menu" onClick={onClose} className="-mr-1 rounded-md p-2 text-slate-300 hover:bg-white/10"><X size={20}/></button>}
     </div>
-    <nav aria-label="Menu principal" aria-busy={navigationBusy} className="space-y-1 px-3" onClick={event => {
+    <nav aria-label="Menu principal" aria-busy={navigationBusy} tabIndex={-1} className="min-h-0 flex-1 outline-none space-y-0.5 overflow-y-auto px-3 pb-4 [scrollbar-width:thin]" onClick={event => {
       if (event.target instanceof Element && event.target.closest("a[href]")) onClose?.();
     }}>{navigationFeedback ?? nav()}</nav>
-    <div className="relative mt-5 min-h-32 flex-1 overflow-hidden" aria-hidden="true">
-      <img src={buildingImage} alt="" className="absolute inset-0 h-full w-full object-cover object-center opacity-65"/>
-      <div className="absolute inset-0 bg-gradient-to-b from-[#0c202e] via-transparent to-[#0c202e]"/>
-      <p className="absolute bottom-5 left-6 text-xs leading-5 text-slate-300">Mais segurança<br/>Mais eficiência<br/>Mais tranquilidade</p>
-    </div>
-    <div className="flex items-center justify-between border-t border-white/5 bg-white/[0.025] px-6 py-4">
-      <div><p className="text-xs font-semibold text-white">Prédio ON</p><p className="mt-1 text-[10px] text-slate-400">Seu prédio conectado</p></div>
-      <button aria-label="Sair da conta" title="Sair da conta" onClick={signOut} className="rounded-md p-2 text-slate-300 hover:bg-white/10"><LogOut size={17}/></button>
+    <div className="flex shrink-0 items-center justify-between gap-3 border-t border-white/10 bg-white/[0.03] px-5 py-3.5">
+      {/* The signed-in person is named once, in the top bar. */}
+      <div className="min-w-0"><p className="text-xs font-semibold text-white">Prédio ON</p><p className="mt-0.5 text-[11px] text-slate-400">Seu prédio conectado</p></div>
+      <button aria-label="Sair da conta" title="Sair da conta" onClick={signOut} className="flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-xs font-medium text-slate-200 hover:bg-white/10 hover:text-white"><LogOut size={15}/>Sair</button>
     </div>
   </>;
 
   return <div className="min-h-screen bg-[#eef5f9]">
     <a href="#conteudo" className="sr-only z-50 bg-white p-3 text-emerald-700 focus:not-sr-only focus:fixed focus:left-4 focus:top-4">Pular para o conteúdo</a>
 
-    <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col overflow-y-auto bg-[#0c202e] lg:flex">{sidebar()}</aside>
+    <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col bg-[#0c202e] lg:flex">{sidebar()}</aside>
 
     {menuOpen && <dialog
       ref={menuRef}
@@ -110,13 +109,13 @@ export function DashboardFrame({ children, title, subtitle, userName, role, link
       className="fixed inset-0 m-0 h-full max-h-none w-full max-w-none border-0 bg-transparent p-0 backdrop:bg-transparent"
     >
       <div className="absolute inset-0 bg-slate-900/60" onClick={() => setMenuOpen(false)} aria-hidden="true"/>
-      <div className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col overflow-y-auto bg-[#0c202e] shadow-2xl">
+      <div className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-[#0c202e] shadow-2xl">
         {sidebar(() => setMenuOpen(false))}
       </div>
     </dialog>}
 
     <div className="lg:pl-60">
-      <header className="relative z-20 border-b border-slate-200/70 bg-[#fafdff]">
+      <header className="relative z-20 border-b border-slate-200/70 bg-white">
         <div className="flex min-h-[72px] items-center justify-between gap-4 px-4 md:px-6">
           <div className="flex min-w-0 items-center gap-3">
             <button ref={openerRef} aria-label="Abrir menu" aria-haspopup="dialog" aria-controls={menuOpen ? menuId : undefined} aria-expanded={menuOpen} onClick={() => setMenuOpen(true)} className="-ml-1 rounded-lg p-2 text-[#183a58] hover:bg-slate-100 lg:hidden"><Menu size={22}/></button>
@@ -129,7 +128,7 @@ export function DashboardFrame({ children, title, subtitle, userName, role, link
           <div className="flex items-center gap-3 md:gap-5">
             <div role="search" className="relative hidden w-48 xl:block">
               <Search size={15} className="pointer-events-none absolute left-3 top-3 text-slate-400"/>
-              <input aria-label="Buscar no sistema" placeholder="Buscar no sistema..." value={search} onChange={event => setSearch(event.target.value)} onKeyDown={event => { if (event.key === "Escape") setSearch(""); }} className="w-full rounded-md border border-slate-200 bg-transparent py-2.5 pl-9 pr-3 text-xs outline-none focus:border-emerald-500"/>
+              <input aria-label="Buscar no sistema" placeholder="Buscar no sistema..." value={search} onChange={event => setSearch(event.target.value)} onKeyDown={event => { if (event.key === "Escape") setSearch(""); }} className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-9 pr-3 text-xs outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100"/>
               {search.trim() && <div className="absolute right-0 top-11 w-60 rounded-lg border border-slate-200 bg-white p-2 shadow-lg" onClick={() => setSearch("")}>{matches.length ? matches.map(item => <div key={item.to}>{renderLink(item.to, item.label, "block rounded-md p-2 text-sm text-slate-700 hover:bg-emerald-50")}</div>) : <p className="p-2 text-xs text-slate-500">Nenhuma página encontrada.</p>}</div>}
             </div>
             {renderLink("/alertas", <><Bell size={22}/><span className="sr-only">Ver alertas</span></>, "rounded-lg p-2 text-[#183a58] hover:bg-slate-100")}
@@ -138,7 +137,7 @@ export function DashboardFrame({ children, title, subtitle, userName, role, link
         </div>
         <p className="border-t border-slate-200/70 px-4 py-2.5 text-[13px] font-semibold text-[#142f50] lg:hidden">{title}</p>
       </header>
-      <main ref={mainRef} id="conteudo" tabIndex={-1} className="mx-auto max-w-[1680px] space-y-4 p-4 md:p-5">{children}</main>
+      <main ref={mainRef} id="conteudo" tabIndex={-1} className="mx-auto max-w-[1680px] space-y-4 p-4 outline-none md:space-y-5 md:p-6">{children}</main>
       <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200/70 bg-white px-6 py-5 text-[11px] text-slate-500"><div><strong className="text-[#18304e]">Prédio ON</strong><p className="mt-1">Tecnologia a serviço do seu condomínio.</p></div><span>{role} · Seu prédio, sempre conectado.</span></footer>
     </div>
   </div>;

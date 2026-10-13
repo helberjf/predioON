@@ -111,6 +111,8 @@ describe("durable alert delivery SQL038, real restricted connections", { skip: !
         end if; end $$`;
       await owner`create event trigger notification_test_default_grant on ddl_command_end execute function notification_test_default_column_grant()`;
       await applyInfrastructure(owner, migrations);
+      // Gates and parking are opt-in since SQL049; this fixture exercises them, so it switches them on as the platform administrator would.
+      await owner`update global_feature_settings set enabled=true where feature_key in ('GARAGE_ACCESS','PEDESTRIAN_ACCESS','CAR_PARKING','MOTORCYCLE_PARKING')`;
       assert.deepEqual((await owner`select granted from notification_test_acl_observations`).map(row => row.granted), [true]);
       await owner`drop event trigger notification_test_default_grant`;
       await owner`drop function notification_test_default_column_grant()`;
@@ -224,7 +226,7 @@ describe("durable alert delivery SQL038, real restricted connections", { skip: !
   it("preserves delivery state on ledger reapplication", async () => {
     await enqueue(await alert()); const migrations = await loadInfrastructureMigrations();
     assert.deepEqual(await applyInfrastructure(owner, migrations), []);
-    assert.equal((await owner`select count(*)::int as count from schema_migrations`)[0]!.count, 47);
+    assert.equal((await owner`select count(*)::int as count from schema_migrations`)[0]!.count, 51);
     assert.equal((await owner`select count(*)::int as count from event_deliveries`)[0]!.count, 1);
   });
   it("removes preexisting runtime column grants, PUBLIC column grants and memberships", async () => {

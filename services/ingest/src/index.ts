@@ -4,9 +4,9 @@ import { connectIngest } from "./mqtt.js";
 import { startOfflineSweeper } from "./offline-sweeper.js";
 import { handleAccessAck, startAccessDispatcher } from "./access/dispatcher.js";
 
-const client = connectIngest(async (topic, payload) => {
+const client = connectIngest(async (topic, payload, metadata) => {
   if (topic.endsWith("/ack")) return handleAccessAck(topic, payload);
-  if (topic.endsWith("/telemetry") || topic.endsWith("/telemetria")) return handleTelemetry(topic, payload);
+  if (topic.endsWith("/telemetry") || topic.endsWith("/telemetria")) return handleTelemetry(topic, payload, metadata);
   if (topic.endsWith("/status")) return handleGatewayStatus(topic, payload);
 });
 

@@ -48,10 +48,16 @@ const EditSchema = z
   })
   .strict();
 const OccupancySchema = ParkingOccupancySchema.strict();
-const view = (row: typeof parkingLots.$inferSelect) => ({
+const view = (row: typeof parkingLots.$inferSelect, now: Date) => ({
   ...row,
-  ...parkingAvailability(row),
+  ...parkingAvailability(row, now),
 });
+async function databaseNow(tx: AppTransaction): Promise<Date> {
+  const [clock] = await tx.execute<{ now: Date }>(
+    sql`select clock_timestamp() as now`,
+  );
+  return new Date(clock!.now);
+}
 function parkingId(req: Request): string {
   const id = param(req, "parkingId");
   if (!z.string().uuid().safeParse(id).success)
@@ -133,6 +139,7 @@ parkingRouter.get("/", validateQuery(QuerySchema), async (req, res) => {
         ),
       );
     const allowed = new Set(current.map((row) => row.id));
+    const now = await databaseNow(tx);
     return visible
       .filter((row) => allowed.has(row.id))
       .map((row) =>
@@ -144,6 +151,7 @@ parkingRouter.get("/", validateQuery(QuerySchema), async (req, res) => {
           )
             ? row
             : { ...row, occupied: null, observedAt: null, source: "UNKNOWN" },
+          now,
         ),
       );
   });
@@ -181,9 +189,9 @@ parkingRouter.post("/", validateBody(CreateSchema), async (req, res) => {
       resourceId: id,
       metadata: input,
     });
-    return created;
+    return view(created, await databaseNow(tx));
   });
-  res.status(201).json(view(row));
+  res.status(201).json(row);
 });
 parkingRouter.patch(
   "/:parkingId",
@@ -244,9 +252,9 @@ parkingRouter.patch(
           ...input,
         },
       });
-      return updated;
+      return view(updated, await databaseNow(tx));
     });
-    res.json(view(row));
+    res.json(row);
   },
 );
 parkingRouter.patch(
@@ -293,8 +301,8 @@ parkingRouter.patch(
           source: "MANUAL",
         },
       });
-      return updated;
+      return view(updated, await databaseNow(tx));
     });
-    res.json(view(row));
+    res.json(row);
   },
 );

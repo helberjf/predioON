@@ -2,6 +2,13 @@ import { and, eq, gt, isNull, or } from "drizzle-orm";
 import { alertRules, alerts, type DbTransaction } from "@predioon/db";
 import { persistAlert, type AlertNotification, type PersistenceChecks } from "../notify/index.js";
 
+/**
+ * A reading older than this is history, not an incident: a gateway emptying its
+ * buffer after hours offline must not raise a burst of alerts about the past.
+ * Same window the consumption alerts already use.
+ */
+export const RULE_FRESHNESS_MS = 300_000;
+
 type Reading = { buildingId: string; deviceId: string; metric: string; value: number; time: Date };
 
 export function matches(operator: string, current: number, threshold: number): boolean {
@@ -21,6 +28,7 @@ export function matches(operator: string, current: number, threshold: number): b
  * `cooldownSeconds` stops a sensor oscillating around the threshold from flooding the panel.
  */
 export async function evaluateRules(tx: DbTransaction, reading: Reading, checks?: PersistenceChecks): Promise<AlertNotification[]> {
+  if (reading.time.getTime() < Date.now() - RULE_FRESHNESS_MS) return [];
   const rules = await tx
     .select()
     .from(alertRules)

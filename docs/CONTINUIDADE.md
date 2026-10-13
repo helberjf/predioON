@@ -1,14 +1,14 @@
 # Continuidade do Prédio ON
 
-Atualizado em **07/10/2026**, horário de São Paulo. Leia este arquivo primeiro ao retomar em outro computador. **O plano completo ainda não terminou e não há aceite para produção.** O computador não foi reiniciado.
+Atualizado em **12/10/2026**, horário de São Paulo. Leia este arquivo primeiro ao retomar em outro computador. **O plano completo ainda não terminou e não há aceite para produção.** Nenhuma reinicialização do computador foi executada pela raiz.
 
-Repositório: <https://github.com/helberjf/predioON>. Base de produto desta retomada: **main `425f5ac`**, com migrations **001–047**. Continuação no branch **`codex/continue-product-plan`**, reutilizando o worktree isolado. A antiga `codex/product-platform` foi incorporada à main; os rascunhos locais de avisos025 foram preservados em stash e estão superados pela implementação atual026. **Não reaplicar patches antigos nem renumerar migrations publicadas.** A galeria conserva 38 imagens reais versionadas.
+Repositório: <https://github.com/helberjf/predioON>. Base atual: **main `6989248`**, com migrations **001–051**, integrada à continuação **`codex/continue-product-plan`** no worktree isolado. Recuperação nativa publicada em **`7289e18`**, com SHA remoto confirmado em12/10. Os rascunhos antigos e o draft do estacionamento anterior à integração foram preservados em stash; a correção foi reaplicada com os mesmos três hashes. **Não reaplicar patches antigos nem renumerar migrations publicadas.** Os registros de galeria e evidências anteriores são históricos.
 
-**Estado recente para retomar:** a main inclui cadastros041, convites042, ordens de serviço043, ativos044, automações045, MFA046 e recuperação por e-mail047. A entrega047 registrou API792/792 e navegador339/339, fechando a matriz web pendente de MFA; são provas herdadas, não novas execuções desta retomada. A recuperação foi acrescentada aos dois apps nesta continuação: cliente75/75, mobile127/127, quatro bundles JS Android/iOS e revisões aprovadas. Detalhes e limites na seção final. O corretivo do relógio do estacionamento está em validação integral, ainda sem publicação neste registro.
+**Estado recente para retomar:** a main inclui identidade/domínios047, políticas de telemetria048, funcionalidades físicas049/050 desligadas por padrão e consumo do morador051 liberado somente pelo síndico. A correção do relógio do estacionamento e da limpeza da fixture de ativos passou na fonte integrada: **API804/804**, **ingestão129/129**, dirigido54/54, catálogo/credenciais/ledger51 e limpeza conferidos. Cliente75/75, mobile127/127, UI93/93 e tipos dos14pacotes foram repetidos antes dos drafts seguintes. Detalhes e limites na seção final. Consumo publicado no app Morador é a próxima meta; não considerar seus drafts entrega verificada.
 
-**Decisões vigentes:** Resend escolhido; chave, domínio e destino de recuperação serão configurados pelo proprietário. Push saiu do escopo. Planos/assinaturas ficam por último. A reserva atual da inbox é **048**, aguardando os três pontos de política; números e estados nas seções antigas abaixo são históricos. O CI GitHub continua bloqueado pela cobrança da conta, sem novos testes lá. Android local foi observado em 06/10; iOS autenticado, integridade completa do renderer Android e aparelhos físicos continuam sem aceite.
+**Decisões vigentes:** Resend escolhido; ativação real permanece com o proprietário. Push saiu do escopo e planos/assinaturas ficam por último. A048 entregou garantias no caminho de ingestão existente; a fila separada foi adiada, conforme [INBOX_DECISOES.md](INBOX_DECISOES.md). A ingestão ainda usa conexão owner. Consumo do morador exige liberação e não inclui reservatório ou configuração; funcionalidades físicas permanecem opt-in. Estados antigos abaixo são históricos. O último relato de CI registra bloqueio por cobrança; nenhum CI novo foi verificado nesta retomada. iOS autenticado, integridade completa do renderer Android e aparelhos físicos continuam sem aceite.
 
-**Ainda falta:** identidade/RBAC restante (convites, MFA e recuperação de senha já entregues), inbox dos gateways, domínios previstos, push APNs/FCM (**fora do escopo por decisão do proprietário em 07/10**), validação nativa completa e aparelhos físicos, implantação/recuperação real, documentação final e cinco vídeos completos. O projeto não tem aceite para produção. Não reiniciar o computador.
+**Ainda falta:** identidade/RBAC restante (convites, MFA e recuperação de senha já entregues), fila separada da inbox (adiada; garantias entregues na 048, ver [INBOX_DECISOES.md](INBOX_DECISOES.md)), domínios previstos, push APNs/FCM (**fora do escopo por decisão do proprietário em 07/10**), validação nativa completa e aparelhos físicos, implantação/recuperação real, documentação final e cinco vídeos completos. O projeto não tem aceite para produção. Não reiniciar o computador.
 
 API 037 passou **697/697** em integral Linux própria e no [CI 5929348](https://github.com/helberjf/predioON/actions/runs/37153986387). A [plataforma1f7bd3d](https://github.com/helberjf/predioON/actions/runs/37157034876), com logs conferidos, passou API697, banco26 com restauração real de44 tabelas/37 migrations, cliente59, ingestão83, UI89 e mobile75, sem skips. A matriz dos portais compilados passou **222/222** localmente e no [CI3035245](https://github.com/helberjf/predioON/actions/runs/37154429632), Chromium/Firefox/WebKit, sem retries. Os runs de [plataforma580a236](https://github.com/helberjf/predioON/actions/runs/37157346061) e [navegador580a236](https://github.com/helberjf/predioON/actions/runs/37157346059) também terminaram com sucesso; seus totais não foram extraídos novamente. Não somar dirigidos para criar uma integral.
 
@@ -549,4 +549,160 @@ O worktree foi reconciliado com `425f5ac`: a main já contém a antiga linha de 
 
 **Provas próprias:** extração mecânica4/4; RED entrada/transporte4 aprovados e14 falhas, controller10 falhas, tela4 aprovados e24 falhas, em execuções separadas. GREEN dirigido57/57. A raiz repetiu as integrais: cliente **75/75**, mobile **127/127**, zero falhas/skips/cancelamentos; quatro typechecks, fronteiras e diff-check. Conformidade PASS e qualidade APPROVED em revisões de leitura. Quatro bundles JS de release gerados e conferidos: dois produtos × Android/iOS. [Plano](superpowers/plans/2026-10-07-native-password-recovery.md) e [prova sanitizada](evidencias/native-password-recovery-2026-10-07.json).
 
-**Limites:** sem execução em aparelho/emulador, APK/Apple/XCTest/Keychain ou aceite Fabric neste recorte; sem entrega real de e-mail. Configuração Resend e `PASSWORD_RESET_URL` continua com o proprietário. Nenhuma dependência, migration, backend separado, push ou deep link foi acrescentado. Os avisos existentes do bundler de featureflags/cores permanecem; não impediram os bundles. A publicação será conferida pelo SHA remoto no checkpoint seguinte.
+**Limites:** sem execução em aparelho/emulador, APK/Apple/XCTest/Keychain ou aceite Fabric neste recorte; sem entrega real de e-mail. Configuração Resend e `PASSWORD_RESET_URL` continua com o proprietário. Nenhuma dependência, migration, backend separado, push ou deep link foi acrescentado. Os avisos existentes do bundler de featureflags/cores permanecem; não impediram os bundles. Publicado em `7289e18`, com SHA remoto confirmado novamente em12/10.
+
+### 07/10: inbox dos gateways decidida e recibo de telemetria endurecido (048)
+
+**Delegação do proprietário:** "sobre o inbox pode decidir mas deixe documentado para eu pensar melhor depois". As decisões, os motivos, o que se perde e como desfazer estão em **[INBOX_DECISOES.md](INBOX_DECISOES.md)**, escrito para ele reler. Não tratar essas decisões como homologadas: são reversíveis e aguardam a releitura dele.
+
+**Decisão principal:** a fila com worker separado do [desenho original](superpowers/plans/2026-10-03-durable-inbox.md) foi **adiada**. O caminho atual já só confirma ao broker depois do commit; os defeitos reais foram corrigidos nele.
+
+**Entrega:** migration 048 (chave de `ingest_events` por condomínio/dispositivo/evento, impressão digital do conteúdo, contadores `ingest_rejections`); leitura retained vira só histórico; regra de alerta só para leitura de até 300 s; conflito de conteúdo mantém o primeiro corpo; recusas contadas por categoria. `EMQX_DURABLE_SESSIONS__ENABLE=true` no compose de produção.
+
+**Achado do ensaio do broker:** com a configuração de produção anterior, reiniciar o EMQX 6.3.1 perdia a leitura QoS 1 pendente e a assinatura da ingestão; com sessões duráveis ambas sobrevivem. Ensaio repetível em `services/ingest/scripts/broker-session-rehearsal.mjs`.
+
+**Provas:** recibo **8/8** em banco real (homônimo em outro condomínio aceito; reentrega aplicada uma vez; corpo diferente contado e descartado; linha anterior à 048 continua bloqueando; retained só histórico, sem contato nem alerta; leitura antiga sem alerta e a recente com; recusas contadas sem conteúdo; ACL e chave nova). Integral em Linux com banco zerado: API **792/792** e ingestão **129/129**. Produtores atômicos da 038 **40/40** e notificações **54/54** em cluster próprio. Restauração **2/2** com 48 migrations (ver ressalva abaixo). Tipos e fronteiras de arquitetura. A 048 foi reaplicada sem erro.
+
+**Ressalva da restauração:** as três primeiras execuções falharam na retomada de lease de notificações (linha 150 do teste), e **a mesma falha ocorreu no commit já publicado 425f5ac**, que passara de manhã. A causa é corrida de relógio: o teste espera `lease + 30 ms` pelo relógio do Node e o contêiner estava alguns milissegundos atrás. Com uma leitura a mais antes da reserva (sem mudar nenhuma asserção) passou 2/2. O teste ficou como estava; a margem de 30 ms é frágil nesta máquina, como já registrado para o estacionamento.
+
+**Incidente desta sessão, já corrigido:** uma primeira tentativa de subir os bancos descartáveis na porta 5436 falhou porque **outra sessão (Codex, `predioon-current-plan`) já usava essa porta**, e os testes de notificação, que trocam as senhas das roles do cluster inteiro, rodaram contra o banco dela. As quatro credenciais foram restauradas com `db:provision-runtime` e conferidas por conexão real; não ficou banco nem vínculo de role para trás. Os resultados acima são da repetição em cluster próprio, na porta 5446. **Regra daqui em diante:** conferir que a porta está livre e que o contêiner subiu antes de apontar qualquer teste para ela; não reutilizar 5436/5437 enquanto houver outra sessão ativa.
+
+**Não verificado:** capacidade (leituras por segundo), TLS/autenticação reais do broker no ensaio, firmware real publicando retained, e a troca de chave sobre um banco de produção com volume. A matriz de navegadores não foi repetida porque nenhuma tela ou rota da API mudou.
+
+### 07/10: redesenho visual e de navegação dos três portais
+
+**Pedido do proprietário:** deixar o front-end web o mais profissional e fácil de navegar, parecido com o mockup de aplicativo que ele enviou (início com saudação e atalhos, Reservas, Acessos, barra inferior Início/Reservas/Acessos/Ocorrências/Mais).
+
+**Entrega, sem mudar API, rotas ou regras:**
+
+- **Portal do morador:** barra inferior com as quatro primeiras funções habilitadas no condomínio e **Mais**, que abre as demais (Avisos, Vagas, Consumo, Transparência, Perfil); antes, vagas, consumo, transparência e acessos só eram alcançáveis pelos atalhos do início. Início com seis atalhos em vez de dez, avisos com ícone por categoria e data ("Hoje, 19:00") quando o aviso tem agenda. Avisos com filtro por categoria e sem o painel de vagas, que tem tela própria. Cabeçalho interno fixo com voltar e atalho do perfil; telas que já têm título próprio deixam de exibir dois títulos.
+- **Portais de operação e administração:** menu lateral agrupado por assunto (20 itens soltos viraram seis grupos no de operação), com rolagem própria e a conta com o botão de sair no rodapé.
+- **Entrada, recuperação de senha e convite:** uma moldura comum (`AuthLayout`), com painel da marca em telas largas.
+- **Base compartilhada:** cartões, botões e etiquetas de `packages/ui` com um só padrão de raio, sombra e área de toque.
+
+**Decisões:** nada do mockup que dependeria de dado inexistente foi simulado: sem previsão do tempo, sem contador de avisos não lidos (não há registro de leitura), sem fotos das áreas comuns (não há upload). Os rótulos acessíveis foram preservados; o único teste alterado é o que navegava para Avisos e Perfil pela barra, que agora passa por **Mais**.
+
+**Provas:** matriz de navegadores em Chromium, Firefox e WebKit. A primeira execução deu **336/339**: as três falhas eram um só teste, que acusou um defeito real do redesenho (o nome do usuário passou a aparecer duas vezes no portal de gestão, no topo e no rodapé do menu); o rodapé voltou a mostrar a marca. A segunda execução completa deu **338/339**, com uma falha de rede (`socket hang up` numa chamada de preparação à API, fora de qualquer tela), e os dois arquivos envolvidos repetidos nos três motores passaram **18/18**. UI 90/90, tipos e fronteiras de arquitetura. Capturas em [imagens/2026-10-07](imagens/2026-10-07/).
+
+**Não verificado:** leitor de tela real (os papéis e nomes acessíveis foram mantidos e exercitados pelos testes, mas não houve sessão com NVDA/VoiceOver) e aparelho físico; as capturas são de Chromium em 390 px e 1440 px.
+
+### 08/10: teste visual de botões e funcionalidades nos três portais
+
+**Pedido do proprietário:** abrir o sistema e testar visualmente botões e funcionalidades.
+
+**Como foi feito:** `scripts/visual-walkthrough.mjs` percorre os três portais num navegador real contra a pilha local (API, portais e banco de demonstração descartável), clica em cada atalho, aba, item de menu e formulário principal, confere a tela resultante e salva uma captura por passo. São **69 passos**: 26 no portal do morador (390 px, mais a verificação de largura em 320 px), 25 no de operação e 18 no de administração (1440 px e menu no celular). As capturas foram revisadas uma a uma; folhas de contato em [imagens/2026-10-08](imagens/2026-10-08/).
+
+**Resultado:** primeira execução **66/69**. As três falhas eram o mesmo tipo de problema, e não defeito do redesenho de 07/10: telas que mostravam erro vermelho, em dobro, com "Tentar novamente", para uma situação normal (perfil sem concessão): **Consumo** no portal do morador, **Operação dos imóveis** e **Unidades e equipes** na administração. Agora essas telas explicam, em um cartão neutro, que o perfil não tem concessão naquele condomínio; erros reais continuam vermelhos. Segunda execução **69/69**. Os cinco arquivos de teste de navegador que tocam esses painéis passaram **117/117** em Chromium, Firefox e WebKit; UI 90/90 e tipos.
+
+**Funcionou no percurso:** entrada e saída nos três portais; os seis atalhos e as abas do morador; "Mais" abrindo e fechando por X, fundo e Esc; filtros de avisos; abrir ocorrência e vê-la na lista e no painel de operação; reservar, confirmar e cancelar; abrir e cancelar a troca de senha; os 20 itens do menu de operação e os 13 da administração; busca; sino; menu no celular; nenhuma tela com rolagem lateral em 320 px; nenhuma resposta 5xx nem exceção de script.
+
+**Achados que não foram corrigidos (precisam de decisão ou são trabalho maior):**
+
+- **A administração da plataforma não opera nenhum condomínio.** Com a conta de administrador, "Unidades e equipes" e "Operação dos imóveis" ficam sem conteúdo em todos os condomínios, inclusive o piloto, porque a conta de plataforma não tem concessão local. É regra de autorização, mas hoje não há na tela um caminho para obter a concessão. Decidir: tirar esses itens do menu dessa conta, ou oferecer o pedido/atribuição de concessão.
+- **"Consumo" aparece para todo morador**, mesmo sem medidor liberado. Não foi escondido porque a concessão pode ser por medidor, e a lista de capacidades do condomínio não mostra isso.
+- **Morador de demonstração não consegue abrir portão:** os dois botões aparecem desativados com "Você não tem permissão atual". É concessão que falta no seed, não defeito de tela.
+- **Textos técnicos à mostra na operação:** tipos de equipamento (`PUMP_MONITOR`, `WATER_LEVEL_SENSOR`), ações do histórico (`RESERVATION CANCELLED`) e a gravidade `HIGH` no formulário de regras.
+- **"Avisos e agenda" da operação começa pelo painel de vagas**, como acontecia no portal do morador.
+- **"Próximas reservas" lista também as canceladas.**
+- **"Minhas sessões" mostra o identificador completo do navegador.**
+
+**Não coberto:** aplicativos Android (o emulador não foi aberto nesta rodada), Firefox e WebKit no percurso visual (ele roda em Chromium; os outros motores são cobertos pela matriz automática), abertura real de portão, e formulários de cadastro da operação além de ocorrências (regras, automações, ativos, ordens de serviço têm testes automáticos próprios).
+
+### 08/10: correção dos achados do teste visual
+
+**Pedido do proprietário:** corrigir tudo o que o teste visual apontou.
+
+**Corrigido:**
+
+- **Administração sem concessão:** "Unidades e equipes" e "Operação dos imóveis" passam a listar só os condomínios em que a conta tem concessão. Sem nenhuma, a tela explica o papel da conta de plataforma e onde a concessão é dada (portal de operação, Unidades e equipes → Permissões), em vez de um seletor que só leva a recusas.
+- **"Consumo" no portal do morador** só aparece (menu "Mais" e atalhos) para quem tem leitura de algum medidor; a verificação é uma consulta à própria rota de consumo, porque a concessão é por medidor.
+- **Textos técnicos:** histórico de atividades com ações e recursos em português (`RESERVATION_CANCELLED` → "Reserva cancelada"), tipos de equipamento ("Monitor de bomba"), gravidade das regras ("Alta"). Código desconhecido continua aparecendo como veio, nunca escondido. `packages/ui/src/labels.ts`.
+- **Avisos e agenda** da operação sem o painel de vagas, que tem tela própria.
+- **Reservas do morador:** o cartão passa a se chamar "Suas reservas", porque também lista canceladas.
+- **Minhas sessões:** "Chrome no Windows" no lugar do identificador completo, que continua disponível ao passar o mouse; o que não é reconhecido é mostrado sem alteração.
+- **Portão indisponível para o morador:** a mensagem agora diz que o acesso não está liberado para o perfil e que a administração pode liberá-lo.
+
+**Substituído no registro seguinte (049):** portões e vagas passaram a vir desligados por padrão. Texto original: o morador de demonstração continua sem poder abrir portão. Portões nascem desativados e sem liberação para moradores por segurança física; quem libera é o síndico, em Portões e acessos → Configurar.
+
+**Provas até aqui:** tipos, build dos três portais, UI **93/93** (três testes novos das traduções e do nome de navegador), cliente 64/64 e fronteiras de arquitetura.
+
+**Validação no navegador:** o Docker caiu durante o trabalho e o commit ficou no branch até ele voltar. Com a pilha de pé, o percurso visual passou **69/69** (o passo de Consumo agora confere que o item não é oferecido a quem não tem medidor) e as telas alteradas foram revisadas em captura. A matriz de navegadores deu **339/339** em Chromium, Firefox e WebKit numa única execução. Publicado na `main`.
+
+### 08/10: portões e vagas desligados por padrão (049)
+
+**Correção de rumo do proprietário:** abrir portão não era para ser funcionalidade ativa; **portões e vagas devem vir desligados e fora do produto por padrão**. Até aqui toda funcionalidade sem configuração nascia ligada (regra da 012), então as telas de Acessos e Vagas apareciam em qualquer instalação. Isso contraria o que ele pediu e foi corrigido.
+
+**Entrega:** migration 049 desliga as quatro funcionalidades (`GARAGE_ACCESS`, `PEDESTRIAN_ACCESS`, `CAR_PARKING`, `MOTORCYCLE_PARKING`) no nível global em instalação nova. Com isso o portal do morador não mostra Acessos nem Vagas, o de operação não lista "Portões e acessos" nem "Vagas de carros e motos", a ingestão não aceita leituras desses módulos e a API recusa as rotas. O código continua no repositório; ligar é uma decisão explícita em administração → Funcionalidades. Detalhes em [MIGRATIONS.md](MIGRATIONS.md).
+
+**Instalações existentes (inclusive a de demonstração) não mudam sozinhas:** desligar passa pela transição auditada da API. Passo manual: administração → Funcionalidades → desligar as quatro.
+
+**Testes:** as pilhas de teste ligam os módulos com `SEED_PHYSICAL_FEATURES=enabled`; duas preparações de banco (notificações e restauração) passaram a ligá-los explicitamente. Nenhuma asserção foi alterada.
+
+**Também corrigido:** a mensagem de portão indisponível, alterada no commit anterior, tinha deixado de conter "permissão" e quebrava um teste de política da API que **não rodei antes de publicar aquele commit** (rodei só UI e navegadores). A mensagem voltou a dizer "Você não tem permissão para este acesso" e manteve a orientação. A `main` ficou com esse teste falhando entre `155b3a6` e este commit.
+
+**Provas:** integral em Linux com banco zerado: API **791/792** na primeira execução, e a falha era o teste de política citado acima; corrigida a mensagem, esse arquivo passou 5/5 (a suíte completa não foi repetida). Ingestão **129/129**. Notificações de banco **53/54** antes do ajuste de preparação e **54/54** depois; worker de notificações 35 aprovados, 0 falhas; produtores **40/40**; restauração **2/2** com 49 migrations. Matriz de navegadores **339/339** em Chromium, Firefox e WebKit. A 049 aplicada ao banco de demonstração local, que já tem condomínios, não alterou nada, como previsto; ali as quatro funcionalidades foram desligadas pela API de administração (quatro respostas 200) e o percurso visual passou **61/61**, sem nenhum passo de portões ou vagas. Capturas em [imagens/2026-10-08](imagens/2026-10-08/).
+
+**Não verificado:** os aplicativos Android com as funcionalidades desligadas, e a instalação de demonstração do proprietário, que continua com elas ligadas até o passo manual.
+
+### 08/10: portões e vagas desligados em instalações existentes (050), dados fictícios e Android
+
+**Pedido do proprietário:** resolver o passo manual que a 049 deixava para instalações existentes; gerar imagem do painel com dados fictícios; print do Morador num Android.
+
+**050:** desliga as quatro funcionalidades também onde já há condomínios, com os mesmos efeitos da transição auditada, respeitando qualquer configuração global já registrada. Detalhes em [MIGRATIONS.md](MIGRATIONS.md). O seed deixou de criar os equipamentos de demonstração de portão e vagas, a não ser com `SEED_PHYSICAL_FEATURES=enabled`; antes eles apareciam em Equipamentos como "Em configuração" mesmo com os módulos desligados.
+
+**Dados fictícios:** `pnpm --filter @predioon/ingest demo:data` gera 7 dias de leituras pelo pipeline real de ingestão, sem broker nem hardware (`--follow` continua enviando a cada 10 s). Recusa rodar duas vezes sobre o mesmo período, porque os medidores andariam para trás, e ajusta os limites de consumo do seed ao porte do prédio simulado. **Só para banco de demonstração.** Leva cerca de 20 minutos nesta máquina (11.424 leituras, uma transação por leitura).
+
+**Android:** o app Morador rodou no emulador (Pixel 7, Android 15) contra a API local: entrada, escolha do condomínio, Avisos, Solicitações e Reservas. Com as funcionalidades desligadas, a aba de Acessos não aparece. O app nativo **não recebeu o redesenho dos portais web**; continua com o visual anterior.
+
+**Provas:** teste novo da migration **3/3** em banco real (instalação nova; instalação em uso com comandos pendentes, vagas contadas e uma pausa local preexistente; configuração global registrada preservada). Diretório de testes de banco 30 aprovados e 9 pulados por falta de ambiente; restauração **2/2** com 50 migrations; notificações **54/54**. Integral em Linux com banco zerado: API **792/792**, ingestão **129/129**. Matriz de navegadores **339/339** em Chromium, Firefox e WebKit. A 050 aplicada ao banco de demonstração local não alterou nada, porque ali as quatro já tinham sido desligadas pela API. Capturas em [imagens/2026-10-08](imagens/2026-10-08/).
+
+**Não verificado:** a 050 sobre a instalação de demonstração do proprietário (o caminho ativo foi exercitado só no teste); o app Operação no Android; aparelho físico.
+
+### 08/10: nível da caixa d'água fora do portal do morador
+
+**Correção do proprietário:** o morador não deve ver a quantidade de água; não interessa a ele. O [PRD](PRD.md) confirma: o morador tem avisos, chamados e reservas próprios, contas publicadas e acesso concedido, "sem dashboards de operação".
+
+**Origem:** o cartão "Nível da caixa d'água" está no início do portal do morador desde a fase 5 (commit `e05b89e`), anterior a esta sequência de trabalho; o redesenho de 07/10 o manteve sem conferir contra o PRD. Foi removido, junto com a consulta de leituras que ele fazia a cada 10 segundos. A captura do morador com dados fictícios, que mostrava o cartão, foi retirada.
+
+**Provas:** tipos e os nove arquivos de teste de navegador que usam o portal do morador, **129/129** em Chromium, Firefox e WebKit.
+
+**Pendente de decisão:** a API ainda entrega ao morador o nível publicado (capacidade `telemetry:read-published`, criada na 017). Nenhuma tela usa mais; retirar a capacidade é mudança de autorização com migration e testes próprios. O item "Consumo" continua existindo para o morador, mas só aparece para quem recebeu a leitura de algum medidor.
+
+### 09/10: morador sem nível da caixa d'água na API; consumo só com liberação do síndico (051)
+
+**Decisões do proprietário:** retirar do morador também a permissão de ler o nível da caixa d'água; consumo para o morador **só se o síndico autorizar, e não autorizado por padrão**.
+
+**Por que foi preciso construir algo:** o síndico só conseguia conceder papéis amplos (como Manutenção). Não existia uma autorização que liberasse apenas o consumo.
+
+**Entrega (migration 051, detalhes em [MIGRATIONS.md](MIGRATIONS.md)):**
+
+- o papel Morador perde `telemetry:read-published`; o vínculo antigo de morador perde junto;
+- chave por condomínio, **desligada por padrão**: em Consumo e análise, no portal de operação, o cartão "Consumo para moradores" com "Liberar para moradores". A decisão é auditada;
+- com a liberação, o morador vê em "Consumo" só a quantidade diária de energia e de água dos últimos 7 dias. Sem a liberação, o item nem aparece;
+- o painel completo de consumo (custos, tarifas, limites, bomba, configuração) continua fechado ao morador nos dois casos.
+
+**Achado durante a validação, corrigido antes de publicar:** uma regra existente diz que só concede um papel quem tem todas as permissões dele. Dar a permissão nova apenas ao Morador **impedia o síndico de convidar e vincular moradores** (9 testes de convite falharam na primeira integral). O papel Administrador do condomínio recebeu a mesma permissão; a consequência é que o síndico também enxerga, quando liberado, a mesma visão reduzida do morador.
+
+**Testes ajustados, sem enfraquecer o que protegem:** três suítes usavam o morador como o leitor da "publicação reduzida" do nível de água. Como nenhum papel de produção tem mais essa leitura isolada (a equipe lê as medições completas), essas suítes passaram a usar um papel criado só para o teste (`apps/api/test/published-reader.ts`), e a projeção reduzida continua coberta. Mudaram de expectativa, por ser a regra nova: morador com vínculo antigo recebe recusa em vez do nível; o catálogo lista três papéis de equipe em vez de quatro.
+
+**Provas:** teste novo da API **5/5** (padrão desligado; só a administração decide, com auditoria; o que é entregue e o que nunca é; fim imediato ao retirar a liberação ou o vínculo; tabela e funções fora do alcance das outras roles). Integral em Linux com banco zerado: a primeira execução deu **787/797**, com os 9 testes de convite falhando pelo achado acima e 1 de recuperação de senha que passou ao ser repetido junto com os demais; após a correção, **797/797**. Ingestão **129/129**. Matriz de navegadores **342/342** em Chromium, Firefox e WebKit, incluindo o cenário novo (síndico libera, morador vê só quantidades, síndico retira, morador deixa de ver). Testes de banco: diretório 30 aprovados e 9 pulados; notificações **54/54**; restauração **2/2** com 51 migrations na terceira tentativa, pela corrida de relógio já registrada na linha 150 do teste. UI 93/93, mobile 81/81, cliente 64/64, tipos e fronteiras.
+
+**Ajuste na restauração:** o teste verificava que o morador lia o nível publicado depois de restaurar; passou a verificar que não lê, pela regra nova.
+
+**Não verificado:** os aplicativos Android (o app Morador não tem tela de consumo; continua sem); a migration sobre a instalação de demonstração do proprietário.
+
+### 09/10: um nome só para o papel do síndico
+
+O relato da 051 falava em "síndico" e em "administrador do condomínio" como se fossem dois. **É um papel só**, `BUILDING_ADMIN`. O catálogo no banco sempre o chamou de "Síndico"; duas telas (Concessões de acesso, na operação, e Usuários, na administração) o mostravam como "Administrador do condomínio". As telas passaram a dizer "Síndico". Não houve mudança de permissão. Provas: tipos e UI 93/93; nenhum teste de navegador escolhe o papel pelo rótulo, e a matriz não foi repetida para essa troca de texto.
+
+### 12/10: main051 integrada e relógio do estacionamento verificado
+
+A continuação combina o commit nativo `7289e18` com main `6989248`, dez commits posteriores à base 047. O único conflito de merge foi a continuidade; ambos os registros foram preservados. Garantias048, físicos049/050 e consumo opt-in051 permanecem iguais à main. O draft de estacionamento foi preservado antes da integração e reaplicado com os mesmos hashes.
+
+**Correção:** todas as projeções HTTP de estacionamento usam relógio fresco do PostgreSQL na mesma transação, após consultas/esperas/escrita/auditoria. Não há tolerância para leitura futura. A fixture de ativos capturava e recriava um grant com created_at novo; agora restaura a tupla exata em finally, sem mudar a negativa HTTP.
+
+**Provas próprias da fonte integrada:** dirigido **54/54**,5 suítes,32.188,410742ms; API integral **804/804**,63 suítes,645.143,501119ms; ingestão integral **129/129**,16 suítes,12.837,180992ms, zero falhas/skips/cancelamentos. Cliente 75/75, mobile 127/127 e UI 93/93 foram repetidos antes dos drafts de Consumo nativo; tipos dos14 workspaces executáveis no Windows e API/DB/shared no Linux, fronteiras/diff-check passaram. Catálogo e ledger 51 comparados antes/depois, incluindo timestamps das permissões e credenciais runtime; nenhum reparo manual foi necessário neste cluster. Normalização limitada à ordem/whitespace de OR de um helper e CASE de auditoria, com os mesmos corpos. Fixtures, transações, waiters e advisories zerados. [Plano](superpowers/plans/2026-10-07-parking-database-clock.md) e [evidência](evidencias/parking-database-clock-2026-10-12.json).
+
+**Histórico que não é aceite atual:** a primeira integral antiga 799 teve falhas de autenticação runtime após mudança de credenciais, causa não estabelecida. A privada 799 passou mas revelou a limpeza de ativos; a repetição posterior não teve resumo final após a interrupção do ambiente. O 804 atual foi repetido do começo num cluster novo, sem porta de host. Seed físico foi ativado explicitamente como no CI, com controladores desabilitados e nenhum hardware conectado. Volumes anteriores foram preservados; demonstração/produção não foram tocadas.
+
+**Próxima meta:** Consumo no app Morador, somente a projeção diária 051 autorizada pelo síndico, compartilhada por navegação e conteúdo; drafts fora desta publicação. Aparelhos/Fabric/Apple, e-mail real, operação e plano completo continuam sem aceite. Nenhuma matriz nova de navegador ou CI é alegada nesta sessão.

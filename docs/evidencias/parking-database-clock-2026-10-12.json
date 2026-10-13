@@ -1,0 +1,202 @@
+{
+  "schemaVersion": 1,
+  "increment": "parking-database-clock",
+  "verifiedDate": "2026-10-12",
+  "source": {
+    "main": "6989248e2e6f5d63a9855939de643f458096abcc",
+    "nativeContinuation": "7289e186e5659639d5b645e7d0b9edfaa766a823",
+    "archivedMergedTree": "0a130cc03aacbd3642438ec7a3469e920cf654c5",
+    "changes": [
+      {
+        "path": "apps/api/src/modules/parking/routes.ts",
+        "testedWorkingFileSha256": "27f519c9695116b356903dc37ea676be04abce69d11471a3965c03f04422b04c",
+        "repositoryLfSha256": "27f519c9695116b356903dc37ea676be04abce69d11471a3965c03f04422b04c"
+      },
+      {
+        "path": "apps/api/test/parking-capabilities.test.ts",
+        "testedWorkingFileSha256": "2c56be68c797c1a903091eb8ec4dba87ccc2915a01efcdd94459f51e1aee9deb",
+        "repositoryLfSha256": "2c56be68c797c1a903091eb8ec4dba87ccc2915a01efcdd94459f51e1aee9deb"
+      },
+      {
+        "path": "apps/api/test/assets.test.ts",
+        "testedWorkingFileSha256": "5284a0c1777daf69b03dff7426cf7183fcd945f16f48d131a5a3854289438db4",
+        "repositoryLfSha256": "5284a0c1777daf69b03dff7426cf7183fcd945f16f48d131a5a3854289438db4"
+      }
+    ],
+    "note": "Archived staged merge plus these three exact working files, copied to Linux; Git applies existing LF normalization. The separate native consumption draft is excluded."
+  },
+  "behavior": [
+    "Every parking HTTP projection uses fresh PostgreSQL clock_timestamp inside the transaction after final reads or writes/audit",
+    "A single clock is shared by GET list items",
+    "Real future observations remain UNKNOWN and stale observations remain STALE",
+    "Authorization, shared parking calculation, physical command policy and production feature defaults are unchanged",
+    "Inherited assets fixture restores the original complete permission tuple, including microseconds"
+  ],
+  "historicalEvidence": {
+    "clockRed": {
+      "tests": 7,
+      "suites": 1,
+      "pass": 2,
+      "fail": 5,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 22181.8143,
+      "logSha256": "f4158ce7b8df90b84952040323945eb35f665937d60f8a27cd6329cda97a2b68"
+    },
+    "firstApiAttempt": {
+      "tests": 799,
+      "suites": 62,
+      "pass": 479,
+      "fail": 262,
+      "cancelled": 58,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 562655.042411,
+      "logSha256": "642e7b7a0f3bc50231c61449267306a32110e58f6f58d082eda7e9872dbf0a55"
+    },
+    "firstApiAttemptNote": "Runtime authentication failed after credentials changed; cause not established. No assertions or production behavior were relaxed.",
+    "olderPrivateApi": {
+      "tests": 799,
+      "suites": 62,
+      "pass": 799,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 640671.417161,
+      "logSha256": "d0d465ca09685bb16bc56691af2f3aeb5e078f1ec00f0afb709343b4f892111a"
+    },
+    "olderPrivateApiNote": "HTTP regression passed but exact catalogue detected only the timestamp recreated by the inherited assets fixture. That fixture was corrected. This is not acceptance of the later source.",
+    "interruptedFinalAttempt": {
+      "completed": false,
+      "logSha256": "e8e0532ea079753fc70e7cb0c47c1638bcf208ac8b1a3c7f6d00fa5e5c2baaa2",
+      "note": "No final summary or exit result survived the environment shutdown; not counted as a green integral."
+    }
+  },
+  "rootVerification": {
+    "directed": {
+      "tests": 54,
+      "suites": 5,
+      "pass": 54,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 32188.410742,
+      "logSha256": "c15e4a9b6257fd563a0fc123542c7dafed57d9db6bf75368f0b7f1f02075a2b7"
+    },
+    "api": {
+      "tests": 804,
+      "suites": 63,
+      "pass": 804,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 645143.501119,
+      "logSha256": "3a9ccf29905e4d5f1c1d3a9a1b454420a104c7b65b1991ea99620bfaa46e54d8"
+    },
+    "ingest": {
+      "tests": 129,
+      "suites": 16,
+      "pass": 129,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 12837.180992,
+      "logSha256": "7a171d5be4b313af3e98afa1d491b9b60ebd243cf4f56b624fae4508b46f02e4"
+    },
+    "apiClient": {
+      "tests": 75,
+      "suites": 0,
+      "pass": 75,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 1158.8321,
+      "logSha256": "ed168bd91a6bdfb9ce691433e3590e2675bb92a05649f2bda116a8ec8ac237e5"
+    },
+    "mobile": {
+      "tests": 127,
+      "suites": 0,
+      "pass": 127,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 1975.3735,
+      "logSha256": "ed168bd91a6bdfb9ce691433e3590e2675bb92a05649f2bda116a8ec8ac237e5"
+    },
+    "ui": {
+      "tests": 93,
+      "suites": 1,
+      "pass": 93,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 1161.0684,
+      "logSha256": "ed168bd91a6bdfb9ce691433e3590e2675bb92a05649f2bda116a8ec8ac237e5"
+    },
+    "typecheck": {
+      "allFourteenExecutableWorkspaces": true,
+      "linuxApiDbShared": true,
+      "windowsLogSha256": "708e5db3b97c2c1b58734cc37eb8fed75e3b417713b4d172c7abf9b88e1d3b17",
+      "linuxLogSha256": "f04d8678cf57fa5c091343425fa782e65da8c89be93a892d5353751d484f9f85"
+    },
+    "boundariesPassed": true,
+    "diffCheckPassed": true,
+    "webBuilds": [
+      {
+        "product": "admin-web",
+        "exitCode": 0,
+        "logSha256": "df7af6379a5f95ba40ca5615ec74353e2b337f3773185367412c030b64a6425d"
+      },
+      {
+        "product": "building-web",
+        "exitCode": 0,
+        "logSha256": "dc77f66f0d88fe824237bfb23bfbe6a8c3b6fde749785aaeaeb3cdf6e00ee0ac"
+      },
+      {
+        "product": "resident-web",
+        "exitCode": 0,
+        "logSha256": "bbfd4257d20bbe3197fcaac3754e5d64061880de29536ec5b138c055a953e1b6"
+      }
+    ]
+  },
+  "database": {
+    "privateNetwork": true,
+    "hostPortsPublished": 0,
+    "seed": "Disposable test only; SEED_PHYSICAL_FEATURES=enabled as in current CI. Controllers remain disabled and no hardware is connected.",
+    "runtimeCredentialsUnchanged": true,
+    "catalogAndLedgerPreserved": true,
+    "normalization": "Only OR ordering/whitespace in app_can_read_feature_event and CASE branch ordering/whitespace in audit insertion policy; all action bodies and other fields exact.",
+    "migrations": 51,
+    "counts": {
+      "fixture_users": 0,
+      "fixture_organizations": 0,
+      "fixture_buildings": 0,
+      "transactions": 0,
+      "waiters": 0,
+      "advisories": 0
+    },
+    "privateCredentialFingerprintsPublished": false
+  },
+  "reviews": {
+    "currentSpecification": "PASS",
+    "currentQuality": "APPROVED",
+    "staticReadOnly": true,
+    "originalClockAndFixtureReviewsAlsoApproved": true
+  },
+  "limits": [
+    "No new migration or dependency relative to the current main",
+    "No production or demonstration database changed",
+    "No native device, renderer, physical firmware or live Resend acceptance",
+    "No new browser matrix for this increment; prior main evidence remains historical",
+    "No inferred cause for the old runtime credential change or interrupted execution",
+    "API and ingestion are separate integral runs, not added to directed tests"
+  ]
+}

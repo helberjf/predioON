@@ -61,7 +61,7 @@ jobs:
           pnpm db:infra
           pnpm db:infra
           pnpm db:provision-runtime
-          pnpm db:seed
+          SEED_PHYSICAL_FEATURES=enabled pnpm db:seed
       - name: Exercise all three portals against the real API
         run: pnpm test:e2e
       - name: Preserve report and failure evidence

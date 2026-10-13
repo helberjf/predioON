@@ -212,7 +212,9 @@ for(const separateCluster of [false,true])it(`restores a real Timescale archive 
     await execute(process.execPath,['--import','tsx','src/bootstrap.ts'],{cwd,env:{...process.env,DATABASE_URL:sourceUrl.toString()},timeout:30_000,windowsHide:true});
     const migrations=await loadInfrastructureMigrations();
     await applyInfrastructure(source,migrations);
-    assert.equal(migrations.length,47,'recovery fixture includes the complete immutable SQL047 ledger');
+    // Gates and parking are opt-in since SQL049; this fixture exercises them, so it switches them on as the platform administrator would.
+    await source`update global_feature_settings set enabled=true where feature_key in ('GARAGE_ACCESS','PEDESTRIAN_ACCESS','CAR_PARKING','MOTORCYCLE_PARKING')`;
+    assert.equal(migrations.length,51,'recovery fixture includes the complete immutable SQL051 ledger');
     const sourceConnections=await provisionRuntime(sourceUrl);
     await restrictedRoles(source,true);
     await source`insert into organizations(id,name,slug) values('restore-org','Recovery fixture','restore-org')`;
@@ -314,7 +316,7 @@ for(const separateCluster of [false,true])it(`restores a real Timescale archive 
       assert.deepEqual((await tx`select protocol from occurrences`).map(row=>row.protocol),['RESTORE-OWN']);
       assert.deepEqual((await tx`select opening_balance_cents::text cents from financial_reports`).map(row=>row.cents),['12345']);
       assert.equal((await tx`select * from telemetry`).length,0,'resident cannot read raw telemetry after restoration');
-      assert.deepEqual((await tx`select numeric_value from app_published_water_levels('restore-a')`).map(row=>row.numeric_value),[73]);
+      assert.deepEqual((await tx`select numeric_value from app_published_water_levels('restore-a')`).map(row=>row.numeric_value),[],'since SQL051 a resident no longer receives the published water level');
       assert.deepEqual((await tx`select resource_id from audit_logs`).map(row=>row.resource_id),['restore-sensor'],'only the explicitly granted local audit survives recovery');
     });
     await target.begin(async tx=>{

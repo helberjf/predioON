@@ -15,7 +15,7 @@ type Binding = { id: string; userId: string | null; teamId: string | null; roleK
 type Resource<T> = { data: T[]; loading: boolean; error: string | null; reload: () => void };
 type Editing = { kind: "block"; id: string; code: string; name: string } | { kind: "unit"; id: string; code: string; blockId: string; floor: string } | { kind: "team"; id: string; name: string };
 const EDIT_LABEL = { block: "bloco", unit: "unidade", team: "equipe" };
-const ROLES = [{ value: "RESIDENT", label: "Morador" }, { value: "MAINTENANCE", label: "Manutenção" }, { value: "MAINTENANCE_MANAGER", label: "Gestor de manutenção" }, { value: "BUILDING_ADMIN", label: "Administrador do condomínio" }];
+const ROLES = [{ value: "RESIDENT", label: "Morador" }, { value: "MAINTENANCE", label: "Manutenção" }, { value: "MAINTENANCE_MANAGER", label: "Gestor de manutenção" }, { value: "BUILDING_ADMIN", label: "Síndico" }];
 const KINDS = [{ value: "OWNER", label: "Proprietário" }, { value: "OCCUPANT", label: "Ocupante" }, { value: "DEPENDENT", label: "Dependente" }];
 
 export function TenancyPanel({ buildingId }: { buildingId: string }) {
@@ -24,6 +24,8 @@ export function TenancyPanel({ buildingId }: { buildingId: string }) {
     window.addEventListener("focus", authorization.reload);
     return () => window.removeEventListener("focus", authorization.reload);
   }, [authorization.reload]);
+  // No grant in this condominium is an ordinary situation for a platform account, not a failure to retry.
+  if (!authorization.data && authorization.errorStatus === 403) return <Card title="Unidades, equipes e permissões"><p role="status" className="text-sm font-semibold text-[#153451]">Sua conta não tem concessão neste condomínio.</p><p className="mt-2 text-sm leading-6 text-slate-600">Os cadastros exigem uma concessão no condomínio. A conta de administração da plataforma, sozinha, não concede acesso operacional.</p></Card>;
   if (!authorization.data) return <Card title="Unidades, equipes e permissões"><ResourceFeedback resource={authorization} emptyText="Não há permissões disponíveis para este condomínio." /><p className="mt-3 text-sm text-slate-500">Os cadastros exigem uma concessão no condomínio. A conta de administração da plataforma, sozinha, não concede acesso operacional.</p></Card>;
   const capabilities = authorization.data.capabilities;
   if (!capabilities.some(capability => ["units:read", "teams:read", "memberships:read", "memberships:manage"].includes(capability))) return <Card><EmptyState text="Sua conta não tem permissão para consultar estes cadastros." /></Card>;

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { after, before, describe, it } from "node:test";
+import { createPublishedReaderRole, dropPublishedReaderRole } from "./published-reader.js";
 import { sql } from "drizzle-orm";
 import { sqlClient } from "@predioon/db";
 import { closeAppDb, withUserContext } from "@predioon/db/runtime";
@@ -10,8 +11,9 @@ import { startTestServer, login, call } from "./helpers.js";
 
 describe("telemetry capabilities and published water", () => {
   let server: Awaited<ReturnType<typeof startTestServer>>, passwordHash: string;
-  before(async () => { passwordHash = await hashPassword("predioon123"); server = await startTestServer(); });
-  after(async () => { await server?.close(); await closeAppDb(); await sqlClient.end(); });
+  let reader: string;
+  before(async () => { passwordHash = await hashPassword("predioon123"); server = await startTestServer(); reader = await createPublishedReaderRole(); });
+  after(async () => { await server?.close(); await dropPublishedReaderRole(reader); await closeAppDb(); await sqlClient.end(); });
   const as = <T>(userId: string, run: Parameters<typeof withUserContext<T>>[1]) => withUserContext({ userId, role: "PLATFORM_ADMIN" }, run);
   async function fixture(run: (f: Awaited<ReturnType<typeof create>>) => Promise<void>) {
     const f = await create();
@@ -40,7 +42,7 @@ describe("telemetry capabilities and published water", () => {
     await sqlClient`insert into team_members(team_id,building_id,user_id) values(${team},${a},${worker})`;
     await sqlClient`insert into role_bindings(id,team_id,building_id,role_key) values(${teamBinding},${team},${a},'MAINTENANCE')`;
     await sqlClient`insert into role_bindings(id,user_id,building_id,role_key,resource_type,resource_id) values(${scopedBinding},${scoped},${a},'MAINTENANCE','device',${d1})`;
-    await sqlClient`insert into role_bindings(id,user_id,building_id,role_key) values(${directBinding},${direct},${a},'BUILDING_ADMIN'),(${residentBinding},${resident},${a},'RESIDENT')`;
+    await sqlClient`insert into role_bindings(id,user_id,building_id,role_key) values(${directBinding},${direct},${a},'BUILDING_ADMIN'),(${residentBinding},${resident},${a},${reader})`;
     await sqlClient`insert into role_bindings(id,user_id,role_key) values(${supportBinding},${support},'PLATFORM_SUPPORT'),(${randomUUID()},${platform},'PLATFORM_ADMIN')`;
     // No legacy memberships: the API and projections must use live capability facts.
     await sqlClient`insert into telemetry(time,event_id,building_id,device_id,metric,value,numeric_value,unit,quality) values
@@ -98,7 +100,7 @@ describe("telemetry capabilities and published water", () => {
     assert.equal((await f.latest(f.resident,f.b)).status,403);
   }));
   it("keeps raw precedence without duplicates when published and raw scopes overlap", async () => fixture(async f => {
-    await sqlClient`insert into role_bindings(user_id,building_id,role_key) values(${f.scoped},${f.a},'RESIDENT')`;
+    await sqlClient`insert into role_bindings(user_id,building_id,role_key) values(${f.scoped},${f.a},${reader})`;
     const rows = await items(await f.latest(f.scoped));
     assert.equal(rows.length,3); assert.equal(new Set(rows.map(r=>r.device_id+':'+r.metric)).size,3);
     assert.deepEqual(rows.find(r=>r.device_id===f.d1&&r.metric==='water_level_percent').value,{secret:'never publish'});
@@ -113,11 +115,12 @@ describe("telemetry capabilities and published water", () => {
     assert.equal((await f.latest(f.resident)).status,403);
     assert.equal((await as(f.resident,tx=>tx.execute(sql`select * from app_published_water_levels(${f.a})`))).length,0);
   }));
-  it("retains live legacy membership compatibility without granting residents raw reads", async () => fixture(async f => {
+  it("retains live legacy membership compatibility for staff and gives a legacy resident no reading at all", async () => fixture(async f => {
     await sqlClient`delete from role_bindings where id=${f.directBinding} or id=${f.residentBinding}`;
     await sqlClient`insert into memberships(user_id,building_id,role) values(${f.direct},${f.a},'BUILDING_ADMIN'),(${f.resident},${f.a},'RESIDENT')`;
     assert.equal((await items(await f.latest(f.direct))).length,3); assert.equal((await raw(f.direct)).length,3);
-    assert.equal((await items(await f.latest(f.resident))).length,2); assert.deepEqual(await raw(f.resident),[]);
+    // SQL051: a resident, legacy or not, no longer receives the published water level.
+    assert.equal((await f.latest(f.resident)).status,403); assert.deepEqual(await raw(f.resident),[]);
     for (const change of ['inactive','expired','future']) {
       if(change==='inactive') await sqlClient`update memberships set active=false where user_id=${f.direct}`;
       if(change==='expired') await sqlClient`update memberships set ends_at=now()-interval '1 second' where user_id=${f.direct}`;
@@ -311,13 +314,13 @@ describe("telemetry capabilities and published water", () => {
     visit(plan); assert.equal(helpers.length,1); assert.equal(helpers[0]['Actual Loops'],1);
     assert.equal(plan['Actual Rows'],1002);
   }));
-  it("keeps SQL and shared published catalogue additive for exactly the four local roles", async () => {
+  it("keeps SQL and shared published catalogue for exactly the three staff roles", async () => {
     assert.ok(CAPABILITIES.includes('telemetry:read-published' as any));
     assert.ok(!SUPPORT_CAPABILITIES.includes('telemetry:read-published' as any));
     for(const [role,caps] of Object.entries(ROLE_CAPABILITIES)) {
       const rows = await sqlClient`select permission_key from role_permissions where role_key=${role} order by permission_key`;
       assert.deepEqual(rows.map(r=>r.permission_key),[...caps].sort(),role);
-      assert.equal(caps.includes('telemetry:read-published' as any),!role.startsWith('PLATFORM_'));
+      assert.equal(caps.includes('telemetry:read-published' as any),['BUILDING_ADMIN','MAINTENANCE_MANAGER','MAINTENANCE'].includes(role),role);
     }
   });
 });

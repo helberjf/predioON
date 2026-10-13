@@ -3,20 +3,21 @@ import { Link, useLocation } from "react-router-dom";
 import { AlertTriangle, Building2, ChartNoAxesCombined, Cpu, House, Monitor, RadioTower, ScrollText, ShieldCheck, Users } from "lucide-react";
 import { DashboardFrame, useFeatures, useAuth } from "@predioon/ui";
 import { organizationRouteAllowed, useOrganizationAccess } from "../organization-access.js";
+// Order and grouping are what the menu shows; each group gets one heading.
 const LINKS = [
-  { to: "/", label: "Dashboard", icon: House },
-  { to: "/predios", label: "Condomínios", icon: Building2 },
-  { to: "/clientes", label: "Clientes", icon: ShieldCheck },
-  { to: "/gateways", label: "Comunicação", icon: RadioTower },
-  { to: "/dispositivos", label: "Equipamentos", icon: Cpu },
-  { to: "/operacao", label: "Operação dos imóveis", icon: ChartNoAxesCombined },
-  { to: "/suporte-remoto", label: "Suporte remoto", icon: Monitor },
-  { to: "/alertas", label: "Alertas", icon: AlertTriangle },
-  { to: "/usuarios", label: "Usuários", icon: Users },
-  { to: "/unidades-equipes", label: "Unidades e equipes", icon: Building2 },
-  { to: "/funcionalidades", label: "Funcionalidades", icon: ShieldCheck },
-  { to: "/auditoria", label: "Histórico de atividades", icon: ScrollText },
-  { to: "/sessoes", label: "Minhas sessões", icon: Monitor },
+  { group: "Visão geral", to: "/", label: "Dashboard", icon: House },
+  { group: "Visão geral", to: "/alertas", label: "Alertas", icon: AlertTriangle },
+  { group: "Carteira", to: "/predios", label: "Condomínios", icon: Building2 },
+  { group: "Carteira", to: "/clientes", label: "Clientes", icon: ShieldCheck },
+  { group: "Carteira", to: "/operacao", label: "Operação dos imóveis", icon: ChartNoAxesCombined },
+  { group: "Infraestrutura", to: "/gateways", label: "Comunicação", icon: RadioTower },
+  { group: "Infraestrutura", to: "/dispositivos", label: "Equipamentos", icon: Cpu },
+  { group: "Infraestrutura", to: "/suporte-remoto", label: "Suporte remoto", icon: Monitor },
+  { group: "Administração", to: "/usuarios", label: "Usuários", icon: Users },
+  { group: "Administração", to: "/unidades-equipes", label: "Unidades e equipes", icon: Building2 },
+  { group: "Administração", to: "/funcionalidades", label: "Funcionalidades", icon: ShieldCheck },
+  { group: "Administração", to: "/auditoria", label: "Histórico de atividades", icon: ScrollText },
+  { group: "Administração", to: "/sessoes", label: "Minhas sessões", icon: Monitor },
 ];
 export function Shell({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();

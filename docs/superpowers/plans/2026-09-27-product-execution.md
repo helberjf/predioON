@@ -6,7 +6,7 @@ Base aprovada: [arquitetura](../specs/2026-09-27-arquitetura-produto-design.md).
 
 - [x] 1. Contratos e cliente HTTP: separar DTOs e cliente portátil da UI, preservar consumidores web, testar renovação concorrente, troca de sessão, falhas de rede e fronteiras entre pacotes.
 - [ ] 2. Identidade e RBAC: políticas por capacidade/condomínio; sessões com rotação atômica/revogação; migrations e RLS; vínculos/equipes; adaptação de consumidores e testes negativos de autorização.
-- [ ] 3. Processamento durável: outbox de alertas038 e worker restrito publicados com CI aprovado; [proposta de inbox, reserva atual048](2026-10-03-durable-inbox.md) publicada somente como desenho. Faltam inbox/worker compatível, consumidores restantes, comandos/scheduler, retenção/replay e operação. Preservar recuperação/deduplicação e a política de comandos físicos.
+- [ ] 3. Processamento durável: outbox de alertas038 e worker restrito publicados; garantias de telemetria048 no caminho transacional existente. A fila separada do [desenho de inbox](2026-10-03-durable-inbox.md) foi adiada conforme [decisões vigentes](../../INBOX_DECISOES.md). Faltam privilégios restritos de ingestão, medição de capacidade, consumidores restantes, comandos/scheduler, retenção e operação. Preservar deduplicação e a política física.
 - [ ] 4. Domínios de produto: ativos e ordens de serviço, automações versionadas, planos/assinaturas e suporte com concessão explícita; API e gestão web integradas.
 - [ ] 5. Aplicativos Morador/Operação: React Native sem Expo, armazenamento seguro, telas próprias por público, chamadas à API real e configurações nativas Android/iOS. Push saiu do escopo por decisão do proprietário em07/10; os canais existentes permanecem.
 - [ ] 6. Implantação e operação: Compose, migrations registradas, credenciais restritas, backup/restauração, observabilidade, verificação de builds, regressão e documentação das dependências externas.
@@ -14,7 +14,7 @@ Base aprovada: [arquitetura](../specs/2026-09-27-arquitetura-produto-design.md).
 ## Regras de execução
 
 1. Reutilizar o banco, a API e os contratos existentes. Não reiniciar schema nem usar seed sobre dados reais.
-2. Validar banco em container próprio de teste, porta local 5436, sem usar o banco de outros projetos.
+2. Validar banco em cluster físico próprio de teste, preferindo rede privada sem porta publicada; não usar bancos de outros projetos nem compartilhar credenciais de testes de provisionamento.
 3. Escrever testes de comportamento antes de mudanças de autenticação, autorização, filas e comandos; executar verificações apropriadas após cada integração.
 4. Revisar conformidade com a especificação e qualidade do código; corrigir resultados relevantes antes de encerrar a etapa.
 5. Novos papéis não podem receber acesso via comparação ordinal; ações continuam condicionadas ao condomínio/recurso e à política atual no servidor.
@@ -425,3 +425,9 @@ Identidade autenticada 37307304828 e os dois jobs de inicialização 37307304855
 Base `425f5ac` reconciliada no branch `codex/continue-product-plan`; o antigo rascunho de avisos025 foi preservado e está superado pela026 vigente. Migrations001–047 permanecem publicadas; inbox reservada048, push fora do escopo e planos/assinaturas por último. Recuperação por e-mail, MFA, ativos, ordens e automações já constam da main. Os registros antigos deste tracker são históricos; o ponto de retomada está em CONTINUIDADE.md.
 
 Recorte nativo de2C/5: Esqueci minha senha nos dois apps, transporte público isolado da sessão, cancelamento/gerações/StrictMode e confirmação sem revelar conta; login/MFA preservados. REDs reais e revisões independentes aprovados. Integrais próprias da raiz: cliente75/75 e mobile127/127, zero falhas/skips/cancelamentos; quatro tipos, fronteiras/diff e quatro bundles JS de release Android/iOS. [Plano](2026-10-07-native-password-recovery.md) e [evidência](../../evidencias/native-password-recovery-2026-10-07.json). Sem aceite de aparelho/Fabric/Apple ou entrega real pelo Resend. Etapas maiores2–6 permanecem abertas.
+
+### 12/10: continuidade integrada à main051
+
+Integração de main `6989248` ao commit nativo `7289e18`, preservando as decisões atuais048–051 e o histórico de continuidade. Corretivo de relógio do estacionamento e fixture de grant de ativos revistos independentemente e verificados: dirigido 54/54, API 804/804 em63 suítes, ingestão 129/129 em16 suítes, sem falhas/skips/cancelamentos. Catálogo/ledger 51/credenciais e limpeza preservados automaticamente. Cliente 75/75, mobile 127/127, UI 93/93, tipos dos14 pacotes e fronteiras passaram na fonte integrada antes dos drafts seguintes. [Evidência](../../evidencias/parking-database-clock-2026-10-12.json).
+
+Recuperação nativa7289e18 já publicada, SHA remoto confirmado. A fila separada da inbox foi adiada; não continua aguardando homologação 048. Próximo recorte: Consumo publicado no app Morador sob liberação 051; seus drafts ainda não são entrega verificada. Etapas maiores 2–6 permanecem abertas.

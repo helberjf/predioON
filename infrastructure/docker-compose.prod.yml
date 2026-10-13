@@ -34,6 +34,9 @@ services:
       - "8883:8883"
     environment:
       EMQX_NAME: predioon
+      # Sem isto a sessão da ingestão vive só na memória do broker: reiniciar o EMQX perde as
+      # leituras QoS 1 ainda não confirmadas. Ensaio em docs/INBOX_DECISOES.md.
+      EMQX_DURABLE_SESSIONS__ENABLE: "true"
       EMQX_DASHBOARD__DEFAULT_USERNAME: admin
       EMQX_DASHBOARD__DEFAULT_PASSWORD: ${EMQX_DASHBOARD_PASSWORD:?defina EMQX_DASHBOARD_PASSWORD}
       EMQX_AUTHORIZATION__NO_MATCH: deny

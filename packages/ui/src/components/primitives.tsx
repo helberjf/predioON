@@ -25,7 +25,7 @@ export function toneFor(value: string): Tone {
 export function Badge({ children, tone }: { children: ReactNode; tone?: Tone }) {
   const resolved = tone ?? toneFor(String(children));
   return (
-    <span className={cls("inline-flex shrink-0 rounded-md border px-2 py-1 text-[11px] font-medium leading-none", TONE_CLASSES[resolved])}>
+    <span className={cls("inline-flex shrink-0 items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold leading-none", TONE_CLASSES[resolved])}>
       {typeof children === "string" ? STATUS_LABELS[children] ?? children : children}
     </span>
   );
@@ -60,10 +60,10 @@ type ButtonProps = {
 };
 
 const BUTTON_VARIANTS = {
-  primary: "bg-emerald-600 text-white hover:bg-emerald-700 disabled:bg-emerald-300",
-  secondary: "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50",
+  primary: "bg-emerald-600 text-white shadow-sm shadow-emerald-600/20 hover:bg-emerald-700 active:bg-emerald-800 disabled:bg-emerald-300 disabled:shadow-none",
+  secondary: "border border-slate-200 bg-white text-[#1b3a5c] shadow-sm shadow-slate-900/[0.03] hover:border-slate-300 hover:bg-slate-50",
   ghost: "text-slate-600 hover:bg-slate-100",
-  danger: "bg-rose-600 text-white hover:bg-rose-700",
+  danger: "bg-rose-600 text-white shadow-sm shadow-rose-600/20 hover:bg-rose-700",
 } as const;
 
 export function Button({ children, onClick, variant = "primary", type = "button", disabled, full }: ButtonProps) {
@@ -73,7 +73,7 @@ export function Button({ children, onClick, variant = "primary", type = "button"
       onClick={onClick}
       disabled={disabled}
       className={cls(
-        "inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition",
+        "inline-flex min-h-[42px] items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition",
         "disabled:cursor-not-allowed disabled:opacity-60",
         BUTTON_VARIANTS[variant],
         full && "w-full",
@@ -98,17 +98,17 @@ export function Card({
   className?: string;
 }) {
   return (
-    <section className={cls("min-w-0 rounded-[10px] border border-[#e6eef3] bg-white shadow-[0_1px_4px_rgba(15,23,42,0.015)]", className)}>
+    <section className={cls("min-w-0 rounded-2xl border border-slate-200/70 bg-white shadow-[0_1px_2px_rgba(16,40,70,0.04),0_6px_20px_-12px_rgba(16,40,70,0.10)]", className)}>
       {(title || action) && (
-        <header className="flex flex-wrap items-center justify-between gap-2 px-4 pb-0 pt-4">
+        <header className="flex flex-wrap items-center justify-between gap-2 px-4 pb-0 pt-4 sm:px-5">
           <div>
-            {title && <h2 className="text-sm font-bold tracking-tight text-[#142f50]">{title}</h2>}
+            {title && <h2 className="text-[15px] font-bold tracking-tight text-[#142f50]">{title}</h2>}
             {subtitle && <p className="mt-0.5 text-xs text-slate-500">{subtitle}</p>}
           </div>
           {action}
         </header>
       )}
-      <div className="p-4">{children}</div>
+      <div className="p-4 sm:p-5">{children}</div>
     </section>
   );
 }

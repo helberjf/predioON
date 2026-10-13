@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import { AccessPanel, AssetsPanel, AuditPanel, AutomationsPanel, BuildingScopeProvider, BuildingScopeFeedback, FeatureProvider, FeatureContent, LoginScreen, PasswordRecoveryScreen, MonitoringPanel, ParkingPanel, SessionsPanel, TenancyPanel, TransparencyPanel, WorkOrdersPanel, useAuth, useBuildingScope, useResource } from "@predioon/ui";
+import { AccessPanel, AssetsPanel, AuditPanel, AutomationsPanel, BuildingScopeProvider, BuildingScopeFeedback, FeatureProvider, FeatureContent, LoginScreen, PasswordRecoveryScreen, MonitoringPanel, ParkingPanel, ResidentConsumptionSwitch, SessionsPanel, TenancyPanel, TransparencyPanel, WorkOrdersPanel, useAuth, useBuildingScope, useResource } from "@predioon/ui";
 import { Shell } from "./layout/Shell.js";
 import { Dashboard } from "./pages/Dashboard.js";
 import { Water } from "./pages/Water.js";
@@ -41,7 +41,7 @@ function BuildingApp() {
         <Route path="/" element={<FeatureContent path="/"><Dashboard buildingId={buildingId} /></FeatureContent>} />
         <Route path="/agua" element={<FeatureContent path="/agua"><Water buildingId={buildingId} /></FeatureContent>} />
         <Route path="/energia" element={<FeatureContent path="/energia"><Energy buildingId={buildingId} /></FeatureContent>} />
-        <Route path="/consumo" element={<FeatureContent path="/consumo"><MonitoringPanel buildingId={buildingId} canManage={can("devices:configure")} /></FeatureContent>} />
+        <Route path="/consumo" element={<FeatureContent path="/consumo"><><MonitoringPanel buildingId={buildingId} canManage={can("devices:configure")} />{can("buildings:manage") && <ResidentConsumptionSwitch buildingId={buildingId} />}</></FeatureContent>} />
         <Route path="/sensores" element={<FeatureContent path="/sensores"><Safety buildingId={buildingId} /></FeatureContent>} />
         <Route path="/acessos" element={<FeatureContent path="/acessos"><AccessPanel buildingId={buildingId} /></FeatureContent>} />
         <Route path="/vagas" element={<FeatureContent path="/vagas"><ParkingPanel buildingId={buildingId} /></FeatureContent>} />

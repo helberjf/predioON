@@ -261,3 +261,39 @@ A API nova exige a 046, porque todo login consulta se a conta tem fator ativo. D
 `047-password-recovery.sql` cria `password_resets`, com RLS e **sem privilégio para nenhuma role de execução**, e as funções `identity_issue_password_reset` e `identity_reset_password`, executáveis somente por `predioon_identity`. Contrato e motivos em [AUTENTICACAO.md](AUTENTICACAO.md#recuperação-de-senha-por-e-mail).
 
 A API nova exige a 047 só nas duas rotas de recuperação; entrada, sessões e MFA não dependem dela. O envio precisa de `RESEND_API_KEY`; sem a chave as rotas respondem normalmente e nenhum e-mail sai.
+
+## Release 048: identidade do recibo de telemetria
+
+`048-telemetry-receipt-scope.sql` troca a chave de `ingest_events` de `event_id` para `(building_id, device_id, event_id)`, acrescenta a coluna `fingerprint` (nula nas linhas antigas) e cria `ingest_rejections`, contadores sem conteúdo e sem privilégio para as roles da API. Motivos em [INBOX_DECISOES.md](INBOX_DECISOES.md).
+
+**Ordem de implantação:** parar a ingestão, aplicar a 048 e subir a ingestão nova. A ingestão antiga procura duplicata só por `event_id` e não deve gravar depois da troca de chave. A API não depende da 048. A troca de chave é segura sobre dados existentes, porque a chave antiga já garantia unicidade.
+
+## Release 049: portões e vagas desligados por padrão
+
+`049-physical-features-opt-in.sql` grava `GARAGE_ACCESS`, `PEDESTRIAN_ACCESS`, `CAR_PARKING` e `MOTORCYCLE_PARKING` como **desligadas no nível global** numa instalação que ainda não tem condomínios. As demais funcionalidades seguem a regra da 012: sem configuração, ligadas.
+
+**Instalação que já tem condomínios** não é alterada pela 049; quem cuida dela é a 050, abaixo.
+
+**Para ligar:** administração → Funcionalidades. O desligamento global é teto: enquanto estiver desligado, nenhum condomínio consegue ligar localmente.
+
+**Ambientes de teste** que exercitam portões e vagas precisam ligá-las de forma explícita: `SEED_PHYSICAL_FEATURES=enabled pnpm db:seed` (já está nos workflows). Testes que montam o próprio banco só com migrations fazem o `update` na preparação.
+
+## Release 050: portões e vagas desligados também em instalações existentes
+
+`050-physical-features-off-existing.sql` aplica o padrão da 049 a instalações que já têm condomínios, sem passo manual. Para cada uma das quatro funcionalidades **sem configuração global registrada**, grava o desligamento e, em cada condomínio onde ela estava de fato ligada, reproduz os efeitos da transição auditada da API (SQL038): avança a geração de execução, limpa a ocupação das vagas, cancela e audita os comandos de portão pendentes e cancela entregas de alerta que deixaram de ser elegíveis. Os registros de auditoria saem como `SYSTEM`, sem nomear uma pessoa.
+
+**O que ela não toca:** uma configuração global que alguém já registrou, ligada ou desligada, fica como está; cadastros de portões, vagas e equipamentos são mantidos; comandos já enviados não são reescritos.
+
+**Efeito ao aplicar:** as telas de Acessos e Vagas somem dos portais e dos aplicativos, e a ingestão passa a recusar leituras desses módulos. Para religar: administração → Funcionalidades.
+
+## Release 051: morador sem nível da caixa d'água; consumo só com liberação do síndico
+
+`051-resident-consumption-opt-in.sql`:
+
+- retira do papel **Morador** a leitura do nível publicado da caixa d'água (`telemetry:read-published`). O vínculo antigo de morador (tabela `memberships`) perde a leitura junto, porque segue o mesmo catálogo. A equipe do condomínio continua com a leitura.
+- cria a capacidade `monitoring:read-published` para o papel Morador e a tabela `resident_consumption_settings`, sem privilégio para nenhuma role de execução. **Sem linha, o consumo não está liberado.**
+- cria três funções: `app_resident_consumption_released`, `app_set_resident_consumption` (só quem administra o condomínio; audita `RESIDENT_CONSUMPTION_CHANGED` na mesma transação) e `app_published_consumption`, a projeção fixa entregue ao morador.
+
+**O que o morador recebe quando liberado:** quantidade diária de energia e de água dos últimos 7 dias, somando os medidores do mesmo tipo. Nunca tarifa, custo, limite, bomba, referência aprendida, leitura bruta ou identificação de equipamento.
+
+**Efeito ao aplicar:** nenhum condomínio fica liberado. Quem já mostrava o nível da caixa d'água ao morador deixa de mostrar.

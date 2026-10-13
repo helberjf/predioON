@@ -179,12 +179,13 @@ export const deviceMetrics = pgTable(
 
 /**
  * Normal table used as the idempotency gate before writing to the Timescale hypertable.
- * MQTT QoS 1 may deliver the same event more than once, so event_id must be claimed once.
+ * MQTT QoS 1 may deliver the same event more than once, so an event is claimed once
+ * per (building, device, eventId); the key is widened by infrastructure/048.
  */
 export const ingestEvents = pgTable(
   "ingest_events",
   {
-    eventId: text("event_id").primaryKey(),
+    eventId: text("event_id").notNull(),
     buildingId: text("building_id")
       .notNull()
       .references(() => buildings.id, { onDelete: "cascade" }),
@@ -193,8 +194,13 @@ export const ingestEvents = pgTable(
       .references(() => devices.id, { onDelete: "cascade" }),
     source: text("source").notNull().default("MQTT"),
     receivedAt: timestamp("received_at", { withTimezone: true }).notNull().defaultNow(),
+    /** SHA-256 of the accepted content; NULL only on rows older than migration 048. */
+    fingerprint: text("fingerprint"),
   },
-  (table) => [index("ingest_events_building_received_idx").on(table.buildingId, table.receivedAt)],
+  (table) => [
+    primaryKey({ columns: [table.buildingId, table.deviceId, table.eventId] }),
+    index("ingest_events_building_received_idx").on(table.buildingId, table.receivedAt),
+  ],
 );
 
 /**

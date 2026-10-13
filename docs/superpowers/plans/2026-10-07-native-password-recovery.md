@@ -51,11 +51,11 @@ export async function requestPasswordRecovery(
 - [x] Integral mobile: `pnpm --filter @predioon/mobile test`. Repetição independente da raiz de cliente/mobile e tipos de API-client/mobile/resident-mobile/operations-mobile, fronteiras e diff-check.
 - [x] Gerar os dois bundles de release com `react-native bundle --platform android --dev false`; conferir presença da entrada/formulário e hashes da fonte. Build/bundle JS não é aceite nativo.
 - [x] Atualizar continuidade, autenticação e melhorias com evidência/limites; manter entrega Resend real e homologação nativa pendentes.
-- [ ] Commit/push apenas após verificação própria e conferir o SHA remoto.
+- [x] Commit/push apenas após verificação própria e conferir o SHA remoto.
 
 ## Estado
 
-Implementação, revisões e verificação concluídas; publicação é o último checkpoint.
+Concluído e publicado em `7289e186e5659639d5b645e7d0b9edfaa766a823`, com SHA remoto conferido novamente em12/10. A integração da main051 preserva esta entrega.
 
 A extração mecânica passou 4/4 antes da funcionalidade. REDs: entrada/transporte 18 casos (4 aprovados/14 falhas); controller 10 falhas; tela renderizada 28 casos (4 aprovados/24 falhas). São execuções distintas, não somadas. A ausência do controller foi exposta como assertiva; a versão final usa import estático.
 

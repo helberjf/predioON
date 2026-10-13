@@ -1,12 +1,12 @@
 import { featureDisabled, observationIsCurrent } from "../../auth/features.js";
 import { randomUUID } from "node:crypto";
 import { Router } from "express";
-import { and, desc, eq, gte, inArray, lte } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
 import { z } from "zod";
-import { dailyUsage, monitoringProfiles, readFeatures, usageCursors } from "@predioon/db/runtime";
+import { buildings, dailyUsage, monitoringProfiles, readFeatures, usageCursors } from "@predioon/db/runtime";
 import { assessDeviation, CreateMonitoringSchema, dayBounds, dayKey, learnReference, MonitoringConfigSchema, MonitoringPatchSchema, USAGE_UNITS, kindFeature } from "@predioon/shared";
 import { currentAuth, inTenantContext } from "../../auth/middleware.js";
-import { badRequest, forbidden, notFound } from "../../http/errors.js";
+import { badRequest, forbidden, notFound, pgErrorCode } from "../../http/errors.js";
 import { param } from "../../http/params.js";
 import { query, validateBody, validateQuery } from "../../http/validate.js";
 import { recordAudit } from "../audit/repo.js";
@@ -14,6 +14,61 @@ import { assertActiveMonitoringDevice, assertMonitoringConfiguration, authorized
 
 export const monitoringRouter = Router();
 const Query = z.object({ buildingId: z.string().min(1), day: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional() });
+
+const Building = z.object({ buildingId: z.string().min(1).max(128) }).strict();
+const Release = z.object({ buildingId: z.string().min(1).max(128), released: z.boolean() }).strict();
+const PUBLISHED_DAYS = 7;
+
+/**
+ * What a resident may see when the administration released it: daily quantity
+ * of energy and water, nothing else. The projection and its authority live in
+ * app_published_consumption; this route only shapes the answer.
+ */
+monitoringRouter.get("/published", validateQuery(Building), async (req, res) => {
+  const { buildingId } = query<z.infer<typeof Building>>(req);
+  res.json(await inTenantContext(req, async tx => {
+    // The projection is for residents; whoever administers the readings uses the private panel.
+    const [state] = await tx.execute(sql`select app_has_capability(${buildingId},'monitoring:read-published') as resident,
+      app_resident_consumption_released(${buildingId}) as released`);
+    if (!state?.resident || state.released == null) throw forbidden("Sem acesso ao consumo deste prédio");
+    if (!state.released) throw forbidden("O consumo não está liberado para moradores neste condomínio");
+    const [building] = await tx.select({ timezone: buildings.timezone }).from(buildings).where(eq(buildings.id, buildingId)).limit(1);
+    if (!building) throw forbidden("Sem acesso ao consumo deste prédio");
+    const features = await readFeatures(tx, buildingId);
+    const today = dayKey(new Date(), building.timezone);
+    const first = new Date(Date.parse(`${today}T12:00:00Z`) - (PUBLISHED_DAYS - 1) * 86_400_000).toISOString().slice(0, 10);
+    const rows = await tx.execute(sql`select kind, day, quantity, incomplete from app_published_consumption(${buildingId},${first},${today})`) as unknown as
+      Array<{ kind: "ENERGY" | "WATER"; day: string; quantity: number; incomplete: boolean }>;
+    return { buildingId, day: today, items: (["ENERGY", "WATER"] as const).filter(kind => features[kindFeature(kind)].enabled).map(kind => {
+      const history = rows.filter(row => row.kind === kind).map(row => ({ day: row.day, quantity: Number(row.quantity), incomplete: row.incomplete }));
+      return { kind, unit: USAGE_UNITS[kind], today: history.find(row => row.day === today)?.quantity ?? null, history };
+    }) };
+  }));
+});
+
+/** The switch itself, for whoever administers the condominium. */
+monitoringRouter.get("/resident-access", validateQuery(Building), async (req, res) => {
+  const { buildingId } = query<z.infer<typeof Building>>(req);
+  res.json(await inTenantContext(req, async tx => {
+    const [scope] = await tx.execute(sql`select app_has_capability(${buildingId},'buildings:manage') and app_has_capability(${buildingId},'telemetry:read') as allowed,
+      app_resident_consumption_released(${buildingId}) as released`);
+    if (!scope?.allowed) throw forbidden("Sem permissão para configurar o consumo dos moradores");
+    return { buildingId, released: scope.released === true };
+  }));
+});
+
+monitoringRouter.put("/resident-access", validateBody(Release), async (req, res) => {
+  const { buildingId, released } = req.body as z.infer<typeof Release>;
+  res.json(await inTenantContext(req, async tx => {
+    try {
+      const [row] = await tx.execute(sql`select app_set_resident_consumption(${buildingId},${released}) as released`);
+      return { buildingId, released: row?.released === true };
+    } catch (error) {
+      if (pgErrorCode(error) === "42501") throw forbidden("Sem permissão para configurar o consumo dos moradores");
+      throw error;
+    }
+  }));
+});
 
 monitoringRouter.get("/", validateQuery(Query), async (req, res) => {
   const { buildingId, day } = query<z.infer<typeof Query>>(req);

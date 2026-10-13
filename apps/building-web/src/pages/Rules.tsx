@@ -13,6 +13,7 @@ import {
   useResource,
   useFeatures,
 } from "@predioon/ui";
+import { SEVERITY_LABELS } from "@predioon/ui";
 import { deviceFeatures, metricFeature } from "@predioon/shared";
 import type { AlertRule, Device, Paged } from "@predioon/ui";
 
@@ -466,7 +467,7 @@ function CreateRule({
             <Select
               value={form.severity}
               onChange={(severity) => setForm({ ...form, severity })}
-              options={SEVERITIES.map((value) => ({ value, label: value }))}
+              options={SEVERITIES.map((value) => ({ value, label: SEVERITY_LABELS[value] ?? value }))}
             />
           </Field>
           <Field label="Intervalo (s)" hint="evita repetir alerta">

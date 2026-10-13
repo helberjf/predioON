@@ -1,13 +1,19 @@
 import { useState } from "react";
-import { AccessPanel, Card, FeatureContent, FeatureProvider, Field, MonitoringPanel, ParkingPanel, ResourceFeedback, Select, useFeatures, useResource } from "@predioon/ui";
+import { AccessPanel, Card, FeatureContent, FeatureProvider, Field, LoadingState, MonitoringPanel, ParkingPanel, ResourceFeedback, Select, useFeatures, useResource } from "@predioon/ui";
+import { NoGrant, useGrantedBuildings } from "../granted-buildings.js";
 import type { Paged } from "@predioon/ui";
 export function Operations() {
   const buildings = useResource<Paged<{ id: string; name: string }>>("/buildings");
   const [selected, setSelected] = useState("");
-  const buildingId = buildings.data?.items.some(b => b.id === selected) ? selected : buildings.data?.items[0]?.id ?? "";
+  const granted = useGrantedBuildings(buildings.data?.items);
+  const available = granted ?? [];
+  const buildingId = available.some(b => b.id === selected) ? selected : available[0]?.id ?? "";
+  const heading = <h1 className="text-2xl font-bold text-slate-900">Operação dos imóveis</h1>;
+  if (buildings.data && !granted) return <>{heading}<LoadingState text="Verificando suas concessões…" /></>;
+  if (granted && buildings.data?.items.length && !granted.length) return <>{heading}<NoGrant title="Operação" /></>;
   return <>
-    <h1 className="text-2xl font-bold text-slate-900">Operação dos imóveis</h1>
-    <Card><Field label="Imóvel"><Select value={buildingId} onChange={setSelected} options={(buildings.data?.items ?? []).map(b => ({ value: b.id, label: b.name }))} /></Field></Card>
+    {heading}
+    <Card><Field label="Imóvel"><Select value={buildingId} onChange={setSelected} options={available.map(b => ({ value: b.id, label: b.name }))} /></Field></Card>
     {!buildingId ? <ResourceFeedback resource={buildings} emptyText="Cadastre um imóvel para configurar a operação." /> : <FeatureProvider key={buildingId} buildingId={buildingId}><FeatureContent path="/operacao"><BuildingOperations buildingId={buildingId} /></FeatureContent></FeatureProvider>}
   </>;
 }

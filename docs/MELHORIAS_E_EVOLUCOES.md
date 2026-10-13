@@ -69,7 +69,7 @@ Companion iOSf445 publicado/revisado:Linux121Python/12Node e Windows105+16skips/
 | P0 | Concluir autorização por capacidade nos domínios restantes | Acesso depende da concessão atual ao condomínio e ao recurso | HTTP e SQL negativos; revogação, expiração, equipe inativa e troca de condomínio sem vazamentos; nenhum privilégio global implícito sobre dados privados |
 | P0 | MFA e verificação adicional para ações privilegiadas | Proteção adicional da administração e de operações sensíveis | Cadastro, desafio, recuperação e revogação; limites de tentativas; proteção contra reutilização; testes sem segredos reais |
 | Entregue (042, 047) | Convites e recuperação de senha | Entrada e recuperação sem distribuição manual de senhas | Tokens de uso único, expiração, revogação e respostas sem enumeração de contas; provedor de envio configurável |
-| P0 | Inbox e consumidores duráveis restantes | Trabalho obrigatório sobrevive à queda de processo; preservar outbox038 já entregue | Ensaios de interrupção antes/depois do commit, deduplicação, reserva com prazo e recuperação; filas não repetem comandos físicos indiscriminadamente |
+| Parcial (048); fila adiada, ver INBOX_DECISOES.md | Inbox e consumidores duráveis restantes | Trabalho obrigatório sobrevive à queda de processo; preservar outbox038 já entregue | Ensaios de interrupção antes/depois do commit, deduplicação, reserva com prazo e recuperação; filas não repetem comandos físicos indiscriminadamente |
 | P0 | Credenciais restritas para ingestão e demais workers | Separar as responsabilidades legadas ainda proprietárias; preservar a role de notificações038 | Matriz de privilégios e testes de operações negadas por processo; bootstrap/migrations continuam separados |
 | P1 | Ativos e ordens de serviço | Manutenção com responsável e histórico do equipamento | Criar, atribuir, executar, concluir e reabrir conforme permissão; histórico auditável; relação explícita com chamados |
 | P1 | Automações versionadas | Regras controladas, simuláveis e rastreáveis | Versão imutável, simulação antes de ativar, limites, histórico de execução e desligamento; sem execução de scripts arbitrários |
@@ -236,7 +236,7 @@ Identidade autenticada 37307304828 e os dois jobs de inicialização 37307304855
 
 ### 06/10: relógio do estacionamento e edição de cadastros
 
-- **Estacionamento sensível a diferença de relógio:** a disponibilidade vira UNKNOWN quando o relógio do banco está poucos milissegundos à frente do processo da API, pois `observedAt` vem do PostgreSQL e a comparação usa o relógio da API. Reproduzido como falha intermitente da suíte no Docker Desktop (−30 a +34 ms). Avaliar a leitura com o relógio do banco na mesma transação, preservando a recusa de leituras de sensor realmente futuras.
+- **Relógio do estacionamento — corrigido e verificado em12/10:** as projeções HTTP usam clock_timestamp do PostgreSQL na transação, após leituras/locks/escrita/auditoria; datas realmente futuras continuam UNKNOWN. Sete novos casos cobrem API60s atrás/à frente e espera real. Fonte atual integrada: dirigido54/54, API804/804 e ingestão129/129; catálogo/credenciais/ledger51 preservados. A fixture herdada de ativos também passa a restaurar o timestamp original do grant que removia temporariamente. [Evidência](evidencias/parking-database-clock-2026-10-12.json). O achado original foi a diferença de −30 a +34ms no Docker Desktop.
 - **Cadastros 2B.4:** edição, desativação e reativação de bloco/unidade/equipe entregues em branch local com a 041. O código de bloco/unidade continua reservado por registros inativos; avaliar liberar o código ou permitir renomear o inativo.
 - **Ordem das suítes de banco:** a restauração no mesmo cluster falhou quando rodada após a suíte SQL de notificações no mesmo cluster físico; investigar se a fixture depende de não haver outra entrega reivindicável.
 
@@ -254,3 +254,20 @@ Identidade autenticada 37307304828 e os dois jobs de inicialização 37307304855
 - **Webhook do Resend** para devoluções e reclamações, e reenvio de falhas do provedor; hoje a falha fica só no log.
 - **Outros e-mails pelo mesmo módulo:** aviso de senha alterada, de MFA ativada/desativada e de novo acesso.
 - **Push (APNs/FCM) saiu do escopo** por decisão do proprietário; os avisos seguem pelos canais já existentes.
+
+### 07/10: inbox dos gateways
+
+- **Reler [INBOX_DECISOES.md](INBOX_DECISOES.md)** e confirmar ou mudar: fila adiada, retained só como histórico, 5 minutos para regras, memória de eventos sem prazo.
+- **Medir capacidade da ingestão** (leituras por segundo com banco real) antes de um condomínio grande; é o dado que decide se a fila separada é necessária.
+- **Janela máxima de replay** quando o firmware do gateway estiver definido, para poder limpar `ingest_events`.
+- **Tela dos contadores de recusa** para a administração da plataforma.
+- **Tirar a conexão dona do banco da ingestão**, independentemente da fila.
+- **Preservar a memória de eventos** quando um dispositivo é excluído e recriado com o mesmo identificador.
+
+### 07/10: front-end
+
+- **Fotos das áreas comuns** (upload pela administração) para os cartões de reserva, como no mockup.
+- **Avisos não lidos:** registrar leitura por morador para mostrar o contador no sino.
+- **Tela de Acessos do morador** no formato do mockup (dois botões grandes e últimos acessos) e **abertura de ocorrência por categoria** em grade de ícones; hoje usam os painéis compartilhados com a operação.
+- **Unificar "Chamados" e "Ocorrências":** a navegação diz Ocorrências e o painel diz Chamados.
+- **Minhas sessões:** mostrar "Chrome no Windows" em vez do identificador completo do navegador.

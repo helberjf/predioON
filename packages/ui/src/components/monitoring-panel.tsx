@@ -67,10 +67,14 @@ export function MonitoringPanel({ buildingId, canManage = false, kinds }: { buil
   useEffect(() => { const timer = setInterval(resource.reload, 10000); return () => clearInterval(timer); }, [resource.reload]);
   const items = (resource.data?.items ?? []).filter(p => allowedKinds.includes(p.kind));
   if (!allowedKinds.length) return null;
+  // Having no reading scope here is an ordinary situation, not a failure to retry.
+  const refused = resource.errorStatus === 403 && !resource.data;
   return <div className="space-y-5">
     <div className="flex flex-wrap items-end justify-between gap-3"><div><h2 className="text-xl font-bold text-[#153451]">Consumo e análise do histórico</h2><p className="mt-1 text-xs text-slate-500">{resource.data?.timezone ?? "Fuso do imóvel"} · valores calculados dos intervalos medidos</p></div><div className="flex items-end gap-2"><Field label="Dia"><Input type="date" value={day || resource.data?.day || ""} onChange={setDay} /></Field><Button variant="secondary" onClick={() => { setDay(""); resource.reload(); }}>Hoje</Button></div></div>
-    {resource.error && <ErrorBanner message={resource.error} />}
-    {!items.length && <Card><ResourceFeedback resource={resource} emptyText="Nenhum monitoramento configurado para esta seleção." /></Card>}
+    {refused && <Card><p role="status" className="text-sm font-semibold text-[#153451]">O consumo não está disponível para o seu perfil neste condomínio.</p><p className="mt-2 text-sm leading-6 text-slate-600">Ele aparece quando a administração do condomínio concede a você a leitura dos medidores.</p></Card>}
+    {/* With nothing to show, the card below already carries the error and the retry. */}
+    {!refused && resource.error && items.length > 0 && <ErrorBanner message={resource.error} />}
+    {!refused && !items.length && <Card><ResourceFeedback resource={resource} emptyText="Nenhum monitoramento configurado para esta seleção." /></Card>}
     {items.map(profile => <Card key={profile.id} title={`${names[profile.kind]} · ${profile.deviceName}`} action={<Badge tone={!profile.enabled || !profile.fresh ? "neutral" : flags.enabled("AI_ANALYSIS") && profile.deviation?.anomalous ? "danger" : "info"}>{!profile.enabled ? "Pausado" : !profile.fresh ? "Sem leitura atual" : "Recebendo leituras"}</Badge>}>
       <div className="grid gap-4 sm:grid-cols-3">
         <div><p className="text-xs text-slate-500">Acumulado no dia selecionado</p><p className="mt-2 text-2xl font-bold text-[#153451]">{profile.today?.quantity == null ? "—" : `${formatNumber(profile.today.quantity, 2)} ${profile.unit}`}</p><p className="mt-1 text-xs text-slate-500">{profile.today ? `${formatNumber(profile.today.coveragePercent ?? 0, 0)}% do período com dados` : "Aguardando intervalos válidos"}</p></div>
@@ -85,7 +89,7 @@ export function MonitoringPanel({ buildingId, canManage = false, kinds }: { buil
       </details>
       {canManage && <details className="mt-3 border-t border-slate-100 pt-3"><summary className="mb-4 cursor-pointer text-sm font-medium text-emerald-700">Configurar tarifas, limites e análise</summary><ConfigEditor buildingId={buildingId} profile={profile} devices={devices.data?.items ?? []} onSaved={resource.reload} kinds={allowedKinds} /></details>}
     </Card>)}
-    {canManage && <Card title="Adicionar monitoramento"><details><summary className="cursor-pointer text-sm text-emerald-700">Selecionar equipamento e parâmetros</summary><div className="mt-4">{devices.error && <ErrorBanner message={devices.error} />}<ConfigEditor buildingId={buildingId} devices={devices.data?.items ?? []} onSaved={resource.reload} kinds={allowedKinds} /></div></details></Card>}
+    {canManage && !refused && <Card title="Adicionar monitoramento"><details><summary className="cursor-pointer text-sm text-emerald-700">Selecionar equipamento e parâmetros</summary><div className="mt-4">{devices.error && <ErrorBanner message={devices.error} />}<ConfigEditor buildingId={buildingId} devices={devices.data?.items ?? []} onSaved={resource.reload} kinds={allowedKinds} /></div></details></Card>}
     <p className="text-xs leading-5 text-slate-500">Custos são estimativas do consumo medido com a tarifa informada, sem cálculo completo de tributos e cobranças da concessionária. Alertas sinalizam desvios para investigação; não identificam sozinhos a causa.</p>
   </div>;
 }

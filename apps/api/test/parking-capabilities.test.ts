@@ -380,6 +380,111 @@ describe("parking capabilities preserve tenant, count freshness and sensor scope
         400,
       );
     }));
+  for (const skewSeconds of [-60, 60])
+    it(`uses the database clock for every parking response with host skew ${skewSeconds}s`, async (t) =>
+      fixture(async (f) => {
+        await sqlClient`update parking_lots set stale_after_seconds=30 where id=${f.car}`;
+        await sqlClient`delete from parking_lots where id=${f.motorcycle}`;
+        const [clock] = await sqlClient`select clock_timestamp() as time`;
+        t.mock.timers.enable({
+          apis: ["Date"],
+          now: new Date(clock!.time).getTime() + skewSeconds * 1000,
+        });
+        try {
+          const created = await data(
+            await f.request(f.ids.manager, "/parking", "POST", {
+              buildingId: f.a,
+              vehicleType: "MOTORCYCLE",
+              capacity: 8,
+              staleAfterSeconds: 30,
+            }),
+            201,
+          );
+          assert.equal(created.status, "UNKNOWN");
+          assert.equal(created.available, null);
+          const manual = await data(await occupancy(f));
+          assert.equal(manual.status, "CURRENT");
+          assert.equal(manual.available, 17);
+          assert.equal(manual.source, "MANUAL");
+          const configured = await data(
+            await f.request(f.ids.manager, `/parking/${f.car}`, "PATCH", {
+              capacity: 25,
+              staleAfterSeconds: 30,
+              version: manual.version,
+            }),
+          );
+          assert.equal(configured.status, "CURRENT");
+          assert.equal(configured.available, 22);
+          assert.equal(configured.observedAt, manual.observedAt);
+          const listed = (await data(await f.list())).items.find(
+            (row: any) => row.id === f.car,
+          );
+          assert.equal(listed.status, "CURRENT");
+          assert.equal(listed.available, 22);
+          assert.equal(listed.observedAt, manual.observedAt);
+          assert.equal(
+            (await sqlClient`select id from audit_logs where resource_id=${f.car} and action='PARKING_OCCUPANCY_UPDATED'`).length,
+            1,
+          );
+        } finally {
+          t.mock.timers.reset();
+        }
+      }));
+  for (const skewSeconds of [-60, 60])
+    for (const state of ["future", "stale"] as const)
+      it(`preserves ${state} database observations with host skew ${skewSeconds}s`, async (t) =>
+        fixture(async (f) => {
+          const [clock] = await sqlClient`select clock_timestamp() as time`;
+          const observation = state === "future"
+            ? sqlClient`update parking_lots set occupied=3,source='SENSOR',stale_after_seconds=30,observed_at=clock_timestamp()+interval '30 seconds' where id=${f.car}`
+            : sqlClient`update parking_lots set occupied=3,source='SENSOR',stale_after_seconds=30,observed_at=clock_timestamp()-interval '40 seconds' where id=${f.car}`;
+          await observation;
+          t.mock.timers.enable({
+            apis: ["Date"],
+            now: new Date(clock!.time).getTime() + skewSeconds * 1000,
+          });
+          try {
+            const lot = (await data(await f.list())).items.find(
+              (row: any) => row.id === f.car,
+            );
+            assert.equal(lot.status, state === "future" ? "UNKNOWN" : "STALE");
+            assert.equal(lot.available, null);
+            assert.equal(lot.occupied, 3);
+            assert.equal(lot.source, "SENSOR");
+          } finally {
+            t.mock.timers.reset();
+          }
+        }));
+  it("evaluates occupancy after a real parking lock wait with a fresh database clock", async (t) =>
+    fixture(async (f) => {
+      const [clock] = await sqlClient`select clock_timestamp() as time`;
+      let afterWait: string | undefined;
+      t.mock.timers.enable({
+        apis: ["Date"],
+        now: new Date(clock!.time).getTime() - 60_000,
+      });
+      try {
+        const response = await locked(f, () => occupancy(f), async (owner) => {
+          const [boundary] = await owner.unsafe(
+            "select clock_timestamp()::text as time",
+          );
+          afterWait = boundary!.time as string;
+          await owner.unsafe("select pg_sleep(0.03)");
+        });
+        const lot = await data(response);
+        assert.ok(afterWait);
+        assert.ok(Date.parse(lot.observedAt) > Date.parse(afterWait));
+        assert.equal(lot.status, "CURRENT");
+        assert.equal(lot.available, 17);
+        assert.equal(lot.version, 2);
+        assert.equal(
+          (await sqlClient`select id from audit_logs where resource_id=${f.car} and action='PARKING_OCCUPANCY_UPDATED'`).length,
+          1,
+        );
+      } finally {
+        t.mock.timers.reset();
+      }
+    }));
   it("serializes occupancy versions and respects capacity instead of retrying an old command", async () =>
     fixture(async (f) => {
       const responses = await Promise.all([occupancy(f), occupancy(f)]);

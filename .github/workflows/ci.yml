@@ -57,7 +57,7 @@ jobs:
           pnpm db:infra
           pnpm db:infra
           pnpm db:provision-runtime
-          pnpm db:seed
+          SEED_PHYSICAL_FEATURES=enabled pnpm db:seed
           pnpm db:bootstrap
       - name: Database migration and privilege tests
         run: pnpm --filter @predioon/db exec node --import tsx --test --test-concurrency=1 test/*.test.ts
