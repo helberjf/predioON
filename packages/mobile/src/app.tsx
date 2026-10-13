@@ -471,7 +471,7 @@ function BuildingApp({
               <Readings api={api} buildingId={building.id} />
             )}
             {current === "workOrders" && (
-              <WorkOrders api={api} buildingId={building.id} />
+              <WorkOrders api={api} buildingId={building.id} userId={user.id} scope={scope} />
             )}
           </>
         )}

@@ -244,7 +244,7 @@ Identidade autenticada 37307304828 e os dois jobs de inicialização 37307304855
 
 - **Resolvido em 07/10 (047):** o provedor escolhido foi o Resend e a recuperação foi entregue. A solicitação foi acrescentada aos dois apps na continuação de 07/10. Faltam o webhook de devolução do Resend e o ensaio de entrega real. Registro original: **Recuperação de senha depende de um canal de entrega.** Sem e-mail, a única recuperação possível seria um link gerado por terceiros (síndico ou plataforma), o que daria a quem gera o link o poder de assumir a conta. Decidir o provedor de e-mail antes de implementar; até lá a troca de senha exige a senha atual.
 - **Convites nos apps nativos:** o aceite existe só no portal web do morador.
-- **Ordens de serviço:** faltam abertura/atribuição no app Operação, anexos e checklists, vínculo com chamado na tela, paginação além de 100, notificação ao responsável e abertura automática a partir de alerta. Avaliar uma chave de funcionalidade por condomínio.
+- **Ordens de serviço:** abertura/atribuição no app Operação verificada em 13/10 (código/host/bundles; aparelho pendente). Permanecem anexos e checklists, vínculo com chamado na tela, paginação além de 100, notificação ao responsável e abertura automática a partir de alerta. Avaliar uma chave de funcionalidade por condomínio.
 - **Cliente HTTP web:** só trata 204 como resposta vazia; um 201 sem corpo quebra a leitura. A rota de anotações passou a devolver o registro criado; convém o cliente aceitar corpo vazio em qualquer 2xx.
 
 ### 07/10: recuperação de senha e e-mail
@@ -277,3 +277,9 @@ Identidade autenticada 37307304828 e os dois jobs de inicialização 37307304855
 - **Tela de Consumo do app Morador — código e provas de host/bundle verificados:** somente projeção diária 051 liberada, com menu e conteúdo na mesma leitura. Mobile 157/157, cliente 75/75, UI 93/93, quatro tipos e quatro bundles JS; duas revisões independentes aprovadas. [Evidência](evidencias/native-resident-consumption-2026-10-12.json). Falta observação em aparelho; empacotamento JS não aceita renderer nativo.
 - **Retirada remota de acesso:** observada numa nova leitura; o polling de 15 s é agendado após o término do pedido. Não há retirada instantânea ou prazo máximo fixo.
 - **Relógio do estacionamento:** publicado em `40fa2c3`, com SHA remoto confirmado; a fonte integrada manteve catálogo/ledger/credenciais e zero fixtures pendentes.
+
+### 13/10: distribuição nativa de ordens
+
+- **Abrir e atribuir no app Operação — código e provas de host/bundle verificados:** capacidade atual + lista autorizada, diretórios independentes, versões, geração de callbacks e confirmação incerta sem replay. A integral própria final passou mobile 219/219, cliente 75/75 e UI 93/93; quatro tipos/bundles e duas revisões aprovadas. [Evidência](evidencias/native-work-order-distribution-2026-10-13.json). Homologação em aparelho permanece pendente.
+- **Buscas e botões antigos:** dois achados reproduzidos nas revisões foram corrigidos pela geração da ficha e dos handlers externos; os resultados 209/212 são anteriores, e o 219 final foi repetido pela raiz.
+- **Menor privilégio da ingestão:** estruturar conexões por carga sem owner no processo produtivo, incluindo o dispatcher/ACK; o adiamento da fila 048 não entrega essa separação. Nenhuma role/migration desse recorte foi aplicada aqui.

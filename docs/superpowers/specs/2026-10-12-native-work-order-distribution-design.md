@@ -4,7 +4,7 @@
 
 Continuação das etapas 4/5 do produto já aprovado: o síndico e o gestor de manutenção distribuem ordens no app Operação conforme suas capacidades atuais. A API 043 e os contratos atuais já suportam criação e atribuição. Reutilizar essas regras, sem backend, migration, biblioteca, Expo ou permissão nova. Morador permanece sem esse domínio.
 
-A meta entrega título, descrição opcional, prioridade e responsável opcional ao criar; reatribuição ou retirada de responsável de uma ordem aberta/em execução. Prazo, vínculo a ativo/chamado, cancelamento, anexos, checklists, automações e paginação da lista de ordens são recortes seguintes. Não alterar a execução/histórico existentes nem acrescentar outro ScrollView.
+A meta entrega título, descrição opcional, prioridade e responsável opcional ao criar; reatribuição ou retirada de responsável de uma ordem aberta/em execução. Prazo, vínculo a ativo/chamado, cancelamento, anexos, checklists, automações e paginação da lista de ordens são recortes seguintes. Preservar a estrutura e as regras existentes de execução/histórico, ajustando somente os controles à autoridade atual, sem acrescentar outro ScrollView.
 
 ## Abordagem escolhida
 

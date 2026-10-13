@@ -1,6 +1,6 @@
 # Execução da arquitetura de produto — Prédio ON
 
-Base aprovada: [arquitetura](../specs/2026-09-27-arquitetura-produto-design.md). A execução iniciada em `codex/product-platform` continua agora na `main`, conforme autorização do proprietário. Esta lista registra progresso real, sem considerar código não verificado como entregue. O ponto de retomada atualizado, inclusive em outra máquina, está em [CONTINUIDADE.md](../../CONTINUIDADE.md).
+Base aprovada: [arquitetura](../specs/2026-09-27-arquitetura-produto-design.md). A execução iniciada em `codex/product-platform`, depois integrada à `main`, continua no branch `codex/continue-product-plan` com a main 051 reconciliada. Commits e pushes seguem por meta verificada, conforme autorização do proprietário. Esta lista registra progresso real, sem considerar código não verificado como entregue. O ponto de retomada atualizado, inclusive em outra máquina, está em [CONTINUIDADE.md](../../CONTINUIDADE.md).
 
 ## Sequência e aceite
 
@@ -435,3 +435,7 @@ Recuperação nativa7289e18 já publicada, SHA remoto confirmado. A fila separad
 ### 12/10: Consumo no app Morador verificado
 
 `40fa2c3` publicou a integração/relógio, com SHA remoto confirmado. O consumidor nativo da projeção 051 usa leitura compartilhada para menu/tela e exige liberação atual do síndico. Sete dias de quantidades de água/energia, sem operação privada; erro, recusa, revogação, lifecycle e respostas tardias cobertos. REDs reais e duas revisões independentes aprovadas. Integrais próprias: mobile 157/157, cliente 75/75 e UI 93/93; quatro tipos, fronteiras e quatro bundles JS de release passaram. [Plano](2026-10-12-native-resident-consumption.md) e [evidência](../../evidencias/native-resident-consumption-2026-10-12.json). Publicado em **7ff57a4**, com SHA remoto confirmado. Sem backend/migration/biblioteca nova ou aceite de aparelho/Fabric/Apple/produção. Etapas maiores 2–6 permanecem abertas; próxima meta a estruturar é criação/atribuição de ordens no app Operação.
+
+### 13/10: distribuição de ordens no app Operação verificada
+
+Criação/atribuição pelas rotas 043/044 e capacidades atuais; diretórios de pessoas/equipes sob demanda e permissões próprias, versão capturada, um envio por ação e confirmação incerta sem replay. Leitor atribuído conserva histórico sem controles de escrita. Dois achados de callbacks antigos foram reproduzidos e corrigidos antes da aprovação final. Conformidade PASS e qualidade APPROVED; foco 64/64, integral própria mobile 219/219, cliente 75/75, UI 93/93, quatro tipos/fronteiras e quatro bundles JS. [Plano](2026-10-12-native-work-order-distribution.md) e [evidência](../../evidencias/native-work-order-distribution-2026-10-13.json). Publicação é o último checkpoint. Sem biblioteca/backend/migration nova ou aceite nativo/produção. Etapas maiores 2–6 permanecem abertas; credenciais restritas por carga da ingestão/acesso ainda exigem desenho e implementação, sem reabrir a fila adiada.
