@@ -43,11 +43,11 @@ Base: main `6989248` e recuperação nativa publicada em `7289e18`. [Desenho](..
 - [x] Repetir mobile/cliente/UI, tipos dos consumidores móveis, fronteiras e diff-check com fonte final congelada.
 - [x] Gerar quatro bundles JS de release Morador/Operação × Android/iOS, sequencialmente com dois workers; verificar presença da nova tela no Morador e nenhuma mudança da experiência Operação.
 - [x] Registrar evidência sanitizada, atualizar continuidade/melhorias/tracker com contagens reais e limites; manter polling de 15 s+pedido e homologação nativa pendentes.
-- [ ] Commit/push da meta verificada, sem incluir outros drafts; conferir SHA remoto.
+- [x] Commit/push da meta verificada, sem incluir outros drafts; conferir SHA remoto.
 
 ## Estado
 
-Implementação, revisões e verificação concluídas em 12/10; publicação é o último checkpoint. Autorização vem do plano de produto já solicitado e da política051 documentada; nenhuma decisão adicional de produto foi introduzida.
+Publicado em `7ff57a4c490d02a31c55a2b0b87caef78f89c25c` em 12/10, com push e SHA remoto confirmados. Autorização vem do plano de produto já solicitado e da política051 documentada; nenhuma decisão adicional de produto foi introduzida.
 
 REDs separados: leitor/escopo 21 casos (14 aprovados, 7 falhas), chave 7 (6/1), tela renderizada 12 (1/11) e consistência 8 (7/1); falhas de setup não contam. GREEN dirigido 44/44. A raiz repetiu mobile **157/157**, cliente **75/75** e UI **93/93**, sem falhas, cancelamentos ou skips; quatro tipos, fronteiras e quatro bundles JS de release passaram. Conformidade PASS e qualidade APPROVED repetiram 44/44 cada, com oito hashes preservados. [Evidência sanitizada](../../evidencias/native-resident-consumption-2026-10-12.json).
 
