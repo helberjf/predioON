@@ -67,7 +67,7 @@ Esperado após o fechamento documental: branch `codex/continue-product-plan`, HE
 
 **Meta publicável independente:** somente separar responsabilidade de carregamento. Não adicionar runtimeRoles, credenciais, migrations, ACLs, configurações de ingestão ou novos pools nesta tarefa. A ingestão continua owner, e o progresso registra esse preparo sem encerrar 2B.5.
 
-- [ ] Escrever teste em subprocesso fresco para cada módulo, com `node:test` ESM module mocks. Mockar `dotenv.config` para contar chamadas e impedir leitura do arquivo real, `postgres` para contar construções sem abrir conexão e `drizzle-orm/postgres-js` para evitar qualquer acesso do adapter ao cliente falso. Injetar as quatro variáveis já existentes em env de fixture gerada em memória, sem logs de valores. Fragmento executado pelo subprocesso:
+- [x] Escrever teste em subprocesso fresco para cada módulo, com `node:test` ESM module mocks. Mockar `dotenv.config` para contar chamadas e impedir leitura do arquivo real, `postgres` para contar construções sem abrir conexão e `drizzle-orm/postgres-js` para evitar qualquer acesso do adapter ao cliente falso. Injetar as quatro variáveis já existentes em env de fixture gerada em memória, sem logs de valores. Fragmento executado pelo subprocesso:
 
 ```js
 import assert from 'node:assert/strict';
@@ -91,14 +91,14 @@ assert.equal(pools, cases[target].pools);
 
 O teste pai calcula `new URL('../src/'+target+'.ts', import.meta.url).href` e o passa como TEST_ENV_ENTRYPOINT_URL ao subprocesso; TEST_ENV_ENTRYPOINT é apenas o nome do caso. Invocar o filho com `--experimental-test-module-mocks --import tsx --input-type=module -e` e script acima, em cwd do package DB para resolver os mocks. Para cada entrypoint, verificar role/variável/max recebidos no mock do postgres, preservando os números 10/10/5 dos pools context/identity/broker; notifications continua factory sem pool no import. Verificar que erros de URL existentes continuam sanitizados.
 
-- [ ] Executar RED, que hoje falha somente porque o import de runtime-connection chama dotenv:
+- [x] Executar RED, que hoje falha somente porque o import de runtime-connection chama dotenv:
 
 ```powershell
 pnpm --filter @predioon/db exec node --experimental-test-module-mocks --import tsx --test test/runtime-env.test.ts
 ```
 
-- [ ] Tirar exclusivamente `import "./env.js"` de runtime-connection. Adicionar `import "./env.js"` como primeira importação em context/identity/broker-auth; notifications já o possui. Não mudar runtimeDatabaseUrl, mapa de roles, verificador, flags, pools, config ou arquivos de ambiente. Não importar owner em nenhum entrypoint.
-- [ ] Executar GREEN e regressão compatível:
+- [x] Tirar exclusivamente `import "./env.js"` de runtime-connection. Adicionar `import "./env.js"` como primeira importação em context/identity/broker-auth; notifications já o possui. Não mudar runtimeDatabaseUrl, mapa de roles, verificador, flags, pools, config ou arquivos de ambiente. Não importar owner em nenhum entrypoint.
+- [x] Executar GREEN e regressão compatível:
 
 ```powershell
 pnpm --filter @predioon/db exec node --experimental-test-module-mocks --import tsx --test test/runtime-env.test.ts test/runtime-provisioning.test.ts test/runtime-connection.test.ts
@@ -109,6 +109,8 @@ pnpm check:boundaries
 Este teste de loading não precisa de banco; casos reais já existentes de runtime-connection só contam quando as flags/cluster correspondentes forem fornecidos. Registrar separadamente os skips desses casos. Revisar diff para confirmar somente os quatro arquivos fonte e teste novo, além de evidência/documentação da meta.
 
 - [ ] Revisar, commitar e pushar este preparo compatível autorizado: `refactor(db): make runtime connection environment-neutral`. Atualizar progresso como **preparo publicado, ingestão ainda owner**. Esta publicação não é uma transição parcial de privilégios porque não altera role/config/runtime produtivo. Só depois avançar à release conjunta das Tasks2–12.
+
+**Verificação própria de 13/10:** Windows Node 22.21.1 e Linux Node 24.21.0: cada execução teve 22 casos, 19 aprovados, zero falhas e 3 skips de PostgreSQL real. Quatro tipos (DB/API/ingest/notificações), fronteiras e diff-check aprovados. SPEC 10/10 e QUALITY 10/10, ambos com 5 hashes preservados. [Evidência](../../evidencias/runtime-environment-prepare-2026-10-13.json). A publicação do preparo será confirmada pelo SHA remoto; as Tasks 2–12 e a retirada de owner continuam abertas.
 
 ## Task 2: RED das credenciais, do ambiente e do grafo
 

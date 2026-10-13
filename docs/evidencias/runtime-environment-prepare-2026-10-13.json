@@ -1,0 +1,139 @@
+{
+  "date": "2026-10-13",
+  "timezone": "America/Sao_Paulo",
+  "baseCommit": "a9c088a2d4b1b430b63354aeb8edf5fa49c670d6",
+  "scope": "Preparação compatível do carregamento de ambiente dos entrypoints PostgreSQL existentes (Task 1).",
+  "status": "verified-preparation",
+  "behavior": {
+    "constructorLoadsEnvironment": false,
+    "constructorCreatesPoolOnImport": false,
+    "existingRuntimeLoadersExplicit": true,
+    "existingRoles": 4,
+    "contextIdentityBrokerPoolMax": [
+      10,
+      10,
+      5
+    ],
+    "notificationFactoryPoolMax": 1,
+    "ingestStillUsesOwner": true,
+    "sqlMigrationsChanged": false,
+    "credentialsChanged": false,
+    "productionDeployment": false
+  },
+  "sources": [
+    {
+      "path": "packages/db/src/runtime-connection.ts",
+      "rawSha256": "f4120d72fa8916afa9bbc530692935c3d33550db87878187999435c524c3ffc1",
+      "gitLfSha256": "f4120d72fa8916afa9bbc530692935c3d33550db87878187999435c524c3ffc1"
+    },
+    {
+      "path": "packages/db/src/context.ts",
+      "rawSha256": "f801c20ad303d060140fbc5414b636c82369f240d811e55b08f63e3689726437",
+      "gitLfSha256": "f801c20ad303d060140fbc5414b636c82369f240d811e55b08f63e3689726437"
+    },
+    {
+      "path": "packages/db/src/identity.ts",
+      "rawSha256": "b36bde0c958f3b3e1399d84f573b94e4cbd645e9cb3b6359cd099f40d4965b00",
+      "gitLfSha256": "b36bde0c958f3b3e1399d84f573b94e4cbd645e9cb3b6359cd099f40d4965b00"
+    },
+    {
+      "path": "packages/db/src/broker-auth.ts",
+      "rawSha256": "8826d4f6e997c3410bb4d6a2ebf57009a859e366353874c0b41aeee6fb07e3c8",
+      "gitLfSha256": "8826d4f6e997c3410bb4d6a2ebf57009a859e366353874c0b41aeee6fb07e3c8"
+    },
+    {
+      "path": "packages/db/test/runtime-env.test.ts",
+      "rawSha256": "1e95fc28b70492ccaeee43404d18186baedf76bfcf52d086d425b394e1423122",
+      "gitLfSha256": "1e95fc28b70492ccaeee43404d18186baedf76bfcf52d086d425b394e1423122"
+    }
+  ],
+  "red": {
+    "command": "pnpm --filter @predioon/db exec node --experimental-test-module-mocks --import tsx --test test/runtime-env.test.ts",
+    "platform": "Windows",
+    "node": "22.21.1",
+    "exitCode": 1,
+    "totals": {
+      "tests": 10,
+      "suites": 0,
+      "pass": 9,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 6426.9684
+    },
+    "expectedFailure": "Importar runtime-connection também carregava dotenv (1 chamada; esperado 0)."
+  },
+  "rootVerification": {
+    "command": "node --experimental-test-module-mocks --import tsx --test --test-concurrency=1 test/runtime-env.test.ts test/runtime-provisioning.test.ts test/runtime-connection.test.ts",
+    "windows": {
+      "node": "22.21.1",
+      "exitCode": 0,
+      "totals": {
+        "tests": 22,
+        "suites": 0,
+        "pass": 19,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 3,
+        "todo": 0,
+        "duration_ms": 9197.7491
+      }
+    },
+    "linux": {
+      "node": "24.21.0",
+      "exitCode": 0,
+      "totals": {
+        "tests": 22,
+        "suites": 0,
+        "pass": 19,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 3,
+        "todo": 0,
+        "duration_ms": 3328.653775
+      }
+    },
+    "skippedCases": [
+      "owner mascarado via SET ROLE",
+      "owner mascarado via SET SESSION AUTHORIZATION",
+      "login real de notificações e provisionamento"
+    ],
+    "skipReason": "RUN_ACCESS_DB_TESTS=0; esta preparação foi validada sem executar operações PostgreSQL.",
+    "typechecks": [
+      "@predioon/db",
+      "@predioon/api",
+      "@predioon/ingest",
+      "@predioon/notifications"
+    ],
+    "boundaries": "PASS"
+  },
+  "reviews": {
+    "spec": {
+      "status": "PASS",
+      "focusTests": 10,
+      "sourceHashesPreserved": 5,
+      "pass": 10,
+      "fail": 0,
+      "skip": 0,
+      "durationMs": 6750.2565,
+      "node": "22.21.1"
+    },
+    "quality": {
+      "status": "APPROVED",
+      "focusTests": 10,
+      "sourceHashesPreserved": 5,
+      "pass": 10,
+      "fail": 0,
+      "skip": 0,
+      "durationMs": 5723.7948,
+      "node": "22.21.1"
+    }
+  },
+  "limits": [
+    "Sem prova nova de ACL/RLS/login real, broker, firmware ou produção.",
+    "Migration 052 e duas novas roles ainda não implementadas.",
+    "A ingestão continua owner; esta meta não encerra a etapa 2B.5.",
+    "As contagens Windows, Linux e revisões são execuções separadas."
+  ]
+}

@@ -130,6 +130,8 @@ Um número alto e crescente de `FUTURE_TIMESTAMP` ou `CONTENT_CONFLICT` num cond
 - Preservar a memória de eventos quando um dispositivo é excluído: hoje ela é apagada junto. Excluir e recriar um dispositivo com o mesmo identificador permitiria recontar um evento antigo.
 - Tela ou API para os contadores da seção 7.
 
+O adiamento de roles acima refere-se aos papéis do desenho original de fila/worker. O menor privilégio por carga do caminho transacional atual é um recorte independente, previsto no [plano de credenciais de ingestão/acesso](superpowers/plans/2026-10-13-ingest-runtime-credentials.md), publicado em a9c088a em 13/10. Apenas o preparo de loading dos módulos foi verificado até aqui; a ingestão continua owner, 052 e as duas roles ainda não foram implementadas. A fila permanece adiada.
+
 ## 9. Como desfazer
 
 | Para desfazer | Faça |

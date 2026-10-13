@@ -1,4 +1,3 @@
-import "./env.js";
 import postgres from "postgres";
 import { runtimeRoles, type RuntimeRole } from "./runtime-role-credentials.js";
 
