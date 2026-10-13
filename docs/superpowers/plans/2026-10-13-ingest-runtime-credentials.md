@@ -108,9 +108,9 @@ pnpm check:boundaries
 
 Este teste de loading não precisa de banco; casos reais já existentes de runtime-connection só contam quando as flags/cluster correspondentes forem fornecidos. Registrar separadamente os skips desses casos. Revisar diff para confirmar somente os quatro arquivos fonte e teste novo, além de evidência/documentação da meta.
 
-- [ ] Revisar, commitar e pushar este preparo compatível autorizado: `refactor(db): make runtime connection environment-neutral`. Atualizar progresso como **preparo publicado, ingestão ainda owner**. Esta publicação não é uma transição parcial de privilégios porque não altera role/config/runtime produtivo. Só depois avançar à release conjunta das Tasks2–12.
+- [x] Revisar, commitar e pushar este preparo compatível autorizado: `refactor(db): make runtime connection environment-neutral`. Atualizar progresso como **preparo publicado, ingestão ainda owner**. Esta publicação não é uma transição parcial de privilégios porque não altera role/config/runtime produtivo. Só depois avançar à release conjunta das Tasks2–12.
 
-**Verificação própria de 13/10:** Windows Node 22.21.1 e Linux Node 24.21.0: cada execução teve 22 casos, 19 aprovados, zero falhas e 3 skips de PostgreSQL real. Quatro tipos (DB/API/ingest/notificações), fronteiras e diff-check aprovados. SPEC 10/10 e QUALITY 10/10, ambos com 5 hashes preservados. [Evidência](../../evidencias/runtime-environment-prepare-2026-10-13.json). A publicação do preparo será confirmada pelo SHA remoto; as Tasks 2–12 e a retirada de owner continuam abertas.
+**Verificação própria de 13/10:** Windows Node 22.21.1 e Linux Node 24.21.0: cada execução teve 22 casos, 19 aprovados, zero falhas e 3 skips de PostgreSQL real. Quatro tipos (DB/API/ingest/notificações), fronteiras e diff-check aprovados. SPEC 10/10 e QUALITY 10/10, ambos com 5 hashes preservados. [Evidência](../../evidencias/runtime-environment-prepare-2026-10-13.json). Preparo publicado em **3ec09efef6b32693a9ba3287fda89253c0247e7a**, com SHA remoto confirmado em 13/10; as Tasks 2–12 e a retirada de owner continuam abertas.
 
 ## Task 2: RED das credenciais, do ambiente e do grafo
 

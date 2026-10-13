@@ -135,5 +135,11 @@
     "Migration 052 e duas novas roles ainda não implementadas.",
     "A ingestão continua owner; esta meta não encerra a etapa 2B.5.",
     "As contagens Windows, Linux e revisões são execuções separadas."
-  ]
+  ],
+  "publication": {
+    "commit": "3ec09efef6b32693a9ba3287fda89253c0247e7a",
+    "branch": "codex/continue-product-plan",
+    "remoteShaConfirmed": true,
+    "date": "2026-10-13"
+  }
 }
