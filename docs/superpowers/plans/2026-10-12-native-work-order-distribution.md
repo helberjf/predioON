@@ -68,11 +68,11 @@ Modificar `packages/mobile/src/app.tsx`, `packages/mobile/src/work-orders-screen
 - [x] Raiz repetir `pnpm --filter @predioon/mobile test`, cliente/UI, quatro typechecks e `pnpm check:boundaries` sobre fonte congelada; registrar contagens reais e diff-check do índice.
 - [x] Raiz gerar quatro bundles JS de release sequenciais com dois workers. Não usar aparelho, API real ou Docker do proprietário como teste compartilhado; nenhum aceite nativo por host.
 - [x] Registrar evidência sanitizada, continuidade/tracker/melhorias e limites.
-- [ ] Commit/push somente fontes desta meta e docs próprios; comparar SHA remoto.
+- [x] Commit/push somente fontes desta meta e docs próprios; comparar SHA remoto.
 
 ## Estado
 
-Implementação e verificação final concluídas em 13/10; publicação é o último checkpoint. Mantido o ownership de 11 arquivos mobile, sem nova dependência, migration, backend ou mudança dos hooks genéricos. Prazo, vínculos e paginação de ordens ficam nos recortes seguintes já identificados.
+Publicado em `f83e3c645e13681bf3825b9b5f767a4b348c3304` em 13/10, com push e SHA remoto confirmados. Mantido o ownership de 11 arquivos mobile, sem nova dependência, migration, backend ou mudança dos hooks genéricos. Prazo, vínculos e paginação de ordens ficam nos recortes seguintes já identificados.
 
 **Provas finais:** foco 64/64; integral própria da raiz mobile **219/219**, cliente **75/75** e UI **93/93**, zero falhas/skips/cancelamentos. Quatro typechecks, fronteiras, quatro bundles JS de release Morador/Operação × Android/iOS e conferência dos 11 hashes/EOF passaram. Conformidade PASS e qualidade APPROVED; [evidência sanitizada](../../evidencias/native-work-order-distribution-2026-10-13.json).
 
