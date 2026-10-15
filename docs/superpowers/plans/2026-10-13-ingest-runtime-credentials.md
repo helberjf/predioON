@@ -165,7 +165,7 @@ Criar manifest fixture com exports dedicados antes de validar resolução. Testa
 
 ```powershell
 pnpm --filter @predioon/db exec node --import tsx --test --test-concurrency=1 test/runtime-provisioning.test.ts test/runtime-connection.test.ts test/runtime-env.test.ts
-pnpm --filter @predioon/api-client exec node --import tsx --test test/boundaries.test.ts
+pnpm --filter @predioon/api-client exec node --experimental-strip-types --test --test-concurrency=1 test/boundaries.test.ts
 pnpm --filter @predioon/ingest exec node --import tsx --test test/startup.test.ts
 ```
 
@@ -289,7 +289,7 @@ Esperado antes de 052: ausência de duas roles/helpers ou falta de contrato no c
 
 **Files:** Create `infrastructure/052-ingest-runtime-roles.sql` após Task0, `packages/db/src/ingest-operations.ts`; Modify exports DB. Tests da Task 4 e novos casos em produtores/uso/parking.
 
-- [ ] Abrir 052 com criação NOLOGIN de ambas roles e hardening integral. Seguir 038 para grants próprios: remover memberships nos dois sentidos, abortar ownership, revogar CREATE/TEMP e ACLs próprias de tabelas/sequences/functions/colunas. Inventariar PUBLIC sem broad revoke: instalação canônica 015 já revogou CREATE/TEMP de PUBLIC; testar privilégio efetivo via has_database_privilege e abortar 052 se recontaminado. Fazer o mesmo para PUBLIC em superfícies privadas/helper sensível, sem retirar acesso global de consumidores desconhecidos. Enumerar `pg_attribute.attacl` para revogar grants próprios de coluna; `REVOKE ALL TABLES` sozinho é insuficiente. Defaults de futuras funções owner/public são alterados de forma explícita e comparada em catálogo, mantendo ACLs atuais de funções e defaults destinados a consumidores antigos. Fixar owner/search_path/EXECUTE dos helpers novos.
+- [ ] Abrir 052 com criação NOLOGIN de ambas roles e hardening integral. Seguir 038 para grants próprios: remover memberships nos dois sentidos, abortar ownership, revogar CREATE/TEMP e ACLs próprias de tabelas/sequences/functions/colunas. Inventariar PUBLIC sem broad revoke: instalação canônica 015 já revogou CREATE/TEMP de PUBLIC; testar privilégio efetivo via has_database_privilege e abortar 052 se recontaminado. Fazer o mesmo para PUBLIC em superfícies privadas/helper sensível, sem retirar acesso global de consumidores desconhecidos. Enumerar `pg_attribute.attacl` para revogar grants próprios de coluna; `REVOKE ALL TABLES` sozinho é insuficiente. Usar `ALTER DEFAULT PRIVILEGES FOR ROLE <owner> REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC`, sem `IN SCHEMA`: revogação por schema não elimina o grant global implícito. Declarar e comparar a mudança de default ACL para futuras funções desse owner em todos os schemas do banco atual, testando public e outro schema; manter ACLs de funções existentes e os demais defaults de consumidores antigos. Fixar owner/search_path/EXECUTE dos helpers novos.
 - [ ] Criar guard interno completo; role esperada é argumento privado e não exportado ao runtime:
 
 ```sql
