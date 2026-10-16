@@ -1,0 +1,27 @@
+▶ 052 ingest/access catalogue migration on real PostgreSQL
+  ✔ 051 owner positive control sees the real canonical schema, 51 checksums and committed synthetic UUID (281.029856ms)
+  ✔ 052 feature contract requires a canonical candidate after the successful real 051 owner control (65.386228ms)
+  ✔ applies only 052, preserves old consumers/data and replays with an unchanged committed catalogue (1731.783141ms)
+  ✔ rolls back a deliberate exception appended after canonical 052 and then passes the clean positive control (1664.493448ms)
+  ✔ removes only the new roles' unsafe direct grants, column ACLs, defaults, flags and both membership directions (1316.621908ms)
+  ✔ aborts atomically and preserves reintroduced PUBLIC database TEMP in a fresh 051 database (1644.552326ms)
+  ✔ aborts atomically and preserves reintroduced PUBLIC database CREATE in a fresh 051 database (1596.122397ms)
+  ✔ aborts atomically and preserves reintroduced PUBLIC schema CREATE in a fresh 051 database (1604.235689ms)
+  ✔ aborts atomically and preserves reintroduced PUBLIC private table SELECT in a fresh 051 database (1742.362559ms)
+  ✔ aborts atomically and preserves reintroduced PUBLIC private password column in a fresh 051 database (1611.750976ms)
+  ✔ aborts atomically and preserves reintroduced PUBLIC private gateway metadata column in a fresh 051 database (1908.540739ms)
+  ✔ aborts atomically and preserves reintroduced PUBLIC sensitive human EXECUTE in a fresh 051 database (2247.724247ms)
+  ✔ aborts atomically and preserves reintroduced PUBLIC sensitive helper EXECUTE in a fresh 051 database (1642.800989ms)
+  ✔ aborts without transferring or dropping an existing object owned by predioon_ingest (1930.074465ms)
+  ✔ aborts without transferring or dropping an existing object owned by predioon_access_service (2176.009014ms)
+  ✔ changes the owner's global future-function default while preserving old function ACLs and other defaults (1871.496541ms)
+  ✔ retargets only operational legacy PUBLIC policies and preserves explicit consumers and human helper bodies (1697.838121ms)
+✔ 052 ingest/access catalogue migration on real PostgreSQL (27953.57233ms)
+ℹ tests 17
+ℹ suites 1
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 28073.127102

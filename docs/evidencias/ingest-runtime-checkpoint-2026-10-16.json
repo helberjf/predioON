@@ -1,0 +1,150 @@
+{
+  "date": "2026-10-16",
+  "baseCommit": "661eaceb12a6b583170a7a4075fca0e02aeb84dc",
+  "status": "IN_PROGRESS_NOT_RELEASED",
+  "patch": "docs/continuidade/2026-10-16-runtime-em-andamento.patch",
+  "patchSha256": "abbc136c0371a3b21d698ad1f06981f0b489ce34f4df35d0adad7175f5c45010",
+  "patchAppliesToBase": true,
+  "migrationSuite": {
+    "passed": 17,
+    "failed": 0,
+    "skipped": 0,
+    "sqlSha256": "95d5c8fd9a1f1268ad8c97e02ba92919d311d707deeaa3179ee9526d68683ed4"
+  },
+  "pending": [
+    "Authenticated role suites",
+    "Observational and physical operation suites",
+    "Extension and focused hardening regressions",
+    "Pipeline and dispatcher integration",
+    "Provisioner and ledger integration",
+    "Compose and restore/broker regression",
+    "Final review and full validation"
+  ],
+  "environmentBlocker": "Docker API unavailable then HTTP 500 during restart; remaining DB tests did not execute",
+  "files": [
+    {
+      "path": "packages/api-client/test/boundaries.test.ts",
+      "sha256": "73c2580a61fa594bddf07a6e76a2308a626e591549ea7924b538267facce711f"
+    },
+    {
+      "path": "packages/db/package.json",
+      "sha256": "ad435235368df5b7af941f9c0d59bf70db9315c0ce397c091eab418607499417"
+    },
+    {
+      "path": "packages/db/src/features.ts",
+      "sha256": "4586db28cd178dc8fc6cd7d52867dc7bb06f9679ca520a1fd55a89ec69c4e92b"
+    },
+    {
+      "path": "packages/db/src/runtime-connection.ts",
+      "sha256": "a07b0b4fda3e68faa9ebed426cda25ecf05753237418baebf752e484d58b67b6"
+    },
+    {
+      "path": "packages/db/src/runtime-role-credentials.ts",
+      "sha256": "73a8e99701dfa1f3ad81a187b336f3deb3d728a3b20dce36ba2344a98eb89154"
+    },
+    {
+      "path": "packages/db/test/runtime-connection.test.ts",
+      "sha256": "4525704b78c3c96789d1bf1747d97dc45cc07544f9f668b93b60431b1a44b5ae"
+    },
+    {
+      "path": "packages/db/test/runtime-env.test.ts",
+      "sha256": "a3bcac7fe9da77dd73ab5b40d99727ef42cac348caf1b56fd8a01bb06fca1341"
+    },
+    {
+      "path": "packages/db/test/runtime-provisioning.test.ts",
+      "sha256": "537373657ceb6c77734ba7d7c821951add723fd5fc84208e4bea09dfebb95909"
+    },
+    {
+      "path": "scripts/check-boundaries.mjs",
+      "sha256": "5a993b9735195b106e5dea1f076a75863c6a06e98c9136832f73581634575d76"
+    },
+    {
+      "path": "infrastructure/052-ingest-runtime-roles.sql",
+      "sha256": "95d5c8fd9a1f1268ad8c97e02ba92919d311d707deeaa3179ee9526d68683ed4"
+    },
+    {
+      "path": "packages/db/src/access-service-operations.ts",
+      "sha256": "2916eeafb523f8f895785742eae61efdb176a20e97524ab7637508dea3d12dc2"
+    },
+    {
+      "path": "packages/db/src/access-service.ts",
+      "sha256": "396f72b2a2b371242920a2c17c703d09686b0c90ccbcc31e7d0c2e496ccf46b0"
+    },
+    {
+      "path": "packages/db/src/ingest-operations.ts",
+      "sha256": "b7356cb5b7adc938553806e80f3cdad84db3195ed40e560955a7206e14c9982b"
+    },
+    {
+      "path": "packages/db/src/ingest-projections.ts",
+      "sha256": "3fa71d0faf3a5a441c0475ba5f299ab5b19a5c056358ae029039e9f38a3adc42"
+    },
+    {
+      "path": "packages/db/src/ingest.ts",
+      "sha256": "0e369c7394882c441d34435851580d754a4c1fe1050e21dfe725065f873a7e1b"
+    },
+    {
+      "path": "packages/db/src/transaction.ts",
+      "sha256": "9793a97c303921467df71be281fa9cac79af69fe63ba509a91c1ba42a6593f66"
+    },
+    {
+      "path": "packages/db/test/access-service-operations.test.ts",
+      "sha256": "83c5260bdd471ef2a7bf713cf7b49b9e30ba5536e7456715f17b7ef8d2db0cb9"
+    },
+    {
+      "path": "packages/db/test/access-service.test.ts",
+      "sha256": "dee6588336e058f7923b9a6ddb575119f9c127ffd056072d4ce241dec35ab5b8"
+    },
+    {
+      "path": "packages/db/test/fixtures/runtime-service-data.ts",
+      "sha256": "42cff3c8a9f5c4f62d7427e3f59376db5049ab8a1933f22947b8fd4a5ed5c7e5"
+    },
+    {
+      "path": "packages/db/test/fixtures/runtime-services.ts",
+      "sha256": "1f857ee11e9369262a5a34f31f4c85bdf07cbb389810622c91bbdee33e881d9d"
+    },
+    {
+      "path": "packages/db/test/ingest-runtime-extension-acl.test.ts",
+      "sha256": "c01d077dd15cbcdb8e8c0f5d74376bc2fb5de30ebfee044f8d52742ff456ee02"
+    },
+    {
+      "path": "packages/db/test/ingest-runtime-hardening-regression.test.ts",
+      "sha256": "9ef1bd55dd9d728cd73b82e60ffef606116e8ceefffa3116e74a72baa598cc0a"
+    },
+    {
+      "path": "packages/db/test/ingest-runtime-migration.test.ts",
+      "sha256": "93089bbad083f0e71216dc9bd2255108492fdaf9b1e927ee6f507f682ba227cd"
+    },
+    {
+      "path": "packages/db/test/ingest-runtime-operations.test.ts",
+      "sha256": "37313e39f0f571f45dd37f25a41664b5c7dbbebee27d25e9c32b57d4a4a0115e"
+    },
+    {
+      "path": "packages/db/test/ingest-runtime.test.ts",
+      "sha256": "3b34239c8e6fe660dcf3eabc0ef781c0ca539f31ad18b132610b6bd11695e7b4"
+    },
+    {
+      "path": "packages/db/test/runtime-services-fixture.test.ts",
+      "sha256": "57d8b0278445a84db27945035390dd5ad6d7431fac0bdec0b34b62e787dad063"
+    },
+    {
+      "path": "packages/db/test/runtime-url-parameters.test.ts",
+      "sha256": "e86ecd52c65edb9937a789da0a0c6624934748a92145506c23f290ef672cf3a8"
+    },
+    {
+      "path": "scripts/runtime-import-graph.mjs",
+      "sha256": "3f47f6170cbe88282017988222daa9246abc26af6b142382f6c4d9327e7ada47"
+    },
+    {
+      "path": "scripts/test-runtime-import-graph.mjs",
+      "sha256": "3e1e301811101dc0219ef173f6c7cb23ab60bc3d115b31c6ebde49ee3e8b358f"
+    },
+    {
+      "path": "services/ingest/src/startup.ts",
+      "sha256": "b590c7790336fb355192b9adf276e550889defdf757213961187af309ea2c69e"
+    },
+    {
+      "path": "services/ingest/test/startup.test.ts",
+      "sha256": "02e06adcb7dec27e348ff49cd7a8d1ccad4b6807e75594fce275d59504f54962"
+    }
+  ]
+}
