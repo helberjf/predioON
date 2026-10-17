@@ -308,3 +308,12 @@ A API nova exige a 047 só nas duas rotas de recuperação; entrada, sessões e 
 **O que o morador recebe quando liberado:** quantidade diária de energia e de água dos últimos 7 dias, somando os medidores do mesmo tipo. Nunca tarifa, custo, limite, bomba, referência aprendida, leitura bruta ou identificação de equipamento.
 
 **Efeito ao aplicar:** nenhum condomínio fica liberado. Quem já mostrava o nível da caixa d'água ao morador deixa de mostrar.
+
+## Release 053: acesso temporário de suporte
+
+`053-support-grants-management.sql` não cria tabela nem muda o que uma concessão permite (isso vem da 014/021). Ela:
+
+- separa criação e revogação das concessões de suporte para a role da API: inserir exige `support:grant`, pessoa da equipe de suporte da plataforma, outra pessoa que não o próprio administrador e prazo de **até 7 dias**; alterar só pode preencher `revoked_at` de uma concessão aberta. Sem DELETE: o condomínio mantém o histórico. A conexão dona (fixtures, restauração) não é afetada;
+- classifica `SUPPORT_STAFF_ADDED`/`SUPPORT_STAFF_REMOVED` como eventos da plataforma e acrescenta as provas de auditoria dessas duas ações e de `SUPPORT_GRANT_CREATED`/`SUPPORT_GRANT_REVOKED` (no condomínio), no mesmo formato das releases 042–045: falha fechado se a função tiver outro formato.
+
+**Efeito ao aplicar:** concessões existentes continuam valendo até o prazo. Quem editava ou apagava concessões direto pela API (não havia rota para isso) passa a receber recusa. Rotas novas em `/v1/support-access`; telas em administração → Acesso de suporte e, para o síndico, Administração → Acesso de suporte.

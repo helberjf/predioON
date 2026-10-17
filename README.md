@@ -24,6 +24,7 @@ O escopo do produto está no [PRD](docs/PRD.md) e o desenho técnico no [TDD](do
 | Ocorrências | Chamados de síndicos e moradores, três níveis de gravidade, respostas, histórico e agrupamento de problemas repetidos. |
 | Transparência e contas | Atualizações da gestão e relatórios financeiros mensais com receitas, despesas, saldo, comprovantes por link e revisões publicadas. |
 | Suporte remoto | Cadastro do computador do condomínio, preparação do acesso pelo AnyDesk e registro manual do resultado do atendimento. |
+| Acesso de suporte | A plataforma mantém sua equipe de suporte e concede a uma pessoa, por até 7 dias e com motivo, a leitura de sensores, alertas, equipamentos, ordens atribuídas ou concessões de um condomínio. Revogação imediata, histórico preservado e consulta pelo síndico. |
 | Controle de funcionalidades | 23 recursos ativados ou desativados globalmente e por condomínio, com justificativa, dependências e auditoria. |
 
 A disponibilidade nos portais segue as permissões do usuário e os controles de funcionalidades. Ao pausar um sensor, novas leituras correspondentes são descartadas, seu processamento e seus alertas ficam suspensos e o histórico é preservado. A comunicação dos gateways continua ativa. Consulte os efeitos e o procedimento de retomada em [Funcionalidades](docs/FUNCIONALIDADES.md).
@@ -34,8 +35,8 @@ A [matriz de funcionalidades e validações](docs/REVISAO_FUNCIONALIDADES.md) re
 
 | Serviço | Endereço | Finalidade |
 |---|---|---|
-| Administrador da plataforma | [localhost:5173](http://localhost:5173) | Clientes, condomínios, comunicação, equipamentos, operação dos imóveis, suporte remoto, alertas, usuários, funcionalidades e histórico de atividades. |
-| Painel do síndico | [localhost:5174](http://localhost:5174) | Água, energia, consumo, sensores, acessos, vagas, alertas, ocorrências, transparência, contas, avisos e áreas comuns. |
+| Administrador da plataforma | [localhost:5173](http://localhost:5173) | Clientes, condomínios, comunicação, equipamentos, operação dos imóveis, suporte remoto, acesso de suporte, alertas, usuários, funcionalidades e histórico de atividades. |
+| Painel do síndico | [localhost:5174](http://localhost:5174) | Água, energia, consumo, sensores, acessos, vagas, alertas, ocorrências, transparência, contas, avisos, áreas comuns e acessos de suporte concedidos ao condomínio. |
 | Portal do morador | [localhost:5175](http://localhost:5175) | Consultas autorizadas, avisos, reservas, ocorrências, transparência, contas e abertura de acessos quando permitida. |
 | API | [localhost:3000](http://localhost:3000) | Backend Express. |
 | Saúde da API | [localhost:3000/health](http://localhost:3000/health) | Confirma que a API responde. |
