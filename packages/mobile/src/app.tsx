@@ -16,8 +16,10 @@ import {
 } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import {
+  acceptInvitation,
   ApiError,
   createApiClient,
+  previewInvitation,
   requestPasswordRecovery,
   type ApiClient,
 } from "@predioon/api-client";
@@ -157,6 +159,11 @@ function ConnectedApp({
   );
   const recoverPassword = useCallback((email: string, signal?: AbortSignal) =>
     requestPasswordRecovery({ baseUrl: api.baseUrl, fetch: boundedFetch }, email, signal), [api]);
+  // Invitations are for residents; the operations app has no such entry.
+  const invitationRequests = useMemo(() => product === "resident" ? {
+    preview: (code: string, signal?: AbortSignal) => previewInvitation({ baseUrl: api.baseUrl, fetch: boundedFetch }, code, signal),
+    accept: (code: string, password: string, signal?: AbortSignal) => acceptInvitation({ baseUrl: api.baseUrl, fetch: boundedFetch }, code, password, signal),
+  } : undefined, [api, product]);
   useEffect(() => {
     let live = true;
     setBooting(true);
@@ -238,6 +245,7 @@ function ConnectedApp({
         api={api}
         product={product}
         requestPasswordRecovery={recoverPassword}
+        invitationRequests={invitationRequests}
         beginSignIn={() => {
           actions.begin();
           accessRef.current.invalidate();

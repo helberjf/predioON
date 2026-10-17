@@ -1,4 +1,4 @@
-import type { PasswordForgotRequest, Session, SessionTokens } from "@predioon/contracts/auth";
+import type { InvitationAcceptRequest, InvitationPreview, InvitationPreviewRequest, PasswordForgotRequest, Session, SessionTokens } from "@predioon/contracts/auth";
 import type { ReservationAvailabilityQuery } from "@predioon/contracts";
 import { createBearerClient, type CredentialStorage } from "#engine";
 import { ApiError } from "#errors";
@@ -46,6 +46,43 @@ export async function requestPasswordRecovery(
     : generic;
   throw new ApiError(response.status, message,
     response.status >= 200 && response.status < 300 ? "INVALID_RESPONSE" : "HTTP_ERROR");
+}
+
+/**
+ * Public invitation steps for the native resident app (the portal has its own
+ * screen). No session, cookie or stored credential is involved; the API's
+ * message is shown as is, because it already avoids revealing more than needed.
+ */
+async function publicInvitationStep(options: Pick<ApiClientOptions, "baseUrl" | "fetch">, step: "preview" | "accept", body: InvitationPreviewRequest | InvitationAcceptRequest, signal?: AbortSignal): Promise<Response> {
+  let response: Response;
+  try {
+    response = await options.fetch(`${options.baseUrl.replace(/\/+$/, "")}/auth/invitations/${step}`, {
+      method: "POST", credentials: "omit", cache: "no-store", redirect: "error",
+      headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal,
+    });
+  } catch {
+    throw new ApiError(0, "Sem conexão com o servidor. Tente novamente.", "NETWORK_ERROR");
+  }
+  if (response.ok) return response;
+  const data = await response.json().catch(() => null) as { error?: unknown } | null;
+  const message = response.status === 429 ? "Muitas tentativas. Aguarde alguns minutos antes de tentar novamente."
+    : typeof data?.error === "string" && data.error.length <= 200 ? data.error : "Não foi possível concluir. Tente novamente.";
+  throw new ApiError(response.status, message, "HTTP_ERROR");
+}
+
+export async function previewInvitation(options: Pick<ApiClientOptions, "baseUrl" | "fetch">, token: string, signal?: AbortSignal): Promise<InvitationPreview> {
+  const response = await publicInvitationStep(options, "preview", { token: token.trim() }, signal);
+  const data = await response.json().catch(() => null) as Partial<InvitationPreview> | null;
+  if (!data || typeof data.email !== "string" || typeof data.name !== "string" || typeof data.buildingName !== "string"
+    || typeof data.accountExists !== "boolean" || typeof data.expiresAt !== "string") {
+    throw new ApiError(response.status, "A API retornou uma resposta inválida.", "INVALID_RESPONSE");
+  }
+  return { email: data.email, name: data.name, buildingName: data.buildingName, accountExists: data.accountExists, expiresAt: data.expiresAt };
+}
+
+export async function acceptInvitation(options: Pick<ApiClientOptions, "baseUrl" | "fetch">, token: string, password: string, signal?: AbortSignal): Promise<void> {
+  const response = await publicInvitationStep(options, "accept", { token: token.trim(), password }, signal);
+  if (response.status !== 204) throw new ApiError(response.status, "A API retornou uma resposta inválida.", "INVALID_RESPONSE");
 }
 
 function authRequest(path: string, body: unknown) {

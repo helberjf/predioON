@@ -6,6 +6,8 @@ import type { Product } from "./scope.ts";
 import { Button, Card, colors, ErrorMessage, Field, styles } from "./ui.tsx";
 import { PasswordRecoveryScreen } from "./password-recovery-screen.tsx";
 import type { PasswordRecoveryRequest } from "./password-recovery.ts";
+import { InvitationScreen } from "./invitation-screen.tsx";
+import type { InvitationRequests } from "./invitation.ts";
 
 type LoginProps = {
   api: ApiClient;
@@ -13,17 +15,19 @@ type LoginProps = {
   beginSignIn(): void;
   signedIn(user: AuthUser): void;
   requestPasswordRecovery: PasswordRecoveryRequest;
+  /** Resident app only: "Tenho um convite". */
+  invitationRequests?: InvitationRequests;
 };
 
 export function Login(props: LoginProps) {
-  const [recovering, setRecovering] = useState(false);
+  const [screen, setScreen] = useState<"login" | "recovery" | "invitation">("login");
   const pendingRef = useRef(false);
-  return recovering ? (
-    <PasswordRecoveryScreen request={props.requestPasswordRecovery} close={() => setRecovering(false)} />
-  ) : (
-    <LoginForm {...props} pendingRef={pendingRef} recover={() => {
-      if (!pendingRef.current) setRecovering(true);
-    }} />
+  if (screen === "recovery") return <PasswordRecoveryScreen request={props.requestPasswordRecovery} close={() => setScreen("login")} />;
+  if (screen === "invitation" && props.invitationRequests) return <InvitationScreen requests={props.invitationRequests} close={() => setScreen("login")} />;
+  return (
+    <LoginForm {...props} pendingRef={pendingRef}
+      recover={() => { if (!pendingRef.current) setScreen("recovery"); }}
+      invite={props.invitationRequests ? () => { if (!pendingRef.current) setScreen("invitation"); } : undefined} />
   );
 }
 
@@ -34,7 +38,8 @@ function LoginForm({
   signedIn,
   pendingRef,
   recover,
-}: LoginProps & { pendingRef: React.MutableRefObject<boolean>; recover(): void }) {
+  invite,
+}: LoginProps & { pendingRef: React.MutableRefObject<boolean>; recover(): void; invite?: () => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   // Asked for only after the server says this account uses two-step verification.
@@ -147,6 +152,7 @@ function LoginForm({
             onPress={() => void login()}
           />
           <Button secondary label="Esqueci minha senha" disabled={pending} onPress={recover} />
+          {invite && <Button secondary label="Tenho um convite" disabled={pending} onPress={invite} />}
         </Card>
         <Text style={styles.muted}>
           Use sua conta cadastrada pela administração do condomínio.
