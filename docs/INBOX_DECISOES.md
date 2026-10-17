@@ -99,7 +99,7 @@ Foi feito um ensaio com a imagem real de produção (EMQX 6.3.1) em contêiner d
 
 **Atenção ao aplicar numa instalação já em uso:** a troca vale para sessões novas. Na primeira subida com a variável, o que estava pendente na sessão antiga em memória se perde, como já se perderia em qualquer reinício. Faça a troca num momento sem acúmulo.
 
-O ensaio pode ser repetido com `node services/ingest/scripts/broker-session-rehearsal.mjs <url> <contêiner>`, sempre contra um broker descartável, porque o script o reinicia.
+O ensaio pode ser repetido com `node services/ingest/scripts/broker-session-rehearsal.mjs <url> <contêiner>`, sempre contra um broker descartável, porque o script o reinicia. Desde a 052, `services/ingest/scripts/ingest-session-rehearsal.mjs` repete o caso com o serviço de ingestão real, só com as duas URLs restritas: a leitura publicada com o serviço parado sobreviveu ao reinício do EMQX 6.3.1 e foi gravada uma vez; sem sessões duráveis, foi perdida (17/10).
 
 **O que o ensaio não cobre:** leituras QoS 0 (não têm garantia nenhuma, por definição do protocolo), autenticação e TLS da produção, e o comportamento com disco cheio.
 
