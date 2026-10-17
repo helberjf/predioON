@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 import { createRuntimeServicesFixture, parseRuntimeServicesEnvironment, verifyOwnerPositiveControl } from "../packages/db/test/fixtures/runtime-services.ts";
 
 const suites = ["receipt-policy", "pipeline", "water", "sensors.integration", "parking", "feature-pause", "usage",
-  "outbox-producers.integration", "access.integration", "access-capabilities.integration"];
+  "outbox-producers.integration", "access.integration", "access-capabilities.integration", "mqtt-runtime.integration"];
 const requested = process.argv.slice(2);
 for (const suite of requested) assert.ok(suites.includes(suite), `Suíte desconhecida: ${suite}`);
 const databaseDirectory = fileURLToPath(new URL("../packages/db/", import.meta.url));
