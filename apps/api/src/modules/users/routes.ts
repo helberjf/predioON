@@ -1,9 +1,9 @@
-import { Router } from "express";
-import { and, asc, eq, inArray, sql } from "drizzle-orm";
+import { Router, type Request } from "express";
+import { and, asc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
-import { memberships, users } from "@predioon/db/runtime";
-import { assertBuildingAccess, currentAuth, inTenantContext, requireRole, scopedBuildingIds } from "../../auth/middleware.js";
-import { conflict, notFound } from "../../http/errors.js";
+import { memberships, users, type AppTransaction } from "@predioon/db/runtime";
+import { assertCapability, assertGlobalCapability, currentAuth, inTenantContext } from "../../auth/middleware.js";
+import { badRequest, conflict, forbidden, notFound, pgErrorCode } from "../../http/errors.js";
 import { generateId } from "../../http/ids.js";
 import { query, validateBody, validateQuery } from "../../http/validate.js";
 import { hashPassword } from "../../auth/passwords.js";
@@ -39,35 +39,56 @@ const publicFields = {
   createdAt: users.createdAt,
 };
 
-usersRouter.use(requireRole("BUILDING_ADMIN"));
+/**
+ * Accounts and legacy building memberships (054): live capabilities decide,
+ * never the legacy role. The platform RBAC administrator (rbac:manage) sees and
+ * creates accounts; a building's managers list and link its people
+ * (memberships:read/manage), limited by the role delegation rule in the database.
+ */
+async function inUsers<T>(req: Request, run: (tx: AppTransaction) => Promise<T>): Promise<T> {
+  try { return await inTenantContext(req, run); }
+  catch (error) {
+    const code = pgErrorCode(error);
+    if (code === "42501") throw forbidden("Sem a capacidade necessária para este vínculo");
+    if (code === "23503") throw badRequest("Pessoa ou condomínio inexistente");
+    throw error;
+  }
+}
+async function platformAdministrator(tx: AppTransaction): Promise<boolean> {
+  const [row] = await tx.execute(sql`select app_has_global_capability('rbac:manage') as allowed`);
+  return row?.allowed === true;
+}
+/** Linking people needs the building capability, or the platform RBAC capability. */
+async function assertMembershipManager(tx: AppTransaction, buildingId: string): Promise<void> {
+  if (!await platformAdministrator(tx)) await assertCapability(tx, "memberships:manage", buildingId);
+}
 
 usersRouter.get("/", validateQuery(ListQuerySchema), async (req, res) => {
-  const auth = currentAuth(req);
   const { buildingId } = query<z.infer<typeof ListQuerySchema>>(req);
-  if (buildingId) assertBuildingAccess(auth, buildingId, "BUILDING_ADMIN");
-
-  const scope = buildingId ? [buildingId] : scopedBuildingIds(auth);
-
-  const rows = await inTenantContext(req, (tx) =>
-    scope
-      ? tx
-          .selectDistinct(publicFields)
-          .from(users)
-          .innerJoin(memberships, eq(memberships.userId, users.id))
-          .where(inArray(memberships.buildingId, scope.length ? scope : [""]))
-          .orderBy(asc(users.name))
-      : tx.select(publicFields).from(users).orderBy(asc(users.name)),
-  );
+  const rows = await inUsers(req, async (tx) => {
+    if (!buildingId) {
+      await assertGlobalCapability(tx, "rbac:manage");
+      return tx.select(publicFields).from(users).orderBy(asc(users.name));
+    }
+    if (!await platformAdministrator(tx)) await assertCapability(tx, "memberships:read", buildingId);
+    return tx
+      .selectDistinct(publicFields)
+      .from(users)
+      .innerJoin(memberships, eq(memberships.userId, users.id))
+      .where(eq(memberships.buildingId, buildingId))
+      .orderBy(asc(users.name));
+  });
 
   res.json({ items: rows });
 });
 
-usersRouter.post("/", requireRole("PLATFORM_ADMIN"), validateBody(CreateSchema), async (req, res) => {
+usersRouter.post("/", validateBody(CreateSchema), async (req, res) => {
   const input = req.body as z.infer<typeof CreateSchema>;
   const auth = currentAuth(req);
   const passwordHash = await hashPassword(input.password);
 
-  const row = await inTenantContext(req, async (tx) => {
+  const row = await inUsers(req, async (tx) => {
+    await assertGlobalCapability(tx, "rbac:manage");
     const [existing] = await tx.select({ id: users.id }).from(users).where(eq(users.email, input.email.toLowerCase())).limit(1);
     if (existing) throw conflict("Já existe um usuário com este e-mail");
 
@@ -98,9 +119,10 @@ usersRouter.post("/", requireRole("PLATFORM_ADMIN"), validateBody(CreateSchema),
 usersRouter.post("/memberships", validateBody(MembershipSchema), async (req, res) => {
   const input = req.body as z.infer<typeof MembershipSchema>;
   const auth = currentAuth(req);
-  assertBuildingAccess(auth, input.buildingId, "BUILDING_ADMIN");
 
-  const row = await inTenantContext(req, async (tx) => {
+  const row = await inUsers(req, async (tx) => {
+    // The database also refuses granting a role whose capabilities the actor lacks.
+    await assertMembershipManager(tx, input.buildingId);
     const [created] = await tx
       .insert(memberships)
       .values(input)
@@ -134,10 +156,12 @@ usersRouter.post("/memberships", validateBody(MembershipSchema), async (req, res
 usersRouter.delete("/memberships/:membershipId", async (req, res) => {
   const auth = currentAuth(req);
 
-  await inTenantContext(req, async (tx) => {
-    const [current] = await tx.select().from(memberships).where(eq(memberships.id, param(req, "membershipId"))).limit(1);
+  const membershipId = z.string().uuid().safeParse(param(req, "membershipId"));
+  if (!membershipId.success) throw notFound("Vínculo não encontrado");
+  await inUsers(req, async (tx) => {
+    const [current] = await tx.select().from(memberships).where(eq(memberships.id, membershipId.data)).limit(1);
     if (!current) throw notFound("Vínculo não encontrado");
-    assertBuildingAccess(auth, current.buildingId, "BUILDING_ADMIN");
+    await assertMembershipManager(tx, current.buildingId);
 
     // Record while the actor still has authority, including self-revocation.
     // Both the audit and the mutation roll back if either operation fails.

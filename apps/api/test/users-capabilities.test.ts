@@ -1,0 +1,122 @@
+import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
+import { after, before, describe, it } from "node:test";
+import { sql } from "drizzle-orm";
+import { sqlClient } from "@predioon/db";
+import { closeAppDb, withUserContext } from "@predioon/db/runtime";
+import { hashPassword } from "../src/auth/passwords.js";
+import { startTestServer, login, call } from "./helpers.js";
+
+// 054: accounts and legacy memberships follow live capabilities, not the legacy role.
+describe("users and memberships by capability (054)", () => {
+  let server: Awaited<ReturnType<typeof startTestServer>>, passwordHash: string;
+  before(async () => { passwordHash = await hashPassword("predioon123"); server = await startTestServer(); });
+  after(async () => { await server?.close(); await closeAppDb(); await sqlClient.end(); });
+
+  async function fixture(run: (f: Awaited<ReturnType<typeof create>>) => Promise<void>) {
+    const f = await create();
+    try { await run(f); }
+    finally {
+      await sqlClient`delete from audit_logs where user_id in ${sqlClient(f.ids)} or resource_id in (select id from users where email like ${`${f.suffix}%@users054.test`})`;
+      await sqlClient`delete from buildings where organization_id=${f.org}`;
+      await sqlClient`delete from organizations where id=${f.org}`;
+      await sqlClient`delete from role_bindings where user_id in ${sqlClient(f.ids)}`;
+      await sqlClient`delete from roles where key=${f.limitedRole}`;
+      await sqlClient`delete from users where email like ${`${f.suffix}%@users054.test`}`;
+    }
+  }
+  async function create() {
+    const suffix = `u054-${randomUUID().slice(0, 8)}`, org = `${suffix}-org`, a = `${suffix}-a`, b = `${suffix}-b`;
+    const names = ["rbac", "legacy", "resident", "foreign", "newcomer", "platform", "limited"] as const;
+    const id = Object.fromEntries(names.map(name => [name, `${suffix}-${name}`])) as Record<typeof names[number], string>;
+    const ids = Object.values(id);
+    const limitedRole = `LIMITED_${suffix.replaceAll("-", "_").toUpperCase()}`;
+    await sqlClient`insert into organizations(id,name,slug) values(${org},'Users 054',${org})`;
+    await sqlClient`insert into buildings(id,organization_id,name,code) values(${a},${org},'A','A'),(${b},${org},'B','B')`;
+    for (const user of ids) await sqlClient`insert into users(id,email,name,password_hash) values(${user},${user + "@users054.test"},${user},${passwordHash})`;
+    // A manager known only by a role binding (no legacy membership) and one known only by the legacy membership.
+    await sqlClient`insert into role_bindings(user_id,building_id,role_key) values(${id.rbac},${a},'BUILDING_ADMIN')`;
+    await sqlClient`insert into memberships(user_id,building_id,role) values(${id.legacy},${a},'BUILDING_ADMIN'),(${id.resident},${a},'RESIDENT'),(${id.foreign},${b},'RESIDENT')`;
+    // Platform administrator by explicit binding only, without the legacy flag.
+    await sqlClient`insert into role_bindings(user_id,role_key) values(${id.platform},'PLATFORM_ADMIN')`;
+    // A custom role that can manage memberships but holds no other capability.
+    await sqlClient`insert into roles(key,scope,label) values(${limitedRole},'BUILDING',${limitedRole})`;
+    for (const permission of ["memberships:read", "memberships:manage"]) await sqlClient`insert into role_permissions(role_key,permission_key) values(${limitedRole},${permission})`;
+    await sqlClient`insert into role_bindings(user_id,building_id,role_key) values(${id.limited},${a},${limitedRole})`;
+    const tokens = new Map<string, string>();
+    for (const user of ids) tokens.set(user, (await login(server.url, user + "@users054.test")).accessToken);
+    const request = (user: string, path: string, method = "GET", body?: unknown) => call(server.url, path, { token: tokens.get(user), method, body });
+    const listed = async (user: string, building = a) => {
+      const response = await request(user, `/users?buildingId=${building}`);
+      return { status: response.status, ids: response.status === 200 ? ((await response.json()).items as Array<{ id: string }>).map(row => row.id).sort() : [] };
+    };
+    const link = (user: string, target: string, role: "RESIDENT" | "BUILDING_ADMIN", building = a) =>
+      request(user, "/users/memberships", "POST", { userId: target, buildingId: building, role });
+    return { suffix, org, a, b, id, ids, limitedRole, request, listed, link };
+  }
+  const asUser = <T>(userId: string, run: Parameters<typeof withUserContext<T>>[1]) => withUserContext({ userId, role: "RESIDENT" }, run);
+
+  it("a manager known only by a role binding lists and links the building's people, never another building's", async () => fixture(async f => {
+    assert.deepEqual(await f.listed(f.id.rbac), { status: 200, ids: [f.id.legacy, f.id.resident].sort() });
+    assert.equal((await f.listed(f.id.rbac, f.b)).status, 403);
+    assert.equal((await f.request(f.id.rbac, "/users")).status, 403, "the full account list belongs to the platform");
+    const created = await f.link(f.id.rbac, f.id.newcomer, "RESIDENT");
+    assert.equal(created.status, 201, await created.clone().text());
+    const membership = await created.json() as { id: string };
+    assert.equal((await f.link(f.id.rbac, f.id.newcomer, "RESIDENT", f.b)).status, 403);
+    const [upserted] = await sqlClient`select scope_kind, building_id from audit_logs where user_id=${f.id.rbac} and action='MEMBERSHIP_UPSERTED' and resource_id=${membership.id}`;
+    assert.deepEqual({ ...upserted }, { scope_kind: "BUILDING", building_id: f.a });
+    assert.equal((await f.request(f.id.rbac, `/users/memberships/${membership.id}`, "DELETE")).status, 204);
+    assert.equal((await sqlClient`select active from memberships where id=${membership.id}`)[0]!.active, false);
+    assert.equal((await sqlClient`select count(*)::int as n from audit_logs where user_id=${f.id.rbac} and action='MEMBERSHIP_REVOKED' and resource_id=${membership.id}`)[0]!.n, 1);
+
+    // Revoking the binding removes the authority on the same session.
+    await sqlClient`update role_bindings set active=false where user_id=${f.id.rbac}`;
+    assert.equal((await f.listed(f.id.rbac)).status, 403);
+    assert.equal((await f.link(f.id.rbac, f.id.newcomer, "RESIDENT")).status, 403);
+  }));
+
+  it("keeps the legacy manager working and residents out", async () => fixture(async f => {
+    assert.deepEqual(await f.listed(f.id.legacy), { status: 200, ids: [f.id.legacy, f.id.resident].sort() });
+    assert.equal((await f.link(f.id.legacy, f.id.newcomer, "RESIDENT")).status, 201);
+    assert.equal((await f.listed(f.id.resident)).status, 403);
+    assert.equal((await f.link(f.id.resident, f.id.newcomer, "RESIDENT")).status, 403);
+  }));
+
+  it("never lets someone grant a membership role whose capabilities they do not hold", async () => fixture(async f => {
+    assert.equal((await f.listed(f.id.limited)).status, 200, "memberships:read is enough to list");
+    for (const role of ["BUILDING_ADMIN", "RESIDENT"] as const) {
+      assert.equal((await f.link(f.id.limited, f.id.newcomer, role)).status, 403, `${role} needs capabilities the custom role lacks`);
+    }
+    assert.equal((await sqlClient`select count(*)::int as n from memberships where user_id=${f.id.newcomer}`)[0]!.n, 0);
+  }));
+
+  it("lets the platform RBAC administrator without the legacy flag list and create accounts", async () => fixture(async f => {
+    const all = await f.request(f.id.platform, "/users");
+    assert.equal(all.status, 200);
+    const everyone = ((await all.json()).items as Array<{ id: string }>).map(row => row.id);
+    assert.ok([f.id.foreign, f.id.resident, f.id.rbac].every(user => everyone.includes(user)));
+    const email = `${f.suffix}-created@users054.test`;
+    const created = await f.request(f.id.platform, "/users", "POST", { name: "Conta criada", email, password: "predioon123" });
+    assert.equal(created.status, 201, await created.clone().text());
+    const account = await created.json() as { id: string };
+    const [audit] = await sqlClient`select scope_kind from audit_logs where user_id=${f.id.platform} and action='USER_CREATED' and resource_id=${account.id}`;
+    assert.equal(audit!.scope_kind, "PLATFORM");
+    assert.equal((await f.link(f.id.platform, account.id, "RESIDENT", f.b)).status, 201);
+    for (const user of [f.id.rbac, f.id.legacy, f.id.resident]) {
+      assert.equal((await f.request(user, "/users", "POST", { name: "Negado", email: `${f.suffix}-${user}@users054.test`, password: "predioon123" })).status, 403);
+    }
+  }));
+
+  it("applies the same rules in PostgreSQL, whatever legacy role the session claims", async () => fixture(async f => {
+    const visible = async (actor: string, claimedRole: "RESIDENT" | "PLATFORM_ADMIN" = "RESIDENT") =>
+      (await withUserContext({ userId: actor, role: claimedRole }, tx => tx.execute(sql`select id from users where id in ${sql.raw(`(${f.ids.map(value => `'${value}'`).join(",")})`)} order by id`))).map(row => row.id as string);
+    assert.deepEqual(await visible(f.id.rbac), [f.id.legacy, f.id.rbac, f.id.resident].sort());
+    assert.deepEqual(await visible(f.id.resident), [f.id.resident]);
+    // The legacy session role no longer opens every account.
+    assert.deepEqual(await visible(f.id.resident, "PLATFORM_ADMIN"), [f.id.resident]);
+    await assert.rejects(asUser(f.id.legacy, tx => tx.execute(sql`delete from memberships where user_id=${f.id.resident}`)), (error: { code?: string; cause?: { code?: string } }) => (error.cause?.code ?? error.code) === "42501");
+    await assert.rejects(withUserContext({ userId: f.id.resident, role: "PLATFORM_ADMIN" }, tx => tx.execute(sql`insert into memberships(user_id,building_id,role) values(${f.id.resident},${f.b},'BUILDING_ADMIN')`)),
+      (error: { code?: string; cause?: { code?: string } }) => (error.cause?.code ?? error.code) === "42501");
+  }));
+});
