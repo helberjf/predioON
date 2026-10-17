@@ -10,7 +10,7 @@
 
 ---
 
-**Estado do documento:** Tasks 2–10 e a parte de restore/CI da Task 11 implementadas e verificadas localmente em 17/10 ([evidência](../../evidencias/ingest-runtime-credentials-2026-10-17.json)). Pendentes: teste MQTT com queda do receptor e ensaio EMQX (Task 11), revisão independente e CI do GitHub (Task 12). Sem autorização de deployment real.
+**Estado do documento:** Tasks 2–10 e a parte de restore/CI da Task 11 implementadas e verificadas localmente em 17/10 ([evidência](../../evidencias/ingest-runtime-credentials-2026-10-17.json)). Task 11 concluída (MQTT com queda do receptor, ensaio EMQX e verify-broker) e revisão de código feita. Pendente: CI do GitHub (Task 12). Sem autorização de deployment real.
 
 **Spec:** [2026-10-13-ingest-runtime-credentials-design.md](../specs/2026-10-13-ingest-runtime-credentials-design.md). **Base funcional examinada:** `codex/continue-product-plan`, commit `f83e3c645e13681bf3825b9b5f767a4b348c3304`. O HEAD avançou para `466881cdd3ec5718efdffeffb847d991dff61920` somente com documentação. O fetch de 13/10 encontrou `origin/main=6989248e2e6f5d63a9855939de643f458096abcc`, SQL001–051. `052-ingest-runtime-roles.sql` é nome proposto até a nova conferência do remoto.
 
