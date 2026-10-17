@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import { AccessPanel, AssetsPanel, AuditPanel, AutomationsPanel, BuildingScopeProvider, BuildingScopeFeedback, FeatureProvider, FeatureContent, LoginScreen, PasswordRecoveryScreen, MonitoringPanel, ParkingPanel, ResidentConsumptionSwitch, SessionsPanel, TenancyPanel, TransparencyPanel, WorkOrdersPanel, useAuth, useBuildingScope, useResource } from "@predioon/ui";
+import { AccessPanel, AssetsPanel, AuditPanel, SupportAccessPanel, AutomationsPanel, BuildingScopeProvider, BuildingScopeFeedback, FeatureProvider, FeatureContent, LoginScreen, PasswordRecoveryScreen, MonitoringPanel, ParkingPanel, ResidentConsumptionSwitch, SessionsPanel, TenancyPanel, TransparencyPanel, WorkOrdersPanel, useAuth, useBuildingScope, useResource } from "@predioon/ui";
 import { Shell } from "./layout/Shell.js";
 import { Dashboard } from "./pages/Dashboard.js";
 import { Water } from "./pages/Water.js";
@@ -58,6 +58,7 @@ function BuildingApp() {
         <Route path="/unidades-equipes" element={<TenancyPanel buildingId={buildingId} />} />
         <Route path="/sessoes" element={<SessionsPanel />} />
         <Route path="/auditoria" element={<AuditPanel buildingId={buildingId} />} />
+        <Route path="/acesso-suporte" element={<SupportAccessPanel key={buildingId} buildingId={buildingId} />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Shell></FeatureProvider>

@@ -3,6 +3,8 @@ export const runtimeRoles = {
   DATABASE_URL_IDENTITY: "predioon_identity",
   DATABASE_URL_BROKER_AUTH: "predioon_broker_auth",
   DATABASE_URL_NOTIFICATIONS: "predioon_notifications",
+  DATABASE_URL_INGEST: "predioon_ingest",
+  DATABASE_URL_ACCESS_SERVICE: "predioon_access_service",
 } as const;
 
 export type RuntimeRole = (typeof runtimeRoles)[keyof typeof runtimeRoles];
@@ -12,8 +14,9 @@ function parseConnection(environment: Record<string, string | undefined>, key: s
   try {
     const url = new URL(environment[key] ?? "");
     if (!["postgres:", "postgresql:"].includes(url.protocol) || !url.hostname || !url.username || !url.password || url.pathname.length < 2) throw new Error();
-    for (const parameter of url.searchParams.keys()) {
-      if (["role", "options", "session_authorization"].includes(parameter.trim().toLowerCase())) throw new Error();
+    for (const [parameter, value] of url.searchParams) {
+      if (parameter.includes("\0") || value.includes("\0") ||
+        ["role", "options", "session_authorization", "user", "database", "client_encoding"].includes(parameter.trim().toLowerCase())) throw new Error();
     }
     decodeURIComponent(url.username); decodeURIComponent(url.password); decodeURIComponent(url.pathname);
     return url;

@@ -1,3 +1,4 @@
+import "./env.js";
 import { drizzle } from "drizzle-orm/postgres-js";
 import * as schema from "./schema.js";
 import { createRuntimeSqlClient } from "./runtime-connection.js";

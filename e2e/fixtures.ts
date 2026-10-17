@@ -46,7 +46,11 @@ export const test = base.extend<{ _demoAccounts: void }>({
     try { await use(); }
     finally {
       accounts = undefined;
-      await withFixtureDatabase(sql => sql`delete from users where id in ${sql(ids)}`);
+      // Support grants keep their grantor (FK RESTRICT); grants issued by an alias go with it.
+      await withFixtureDatabase(sql => sql.begin(async tx => {
+        await tx`delete from support_grants where granted_by in ${tx(ids)}`;
+        await tx`delete from users where id in ${tx(ids)}`;
+      }));
     }
   }, { auto: true }],
 });

@@ -1,0 +1,102 @@
+{
+  "date": "2026-10-17",
+  "timezone": "America/Sao_Paulo",
+  "scope": "Release 053: gestão do acesso temporário de suporte (equipe, concessão, revogação, revisão pelo síndico).",
+  "status": "verified-locally-not-deployed",
+  "migration": {
+    "file": "infrastructure/053-support-grants-management.sql",
+    "ledger": 53,
+    "changes": [
+      "support_grants: INSERT e UPDATE de revogação separados para predioon_app; sem DELETE; UPDATE só em revoked_at; prazo <= 7 dias",
+      "auditoria: SUPPORT_STAFF_ADDED/REMOVED (PLATFORM) e SUPPORT_GRANT_CREATED/REVOKED (BUILDING) com prova no banco"
+    ]
+  },
+  "api": "/v1/support-access (staff, grants, mine)",
+  "results": [
+    {
+      "suite": "apps/api/test/support-access.test.ts",
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "packages/ui/test/support-access-state.test.ts",
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "Playwright chromium e2e/support-access.spec.ts",
+      "tests": 1,
+      "pass": 1
+    },
+    {
+      "suite": "Playwright chromium organizations + menu-navigation",
+      "tests": 30,
+      "pass": 30
+    },
+    {
+      "suite": "packages/db test/*.test.ts (job platform)",
+      "tests": 300,
+      "pass": 298,
+      "fail": 0,
+      "skipped": 2
+    },
+    {
+      "suite": "@predioon/api-client",
+      "tests": 115,
+      "pass": 115
+    },
+    {
+      "suite": "@predioon/ui",
+      "tests": 98,
+      "pass": 98
+    },
+    {
+      "suite": "@predioon/mobile",
+      "tests": 219,
+      "pass": 219
+    },
+    {
+      "suite": "@predioon/api integral",
+      "tests": 807,
+      "suites": 64,
+      "pass": 806,
+      "fail": 1,
+      "failure": "password-recovery › keeps two-step verification in place after a reset: 429 do limitador de login; passou 8/8 duas vezes isolado"
+    },
+    {
+      "suite": "@predioon/ingest integral",
+      "tests": 199,
+      "pass": 199
+    },
+    {
+      "suite": "SQL052 com 053 na cadeia (lab)",
+      "tests": 73,
+      "pass": 73
+    },
+    {
+      "suite": "suítes de serviço restritas com 053 (lab)",
+      "tests": 114,
+      "pass": 114,
+      "suites": 11
+    },
+    {
+      "suite": "backup-restore",
+      "tests": 2,
+      "pass": 2,
+      "note": "primeira execução sob carga reprovou na margem de 30 ms da lease (já documentada); repetida sem carga passou"
+    }
+  ],
+  "staticChecks": {
+    "typecheckWorkspaces": 14,
+    "boundaries": "pass"
+  },
+  "limits": [
+    "Firefox/WebKit não executados nesta máquina",
+    "sem CI do GitHub: todo push termina em startup_failure (bloqueio da conta)",
+    "sem implantação"
+  ]
+}

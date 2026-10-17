@@ -1,10 +1,8 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
-import { after, describe, it } from "node:test";
-import { sql } from "drizzle-orm";
+import { describe, it } from "node:test";
 import type { MqttClient } from "mqtt";
-import { sqlClient } from "@predioon/db";
-import { closeAppDb, withUserContext } from "@predioon/db/runtime";
+import { sqlClient } from "./fixtures/observation-admin.js";
 import {
   dispatchAccessOnce,
   handleAccessAck,
@@ -15,10 +13,6 @@ describe(
   "current capabilities at the physical SENT checkpoint",
   { skip: process.env.RUN_ACCESS_DB_TESTS !== "1" },
   () => {
-    after(async () => {
-      await closeAppDb();
-      await sqlClient.end();
-    });
     type Fixture = {
       org: string;
       building: string;
@@ -72,13 +66,12 @@ describe(
           await tx`insert into devices(id,building_id,gateway_id,name,type,status,last_seen_at) values(${device},${building},${gateway},'Controller','GATE_CONTROLLER','ONLINE',clock_timestamp())`;
           await tx`insert into gates(id,building_id,name,kind,gateway_id,device_id,enabled,allow_residents) values(${gate},${building},'Scoped gate','GARAGE',${gateway},${device},true,true)`;
         });
-        const [accepted] = await withUserContext(
-          { userId: user, role: "PLATFORM_ADMIN" },
-          (tx) =>
-            tx.execute(
-              sql`select * from app_request_access(${gate}::uuid,${randomUUID()}::uuid)`,
-            ),
-        );
+        // The human request goes through the API role and its RLS, as withUserContext does.
+        const [accepted] = await sqlClient.begin(async (tx) => {
+          await tx`set local role predioon_app`;
+          await tx`select set_config('app.user_id',${user},true), set_config('app.role','PLATFORM_ADMIN',true)`;
+          return tx`select * from app_request_access(${gate}::uuid,${randomUUID()}::uuid)`;
+        });
         assert.ok(accepted);
         const command = accepted.command as any;
         await run({
@@ -304,7 +297,7 @@ describe(
         for (let i = 0; i < 250; i++) {
           if (
             (
-              await sqlClient`select exists(select 1 from pg_stat_activity a where a.usename='predioon' and a.wait_event_type='Lock' and ${pid}=any(pg_blocking_pids(a.pid)) and a.query like '%app_mark_access_sent%') as waiting`
+              await sqlClient`select exists(select 1 from pg_stat_activity a where a.usename='predioon_access_service' and a.wait_event_type='Lock' and ${pid}=any(pg_blocking_pids(a.pid)) and a.query like '%access_service_mark_sent%') as waiting`
             )[0]!.waiting
           ) {
             waiting = true;

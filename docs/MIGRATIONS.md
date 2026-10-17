@@ -10,7 +10,7 @@ Este documento descreve o executor presente no código. Ele prepara instalaçõe
 | `pnpm db:bootstrap` | Cria o baseline em banco vazio; valida e preserva baseline existente | Administrativa |
 | `pnpm db:infra --check` | Confere baseline, histórico, checksums e pendências, sem aplicar SQL de migration | Administrativa; somente consultas e lock de sessão |
 | `pnpm db:infra` | Aplica somente migrations pendentes e registra cada confirmação | Administrativa |
-| `pnpm db:provision-runtime` | Configura login/senha das quatro roles restritas conforme as cinco URLs do ambiente | Administrativa |
+| `pnpm db:provision-runtime` | Configura login/senha das seis roles restritas conforme as sete URLs do ambiente | Administrativa |
 | `pnpm db:seed` | Cria/complementa demonstração e redefine senhas das contas demonstrativas | Administrativa; ambiente descartável |
 
 Todos os comandos resolvem o banco pelas variáveis de ambiente, com `.env` da raiz como configuração local. `db:infra` não escolhe um banco por nome de container nem ignora uma `DATABASE_URL` já definida no processo. Confira host, porta e nome do banco antes de uma operação administrativa. Não publique a URL completa nem senhas em logs ou chamados.
@@ -146,13 +146,15 @@ Um banco demonstrativo descartável pode ser recriado somente quando seu proprie
 
 | Credencial | Destino atual |
 |---|---|
-| `DATABASE_URL` | Bootstrap, migrations, seed e provisionamento; a ingestão ainda a usa durante a transição |
+| `DATABASE_URL` | Bootstrap, migrations, seed, provisionamento e CLIs administrativos; nenhum runtime a usa |
 | `DATABASE_URL_APP` / `predioon_app` | Operações HTTP de negócio com contexto de usuário e RLS |
 | `DATABASE_URL_IDENTITY` / `predioon_identity` | Autenticação e sessões |
 | `DATABASE_URL_BROKER_AUTH` / `predioon_broker_auth` | Autenticação/autorização do broker |
 | `DATABASE_URL_NOTIFICATIONS` / `predioon_notifications` | Entrega de webhook através de funções restritas; sem tabelas ou credenciais diretas |
+| `DATABASE_URL_INGEST` / `predioon_ingest` | Observação: recibos, telemetria, consumo, heartbeat, estacionamento e alertas+outbox por funções privadas (052); sem segredos, configuração ou comandos |
+| `DATABASE_URL_ACCESS_SERVICE` / `predioon_access_service` | Comandos físicos: expirar, selecionar, marcar SENT, falhas fechadas e ACK, somente por funções privadas (052); sem DML direto |
 
-As cinco URLs de provisionamento devem apontar ao mesmo servidor, porta e banco e usar os papéis esperados. O comando valida owner e as quatro roles antes de conectar, sem compatibilidade opcional que omita notificações após a 038. API e worker não recebem a conexão proprietária em produção. A ingestão ainda usa owner; não considerar todos os runtimes restritos por causa deste worker. A 038 não reenvia alertas históricos. Seus produtores antigos precisam estar interrompidos antes da migration, com filas e sessão MQTT conferidas pelo operador; veja [DEPLOY.md](DEPLOY.md#rollout-do-webhook-durável-038).
+As sete URLs de provisionamento devem apontar ao mesmo servidor, porta e banco e usar os papéis esperados. O comando valida owner e as seis roles antes de conectar, sem compatibilidade opcional que omita uma delas. Nenhum runtime recebe a conexão proprietária em produção; a ingestão lê `services/ingest/.env.runtime` (gerado por `pnpm ingest:env`) ou as duas variáveis injetadas. A 038 não reenvia alertas históricos. Seus produtores antigos precisam estar interrompidos antes da migration, com filas e sessão MQTT conferidas pelo operador; veja [DEPLOY.md](DEPLOY.md#rollout-do-webhook-durável-038).
 
 ## Testes em banco isolado
 
@@ -165,6 +167,8 @@ $env:DATABASE_URL_APP = "postgres://predioon_app:predioon_app@localhost:5439/pre
 $env:DATABASE_URL_IDENTITY = "postgres://predioon_identity:predioon_identity@localhost:5439/predioon"
 $env:DATABASE_URL_BROKER_AUTH = "postgres://predioon_broker_auth:predioon_broker_auth@localhost:5439/predioon"
 $env:DATABASE_URL_NOTIFICATIONS = "postgres://predioon_notifications:predioon_notifications@localhost:5439/predioon"
+$env:DATABASE_URL_INGEST = "postgres://predioon_ingest:predioon_ingest@localhost:5439/predioon"
+$env:DATABASE_URL_ACCESS_SERVICE = "postgres://predioon_access_service:predioon_access_service@localhost:5439/predioon"
 pnpm db:wait
 pnpm db:bootstrap
 pnpm db:infra
@@ -175,12 +179,19 @@ $env:TEST_MIGRATIONS_DATABASE_URL = $env:DATABASE_URL
 $env:RUN_ACCESS_DB_TESTS = "1"
 $env:RUN_RBAC_DB_TESTS = "1"
 pnpm --filter @predioon/db exec node --import tsx --test --test-concurrency=1 test/*.test.ts
+# As suítes integradas da ingestão autenticam com as duas roles; a URL dona serve só à fixture.
+$env:TEST_INGEST_DISPOSABLE_DB = "1"
+$env:TEST_INGEST_DATABASE_URL = $env:DATABASE_URL
+$env:TEST_INGEST_RUNTIME_DATABASE_URL = $env:DATABASE_URL_INGEST
+$env:TEST_ACCESS_RUNTIME_DATABASE_URL = $env:DATABASE_URL_ACCESS_SERVICE
 pnpm test
 ```
 
 As senhas acima são apenas do container descartável local. `TEST_MIGRATIONS_DATABASE_URL` precisa permitir criar/remover bancos temporários. A suíte verifica instalação nova, concorrência, rollback, checksums, recusa de legado, preservação de grants, privilégio do ledger, consulta sem alterações e CLI da release atual. Os testes de aplicação não substituem verificação de equipamento físico.
 
-Os testes SQL038 e do worker usam `TEST_NOTIFICATION_DATABASE_URL`; o dirigido de produtores usa `TEST_NOTIFICATION_PRODUCERS_DATABASE_URL`. Configure também o opt-in `TEST_NOTIFICATION_DISPOSABLE_DB=1`, somente contra cluster próprio em loopback. Eles criam bancos com UUID, mas também alteram atributos/senhas de papéis globais; por isso **não** podem compartilhar o cluster da API, do browser, de outra suíte ou de uma instalação. O job `notifications` em `ci.yml` fornece esse isolamento e executa SQL, worker e o dirigido de produtores sequencialmente. Uma suíte sem essa configuração registra skip; não é aceite de notificações. Nunca ligar essas variáveis apontando para o exemplo da suíte geral acima enquanto ela estiver ativa. O dirigido de produtores não substitui a regressão integral da ingestão.
+Os testes SQL038 e do worker usam `TEST_NOTIFICATION_DATABASE_URL`. Configure também o opt-in `TEST_NOTIFICATION_DISPOSABLE_DB=1`, somente contra cluster próprio em loopback. Eles criam bancos com UUID, mas também alteram atributos/senhas de papéis globais; por isso **não** podem compartilhar o cluster da API, do browser, de outra suíte ou de uma instalação. O job `notifications` em `ci.yml` fornece esse isolamento e executa SQL e worker sequencialmente. Uma suíte sem essa configuração registra skip; não é aceite de notificações. Nunca ligar essas variáveis apontando para o exemplo da suíte geral acima enquanto ela estiver ativa.
+
+As suítes SQL052 (`ingest-runtime*`, `access-service*`) e as suítes de serviço da ingestão também alteram roles globais. Elas exigem `TEST_INGEST_DISPOSABLE_DB=1`, `TEST_INGEST_DATABASE_URL` em loopback e a identidade fixada do cluster (`TEST_INGEST_CONTAINER_ID`, `TEST_INGEST_EXPECTED_CONTAINER_ID`, `TEST_INGEST_EXPECTED_SYSTEM_IDENTIFIER`). O job `ingest-runtime` do CI fornece esse cluster próprio e roda, em sequência, as suítes SQL052 e `scripts/test-ingest-restricted-suites.mjs`, que cria um banco novo por suíte de serviço (inclusive produtores/outbox). Sem as variáveis TEST_INGEST_*, as suítes SQL052 registram skip; não é aceite das credenciais restritas.
 
 O inicializador Windows possui teste isolado com ferramentas simuladas:
 
@@ -297,3 +308,22 @@ A API nova exige a 047 só nas duas rotas de recuperação; entrada, sessões e 
 **O que o morador recebe quando liberado:** quantidade diária de energia e de água dos últimos 7 dias, somando os medidores do mesmo tipo. Nunca tarifa, custo, limite, bomba, referência aprendida, leitura bruta ou identificação de equipamento.
 
 **Efeito ao aplicar:** nenhum condomínio fica liberado. Quem já mostrava o nível da caixa d'água ao morador deixa de mostrar.
+
+## Release 053: acesso temporário de suporte
+
+`053-support-grants-management.sql` não cria tabela nem muda o que uma concessão permite (isso vem da 014/021). Ela:
+
+- separa criação e revogação das concessões de suporte para a role da API: inserir exige `support:grant`, pessoa da equipe de suporte da plataforma, outra pessoa que não o próprio administrador e prazo de **até 7 dias**; alterar só pode preencher `revoked_at` de uma concessão aberta. Sem DELETE: o condomínio mantém o histórico. A conexão dona (fixtures, restauração) não é afetada;
+- classifica `SUPPORT_STAFF_ADDED`/`SUPPORT_STAFF_REMOVED` como eventos da plataforma e acrescenta as provas de auditoria dessas duas ações e de `SUPPORT_GRANT_CREATED`/`SUPPORT_GRANT_REVOKED` (no condomínio), no mesmo formato das releases 042–045: falha fechado se a função tiver outro formato.
+
+**Efeito ao aplicar:** concessões existentes continuam valendo até o prazo. Quem editava ou apagava concessões direto pela API (não havia rota para isso) passa a receber recusa. Rotas novas em `/v1/support-access`; telas em administração → Acesso de suporte e, para o síndico, Administração → Acesso de suporte.
+
+## Release 054: contas e vínculos legados por capacidade
+
+`054-users-memberships-capabilities.sql` troca as políticas de 001 em `users` e `memberships`, que confiavam no papel legado (`app.role` e vínculo `BUILDING_ADMIN` na tabela `memberships`), pelas capacidades vigentes:
+
+- **contas (`users`, role da API):** a própria pessoa; quem tem `rbac:manage` (administração de RBAC da plataforma); ou quem tem `memberships:read` num condomínio em que a pessoa tem vínculo legado. É a regra de 001 com a checagem de síndico legado trocada pela capacidade. Ligações só por RBAC (papel, unidade, equipe) continuam mostrando apenas os campos mínimos do diretório de pessoas, nunca a conta inteira. Criar conta exige `rbac:manage`;
+- **vínculos (`memberships`):** leitura com `memberships:read` (ou o próprio vínculo); criar ou alterar segue a mesma regra de delegação dos papéis (`app_rbac_can_delegate`): ninguém concede um papel cujas capacidades não tem. A API não apaga vínculos (revogação é UPDATE);
+- **auditoria:** `USER_CREATED` e `MEMBERSHIP_UPSERTED/REVOKED` passam a aceitar a capacidade em vez da flag legada, com a mesma técnica da 039.
+
+**Efeito ao aplicar:** síndicos e administradores da plataforma continuam com o mesmo acesso; um síndico conhecido só por papel (sem vínculo legado) passa a listar e vincular as pessoas do condomínio em `/users`; um administrador da plataforma só por papel, sem a flag, passa a listar e criar contas. Um papel personalizado com `memberships:manage`, mas sem as capacidades do papel concedido, é recusado. As rotas HTTP `/users` deixaram de usar o papel legado (`requireRole`/ordem dos papéis); o único guard legado restante é o do suporte remoto, cujo banco também confere a conta ativa com a flag da plataforma.

@@ -28,6 +28,7 @@ function global:pnpm {
       $state.DatabaseReady = $true
     }
     "db:infra" { $state.Pending = $false }
+    "ingest:env" { "# fixture; no credentials" | Set-Content -LiteralPath $state.RuntimeEnvironment }
     "db:infra --check" {
       if (-not $state.DatabaseReady) { throw "Historico consultado antes do banco pronto" }
       if ($state.Pending) { $global:LASTEXITCODE = 2 }
@@ -55,9 +56,13 @@ function Run-StartupCase([string]$Name, [hashtable]$Switches, [hashtable]$State 
   $global:PredioOnStartupTestState = @{
     Calls = New-Object 'System.Collections.Generic.List[string]'
     InfrastructureStarted = $false; DatabaseReady = $false; Checked = $false
-    Pending = $false; Legacy = $false; InfraFailure = $false
+    Pending = $false; Legacy = $false; InfraFailure = $false; RuntimeEnvironmentPresent = $true
+    RuntimeEnvironment = Join-Path $fixtureRoot "services/ingest/.env.runtime"
   }
   foreach ($key in $State.Keys) { $global:PredioOnStartupTestState[$key] = $State[$key] }
+  $runtimeEnvironment = $global:PredioOnStartupTestState.RuntimeEnvironment
+  if ($global:PredioOnStartupTestState.RuntimeEnvironmentPresent) { "# fixture; no credentials" | Set-Content -LiteralPath $runtimeEnvironment }
+  elseif (Test-Path -LiteralPath $runtimeEnvironment) { Remove-Item -LiteralPath $runtimeEnvironment }
   $failed = $false
   try { & $fixtureScript @Switches | Out-Null }
   catch { $failed = $true }
@@ -71,6 +76,7 @@ function Run-StartupCase([string]$Name, [hashtable]$Switches, [hashtable]$State 
 try {
   $null = New-Item -ItemType Directory -Path (Join-Path $fixtureRoot "scripts") -Force
   $null = New-Item -ItemType Directory -Path (Join-Path $fixtureRoot "node_modules/.pnpm") -Force
+  $null = New-Item -ItemType Directory -Path (Join-Path $fixtureRoot "services/ingest") -Force
   Copy-Item -LiteralPath $sourceScript -Destination $fixtureScript
   '{"packageManager":"pnpm@10.17.1"}' | Set-Content -LiteralPath (Join-Path $fixtureRoot "package.json")
   "# fixture; no credentials" | Set-Content -LiteralPath (Join-Path $fixtureRoot ".env")
@@ -86,8 +92,9 @@ try {
     $calls = Run-StartupCase "bloqueia $blocked antes da aplicacao" @{} @{ $blocked = $true } $true
     Assert-StartupTest (-not $calls.Contains("pnpm dev") -and -not $calls.Contains("pnpm db:infra")) "historico bloqueado nao pode iniciar nem migrar automaticamente"
   }
-  $calls = Run-StartupCase "setup aplica release e credenciais sem seed implicito" @{ Setup = $true } @{ Pending = $true }
+  $calls = Run-StartupCase "setup aplica release e credenciais sem seed implicito" @{ Setup = $true } @{ Pending = $true; RuntimeEnvironmentPresent = $false }
   Assert-StartupTest ($calls.Contains("pnpm db:bootstrap") -and $calls.Contains("pnpm db:infra") -and $calls.Contains("pnpm db:provision-runtime")) "setup incompleto"
+  Assert-StartupTest ($calls.IndexOf("pnpm db:provision-runtime") -lt $calls.IndexOf("pnpm ingest:env") -and $calls.IndexOf("pnpm ingest:env") -lt $calls.IndexOf("pnpm dev")) "ambiente da ingestao deve ser gerado depois do provisionamento e antes da aplicacao"
   Assert-StartupTest (-not $calls.Contains("pnpm db:seed")) "setup nao deve semear sem pedido"
   Assert-StartupTest ($calls.IndexOf("pnpm db:infra") -lt $calls.IndexOf("pnpm db:infra --check")) "check deve confirmar release aplicada"
 
@@ -97,7 +104,9 @@ try {
   Assert-StartupTest ($calls.Count -eq 0) "flag invalida nao deve executar ferramentas"
   $calls = Run-StartupCase "falha de infraestrutura interrompe a retomada" @{} @{ InfraFailure = $true } $true
   Assert-StartupTest (-not $calls.Contains("pnpm db:wait") -and -not $calls.Contains("pnpm dev")) "falha Docker nao deve continuar"
-  Write-Host "7 cenarios passaram; nenhum servico real executado."
+  $calls = Run-StartupCase "retomada sem ambiente restrito da ingestao nao inicia a aplicacao" @{} @{ RuntimeEnvironmentPresent = $false } $true
+  Assert-StartupTest (-not $calls.Contains("pnpm dev") -and -not $calls.Contains("pnpm ingest:env")) "retomada nao deve gerar ambiente nem iniciar sem ele"
+  Write-Host "8 cenarios passaram; nenhum servico real executado."
   # Expected command failures above are asserted. Do not leave the simulated
   # final exit code for a caller such as GitHub Actions to treat as test failure.
   $global:LASTEXITCODE = 0

@@ -110,7 +110,7 @@ export function OrganizationAccessFeedback() {
 }
 
 /** Only these explicit routes inherit the old platform entry requirement. */
-const LEGACY_ROUTES = new Set(["/", "/predios", "/gateways", "/dispositivos", "/alertas", "/usuarios", "/unidades-equipes", "/funcionalidades", "/auditoria", "/operacao", "/suporte-remoto"]);
+const LEGACY_ROUTES = new Set(["/", "/predios", "/gateways", "/dispositivos", "/alertas", "/usuarios", "/unidades-equipes", "/funcionalidades", "/auditoria", "/operacao", "/suporte-remoto", "/acesso-suporte"]);
 export function organizationRouteAllowed(path: string, legacy: boolean, canRead: boolean): boolean {
   const pathname = path.split(/[?#]/)[0]!.replace(/\/+$/, "") || "/";
   return pathname === "/sessoes" || (pathname === "/clientes" ? canRead : legacy && LEGACY_ROUTES.has(pathname));

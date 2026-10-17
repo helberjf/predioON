@@ -123,7 +123,7 @@ Quem esqueceu a senha pede um link pelo próprio e-mail e cria uma nova. Ningué
 
 **Fluxo**
 
-1. Na entrada de qualquer portal, **Esqueci minha senha** leva a `/redefinir-senha`, que pede o e-mail e chama `POST /auth/password/forgot`.
+1. Na entrada de qualquer portal, **Esqueci minha senha** leva a `/redefinir-senha`, que pede o e-mail e chama `POST /auth/password/forgot`. Nos apps Morador e Operação, o mesmo botão abre um formulário compartilhado e chama essa rota pública da mesma API.
 2. A resposta é sempre **204**, exista a conta ou não, e sai antes de a conta ser consultada e de o provedor ser chamado. Nem o conteúdo nem o tempo da resposta revelam se o endereço tem cadastro.
 3. Para conta ativa, a API grava o SHA-256 de um segredo de 32 bytes e envia o link `<portal>/redefinir-senha#<segredo>`. O segredo vai no fragmento da URL, que o navegador não manda a servidores nem a proxies, e a tela o remove da barra de endereço ao abrir.
 4. A tela pede a nova senha (mesma política da troca: 15 caracteres ou mais) e chama `POST /auth/password/reset`.
@@ -155,11 +155,21 @@ O envio usa a API HTTP do Resend, com os mesmos nomes de variável do projeto Me
 
 Em desenvolvimento, sem a chave, a API escreve o link de recuperação no próprio log para o fluxo poder ser exercitado. Em produção isso nunca acontece.
 
+**Recuperação nos apps Morador e Operação**
+
+O formulário valida o e-mail, impede envio duplicado e apresenta uma confirmação genérica. O transporte público usa a origem de API já validada, o prazo de 20 segundos e o cancelamento existentes, sem ler tokens, enviar Bearer/Cookie, renovar sessão ou repetir o pedido. Somente 204 confirma a solicitação; mensagens de erro são fixas e não exibem o corpo recebido.
+
+Abrir a recuperação descarta senha e código MFA digitados na entrada. Voltar, suspender, desmontar ou substituir o contexto cancela o envio e impede que uma resposta antiga atualize o formulário. A pessoa abre o link recebido no portal, cria a nova senha e volta ao aplicativo para entrar. Não há deep link nem campo de nova senha nesse formulário nativo.
+
+Como o app não fornece uma origem de portal, o servidor escolhe o destino confiável em `PASSWORD_RESET_URL`. Configurar esse endereço junto com o Resend é necessário para a entrega real; 204 não comprova que um e-mail foi enviado.
+
+Provas do recorte: cliente HTTP **75/75**, mobile **127/127**, tipos dos quatro consumidores e fronteiras, com repetição própria da raiz; componentes renderizados no host instrumentado para os dois produtos em Android/iOS e quatro bundles JavaScript de release. [Evidência sanitizada](evidencias/native-password-recovery-2026-10-07.json). Isso não homologa aparelho, Fabric, XCTest/Keychain ou entrega real de e-mail.
+
 **Para ligar em produção:** verificar o domínio no Resend, preencher as quatro variáveis em `infrastructure/.env.prod`, aplicar a migration 047 e reiniciar a API. Depois, pedir um link para uma conta real e conferir a entrega.
 
 **Limites conhecidos**
 
 - A entrega real pelo Resend não foi exercitada: os testes substituem o transporte e conferem a mensagem produzida.
 - Falha do provedor não é reenviada nem avisada a quem pediu (a resposta já saiu); fica no log da API. A pessoa pede de novo após 2 minutos.
-- Os apps nativos não têm o botão; a recuperação é feita pelo portal, e a nova senha vale nos apps.
+- A solicitação existe nos dois apps; a redefinição pelo link continua no portal. O novo fluxo ainda precisa de observação em aparelhos Android/iOS.
 - Não há webhook de devolução/reclamação do Resend.

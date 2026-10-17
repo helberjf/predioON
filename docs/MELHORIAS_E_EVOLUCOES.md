@@ -236,21 +236,21 @@ Identidade autenticada 37307304828 e os dois jobs de inicialização 37307304855
 
 ### 06/10: relógio do estacionamento e edição de cadastros
 
-- **Estacionamento sensível a diferença de relógio:** a disponibilidade vira UNKNOWN quando o relógio do banco está poucos milissegundos à frente do processo da API, pois `observedAt` vem do PostgreSQL e a comparação usa o relógio da API. Reproduzido como falha intermitente da suíte no Docker Desktop (−30 a +34 ms). Avaliar a leitura com o relógio do banco na mesma transação, preservando a recusa de leituras de sensor realmente futuras.
+- **Relógio do estacionamento — corrigido e verificado em12/10:** as projeções HTTP usam clock_timestamp do PostgreSQL na transação, após leituras/locks/escrita/auditoria; datas realmente futuras continuam UNKNOWN. Sete novos casos cobrem API60s atrás/à frente e espera real. Fonte atual integrada: dirigido54/54, API804/804 e ingestão129/129; catálogo/credenciais/ledger51 preservados. A fixture herdada de ativos também passa a restaurar o timestamp original do grant que removia temporariamente. [Evidência](evidencias/parking-database-clock-2026-10-12.json). O achado original foi a diferença de −30 a +34ms no Docker Desktop.
 - **Cadastros 2B.4:** edição, desativação e reativação de bloco/unidade/equipe entregues em branch local com a 041. O código de bloco/unidade continua reservado por registros inativos; avaliar liberar o código ou permitir renomear o inativo.
 - **Ordem das suítes de banco:** a restauração no mesmo cluster falhou quando rodada após a suíte SQL de notificações no mesmo cluster físico; investigar se a fixture depende de não haver outra entrega reivindicável.
 
 ### 06/10: convites e ordens de serviço
 
-- **Resolvido em 07/10 (047):** o provedor escolhido foi o Resend e a recuperação foi entregue. Faltam o botão nos apps nativos, o webhook de devolução do Resend e o ensaio de entrega real. Registro original: **Recuperação de senha depende de um canal de entrega.** Sem e-mail, a única recuperação possível seria um link gerado por terceiros (síndico ou plataforma), o que daria a quem gera o link o poder de assumir a conta. Decidir o provedor de e-mail antes de implementar; até lá a troca de senha exige a senha atual.
+- **Resolvido em 07/10 (047):** o provedor escolhido foi o Resend e a recuperação foi entregue. A solicitação foi acrescentada aos dois apps na continuação de 07/10. Faltam o webhook de devolução do Resend e o ensaio de entrega real. Registro original: **Recuperação de senha depende de um canal de entrega.** Sem e-mail, a única recuperação possível seria um link gerado por terceiros (síndico ou plataforma), o que daria a quem gera o link o poder de assumir a conta. Decidir o provedor de e-mail antes de implementar; até lá a troca de senha exige a senha atual.
 - **Convites nos apps nativos:** o aceite existe só no portal web do morador.
-- **Ordens de serviço:** faltam abertura/atribuição no app Operação, anexos e checklists, vínculo com chamado na tela, paginação além de 100, notificação ao responsável e abertura automática a partir de alerta. Avaliar uma chave de funcionalidade por condomínio.
+- **Ordens de serviço:** abertura/atribuição no app Operação verificada em 13/10 (código/host/bundles; aparelho pendente). Permanecem anexos e checklists, vínculo com chamado na tela, paginação além de 100, notificação ao responsável e abertura automática a partir de alerta. Avaliar uma chave de funcionalidade por condomínio.
 - **Cliente HTTP web:** só trata 204 como resposta vazia; um 201 sem corpo quebra a leitura. A rota de anotações passou a devolver o registro criado; convém o cliente aceitar corpo vazio em qualquer 2xx.
 
 ### 07/10: recuperação de senha e e-mail
 
 - **Ativar o Resend em produção:** verificar o domínio, preencher `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `PASSWORD_RESET_URL` e `RESIDENT_PORTAL_URL`, e ensaiar uma entrega real. Sem isso a recuperação existe mas não entrega nada.
-- **Botão "Esqueci minha senha" nos apps nativos:** hoje só nos portais.
+- **Botão "Esqueci minha senha" nos apps nativos — código e provas de host entregues em 07/10:** formulário compartilhado Morador/Operação, transporte público sem sessão, cancelamento e confirmação genérica. Cliente 75/75, mobile 127/127 e quatro bundles JS Android/iOS; falta observação em aparelho e entrega real. [Evidência](evidencias/native-password-recovery-2026-10-07.json).
 - **Webhook do Resend** para devoluções e reclamações, e reenvio de falhas do provedor; hoje a falha fica só no log.
 - **Outros e-mails pelo mesmo módulo:** aviso de senha alterada, de MFA ativada/desativada e de novo acesso.
 - **Push (APNs/FCM) saiu do escopo** por decisão do proprietário; os avisos seguem pelos canais já existentes.
@@ -271,3 +271,19 @@ Identidade autenticada 37307304828 e os dois jobs de inicialização 37307304855
 - **Tela de Acessos do morador** no formato do mockup (dois botões grandes e últimos acessos) e **abertura de ocorrência por categoria** em grade de ícones; hoje usam os painéis compartilhados com a operação.
 - **Unificar "Chamados" e "Ocorrências":** a navegação diz Ocorrências e o painel diz Chamados.
 - **Minhas sessões:** mostrar "Chrome no Windows" em vez do identificador completo do navegador.
+
+### 12/10: Consumo nativo sob liberação do síndico
+
+- **Tela de Consumo do app Morador — código e provas de host/bundle verificados:** somente projeção diária 051 liberada, com menu e conteúdo na mesma leitura. Mobile 157/157, cliente 75/75, UI 93/93, quatro tipos e quatro bundles JS; duas revisões independentes aprovadas. [Evidência](evidencias/native-resident-consumption-2026-10-12.json). Falta observação em aparelho; empacotamento JS não aceita renderer nativo.
+- **Retirada remota de acesso:** observada numa nova leitura; o polling de 15 s é agendado após o término do pedido. Não há retirada instantânea ou prazo máximo fixo.
+- **Relógio do estacionamento:** publicado em `40fa2c3`, com SHA remoto confirmado; a fonte integrada manteve catálogo/ledger/credenciais e zero fixtures pendentes.
+
+### 13/10: distribuição nativa de ordens
+
+- **Abrir e atribuir no app Operação — código e provas de host/bundle verificados:** capacidade atual + lista autorizada, diretórios independentes, versões, geração de callbacks e confirmação incerta sem replay. A integral própria final passou mobile 219/219, cliente 75/75 e UI 93/93; quatro tipos/bundles e duas revisões aprovadas. [Evidência](evidencias/native-work-order-distribution-2026-10-13.json). Homologação em aparelho permanece pendente.
+- **Buscas e botões antigos:** dois achados reproduzidos nas revisões foram corrigidos pela geração da ficha e dos handlers externos; os resultados 209/212 são anteriores, e o 219 final foi repetido pela raiz.
+- **Menor privilégio da ingestão:** estruturar conexões por carga sem owner no processo produtivo, incluindo o dispatcher/ACK; o adiamento da fila 048 não entrega essa separação. Nenhuma role/migration desse recorte foi aplicada aqui.
+
+### 13/10: preparo para credenciais por carga
+
+O [plano de ingestão/acesso](superpowers/plans/2026-10-13-ingest-runtime-credentials.md), publicado em a9c088a, separa permissões de observação e comando no mesmo processo. A primeira tarefa elimina dotenv do construtor compartilhado e explicita os loaders existentes; 19/22 casos em Windows e Linux (3 skips SQL por execução), quatro tipos, fronteiras e duas revisões foram verificados. [Evidência](evidencias/runtime-environment-prepare-2026-10-13.json). A retirada de owner da ingestão continua pendente: exige ambas as roles, ACL/RLS, produtores, dispatcher/ACK, provisionamento e restore. A 052 permanece proposta, sem aplicação.

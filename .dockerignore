@@ -21,5 +21,7 @@ node_modules
 .env
 .env.local
 infrastructure/.env.prod
+# Gerado por `pnpm ingest:env`; em produção as duas URLs vêm do Compose, nunca da imagem.
+services/ingest/.env.runtime
 *.zip
 *.log

@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { db, gateways } from "@predioon/db";
+import { ingestDb, gateways } from "@predioon/db/ingest";
 import { GatewayStatusSchema, parseGatewayStatusTopic } from "@predioon/shared";
 import { publishRealtime } from "../realtime.js";
 
@@ -26,7 +26,7 @@ export async function handleGatewayStatus(topic: string, raw: Buffer): Promise<v
     return;
   }
 
-  const updated = await db
+  const updated = await ingestDb
     .update(gateways)
     .set({
       status: data.state,

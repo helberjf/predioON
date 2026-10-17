@@ -8,7 +8,9 @@
     "./runtime": "./src/runtime.ts",
     "./identity": "./src/identity.ts",
     "./broker-auth": "./src/broker-auth.ts",
-    "./notifications": "./src/notifications.ts"
+    "./notifications": "./src/notifications.ts",
+    "./ingest": "./src/ingest.ts",
+    "./access-service": "./src/access-service.ts"
   },
   "scripts": {
     "db:bootstrap": "tsx src/bootstrap.ts",

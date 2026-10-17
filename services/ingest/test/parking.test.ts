@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
 import { randomUUID } from "node:crypto";
-import { db, sqlClient, parkingLots } from "@predioon/db";
+import { db, sqlClient, parkingLots } from "./fixtures/observation-admin.js";
 import { eq } from "drizzle-orm";
 import { handleTelemetry } from "../src/pipeline/telemetry.js";
 

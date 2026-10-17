@@ -1,0 +1,230 @@
+{
+  "schemaVersion": 1,
+  "increment": "native-resident-consumption",
+  "date": "2026-10-12",
+  "baselineCommit": "40fa2c3d3076e8aac9649d3cbaee86718691092a",
+  "integratedMainCommit": "6989248",
+  "migrationBaseline": 51,
+  "sourceNote": "Eight frozen implementation/test files were tested, reviewed and bundled without token changes. Repository hashes apply the existing Git LF normalization.",
+  "sources": [
+    {
+      "path": "packages/mobile/src/app.tsx",
+      "testedWorkingFileSha256": "4f4dff5d39c787b1877c0d15e6b1b12086db6009d755d6354a845f19b81c70bd",
+      "repositoryLfSha256": "653695dfac226febd05fe2aebc3aa14327e9ec54d2589aec19e061c9ca246e0d"
+    },
+    {
+      "path": "packages/mobile/src/scope.ts",
+      "testedWorkingFileSha256": "ca47fa024f0a51b67e7cdafab747fefee54d569dd19e5f07d4ee5f793d595226",
+      "repositoryLfSha256": "ca47fa024f0a51b67e7cdafab747fefee54d569dd19e5f07d4ee5f793d595226"
+    },
+    {
+      "path": "packages/mobile/src/resident-consumption.ts",
+      "testedWorkingFileSha256": "f0632b2754baa2865cb8bd046a398d828500177b1cf34c8fc9ee423b3d12e340",
+      "repositoryLfSha256": "f0632b2754baa2865cb8bd046a398d828500177b1cf34c8fc9ee423b3d12e340"
+    },
+    {
+      "path": "packages/mobile/src/resident-consumption-screen.tsx",
+      "testedWorkingFileSha256": "1fbbca18232aa4e1eb1b0dd443197891915c19e5a303aa0860b28b4f5e0489d3",
+      "repositoryLfSha256": "1fbbca18232aa4e1eb1b0dd443197891915c19e5a303aa0860b28b4f5e0489d3"
+    },
+    {
+      "path": "packages/mobile/test/scope.test.ts",
+      "testedWorkingFileSha256": "a7d74d4da813aa59c2311905518d2f5213da93359808918e9742d9af8330780b",
+      "repositoryLfSha256": "5b477ba0188eb2e2600793af256dfd7154286541eacd9ac4aa88d450aa28970e"
+    },
+    {
+      "path": "packages/mobile/test/resident-consumption.test.ts",
+      "testedWorkingFileSha256": "3ec7aabd27dc76ae7d7d036ad2801ebd8e6276322a1d2a214d20db53103075bc",
+      "repositoryLfSha256": "3ec7aabd27dc76ae7d7d036ad2801ebd8e6276322a1d2a214d20db53103075bc"
+    },
+    {
+      "path": "packages/mobile/test/resident-consumption-screen.test.ts",
+      "testedWorkingFileSha256": "35e90d394b6060512da3fd091022426a0f59a73963e86a943bcf8d3b497e9e57",
+      "repositoryLfSha256": "35e90d394b6060512da3fd091022426a0f59a73963e86a943bcf8d3b497e9e57"
+    },
+    {
+      "path": "packages/mobile/test/fixtures/consumption-screen-host.mjs",
+      "testedWorkingFileSha256": "385de0d38e70edd03ed40a7e5569a3aa195de4757e19c2dc1f293be70c82e2b6",
+      "repositoryLfSha256": "385de0d38e70edd03ed40a7e5569a3aa195de4757e19c2dc1f293be70c82e2b6"
+    }
+  ],
+  "actualRed": {
+    "readerAndScope": {
+      "tests": 21,
+      "suites": 0,
+      "pass": 14,
+      "fail": 7,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 192.7053,
+      "logSha256": "cc1862389ec82276f33340c63194ef119f6f46aae818c6770eac422758259cc2"
+    },
+    "resourceKey": {
+      "tests": 7,
+      "suites": 0,
+      "pass": 6,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 156.0113,
+      "logSha256": "8fc4399349c412d1a6afbec251e9518ed8b9a5b16d9cee68c09ec7b458d43545"
+    },
+    "renderedScreen": {
+      "tests": 12,
+      "suites": 0,
+      "pass": 1,
+      "fail": 11,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 766.8814,
+      "logSha256": "beffc79490d8fd6500b67104699a1e0000f3e6b33eee0e9bf319a0def537018f"
+    },
+    "responseConsistency": {
+      "tests": 8,
+      "suites": 0,
+      "pass": 7,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 164.5344,
+      "logSha256": "38f68f31b0f3539dbb0a36aeba08b057b96ceb9b9a92ebe854426e8409fa23f7"
+    },
+    "note": "Separate actual assertion failures; setup/import failures are excluded."
+  },
+  "implementer": {
+    "focused": {
+      "tests": 44,
+      "suites": 0,
+      "pass": 44,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 1027.8838,
+      "logSha256": "632b4ee596213ba85ac1ab97c002c5ab2b1b4c4050a7bcb70cb635243ca46293"
+    }
+  },
+  "rootVerification": {
+    "mobile": {
+      "tests": 157,
+      "suites": 0,
+      "pass": 157,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 2883.255,
+      "logSha256": "a3094a933ea33bf9a28b526d8d03d2ab02435853747293c5a830a5e7063cb5ce"
+    },
+    "apiClient": {
+      "tests": 75,
+      "suites": 0,
+      "pass": 75,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 2113.6795,
+      "logSha256": "e6c960033dbe42e8a694743f92ee32d7ec3fca6002574e3133bcbb665a6ab1b1"
+    },
+    "ui": {
+      "tests": 93,
+      "suites": 1,
+      "pass": 93,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 867.9857,
+      "logSha256": "e6c960033dbe42e8a694743f92ee32d7ec3fca6002574e3133bcbb665a6ab1b1"
+    },
+    "typecheckPackages": [
+      "api-client",
+      "mobile",
+      "resident-mobile",
+      "operations-mobile"
+    ],
+    "typecheckLogSha256": "c02db8da3c44e58f5639bf8002ed4bed0621a77562caa575a1796499fe5a1bc9",
+    "boundariesPassed": true,
+    "boundariesLogSha256": "cd7a04dd5f847bf1b5ad22bb15bfdfc36fbc7fb8814685b02b4008145766ded5",
+    "diffCheck": "Checked again on the explicit staged source/document set before commit"
+  },
+  "independentReviews": {
+    "specification": {
+      "result": "PASS",
+      "readOnly": true,
+      "focusedTests": 44,
+      "exitCode": 0,
+      "frozenHashesMatched": 8
+    },
+    "quality": {
+      "result": "APPROVED",
+      "readOnly": true,
+      "focusedTests": 44,
+      "exitCode": 0,
+      "frozenHashesMatched": 8
+    }
+  },
+  "bundles": [
+    {
+      "product": "resident",
+      "platform": "android",
+      "development": false,
+      "maxWorkers": 2,
+      "bytes": 996802,
+      "sha256": "b7d298ec55fc4b34cbb6b5f708fbf04a1cb745b26b8edd5d0a12493ba5ee3e3c",
+      "logSha256": "9b513ad9577f13545a2a75f43a2351d85d3705adc3a5ea512a5e05cff31a50a7"
+    },
+    {
+      "product": "resident",
+      "platform": "ios",
+      "development": false,
+      "maxWorkers": 2,
+      "bytes": 990844,
+      "sha256": "a9786b3c28548a90e0869ef08c0fb0a1d2767745112b95018e8a582faeb9e43f",
+      "logSha256": "78252194fe74d3443b751a74e4c8f63c66a3b05c02f4c4ff775115afba49736b"
+    },
+    {
+      "product": "operations",
+      "platform": "android",
+      "development": false,
+      "maxWorkers": 2,
+      "bytes": 996812,
+      "sha256": "99298e2c9d1a5567a7a06dcdb6666b7af919cf4dbfe75af0f66c47bea98bd02e",
+      "logSha256": "f92626d2eec5ed6cd07062cec22fba5bd8fce2721ce034087e0a19d830be353f"
+    },
+    {
+      "product": "operations",
+      "platform": "ios",
+      "development": false,
+      "maxWorkers": 2,
+      "bytes": 990854,
+      "sha256": "f74140588dd799f04d349325e51d731d774265f86b291f58ce67ee3f0ab42edc",
+      "logSha256": "a5c4eae32b225a4ff76433354470225ea2d1fb0654f08964fc3126589df616f9"
+    }
+  ],
+  "behavior": [
+    "Resident-only destination requires current monitoring:read-published, applicable feature and valid authorized projection for the selected building",
+    "One shared GET per automatic read cycle for navigation and content; no HTTP revisions or second screen probe",
+    "Only typed 403 means denial; other failures remain sanitized errors",
+    "Daily condominium quantities over seven days; null/zero/gaps/incomplete kept distinct; exact units and today/history consistency validated",
+    "Synchronous scope/context invalidation, AppState cleanup, StrictMode and late responses covered in instrumented Android/iOS React hosts",
+    "Operations capability/menu/request behavior preserved by tests; shared modules can still exist in its bundle"
+  ],
+  "polling": "Next automatic read is scheduled 15 seconds after the preceding request completes. Remote revocation is observed on a new read; no fixed maximum latency or push is promised.",
+  "knownBundleWarnings": [
+    "Existing React Native private featureflags subpath falls back to file-based resolution",
+    "NO_COLOR and FORCE_COLOR environment warning"
+  ],
+  "limits": [
+    "No native device/emulator execution, APK/Apple build, Fabric/Hermes or XCTest/Keychain acceptance in this increment",
+    "No new dependency, backend, migration, MQTT request, physical command or production configuration",
+    "No cost/tariff/pump/equipment/reservoir/individual apartment data exposed",
+    "No new browser matrix, live CI or production acceptance claimed",
+    "Release JS bundles prove packaging, not native rendering or physical device acceptance"
+  ]
+}

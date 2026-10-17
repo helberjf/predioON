@@ -2,24 +2,15 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { spawn } from "node:child_process";
 import { once } from "node:events";
-import { createRequire } from "node:module";
 import { setTimeout as delay } from "node:timers/promises";
 import { after, afterEach, before, beforeEach, describe, it, mock } from "node:test";
 import { fileURLToPath } from "node:url";
 import { PgDialect } from "drizzle-orm/pg-core";
 import { telemetryTopic } from "@predioon/shared";
-import { baseline } from "../../../packages/db/src/baseline-schema.js";
-import { applyInfrastructure, loadInfrastructureMigrations } from "../../../packages/db/src/infrastructure-migrations.js";
-import type { sqlClient } from "@predioon/db";
+import { adminSession, sqlClient as owner } from "./fixtures/observation-admin.js";
 
-type Sql = typeof sqlClient;
-const postgres = createRequire(new URL("../../../packages/db/package.json", import.meta.url))("postgres") as (url: string, options: object) => Sql;
-const adminUrl = process.env.TEST_NOTIFICATION_PRODUCERS_DATABASE_URL;
-
-describe("SQL038 source producers are atomic, durable and transport-free", { skip: !adminUrl, concurrency: false }, () => {
-  const name = `notification_producers_${randomUUID().replaceAll("-", "")}`;
-  let admin: Sql, owner: Sql, databaseUrl: string;
-  let database: typeof import("@predioon/db");
+describe("SQL038 source producers are atomic, durable and transport-free", { concurrency: false }, () => {
+  let database: typeof import("@predioon/db/ingest");
   let pipeline: typeof import("../src/pipeline/telemetry.js");
   let offline: typeof import("../src/offline-sweeper.js");
   let configuration: typeof import("../src/config.js");
@@ -41,9 +32,11 @@ describe("SQL038 source producers are atomic, durable and transport-free", { ski
       (select count(*)::int from outbox_events where building_id=${building}) as events,
       (select count(*)::int from event_deliveries d join outbox_events e on e.id=d.event_id where e.building_id=${building}) as deliveries`)[0]!;
   }
-  async function trigger(table: string, operation: "insert" | "update", body: string, test: () => Promise<void>, timing: "before" | "after" = "before") {
+  // A trigger runs as the role that fired it. `privileged` models a late writer
+  // with more authority than the restricted service, e.g. another subsystem.
+  async function trigger(table: string, operation: "insert" | "update", body: string, test: () => Promise<void>, timing: "before" | "after" = "before", privileged = false) {
     assert.ok(["alerts", "outbox_events", "devices", "gateways", "telemetry", "ingest_events", "daily_usage", "usage_cursors"].includes(table));
-    await owner.unsafe(`create function notification_producer_fault() returns trigger language plpgsql as $$ begin ${body} end $$`);
+    await owner.unsafe(`create function notification_producer_fault() returns trigger language plpgsql${privileged ? " security definer set search_path=public,pg_temp" : ""} as $$ begin ${body} end $$`);
     await owner.unsafe(`create trigger zz_notification_fault ${timing} ${operation} on ${table} for each row execute function notification_producer_fault()`);
     try { await test(); } finally {
       await owner.unsafe(`drop trigger zz_notification_fault on ${table}`);
@@ -61,8 +54,8 @@ describe("SQL038 source producers are atomic, durable and transport-free", { ski
   const beforeCommitFailure = (error: unknown): boolean => error instanceof Error
     && (error.message === "fixture crash before commit" || beforeCommitFailure(error.cause));
   function failRealtime() {
-    const original = database.db.transaction.bind(database.db);
-    mock.method(database.db, "transaction", ((callback: any) => original(async tx => {
+    const original = database.ingestDb.transaction.bind(database.ingestDb);
+    mock.method(database.ingestDb, "transaction", ((callback: any) => original(async tx => {
       const execute = tx.execute.bind(tx);
       mock.method(tx, "execute", ((query: any) => {
         if (new PgDialect().sqlToQuery(query).sql.includes("pg_notify")) throw new Error("fixture realtime outage");
@@ -71,24 +64,19 @@ describe("SQL038 source producers are atomic, durable and transport-free", { ski
       return callback(tx);
     })) as any);
   }
+  // Sweeper is intentionally global, so each test switches every other source off.
+  // The database may be shared with later suites: restore their exact flags.
+  let priorSources: Array<{ kind: string; id: string; enabled: boolean }> = [];
   before(async () => {
-    assert.equal(process.env.TEST_NOTIFICATION_DISPOSABLE_DB, "1", "Use an explicitly disposable, isolated PostgreSQL cluster");
-    assert.match(new URL(adminUrl!).hostname, /^(localhost|127\.0\.0\.1)$/);
-    admin = postgres(adminUrl!, { max: 1, onnotice: () => {} });
-    await admin.unsafe(`create database "${name}"`);
-    const url = new URL(adminUrl!); url.pathname = `/${name}`; databaseUrl = url.toString();
-    owner = postgres(databaseUrl, { max: 1, onnotice: () => {} });
-    await owner.unsafe(baseline); await applyInfrastructure(owner, await loadInfrastructureMigrations());
-    process.env.DATABASE_URL = databaseUrl;
-    database = await import("@predioon/db");
+    priorSources = [...await owner`select 'gateways' as kind,id,enabled from gateways union all select 'devices',id,enabled from devices`];
+    database = await import("@predioon/db/ingest");
     pipeline = await import("../src/pipeline/telemetry.js");
     offline = await import("../src/offline-sweeper.js");
     configuration = await import("../src/config.js");
     configuration.config.ALERT_WEBHOOK_URL = "https://must-not-call.example.invalid";
   });
   beforeEach(async () => {
-    // Sweeper is intentionally global. Keep previous test fixtures inactive so
-    // each observation covers precisely the current source, on this UUID DB.
+    // Keep previous sources inactive so each observation covers precisely the current one.
     await owner`update gateways set enabled=false`; await owner`update devices set enabled=false`;
     const suffix = randomUUID(); building = `npb_${suffix.slice(0, 8)}`; device = `npd_${suffix.slice(0, 8)}`; gateway = `npg_${suffix.slice(0, 8)}`;
     await owner`insert into organizations(id,name,slug) values(${suffix},'Fixture',${suffix})`;
@@ -101,10 +89,9 @@ describe("SQL038 source producers are atomic, durable and transport-free", { ski
   });
   afterEach(() => { mock.restoreAll(); });
   after(async () => {
-    if (database) await database.sqlClient.end({ timeout: 0 });
-    if (owner) await owner.end({ timeout: 0 });
-    if (admin) { await admin.unsafe(`drop database if exists "${name}" with (force)`); await admin.end(); }
+    for (const { kind, id, enabled } of priorSources) await owner.unsafe(`update ${kind === "gateways" ? "gateways" : "devices"} set enabled=$1 where id=$2`, [enabled, id]);
   });
+
 
   it("persists rules, raw source and outbox once despite MQTT replay, without producer HTTP", async () => {
     await rule(); const raw = await packet(); await ingest(raw); await ingest(raw);
@@ -178,7 +165,7 @@ describe("SQL038 source producers are atomic, durable and transport-free", { ski
   for (const phase of ["before", "after"] as const) it(`survives an actual process kill ${phase} the source transaction commit`, async () => {
     await rule(); const raw = await packet(); const marker = `notification_fixture_${phase}`;
     const code = `
-      const {db,sqlClient}=await import('@predioon/db');
+      const {ingestDb:db,ingestSqlClient:sqlClient}=await import('@predioon/db/ingest');
       const {sql}=await import('drizzle-orm');
       const {handleTelemetry}=await import('./src/pipeline/telemetry.ts');
       const original=db.transaction.bind(db); let first=true;
@@ -196,7 +183,7 @@ describe("SQL038 source producers are atomic, durable and transport-free", { ski
       await handleTelemetry(${JSON.stringify(telemetryTopic(building, device))},Buffer.from(${JSON.stringify(raw.toString("base64"))},'base64'));
       await sqlClient.end();`;
     const child = spawn(process.execPath, ["--import", "tsx", "--input-type=module", "-e", code], {
-      cwd: fileURLToPath(new URL("../", import.meta.url)), env: { ...process.env, DATABASE_URL: databaseUrl }, stdio: ["ignore", "pipe", "pipe"], windowsHide: true,
+      cwd: fileURLToPath(new URL("../", import.meta.url)), env: { ...process.env, DATABASE_URL: undefined, TEST_INGEST_DATABASE_URL: undefined }, stdio: ["ignore", "pipe", "pipe"], windowsHide: true,
     });
     const exited = once(child, "exit"); let output = "";
     try {
@@ -254,17 +241,17 @@ describe("SQL038 source producers are atomic, durable and transport-free", { ski
     it(`rechecks ${table} heartbeat after waiting for the source row`, async () => {
       const target = table === "devices" ? device : gateway;
       await owner.unsafe(`update ${table} set last_seen_at=clock_timestamp()-interval '1 hour' where id=$1`, [target]);
-      const locker = postgres(databaseUrl, { max: 1, onnotice: () => {} }); let sweeping: Promise<void> | undefined;
+      const locker = adminSession(); let sweeping: Promise<void> | undefined;
       try {
         await locker.begin(async tx => {
           await tx.unsafe(`select id from ${table} where id=$1 for update`, [target]);
           sweeping = offline.sweepOffline();
           const deadline = Date.now() + 5_000;
           while (Date.now() < deadline) {
-            if ((await owner`select count(*)::int as count from pg_stat_activity where datname=${name} and wait_event_type='Lock' and query like ${`%from "${table}"%`}`)[0]!.count) break;
+            if ((await owner`select count(*)::int as count from pg_stat_activity where datname=current_database() and wait_event_type='Lock' and query like ${`%from "${table}"%`}`)[0]!.count) break;
             await delay(20);
           }
-          assert.ok((await owner`select count(*)::int as count from pg_stat_activity where datname=${name} and wait_event_type='Lock' and query like ${`%from "${table}"%`}`)[0]!.count > 0);
+          assert.ok((await owner`select count(*)::int as count from pg_stat_activity where datname=current_database() and wait_event_type='Lock' and query like ${`%from "${table}"%`}`)[0]!.count > 0);
           await tx.unsafe(`update ${table} set last_seen_at=clock_timestamp() where id=$1`, [target]);
         });
         await sweeping;
@@ -276,15 +263,15 @@ describe("SQL038 source producers are atomic, durable and transport-free", { ski
       const target = table === "devices" ? device : gateway;
       const key = table === "devices" ? "DEVICE_OFFLINE_TIMEOUT_SECONDS" : "GATEWAY_OFFLINE_TIMEOUT_SECONDS";
       const previous = configuration.config[key]; configuration.config[key] = 1;
-      const locker = postgres(databaseUrl, { max: 1, onnotice: () => {} }); let sweeping: Promise<void> | undefined;
+      const locker = adminSession(); let sweeping: Promise<void> | undefined;
       try {
         await owner.unsafe(`update ${table} set last_seen_at=clock_timestamp()-interval '1 hour' where id=$1`, [target]);
         await locker.begin(async tx => {
           await tx.unsafe(`update ${table} set last_seen_at=clock_timestamp()-interval '500 milliseconds' where id=$1`, [target]);
           sweeping = offline.sweepOffline();
           const deadline = Date.now() + 5_000;
-          while (Date.now() < deadline && !(await owner`select count(*)::int as count from pg_stat_activity where datname=${name} and wait_event_type='Lock' and query like ${`%from "${table}"%`}`)[0]!.count) await delay(20);
-          assert.ok((await owner`select count(*)::int as count from pg_stat_activity where datname=${name} and wait_event_type='Lock' and query like ${`%from "${table}"%`}`)[0]!.count > 0);
+          while (Date.now() < deadline && !(await owner`select count(*)::int as count from pg_stat_activity where datname=current_database() and wait_event_type='Lock' and query like ${`%from "${table}"%`}`)[0]!.count) await delay(20);
+          assert.ok((await owner`select count(*)::int as count from pg_stat_activity where datname=current_database() and wait_event_type='Lock' and query like ${`%from "${table}"%`}`)[0]!.count > 0);
           await delay(750);
         });
         await sweeping;
@@ -368,6 +355,6 @@ describe("SQL038 source producers are atomic, durable and transport-free", { ski
     await trigger("gateways", "update", "update event_deliveries d set status='failed',failure_category='HTTP_PERMANENT' from outbox_events e where e.id=d.event_id and e.building_id=new.building_id; return new;", async () => {
       await assert.rejects(ingest(await packet()), /not persisted/i);
       assert.deepEqual(await counts(), { dedup: 0, readings: 0, alerts: 0, events: 0, deliveries: 0 });
-    }, "after");
+    }, "after", true);
   });
 });

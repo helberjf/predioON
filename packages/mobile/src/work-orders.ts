@@ -1,4 +1,5 @@
 import type { WorkOrderStatus, WorkOrderView } from "@predioon/contracts/work-orders";
+import type { Grant } from "./scope.ts";
 
 export const workOrderStatusLabels: Record<WorkOrderStatus, string> = {
   OPEN: "Aberta",
@@ -16,14 +17,14 @@ export const workOrderPriorityLabels = {
 export type WorkOrderAction = { status: WorkOrderStatus; label: string; confirm?: string };
 
 /**
- * Execution offered by this app. Cancelling and reassigning stay in the web
- * panel; the server still decides every request, so this only hides buttons.
+ * Current execution hints; the API decides every request.
  */
 export function workOrderActions(
   order: Pick<WorkOrderView, "status" | "assignedToMe">,
   canDistribute: boolean,
+  capabilities: readonly Grant[] = [],
 ): WorkOrderAction[] {
-  if (!order.assignedToMe && !canDistribute) return [];
+  if (!workOrderCanWrite(order, canDistribute, capabilities)) return [];
   if (order.status === "OPEN") return [{ status: "IN_PROGRESS", label: "Iniciar" }];
   if (order.status === "IN_PROGRESS")
     return [
@@ -31,6 +32,16 @@ export function workOrderActions(
       { status: "OPEN", label: "Pausar" },
     ];
   return [];
+}
+
+export function workOrderCanWrite(
+  order: Pick<WorkOrderView, "assignedToMe">,
+  canDistribute: boolean,
+  capabilities: readonly Grant[],
+): boolean {
+  return canDistribute || (order.assignedToMe
+    && capabilities.includes("work-orders:read-assigned")
+    && capabilities.includes("work-orders:update-assigned"));
 }
 
 /** Open work first, the most urgent first, then the oldest deadline. */

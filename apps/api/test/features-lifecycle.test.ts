@@ -5,6 +5,8 @@ import { after, before, describe, it } from "node:test";
 import { and, eq } from "drizzle-orm";
 import { alerts, auditLogs, buildings, dailyUsage, db, devices, gateCommands, gates, gateways, lockFeatures, organizations, parkingLots, sqlClient, telemetry, usageCursors } from "@predioon/db";
 import { closeAppDb } from "@predioon/db/runtime";
+import { closeIngestDb, ingestDb } from "@predioon/db/ingest";
+import { closeAccessServiceDb } from "@predioon/db/access-service";
 import { accessTopic, dayKey, telemetryTopic } from "@predioon/shared";
 import { handleTelemetry } from "../../../services/ingest/src/pipeline/telemetry.js";
 import { dispatchAccessOnce, handleAccessAck } from "../../../services/ingest/src/access/dispatcher.js";
@@ -56,7 +58,8 @@ describe("pause and resume through the real API, database and ingestion", () => 
     await db.delete(auditLogs).where(eq(auditLogs.buildingId, buildingId));
     await db.delete(buildings).where(eq(buildings.id, buildingId));
     await db.delete(organizations).where(eq(organizations.id, org));
-    await closeAppDb(); await sqlClient.end();
+    // The ingestion handlers under test open both restricted pools; close them so the file exits.
+    await closeAppDb(); await closeIngestDb(); await closeAccessServiceDb(); await sqlClient.end();
   });
   it("discards only paused metrics and preserves hardware liveness", async () => {
     await ingest("water_level_percent", 30, new Date(Date.now() - 1000));
@@ -151,7 +154,7 @@ describe("pause and resume through the real API, database and ingestion", () => 
     assert.equal((await db.select().from(gateCommands).where(eq(gateCommands.id, command!.id)))[0]!.status, "ACKNOWLEDGED");
   });
   it("alert delivery serializes with pause and old alerts are not delivered afterwards", async () => {
-    const [alert, pending] = await db.transaction(async tx => {
+    const [alert, pending] = await ingestDb.transaction(async tx => {
       await lockFeatures(tx);
       const draft = { buildingId, deviceId: meterId, type: "DAILY_ENERGY_LIMIT", severity: "HIGH" as const, message: "Lifecycle alert" };
       // Both real producer writes commit with their outbox. A permitted future

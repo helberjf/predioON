@@ -23,7 +23,10 @@ set +a
 
 COMPOSE=(docker compose -f infrastructure/docker-compose.prod.yml --env-file "$ENV_FILE")
 
-[ -n "${NOTIFICATIONS_DB_PASSWORD:-}" ] || { echo "Defina NOTIFICATIONS_DB_PASSWORD antes de aplicar a release 038."; exit 1; }
+# Validated before anything stops: a missing credential must not leave the platform down.
+for credential in NOTIFICATIONS_DB_PASSWORD INGEST_DB_PASSWORD ACCESS_SERVICE_DB_PASSWORD; do
+  [ -n "${!credential:-}" ] || { echo "Defina $credential antes de aplicar as releases 038/052."; exit 1; }
+done
 
 echo "→ interrompendo produtores e worker anteriores antes das migrations"
 "${COMPOSE[@]}" stop --timeout 30 ingest notifications
@@ -53,10 +56,14 @@ echo "→ verificando histórico e aplicando migrations pendentes"
   -e DATABASE_URL="postgres://predioon:${POSTGRES_PASSWORD}@db:5432/predioon" \
   api pnpm --filter @predioon/db db:infra
 
-echo "→ provisionando as quatro credenciais restritas"
+# Worker and ingestion credentials reach only this transient administrative run,
+# never the persistent API container.
+echo "→ provisionando as seis credenciais restritas"
 "${COMPOSE[@]}" run --rm \
   -e DATABASE_URL="postgres://predioon:${POSTGRES_PASSWORD}@db:5432/predioon" \
   -e DATABASE_URL_NOTIFICATIONS="postgres://predioon_notifications:${NOTIFICATIONS_DB_PASSWORD}@db:5432/predioon" \
+  -e DATABASE_URL_INGEST="postgres://predioon_ingest:${INGEST_DB_PASSWORD}@db:5432/predioon" \
+  -e DATABASE_URL_ACCESS_SERVICE="postgres://predioon_access_service:${ACCESS_SERVICE_DB_PASSWORD}@db:5432/predioon" \
   api pnpm --filter @predioon/db db:provision-runtime
 
 if [ "${1:-}" = "--seed" ]; then

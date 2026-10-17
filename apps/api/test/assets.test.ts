@@ -122,9 +122,20 @@ describe("assets are managed with the equipment permissions and collect maintena
     assert.equal(await named("manager"), "Bomba de recalque 1");
     assert.equal(await named("technician"), "Bomba de recalque 1");
     // Without the equipment permission the order stays visible but the asset is not named.
-    await sqlClient`delete from role_permissions where role_key='MAINTENANCE' and permission_key='devices:read'`;
-    try { assert.equal(await named("technician"), null); }
-    finally { await sqlClient`insert into role_permissions(role_key,permission_key) values('MAINTENANCE','devices:read') on conflict do nothing`; }
+    const [originalPermission] = await sqlClient`select role_key,permission_key,created_at::text as created_at
+      from role_permissions where role_key='MAINTENANCE' and permission_key='devices:read'`;
+    assert.ok(originalPermission, "the equipment permission must exist before temporarily removing it");
+    try {
+      await sqlClient`delete from role_permissions where role_key='MAINTENANCE' and permission_key='devices:read'`;
+      assert.equal(await named("technician"), null);
+    } finally {
+      // Preserve PostgreSQL's timestamp precision instead of recreating catalog metadata.
+      const [restoredPermission] = await sqlClient`insert into role_permissions(role_key,permission_key,created_at)
+        values(${originalPermission.role_key},${originalPermission.permission_key},${originalPermission.created_at}::timestamptz)
+        on conflict (role_key,permission_key) do update set created_at=excluded.created_at
+        returning role_key,permission_key,created_at::text as created_at`;
+      assert.deepEqual(restoredPermission, originalPermission, "temporary permission removal preserves the complete catalog row");
+    }
     const history = async (who: keyof typeof people) => (await ok<Asset & { workOrders: Array<{ id: string; status: string }> }>(`/v1/assets/${asset.id}`, who)).workOrders.map(item => item.id);
     assert.deepEqual((await history("manager")).sort(), [mine.id, unassigned.id].sort());
     assert.deepEqual(await history("technician"), [mine.id]);

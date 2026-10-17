@@ -66,7 +66,8 @@ try {
 
   if ($Setup) {
     Write-Host "Preparando infraestrutura, schema e credenciais restritas..." -ForegroundColor Cyan
-    foreach ($setupCommand in @("db:bootstrap", "db:infra", "db:provision-runtime")) {
+    # ingest:env copies only the two restricted ingestion logins and MQTT keys from .env.
+    foreach ($setupCommand in @("db:bootstrap", "db:infra", "db:provision-runtime", "ingest:env")) {
       Invoke-CheckedCommand "pnpm" @($setupCommand)
     }
     if ($SeedDemo) {
@@ -79,6 +80,10 @@ try {
   try { Invoke-CheckedCommand "pnpm" @("db:infra", "--check") }
   catch {
     throw "Banco ainda nao liberado para esta versao. Confira o diagnostico acima. Para uma preparacao ou atualizacao revisada, execute '.\scripts\start-local.ps1 -Setup' sem -SeedDemo. Divergencia de checksum ou banco legado sem ledger exigem revisao do historico; consulte docs/MIGRATIONS.md. API e ingestao nao foram iniciadas."
+  }
+
+  if (-not (Test-Path -LiteralPath (Join-Path $projectRoot "services/ingest/.env.runtime"))) {
+    throw "services/ingest/.env.runtime ausente: a ingestao nao recebe a conexao dona. Execute '.\scripts\start-local.ps1 -Setup' (ou 'pnpm ingest:env') para gera-lo."
   }
 
   Write-Host "Iniciando API, ingestao e paineis. Ctrl+C para encerrar." -ForegroundColor Green

@@ -24,6 +24,7 @@ O escopo do produto está no [PRD](docs/PRD.md) e o desenho técnico no [TDD](do
 | Ocorrências | Chamados de síndicos e moradores, três níveis de gravidade, respostas, histórico e agrupamento de problemas repetidos. |
 | Transparência e contas | Atualizações da gestão e relatórios financeiros mensais com receitas, despesas, saldo, comprovantes por link e revisões publicadas. |
 | Suporte remoto | Cadastro do computador do condomínio, preparação do acesso pelo AnyDesk e registro manual do resultado do atendimento. |
+| Acesso de suporte | A plataforma mantém sua equipe de suporte e concede a uma pessoa, por até 7 dias e com motivo, a leitura de sensores, alertas, equipamentos, ordens atribuídas ou concessões de um condomínio. Revogação imediata, histórico preservado e consulta pelo síndico. |
 | Controle de funcionalidades | 23 recursos ativados ou desativados globalmente e por condomínio, com justificativa, dependências e auditoria. |
 
 A disponibilidade nos portais segue as permissões do usuário e os controles de funcionalidades. Ao pausar um sensor, novas leituras correspondentes são descartadas, seu processamento e seus alertas ficam suspensos e o histórico é preservado. A comunicação dos gateways continua ativa. Consulte os efeitos e o procedimento de retomada em [Funcionalidades](docs/FUNCIONALIDADES.md).
@@ -34,8 +35,8 @@ A [matriz de funcionalidades e validações](docs/REVISAO_FUNCIONALIDADES.md) re
 
 | Serviço | Endereço | Finalidade |
 |---|---|---|
-| Administrador da plataforma | [localhost:5173](http://localhost:5173) | Clientes, condomínios, comunicação, equipamentos, operação dos imóveis, suporte remoto, alertas, usuários, funcionalidades e histórico de atividades. |
-| Painel do síndico | [localhost:5174](http://localhost:5174) | Água, energia, consumo, sensores, acessos, vagas, alertas, ocorrências, transparência, contas, avisos e áreas comuns. |
+| Administrador da plataforma | [localhost:5173](http://localhost:5173) | Clientes, condomínios, comunicação, equipamentos, operação dos imóveis, suporte remoto, acesso de suporte, alertas, usuários, funcionalidades e histórico de atividades. |
+| Painel do síndico | [localhost:5174](http://localhost:5174) | Água, energia, consumo, sensores, acessos, vagas, alertas, ocorrências, transparência, contas, avisos, áreas comuns e acessos de suporte concedidos ao condomínio. |
 | Portal do morador | [localhost:5175](http://localhost:5175) | Consultas autorizadas, avisos, reservas, ocorrências, transparência, contas e abertura de acessos quando permitida. |
 | API | [localhost:3000](http://localhost:3000) | Backend Express. |
 | Saúde da API | [localhost:3000/health](http://localhost:3000/health) | Confirma que a API responde. |
@@ -105,7 +106,7 @@ if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 
 O [`.env.example`](.env.example) contém os valores do Docker Compose local. O comando acima preserva um `.env` existente.
 
-Ao atualizar uma instalação local anterior à038, acrescente `DATABASE_URL_NOTIFICATIONS` ao `.env` existente conforme o exemplo, com a role `predioon_notifications` no mesmo banco. O provisionamento exige a conexão administrativa e quatro URLs restritas: app, identity, broker_auth e notifications. Encerrar produtores antigos antes de aplicar038 e iniciar somente a versão compatível; seguir [o guia de notificações](docs/NOTIFICACOES_DURAVEIS.md#implantação-e-rollback). Um destino vazio termina as entregas em `no_destination`; configurar webhook depois não reenvia esses alertas automaticamente.
+Ao atualizar uma instalação local anterior à038, acrescente `DATABASE_URL_NOTIFICATIONS` ao `.env` existente conforme o exemplo, com a role `predioon_notifications` no mesmo banco. O provisionamento exige a conexão administrativa e seis URLs restritas: app, identity, broker_auth, notifications e, desde a052, ingest e access_service. Depois de acrescentá-las ao `.env`, gere `services/ingest/.env.runtime` com `pnpm ingest:env`: a ingestão lê somente esse arquivo e recusa a conexão dona. Encerrar produtores antigos antes de aplicar038 e iniciar somente a versão compatível; seguir [o guia de notificações](docs/NOTIFICACOES_DURAVEIS.md#implantação-e-rollback). Um destino vazio termina as entregas em `no_destination`; configurar webhook depois não reenvia esses alertas automaticamente.
 
 ### 2. Preparar infraestrutura e banco
 
@@ -254,7 +255,8 @@ Os resultados de validações anteriores e os ensaios com broker local estão em
 | `pnpm db:push` | Ferramenta de desenvolvimento para schema; não é o mecanismo de atualização de instalação com histórico. |
 | `pnpm db:infra` | Usa `DATABASE_URL` administrativa; verifica checksums e aplica somente migrations pendentes, com ledger e lock. |
 | `pnpm db:infra --check` | Consulta baseline/histórico/pendências sem DDL; saída 0 = pronto, 2 = pendente, 1 = erro ou histórico incompatível. |
-| `pnpm db:provision-runtime` | Habilita login e configura as senhas das quatro roles restritas conforme as URLs do ambiente. |
+| `pnpm db:provision-runtime` | Habilita login e configura as senhas das seis roles restritas conforme as URLs do ambiente. |
+| `pnpm ingest:env` | Gera `services/ingest/.env.runtime` só com as duas URLs restritas da ingestão e as chaves MQTT; nunca sobrescreve um arquivo diferente. |
 | `pnpm db:seed` | Cadastra/complementa a demonstração e redefine a senha das contas demo. |
 | `pnpm --filter @predioon/admin-web dev` | Inicia apenas o painel administrador. |
 | `pnpm --filter @predioon/building-web dev` | Inicia apenas o painel do síndico. |
@@ -278,7 +280,7 @@ pnpm dev
 | Sintoma | O que conferir |
 |---|---|
 | `docker` não é reconhecido ou o engine não responde | Instalação e inicialização do Docker Desktop; depois reabra o PowerShell e confira `docker compose version`. |
-| Porta `5434` ocupada | Ajuste a porta externa em `infrastructure/docker-compose.yml`, `DATABASE_URL` e as quatro URLs restritas no `.env`, incluindo `DATABASE_URL_NOTIFICATIONS`. |
+| Porta `5434` ocupada | Ajuste a porta externa em `infrastructure/docker-compose.yml`, `DATABASE_URL` e as seis URLs restritas no `.env`, depois remova e gere de novo `services/ingest/.env.runtime` (`pnpm ingest:env`). |
 | Portas `3000`, `5173`, `5174` ou `5175` ocupadas | Libere as portas antes de iniciar. Se alterar os endereços, ajuste também `VITE_API_URL` e `CORS_ORIGINS`. |
 | Painel mostra “API indisponível” | Confira `/health/ready`, o terminal da API e se `pnpm setup:local` terminou sem erro. |
 | Painel abre, mas não mostra leituras atuais | Confira ingestão, broker e simulador; verifique cadastro do dispositivo e disponibilidade do recurso em **Funcionalidades**. |

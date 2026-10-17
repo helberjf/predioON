@@ -1,0 +1,343 @@
+{
+  "schemaVersion": 1,
+  "increment": "native-work-order-distribution",
+  "date": "2026-10-13",
+  "implementationStartedDate": "2026-10-12",
+  "baselineCommit": "1064b91ee4f375e7037465ca434dd2119ceb43b5",
+  "apiPolicyBaseline": "043/044 on integrated main 6989248",
+  "migrationBaseline": 51,
+  "sourceNote": "Final eleven implementation/test files were frozen, reviewed, tested and bundled after search and workflow callback generation corrections. Repository hashes apply existing Git LF normalization.",
+  "sources": [
+    {
+      "path": "packages/mobile/src/app.tsx",
+      "testedWorkingFileSha256": "29c438e102d824e84d08090c6e552f4b999bd522c800efc598d1dc6e2b2486fe",
+      "repositoryLfSha256": "29c438e102d824e84d08090c6e552f4b999bd522c800efc598d1dc6e2b2486fe"
+    },
+    {
+      "path": "packages/mobile/src/work-orders-screen.tsx",
+      "testedWorkingFileSha256": "9123076f81b1900f1d71d1e7c706745651291a1ea1ceecf6c0f381beb7436ed6",
+      "repositoryLfSha256": "9123076f81b1900f1d71d1e7c706745651291a1ea1ceecf6c0f381beb7436ed6"
+    },
+    {
+      "path": "packages/mobile/src/work-orders.ts",
+      "testedWorkingFileSha256": "93374712a3f44010b0b3bf7f56fb78c3d1fd534afd1f82f5ae941871f194eaeb",
+      "repositoryLfSha256": "93374712a3f44010b0b3bf7f56fb78c3d1fd534afd1f82f5ae941871f194eaeb"
+    },
+    {
+      "path": "packages/mobile/src/work-order-distribution.ts",
+      "testedWorkingFileSha256": "7001eb957c598efd0552d18d5059d256b602e442427a72b8e7613d51d13bd4be",
+      "repositoryLfSha256": "7001eb957c598efd0552d18d5059d256b602e442427a72b8e7613d51d13bd4be"
+    },
+    {
+      "path": "packages/mobile/src/work-order-distribution-controller.ts",
+      "testedWorkingFileSha256": "0b6f5432fef99d4c267510a8d299891e95a9244ffa650b0dcda62be605eb3be1",
+      "repositoryLfSha256": "0b6f5432fef99d4c267510a8d299891e95a9244ffa650b0dcda62be605eb3be1"
+    },
+    {
+      "path": "packages/mobile/src/work-order-distribution-screen.tsx",
+      "testedWorkingFileSha256": "8212659330b46464063db9122436de93fde794abc909ac66f45dab06dbfd76ff",
+      "repositoryLfSha256": "8212659330b46464063db9122436de93fde794abc909ac66f45dab06dbfd76ff"
+    },
+    {
+      "path": "packages/mobile/test/work-orders.test.ts",
+      "testedWorkingFileSha256": "09eeb8586599ad475ec0bf8b1a742ad2037e0cad190d12586adae657694d756d",
+      "repositoryLfSha256": "09eeb8586599ad475ec0bf8b1a742ad2037e0cad190d12586adae657694d756d"
+    },
+    {
+      "path": "packages/mobile/test/work-order-distribution.test.ts",
+      "testedWorkingFileSha256": "6a680eb0a5a4e82f1842d9fffbed22dab991016b543bbb62d2327f6a8788e224",
+      "repositoryLfSha256": "6a680eb0a5a4e82f1842d9fffbed22dab991016b543bbb62d2327f6a8788e224"
+    },
+    {
+      "path": "packages/mobile/test/work-order-distribution-controller.test.ts",
+      "testedWorkingFileSha256": "5b33ca0a071c134c7c755a12452ce9593573af6b652422fcd7e5d7e79f36bb42",
+      "repositoryLfSha256": "5b33ca0a071c134c7c755a12452ce9593573af6b652422fcd7e5d7e79f36bb42"
+    },
+    {
+      "path": "packages/mobile/test/work-order-distribution-screen.test.ts",
+      "testedWorkingFileSha256": "ee1b0d4b07b6736ed1ce86f147ef10e647103521bac3eef1590ed3f921eb13d7",
+      "repositoryLfSha256": "ee1b0d4b07b6736ed1ce86f147ef10e647103521bac3eef1590ed3f921eb13d7"
+    },
+    {
+      "path": "packages/mobile/test/fixtures/work-order-screen-host.mjs",
+      "testedWorkingFileSha256": "d595d7eb0dbebf1c6a624cffa36bccd9f31dd0a7277ddde4501fb6c8aaca5abf",
+      "repositoryLfSha256": "d595d7eb0dbebf1c6a624cffa36bccd9f31dd0a7277ddde4501fb6c8aaca5abf"
+    }
+  ],
+  "actualRed": {
+    "domainAndExistingActions": {
+      "tests": 9,
+      "suites": 0,
+      "pass": 1,
+      "fail": 8,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 418.9848,
+      "logSha256": "39f0f5c95f11b4ef3636b53f486075c994405be0b82e5d099cedee5e64ef5513"
+    },
+    "domainAndController": {
+      "tests": 19,
+      "suites": 0,
+      "pass": 7,
+      "fail": 12,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 142.0667,
+      "logSha256": "8757e33500d3a75ed36116ea4ac67d801acdbd3e8bd787c24a03303ed8d872c7"
+    },
+    "renderedScreen": {
+      "tests": 26,
+      "suites": 0,
+      "pass": 0,
+      "fail": 26,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 870.0875,
+      "logSha256": "2c0dee7a1cbe1245be587d830a7b757f6d0ef7cb561f40f2d78ccea81b34d602"
+    },
+    "inFlight": {
+      "tests": 11,
+      "suites": 0,
+      "pass": 8,
+      "fail": 3,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 161.6116,
+      "logSha256": "ea4c5f04c774b0b23f1cb95faa1177a3e5432eda1ee5d46d10e85354d631c028"
+    },
+    "generationInFlight": {
+      "tests": 12,
+      "suites": 0,
+      "pass": 11,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 164.7468,
+      "logSha256": "8dcc120f85ee2676931aead0778344f612ca926fbf1e1817e378f6fe807550ff"
+    },
+    "uncertainAuthority": {
+      "tests": 13,
+      "suites": 0,
+      "pass": 12,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 178.8017,
+      "logSha256": "49591f5f5a63222a0081c09faaf04c45313628ccc6f1ec5051a993bb601312bd"
+    },
+    "formGeneration": {
+      "tests": 42,
+      "suites": 0,
+      "pass": 38,
+      "fail": 4,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 1598.7756,
+      "logSha256": "f2051720350093a8b12c0d77fea7fda313a24b8708e8919a829bc21b6df62572"
+    },
+    "searchGeneration": {
+      "tests": 45,
+      "suites": 0,
+      "pass": 42,
+      "fail": 3,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 1524.757,
+      "logSha256": "7d319169f98345c1afc8a5c7aa7c890f9f6f1a5d8df51743aeba475fea94a4dc"
+    },
+    "note": "Separate behavior executions, including controlled assertions for missing functions and unexpected projection/collation rejection. No loader/setup failure is counted and no totals are added together.",
+    "workflowGeneration": {
+      "tests": 52,
+      "suites": 0,
+      "pass": 45,
+      "fail": 7,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 1459.4976,
+      "logSha256": "1675757c81aed449e7299e32ab4440118bb9b99619aa8a73b85c9b1bc366d390"
+    }
+  },
+  "implementer": {
+    "focused": {
+      "tests": 64,
+      "suites": 0,
+      "pass": 64,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 3660.1245,
+      "logSha256": "19bbeb75794f679ef91b5d33c78738a96d9f5a14b696f49160d97d5cc507be61"
+    },
+    "searchGeneration": {
+      "tests": 45,
+      "suites": 0,
+      "pass": 45,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 1459.6633,
+      "logSha256": "f3ef39f8373d86898e79f3e1d78403e7f1e54259af70b40114ec6a3bc4362b96"
+    },
+    "workflowGeneration": {
+      "tests": 52,
+      "suites": 0,
+      "pass": 52,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 1462.7682,
+      "logSha256": "61ef6bf46d57b29b62cc5126d456ada98f3fb821ea1ae0c6748e7260031e667c"
+    }
+  },
+  "rootVerification": {
+    "mobile": {
+      "tests": 219,
+      "suites": 0,
+      "pass": 219,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 3137.7341,
+      "logSha256": "80f868c0b0c5c997cddb56ba39da5fc01e2ff8436e7c53d2d2d70c04d75c9e78"
+    },
+    "apiClient": {
+      "tests": 75,
+      "suites": 0,
+      "pass": 75,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 1799.9599,
+      "logSha256": "7d72f110d0a3d619a8c6a1b4056d1980857b4a0165d9c55a5103a7bf14306210"
+    },
+    "ui": {
+      "tests": 93,
+      "suites": 1,
+      "pass": 93,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 624.7964,
+      "logSha256": "7d72f110d0a3d619a8c6a1b4056d1980857b4a0165d9c55a5103a7bf14306210"
+    },
+    "typecheckPackages": [
+      "api-client",
+      "mobile",
+      "resident-mobile",
+      "operations-mobile"
+    ],
+    "typecheckLogSha256": "c02db8da3c44e58f5639bf8002ed4bed0621a77562caa575a1796499fe5a1bc9",
+    "boundariesPassed": true,
+    "boundariesLogSha256": "cd7a04dd5f847bf1b5ad22bb15bfdfc36fbc7fb8814685b02b4008145766ded5",
+    "diffCheck": "Checked on the explicit staged source/document set before commit"
+  },
+  "independentReviews": {
+    "originalSpecification": {
+      "result": "REQUIRES_CHANGES",
+      "finding": "Search state persisted when opening another create form; an old search callback could change the current form in both instrumented hosts. No write was sent.",
+      "originalFocusedTests": 54,
+      "fixFiles": [
+        "packages/mobile/src/work-orders-screen.tsx",
+        "packages/mobile/src/work-order-distribution-controller.ts",
+        "packages/mobile/test/work-order-distribution-controller.test.ts",
+        "packages/mobile/test/work-order-distribution-screen.test.ts"
+      ]
+    },
+    "followingSpecification": {
+      "result": "REQUIRES_CHANGES",
+      "finding": "An old Check list callback could close a new form and reload the list. Search correction passed; one initial write remained one.",
+      "focusedTests": 57
+    },
+    "specification": {
+      "result": "PASS",
+      "readOnly": true,
+      "focusedTests": 64,
+      "exitCode": 0,
+      "independentHostScenarios": 6,
+      "frozenHashesMatchedBeforeAndAfter": 11
+    },
+    "quality": {
+      "result": "APPROVED",
+      "readOnly": true,
+      "focusedTests": 64,
+      "exitCode": 0,
+      "independentHostScenarios": 4,
+      "frozenHashesMatchedBeforeAndAfter": 11
+    }
+  },
+  "bundles": [
+    {
+      "product": "resident",
+      "platform": "android",
+      "development": false,
+      "maxWorkers": 2,
+      "bytes": 1014616,
+      "sha256": "b101f2f050fd284a11f77a3e67df6ec725fb1695992876c6ba2e5cf28f24f217",
+      "logSha256": "d23fb18c54f9a4986dc68903c61698f8665624dd0c3cec9a81748aa1fbff00a4"
+    },
+    {
+      "product": "resident",
+      "platform": "ios",
+      "development": false,
+      "maxWorkers": 2,
+      "bytes": 1008658,
+      "sha256": "6f3c3d9fc07cf1c7f187815d9352577cc0f2f4ec5a1d099a502e3e34bf141704",
+      "logSha256": "7c9e4ac45be3f33d54b67b3e3bd4dac60b101507975d9a9f4475ba0a182f20cd"
+    },
+    {
+      "product": "operations",
+      "platform": "android",
+      "development": false,
+      "maxWorkers": 2,
+      "bytes": 1014626,
+      "sha256": "4b5cd11bf45147be166d0558650e6eb3092b1484a12459336296a56f8ce15753",
+      "logSha256": "7584999c4280980d3b86960561f0f1d696d18c231f5ffc1cb480f4e788515d56"
+    },
+    {
+      "product": "operations",
+      "platform": "ios",
+      "development": false,
+      "maxWorkers": 2,
+      "bytes": 1008668,
+      "sha256": "c40b83941fdd4d6448ecf0c13d5e68b62a041f6ae0645f9170bc04d8169c0f8d",
+      "logSha256": "51d30157a413e9adf1b4ced0570d8b470189acf03052586ce3f51ee0e7ecde18"
+    }
+  ],
+  "behavior": [
+    "Distribution requires current building work-orders:assign and valid current canDistribute list evidence; no role hierarchy or resource-to-building promotion",
+    "Create uses POST /v1/work-orders; assignment uses PATCH /v1/work-orders/:id with captured current version; assignee is a person, team or both null",
+    "On-demand independent paginated people/team directories, permitted by their own current capabilities; local options keep ID/name, active teams belong to current building",
+    "Transport barrier, context/form generations, AppState cleanup, duplicate submits, stale responses and stale input/search callbacks covered",
+    "Typed 400 permits correction; 403/404 require fresh permission evidence; 409 requires deliberate current-version review; uncertain writes do not automatically retry",
+    "Read-assigned-only callers keep list/history without execution or annotation controls; resident product never requests these directories/actions"
+  ],
+  "knownBundleWarnings": [
+    "Existing React Native private featureflags subpath falls back to file-based resolution",
+    "NO_COLOR and FORCE_COLOR environment warning",
+    "Assets destination is unset for these JS-only packaging checks; no new image asset was introduced"
+  ],
+  "limits": [
+    "No new dependency, API/backend, migration, runtime credential or generic hook change",
+    "No native device/emulator, APK/Apple build, Fabric/Hermes, XCTest/Keychain or production acceptance in this increment",
+    "No new browser matrix or live CI claim",
+    "No due date, asset/occurrence linking, cancellation, attachment, checklist or work-order-list pagination added in this increment",
+    "Directory candidates are still checked by the existing server linkage policy; visibility does not guarantee assignability or execution powers",
+    "A discarded callback does not undo a write already sent; JS bundles establish packaging only",
+    "Push remains outside scope and plans/subscriptions remain last"
+  ]
+}

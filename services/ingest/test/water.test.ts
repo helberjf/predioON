@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { before, after, describe, it } from "node:test";
 import { and, eq } from "drizzle-orm";
-import { db, sqlClient, devices, telemetry, alerts, alertRules } from "@predioon/db";
+import { db, sqlClient, devices, telemetry, alerts, alertRules } from "./fixtures/observation-admin.js";
 import { handleTelemetry } from "../src/pipeline/telemetry.js";
 
 const deviceId = `test_water_${randomUUID().slice(0, 8)}`;

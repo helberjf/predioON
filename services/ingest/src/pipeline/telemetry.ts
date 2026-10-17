@@ -1,6 +1,6 @@
 import { and, eq, getTableColumns, sql } from "drizzle-orm";
 import { createHash, randomUUID } from "node:crypto";
-import { db, buildings, devices, gateways, ingestEvents, telemetry, lockFeatures, readFeatures } from "@predioon/db";
+import { countIngestRejection, ingestGatewayColumns, ingestDeviceColumns, ingestDb, buildings, devices, gateways, ingestEvents, telemetry, lockFeatures, readFeatures, type IngestGateway } from "@predioon/db/ingest";
 import type { Telemetry } from "@predioon/shared";
 import { assertPersisted, PersistenceChecks, type AlertNotification } from "../notify/index.js";
 import { publishRealtime } from "../realtime.js";
@@ -18,17 +18,6 @@ const telemetryProjection = { ...getTableColumns(telemetry),
 };
 
 export type RejectionCategory = "INVALID_ENVELOPE" | "FUTURE_TIMESTAMP" | "UNKNOWN_SOURCE" | "CONTENT_CONFLICT" | "RETAINED_REPLAY";
-type Executor = Pick<typeof db, "execute">;
-
-/**
- * Bounded counters of what was refused or set aside: day, category and, only
- * for a validated source, the condominium. Never the payload or its identifiers.
- */
-async function countRejection(executor: Executor, category: RejectionCategory, buildingId = ""): Promise<void> {
-  await executor.execute(sql`insert into ingest_rejections(day,building_id,category) values((clock_timestamp() at time zone 'UTC')::date,${buildingId},${category})
-    on conflict (day,building_id,category) do update set total=ingest_rejections.total+1, last_at=clock_timestamp()`);
-}
-
 /**
  * What makes two deliveries the same reading. Transport facts (QoS, DUP,
  * retain, arrival time) are deliberately left out; the value's type is kept,
@@ -52,25 +41,25 @@ export async function handleTelemetry(topic: string, raw: Buffer, delivery: { re
   const retained = delivery.retain === true;
   const readings = normalizeTelemetry(topic, raw);
   const identity = readings[0];
-  if (!identity) return countRejection(db, "INVALID_ENVELOPE");
-  if (readings.some(reading => Date.parse(reading.timestamp) > Date.now() + 60_000)) return countRejection(db, "FUTURE_TIMESTAMP");
+  if (!identity) return countIngestRejection(ingestDb, "INVALID_ENVELOPE");
+  if (readings.some(reading => Date.parse(reading.timestamp) > Date.now() + 60_000)) return countIngestRejection(ingestDb, "FUTURE_TIMESTAMP");
 
-  const result = await db.transaction(async (tx) => {
+  const result = await ingestDb.transaction(async (tx) => {
     await lockFeatures(tx);
     const accepted: Telemetry[] = [];
     const createdAlerts: AlertNotification[] = [];
     const checks = new PersistenceChecks();
     const unknown = { accepted, createdAlerts, unknown: true };
     // Serialize a sensor's messages so concurrent deliveries share one cooldown check.
-    const [device] = await tx.select().from(devices).where(and(
+    const [device] = await tx.select(ingestDeviceColumns).from(devices).where(and(
       eq(devices.id, identity.deviceId), eq(devices.buildingId, identity.buildingId), eq(devices.enabled, true),
     )).limit(1).for("update");
     if (!device) return unknown;
     const [building] = await tx.select({ active: buildings.active }).from(buildings).where(eq(buildings.id, identity.buildingId)).limit(1);
     if (!building?.active) return unknown;
-    let gateway: typeof gateways.$inferSelect | undefined;
+    let gateway: IngestGateway | undefined;
     if (device.gatewayId) {
-      [gateway] = await tx.select().from(gateways).where(and(
+      [gateway] = await tx.select(ingestGatewayColumns).from(gateways).where(and(
         eq(gateways.id, device.gatewayId), eq(gateways.buildingId, identity.buildingId),
       )).limit(1).for("update");
       if (!gateway?.enabled) return unknown;
@@ -89,7 +78,7 @@ export async function handleTelemetry(topic: string, raw: Buffer, delivery: { re
         if (!duplicate) throw new Error("Telemetry receipt write was not persisted");
         // The first body stands. A different body under the same identity produces no effect;
         // a row older than the fingerprint cannot be compared and keeps suppressing its identity.
-        if (duplicate.fingerprint !== null && duplicate.fingerprint !== receipt.fingerprint) await countRejection(tx, "CONTENT_CONFLICT", data.buildingId);
+        if (duplicate.fingerprint !== null && duplicate.fingerprint !== receipt.fingerprint) await countIngestRejection(tx, "CONTENT_CONFLICT", data.buildingId);
         continue;
       }
       assertPersisted(receipts.length === 1 ? receipts[0] : undefined, receipt, "Telemetry receipt");
@@ -114,7 +103,7 @@ export async function handleTelemetry(topic: string, raw: Buffer, delivery: { re
         const [persisted] = await tx.select(telemetryProjection).from(telemetry).where(and(eq(telemetry.id, sample.id), eq(telemetry.time, sample.time))).limit(1);
         assertPersisted(persisted, sample, "Telemetry source");
       });
-      if (retained) { await countRejection(tx, "RETAINED_REPLAY", data.buildingId); continue; }
+      if (retained) { await countIngestRejection(tx, "RETAINED_REPLAY", data.buildingId); continue; }
       accepted.push(data);
       createdAlerts.push(...await accountUsage(tx, data, features, checks));
       await applyParkingTelemetry(tx, data);
@@ -130,22 +119,22 @@ export async function handleTelemetry(topic: string, raw: Buffer, delivery: { re
     if (!retained) {
       const now = new Date();
       const expectedDevice = { ...device, status: "ONLINE" as const, lastSeenAt: now, updatedAt: now };
-      const updatedDevices = await tx.update(devices).set({ status: "ONLINE", lastSeenAt: now, updatedAt: now }).where(eq(devices.id, device.id)).returning();
+      const updatedDevices = await tx.update(devices).set({ status: "ONLINE", lastSeenAt: now, updatedAt: now }).where(eq(devices.id, device.id)).returning(ingestDeviceColumns);
       assertPersisted(updatedDevices.length === 1 ? updatedDevices[0] : undefined, expectedDevice, "Device heartbeat");
-      const [persistedDevice] = await tx.select().from(devices).where(eq(devices.id, device.id)).limit(1);
+      const [persistedDevice] = await tx.select(ingestDeviceColumns).from(devices).where(eq(devices.id, device.id)).limit(1);
       assertPersisted(persistedDevice, expectedDevice, "Device heartbeat");
       checks.remember(`device:${device.id}`, async () => {
-        const [persisted] = await tx.select().from(devices).where(eq(devices.id, device.id)).limit(1);
+        const [persisted] = await tx.select(ingestDeviceColumns).from(devices).where(eq(devices.id, device.id)).limit(1);
         assertPersisted(persisted, expectedDevice, "Device heartbeat");
       });
       if (gateway) {
         const expectedGateway = { ...gateway, status: "ONLINE" as const, lastSeenAt: now, updatedAt: now };
-        const updatedGateways = await tx.update(gateways).set({ status: "ONLINE", lastSeenAt: now, updatedAt: now }).where(eq(gateways.id, gateway.id)).returning();
+        const updatedGateways = await tx.update(gateways).set({ status: "ONLINE", lastSeenAt: now, updatedAt: now }).where(eq(gateways.id, gateway.id)).returning(ingestGatewayColumns);
         assertPersisted(updatedGateways.length === 1 ? updatedGateways[0] : undefined, expectedGateway, "Gateway heartbeat");
-        const [persistedGateway] = await tx.select().from(gateways).where(eq(gateways.id, gateway.id)).limit(1);
+        const [persistedGateway] = await tx.select(ingestGatewayColumns).from(gateways).where(eq(gateways.id, gateway.id)).limit(1);
         assertPersisted(persistedGateway, expectedGateway, "Gateway heartbeat");
         checks.remember(`gateway:${gateway.id}`, async () => {
-          const [persisted] = await tx.select().from(gateways).where(eq(gateways.id, expectedGateway.id)).limit(1);
+          const [persisted] = await tx.select(ingestGatewayColumns).from(gateways).where(eq(gateways.id, expectedGateway.id)).limit(1);
           assertPersisted(persisted, expectedGateway, "Gateway heartbeat");
         });
       }
@@ -155,7 +144,7 @@ export async function handleTelemetry(topic: string, raw: Buffer, delivery: { re
     await checks.verify();
     return { accepted, createdAlerts, unknown: false };
   });
-  if (result.unknown) await countRejection(db, "UNKNOWN_SOURCE");
+  if (result.unknown) await countIngestRejection(ingestDb, "UNKNOWN_SOURCE");
 
   for (const data of result.accepted) {
     await publishRealtime({ kind: "telemetry", buildingId: data.buildingId, deviceId: data.deviceId,

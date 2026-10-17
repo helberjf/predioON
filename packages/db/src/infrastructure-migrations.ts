@@ -46,7 +46,7 @@ export async function loadInfrastructureMigrations(directory: string = infraDir)
 export async function applyInfrastructure(client: postgres.Sql, migrations: Migration[]): Promise<string[]> {
   return runMigrations(client, migrations, {
     atomicInitialBatch: true,
-    runtimeRoles: ["predioon_app", "predioon_identity", "predioon_broker_auth", "predioon_notifications"],
+    runtimeRoles: ["predioon_app", "predioon_identity", "predioon_broker_auth", "predioon_notifications", "predioon_ingest", "predioon_access_service"],
     validateDatabase: async connection => { await validateInstallation(connection); },
   });
 }

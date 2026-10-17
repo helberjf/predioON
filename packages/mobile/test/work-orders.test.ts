@@ -2,11 +2,16 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { sortWorkOrders, workOrderActions } from "../src/work-orders.ts";
 
-test("only the assignee or a distributor sees execution actions, and closed work has none", () => {
+const execution = ["work-orders:read-assigned", "work-orders:update-assigned"] as const;
+
+test("only the currently authorized assignee or distributor sees execution actions", () => {
   assert.deepEqual(workOrderActions({ status: "OPEN", assignedToMe: false }, false), []);
-  assert.deepEqual(workOrderActions({ status: "OPEN", assignedToMe: true }, false).map((action) => action.status), ["IN_PROGRESS"]);
+  assert.deepEqual(workOrderActions({ status: "OPEN", assignedToMe: true }, false), [], "assignment alone cannot grant writing");
+  for (const grants of [[], ["work-orders:read-assigned"], ["work-orders:update-assigned"]] as const)
+    assert.deepEqual(workOrderActions({ status: "OPEN", assignedToMe: true }, false, grants), []);
+  assert.deepEqual(workOrderActions({ status: "OPEN", assignedToMe: true }, false, execution).map((action) => action.status), ["IN_PROGRESS"]);
   assert.deepEqual(workOrderActions({ status: "IN_PROGRESS", assignedToMe: false }, true).map((action) => action.status), ["DONE", "OPEN"]);
-  assert.ok(workOrderActions({ status: "IN_PROGRESS", assignedToMe: true }, false)[0]?.confirm, "completing asks for confirmation");
+  assert.ok(workOrderActions({ status: "IN_PROGRESS", assignedToMe: true }, false, execution)[0]?.confirm, "completing asks for confirmation");
   for (const status of ["DONE", "CANCELLED"] as const) assert.deepEqual(workOrderActions({ status, assignedToMe: true }, true), []);
   for (const status of ["OPEN", "IN_PROGRESS"] as const) {
     assert.ok(!workOrderActions({ status, assignedToMe: true }, true).some((action) => action.status === "CANCELLED"), "cancelling stays on the web panel");

@@ -1,7 +1,8 @@
-import { readFile, readdir } from "node:fs/promises";
+import { readFile, readdir, realpath } from "node:fs/promises";
 import { builtinModules } from "node:module";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import { checkIngestRuntimeGraph } from "./runtime-import-graph.mjs";
 
 const ignoredDirectories = new Set(["node_modules", "dist", "build", "coverage", ".git", ".next", ".expo", "test", "tests", "__tests__"]);
 const sourceExtension = /\.[cm]?[jt]sx?$/;
@@ -60,17 +61,25 @@ function imports(source) {
 /** Check source imports and the transitive workspace dependency graph. */
 export async function checkBoundaries(root) {
   root = resolve(root);
+  const physicalRoot = await realpath(root);
   const packages = new Map();
+  const violations = new Set();
   for (const group of ["apps", "packages", "services"]) {
     for (const entry of await entries(join(root, group))) {
-      if (!entry.isDirectory()) continue;
+      if (!entry.isDirectory() && !entry.isSymbolicLink()) continue;
       const directory = join(root, group, entry.name);
       let manifest;
       try { manifest = JSON.parse(await readFile(join(directory, "package.json"), "utf8")); }
       catch (error) { if (error.code === "ENOENT") continue; throw error; }
       if (!manifest.name) continue;
+      const physicalDirectory = await realpath(directory);
+      if (physicalDirectory !== physicalRoot && !physicalDirectory.startsWith(`${physicalRoot}${sep}`)) {
+        violations.add(`${manifest.name === "@predioon/ingest" ? "Ingest" : "Workspace"} source boundary: package symlink escapes workspace root (${relative(root, directory)})`);
+        continue;
+      }
       const server = group === "services" || (group === "apps" && /(^|[-/])(api|server)(-|$)/.test(manifest.name));
-      packages.set(manifest.name, { name: manifest.name, directory, manifest, server, client: (group === "apps" && !server) || publicPackages.has(manifest.name), edges: new Map(), typeOnlyEdges: new Set(), runtimeEdges: new Set() });
+      const sourceDirectory = resolve(root, relative(physicalRoot, physicalDirectory));
+      packages.set(manifest.name, { name: manifest.name, directory: sourceDirectory, manifest, server, client: (group === "apps" && !server) || publicPackages.has(manifest.name), edges: new Map(), typeOnlyEdges: new Set(), runtimeEdges: new Set() });
     }
   }
 
@@ -78,7 +87,6 @@ export async function checkBoundaries(root) {
     return [...packages.values()].find(pkg => path === pkg.directory || path.startsWith(`${pkg.directory}${sep}`));
   }
 
-  const violations = new Set();
   const fileImportEdges = new Map();
   const apiDatabaseEntrypoints = new Set(["@predioon/db/runtime", "@predioon/db/identity", "@predioon/db/broker-auth"]);
   for (const pkg of packages.values()) {
@@ -190,6 +198,7 @@ export async function checkBoundaries(root) {
     }
     inspect(origin, [origin.name]);
   }
+  for (const violation of await checkIngestRuntimeGraph(root, packages)) violations.add(violation);
   return [...violations].sort();
 }
 

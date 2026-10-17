@@ -30,7 +30,11 @@ export function currentAuth(req: Request): Auth {
   return req.auth;
 }
 
-/** Compatibility guard for routes that still use the three legacy roles. */
+/**
+ * Legacy guard kept only for remote support (010), whose database policies
+ * also require an active account with the platform flag. Every other route
+ * decides with assertCapability/assertGlobalCapability.
+ */
 export const requireRole = (minimum: Role): RequestHandler => (req, _res, next) => {
   const auth = currentAuth(req);
   if (!hasAtLeast(auth.role, minimum)) return next(forbidden());
@@ -66,22 +70,6 @@ export async function assertGlobalCapability(tx: AppTransaction, capability: Cap
 export async function assertBuildingDiscovery(tx: AppTransaction, buildingId: string): Promise<void> {
   const [row] = await tx.execute(sql`select app_can_discover_building(${buildingId}) as allowed`);
   if (!row?.allowed) throw forbidden("Prédio fora do seu escopo");
-}
-
-/** Role the user holds in one specific building, or null when they have no link to it. */
-export function buildingRole(auth: Auth, buildingId: string): Role | null {
-  if (auth.role === "PLATFORM_ADMIN") return "PLATFORM_ADMIN";
-  return auth.memberships.find((link) => link.buildingId === buildingId)?.role ?? null;
-}
-
-export function assertBuildingAccess(auth: Auth, buildingId: string, minimum: Role = "RESIDENT"): void {
-  const role = buildingRole(auth, buildingId);
-  if (!role || !hasAtLeast(role, minimum)) throw forbidden("Prédio fora do seu escopo");
-}
-
-/** Buildings the user can read. Empty array for a platform admin means "all buildings". */
-export function scopedBuildingIds(auth: Auth): string[] | null {
-  return auth.role === "PLATFORM_ADMIN" ? null : auth.memberships.map((link) => link.buildingId);
 }
 
 /** Every authenticated query runs here, so PostgreSQL RLS sees who is asking. */

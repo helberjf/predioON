@@ -1,9 +1,12 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
+import { spawn } from "node:child_process";
+import { once } from "node:events";
+import { fileURLToPath } from "node:url";
 import { after, before, beforeEach, describe, it } from "node:test";
 import type { MqttClient } from "mqtt";
-import { eq, and } from "drizzle-orm";
-import { db, sqlClient, organizations, buildings, devices, gateways, gates, gateCommands, memberships, users, auditLogs } from "@predioon/db";
+import { eq, and, sql } from "drizzle-orm";
+import { db, organizations, buildings, devices, gateways, gates, gateCommands, memberships, users, auditLogs } from "./fixtures/observation-admin.js";
 import { accessTopic } from "@predioon/shared";
 import { dispatchAccessOnce, handleAccessAck } from "../src/access/dispatcher.js";
 
@@ -30,7 +33,7 @@ describe("comando e ACK persistidos", { skip: process.env.RUN_ACCESS_DB_TESTS !=
   after(async () => {
     if (gateId) { await db.delete(gateCommands).where(eq(gateCommands.gateId, gateId)); await db.delete(auditLogs).where(eq(auditLogs.resourceId, gateId)); await db.delete(gates).where(eq(gates.id, gateId)); }
     await db.delete(devices).where(eq(devices.id, deviceId)); await db.delete(gateways).where(eq(gateways.id, gatewayId)); await db.delete(users).where(eq(users.id, userId));
-    await db.delete(buildings).where(eq(buildings.id, buildingId)); await db.delete(organizations).where(eq(organizations.id, organizationId)); await sqlClient.end();
+    await db.delete(buildings).where(eq(buildings.id, buildingId)); await db.delete(organizations).where(eq(organizations.id, organizationId));
   });
   async function request(ago = 0) {
     const createdAt = new Date(Date.now() - ago);
@@ -78,6 +81,30 @@ describe("comando e ACK persistidos", { skip: process.env.RUN_ACCESS_DB_TESTS !=
     await dispatchAccessOnce(client, command.createdAt);
     assert.equal((await read(command.id)).status, "FAILED");
     assert.equal(sent.length, 0, "reactivation must never replay a rejected physical intent");
+  });
+  it("processo que cai depois do SENT e antes do envio nunca reenvia; o prazo registra EXPIRED", async () => {
+    const command = await request();
+    // The child receives only the two restricted URLs inherited from the fixture.
+    const code = `
+      const { dispatchAccessOnce } = await import('./src/access/dispatcher.ts');
+      const client = { connected: true, options: { queueQoSZero: false }, on() {}, off() {}, publish: () => process.exit(86) };
+      await dispatchAccessOnce(client, new Date(${command.createdAt.getTime() - 1}));
+      process.exit(1);`;
+    const child = spawn(process.execPath, ["--import", "tsx", "--input-type=module", "-e", code], {
+      cwd: fileURLToPath(new URL("../", import.meta.url)), env: { ...process.env, DATABASE_URL: undefined, TEST_INGEST_DATABASE_URL: undefined }, stdio: "ignore", windowsHide: true,
+    });
+    const [exitCode] = await once(child, "exit");
+    assert.equal(exitCode, 86, "the child must die inside publish, after the SENT commit");
+    const crashed = await read(command.id);
+    assert.equal(crashed.status, "SENT"); assert.ok(crashed.sentAt);
+    await dispatchAccessOnce(client, new Date(command.createdAt.getTime() - 1));
+    assert.equal(sent.length, 0, "a restarted dispatcher must not replay a SENT intent");
+    assert.equal((await read(command.id)).status, "SENT");
+    // Move the whole command 20 s into the past, preserving its TTL constraint.
+    await db.update(gateCommands).set({ createdAt: sql`created_at-interval '20 seconds'`, sentAt: sql`sent_at-interval '20 seconds'`,
+      expiresAt: sql`expires_at-interval '20 seconds'` }).where(eq(gateCommands.id, command.id));
+    await dispatchAccessOnce(client, new Date(command.createdAt.getTime() - 1));
+    assert.equal((await read(command.id)).status, "EXPIRED"); assert.equal(sent.length, 0);
   });
   it("ACK vencido não confirma e varredura registra EXPIRED", async () => {
     const command = await request(20000);

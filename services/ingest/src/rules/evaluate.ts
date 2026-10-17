@@ -1,5 +1,5 @@
 import { and, eq, gt, isNull, or } from "drizzle-orm";
-import { alertRules, alerts, type DbTransaction } from "@predioon/db";
+import { ingestRuleColumns, alertRules, alerts, type IngestTransaction } from "@predioon/db/ingest";
 import { persistAlert, type AlertNotification, type PersistenceChecks } from "../notify/index.js";
 
 /**
@@ -27,10 +27,10 @@ export function matches(operator: string, current: number, threshold: number): b
  * Evaluates every enabled rule for the metric and creates the alerts that fire.
  * `cooldownSeconds` stops a sensor oscillating around the threshold from flooding the panel.
  */
-export async function evaluateRules(tx: DbTransaction, reading: Reading, checks?: PersistenceChecks): Promise<AlertNotification[]> {
+export async function evaluateRules(tx: IngestTransaction, reading: Reading, checks?: PersistenceChecks): Promise<AlertNotification[]> {
   if (reading.time.getTime() < Date.now() - RULE_FRESHNESS_MS) return [];
   const rules = await tx
-    .select()
+    .select(ingestRuleColumns)
     .from(alertRules)
     .where(
       and(

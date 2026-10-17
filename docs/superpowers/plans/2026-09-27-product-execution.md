@@ -1,20 +1,20 @@
 # Execução da arquitetura de produto — Prédio ON
 
-Base aprovada: [arquitetura](../specs/2026-09-27-arquitetura-produto-design.md). A execução iniciada em `codex/product-platform` continua agora na `main`, conforme autorização do proprietário. Esta lista registra progresso real, sem considerar código não verificado como entregue. O ponto de retomada atualizado, inclusive em outra máquina, está em [CONTINUIDADE.md](../../CONTINUIDADE.md).
+Base aprovada: [arquitetura](../specs/2026-09-27-arquitetura-produto-design.md). A execução iniciada em `codex/product-platform`, depois integrada à `main`, continua no branch `codex/continue-product-plan` com a main 051 reconciliada. Commits e pushes seguem por meta verificada, conforme autorização do proprietário. Esta lista registra progresso real, sem considerar código não verificado como entregue. O ponto de retomada atualizado, inclusive em outra máquina, está em [CONTINUIDADE.md](../../CONTINUIDADE.md).
 
 ## Sequência e aceite
 
 - [x] 1. Contratos e cliente HTTP: separar DTOs e cliente portátil da UI, preservar consumidores web, testar renovação concorrente, troca de sessão, falhas de rede e fronteiras entre pacotes.
 - [ ] 2. Identidade e RBAC: políticas por capacidade/condomínio; sessões com rotação atômica/revogação; migrations e RLS; vínculos/equipes; adaptação de consumidores e testes negativos de autorização.
-- [ ] 3. Processamento durável: outbox de alertas038 e worker restrito publicados com CI aprovado; [proposta039](2026-10-03-durable-inbox.md) publicada somente como desenho. Faltam inbox/worker compatível, consumidores restantes, comandos/scheduler, retenção/replay e operação. Preservar recuperação/deduplicação e a política de comandos físicos.
-- [ ] 4. Domínios de produto: ativos e ordens de serviço, automações versionadas, planos/assinaturas e suporte com concessão explícita; API e gestão web integradas.
-- [ ] 5. Aplicativos Morador/Operação: React Native sem Expo, armazenamento seguro, telas próprias por público, chamadas à API real, notificações e configurações nativas Android/iOS.
+- [ ] 3. Processamento durável: outbox de alertas038 e worker restrito publicados; garantias de telemetria048 no caminho transacional existente. A fila separada do [desenho de inbox](2026-10-03-durable-inbox.md) foi adiada conforme [decisões vigentes](../../INBOX_DECISOES.md). Faltam privilégios restritos de ingestão, medição de capacidade, consumidores restantes, comandos/scheduler, retenção e operação. Preservar deduplicação e a política física.
+- [ ] 4. Domínios de produto: ativos e ordens de serviço, automações versionadas, planos/assinaturas e suporte com concessão explícita; API e gestão web integradas. Suporte com concessão explícita entregue na 053 (17/10): equipe, concessão/revogação com prazo e motivo, revisão pelo síndico; restam planos/assinaturas, por último.
+- [ ] 5. Aplicativos Morador/Operação: React Native sem Expo, armazenamento seguro, telas próprias por público, chamadas à API real e configurações nativas Android/iOS. Push saiu do escopo por decisão do proprietário em07/10; os canais existentes permanecem.
 - [ ] 6. Implantação e operação: Compose, migrations registradas, credenciais restritas, backup/restauração, observabilidade, verificação de builds, regressão e documentação das dependências externas.
 
 ## Regras de execução
 
 1. Reutilizar o banco, a API e os contratos existentes. Não reiniciar schema nem usar seed sobre dados reais.
-2. Validar banco em container próprio de teste, porta local 5436, sem usar o banco de outros projetos.
+2. Validar banco em cluster físico próprio de teste, preferindo rede privada sem porta publicada; não usar bancos de outros projetos nem compartilhar credenciais de testes de provisionamento.
 3. Escrever testes de comportamento antes de mudanças de autenticação, autorização, filas e comandos; executar verificações apropriadas após cada integração.
 4. Revisar conformidade com a especificação e qualidade do código; corrigir resultados relevantes antes de encerrar a etapa.
 5. Novos papéis não podem receber acesso via comparação ordinal; ações continuam condicionadas ao condomínio/recurso e à política atual no servidor.
@@ -63,7 +63,7 @@ Base aprovada: [arquitetura](../specs/2026-09-27-arquitetura-produto-design.md).
 
 - [x] 2B.1. Fundação e API de tenancy: implementação, testes e revisões de conformidade/qualidade concluídos.
 - [x] 2B.2. Credenciais da API: separar identidade e autorização do broker, retirar importação/conexão proprietária dos processos HTTP, manter verificações negativas de privilégios e fluxo de sessões.
-- [ ] 2B.3. Migração dos módulos existentes: aplicar capacidades e RLS por domínio, incluindo seleção de condomínios, funcionalidades e eventos; manter testes de revogação, suporte e acesso a recursos próprios.
+- [x] 2B.3. Migração dos módulos existentes: aplicar capacidades e RLS por domínio, incluindo seleção de condomínios, funcionalidades e eventos; manter testes de revogação, suporte e acesso a recursos próprios. Último recorte (contas e vínculos legados) na 054, em 17/10; o suporte remoto mantém o guard legado, conferido no banco.
 - [ ] 2B.4. Gestão web integrada: cadastros de unidades/equipes/vínculos e seleção de escopo autorizada pelo servidor.
 - [ ] 2B.5. Credenciais de ingestão e workers: conceder somente as operações de cada carga, junto da separação durável da etapa 3.
 
@@ -419,3 +419,27 @@ O [plano do observador Android](2026-10-05-android-renderer-observer.md) agora a
 ### Apple 0e72f64: duas fixtures host reprovadas antes do nativo
 
 Identidade autenticada 37307304828 e os dois jobs de inicialização 37307304855 tiveram **143 testes: 141 aprovados, duas falhas, zero skips em cada job**. Falharam os casos de origem válida e do descendente após saída do líder. Banco, builds, geração real do agente Apple e XCTest não foram alcançados; metadados oficiais registram zero artefatos nos dois runs. [Prova 31 e hashes dos logs host](../../evidencias/ios-0e72f64.json). A causa ainda não está estabelecida. Alias de caminho macOS e interação da captura ps com o mock da fixture estão sendo reproduzidos; não alterar produto, guard ATS, prazos ou critérios sem evidência. Os 143 aprovados no Linux continuam uma execução histórica distinta.
+
+### Continuação de07/10 sobre main047 — recuperação nativa
+
+Base `425f5ac` reconciliada no branch `codex/continue-product-plan`; o antigo rascunho de avisos025 foi preservado e está superado pela026 vigente. Migrations001–047 permanecem publicadas; inbox reservada048, push fora do escopo e planos/assinaturas por último. Recuperação por e-mail, MFA, ativos, ordens e automações já constam da main. Os registros antigos deste tracker são históricos; o ponto de retomada está em CONTINUIDADE.md.
+
+Recorte nativo de2C/5: Esqueci minha senha nos dois apps, transporte público isolado da sessão, cancelamento/gerações/StrictMode e confirmação sem revelar conta; login/MFA preservados. REDs reais e revisões independentes aprovados. Integrais próprias da raiz: cliente75/75 e mobile127/127, zero falhas/skips/cancelamentos; quatro tipos, fronteiras/diff e quatro bundles JS de release Android/iOS. [Plano](2026-10-07-native-password-recovery.md) e [evidência](../../evidencias/native-password-recovery-2026-10-07.json). Sem aceite de aparelho/Fabric/Apple ou entrega real pelo Resend. Etapas maiores2–6 permanecem abertas.
+
+### 12/10: continuidade integrada à main051
+
+Integração de main `6989248` ao commit nativo `7289e18`, preservando as decisões atuais048–051 e o histórico de continuidade. Corretivo de relógio do estacionamento e fixture de grant de ativos revistos independentemente e verificados: dirigido 54/54, API 804/804 em63 suítes, ingestão 129/129 em16 suítes, sem falhas/skips/cancelamentos. Catálogo/ledger 51/credenciais e limpeza preservados automaticamente. Cliente 75/75, mobile 127/127, UI 93/93, tipos dos14 pacotes e fronteiras passaram na fonte integrada antes dos drafts seguintes. [Evidência](../../evidencias/parking-database-clock-2026-10-12.json).
+
+Recuperação nativa7289e18 já publicada, SHA remoto confirmado. A fila separada da inbox foi adiada; não continua aguardando homologação 048. Próximo recorte: Consumo publicado no app Morador sob liberação 051; seus drafts ainda não são entrega verificada. Etapas maiores 2–6 permanecem abertas.
+
+### 12/10: Consumo no app Morador verificado
+
+`40fa2c3` publicou a integração/relógio, com SHA remoto confirmado. O consumidor nativo da projeção 051 usa leitura compartilhada para menu/tela e exige liberação atual do síndico. Sete dias de quantidades de água/energia, sem operação privada; erro, recusa, revogação, lifecycle e respostas tardias cobertos. REDs reais e duas revisões independentes aprovadas. Integrais próprias: mobile 157/157, cliente 75/75 e UI 93/93; quatro tipos, fronteiras e quatro bundles JS de release passaram. [Plano](2026-10-12-native-resident-consumption.md) e [evidência](../../evidencias/native-resident-consumption-2026-10-12.json). Publicado em **7ff57a4**, com SHA remoto confirmado. Sem backend/migration/biblioteca nova ou aceite de aparelho/Fabric/Apple/produção. Etapas maiores 2–6 permanecem abertas; próxima meta a estruturar é criação/atribuição de ordens no app Operação.
+
+### 13/10: distribuição de ordens no app Operação verificada
+
+Criação/atribuição pelas rotas 043/044 e capacidades atuais; diretórios de pessoas/equipes sob demanda e permissões próprias, versão capturada, um envio por ação e confirmação incerta sem replay. Leitor atribuído conserva histórico sem controles de escrita. Dois achados de callbacks antigos foram reproduzidos e corrigidos antes da aprovação final. Conformidade PASS e qualidade APPROVED; foco 64/64, integral própria mobile 219/219, cliente 75/75, UI 93/93, quatro tipos/fronteiras e quatro bundles JS. [Plano](2026-10-12-native-work-order-distribution.md) e [evidência](../../evidencias/native-work-order-distribution-2026-10-13.json). Publicado em **f83e3c6**, com SHA remoto confirmado. Sem biblioteca/backend/migration nova ou aceite nativo/produção. Etapas maiores 2–6 permanecem abertas; credenciais restritas por carga da ingestão/acesso ainda exigem desenho e implementação, sem reabrir a fila adiada.
+
+## 13/10: preparação das credenciais de ingestão/acesso
+
+O [desenho](../specs/2026-10-13-ingest-runtime-credentials-design.md) e o [plano](2026-10-13-ingest-runtime-credentials.md) foram publicados em a9c088a. Task 1 verificada: construtor de conexão sem dotenv e loaders existentes explícitos, com delta de quatro imports. Windows 22.21.1 e Linux 24.21.0 passaram 19/22 cada (3 casos PostgreSQL reais pulados), tipos DB/API/ingest/notificações, fronteiras e revisões SPEC/QUALITY 10/10. [Evidência](../../evidencias/runtime-environment-prepare-2026-10-13.json). Preparo publicado em **3ec09ef**, com SHA remoto confirmado; 2B.5 e etapa 3 seguem abertas. Retirar owner de observação e comandos exige a release conjunta restante; nenhuma migration 052/role nova foi aplicada. As decisões 048, push fora do escopo e planos/assinaturas por último permanecem.

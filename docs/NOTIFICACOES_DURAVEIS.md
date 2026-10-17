@@ -54,9 +54,9 @@ Mudanças de dispositivo, regra, comunicação e associação são revalidadas, 
 
 ## Implantação e rollback
 
-1. Conferir fonte, checksum do ledger, backups restaurados e quatro credenciais. Não aplicar038 isoladamente sobre uma release com produtores antigos ainda enviando diretamente.
+1. Conferir fonte, checksum do ledger, backups restaurados e as credenciais restritas (seis desde a052). Não aplicar038 isoladamente sobre uma release com produtores antigos ainda enviando diretamente.
 2. Interromper todos os produtores antigos e o worker anterior. `setup-prod.sh` confirma que os contêineres `ingest`/`notifications` pararam antes das migrations. Isso não comprova drenagem MQTT nem a inexistência de produtores externos; validar sessão persistente, QoS e entregas em trânsito no broker real antes do rollout.
-3. Aplicar a migration pelo ledger, provisionar quatro roles e iniciar produtores novos e worker compatível. Seed é exclusivo de demonstração descartável. Conferir saúde, estados e uma entrega sintética autorizada para um destino de ensaio.
+3. Aplicar a migration pelo ledger, provisionar as roles restritas (seis desde a052) e iniciar produtores novos e worker compatível. Seed é exclusivo de demonstração descartável. Conferir saúde, estados e uma entrega sintética autorizada para um destino de ensaio.
 4. Para rollback, parar primeiro o worker novo. Eventos persistidos precisam de decisão explícita sobre continuidade/cancelamento e deduplicação no destino. Não ativar envio direto e outbox simultaneamente nem fazer replay cego ou editar tokens/leases manualmente.
 
 Este procedimento ainda requer ensaio completo de atualização/rollback com broker real. Ingestão continua usando conexão proprietária enquanto suas outras responsabilidades não forem separadas;038 não encerra a etapa de privilégio mínimo de todos os serviços.

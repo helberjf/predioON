@@ -1,5 +1,10 @@
-/** Isolated local acceptance test. Broker must use the HTTP authorizer and a trusted test certificate. */
+/**
+ * Isolated local acceptance test. Broker must use the HTTP authorizer and a trusted test certificate.
+ * The owner connection (DATABASE_URL) only prepares and checks fixtures; the readings are received
+ * by the real ingestion service, a child process with only the two restricted database URLs.
+ */
 import assert from "node:assert/strict";
+import { spawn, type ChildProcess } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { randomUUID } from "node:crypto";
@@ -7,35 +12,44 @@ import { setTimeout as pause } from "node:timers/promises";
 import mqtt from "mqtt";
 import { eq } from "drizzle-orm";
 import { db, devices, gateways, alertRules, alerts, telemetry, sqlClient } from "@predioon/db";
-import { handleTelemetry } from "../src/pipeline/telemetry.js";
 
 const root = process.env.MQTT_VERIFY_ROOT ?? "../..";
 const ingestPassword = process.env.MQTT_VERIFY_INGEST_PASSWORD;
 if (!ingestPassword) throw new Error("Defina MQTT_VERIFY_INGEST_PASSWORD com a senha da ingestão do broker de teste.");
-const ca = readFileSync(process.env.MQTT_VERIFY_CA_FILE ?? resolve(root, ".local/mqtt-certs/fullchain.pem"));
+for (const variable of ["DATABASE_URL_INGEST", "DATABASE_URL_ACCESS_SERVICE"]) if (!process.env[variable]) throw new Error(`Defina ${variable} da ingestão de teste.`);
+const caFile = process.env.MQTT_VERIFY_CA_FILE ?? resolve(root, ".local/mqtt-certs/fullchain.pem");
+const ca = readFileSync(caFile);
 const url = process.env.MQTT_VERIFY_URL ?? "mqtts://localhost:9883";
 const apiUrl = process.env.MQTT_VERIFY_API ?? "http://localhost:3300";
 const options = { protocolVersion: 5 as const, ca, rejectUnauthorized: true, reconnectPeriod: 0, connectTimeout: 5000 };
 const gatewayId = `gw_verify_${randomUUID().slice(0,8)}`;
 const deviceId = `water_verify_${randomUUID().slice(0,8)}`;
 const clients: mqtt.MqttClient[] = [];
-let ingestionError: unknown;
+let service: ChildProcess | undefined, serviceOutput = "";
 try {
   await db.insert(gateways).values({ id: gatewayId, buildingId: "bld_001", name: "Verificação temporária", serialNumber: gatewayId });
   await db.insert(devices).values({ id: deviceId, gatewayId, buildingId: "bld_001", name: "Sensor de verificação", type: "WATER_LEVEL_SENSOR" });
   await db.insert(alertRules).values({ buildingId: "bld_001", deviceId, name: deviceId, metric: "water_level_percent", operator: "LT", threshold: 20,
     severity: "HIGH", alertType: "LOW_WATER_LEVEL", messageTemplate: "Verificação: {value}%", cooldownSeconds: 300 });
   const login = await fetch(`${apiUrl}/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: "admin@predioon.local", password: "predioon123" }) });
+    // The building manager issues gateway credentials; the platform admin has no implicit tenant equipment access.
+    body: JSON.stringify({ email: process.env.MQTT_VERIFY_EMAIL ?? "sindico@predioon.local", password: process.env.MQTT_VERIFY_PASSWORD ?? "predioon123" }) });
   assert.equal(login.status, 200);
   const { accessToken } = await login.json() as { accessToken: string };
   const issued = await fetch(`${apiUrl}/gateways/${gatewayId}/credentials`, { method: "POST", headers: { Authorization: `Bearer ${accessToken}` } });
   assert.equal(issued.status, 201);
   const credential = await issued.json() as { mqttUsername: string; mqttPassword: string; mqttClientId: string };
-  const ingest = await mqtt.connectAsync(url, { ...options, clientId: "verification-ingest", username: "predioon_ingest", password: ingestPassword });
-  clients.push(ingest);
-  await ingest.subscribeAsync("predio/+/caixa_agua/+/telemetria", { qos: 1 });
-  ingest.on("message", (topic, payload) => { void handleTelemetry(topic, payload).catch(error => { ingestionError = error; }); });
+  const env: Record<string, string> = { NODE_ENV: "production", MQTT_URL: url, MQTT_USERNAME: "predioon_ingest", MQTT_PASSWORD: ingestPassword,
+    MQTT_CLIENT_ID: `verification-ingest-${randomUUID().slice(0, 8)}`, MQTT_CA_FILE: resolve(caFile),
+    DATABASE_URL_INGEST: process.env.DATABASE_URL_INGEST!, DATABASE_URL_ACCESS_SERVICE: process.env.DATABASE_URL_ACCESS_SERVICE! };
+  for (const key of ["PATH", "HOME", "TZ", "SystemRoot", "TEMP", "TMP"]) if (process.env[key]) env[key] = process.env[key]!;
+  service = spawn(process.execPath, ["--import", "tsx", "src/index.ts"], { cwd: new URL("../", import.meta.url), env, stdio: ["ignore", "pipe", "pipe"] });
+  service.stdout?.on("data", chunk => { serviceOutput += chunk; }); service.stderr?.on("data", chunk => { serviceOutput += chunk; });
+  for (let attempt = 0; attempt < 150 && !serviceOutput.includes("Assinando"); attempt++) {
+    if (service.exitCode !== null) throw new Error(`Ingestão encerrou antes de assinar: ${serviceOutput.replace(/postgres(?:ql)?:\/\/\S+/g, "[url]")}`);
+    await pause(100);
+  }
+  assert.ok(serviceOutput.includes("Assinando"), `a ingestão restrita deve autenticar no broker e assinar os tópicos: ${serviceOutput.replace(/postgres(?:ql)?:\/\/\S+/g, "[url]").slice(-600)}`);
   const gateway = await mqtt.connectAsync(url, { ...options, clientId: credential.mqttClientId, username: credential.mqttUsername, password: credential.mqttPassword });
   clients.push(gateway);
   const message = JSON.stringify({ device_id: deviceId, type: "nivel_caixa_agua", nivel_percentual: 18, distancia_mm: 650, volume_litros: 900, timestamp: new Date().toISOString() });
@@ -43,7 +57,6 @@ try {
   await gateway.publishAsync(topic, message, { qos: 1 });
   await gateway.publishAsync(topic, message, { qos: 1 });
   for (let attempt = 0; attempt < 40; attempt++) {
-    if (ingestionError) throw ingestionError;
     const stored = await db.select().from(telemetry).where(eq(telemetry.deviceId, deviceId));
     if (stored.length === 3) break;
     await pause(100);
@@ -62,6 +75,7 @@ try {
   console.log("PASS: broker rejeita credenciais incorretas e publicação no sensor de outro gateway.");
 } finally {
   for (const client of clients) await client.endAsync(true);
+  if (service && service.exitCode === null) { const exited = new Promise(done => service!.once("exit", done)); service.kill("SIGTERM"); await exited; }
   await db.delete(devices).where(eq(devices.id, deviceId));
   await db.delete(gateways).where(eq(gateways.id, gatewayId));
   await sqlClient.end();

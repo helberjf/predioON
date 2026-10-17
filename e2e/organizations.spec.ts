@@ -158,7 +158,7 @@ test("organizações: conta comercial não monta módulos legados nem oferece se
   await expect(page.getByText("Nenhuma página encontrada.", { exact: true })).toBeVisible();
   const requests: string[] = [];
   page.on("request", current => { if (new URL(current.url()).origin === API_URL) requests.push(new URL(current.url()).pathname); });
-  for (const route of ["predios", "gateways", "dispositivos", "alertas", "usuarios", "unidades-equipes", "funcionalidades", "auditoria", "operacao", "suporte-remoto", "predios/?check=1"]) {
+  for (const route of ["predios", "gateways", "dispositivos", "alertas", "usuarios", "unidades-equipes", "funcionalidades", "auditoria", "operacao", "suporte-remoto", "acesso-suporte", "predios/?check=1"]) {
     await page.goto(`${ADMIN_URL}/${route}`);
     await expect(page.getByText("Este painel é exclusivo da administração da plataforma.", { exact: true })).toBeVisible();
     await expect(page.getByRole("link", { name: "Ir para Clientes", exact: true })).toBeVisible();
