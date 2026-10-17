@@ -1,5 +1,5 @@
 import { and, eq, sql } from "drizzle-orm";
-import { db, devices, lockFeatures, readFeatures } from "@predioon/db";
+import { ingestDeviceColumns, ingestDb, devices, lockFeatures, readFeatures } from "@predioon/db/ingest";
 import { REALTIME_CHANNEL, type RealtimeEvent } from "@predioon/shared";
 import { permitsAlert, permitsDeviceAlert, permitsReading } from "./features.js";
 
@@ -10,11 +10,11 @@ import { permitsAlert, permitsDeviceAlert, permitsReading } from "./features.js"
  */
 export async function publishRealtime(event: RealtimeEvent): Promise<void> {
   try {
-    await db.transaction(async tx => {
+    await ingestDb.transaction(async tx => {
       await lockFeatures(tx);
       if (event.kind === "alert" && !await permitsAlert(tx, event.buildingId, event.alertId)) return;
       if (event.kind === "telemetry" || event.kind === "device-status") {
-        const [device] = await tx.select().from(devices).where(and(eq(devices.id, event.deviceId), eq(devices.buildingId, event.buildingId))).limit(1);
+        const [device] = await tx.select(ingestDeviceColumns).from(devices).where(and(eq(devices.id, event.deviceId), eq(devices.buildingId, event.buildingId))).limit(1);
         if (!device) return;
         const features = await readFeatures(tx, event.buildingId);
         if (event.kind === "telemetry") {

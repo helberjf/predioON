@@ -158,3 +158,103 @@ for (const runtime of modules) {
 test("runtime URL and driver errors remain sanitized without opening a connection", () => {
   runInFreshProcess({ file: "runtime-connection" }, "errors");
 });
+
+const serviceModules = [
+  { file: "ingest", variable: "DATABASE_URL_INGEST", role: "predioon_ingest", client: "ingestSqlClient", db: "ingestDb", close: "closeIngestDb" },
+  { file: "access-service", variable: "DATABASE_URL_ACCESS_SERVICE", role: "predioon_access_service", client: "accessServiceSqlClient", db: "accessServiceDb", close: "closeAccessServiceDb" },
+] as const;
+
+function runServiceInFreshProcess(runtime: typeof serviceModules[number], configured: boolean): void {
+  const script = `
+    import assert from "node:assert/strict";
+    import { readFile } from "node:fs/promises";
+    import { mock } from "node:test";
+    const runtime = ${JSON.stringify(runtime)};
+    const configured = ${configured};
+    const url = "postgresql://" + runtime.role + ":service-test-secret@localhost:5436/predioon";
+    const pools = [];
+    const executors = [];
+    const closures = [];
+    let loads = 0;
+    process.env.DATABASE_URL = "postgres://owner:owner-test-secret@localhost:5436/predioon";
+    // The sibling service and the human pools have no configuration at all.
+    for (const variable of ["DATABASE_URL_APP", "DATABASE_URL_IDENTITY", "DATABASE_URL_BROKER_AUTH",
+      "DATABASE_URL_NOTIFICATIONS", "DATABASE_URL_INGEST", "DATABASE_URL_ACCESS_SERVICE"]) delete process.env[variable];
+    if (configured) process.env[runtime.variable] = url;
+    mock.module("dotenv", { namedExports: { config: () => { loads++; throw new Error("unexpected environment load"); } } });
+    mock.module("postgres", { defaultExport: (actual, options) => {
+      const client = { end: async value => { closures.push({ client, value }); } };
+      pools.push({ url: actual, options, client });
+      return client;
+    } });
+    mock.module("drizzle-orm/postgres-js", { namedExports: { drizzle: (client, options) => {
+      const db = { client, options };
+      executors.push(db);
+      return db;
+    } } });
+    const manifest = JSON.parse(await readFile(new URL("./package.json", import.meta.url), "utf8"));
+    assert.equal(manifest.exports["./" + runtime.file], "./src/" + runtime.file + ".ts", "dedicated export must exist");
+    const load = () => import("@predioon/db/" + runtime.file);
+    if (!configured) {
+      await assert.rejects(load(), error => {
+        assert.equal(error.message, runtime.variable + ": configuração de banco restrita inválida");
+        assert.equal(error.cause, undefined);
+        return true;
+      });
+      assert.equal(pools.length, 0, "missing restricted URL must never use owner or sibling credentials");
+    } else {
+      const imported = await load();
+      assert.equal(pools.length, 1, "the entrypoint constructs exactly its own physical pool");
+      assert.equal(pools[0].url, url);
+      assert.equal(new URL(pools[0].url).username, runtime.role);
+      assert.deepEqual(pools[0].options, { max: 10, connect_timeout: 5 });
+      assert.equal(imported[runtime.client], pools[0].client);
+      assert.equal(executors.length, 1);
+      assert.equal(imported[runtime.db], executors[0]);
+      assert.equal(executors[0].client, pools[0].client);
+      // The real pure schema modules stay loaded; only connection construction is mocked.
+      assert.equal(executors[0].options.schema.devices.id.name, "id");
+      assert.equal(typeof imported.lockFeatures, "function");
+      assert.equal(typeof imported.readFeatures, "function");
+      assert.equal(typeof imported.verifyRestrictedDatabaseRole, "function");
+      for (const forbidden of ["db", "sqlClient", "appDb", "appSqlClient", "withUserContext",
+        "identityDb", "brokerAuthSqlClient", "createNotificationSqlClient"]) assert.ok(!(forbidden in imported), forbidden);
+      await imported[runtime.close]();
+      assert.deepEqual(closures, [{ client: pools[0].client, value: { timeout: 5 } }]);
+      const schema = executors[0].options.schema;
+      if (runtime.file === "access-service") {
+        for (const forbidden of ["buildings", "devices", "gateways", "gates", "gateCommands", "auditLogs",
+          "ingestDeviceColumns", "ingestGatewayColumns", "ingestBuildingColumns", "ingestRuleColumns"]) assert.ok(!(forbidden in imported), forbidden);
+      }
+      for (const [projection, table, fields] of runtime.file === "ingest" ? [
+        ["ingestDeviceColumns", "devices", ["id", "buildingId", "gatewayId", "name", "type", "status", "enabled", "lastSeenAt", "createdAt", "updatedAt"]],
+        ["ingestGatewayColumns", "gateways", ["id", "buildingId", "name", "serialNumber", "model", "firmwareVersion", "protocolVersion", "status", "enabled", "lastSeenAt", "createdAt", "updatedAt"]],
+        ["ingestBuildingColumns", "buildings", ["id", "active", "timezone"]],
+        ["ingestRuleColumns", "alertRules", ["id", "buildingId", "deviceId", "metric", "operator", "threshold", "severity", "alertType", "messageTemplate", "cooldownSeconds", "enabled"]],
+      ] : []) {
+        assert.deepEqual(Object.keys(imported[projection]), fields, projection + " uses the exact safe column list");
+        for (const field of fields) assert.equal(imported[projection][field], schema[table][field]);
+      }
+    }
+    assert.equal(loads, 0, "dedicated services must never load .env implicitly");
+  `;
+  const environment: NodeJS.ProcessEnv = { NODE_ENV: "production" };
+  for (const variable of ["PATH", "Path", "SystemRoot", "SYSTEMROOT", "TEMP", "TMP", "TMPDIR"]) {
+    if (process.env[variable] !== undefined) environment[variable] = process.env[variable];
+  }
+  const result = spawnSync(process.execPath,
+    ["--experimental-test-module-mocks", "--import", "tsx", "--input-type=module", "--eval", script], {
+      cwd: fileURLToPath(new URL("../", import.meta.url)), env: environment, encoding: "utf8", windowsHide: true, timeout: 15_000,
+    });
+  assert.equal(result.error, undefined, "the isolated service subprocess must finish within its timeout");
+  assert.equal(result.status, 0, result.stderr || result.stdout || "isolated service subprocess failed");
+}
+
+for (const runtime of serviceModules) {
+  test(`${runtime.file} constructs only its dedicated pool without loading environment`, () => {
+    runServiceInFreshProcess(runtime, true);
+  });
+  test(`${runtime.file} rejects a missing URL even when owner credentials exist`, () => {
+    runServiceInFreshProcess(runtime, false);
+  });
+}

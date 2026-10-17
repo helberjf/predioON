@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import { afterEach, mock, test } from "node:test";
 import { getTableName } from "drizzle-orm";
 import { PgDialect } from "drizzle-orm/pg-core";
-import { db } from "@predioon/db";
+import "./fixtures/unit-runtime-env.js";
+import { ingestDb } from "@predioon/db/ingest";
+import { accessServiceDb } from "@predioon/db/access-service";
 import { telemetryTopic } from "@predioon/shared";
 import { handleTelemetry } from "../src/pipeline/telemetry.js";
 import { notifyAlert } from "../src/notify/index.js";
@@ -86,24 +88,50 @@ function fixture() {
       query.where = (where: any) => { condition = where; return query; }; return query;
     } }),
     execute: async (query: any) => {
-      const statement = new PgDialect().sqlToQuery(query).sql;
+      const { sql: statement, params } = new PgDialect().sqlToQuery(query);
       statements.push(statement);
-      if (statement.includes("clock_timestamp")) return [{ evaluatedAt: new Date().toISOString() }];
-      if (statement.includes("notification_enqueue_alert")) return [{ eventId: "outbox-fixture" }];
-      if (statement.includes("jsonb_build_object")) return [{ snapshot: { fixture: true } }];
-      if (statement.includes("app_mark_access_sent")) {
-        // This fixture models the transaction boundary. Capability/clock/lock
-        // decisions inside the transition are exercised against real Postgres
-        // in access-capabilities.integration.test.ts.
+      // Private 052 helpers answer in the shapes their adapters validate. Their
+      // ACL, locks and SQL decisions are covered against real PostgreSQL in the
+      // packages/db runtime suites and access-capabilities.integration.test.ts.
+      if (statement.includes("ingest_count_rejection")) return [{ result: null }];
+      if (statement.includes("ingest_lock_monitoring_profiles")) {
+        const profiles = (rows.monitoring_profiles as any[] | undefined) ?? [];
+        return profiles.filter(profile => profile.buildingId === params[0] && profile.deviceId === params[1] && profile.enabled).map(profile => ({ profile_id: profile.id }));
+      }
+      if (statement.includes("ingest_lock_parking_lot")) return [];
+      if (statement.includes("ingest_persist_alert")) {
+        const [id, buildingId, deviceId, gatewayId, ruleId, severity, type, message, triggeredValue, triggeredAt, createdAt] = params as any[];
+        const alert = { id, buildingId, deviceId, gatewayId, ruleId, severity, type, status: "OPEN", message,
+          triggeredValue: triggeredValue === null ? null : JSON.parse(triggeredValue), triggeredAt: new Date(triggeredAt), createdAt: new Date(createdAt) };
+        writes.push({ table: "alerts", values: alert }); persist("alerts", alert);
+        return [{ event_id: "outbox-fixture", signature: "0".repeat(64) }];
+      }
+      if (statement.includes("ingest_alert_outbox_signature")) return [{ signature: "0".repeat(64) }];
+      if (statement.includes("ingest_write_parking_observation")) return [{ changed: true }];
+      if (statement.includes("access_service_expire_commands")) return [{ count: 0 }];
+      if (statement.includes("access_service_next_pending")) {
+        const commands = (rows.gate_commands as any[] | undefined) ?? [], gates = (rows.gates as any[] | undefined) ?? [];
+        return commands.filter(command => command.status === "PENDING").slice(0, 1).map(command => ({
+          id: command.id, building_id: command.buildingId, gateway_id: command.gatewayId, gate_id: command.gateId, device_id: command.deviceId,
+          created_at: command.createdAt, expires_at: command.expiresAt, gate_kind: gates.find(gate => gate.id === command.gateId)?.kind ?? null }));
+      }
+      if (statement.includes("access_service_fail_pending") || statement.includes("access_service_fail_publish")) {
+        updates.push({ table: "gate_commands", values: { status: "FAILED" } });
+        return [{ changed: true }];
+      }
+      if (statement.includes("access_service_mark_sent")) {
         updates.push({ table: "gate_commands", values: { status: "SENT" } });
         return [{ reason: null }];
       }
+      if (statement.includes("clock_timestamp")) return [{ evaluatedAt: new Date().toISOString() }];
       return [];
     },
   };
   let activeTransactions = 0;
-  mock.method(db, "transaction", async (callback: any) => { activeTransactions++; try { return await callback(tx); } finally { activeTransactions--; } });
-  mock.method(db, "execute", tx.execute);
+  const transaction = async (callback: any) => { activeTransactions++; try { return await callback(tx); } finally { activeTransactions--; } };
+  mock.method(ingestDb, "transaction", transaction);
+  mock.method(accessServiceDb, "transaction", transaction);
+  mock.method(ingestDb, "execute", tx.execute);
   return { writes, updates, globalSettings, runtime, rows, device, tx, statements, activeTransactions: () => activeTransactions };
 }
 

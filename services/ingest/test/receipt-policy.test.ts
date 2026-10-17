@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { after, before, describe, it } from "node:test";
-import { sqlClient } from "@predioon/db";
+import { sqlClient } from "./fixtures/observation-admin.js";
 import { telemetryTopic, waterTelemetryTopic } from "@predioon/shared";
 import { handleTelemetry, readingFingerprint } from "../src/pipeline/telemetry.js";
 import { RULE_FRESHNESS_MS } from "../src/rules/evaluate.js";

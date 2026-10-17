@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { after, describe, it } from "node:test";
 import { and, eq, sql } from "drizzle-orm";
-import { db, sqlClient, telemetry } from "@predioon/db";
+import { db, sqlClient, telemetry } from "./fixtures/observation-admin.js";
 import { parseTelemetryTopic, telemetryTopic } from "@predioon/shared";
 import { matches } from "../src/rules/evaluate.js";
 import { handleTelemetry } from "../src/pipeline/telemetry.js";

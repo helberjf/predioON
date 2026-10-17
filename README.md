@@ -105,7 +105,7 @@ if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 
 O [`.env.example`](.env.example) contém os valores do Docker Compose local. O comando acima preserva um `.env` existente.
 
-Ao atualizar uma instalação local anterior à038, acrescente `DATABASE_URL_NOTIFICATIONS` ao `.env` existente conforme o exemplo, com a role `predioon_notifications` no mesmo banco. O provisionamento exige a conexão administrativa e quatro URLs restritas: app, identity, broker_auth e notifications. Encerrar produtores antigos antes de aplicar038 e iniciar somente a versão compatível; seguir [o guia de notificações](docs/NOTIFICACOES_DURAVEIS.md#implantação-e-rollback). Um destino vazio termina as entregas em `no_destination`; configurar webhook depois não reenvia esses alertas automaticamente.
+Ao atualizar uma instalação local anterior à038, acrescente `DATABASE_URL_NOTIFICATIONS` ao `.env` existente conforme o exemplo, com a role `predioon_notifications` no mesmo banco. O provisionamento exige a conexão administrativa e seis URLs restritas: app, identity, broker_auth, notifications e, desde a052, ingest e access_service. Depois de acrescentá-las ao `.env`, gere `services/ingest/.env.runtime` com `pnpm ingest:env`: a ingestão lê somente esse arquivo e recusa a conexão dona. Encerrar produtores antigos antes de aplicar038 e iniciar somente a versão compatível; seguir [o guia de notificações](docs/NOTIFICACOES_DURAVEIS.md#implantação-e-rollback). Um destino vazio termina as entregas em `no_destination`; configurar webhook depois não reenvia esses alertas automaticamente.
 
 ### 2. Preparar infraestrutura e banco
 
@@ -254,7 +254,8 @@ Os resultados de validações anteriores e os ensaios com broker local estão em
 | `pnpm db:push` | Ferramenta de desenvolvimento para schema; não é o mecanismo de atualização de instalação com histórico. |
 | `pnpm db:infra` | Usa `DATABASE_URL` administrativa; verifica checksums e aplica somente migrations pendentes, com ledger e lock. |
 | `pnpm db:infra --check` | Consulta baseline/histórico/pendências sem DDL; saída 0 = pronto, 2 = pendente, 1 = erro ou histórico incompatível. |
-| `pnpm db:provision-runtime` | Habilita login e configura as senhas das quatro roles restritas conforme as URLs do ambiente. |
+| `pnpm db:provision-runtime` | Habilita login e configura as senhas das seis roles restritas conforme as URLs do ambiente. |
+| `pnpm ingest:env` | Gera `services/ingest/.env.runtime` só com as duas URLs restritas da ingestão e as chaves MQTT; nunca sobrescreve um arquivo diferente. |
 | `pnpm db:seed` | Cadastra/complementa a demonstração e redefine a senha das contas demo. |
 | `pnpm --filter @predioon/admin-web dev` | Inicia apenas o painel administrador. |
 | `pnpm --filter @predioon/building-web dev` | Inicia apenas o painel do síndico. |
@@ -278,7 +279,7 @@ pnpm dev
 | Sintoma | O que conferir |
 |---|---|
 | `docker` não é reconhecido ou o engine não responde | Instalação e inicialização do Docker Desktop; depois reabra o PowerShell e confira `docker compose version`. |
-| Porta `5434` ocupada | Ajuste a porta externa em `infrastructure/docker-compose.yml`, `DATABASE_URL` e as quatro URLs restritas no `.env`, incluindo `DATABASE_URL_NOTIFICATIONS`. |
+| Porta `5434` ocupada | Ajuste a porta externa em `infrastructure/docker-compose.yml`, `DATABASE_URL` e as seis URLs restritas no `.env`, depois remova e gere de novo `services/ingest/.env.runtime` (`pnpm ingest:env`). |
 | Portas `3000`, `5173`, `5174` ou `5175` ocupadas | Libere as portas antes de iniciar. Se alterar os endereços, ajuste também `VITE_API_URL` e `CORS_ORIGINS`. |
 | Painel mostra “API indisponível” | Confira `/health/ready`, o terminal da API e se `pnpm setup:local` terminou sem erro. |
 | Painel abre, mas não mostra leituras atuais | Confira ingestão, broker e simulador; verifique cadastro do dispositivo e disponibilidade do recurso em **Funcionalidades**. |

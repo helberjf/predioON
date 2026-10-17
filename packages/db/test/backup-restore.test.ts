@@ -17,7 +17,7 @@ const administrativeUrl=process.env.TEST_MIGRATIONS_DATABASE_URL;
 const recoveryContainer=process.env.TEST_BACKUP_RESTORE_CONTAINER;
 const recoveryUrl=process.env.TEST_BACKUP_RESTORE_DATABASE_URL;
 const cwd=fileURLToPath(new URL('../',import.meta.url));
-const runtimeRoles=['predioon_app','predioon_identity','predioon_broker_auth','predioon_notifications'] as const;
+const runtimeRoles=['predioon_app','predioon_identity','predioon_broker_auth','predioon_notifications','predioon_ingest','predioon_access_service'] as const;
 type RuntimeRole=typeof runtimeRoles[number];
 const notificationTables=['outbox_events','event_deliveries','delivery_witnesses','delivery_witness_features','notification_attempts'];
 
@@ -35,14 +35,15 @@ async function snapshot(client:postgres.Sql){
     columns:await client`select c.relname,a.attname,a.attacl from pg_attribute a join pg_class c on c.oid=a.attrelid join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and a.attacl is not null order by c.relname,a.attname`,
     policies:await client`select schemaname,tablename,policyname,permissive,roles,cmd,qual,with_check from pg_policies where schemaname='public' order by tablename,policyname`,
     tables:await client`select c.relname,c.relrowsecurity,c.relforcerowsecurity,array(select acl::text from unnest(coalesce(c.relacl,acldefault('r',c.relowner))) acl order by 1) as privileges,pg_get_userbyid(c.relowner) as owner from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind in ('r','p') order by c.relname`,
-    helpers:await client`select p.proname,pg_get_function_identity_arguments(p.oid) args,p.prosecdef,p.provolatile,p.proconfig,array(select acl::text from unnest(coalesce(p.proacl,acldefault('f',p.proowner))) acl order by 1) as privileges,pg_get_userbyid(p.proowner) as owner,md5(pg_get_functiondef(p.oid)) definition from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and (left(p.proname,4)='app_' or left(p.proname,9)='identity_' or left(p.proname,13)='notification_') order by p.proname,args`,
+    helpers:await client`select p.proname,pg_get_function_identity_arguments(p.oid) args,p.prosecdef,p.provolatile,p.proconfig,array(select acl::text from unnest(coalesce(p.proacl,acldefault('f',p.proowner))) acl order by 1) as privileges,pg_get_userbyid(p.proowner) as owner,md5(pg_get_functiondef(p.oid)) definition from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and (left(p.proname,4)='app_' or left(p.proname,9)='identity_' or left(p.proname,13)='notification_' or left(p.proname,7)='ingest_' or left(p.proname,15)='access_service_' or left(p.proname,8)='service_') order by p.proname,args`,
+    defaults:await client`select pg_get_userbyid(d.defaclrole) as owner,coalesce(n.nspname,'') as schema,d.defaclobjtype,array(select acl::text from unnest(d.defaclacl) acl order by 1) as privileges from pg_default_acl d left join pg_namespace n on n.oid=d.defaclnamespace order by 1,2,3`,
   };
 }
 
 async function provisionRuntime(ownerUrl:URL):Promise<Record<RuntimeRole,string>>{
   const environment:Record<string,string|undefined>={...process.env,DATABASE_URL:ownerUrl.toString()};
   const connections={} as Record<RuntimeRole,string>;
-  for(const [variable,role] of [['DATABASE_URL_APP','predioon_app'],['DATABASE_URL_IDENTITY','predioon_identity'],['DATABASE_URL_BROKER_AUTH','predioon_broker_auth'],['DATABASE_URL_NOTIFICATIONS','predioon_notifications']] as const){
+  for(const [variable,role] of [['DATABASE_URL_APP','predioon_app'],['DATABASE_URL_IDENTITY','predioon_identity'],['DATABASE_URL_BROKER_AUTH','predioon_broker_auth'],['DATABASE_URL_NOTIFICATIONS','predioon_notifications'],['DATABASE_URL_INGEST','predioon_ingest'],['DATABASE_URL_ACCESS_SERVICE','predioon_access_service']] as const){
     const url=new URL(ownerUrl);url.username=role;url.password=randomUUID();
     environment[variable]=url.toString();connections[role]=url.toString();
   }
@@ -50,12 +51,32 @@ async function provisionRuntime(ownerUrl:URL):Promise<Record<RuntimeRole,string>
   return connections;
 }
 
+/** SQL052 logins authenticate after recovery, keep their private helpers and stay denied elsewhere. */
+async function verifyServiceRecovery(connections:Record<RuntimeRole,string>){
+  const denied=(error:unknown)=>(error as {code?:string}).code==='42501';
+  const ingest=postgres(connections.predioon_ingest,{max:1,idle_timeout:0,onnotice:()=>{}});
+  const access=postgres(connections.predioon_access_service,{max:1,idle_timeout:0,onnotice:()=>{}});
+  try{
+    for(const [client,role] of [[ingest,'predioon_ingest'],[access,'predioon_access_service']] as const){
+      const [identity]=await client`select current_user as current,session_user as session`;
+      assert.deepEqual({...identity},{current:role,session:role},`${role} authenticates with its provisioned credential`);
+    }
+    await ingest`select public.ingest_count_rejection('INVALID_ENVELOPE','')`;
+    assert.equal(typeof (await access`select public.access_service_expire_commands() as count`)[0]!.count,'number');
+    await assert.rejects(ingest`select metadata from gateways limit 1`,denied,'ingest still cannot read gateway secrets');
+    await assert.rejects(ingest`select public.access_service_expire_commands()`,denied,'ingest cannot run physical helpers');
+    await assert.rejects(access`select id from gate_commands limit 1`,denied,'access service has no direct command table access');
+    await assert.rejects(access`select public.ingest_count_rejection('INVALID_ENVELOPE','')`,denied,'access service cannot run observation helpers');
+    await assert.rejects(ingest`select count(*) from schema_migrations`,denied,'ingest cannot read the ledger');
+  }finally{await ingest.end({timeout:0});await access.end({timeout:0});}
+}
+
 async function restrictedRoles(client:postgres.Sql,login:boolean){
   const roles=await client`select rolname,rolcanlogin,rolsuper,rolinherit,rolbypassrls,rolcreatedb,rolcreaterole,rolreplication,
     exists(select 1 from pg_auth_members m where m.member=r.oid or m.roleid=r.oid) as membership,
     exists(select 1 from pg_shdepend d where d.refclassid='pg_authid'::regclass and d.refobjid=r.oid and d.deptype='o') as owns_objects
     from pg_roles r where rolname=any(${[...runtimeRoles]}) order by rolname`;
-  assert.equal(roles.length,4,'all four runtime roles must exist independently of the database archive');
+  assert.equal(roles.length,6,'all six runtime roles must exist independently of the database archive');
   for(const role of roles)assert.deepEqual(role,{rolname:role.rolname,rolcanlogin:login,rolsuper:false,rolinherit:false,rolbypassrls:false,rolcreatedb:false,rolcreaterole:false,rolreplication:false,membership:false,owns_objects:false});
 }
 
@@ -214,7 +235,7 @@ for(const separateCluster of [false,true])it(`restores a real Timescale archive 
     await applyInfrastructure(source,migrations);
     // Gates and parking are opt-in since SQL049; this fixture exercises them, so it switches them on as the platform administrator would.
     await source`update global_feature_settings set enabled=true where feature_key in ('GARAGE_ACCESS','PEDESTRIAN_ACCESS','CAR_PARKING','MOTORCYCLE_PARKING')`;
-    assert.equal(migrations.length,51,'recovery fixture includes the complete immutable SQL051 ledger');
+    assert.equal(migrations.length,52,'recovery fixture includes the complete SQL052 ledger');
     const sourceConnections=await provisionRuntime(sourceUrl);
     await restrictedRoles(source,true);
     await source`insert into organizations(id,name,slug) values('restore-org','Recovery fixture','restore-org')`;
@@ -264,7 +285,7 @@ for(const separateCluster of [false,true])it(`restores a real Timescale archive 
     // Restoring into a newly named database (without --create) restores object
     // ACLs, but not the database's own ACL. Prepare this reviewed boundary
     // explicitly; never replay an old migration or weaken the comparison.
-    const [databaseAcl]=await target`select format('REVOKE CREATE,TEMP ON DATABASE %I FROM PUBLIC,predioon_app,predioon_identity,predioon_broker_auth,predioon_notifications; GRANT CONNECT ON DATABASE %I TO predioon_app,predioon_identity,predioon_broker_auth,predioon_notifications',current_database(),current_database()) as ddl`;
+    const [databaseAcl]=await target`select format('REVOKE CREATE,TEMP ON DATABASE %I FROM PUBLIC,predioon_app,predioon_identity,predioon_broker_auth,predioon_notifications,predioon_ingest,predioon_access_service; GRANT CONNECT ON DATABASE %I TO predioon_app,predioon_identity,predioon_broker_auth,predioon_notifications,predioon_ingest,predioon_access_service',current_database(),current_database()) as ddl`;
     await target.unsafe(databaseAcl!.ddl);
     await target`create extension if not exists timescaledb`;
     await target`select timescaledb_pre_restore()`;
@@ -281,7 +302,8 @@ for(const separateCluster of [false,true])it(`restores a real Timescale archive 
     const targetConnections=await provisionRuntime(targetOwnerUrl);
     await restrictedRoles(target,true);
     await verifyNotificationRecovery(source,target,targetConnections,notifications);
-    for(const role of ['predioon_app','predioon_broker_auth','predioon_notifications']){
+    await verifyServiceRecovery(targetConnections);
+    for(const role of ['predioon_app','predioon_broker_auth','predioon_notifications','predioon_ingest','predioon_access_service']){
       await assert.rejects(target.begin(async tx=>{
         await tx.unsafe(`set local role ${role}`);
         await tx`select identity_replace_password('restore-password',${ownSession}::uuid,${previousHash},${replacementHash})`;

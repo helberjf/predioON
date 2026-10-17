@@ -11,7 +11,7 @@ import Aedes from "aedes";
 import type { MqttClient } from "mqtt";
 
 // These transport tests use a real local MQTT broker, but never connect to SQL.
-process.env.DATABASE_URL ??= "postgres://unused:unused@127.0.0.1:5436/unused";
+await import("./fixtures/unit-runtime-env.js");
 const { config } = await import("../src/config.js");
 const { connectIngest } = await import("../src/mqtt.js");
 

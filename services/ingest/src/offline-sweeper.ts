@@ -1,5 +1,5 @@
 import { and, eq, lt, ne, sql } from "drizzle-orm";
-import { alerts, db, devices, gateways, lockFeatures, readFeatures, type DbTransaction } from "@predioon/db";
+import { ingestDeviceColumns, ingestGatewayColumns, alerts, ingestDb, devices, gateways, lockFeatures, readFeatures, type IngestDevice, type IngestTransaction } from "@predioon/db/ingest";
 import type { RealtimeEvent } from "@predioon/shared";
 import { permitsDeviceAlert } from "./features.js";
 import { config } from "./config.js";
@@ -10,12 +10,13 @@ type CommunicationAlert = { buildingId: string; message: string; deviceId?: stri
 type CommunicationResult = { status?: RealtimeEvent; alert?: AlertNotification; deviceId: string | null; gatewayId: string | null };
 
 /** Source lock first, then fresh DB cutoff; state + alert + outbox commit together. */
-async function persistCommunication(tx: DbTransaction, input: CommunicationAlert, markOffline: boolean): Promise<CommunicationResult | null> {
+async function persistCommunication(tx: IngestTransaction, input: CommunicationAlert, markOffline: boolean): Promise<CommunicationResult | null> {
   await lockFeatures(tx);
   if (!!input.deviceId === !!input.gatewayId) throw new Error("Exactly one communication source is required");
   const isDevice = !!input.deviceId;
   const table = isDevice ? devices : gateways;
-  const [source] = await tx.select().from(table).where(and(eq(table.id, input.deviceId ?? input.gatewayId!), eq(table.buildingId, input.buildingId))).limit(1).for("update");
+  const projection = isDevice ? ingestDeviceColumns : ingestGatewayColumns;
+  const [source] = await tx.select(projection).from(table).where(and(eq(table.id, input.deviceId ?? input.gatewayId!), eq(table.buildingId, input.buildingId))).limit(1).for("update");
   if (!source?.enabled || (markOffline && source.status === "DISABLED")) return null;
   // Raw Drizzle execute keeps PostgreSQL timestamps as strings; mapped selects
   // yield Dates. Parse the fresh DB clock explicitly before cutoff comparison.
@@ -31,14 +32,14 @@ async function persistCommunication(tx: DbTransaction, input: CommunicationAlert
   let expected = source;
   if (markOffline && source.status !== "OFFLINE") {
     expected = { ...source, status: "OFFLINE", updatedAt: evaluatedAt };
-    const updated = await tx.update(table).set({ status: "OFFLINE", updatedAt: evaluatedAt }).where(eq(table.id, source.id)).returning();
+    const updated = await tx.update(table).set({ status: "OFFLINE", updatedAt: evaluatedAt }).where(eq(table.id, source.id)).returning(projection);
     assertPersisted(updated.length === 1 ? updated[0] : undefined, expected, "Communication status");
-    const [persisted] = await tx.select().from(table).where(eq(table.id, source.id)).limit(1);
+    const [persisted] = await tx.select(projection).from(table).where(eq(table.id, source.id)).limit(1);
     assertPersisted(persisted, expected, "Communication status");
     result.status = isDevice ? { kind: "device-status", buildingId: source.buildingId, deviceId: source.id, status: "OFFLINE" }
       : { kind: "gateway-status", buildingId: source.buildingId, gatewayId: source.id, status: "OFFLINE" };
   }
-  if (isDevice && !await permitsDeviceAlert(tx, await readFeatures(tx, source.buildingId), source.buildingId, source as typeof devices.$inferSelect)) return result;
+  if (isDevice && !await permitsDeviceAlert(tx, await readFeatures(tx, source.buildingId), source.buildingId, source as IngestDevice)) return result;
   const [open] = await tx.select({ id: alerts.id }).from(alerts).where(and(
     eq(alerts.buildingId, source.buildingId), isDevice ? eq(alerts.deviceId, source.id) : eq(alerts.gatewayId, source.id),
     eq(alerts.type, "COMMUNICATION_LOST"), ne(alerts.status, "RESOLVED"),
@@ -48,7 +49,7 @@ async function persistCommunication(tx: DbTransaction, input: CommunicationAlert
     severity: "HIGH", type: "COMMUNICATION_LOST", message: markOffline ? `${source.name} sem comunicação` : input.message,
     triggeredAt: evaluatedAt,
   }, checks);
-  const [final] = await tx.select().from(table).where(eq(table.id, source.id)).limit(1);
+  const [final] = await tx.select(projection).from(table).where(eq(table.id, source.id)).limit(1);
   assertPersisted(final, expected, "Communication status");
   await checks.verify();
   return result;
@@ -65,20 +66,20 @@ async function publishCommunication(result: CommunicationResult | null): Promise
 
 /** Candidates are hints only; each source is locked/rechecked before mutation. */
 export async function sweepOffline(): Promise<void> {
-  const staleGateways = await db.select({ id: gateways.id, buildingId: gateways.buildingId }).from(gateways).where(and(
+  const staleGateways = await ingestDb.select({ id: gateways.id, buildingId: gateways.buildingId }).from(gateways).where(and(
     ne(gateways.status, "OFFLINE"), ne(gateways.status, "DISABLED"), eq(gateways.enabled, true),
     lt(gateways.lastSeenAt, sql`clock_timestamp()-make_interval(secs=>${config.GATEWAY_OFFLINE_TIMEOUT_SECONDS})`),
   ));
   for (const gateway of staleGateways) {
-    const result = await db.transaction(tx => persistCommunication(tx, { buildingId: gateway.buildingId, gatewayId: gateway.id, message: "" }, true));
+    const result = await ingestDb.transaction(tx => persistCommunication(tx, { buildingId: gateway.buildingId, gatewayId: gateway.id, message: "" }, true));
     await publishCommunication(result);
   }
-  const staleDevices = await db.select({ id: devices.id, buildingId: devices.buildingId }).from(devices).where(and(
+  const staleDevices = await ingestDb.select({ id: devices.id, buildingId: devices.buildingId }).from(devices).where(and(
     ne(devices.status, "DISABLED"), eq(devices.enabled, true),
     lt(devices.lastSeenAt, sql`clock_timestamp()-make_interval(secs=>${config.DEVICE_OFFLINE_TIMEOUT_SECONDS})`),
   ));
   for (const device of staleDevices) {
-    const result = await db.transaction(tx => persistCommunication(tx, { buildingId: device.buildingId, deviceId: device.id, message: "" }, true));
+    const result = await ingestDb.transaction(tx => persistCommunication(tx, { buildingId: device.buildingId, deviceId: device.id, message: "" }, true));
     await publishCommunication(result);
   }
   if (staleGateways.length || staleDevices.length) console.log(`[offline] ${staleGateways.length} gateway(s) e ${staleDevices.length} dispositivo(s) verificados.`);
@@ -86,7 +87,7 @@ export async function sweepOffline(): Promise<void> {
 
 /** Direct communication producers use the same source/outbox transaction. */
 export async function raiseCommunicationAlert(input: CommunicationAlert): Promise<void> {
-  await publishCommunication(await db.transaction(tx => persistCommunication(tx, input, false)));
+  await publishCommunication(await ingestDb.transaction(tx => persistCommunication(tx, input, false)));
 }
 
 export function startOfflineSweeper(): NodeJS.Timeout {

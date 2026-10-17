@@ -35,6 +35,8 @@ jobs:
       DATABASE_URL_IDENTITY: postgres://predioon_identity:predioon_identity@localhost:5436/predioon
       DATABASE_URL_BROKER_AUTH: postgres://predioon_broker_auth:predioon_broker_auth@localhost:5436/predioon
       DATABASE_URL_NOTIFICATIONS: postgres://predioon_notifications:predioon_notifications@localhost:5436/predioon
+      DATABASE_URL_INGEST: postgres://predioon_ingest:predioon_ingest@localhost:5436/predioon
+      DATABASE_URL_ACCESS_SERVICE: postgres://predioon_access_service:predioon_access_service@localhost:5436/predioon
       TEST_MIGRATIONS_DATABASE_URL: postgres://predioon:predioon@localhost:5436/predioon
       RUN_ACCESS_DB_TESTS: '1'
       RUN_RBAC_DB_TESTS: '1'
@@ -62,6 +64,13 @@ jobs:
       - name: Database migration and privilege tests
         run: pnpm --filter @predioon/db exec node --import tsx --test --test-concurrency=1 test/*.test.ts
       - name: Full platform regression
+        # Ingestion handlers authenticate with the two restricted logins; the owner
+        # URL reaches only their administrative fixture.
+        env:
+          TEST_INGEST_DISPOSABLE_DB: '1'
+          TEST_INGEST_DATABASE_URL: postgres://predioon:predioon@localhost:5436/predioon
+          TEST_INGEST_RUNTIME_DATABASE_URL: postgres://predioon_ingest:predioon_ingest@localhost:5436/predioon
+          TEST_ACCESS_RUNTIME_DATABASE_URL: postgres://predioon_access_service:predioon_access_service@localhost:5436/predioon
         run: pnpm test
       - name: Native reservation calendar contract against the real API
         env:
@@ -82,6 +91,7 @@ jobs:
         run: |
           docker build -f infrastructure/Dockerfile.node --build-arg SERVICE=api -t predioon-api:test .
           docker build -f infrastructure/Dockerfile.node --build-arg SERVICE=notifications -t predioon-notifications:test .
+          docker build -f infrastructure/Dockerfile.node --build-arg SERVICE=ingest -t predioon-ingest:test .
           docker build -f infrastructure/Dockerfile.web --build-arg VITE_API_URL=https://api.example.invalid -t predioon-web:test .
       - name: Verify production proxy isolation and forwarded headers
         run: node scripts/test-production-proxy.mjs
@@ -150,7 +160,6 @@ jobs:
           --health-interval 5s --health-timeout 5s --health-retries 20
     env:
       TEST_NOTIFICATION_DATABASE_URL: postgres://predioon:predioon@localhost:5436/predioon
-      TEST_NOTIFICATION_PRODUCERS_DATABASE_URL: postgres://predioon:predioon@localhost:5436/predioon
       TEST_NOTIFICATION_DISPOSABLE_DB: '1'
       NODE_ENV: test
     steps:
@@ -165,5 +174,53 @@ jobs:
         run: pnpm --filter @predioon/db exec node --import tsx --test --test-concurrency=1 test/notification-delivery.test.ts
       - name: Complete worker host and real connection failure contracts
         run: pnpm --filter @predioon/notifications test
-      - name: Real producer transaction and outbox atomicity contracts
-        run: pnpm --filter @predioon/ingest exec node --import tsx --test --test-concurrency=1 test/outbox-producers.integration.test.ts
+
+  ingest-runtime:
+    # SQL052 suites create, alter and drop cluster-wide roles and memberships.
+    # They run alone, on a fresh physical cluster whose identity is pinned below;
+    # producer/outbox atomicity now runs here with the restricted ingest login.
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: timescale/timescaledb:2.17.2-pg16
+        env:
+          POSTGRES_USER: predioon
+          POSTGRES_PASSWORD: predioon
+          POSTGRES_DB: predioon
+          TIMESCALEDB_TELEMETRY: 'off'
+        ports: ['5436:5432']
+        options: >-
+          --health-cmd "pg_isready -U predioon -d predioon"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      TEST_INGEST_DISPOSABLE_DB: '1'
+      TEST_INGEST_DATABASE_URL: postgres://predioon:predioon@localhost:5436/predioon
+      NODE_ENV: test
+      TZ: America/Sao_Paulo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Pin the disposable cluster identity
+        env:
+          CONTAINER: ${{ job.services.postgres.id }}
+        run: |
+          identifier=$(docker exec "$CONTAINER" psql -U predioon -d predioon -qAt -c 'select system_identifier from pg_control_system()')
+          { echo "TEST_INGEST_CONTAINER_ID=$CONTAINER"; echo "TEST_INGEST_EXPECTED_CONTAINER_ID=$CONTAINER"; echo "TEST_INGEST_EXPECTED_SYSTEM_IDENTIFIER=$identifier"; } >> "$GITHUB_ENV"
+      - name: SQL052 catalogue, logins, operations and hardening
+        run: >-
+          pnpm --filter @predioon/db exec node --import tsx --test --test-concurrency=1
+          test/runtime-services-fixture.test.ts test/ingest-runtime-migration.test.ts
+          test/ingest-runtime.test.ts test/access-service.test.ts
+          test/ingest-runtime-operations.test.ts test/access-service-operations.test.ts
+          test/ingest-runtime-extension-acl.test.ts test/ingest-runtime-hardening-regression.test.ts
+      - name: Ingestion service suites with only the restricted logins
+        working-directory: packages/db
+        run: node --import tsx ../../scripts/test-ingest-restricted-suites.mjs
+      - name: Runtime environment projection
+        run: node --test scripts/test-ingest-runtime-env.mjs
