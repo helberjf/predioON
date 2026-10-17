@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { AlertTriangle, Boxes, CalendarDays, Car, ClipboardList, ChartNoAxesCombined, Cpu, DoorOpen, Droplets, House, Megaphone, Monitor, ScrollText, ShieldCheck, SlidersHorizontal, Workflow, Wrench, Zap } from "lucide-react";
+import { AlertTriangle, Boxes, LifeBuoy, CalendarDays, Car, ClipboardList, ChartNoAxesCombined, Cpu, DoorOpen, Droplets, House, Megaphone, Monitor, ScrollText, ShieldCheck, SlidersHorizontal, Workflow, Wrench, Zap } from "lucide-react";
 import { BuildingSelector, DashboardFrame, useFeatures, useAuth, useBuildingScope, useResource } from "@predioon/ui";
 // Order and grouping are what the menu shows; each group gets one heading.
 const LINKS = [
@@ -23,6 +23,7 @@ const LINKS = [
   { group: "Administração", to: "/regras", label: "Regras de alerta", icon: SlidersHorizontal },
   { group: "Administração", to: "/automacoes", label: "Automações", icon: Workflow },
   { group: "Administração", to: "/auditoria", label: "Histórico de atividades", icon: ScrollText },
+  { group: "Administração", to: "/acesso-suporte", label: "Acesso de suporte", icon: LifeBuoy },
   { group: "Administração", to: "/sessoes", label: "Minhas sessões", icon: Monitor },
 ];
 export function Shell({ children }: { children: ReactNode }) {

@@ -13,6 +13,7 @@ import { Audit } from "./pages/Audit.js";
 import { Operations } from "./pages/Operations.js";
 import { Features } from "./pages/Features.js";
 import { Support } from "./pages/Support.js";
+import { SupportAccess } from "./pages/SupportAccess.js";
 import { Tenancy } from "./pages/Tenancy.js";
 import { OrganizationAccessFeedback, OrganizationAccessProvider, useOrganizationAccess } from "./organization-access.js";
 
@@ -63,6 +64,7 @@ function AuthenticatedApp() {
         <Route path="/unidades-equipes" element={gated(<Tenancy />)} />
         <Route path="/funcionalidades" element={gated(<Features />)} />
         <Route path="/auditoria" element={gated(<Audit />)} />
+        <Route path="/acesso-suporte" element={gated(<SupportAccess />)} />
         <Route path="/operacao" element={gated(<FeatureContent path="/operacao"><Operations /></FeatureContent>)} />
         <Route path="/suporte-remoto" element={gated(<FeatureContent path="/suporte-remoto"><Support /></FeatureContent>)} />
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { AlertTriangle, Building2, ChartNoAxesCombined, Cpu, House, Monitor, RadioTower, ScrollText, ShieldCheck, Users } from "lucide-react";
+import { AlertTriangle, Building2, LifeBuoy, ChartNoAxesCombined, Cpu, House, Monitor, RadioTower, ScrollText, ShieldCheck, Users } from "lucide-react";
 import { DashboardFrame, useFeatures, useAuth } from "@predioon/ui";
 import { organizationRouteAllowed, useOrganizationAccess } from "../organization-access.js";
 // Order and grouping are what the menu shows; each group gets one heading.
@@ -15,6 +15,7 @@ const LINKS = [
   { group: "Infraestrutura", to: "/suporte-remoto", label: "Suporte remoto", icon: Monitor },
   { group: "Administração", to: "/usuarios", label: "Usuários", icon: Users },
   { group: "Administração", to: "/unidades-equipes", label: "Unidades e equipes", icon: Building2 },
+  { group: "Administração", to: "/acesso-suporte", label: "Acesso de suporte", icon: LifeBuoy },
   { group: "Administração", to: "/funcionalidades", label: "Funcionalidades", icon: ShieldCheck },
   { group: "Administração", to: "/auditoria", label: "Histórico de atividades", icon: ScrollText },
   { group: "Administração", to: "/sessoes", label: "Minhas sessões", icon: Monitor },
