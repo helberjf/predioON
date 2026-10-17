@@ -17,7 +17,11 @@ const buildingId = z.string().trim().min(1).max(128);
 const version = z.number().int().positive();
 const name = z.string().trim().min(1).max(120);
 // The only action is opening a work order. No definition can request a physical command.
+// A version reacts to alerts or to the calendar (057), never to both.
 const Definition = z.object({
+  trigger: z.enum(["ALERT", "SCHEDULE"]).default("ALERT"),
+  everyDays: z.number().int().min(1).max(366).nullable().default(null),
+  startsAt: z.string().datetime({ offset: true }).nullable().default(null),
   alertTypes: z.array(z.string().trim().min(1).max(80)).max(20).default([]).refine(types => new Set(types).size === types.length, "Tipos de alerta repetidos"),
   minSeverity: z.enum(["INFO", "LOW", "MEDIUM", "HIGH", "CRITICAL"]).default("INFO"),
   deviceId: z.string().min(1).max(128).nullable().default(null),
@@ -26,7 +30,12 @@ const Definition = z.object({
   assignedTeamId: id.nullable().default(null),
   assetId: id.nullable().default(null),
   cooldownMinutes: z.number().int().min(0).max(10080).default(60),
-}).strict();
+}).strict().superRefine((d, ctx) => {
+  if (d.trigger === "SCHEDULE") {
+    if (d.everyDays === null || d.startsAt === null) ctx.addIssue({ code: "custom", message: "Informe o intervalo em dias e a primeira data" });
+    if (d.alertTypes.length || d.deviceId) ctx.addIssue({ code: "custom", message: "Automação programada não filtra alertas nem equipamento" });
+  } else if (d.everyDays !== null || d.startsAt !== null) ctx.addIssue({ code: "custom", message: "Intervalo e data só valem para automação programada" });
+});
 const List = z.object({ buildingId });
 const Create = z.object({ buildingId, name, definition: Definition }).strict();
 const AddVersion = z.object({ version, definition: Definition }).strict();
@@ -39,7 +48,8 @@ const ruleView = sql`r.id, r.building_id as "buildingId", r.name, r.enabled, r.p
   ${isoTime(sql`r.created_at`)} as "createdAt", ${isoTime(sql`r.updated_at`)} as "updatedAt",
   (select max(v.number) from automation_versions v where v.automation_id=r.id) as "latestVersion",
   (select count(*)::int from automation_runs n where n.automation_id=r.id and n.outcome='CREATED') as "ordersCreated"`;
-const versionView = sql`v.number, v.alert_types as "alertTypes", v.min_severity as "minSeverity", v.device_id as "deviceId", v.order_title as "orderTitle",
+const versionView = sql`v.number, v.trigger_kind as "trigger", v.schedule_every_days as "everyDays",
+  case when v.schedule_starts_at is null then null else ${isoTime(sql`v.schedule_starts_at`)} end as "startsAt", v.alert_types as "alertTypes", v.min_severity as "minSeverity", v.device_id as "deviceId", v.order_title as "orderTitle",
   v.order_priority as "orderPriority", v.assigned_team_id as "assignedTeamId", v.asset_id as "assetId", v.cooldown_minutes as "cooldownMinutes",
   ${isoTime(sql`v.created_at`)} as "createdAt"`;
 
@@ -65,8 +75,8 @@ async function visible(tx: AppTransaction, target: string): Promise<Rule> {
   return rule;
 }
 const addVersion = (tx: AppTransaction, rule: { id: string; buildingId: string }, number: number, d: z.infer<typeof Definition>, actor: string) =>
-  tx.execute(sql`insert into automation_versions(automation_id,building_id,number,alert_types,min_severity,device_id,order_title,order_priority,assigned_team_id,asset_id,cooldown_minutes,created_by)
-    values(${rule.id},${rule.buildingId},${number},${sql`array[${sql.join(d.alertTypes.map(type => sql`${type}`), sql`,`)}]::text[]`},${d.minSeverity}::alert_severity,${d.deviceId},
+  tx.execute(sql`insert into automation_versions(automation_id,building_id,number,trigger_kind,schedule_every_days,schedule_starts_at,alert_types,min_severity,device_id,order_title,order_priority,assigned_team_id,asset_id,cooldown_minutes,created_by)
+    values(${rule.id},${rule.buildingId},${number},${d.trigger},${d.everyDays},${d.startsAt}::timestamptz,${sql`array[${sql.join(d.alertTypes.map(type => sql`${type}`), sql`,`)}]::text[]`},${d.minSeverity}::alert_severity,${d.deviceId},
       ${d.orderTitle},${d.orderPriority},${d.assignedTeamId}::uuid,${d.assetId}::uuid,${d.cooldownMinutes},${actor})`);
 /** Every state change is versioned: a stale client is told to reload instead of overwriting. */
 async function bump(tx: AppTransaction, target: string, expected: number, changes: SQL): Promise<Rule> {
@@ -103,7 +113,8 @@ automationsRouter.get("/:id", async (req, res) => {
   res.json(await inAutomations(req, async tx => {
     const rule = await visible(tx, target);
     const versions = await rows(tx, sql`select ${versionView} from automation_versions v where v.automation_id=${target} order by v.number desc`);
-    const runs = await rows(tx, sql`select n.id, n.version_number as "versionNumber", n.alert_id as "alertId", n.outcome, n.work_order_id as "workOrderId", ${isoTime(sql`n.created_at`)} as "createdAt"
+    const runs = await rows(tx, sql`select n.id, n.version_number as "versionNumber", n.alert_id as "alertId",
+      case when n.scheduled_for is null then null else ${isoTime(sql`n.scheduled_for`)} end as "scheduledFor", n.outcome, n.work_order_id as "workOrderId", ${isoTime(sql`n.created_at`)} as "createdAt"
       from automation_runs n where n.automation_id=${target} order by n.created_at desc, n.id desc limit 20`);
     return { ...rule, versions, runs };
   }));
@@ -152,15 +163,25 @@ automationsRouter.post("/:id/state", validateBody(State), async (req, res) => {
   }));
 });
 
-/** Dry run against the last 30 days of alerts. Nothing is created or recorded. */
+/** Dry run: alerts of the last 30 days, or the next dates of a schedule. Nothing is created or recorded. */
 automationsRouter.post("/:id/simulate", validateBody(Simulate), async (req, res) => {
   const target = ruleId(req);
   const { number } = req.body as z.infer<typeof Simulate>;
   res.json(await inAutomations(req, async tx => {
     const rule = await visible(tx, target);
     await assertCapability(tx, "alerts:read", rule.buildingId);
-    const [known] = await rows(tx, sql`select 1 from automation_versions where automation_id=${target} and number=${number}`);
+    const [known] = await rows<{ trigger: string; everyDays: number | null; startsAt: string | null }>(tx, sql`select trigger_kind as "trigger",
+      schedule_every_days as "everyDays", case when schedule_starts_at is null then null else ${isoTime(sql`schedule_starts_at`)} end as "startsAt"
+      from automation_versions where automation_id=${target} and number=${number}`);
     if (!known) throw notFound("Versão não encontrada");
+    if (known.trigger === "SCHEDULE") {
+      const occurrences = await rows<{ at: string }>(tx, sql`with base as (
+          select ${known.startsAt}::timestamptz as starts, ${known.everyDays}::integer as every,
+            greatest(0, floor(extract(epoch from clock_timestamp()-${known.startsAt}::timestamptz)/(${known.everyDays}::integer*86400.0))::integer) as passed)
+        select ${isoTime(sql`at`)} as "at" from (select starts+make_interval(days => every*k) as at from base, generate_series(passed, passed+6) k) dates
+        where at > clock_timestamp() order by at limit 5`);
+      return { number, matches: [], nextOccurrences: occurrences.map(row => row.at) };
+    }
     const matches = await rows(tx, sql`select alert_id as "alertId", alert_type as "type", severity, message, ${isoTime(sql`triggered_at`)} as "triggeredAt"
       from app_automation_simulate(${target}::uuid, ${number})`);
     return { number, matches };

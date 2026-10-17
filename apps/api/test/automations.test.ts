@@ -198,7 +198,9 @@ describe("automations open work orders from alerts through published versions on
   });
 
   it("reapplies 045 without changing functions, policies or grants", async () => {
-    const migration = await readFile(new URL("../../../infrastructure/045-automations.sql", import.meta.url), "utf8");
+    // 057 redefines the guard and the matcher; migrations run in order, so 045 is reapplied followed by it.
+    const migration = (await Promise.all(["045-automations.sql", "057-automation-schedules.sql"].map(file =>
+      readFile(new URL(`../../../infrastructure/${file}`, import.meta.url), "utf8")))).join(";\n");
     const rollback = new Error("045 reapplication rollback");
     await assert.rejects(sqlClient.begin(async owner => {
       const invariant = async () => ({

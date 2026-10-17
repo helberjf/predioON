@@ -342,3 +342,9 @@ Também retira `INSERT`, `UPDATE` e `DELETE` de `sessions` da role da API de neg
 
 **Efeito ao aplicar:** a rota `/telemetry/latest` passa a consultar uma leitura por série em vez de ordenar a última semana inteira (medido: 1,3 s → 0,27 s com 50 dispositivos a uma leitura por minuto). O resultado é o mesmo, inclusive o desempate por `id` em leituras no mesmo instante. A restauração por `pg_dump`/`pg_restore` não muda: gatilhos e chaves só são criados depois dos dados.
 
+## Release 057: automações programadas
+
+`057-automation-schedules.sql` acrescenta às versões de automação o gatilho (`trigger_kind` ALERT ou SCHEDULE), o intervalo em dias e a primeira data, com CHECK que impede misturar os dois gatilhos. Em `automation_runs`, uma execução passa a ter alerta **ou** data programada, com chave única por regra e data. A guarda de imutabilidade e a comparação com alertas (045) foram redefinidas para incluir os campos novos. O executor `app_automation_run_schedules()` é registrado no agendador do TimescaleDB a cada 5 minutos.
+
+**Efeito ao aplicar:** automações existentes continuam como gatilho de alerta, sem mudança. A tarefa do agendador aparece em `timescaledb_information.jobs`. O agendador precisa de `timescaledb.max_background_workers` maior que zero (padrão da imagem oficial).
+

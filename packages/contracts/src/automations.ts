@@ -1,8 +1,13 @@
 /** Public JSON contracts for automations. The only action opens a work order. */
 export type AlertSeverity = "INFO" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 
+export type AutomationTrigger = "ALERT" | "SCHEDULE";
 export type AutomationDefinition = {
-  /** Empty means any alert type. */
+  /** ALERT reacts to new alerts; SCHEDULE opens an order every `everyDays` from `startsAt` (057). */
+  trigger: AutomationTrigger;
+  everyDays: number | null;
+  startsAt: string | null;
+  /** Empty means any alert type. Always empty for a schedule. */
   alertTypes: string[];
   minSeverity: AlertSeverity;
   /** Restricts the rule to alerts of one device. */
@@ -16,7 +21,9 @@ export type AutomationDefinition = {
 };
 export type AutomationVersionView = AutomationDefinition & { number: number; createdAt: string };
 export type AutomationRunView = {
-  id: string; versionNumber: number; alertId: string;
+  id: string; versionNumber: number;
+  /** Exactly one is set: the alert that triggered the run, or the scheduled date it covers. */
+  alertId: string | null; scheduledFor: string | null;
   outcome: "CREATED" | "SKIPPED_COOLDOWN" | "FAILED"; workOrderId: string | null; createdAt: string;
 };
 export type AutomationView = {
@@ -27,7 +34,9 @@ export type AutomationView = {
 };
 export type AutomationDetail = AutomationView & { versions: AutomationVersionView[]; runs: AutomationRunView[] };
 export type AutomationListResponse = { items: AutomationView[]; canManage: boolean };
-export type AutomationSimulation = { number: number; matches: Array<{ alertId: string; type: string; severity: AlertSeverity; message: string; triggeredAt: string }> };
+export type AutomationSimulation = { number: number; matches: Array<{ alertId: string; type: string; severity: AlertSeverity; message: string; triggeredAt: string }>;
+  /** Only for a schedule: the next dates that will open an order. */
+  nextOccurrences?: string[] };
 
 export type CreateAutomationRequest = { buildingId: string; name: string; definition: Partial<AutomationDefinition> & { orderTitle: string } };
 /** `version` is the rule's last read value; a stale one is answered with 409. */

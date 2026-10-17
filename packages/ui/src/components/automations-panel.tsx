@@ -17,14 +17,21 @@ const PRIORITIES = [{ value: "LOW", label: "Baixa" }, { value: "NORMAL", label: 
 const OUTCOME: Record<string, { label: string; tone: Tone }> = {
   CREATED: { label: "Ordem aberta", tone: "success" }, SKIPPED_COOLDOWN: { label: "Em pausa", tone: "neutral" }, FAILED: { label: "Falhou", tone: "danger" },
 };
-const EMPTY = { name: "", alertTypes: "", minSeverity: "HIGH", deviceId: "", orderTitle: "", orderPriority: "NORMAL", assignedTeamId: "", assetId: "", cooldownMinutes: "60" };
+const TRIGGERS = [{ value: "ALERT", label: "Quando chegar um alerta" }, { value: "SCHEDULE", label: "Em datas programadas (manutenção preventiva)" }];
+const EMPTY = { name: "", trigger: "ALERT", everyDays: "30", startsOn: "", alertTypes: "", minSeverity: "HIGH", deviceId: "", orderTitle: "", orderPriority: "NORMAL", assignedTeamId: "", assetId: "", cooldownMinutes: "60" };
 type Draft = typeof EMPTY;
-const definitionOf = (draft: Draft): AutomationDefinition => ({
-  alertTypes: [...new Set(draft.alertTypes.split(",").map(type => type.trim()).filter(Boolean))], minSeverity: draft.minSeverity as AlertSeverity,
-  deviceId: draft.deviceId || null, orderTitle: draft.orderTitle.trim(), orderPriority: draft.orderPriority as AutomationDefinition["orderPriority"],
-  assignedTeamId: draft.assignedTeamId || null, assetId: draft.assetId || null, cooldownMinutes: Number(draft.cooldownMinutes || 0),
-});
-const draftOf = (name: string, version: AutomationVersionView): Draft => ({ name, alertTypes: version.alertTypes.join(", "), minSeverity: version.minSeverity, deviceId: version.deviceId ?? "",
+/** A schedule date is a calendar day; the order is due at 08:00 local time. */
+const localDay = (iso: string) => { const at = new Date(iso); return `${at.getFullYear()}-${String(at.getMonth() + 1).padStart(2, "0")}-${String(at.getDate()).padStart(2, "0")}`; };
+const definitionOf = (draft: Draft): AutomationDefinition => {
+  const order = { orderTitle: draft.orderTitle.trim(), orderPriority: draft.orderPriority as AutomationDefinition["orderPriority"],
+    assignedTeamId: draft.assignedTeamId || null, assetId: draft.assetId || null };
+  if (draft.trigger === "SCHEDULE") return { trigger: "SCHEDULE", everyDays: Number(draft.everyDays), startsAt: new Date(`${draft.startsOn}T08:00`).toISOString(),
+    alertTypes: [], minSeverity: "INFO", deviceId: null, cooldownMinutes: 0, ...order };
+  return { trigger: "ALERT", everyDays: null, startsAt: null, alertTypes: [...new Set(draft.alertTypes.split(",").map(type => type.trim()).filter(Boolean))],
+    minSeverity: draft.minSeverity as AlertSeverity, deviceId: draft.deviceId || null, cooldownMinutes: Number(draft.cooldownMinutes || 0), ...order };
+};
+const draftOf = (name: string, version: AutomationVersionView): Draft => ({ name, trigger: version.trigger, everyDays: String(version.everyDays ?? 30),
+  startsOn: version.startsAt ? localDay(version.startsAt) : "", alertTypes: version.alertTypes.join(", "), minSeverity: version.minSeverity, deviceId: version.deviceId ?? "",
   orderTitle: version.orderTitle, orderPriority: version.orderPriority, assignedTeamId: version.assignedTeamId ?? "", assetId: version.assetId ?? "", cooldownMinutes: String(version.cooldownMinutes) });
 const statusOf = (rule: AutomationView): { label: string; tone: Tone } => rule.enabled ? { label: "Ativa", tone: "success" }
   : rule.publishedVersion === null ? { label: "Rascunho", tone: "warning" } : { label: "Desativada", tone: "neutral" };
@@ -62,7 +69,7 @@ export function AutomationsPanel({ buildingId }: { buildingId: string }) {
 
   if (!rules.data) return <Card title="Automações"><ResourceFeedback resource={rules} emptyText="Sua conta não tem permissão para consultar as automações deste condomínio." /></Card>;
   return <>
-    <div className="flex flex-wrap items-center justify-between gap-3"><div><h1 className="text-2xl font-bold text-slate-900">Automações</h1><p className="mt-1 text-sm text-slate-500">Abra ordens de serviço automaticamente quando um alerta chegar. Automações não acionam portões nem equipamentos.</p></div>
+    <div className="flex flex-wrap items-center justify-between gap-3"><div><h1 className="text-2xl font-bold text-slate-900">Automações</h1><p className="mt-1 text-sm text-slate-500">Abra ordens de serviço automaticamente quando um alerta chegar ou em datas programadas. Automações não acionam portões nem equipamentos.</p></div>
       <Button variant="secondary" disabled={pending} onClick={refresh}>Atualizar</Button></div>
     {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
     {success && <p role="status" className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">{success}</p>}
@@ -91,15 +98,22 @@ export function AutomationsPanel({ buildingId }: { buildingId: string }) {
 }
 
 function DefinitionFields({ draft, change, options }: { draft: Draft; change: (next: Draft) => void; options: { teams: Options; assets: Options; devices: Options } }) {
+  const schedule = draft.trigger === "SCHEDULE";
   return <>
+    <Field label="Quando agir"><Select value={draft.trigger} onChange={trigger => change({ ...draft, trigger })} options={TRIGGERS} /></Field>
+    {schedule ? <>
+      <Field label="Repetir a cada (dias)"><Input type="number" min={1} max={366} step={1} required value={draft.everyDays} onChange={everyDays => change({ ...draft, everyDays })} /></Field>
+      <Field label="Primeira data" hint="A ordem é aberta às 8h de cada data"><Input type="date" required value={draft.startsOn} onChange={startsOn => change({ ...draft, startsOn })} /></Field>
+    </> : <>
     <Field label="Tipos de alerta" hint="Separe por vírgula; vazio aceita qualquer tipo"><Input maxLength={600} value={draft.alertTypes} onChange={alertTypes => change({ ...draft, alertTypes })} placeholder="PUMP_CONTINUOUS_LIMIT" /></Field>
     <Field label="Gravidade mínima"><Select value={draft.minSeverity} onChange={minSeverity => change({ ...draft, minSeverity })} options={SEVERITIES} /></Field>
     <Field label="Equipamento"><Select value={draft.deviceId} onChange={deviceId => change({ ...draft, deviceId })} options={options.devices} /></Field>
+    </>}
     <Field label="Título da ordem de serviço"><Input required maxLength={160} value={draft.orderTitle} onChange={orderTitle => change({ ...draft, orderTitle })} placeholder="Verificar bomba" /></Field>
     <Field label="Prioridade da ordem"><Select value={draft.orderPriority} onChange={orderPriority => change({ ...draft, orderPriority })} options={PRIORITIES} /></Field>
     <Field label="Equipe responsável"><Select value={draft.assignedTeamId} onChange={assignedTeamId => change({ ...draft, assignedTeamId })} options={options.teams} /></Field>
     <Field label="Ativo"><Select value={draft.assetId} onChange={assetId => change({ ...draft, assetId })} options={options.assets} /></Field>
-    <Field label="Pausa entre ordens (minutos)" hint="Depois de abrir uma ordem, novos alertas são ignorados por este tempo"><Input type="number" min={0} max={10080} step={1} required value={draft.cooldownMinutes} onChange={cooldownMinutes => change({ ...draft, cooldownMinutes })} /></Field>
+    {!schedule && <Field label="Pausa entre ordens (minutos)" hint="Depois de abrir uma ordem, novos alertas são ignorados por este tempo"><Input type="number" min={0} max={10080} step={1} required value={draft.cooldownMinutes} onChange={cooldownMinutes => change({ ...draft, cooldownMinutes })} /></Field>}
   </>;
 }
 
@@ -122,17 +136,18 @@ function Details({ rule, canManage, options, pending, mutate }: { rule: Automati
       <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Versões</h3>
       <ul className="mt-2 space-y-3">{detail.data.versions.map(version => <li key={version.number} className="flex flex-wrap items-start justify-between gap-3">
         <div><strong>Versão {version.number}</strong>{rule.publishedVersion === version.number && <span className="ml-2"><Badge tone="success">Publicada</Badge></span>}
-          <p className="mt-1 text-slate-600">Quando chegar alerta {version.alertTypes.length ? `do tipo ${version.alertTypes.join(", ")}` : "de qualquer tipo"}, gravidade {SEVERITY[version.minSeverity].toLowerCase()} ou maior
-            {version.deviceId ? `, do equipamento ${label(options.devices, version.deviceId, "selecionado")}` : ""}: abrir “{version.orderTitle}”
+          <p className="mt-1 text-slate-600">{version.trigger === "SCHEDULE" ? `A cada ${version.everyDays} dia(s), a partir de ${formatDateTime(version.startsAt!)}` : <>Quando chegar alerta {version.alertTypes.length ? `do tipo ${version.alertTypes.join(", ")}` : "de qualquer tipo"}, gravidade {SEVERITY[version.minSeverity].toLowerCase()} ou maior
+            {version.deviceId ? `, do equipamento ${label(options.devices, version.deviceId, "selecionado")}` : ""}</>}: abrir “{version.orderTitle}”
             {[label(options.teams, version.assignedTeamId, "equipe definida") && ` para ${label(options.teams, version.assignedTeamId, "equipe definida")}`, label(options.assets, version.assetId, "ativo definido") && ` no ativo ${label(options.assets, version.assetId, "ativo definido")}`].filter(Boolean).join("")}.
-            {version.cooldownMinutes ? ` Pausa de ${version.cooldownMinutes} min.` : " Sem pausa."}</p>
+            {version.trigger === "SCHEDULE" ? "" : version.cooldownMinutes ? ` Pausa de ${version.cooldownMinutes} min.` : " Sem pausa."}</p>
           <p className="text-xs text-slate-500">Criada em {formatDateTime(version.createdAt)}</p></div>
         <div className="flex flex-wrap items-center gap-1">
           <Button variant="ghost" onClick={() => void simulate(version.number)}>Simular</Button>
           {canManage && rule.publishedVersion !== version.number && <Button variant="secondary" disabled={pending} onClick={() => void mutate(() => api.post(`/v1/automations/${rule.id}/publish`, { version: rule.version, number: version.number } satisfies PublishAutomationRequest), `Versão ${version.number} publicada.`)}>Publicar</Button>}
         </div>
       </li>)}</ul>
-      {simulation && <div role="status" className="mt-3 rounded-lg border border-slate-200 bg-white p-3"><p><strong>Simulação da versão {simulation.number}:</strong> {simulation.matches.length ? `${simulation.matches.length} alerta(s) dos últimos 30 dias atenderiam a regra.` : "nenhum alerta dos últimos 30 dias atenderia a regra."} Nada foi criado.</p>
+      {simulation?.nextOccurrences && <div role="status" className="mt-3 rounded-lg border border-slate-200 bg-white p-3"><p><strong>Próximas datas da versão {simulation.number}:</strong> {simulation.nextOccurrences.length ? simulation.nextOccurrences.map(formatDateTime).join(" · ") : "nenhuma."} Nada foi criado.</p></div>}
+      {simulation && !simulation.nextOccurrences && <div role="status" className="mt-3 rounded-lg border border-slate-200 bg-white p-3"><p><strong>Simulação da versão {simulation.number}:</strong> {simulation.matches.length ? `${simulation.matches.length} alerta(s) dos últimos 30 dias atenderiam a regra.` : "nenhum alerta dos últimos 30 dias atenderia a regra."} Nada foi criado.</p>
         {simulation.matches.length > 0 && <ul className="mt-2 space-y-1 text-xs text-slate-600">{simulation.matches.slice(0, 10).map(match => <li key={match.alertId}>{formatDateTime(match.triggeredAt)} · {match.type} · {SEVERITY[match.severity]} · {match.message}</li>)}</ul>}</div>}
     </div>
     {canManage && (draft ? <form aria-label="Nova versão" onSubmit={event => { event.preventDefault(); void mutate(() => api.post(`/v1/automations/${rule.id}/versions`, { version: rule.version, definition: definitionOf(draft) } satisfies AddAutomationVersionRequest), "Nova versão criada. Publique para que passe a valer.", () => setDraft(null)); }}>
@@ -141,8 +156,8 @@ function Details({ rule, canManage, options, pending, mutate }: { rule: Automati
       : <Button variant="secondary" disabled={pending} onClick={() => setDraft(draftOf(rule.name, detail.data!.versions[0]!))}>Nova versão a partir da mais recente</Button>)}
     <div>
       <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Últimas execuções</h3>
-      {!detail.data.runs.length ? <p className="mt-2 text-sm text-slate-500">Esta automação ainda não reagiu a nenhum alerta.</p> : <ul className="mt-2 space-y-1">{detail.data.runs.map(run => <li key={run.id} className="flex flex-wrap items-center gap-2">
-        <Badge tone={OUTCOME[run.outcome]!.tone}>{OUTCOME[run.outcome]!.label}</Badge><span className="text-xs text-slate-500">Versão {run.versionNumber} · {formatDateTime(run.createdAt)}</span></li>)}</ul>}
+      {!detail.data.runs.length ? <p className="mt-2 text-sm text-slate-500">Esta automação ainda não abriu nenhuma ordem.</p> : <ul className="mt-2 space-y-1">{detail.data.runs.map(run => <li key={run.id} className="flex flex-wrap items-center gap-2">
+        <Badge tone={OUTCOME[run.outcome]!.tone}>{OUTCOME[run.outcome]!.label}</Badge><span className="text-xs text-slate-500">Versão {run.versionNumber} · {run.scheduledFor ? `data programada ${formatDateTime(run.scheduledFor)}` : formatDateTime(run.createdAt)}</span></li>)}</ul>}
     </div>
   </div>;
 }

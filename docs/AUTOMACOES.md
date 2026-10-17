@@ -1,11 +1,27 @@
 # Automações
 
-Uma automação diz: **quando chegar um alerta assim, abra uma ordem de serviço assim**. É o terceiro domínio da etapa 4 da [arquitetura](superpowers/specs/2026-09-27-arquitetura-produto-design.md).
+Uma automação diz: **quando chegar um alerta assim, abra uma ordem de serviço assim**, ou, desde a 057, **a cada N dias, abra esta ordem de serviço** (manutenção preventiva). É o terceiro domínio da etapa 4 da [arquitetura](superpowers/specs/2026-09-27-arquitetura-produto-design.md).
 
 ## O que uma automação pode e não pode fazer
 
 - **Pode:** abrir uma ordem de serviço, com título, prioridade, equipe e ativo definidos na regra. A descrição da ordem é a mensagem do alerta.
 - **Não pode:** acionar portão, bomba ou qualquer equipamento. Não existe ação de comando no contrato nem no banco; um corpo que tente declarar outra ação é recusado. Comando físico continua exigindo uma pessoa, pelo módulo de acessos.
+
+## Automações programadas (057)
+
+Uma versão pode reagir ao calendário em vez de a alertas: **a cada N dias (1 a 366), a partir de uma data**, abrir a ordem definida. Na tela, escolha **Quando agir → Em datas programadas**; a ordem é aberta às 8h de cada data. A descrição da ordem diz a que data ela se refere.
+
+| Regra | Motivo |
+| --- | --- |
+| Uma ordem por data, no máximo | Chave única (regra, data) em `automation_runs`; o executor pode rodar duas vezes sem duplicar |
+| Se o executor ficou parado vários períodos, só a data mais recente abre ordem | Abrir de uma vez as ordens atrasadas criaria trabalho repetido sem valor |
+| Ao ativar uma regra cuja data já passou, a ordem do período atual é aberta | A manutenção do período está vencida |
+| Programada não filtra alertas nem equipamento, e alerta nunca dispara programada | Os dois gatilhos não se misturam; o banco recusa a combinação |
+| Pausa (cooldown) não se aplica | O intervalo já é a pausa |
+
+**Simular** uma versão programada mostra as próximas cinco datas, sem criar nada.
+
+**Quem executa:** o agendador de tarefas do próprio TimescaleDB, que já roda dentro do PostgreSQL, chama `app_automation_run_schedules()` a cada 5 minutos (tarefa `app_automation_schedule_job`). Não há processo novo para implantar. Para conferir: `select * from timescaledb_information.job_stats` mostra a última execução e as falhas. O agendador pausa durante a restauração (`timescaledb_pre_restore`) e volta com `timescaledb_post_restore`.
 
 ## Versões, publicação e ativação
 
@@ -66,7 +82,7 @@ Os dois estão cobertos por teste.
 
 ## Limites atuais
 
-- Uma única ação (abrir ordem de serviço) e um único gatilho (alerta novo em aberto).
+- Uma única ação (abrir ordem de serviço) e dois gatilhos: alerta novo em aberto ou data programada em dias corridos (sem "todo dia 5" nem dias úteis).
 - Tela no portal de operação web (`/automacoes`); não há tela nos apps.
 - Os tipos de alerta são digitados como texto; não há lista de tipos conhecidos na tela.
 - A simulação olha no máximo 50 alertas dos últimos 30 dias.
