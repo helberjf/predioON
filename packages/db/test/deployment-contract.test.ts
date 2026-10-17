@@ -98,6 +98,12 @@ async function composeEnvironment(service: string): Promise<string[]> {
   return keys;
 }
 
+it("never copies a locally generated ingestion runtime file into an image or Git", async () => {
+  const lines = async (file: string) => (await readFile(new URL(`../../../${file}`, import.meta.url), "utf8")).replaceAll("\r\n", "\n").split("\n");
+  assert.ok((await lines(".dockerignore")).includes("services/ingest/.env.runtime"));
+  assert.ok((await lines(".gitignore")).includes("services/ingest/.env.runtime"));
+});
+
 it("passes the ingest container only its two restricted logins and operational keys", async () => {
   const keys = await composeEnvironment("ingest");
   assert.deepEqual(keys.filter(key => key.startsWith("DATABASE_URL")).sort(), ["DATABASE_URL_ACCESS_SERVICE", "DATABASE_URL_INGEST"]);
