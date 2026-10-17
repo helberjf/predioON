@@ -63,7 +63,7 @@ Base aprovada: [arquitetura](../specs/2026-09-27-arquitetura-produto-design.md).
 
 - [x] 2B.1. Fundação e API de tenancy: implementação, testes e revisões de conformidade/qualidade concluídos.
 - [x] 2B.2. Credenciais da API: separar identidade e autorização do broker, retirar importação/conexão proprietária dos processos HTTP, manter verificações negativas de privilégios e fluxo de sessões.
-- [ ] 2B.3. Migração dos módulos existentes: aplicar capacidades e RLS por domínio, incluindo seleção de condomínios, funcionalidades e eventos; manter testes de revogação, suporte e acesso a recursos próprios.
+- [x] 2B.3. Migração dos módulos existentes: aplicar capacidades e RLS por domínio, incluindo seleção de condomínios, funcionalidades e eventos; manter testes de revogação, suporte e acesso a recursos próprios. Último recorte (contas e vínculos legados) na 054, em 17/10; o suporte remoto mantém o guard legado, conferido no banco.
 - [ ] 2B.4. Gestão web integrada: cadastros de unidades/equipes/vínculos e seleção de escopo autorizada pelo servidor.
 - [ ] 2B.5. Credenciais de ingestão e workers: conceder somente as operações de cada carga, junto da separação durável da etapa 3.
 

@@ -317,3 +317,13 @@ A API nova exige a 047 só nas duas rotas de recuperação; entrada, sessões e 
 - classifica `SUPPORT_STAFF_ADDED`/`SUPPORT_STAFF_REMOVED` como eventos da plataforma e acrescenta as provas de auditoria dessas duas ações e de `SUPPORT_GRANT_CREATED`/`SUPPORT_GRANT_REVOKED` (no condomínio), no mesmo formato das releases 042–045: falha fechado se a função tiver outro formato.
 
 **Efeito ao aplicar:** concessões existentes continuam valendo até o prazo. Quem editava ou apagava concessões direto pela API (não havia rota para isso) passa a receber recusa. Rotas novas em `/v1/support-access`; telas em administração → Acesso de suporte e, para o síndico, Administração → Acesso de suporte.
+
+## Release 054: contas e vínculos legados por capacidade
+
+`054-users-memberships-capabilities.sql` troca as políticas de 001 em `users` e `memberships`, que confiavam no papel legado (`app.role` e vínculo `BUILDING_ADMIN` na tabela `memberships`), pelas capacidades vigentes:
+
+- **contas (`users`, role da API):** a própria pessoa; quem tem `rbac:manage` (administração de RBAC da plataforma); ou quem tem `memberships:read` num condomínio em que a pessoa tem vínculo legado. É a regra de 001 com a checagem de síndico legado trocada pela capacidade. Ligações só por RBAC (papel, unidade, equipe) continuam mostrando apenas os campos mínimos do diretório de pessoas, nunca a conta inteira. Criar conta exige `rbac:manage`;
+- **vínculos (`memberships`):** leitura com `memberships:read` (ou o próprio vínculo); criar ou alterar segue a mesma regra de delegação dos papéis (`app_rbac_can_delegate`): ninguém concede um papel cujas capacidades não tem. A API não apaga vínculos (revogação é UPDATE);
+- **auditoria:** `USER_CREATED` e `MEMBERSHIP_UPSERTED/REVOKED` passam a aceitar a capacidade em vez da flag legada, com a mesma técnica da 039.
+
+**Efeito ao aplicar:** síndicos e administradores da plataforma continuam com o mesmo acesso; um síndico conhecido só por papel (sem vínculo legado) passa a listar e vincular as pessoas do condomínio em `/users`; um administrador da plataforma só por papel, sem a flag, passa a listar e criar contas. Um papel personalizado com `memberships:manage`, mas sem as capacidades do papel concedido, é recusado. As rotas HTTP `/users` deixaram de usar o papel legado (`requireRole`/ordem dos papéis); o único guard legado restante é o do suporte remoto, cujo banco também confere a conta ativa com a flag da plataforma.

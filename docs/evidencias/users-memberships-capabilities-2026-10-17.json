@@ -1,0 +1,87 @@
+{
+  "date": "2026-10-17",
+  "timezone": "America/Sao_Paulo",
+  "scope": "Release 054: contas e vínculos legados por capacidade; encerramento da etapa 2B.3.",
+  "status": "verified-locally-not-deployed",
+  "migration": {
+    "file": "infrastructure/054-users-memberships-capabilities.sql",
+    "ledger": 54
+  },
+  "results": [
+    {
+      "suite": "apps/api/test/users-capabilities.test.ts",
+      "tests": 5,
+      "pass": 5
+    },
+    {
+      "suite": "dirigidos (contas, vínculos, auditoria, tenancy, diretório, RBAC, suporte)",
+      "tests": 109,
+      "pass": 109
+    },
+    {
+      "suite": "packages/db test/*.test.ts (job platform)",
+      "tests": 300,
+      "pass": 298,
+      "skipped": 2
+    },
+    {
+      "suite": "@predioon/api-client",
+      "tests": 115,
+      "pass": 115
+    },
+    {
+      "suite": "@predioon/ui",
+      "tests": 98,
+      "pass": 98
+    },
+    {
+      "suite": "@predioon/mobile",
+      "tests": 219,
+      "pass": 219
+    },
+    {
+      "suite": "@predioon/api integral",
+      "tests": 812,
+      "suites": 65,
+      "pass": 812,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "@predioon/ingest integral",
+      "tests": 199,
+      "pass": 199
+    },
+    {
+      "suite": "SQL052 com 054 na cadeia (lab)",
+      "tests": 73,
+      "pass": 73
+    },
+    {
+      "suite": "suítes de serviço restritas com 054 (lab)",
+      "tests": 114,
+      "pass": 114
+    },
+    {
+      "suite": "backup-restore",
+      "tests": 2,
+      "pass": 2
+    },
+    {
+      "suite": "Playwright chromium (audit, invitations, isolation, organizations, platform, session-management, tenancy-edit, support-access)",
+      "tests": 50,
+      "pass": 50
+    }
+  ],
+  "fixedDuringVerification": [
+    "visibilidade de contas restringida ao vínculo legado, preservando a decisão do diretório de pessoas"
+  ],
+  "remainingLegacy": [
+    "requireRole no suporte remoto (010), conferido no banco pela flag da plataforma"
+  ],
+  "limits": [
+    "Firefox/WebKit não executados nesta máquina",
+    "sem CI do GitHub (bloqueio da conta)",
+    "sem implantação"
+  ]
+}
