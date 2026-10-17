@@ -40,7 +40,11 @@ type LatestRow = {
   time: string;
 };
 
-/** One row per device+metric with the most recent reading. DISTINCT ON is the cheapest way on Timescale. */
+/**
+ * One row per device+metric with the most recent reading. The series catalog
+ * (056) lists the pairs, so each is a single backward probe of
+ * telemetry_device_metric_time_idx instead of sorting a week of samples.
+ */
 telemetryRouter.get("/latest", validateQuery(LatestQuerySchema), async (req, res) => {
   const { buildingId } = query<z.infer<typeof LatestQuerySchema>>(req);
   const rows = await inTenantContext(req, async (tx) => {
@@ -55,15 +59,20 @@ telemetryRouter.get("/latest", validateQuery(LatestQuerySchema), async (req, res
     // Capability authorization precedes feature reads, all under the transaction's shared lock.
     const features = await readFeatures(tx, buildingId);
     const result = await tx.execute(sql`
-      SELECT DISTINCT ON (t.device_id, t.metric)
-             t.device_id, d.device_name, t.metric, t.value,
+      SELECT t.device_id, d.device_name, t.metric, t.value,
              t.numeric_value, t.unit, t.quality, t.time
-      FROM telemetry t
-      JOIN app_telemetry_authorized_devices(${buildingId}) d
-        ON d.device_id = t.device_id AND d.building_id = t.building_id
-      WHERE t.building_id = ${buildingId}
-        AND t.time > now() - interval '7 days'
-      ORDER BY t.device_id, t.metric, t.time DESC, t.id DESC
+      FROM app_telemetry_authorized_devices(${buildingId}) d
+      JOIN telemetry_series s ON s.building_id = d.building_id AND s.device_id = d.device_id
+      CROSS JOIN LATERAL (
+        SELECT t.device_id, t.metric, t.value, t.numeric_value, t.unit, t.quality, t.time
+        FROM telemetry t
+        WHERE t.building_id = s.building_id AND t.device_id = s.device_id AND t.metric = s.metric
+          AND t.time > now() - interval '7 days'
+        ORDER BY t.time DESC, t.id DESC
+        LIMIT 1
+      ) t
+      WHERE d.building_id = ${buildingId}
+      ORDER BY t.device_id, t.metric
     `);
     const rawById = new Map(rawDevices.map(device => [device.device_id, device]));
     const visible = new Map<string, LatestRow>();

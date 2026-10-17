@@ -336,3 +336,9 @@ Também retira `INSERT`, `UPDATE` e `DELETE` de `sessions` da role da API de neg
 
 **Efeito ao aplicar:** depois da implantação, quem estiver logado há mais de 10 minutos vê a janela de confirmação na primeira ação privilegiada (lista em [AUTENTICACAO.md](AUTENTICACAO.md#confirmação-recente-para-ações-privilegiadas-055)). Nada mais muda para quem só consulta ou faz operações comuns.
 
+## Release 056: catálogo de séries de telemetria
+
+`056-telemetry-series-catalog.sql` cria `telemetry_series` (condomínio, dispositivo, métrica, primeira vez vista) e um gatilho `AFTER INSERT` em `telemetry` que registra cada série nova. O gatilho grava uma vez por série, não por leitura; a função é `SECURITY DEFINER` do dono dos helpers e ninguém a chama diretamente. A API lê o catálogo com a mesma regra de visibilidade da telemetria; nenhuma outra role o lê ou escreve. A migration preenche o catálogo com as séries dos últimos 7 dias.
+
+**Efeito ao aplicar:** a rota `/telemetry/latest` passa a consultar uma leitura por série em vez de ordenar a última semana inteira (medido: 1,3 s → 0,27 s com 50 dispositivos a uma leitura por minuto). O resultado é o mesmo, inclusive o desempate por `id` em leituras no mesmo instante. A restauração por `pg_dump`/`pg_restore` não muda: gatilhos e chaves só são criados depois dos dados.
+

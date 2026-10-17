@@ -19,7 +19,9 @@
     "typecheck": "tsc --noEmit",
     "db:wait": "tsx src/wait-db.ts",
     "db:infra": "tsx src/apply-infrastructure.ts",
-    "db:provision-runtime": "tsx src/provision-runtime-roles.ts"
+    "db:provision-runtime": "tsx src/provision-runtime-roles.ts",
+    "db:telemetry-retention": "tsx src/telemetry-retention.ts",
+    "db:telemetry-capacity": "tsx src/telemetry-capacity.ts"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.0.2",
