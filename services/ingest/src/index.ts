@@ -10,6 +10,7 @@ const [
   { connectIngest },
   { startOfflineSweeper },
   { handleAccessAck, startAccessDispatcher },
+  { startHeartbeat },
 ] = await Promise.all([
   import("./startup.js"),
   import("@predioon/db/ingest"),
@@ -19,6 +20,7 @@ const [
   import("./mqtt.js"),
   import("./offline-sweeper.js"),
   import("./access/dispatcher.js"),
+  import("./heartbeat.js"),
 ]);
 
 let stop: () => Promise<void>;
@@ -34,6 +36,7 @@ try {
     startOffline: startOfflineSweeper,
     startAccess: startAccessDispatcher,
     closeDatabases: async () => { await Promise.all([closeIngestDb(), closeAccessServiceDb()]); },
+    startHeartbeat: client => startHeartbeat(() => client.connected, () => ingestSqlClient`select 1`),
   });
 } catch (error) {
   // startIngestRuntime already closed both pools and returns a fixed message.

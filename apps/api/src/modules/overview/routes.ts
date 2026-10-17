@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { sql } from "drizzle-orm";
 import { readFeatures } from "@predioon/db/runtime";
-import type { BuildingOverview, OverviewCoverage, PlatformOverview } from "@predioon/contracts";
+import type { BuildingOverview, OverviewCoverage, PlatformOverview, PlatformServiceHealth } from "@predioon/contracts";
 import { z } from "zod";
 import { assertGlobalCapability, inTenantContext } from "../../auth/middleware.js";
 import { query, validateQuery } from "../../http/validate.js";
@@ -26,6 +26,16 @@ overviewRouter.get("/platform", async (req, res) => {
     if(!current.health)throw forbidden("Sem a capacidade global necessária");
     if(!current.directory){data.directoryAvailability='unavailable';data.buildings=null;}
     return data;
+  });
+  res.json(payload);
+});
+
+/** Background services (058): ingestion, notifications, physical commands, scheduler jobs, database size. */
+overviewRouter.get("/platform/services", async (req, res) => {
+  const payload = await inTenantContext(req, async tx => {
+    await assertGlobalCapability(tx,"platform:read-health");
+    try {const [row]=await tx.execute(sql`select app_platform_service_health() as payload`);return row.payload as PlatformServiceHealth;}
+    catch(error){if(pgErrorCode(error)==='42501')throw forbidden("Sem a capacidade global necessária");throw error;}
   });
   res.json(payload);
 });

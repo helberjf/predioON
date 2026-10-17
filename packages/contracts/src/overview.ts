@@ -27,3 +27,13 @@ export type PlatformOverview = {
   /** null means the directory is unavailable; [] means authorized empty. */
   buildings:PlatformHealthBuilding[]|null;
 };
+
+/** GET /overview/platform/services (058): counts and instants of the background services only. */
+export type PlatformServiceHealth = {
+  checkedAt: string;
+  ingest: { lastReadingAt: string | null; lastReceivedAt: string | null; readingsLastHour: number; gatewaysOnline: number; gatewaysEnabled: number };
+  notifications: { waiting: number; oldestWaitingSince: string | null; deliveredLastDay: number; failedLastDay: number };
+  physicalCommands: { waiting: number; acknowledgedLastDay: number; failedLastDay: number };
+  jobs: Array<{ name: string; scheduled: boolean; intervalSeconds: number; lastStatus: string | null; lastSuccessAt: string | null; failures: number; nextStartAt: string | null }>;
+  database: { bytes: number; telemetryBytes: number };
+};

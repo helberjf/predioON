@@ -43,7 +43,7 @@ export type SeriesPoint = {
   samples: string;
 };
 
-export type { BuildingOverview, PlatformOverview } from "@predioon/contracts";
+export type { BuildingOverview, PlatformOverview, PlatformServiceHealth } from "@predioon/contracts";
 
 export type AlertRule = {
   id: string;

@@ -202,3 +202,25 @@ test("keeps the pools until an in-flight access dispatch finishes during shutdow
   await closing;
   assert.equal(f.events.at(-1), "databases-close");
 });
+
+test("stops the liveness heartbeat before closing the pools it pings", async t => {
+  const start = await startup();
+  const f = fixture(t);
+  let finishBeat!: () => void;
+  f.dependencies.startHeartbeat = actual => {
+    assert.equal(actual, f.client);
+    f.events.push("heartbeat-start");
+    return () => { f.events.push("heartbeat-stop"); return new Promise<void>(resolve => { finishBeat = resolve; }); };
+  };
+  const shutdown = await start(f.dependencies);
+  assert.deepEqual(f.events, ["verify-ingest", "verify-access", "connect", "offline-start", "access-start", "heartbeat-start"]);
+  const closing = shutdown();
+  assert.equal(f.events[6], "heartbeat-stop", "stopped first");
+  f.finishMqtt();
+  await new Promise<void>(resolve => setImmediate(resolve));
+  assert.ok(!f.events.includes("databases-close"), "a check still running keeps the pools open");
+  finishBeat();
+  await closing;
+  assert.equal(f.events.at(-1), "databases-close");
+});
+

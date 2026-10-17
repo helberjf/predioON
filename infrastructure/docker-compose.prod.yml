@@ -59,6 +59,12 @@ services:
       - ./emqx/acl.conf:/opt/emqx/etc/acl.conf:ro
       - emqx_data:/opt/emqx/data
       - ${MQTT_CERTS_DIR:?defina MQTT_CERTS_DIR}:/opt/emqx/etc/certs/site:ro
+    healthcheck:
+      test: ["CMD", "/opt/emqx/bin/emqx", "ctl", "status"]
+      interval: 15s
+      timeout: 10s
+      retries: 4
+      start_period: 30s
 
   api:
     build:
@@ -95,6 +101,13 @@ services:
       MQTT_INGEST_USERNAME: ${MQTT_INGEST_USERNAME:-predioon_ingest}
       MQTT_INGEST_PASSWORD: ${MQTT_INGEST_PASSWORD}
       CORS_ORIGINS: https://admin.${DOMAIN},https://sindico.${DOMAIN},https://morador.${DOMAIN}
+    # Ready only when the restricted database logins answer (/health/ready).
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health/ready').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     networks:
       - default
       - edge_proxy
@@ -121,6 +134,14 @@ services:
       MQTT_CLIENT_ID: predioon-ingest
       GATEWAY_OFFLINE_TIMEOUT_SECONDS: 180
       DEVICE_OFFLINE_TIMEOUT_SECONDS: 600
+    working_dir: /app/services/ingest
+    # Healthy only while the MQTT session is connected and the database answers (heartbeat every 10 s).
+    healthcheck:
+      test: ["CMD", "node", "--import", "tsx", "src/health.ts"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
 
   notifications:
     build:
@@ -164,6 +185,12 @@ services:
     volumes:
       - caddy_data:/data
       - caddy_config:/config
+    # Caddy's local admin endpoint answers only inside the container.
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:2019/config/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     networks:
       edge_proxy:
         ipv4_address: ${PROXY_IPV4_ADDRESS:-172.30.250.2}

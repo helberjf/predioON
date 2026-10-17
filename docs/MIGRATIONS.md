@@ -348,3 +348,9 @@ Também retira `INSERT`, `UPDATE` e `DELETE` de `sessions` da role da API de neg
 
 **Efeito ao aplicar:** automações existentes continuam como gatilho de alerta, sem mudança. A tarefa do agendador aparece em `timescaledb_information.jobs`. O agendador precisa de `timescaledb.max_background_workers` maior que zero (padrão da imagem oficial).
 
+## Release 058: saúde dos serviços da plataforma
+
+`058-platform-service-health.sql` cria `app_platform_service_health()`, exigindo `platform:read-health` (024). Ela devolve só contagens e instantes: última leitura recebida e leituras da última hora, gateways ativos/online, fila e falhas das entregas de aviso (038), comandos de portão aguardando ou sem resposta, as tarefas do agendador do TimescaleDB (automações programadas da 057 e retenção, quando ligada) e o tamanho do banco e das leituras. Nenhuma outra role a executa.
+
+**Efeito ao aplicar:** a rota `GET /overview/platform/services` e o cartão **Serviços da plataforma** na visão geral da administração. Nada muda nas demais telas.
+

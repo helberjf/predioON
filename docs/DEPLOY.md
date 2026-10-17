@@ -96,7 +96,21 @@ condomínio/sensor conforme o cadastro, não conforme os IDs ilustrativos da esp
 
 ```bash
 curl https://api.SEUDOMINIO/health/ready
+docker compose -f infrastructure/docker-compose.prod.yml ps
 ```
+
+Todos os seis serviços têm healthcheck e devem aparecer como `healthy`:
+
+| Serviço | O que o healthcheck confere |
+| --- | --- |
+| `db` | `pg_isready` |
+| `emqx` | `emqx ctl status` |
+| `api` | `/health/ready`: os três logins restritos do banco respondem |
+| `ingest` | heartbeat a cada 10 s com a sessão MQTT conectada **e** o banco respondendo; mais de 30 s sem registro é falha |
+| `notifications` | heartbeat de um ciclo recente do worker |
+| `web` | endpoint de administração local do Caddy |
+
+No portal de administração, **Visão geral → Serviços da plataforma** (058) mostra, para quem tem `platform:read-health`: última leitura recebida e leituras da última hora, fila e falhas de avisos, comandos de portão sem resposta, as tarefas do agendador do banco (automações programadas e retenção) e o tamanho do banco. Só contagens e horários: nenhum valor de leitura, mensagem, destino ou nome de condomínio. A tela marca **Atenção** quando não chega leitura há mais de 15 min com gateways online, quando um aviso espera há mais de 10 min, quando houve falha nas últimas 24 h ou quando uma tarefa do agendador falhou ou está pausada.
 
 Depois verificar login nos três painéis, cadastro de gateway/sensor, publicação de leitura
 por TLS, histórico, regra de nível abaixo de 20%, reconexão sem duplicar amostras e bloqueio

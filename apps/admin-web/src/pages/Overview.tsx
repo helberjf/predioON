@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Activity, AlertCircle, AlertTriangle, ArrowRight, Building2, CalendarDays, Cpu, Droplets, RadioTower, Thermometer, Users, Zap } from "lucide-react";
-import { buildingImage, Card, ErrorBanner, PageHeading, ProgressRing, ResourceFeedback, useResource } from "@predioon/ui";
-import type { PlatformOverview } from "@predioon/ui";
+import { buildingImage, Card, ErrorBanner, PageHeading, ProgressRing, ResourceFeedback, serviceStatuses, useResource, type ServiceTone } from "@predioon/ui";
+import type { PlatformOverview, PlatformServiceHealth } from "@predioon/ui";
 
 const TYPES = [
   {types:["WATER_LEVEL_SENSOR","WATER_METER"],label:"Água",icon:Droplets,color:"#259de9"},
@@ -11,6 +11,20 @@ const TYPES = [
   {types:["LEAK_SENSOR","SEWAGE_LEAK_SENSOR"],label:"Vazamentos",icon:AlertCircle,color:"#8564ed"},
   {types:["TEMPERATURE_SENSOR"],label:"Temperatura",icon:Thermometer,color:"#fa6573"},
 ];
+const SERVICE_TONE: Record<ServiceTone,{label:string;className:string}>={
+  ok:{label:"Funcionando",className:"bg-emerald-50 text-emerald-700"},attention:{label:"Atenção",className:"bg-amber-50 text-amber-800"},idle:{label:"Informação",className:"bg-slate-100 text-slate-600"},
+};
+/** Background services (058): whether readings arrive, notices leave, gates answer and scheduled jobs run. */
+function ServicesCard() {
+  const health=useResource<PlatformServiceHealth>("/overview/platform/services");
+  useEffect(()=>{const timer=setInterval(health.reload,30000);return()=>clearInterval(timer);},[health.reload]);
+  return <Card title="Serviços da plataforma" subtitle="Recepção de leituras, avisos, comandos e tarefas agendadas">
+    {!health.data?<ResourceFeedback resource={health} emptyText="Saúde dos serviços indisponível."/>:<ul className="divide-y divide-slate-100">{serviceStatuses(health.data).map(service=><li key={service.key} className="flex flex-wrap items-start justify-between gap-2 py-2.5">
+      <div><p className="text-sm font-semibold text-[#193551]">{service.label}</p><p className="mt-0.5 text-xs text-slate-500">{service.detail}</p></div>
+      <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${SERVICE_TONE[service.tone].className}`}>{SERVICE_TONE[service.tone].label}</span></li>)}</ul>}
+  </Card>;
+}
+
 export function Overview() {
   const overview=useResource<PlatformOverview>("/overview/platform");
   const [selected,setSelected]=useState("");
@@ -63,5 +77,6 @@ export function Overview() {
       </Card>
       <Card title="Comunicação dos condomínios" subtitle="Status agregado dos gateways"><div className="flex flex-wrap items-center justify-center gap-4 py-4"><ProgressRing label="Gateways online" value={gateways!=null&&gatewaysOnline!=null&&gateways>0?gatewaysOnline/gateways*100:null}/><div><p className="text-lg font-bold text-[#193551]">{gateways!=null?`${gatewaysOnline} de ${gateways}`:'—'}</p><p className="mt-1 text-xs text-slate-500">gateways online</p></div></div></Card>
     </div>
+    <ServicesCard/>
   </>;
 }

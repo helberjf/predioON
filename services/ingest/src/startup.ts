@@ -7,6 +7,8 @@ export type StartupDependencies = {
   startOffline(): NodeJS.Timeout;
   startAccess(client: MqttClient): () => void | Promise<void>;
   closeDatabases(): Promise<void>;
+  /** Liveness record for the container health check; stopped first on shutdown. */
+  startHeartbeat?(client: MqttClient): () => Promise<void>;
 };
 
 /** Validate both physical connections before creating transports or timers. */
@@ -14,11 +16,15 @@ export async function startIngestRuntime(dependencies: StartupDependencies): Pro
   let client: MqttClient | undefined;
   let offline: NodeJS.Timeout | undefined;
   let stopAccess: (() => void | Promise<void>) | undefined;
+  let stopHeartbeat: (() => Promise<void>) | undefined;
   let shutdownPromise: Promise<void> | undefined;
 
   const shutdown = (): Promise<void> => {
     shutdownPromise ??= (async () => {
       let failed = false;
+      // The heartbeat pings the database: it must finish before the pools close.
+      let heartbeatStopped: Promise<void> | undefined;
+      try { heartbeatStopped = stopHeartbeat?.(); } catch { failed = true; }
       if (offline) clearInterval(offline);
       let accessStopped: void | Promise<void> = undefined;
       try { accessStopped = stopAccess?.(); } catch { failed = true; }
@@ -29,6 +35,7 @@ export async function startIngestRuntime(dependencies: StartupDependencies): Pro
       } catch { failed = true; }
       // An in-flight dispatch may still record a publish failure: keep the pools until it ends.
       try { await accessStopped; } catch { failed = true; }
+      try { await heartbeatStopped; } catch { failed = true; }
       try { await dependencies.closeDatabases(); } catch { failed = true; }
       if (failed) throw new Error("Não foi possível encerrar o runtime de ingestão");
     })();
@@ -46,6 +53,7 @@ export async function startIngestRuntime(dependencies: StartupDependencies): Pro
     client = dependencies.connect();
     offline = dependencies.startOffline();
     stopAccess = dependencies.startAccess(client);
+    stopHeartbeat = dependencies.startHeartbeat?.(client);
     return shutdown;
   } catch {
     // Cleanup may fail too; the caller receives one fixed error with no driver cause.
