@@ -9,6 +9,7 @@ import { query, validateBody, validateQuery } from "../../http/validate.js";
 import { recordAudit } from "../audit/repo.js";
 import { isoTime } from "../../http/sql-time.js";
 import { createInvitationToken } from "../../auth/invitations.js";
+import { requireRecentVerification } from "../../auth/verification.js";
 import { config } from "../../config.js";
 import { actionMail, mailConfigured, sendMail } from "../../mail/mailer.js";
 
@@ -193,6 +194,7 @@ tenancyRouter.post("/role-bindings", validateBody(CreateBinding), async (req, re
   const input = req.body as z.infer<typeof CreateBinding>;
   const row = await inTenancy(req, async tx => {
     await assertCapability(tx, "memberships:manage", input.buildingId);
+    await requireRecentVerification(req);
     const [created] = await tx.insert(roleBindings).values({ ...input, grantedBy: currentAuth(req).userId }).returning();
     await recordAudit(tx, req, { userId: currentAuth(req).userId, buildingId: input.buildingId, action: "ROLE_BINDING_CREATED", resourceType: "role_binding", resourceId: created!.id, metadata: { roleKey: input.roleKey } });
     return created;

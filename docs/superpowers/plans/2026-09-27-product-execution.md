@@ -57,14 +57,14 @@ Base aprovada: [arquitetura](../specs/2026-09-27-arquitetura-produto-design.md).
 
 - [x] 2A. Sessões e famílias de refresh: consumo atômico, detecção de reutilização, revogação imediata, listagem de sessões, JWT assimétrico e verificação de conta/vínculos atuais.
 - [ ] 2B. RBAC e tenancy: catálogo de capacidades, concessões por condomínio/recurso, unidades/equipes, políticas RLS e credenciais de runtime restritas.
-- [ ] 2C. Fluxos de identidade: cookies web/CSRF, MFA e verificação adicional para ações privilegiadas, convites/recuperação, limites de tentativas e adaptação dos clientes.
+- [x] 2C. Fluxos de identidade: cookies web/CSRF, MFA e verificação adicional para ações privilegiadas, convites/recuperação, limites de tentativas e adaptação dos clientes. Cookies/CSRF e limites (035), convites (042), MFA opcional (046), recuperação (047) e confirmação recente nas ações privilegiadas (055, 17/10). Fica como decisão do proprietário tornar a MFA obrigatória para administradores da plataforma (exige cadastro forçado no primeiro acesso).
 
 ### Subentregas da etapa 2B
 
 - [x] 2B.1. Fundação e API de tenancy: implementação, testes e revisões de conformidade/qualidade concluídos.
 - [x] 2B.2. Credenciais da API: separar identidade e autorização do broker, retirar importação/conexão proprietária dos processos HTTP, manter verificações negativas de privilégios e fluxo de sessões.
 - [x] 2B.3. Migração dos módulos existentes: aplicar capacidades e RLS por domínio, incluindo seleção de condomínios, funcionalidades e eventos; manter testes de revogação, suporte e acesso a recursos próprios. Último recorte (contas e vínculos legados) na 054, em 17/10; o suporte remoto mantém o guard legado, conferido no banco.
-- [ ] 2B.4. Gestão web integrada: cadastros de unidades/equipes/vínculos e seleção de escopo autorizada pelo servidor.
+- [x] 2B.4. Gestão web integrada: cadastros de unidades/equipes/vínculos e seleção de escopo autorizada pelo servidor. Revisada em 17/10: escopo pela descoberta do servidor (019), cadastro e edição/desativação de blocos, unidades e equipes (040–041), pessoas por convite com ou sem unidade (042) e concessões de papel no painel compartilhado; contas e vínculos legados por capacidade (054).
 - [ ] 2B.5. Credenciais de ingestão e workers: conceder somente as operações de cada carga, junto da separação durável da etapa 3.
 
 A migração por domínio da etapa 2B.3 está detalhada em [sequência e critérios de aceite](2026-09-29-rbac-domain-migration.md).

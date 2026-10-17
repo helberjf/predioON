@@ -327,3 +327,12 @@ A API nova exige a 047 só nas duas rotas de recuperação; entrada, sessões e 
 - **auditoria:** `USER_CREATED` e `MEMBERSHIP_UPSERTED/REVOKED` passam a aceitar a capacidade em vez da flag legada, com a mesma técnica da 039.
 
 **Efeito ao aplicar:** síndicos e administradores da plataforma continuam com o mesmo acesso; um síndico conhecido só por papel (sem vínculo legado) passa a listar e vincular as pessoas do condomínio em `/users`; um administrador da plataforma só por papel, sem a flag, passa a listar e criar contas. Um papel personalizado com `memberships:manage`, mas sem as capacidades do papel concedido, é recusado. As rotas HTTP `/users` deixaram de usar o papel legado (`requireRole`/ordem dos papéis); o único guard legado restante é o do suporte remoto, cujo banco também confere a conta ativa com a flag da plataforma.
+
+## Release 055: confirmação recente para ações privilegiadas
+
+`055-session-recent-verification.sql` acrescenta `sessions.verified_at`, o instante em que o dono da sessão provou a senha (e o código, se usa MFA) pela última vez nessa sessão. Sessões existentes recebem o horário em que foram criadas, ou seja, ficam com a prova vencida e pedem a senha na próxima ação privilegiada. Novas sessões nascem confirmadas.
+
+Também retira `INSERT`, `UPDATE` e `DELETE` de `sessions` da role da API de negócio (`predioon_app`), herdados da 013 e não usados desde a 015: só a role de identidade mantém sessões. A leitura continua.
+
+**Efeito ao aplicar:** depois da implantação, quem estiver logado há mais de 10 minutos vê a janela de confirmação na primeira ação privilegiada (lista em [AUTENTICACAO.md](AUTENTICACAO.md#confirmação-recente-para-ações-privilegiadas-055)). Nada mais muda para quem só consulta ou faz operações comuns.
+

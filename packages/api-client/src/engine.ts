@@ -101,12 +101,13 @@ export function createBearerClient<C extends { accessToken: string }, S extends 
     finally { clearTimeout(timer!); }
   }
   async function responseError(response: Response): Promise<ApiError> {
-    let message = `Erro ${response.status}`;
+    let message = `Erro ${response.status}`, reason: string | undefined;
     try {
-      const body = await response.json() as Partial<ApiErrorResponse>;
+      const body = await response.json() as Partial<ApiErrorResponse> & { details?: { reason?: unknown } };
       if (typeof body.error === "string") message = body.error;
+      if (typeof body.details?.reason === "string" && /^[A-Z_]{1,64}$/.test(body.details.reason)) reason = body.details.reason;
     } catch { /* Retain status for proxy errors and empty responses. */ }
-    return new ApiError(response.status, message);
+    return new ApiError(response.status, message, "HTTP_ERROR", reason);
   }
   function json(body: unknown): RequestInit {
     return { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) };

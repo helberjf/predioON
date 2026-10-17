@@ -148,7 +148,7 @@ versão entregue está em [REVISAO_FUNCIONALIDADES.md](REVISAO_FUNCIONALIDADES.m
 | RF-04 | Assinatura assimétrica (Ed25519) com `kid` e rotação de chave | P0 | Em execução (2A concluída: 4/4 testes) |
 | RF-05 | Listar e revogar sessões e dispositivos; revogar todas em incidente | P1 | Em execução |
 | RF-06 | Web com refresh em cookie `HttpOnly` e proteção CSRF; mobile em Keychain/Keystore | P0 | Integrado; testes e limites em AUTENTICACAO.md |
-| RF-07 | MFA para administração da plataforma e ações privilegiadas do síndico | P0 | Planejado (2C) |
+| RF-07 | MFA para administração da plataforma e ações privilegiadas do síndico | P0 | Parcial: MFA opcional por conta (046); confirmação recente com senha e código nas ações privilegiadas (055); obrigatoriedade para a plataforma pendente |
 | RF-08 | Convites e recuperação por token de uso único com expiração; limite de tentativas | P1 | Planejado (2C) |
 
 ### 7.2 Autorização, tenancy e auditoria

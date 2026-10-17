@@ -1,5 +1,6 @@
 import { createWebApiClient } from "@predioon/api-client";
 import { browserSessionCoordinator } from "#web-session-coordinator";
+import { withRecentVerification } from "#verification-state";
 
 export { ApiError } from "@predioon/api-client";
 export type { WebSession as Session } from "@predioon/contracts/auth";
@@ -11,13 +12,22 @@ let onSessionAvailable: (() => void) | null = null;
 export function setAuthLostHandler(handler: (() => void) | null): void { onAuthLost = handler; }
 export function setSessionAvailableHandler(handler: (() => void) | null): void { onSessionAvailable = handler; }
 
-export const api = createWebApiClient({
+const client = createWebApiClient({
   baseUrl: BASE_URL,
   fetch: (input, init) => globalThis.fetch(input, init),
   coordinator: browserSessionCoordinator(BASE_URL),
   onAuthLost: () => onAuthLost?.(),
   onSessionAvailable: () => onSessionAvailable?.(),
 });
+
+/** Writes that hit a privileged action ask for the password once and repeat (055). */
+export const api: typeof client = {
+  ...client,
+  post: <T>(path: string, body?: unknown) => withRecentVerification(() => client.post<T>(path, body)),
+  put: <T>(path: string, body: unknown) => withRecentVerification(() => client.put<T>(path, body)),
+  patch: <T>(path: string, body: unknown) => withRecentVerification(() => client.patch<T>(path, body)),
+  delete: <T>(path: string) => withRecentVerification(() => client.delete<T>(path)),
+};
 
 /** Compatibility access for SSE; credentials exist only in this page's memory. */
 export const tokens = { access: () => api.accessToken(), clear: () => api.clearMemory() };

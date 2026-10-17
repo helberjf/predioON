@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type ComponentType, type KeyboardEvent, type ReactNode } from "react";
 import { Bell, LogOut, Menu, Search, MapPin, X } from "lucide-react";
 import { Brand } from "./primitives.js";
+import { VerificationDialog } from "./verification-dialog.js";
 import { cls } from "../format.js";
 
 /** `group` names the section a destination is listed under; consecutive items of a group share one heading. */
@@ -140,6 +141,7 @@ export function DashboardFrame({ children, title, subtitle, userName, role, link
       <main ref={mainRef} id="conteudo" tabIndex={-1} className="mx-auto max-w-[1680px] space-y-4 p-4 outline-none md:space-y-5 md:p-6">{children}</main>
       <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200/70 bg-white px-6 py-5 text-[11px] text-slate-500"><div><strong className="text-[#18304e]">Prédio ON</strong><p className="mt-1">Tecnologia a serviço do seu condomínio.</p></div><span>{role} · Seu prédio, sempre conectado.</span></footer>
     </div>
+    <VerificationDialog />
   </div>;
 }
 

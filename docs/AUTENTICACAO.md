@@ -61,7 +61,7 @@ No Compose de produção, somente Caddy e API participam de `edge_proxy`. O ende
 
 O backend web passou em dez testes HTTP/PostgreSQL específicos. A integração dos portais passou em **45/45 execuções dirigidas** nos três motores de navegador, com API real, além de **48/48** testes do cliente, **64/64** da UI, tipos e builds dos três portais. A regressão integral da API até 032 passou em **537/537**. A matriz completa de 105 execuções de navegador está em andamento; os resultados dirigidos não a substituem.
 
-A comparação de senha executa trabalho Argon2 também para conta inexistente ou hash malformado, sem aceitar o resultado fictício como credencial. [Correção e testes](superpowers/plans/2026-10-02-password-verification-work.md). A limitação persistente passou 24 testes próprios, 29 de regressão de autenticação, teste do Caddy e 26 testes de banco com restauração de 44 tabelas/35 migrations. [Política e evidências de035](superpowers/plans/2026-10-02-login-throttling.md). Convites, MFA e recuperação de senha foram entregues depois e têm seções próprias abaixo; verificação adicional para ações privilegiadas continua pendente.
+A comparação de senha executa trabalho Argon2 também para conta inexistente ou hash malformado, sem aceitar o resultado fictício como credencial. [Correção e testes](superpowers/plans/2026-10-02-password-verification-work.md). A limitação persistente passou 24 testes próprios, 29 de regressão de autenticação, teste do Caddy e 26 testes de banco com restauração de 44 tabelas/35 migrations. [Política e evidências de035](superpowers/plans/2026-10-02-login-throttling.md). Convites, MFA, recuperação de senha e a confirmação recente para ações privilegiadas (055) foram entregues depois e têm seções próprias abaixo.
 
 ## Convites de moradores
 
@@ -111,11 +111,37 @@ Qualquer conta pode exigir, além da senha, um código de seis dígitos gerado p
 
 **Limites atuais:**
 
-- A verificação é **opcional por conta**. A arquitetura pede que seja obrigatória para administradores da plataforma e para ações privilegiadas do síndico; essa exigência ainda não existe.
+- A verificação é **opcional por conta**. A arquitetura pede que seja obrigatória para administradores da plataforma; essa exigência ainda não existe. Para ações privilegiadas, a [confirmação recente](#confirmação-recente-para-ações-privilegiadas-055) pede o código de quem tem a verificação ativa.
 - A ativação e a desativação estão só nos portais web; os apps pedem o código na entrada, mas não ativam.
 - A chave é mostrada como texto para digitar no aplicativo; não há QR code.
 - Ativar não encerra as outras sessões já abertas, e não há como um administrador remover o fator de outra pessoa que perdeu aplicativo e códigos.
 - A resposta pedindo o código confirma, para quem já sabe a senha, que a conta usa MFA.
+
+## Confirmação recente para ações privilegiadas (055)
+
+Algumas ações dão poder a alguém ou entregam um segredo. Para elas não basta estar com a sessão aberta: a pessoa precisa ter provado a senha **nesta sessão** nos últimos **10 minutos**. Entrar conta como prova; renovar o token, não.
+
+| Ação | Rota |
+| --- | --- |
+| Criar conta | `POST /users` |
+| Tornar alguém síndico pelo vínculo legado | `POST /users/memberships` com `BUILDING_ADMIN` (vincular morador não pede) |
+| Conceder papel (síndico, manutenção, morador) | `POST /v1/tenancy/role-bindings` |
+| Incluir pessoa na equipe de suporte | `POST /v1/support-access/staff` |
+| Conceder acesso temporário de suporte | `POST /v1/support-access/grants` |
+| Emitir a credencial MQTT de um gateway (senha exibida uma vez) | `POST /gateways/:id/credentials` |
+
+**Como funciona:** se a prova estiver velha, a API responde `403` com `details.reason = "VERIFICATION_REQUIRED"` e não muda nada. Nos portais, uma janela **Confirme que é você** pede a senha (e o código do autenticador, se a conta usa MFA); ao confirmar, o mesmo pedido é repetido uma única vez. Cancelar mantém a recusa. A confirmação usa `POST /auth/verify` (`currentPassword`, `code` opcional) e marca só a sessão atual; outro aparelho continua com o próprio relógio.
+
+| Decisão | Motivo |
+| --- | --- |
+| A autoridade é conferida antes da confirmação | Quem não pode fazer a ação recebe a recusa comum e não é convidado a digitar a senha à toa. |
+| A prova é da sessão, não da conta | Um token roubado em outro aparelho não herda a confirmação feita aqui. |
+| Renovar o token não renova a prova | Senão a janela de 10 minutos duraria tanto quanto a sessão. |
+| Código de MFA obrigatório quando a conta tem MFA | A senha sozinha não pode valer mais na confirmação do que vale na entrada. O código consumido não vale de novo. |
+| Tentativas contam no limite da troca de senha | A rota não vira um caminho alternativo para testar senhas. |
+| Só a role de identidade escreve `sessions` | A 055 retira da role da API de negócio os direitos de escrita herdados da 013, que permitiriam marcar a própria sessão como confirmada. |
+
+**Limites:** os apps nativos não têm a janela, mas hoje não chamam nenhuma dessas rotas. Remover acesso (revogar papel, vínculo ou concessão) não pede confirmação: reduzir poder não é o risco que ela cobre.
 
 ## Recuperação de senha por e-mail
 

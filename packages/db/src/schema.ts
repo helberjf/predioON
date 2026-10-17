@@ -327,6 +327,8 @@ export const sessions = pgTable("sessions", {
   revokedReason: text("revoked_reason"),
   userAgent: text("user_agent"),
   ipAddress: text("ip_address"),
+  /** Last proof of the password (and second factor); sign-in counts, token refresh does not (055). */
+  verifiedAt: timestamp("verified_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [index("sessions_user_created_idx").on(table.userId, table.createdAt)]);
 
 /** Hashed opaque tokens; legacy rows have no sessionId and are rejected. */

@@ -293,7 +293,7 @@ Limitações reconhecidas e o que a etapa 2 muda:
 | Rotação de refresh sem trava | Consumo atômico com detecção de reutilização e invalidação da família | Em execução (9/9 testes; diagnóstico reproduziu duas renovações aceitas em 4 de 5 tentativas antes da correção) |
 | Token em `localStorage` | Cookie `HttpOnly`/`Secure` com CSRF na web; Keychain/Keystore no mobile | Integrado; access em memória e remoção dos tokens legados na abertura do novo cliente |
 | Papel ordenado | Capacidade: sujeito + ação + escopo + recurso + condição | Em execução (2B) |
-| Sem MFA | MFA para plataforma e ações privilegiadas | Planejado (2C) |
+| Sem MFA | MFA para plataforma e ações privilegiadas | MFA opcional (046) e confirmação recente nas ações privilegiadas (055); obrigatoriedade pendente |
 
 ## 11. Defesa em camadas no banco
 

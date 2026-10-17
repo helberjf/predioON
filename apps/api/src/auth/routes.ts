@@ -11,12 +11,14 @@ import { PasswordChangeSchema } from "./password-change-schema.js";
 import { invitationAuthRouter } from "./invitations.js";
 import { mfaRouter } from "./mfa.js";
 import { recoveryRouter } from "./recovery.js";
+import { verificationRouter } from "./verification.js";
 
 export const authRouter = Router();
 authRouter.use((_req, res, next) => { res.setHeader("Cache-Control", "no-store"); next(); });
 authRouter.use("/web", webAuthRouter);
 authRouter.use("/invitations", invitationAuthRouter);
 authRouter.use("/mfa", mfaRouter);
+authRouter.use("/verify", verificationRouter);
 // /auth/password itself (change, authenticated) is declared below; these two are public.
 authRouter.use("/password", recoveryRouter);
 

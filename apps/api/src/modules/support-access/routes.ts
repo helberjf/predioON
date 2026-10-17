@@ -9,6 +9,7 @@ import { param } from "../../http/params.js";
 import { query, validateBody, validateQuery } from "../../http/validate.js";
 import { isoTime } from "../../http/sql-time.js";
 import { recordAudit } from "../audit/repo.js";
+import { requireRecentVerification } from "../../auth/verification.js";
 
 /**
  * Temporary platform support access (053). The platform admin keeps a support
@@ -88,6 +89,7 @@ supportAccessRouter.post("/staff", validateBody(CreateStaff), async (req, res) =
   const actor = currentAuth(req).userId;
   const created = await inSupport(req, async tx => {
     await assertGlobalCapability(tx, "rbac:manage");
+    await requireRecentVerification(req);
     const [person] = await tx.execute(sql`select id, active from users where id=${input.userId}`) as unknown as Array<{ id: string; active: boolean }>;
     if (!person) throw notFound("Pessoa não encontrada");
     if (!person.active) throw badRequest("A conta está desativada");
@@ -138,6 +140,7 @@ supportAccessRouter.post("/grants", validateBody(CreateGrant), async (req, res) 
   const actor = currentAuth(req).userId;
   const items = await inSupport(req, async tx => {
     await assertGlobalCapability(tx, "support:grant");
+    await requireRecentVerification(req);
     if (input.supportUserId === actor) throw badRequest("Ninguém concede acesso de suporte a si mesmo");
     const [building] = await tx.execute(sql`select active from buildings where id=${input.buildingId}`) as unknown as Array<{ active: boolean }>;
     if (!building) throw notFound("Condomínio não encontrado");

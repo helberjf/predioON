@@ -8,6 +8,7 @@ import { generateId } from "../../http/ids.js";
 import { query, validateBody, validateQuery } from "../../http/validate.js";
 import { hashPassword } from "../../auth/passwords.js";
 import { recordAudit } from "../audit/repo.js";
+import { requireRecentVerification } from "../../auth/verification.js";
 import { param } from "../../http/params.js";
 
 export const usersRouter = Router();
@@ -89,6 +90,7 @@ usersRouter.post("/", validateBody(CreateSchema), async (req, res) => {
 
   const row = await inUsers(req, async (tx) => {
     await assertGlobalCapability(tx, "rbac:manage");
+    await requireRecentVerification(req);
     const [existing] = await tx.select({ id: users.id }).from(users).where(eq(users.email, input.email.toLowerCase())).limit(1);
     if (existing) throw conflict("Já existe um usuário com este e-mail");
 
@@ -123,6 +125,8 @@ usersRouter.post("/memberships", validateBody(MembershipSchema), async (req, res
   const row = await inUsers(req, async (tx) => {
     // The database also refuses granting a role whose capabilities the actor lacks.
     await assertMembershipManager(tx, input.buildingId);
+    // Making someone a manager is privileged; linking a resident is routine.
+    if (input.role === "BUILDING_ADMIN") await requireRecentVerification(req);
     const [created] = await tx
       .insert(memberships)
       .values(input)

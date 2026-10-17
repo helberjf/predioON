@@ -8,6 +8,7 @@ import { notFound } from "../../http/errors.js";
 import { generateId } from "../../http/ids.js";
 import { validateBody } from "../../http/validate.js";
 import { hashPassword } from "../../auth/passwords.js";
+import { requireRecentVerification } from "../../auth/verification.js";
 import { recordAudit } from "../audit/repo.js";
 import { param } from "../../http/params.js";
 import { assertEquipmentCapability, assertEquipmentCreation, equipmentWrite } from "../equipment/authorization.js";
@@ -112,6 +113,8 @@ gatewaysRouter.post("/:gatewayId/credentials", async (req, res) => {
     let [gateway] = await tx.select().from(gateways).where(eq(gateways.id, param(req, "gatewayId"))).limit(1);
     if (!gateway) throw notFound("Gateway não encontrado");
     await assertEquipmentCapability(tx,gateway.buildingId,"gateway",gateway.id,"devices:configure");
+    // The response carries a secret shown once.
+    await requireRecentVerification(req);
     [gateway] = await tx.select().from(gateways).where(eq(gateways.id,gateway.id)).limit(1).for("update");
     if (!gateway) throw notFound("Gateway não encontrado");
     [gateway] = await tx.select().from(gateways).where(eq(gateways.id,gateway.id)).limit(1);
