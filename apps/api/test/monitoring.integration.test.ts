@@ -4,6 +4,7 @@ import { after, before, describe, it } from "node:test";
 import { and, eq } from "drizzle-orm";
 import { alerts, dailyUsage, db, devices, monitoringProfiles, sqlClient } from "@predioon/db";
 import { closeAppDb, withUserContext } from "@predioon/db/runtime";
+import { closeIngestDb, ingestDb, ingestDeviceColumns } from "@predioon/db/ingest";
 import { dayBounds, dayKey } from "@predioon/shared";
 import { accountUsage } from "../../../services/ingest/src/analytics/usage.js";
 import { call, json, login, startTestServer, unique, type Session, type TestServer } from "./helpers.js";
@@ -13,8 +14,9 @@ describe("consumo, tarifas e análise histórica", () => {
   const deviceId = unique("usage-meter"), pumpId = unique("usage-pump");
   const now = new Date(), start = new Date(now.getTime() - 60_000);
   const key = dayKey(now, "America/Sao_Paulo");
-  const ingest = (value: number | boolean, time: Date, device = deviceId, metric = "energy_total_kwh") => db.transaction(async tx => {
-    await tx.select().from(devices).where(eq(devices.id, device)).for("update");
+  // Usage accounting runs as the restricted ingestion login, under the sensor row lock like the pipeline.
+  const ingest = (value: number | boolean, time: Date, device = deviceId, metric = "energy_total_kwh") => ingestDb.transaction(async tx => {
+    await tx.select(ingestDeviceColumns).from(devices).where(eq(devices.id, device)).for("update");
     return accountUsage(tx, { schemaVersion: 1, eventId: randomUUID(), buildingId: "bld_001", deviceId: device, metric, value, quality: "GOOD", timestamp: time.toISOString() });
   });
   before(async () => {
@@ -24,7 +26,7 @@ describe("consumo, tarifas e análise histórica", () => {
   after(async () => {
     await server?.close();
     for (const id of [deviceId, pumpId]) await db.delete(devices).where(eq(devices.id, id));
-    await closeAppDb(); await sqlClient.end();
+    await closeAppDb(); await closeIngestDb(); await sqlClient.end();
   });
   it("morador não cria parâmetros e não consulta outro imóvel", async () => {
     assert.equal((await call(server.url, "/monitoring", { token: resident.accessToken, method: "POST", body: { buildingId: "bld_001", deviceId, kind: "ENERGY" } })).status, 403);
