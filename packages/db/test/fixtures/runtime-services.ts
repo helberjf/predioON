@@ -35,9 +35,9 @@ function preflight(message: string): never { throw new Error(`Runtime services f
 
 type FixtureOptions = { baselineRelease?: 51 };
 export function baselineRuntimeServicesMigrations(migrations: Migration[], options: FixtureOptions = {}): Migration[] {
-  if (migrations.length < 51 || migrations.length > 52 ||
-    (options.baselineRelease !== undefined && options.baselineRelease !== 51)) {
-    preflight("this bounded fixture requires the reviewed 051 or 052 release and an optional 051 baseline");
+  // Later releases may follow 052; the 051 baseline and the 052 candidate stay fixed by position.
+  if (migrations.length < 51 || (options.baselineRelease !== undefined && options.baselineRelease !== 51)) {
+    preflight("this fixture requires at least the reviewed 051 release and an optional 051 baseline");
   }
   return options.baselineRelease === 51 ? migrations.slice(0, 51) : migrations;
 }
@@ -338,7 +338,7 @@ export async function createRuntimeServicesFixture(configuration: Configuration,
           ...candidate, execute: undefined, source: `${candidate.source}\nDO $fixture_052_late$ BEGIN
             RAISE EXCEPTION USING ERRCODE='PZ052', MESSAGE='fixture deliberate late failure';
             END $fixture_052_late$;\n`,
-        }] : migrations;
+        }] : migrations.slice(0, 52);
         try {
           return await safeDatabaseOperation("apply canonical 052 candidate", async () => {
             try { return await applyInfrastructure(owner, chain); }
@@ -407,7 +407,7 @@ export async function verifyOwnerPositiveControl(fixture: RuntimeServicesFixture
   const history = await safeDatabaseOperation("owner ledger control", () => fixture.owner<{ id: string; checksum: string }[]>`
     select id,checksum from public.schema_migrations order by id`);
   assert.deepEqual([...history], fixture.canonicalHistory, "every applied canonical migration has its source checksum");
-  assert.ok(history.length === 51 || history.length === 52, "bounded fixture loads the actual 051 or 052 chain");
+  assert.ok(history.length >= 51, "the fixture loads at least the actual 051 chain");
   const syntheticId = randomUUID();
   await safeDatabaseOperation("owner synthetic UUID isolation control", () => fixture.owner.begin(async transaction => {
     await transaction`create table public.runtime_services_fixture_control(id uuid primary key)`;

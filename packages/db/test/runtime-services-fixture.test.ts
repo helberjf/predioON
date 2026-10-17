@@ -134,7 +134,10 @@ test("the optional 051 baseline preserves canonical sources and the default curr
   baseline.forEach((migration, index) => assert.equal(migration, migrations[index]));
   assert.equal(migrations.length, 52, "the reviewed chain is never mutated");
   assert.throws(() => baselineRuntimeServicesMigrations(migrations.slice(0, 50)), safePreflightFailure);
-  assert.throws(() => baselineRuntimeServicesMigrations([...migrations, { id: "053-future", source: "" }]), safePreflightFailure);
+  // A later release (053) joins the full chain without moving the 051 baseline.
+  const later = [...migrations, { id: "053-later", source: "select 53;" }];
+  assert.equal(baselineRuntimeServicesMigrations(later).length, 53);
+  assert.deepEqual(baselineRuntimeServicesMigrations(later, { baselineRelease: 51 }), migrations.slice(0, 51));
   assert.throws(() => baselineRuntimeServicesMigrations(migrations, { baselineRelease: 52 } as never), safePreflightFailure);
 });
 
