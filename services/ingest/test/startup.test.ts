@@ -186,3 +186,19 @@ test("duplicate shutdown calls share one cleanup without repeating effects", asy
     assert.equal(f.events.filter(value => value === event).length, 1, event);
   }
 });
+
+test("keeps the pools until an in-flight access dispatch finishes during shutdown", async t => {
+  const start = await startup();
+  const f = fixture(t);
+  const dispatch = deferred();
+  f.dependencies.startAccess = () => { f.events.push("access-start"); return () => { f.events.push("access-stop"); return dispatch.promise; }; };
+  const shutdown = await start(f.dependencies);
+  const closing = shutdown();
+  assert.ok(f.events.includes("mqtt-end"), "MQTT shutdown still begins at once");
+  f.finishMqtt();
+  await new Promise<void>(resolve => setImmediate(resolve));
+  assert.ok(!f.events.includes("databases-close"), "a dispatch may still record its publish failure");
+  dispatch.resolve();
+  await closing;
+  assert.equal(f.events.at(-1), "databases-close");
+});

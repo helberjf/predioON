@@ -5,7 +5,7 @@ export type StartupDependencies = {
   verifyAccess(): Promise<void>;
   connect(): MqttClient;
   startOffline(): NodeJS.Timeout;
-  startAccess(client: MqttClient): () => void;
+  startAccess(client: MqttClient): () => void | Promise<void>;
   closeDatabases(): Promise<void>;
 };
 
@@ -13,19 +13,22 @@ export type StartupDependencies = {
 export async function startIngestRuntime(dependencies: StartupDependencies): Promise<() => Promise<void>> {
   let client: MqttClient | undefined;
   let offline: NodeJS.Timeout | undefined;
-  let stopAccess: (() => void) | undefined;
+  let stopAccess: (() => void | Promise<void>) | undefined;
   let shutdownPromise: Promise<void> | undefined;
 
   const shutdown = (): Promise<void> => {
     shutdownPromise ??= (async () => {
       let failed = false;
       if (offline) clearInterval(offline);
-      try { stopAccess?.(); } catch { failed = true; }
+      let accessStopped: void | Promise<void> = undefined;
+      try { accessStopped = stopAccess?.(); } catch { failed = true; }
       try {
         if (client) await new Promise<void>((resolve, reject) => {
           client!.end(false, error => { if (error) reject(error); else resolve(); });
         });
       } catch { failed = true; }
+      // An in-flight dispatch may still record a publish failure: keep the pools until it ends.
+      try { await accessStopped; } catch { failed = true; }
       try { await dependencies.closeDatabases(); } catch { failed = true; }
       if (failed) throw new Error("Não foi possível encerrar o runtime de ingestão");
     })();

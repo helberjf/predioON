@@ -7,6 +7,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseEnv } from "node:util";
+import { createRequire } from "node:module";
 import { test } from "node:test";
 import { projectIngestRuntimeEnvironment } from "./write-ingest-runtime-env.mjs";
 
@@ -79,4 +80,11 @@ for (const [label, changes] of [
 
 test("the pure projection rejects values that would break the file format", () => {
   assert.throws(() => projectIngestRuntimeEnvironment({ ...admin, MQTT_PASSWORD: "a\nDATABASE_URL=x" }), /MQTT_PASSWORD/);
+  assert.throws(() => projectIngestRuntimeEnvironment({ ...admin, MQTT_PASSWORD: "it's" }), /MQTT_PASSWORD/);
+});
+
+test("keeps backslashes, dollars and double quotes exactly as the runtime loader reads them", () => {
+  const { parse } = createRequire(new URL("../services/ingest/package.json", import.meta.url))("dotenv");
+  const password = String.raw`a\nb\t"c$HOME#d`;
+  assert.equal(parse(projectIngestRuntimeEnvironment({ ...admin, MQTT_PASSWORD: password })).MQTT_PASSWORD, password);
 });

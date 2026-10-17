@@ -42,8 +42,9 @@ export function projectIngestRuntimeEnvironment(input) {
   if (ingest !== access) throw new Error("DATABASE_URL_INGEST e DATABASE_URL_ACCESS_SERVICE devem apontar para o mesmo banco");
   const lines = INGEST_RUNTIME_KEYS.filter(key => input[key] !== undefined && input[key] !== "").map(key => {
     const value = input[key];
-    if (/[\r\n"]/.test(value)) throw new Error(`${key}: valor com quebra de linha ou aspas não é suportado`);
-    return `${key}="${value}"`;
+    // Single quotes are literal for dotenv: backslash sequences in a password stay as written.
+    if (/[\r\n']/.test(value)) throw new Error(`${key}: valor com quebra de linha ou aspas simples não é suportado`);
+    return `${key}='${value}'`;
   });
   return `# Gerado por scripts/write-ingest-runtime-env.mjs. Não versionar.\n${lines.join("\n")}\n`;
 }

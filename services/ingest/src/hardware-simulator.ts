@@ -2,7 +2,9 @@ import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import mqtt from "mqtt";
 import { gatewayStatusTopic, telemetryTopic, waterTelemetryTopic, type GatewayStatus, type Telemetry } from "@predioon/shared";
-import { config } from "./config.js";
+// Plays the gateway over MQTT only: it needs no database credential, so it reads the
+// MQTT keys directly instead of the ingestion config, which validates the two DB logins.
+import "./env.js";
 import { initialState, nextState, SCENARIOS, type FieldState, type Scenario } from "./simulator/state.js";
 
 const arg = process.argv.find((value) => value.startsWith("--scenario="))?.split("=")[1] ?? "normal";
@@ -16,12 +18,13 @@ const timeScale = Number(process.env.SIM_TIME_SCALE ?? 1);
 if (!Number.isFinite(intervalMs) || intervalMs < 500 || intervalMs > 300_000) throw new Error("SIM_INTERVAL_MS deve estar entre 500 e 300000");
 if (!Number.isFinite(timeScale) || timeScale < 1 || timeScale > 3600) throw new Error("SIM_TIME_SCALE deve estar entre 1 e 3600");
 
-const client = mqtt.connect(config.MQTT_URL, {
-  username: process.env.SIM_MQTT_USERNAME ?? config.MQTT_USERNAME,
-  password: process.env.SIM_MQTT_PASSWORD ?? config.MQTT_PASSWORD,
+const mqttCaFile = process.env.MQTT_CA_FILE;
+const client = mqtt.connect(process.env.MQTT_URL || "mqtt://localhost:1883", {
+  username: process.env.SIM_MQTT_USERNAME ?? process.env.MQTT_USERNAME,
+  password: process.env.SIM_MQTT_PASSWORD ?? process.env.MQTT_PASSWORD,
   clientId: process.env.SIM_MQTT_CLIENT_ID ?? gatewayId,
   rejectUnauthorized: true,
-  ...(config.MQTT_CA_FILE ? { ca: readFileSync(config.MQTT_CA_FILE) } : {}),
+  ...(mqttCaFile ? { ca: readFileSync(mqttCaFile) } : {}),
   // Last will: if this process dies, the broker publishes OFFLINE for us.
   will: {
     topic: gatewayStatusTopic(buildingId, gatewayId),

@@ -83,7 +83,7 @@ async function dispatchWithFeatureLock(
   });
 }
 
-export function startAccessDispatcher(client: MqttClient): () => void {
+export function startAccessDispatcher(client: MqttClient): () => Promise<void> {
   let connectedSince = new Date();
   let running = false;
   const onConnect = () => {
@@ -101,9 +101,12 @@ export function startAccessDispatcher(client: MqttClient): () => void {
         running = false;
       });
   }, 250);
+  // Stopping waits for an in-flight dispatch, so it can still record a publish
+  // failure before MQTT and the database pools close.
   return () => {
     clearInterval(timer);
     client.off("connect", onConnect);
+    return dispatcherTail;
   };
 }
 
