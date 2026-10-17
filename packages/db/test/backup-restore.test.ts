@@ -235,7 +235,7 @@ for(const separateCluster of [false,true])it(`restores a real Timescale archive 
     await applyInfrastructure(source,migrations);
     // Gates and parking are opt-in since SQL049; this fixture exercises them, so it switches them on as the platform administrator would.
     await source`update global_feature_settings set enabled=true where feature_key in ('GARAGE_ACCESS','PEDESTRIAN_ACCESS','CAR_PARKING','MOTORCYCLE_PARKING')`;
-    assert.equal(migrations.length,53,'recovery fixture includes the complete SQL053 ledger');
+    assert.equal(migrations.length,54,'recovery fixture includes the complete SQL054 ledger');
     const sourceConnections=await provisionRuntime(sourceUrl);
     await restrictedRoles(source,true);
     await source`insert into organizations(id,name,slug) values('restore-org','Recovery fixture','restore-org')`;
