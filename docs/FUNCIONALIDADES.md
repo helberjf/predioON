@@ -1,6 +1,6 @@
 # Controle de funcionalidades
 
-Revisão de 17/10/2026, sobre o código até a migration 051. A administração da plataforma controla 23 funcionalidades em **Administração → Funcionalidades** (`/funcionalidades`, painel administrativo). O controle afeta o software; não desliga fisicamente equipamentos.
+Revisão de 17/10/2026, sobre o código até a migration 054. A administração da plataforma controla 23 funcionalidades em **Administração → Funcionalidades** (`/funcionalidades`, painel administrativo). O controle afeta o software; não desliga fisicamente equipamentos.
 
 **Mudanças desde a revisão de 24/09:** portões e vagas passaram a vir **desligados por padrão**, inclusive em instalações que já existiam (migrations 049 e 050). A permissão de alterar deixou de ser conferida pelo papel e passou a ser a capacidade vigente `features:manage`. Desligar um recurso também cancela entregas de alerta que deixaram de valer. O consumo para moradores ganhou uma liberação própria, decidida pelo síndico e desligada por padrão (migration 051), e o morador deixou de ver o nível da caixa d'água.
 
@@ -45,7 +45,7 @@ Portões e vagas só devem ser ligados quando o condomínio tiver de fato o equi
 | Atendimento | Agrupamento de chamados repetidos; seleção e alteração de gravidade |
 | Administração | Transparência da gestão; prestação de contas; suporte remoto |
 
-Ficam fora da central e sempre disponíveis, sujeitos apenas às permissões de cada pessoa: entrada, recuperação de senha, verificação em duas etapas, sessões, usuários e convites de moradores, condomínios, blocos, unidades e equipes, clientes, auditoria, a própria central, comunicação dos gateways, ordens de serviço, ativos e automações. Uma automação que abre ordem de serviço a partir de um alerta depende do alerta, e o alerta segue o controle do sensor correspondente. A configuração técnica dos equipamentos também permanece acessível à equipe autorizada. Disjuntor/extintor permanece fora do escopo.
+Ficam fora da central e sempre disponíveis, sujeitos apenas às permissões de cada pessoa: entrada, recuperação de senha, verificação em duas etapas, sessões, usuários e convites de moradores, condomínios, blocos, unidades e equipes, clientes, auditoria, a própria central, comunicação dos gateways, ordens de serviço, ativos e automações. Uma automação que abre ordem de serviço a partir de um alerta depende do alerta, e o alerta segue o controle do sensor correspondente. A configuração técnica dos equipamentos também permanece acessível à equipe autorizada. O acesso temporário de suporte da plataforma (migration 053), que dá à equipe de suporte leitura de um condomínio com motivo e prazo, é separado do controle **Suporte remoto** (AnyDesk) e não depende dele. Disjuntor/extintor permanece fora do escopo.
 
 ## Consumo para moradores (liberação do síndico)
 
@@ -56,7 +56,7 @@ Não faz parte das 23 funcionalidades da central: é uma liberação por condom�
 | Não liberado (padrão) | Nada de consumo; o item **Consumo** nem aparece no portal do morador. |
 | Liberado | Quantidade diária de energia e de água dos últimos 7 dias, somando os medidores do mesmo tipo; dias afetados por pausa aparecem como **parcial**. Nunca tarifa, custo, limite, bomba, referência aprendida, leitura bruta ou identificação de equipamento. |
 
-A liberação depende também das funcionalidades da central: com consumo de água ou de energia desligado, aquele tipo não é mostrado. Cada mudança grava `RESIDENT_CONSUMPTION_CHANGED` na auditoria, com valor anterior e novo. Retirar a liberação, ou o morador perder o vínculo, encerra o acesso na consulta seguinte. O nível da caixa d'água não é mais entregue ao morador em nenhum caso. O app Morador não tem tela de consumo.
+A liberação depende também das funcionalidades da central: com consumo de água ou de energia desligado, aquele tipo não é mostrado. Cada mudança grava `RESIDENT_CONSUMPTION_CHANGED` na auditoria, com valor anterior e novo. Retirar a liberação, ou o morador perder o vínculo, encerra o acesso na consulta seguinte. O nível da caixa d'água não é mais entregue ao morador em nenhum caso. No app Morador, a aba **Consumo** segue as mesmas regras: só aparece com a liberação e mostra apenas os tipos cuja funcionalidade está ligada.
 
 ## Alteração e auditoria
 
@@ -64,7 +64,7 @@ Cada mudança exige justificativa de 3 a 1.000 caracteres. A confirmação infor
 
 Nos portais web, menus, atalhos, cartões e controles acompanham a disponibilidade. A URL direta mostra que a funcionalidade está desativada e a API bloqueia a operação mesmo que a tela ainda esteja aberta. Mudanças notificam os portais em tempo real; também há reconciliação ao recuperar foco e a cada 30 segundos. Falhas ao consultar a configuração impedem a exibição dos módulos até uma nova consulta válida.
 
-Os apps Morador e Operação consultam o estado do condomínio escolhido e escondem Avisos, Solicitações, Reservas e Acessos desligados. Ordens de serviço no app Operação seguem só as permissões.
+Os apps Morador e Operação consultam o estado do condomínio escolhido e escondem Avisos, Solicitações, Reservas, Acessos e Consumo desligados. Ordens de serviço no app Operação seguem só as permissões.
 
 ## O que acontece durante a pausa
 
