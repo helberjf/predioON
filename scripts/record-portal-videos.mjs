@@ -15,7 +15,7 @@ const [out, ...only] = process.argv.slice(2);
 if (!out) { console.error("Informe a pasta de saída."); process.exit(64); }
 mkdirSync(out, { recursive: true });
 const PASSWORD = process.env.SEED_PASSWORD ?? "predioon123";
-const PAUSE = Number(process.env.VIDEO_PAUSE_MS ?? 2200);
+const PAUSE = Number(process.env.VIDEO_PAUSE_MS ?? 3500);
 const portals = {
   admin: { origin: process.env.ADMIN_URL ?? "http://localhost:5173", email: "admin@predioon.local", viewport: { width: 1280, height: 720 }, title: "Portal da administração" },
   building: { origin: process.env.BUILDING_URL ?? "http://localhost:5174", email: "sindico@predioon.local", viewport: { width: 1280, height: 720 }, title: "Portal do síndico" },
@@ -46,11 +46,24 @@ async function record(key, tour) {
   const page = await context.newPage();
   const caption = async text => { await page.evaluate(value => window.__caption?.(value), text).catch(() => {}); await page.waitForTimeout(PAUSE); };
   const open = async (label, text) => {
-    const link = page.getByRole("link", { name: label, exact: true }).first();
-    if (!await link.count()) { console.log(`${key}: sem "${label}" nesta conta, passo omitido`); return false; }
+    let link = page.getByRole("link", { name: label, exact: true }).first();
+    // On a phone the resident portal keeps some sections under "Mais".
+    if (!await link.count() && await page.getByRole("button", { name: "Mais", exact: true }).count()) {
+      await page.getByRole("button", { name: "Mais", exact: true }).click();
+      await page.waitForTimeout(700);
+      link = page.getByRole("link", { name: label, exact: true }).first();
+    }
+    if (!await link.count()) {
+      await page.keyboard.press("Escape");
+      console.log(`${key}: sem "${label}" nesta conta, passo omitido`);
+      return false;
+    }
     await link.click();
     await page.waitForLoadState("networkidle").catch(() => {});
     await caption(text);
+    // Show the rest of the page, then come back to the top.
+    await page.mouse.move(portal.viewport.width / 2, portal.viewport.height / 2);
+    for (const delta of [500, 500, -1000]) { await page.mouse.wheel(0, delta); await page.waitForTimeout(1200); }
     return true;
   };
   try {

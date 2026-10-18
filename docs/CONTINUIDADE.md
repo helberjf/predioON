@@ -13,7 +13,7 @@ Atualizado em **17/10/2026**, horário de São Paulo. Leia este arquivo primeiro
 - Nunca repetir automaticamente comandos de acesso físico; sem fallback para a conexão owner; não editar as migrations 001–051 já publicadas.
 - Não contornar o bloqueio salvo da galeria 8765.
 - Sugestões vão para [MELHORIAS_E_EVOLUCOES.md](MELHORIAS_E_EVOLUCOES.md). Imagens conferidas entram nos commits, com origem e limites, via [IMAGENS_DOS_SISTEMAS.md](IMAGENS_DOS_SISTEMAS.md).
-- Ao terminar: abrir os três portais e os apps Morador/Operação e entregar cinco gravações separadas com dados fictícios.
+- Ao terminar: abrir os três portais e os apps Morador/Operação e entregar cinco gravações separadas com dados fictícios. **Entregues em 18/10:** [docs/videos](videos/README.md).
 
 ## 2. O que existe
 
@@ -38,7 +38,7 @@ Atualizado em **17/10/2026**, horário de São Paulo. Leia este arquivo primeiro
 | 2. Identidade e RBAC | Concluída: capacidades em todos os módulos (2B.3, 054), gestão web integrada (2B.4), convites, MFA, recuperação e confirmação recente (2C, 055). **Decisão do proprietário:** tornar a MFA obrigatória para a administração da plataforma (exige cadastro forçado no primeiro acesso). |
 | 3. Processamento durável | Outbox e worker de notificações (038), ingestão sem owner (052), garantias de telemetria (048). A fila separada da inbox foi adiada conscientemente ([INBOX_DECISOES.md](INBOX_DECISOES.md)). |
 | 4. Domínios | Ativos (044), ordens de serviço (043), automações por alerta e programadas (045/057), suporte com concessão explícita (053). **Planos/assinaturas: não iniciado**, por decisão. |
-| 5. Apps | Funcionais e testados (224 testes); jornadas Android aprovadas em CI até o bloqueio da conta. **Pendentes:** avisos Fabric (MissingViewState) sem causa demonstrada, iOS autenticado (exige macOS/Apple), homologação em aparelhos. |
+| 5. Apps | Funcionais e testados (224 testes); jornadas Android aprovadas em CI até o bloqueio da conta; percorridos no emulador em 18/10 (vídeos), sem avisos Fabric no logcat. **Pendentes:** iOS autenticado (exige macOS/Apple) e homologação em aparelhos. |
 | 6. Implantação e operação | Artefatos prontos e ensaiados localmente (Compose, healthchecks, backup/restauração, retenção, saúde dos serviços). **Sem implantação real.** |
 
 ## 4. Últimas releases (17/10)
@@ -55,6 +55,8 @@ Atualizado em **17/10/2026**, horário de São Paulo. Leia este arquivo primeiro
 | app | `f4d4720` | Convite no app Morador |
 | teste | `5a08d1b` | Restauração: espera do lease pelo relógio do banco (encerrou a intermitência aberta em 06/10) |
 
+**Depois (18/10):** datas ISO nas rotas lidas pelos apps (o app Operação mostrava "Data indisponível"), correção do `demo:data` e os cinco vídeos. API 828/829 na integral (1 intermitente conhecido, 3/3 isolado), ingestão 204/204, teste novo de datas 2/2.
+
 **Provas da última rodada (HEAD, clusters novos):** banco 301/303 (2 skips de backup, cobertos pelo teste próprio), api-client 118/118, UI 108/108, mobile 224/224, API 827/827, ingestão 204/204; SQL052 73/73; serviços restritos 114/114; restauração 2/2 três vezes; ingestão real com broker 12/12; Playwright Chromium completo 117/117. [Evidência](evidencias/releases-055-058-2026-10-17.json).
 
 ## 5. Como retomar e testar nesta máquina
@@ -62,7 +64,7 @@ Atualizado em **17/10/2026**, horário de São Paulo. Leia este arquivo primeiro
 **Memória:** antes de qualquer etapa pesada, confira a memória livre. O VM do Docker (vmmemWSL) não tem limite e chega a ~5 GB; com outros programas abertos a memória livre já caiu a 0,3 GB. Regras práticas:
 
 - regressões pesadas rodam **dentro do container runner com memória limitada** (`docker update --memory 2500m`), um cluster por vez;
-- build Gradle e emulador Android **só com o Docker parado** (`docker desktop stop` e `wsl --shutdown`), ou depois de o proprietário aprovar um limite de memória para o WSL;
+- desde 18/10 o WSL está limitado a 3 GB por `%USERPROFILE%\.wslconfig`, a pedido do proprietário (apagar o arquivo e rodar `wsl --shutdown` volta ao padrão). Mesmo assim, emulador e Docker juntos só cabem com navegador, VS Code e outros apps pesados fechados, inclusive da bandeja;
 - se o Docker Desktop não subir com "The file cannot be accessed by the system", renomear `%LOCALAPPDATA%\Docker\run` **e** `%LOCALAPPDATA%\docker-secrets-engine` e iniciar uma única vez. Nunca usar "Reset to factory defaults".
 
 **Ambiente descartável e testes:**
@@ -87,11 +89,11 @@ A sequência do job de plataforma, as flags das suítes SQL038/SQL052 e os clust
 - Implantação real: VPS, domínio, TLS, chave do Resend e remetente, `MFA_ENCRYPTION_KEY`, segredos do Compose ([DEPLOY.md](DEPLOY.md)).
 - Hardware real (gateways, sensores, portões) e homologação em condomínio.
 - Conta Apple/macOS para o iOS autenticado.
-- Decidir: MFA obrigatória para a plataforma; prazo de retenção das leituras (sugestão de 24 meses); limite de memória do WSL nesta máquina, para rodar emulador e Docker juntos.
+- Decidir: MFA obrigatória para a plataforma; prazo de retenção das leituras (sugestão de 24 meses).
 - Planos/assinaturas (deixados por último).
 
 **Técnico, nesta máquina:**
 
-- Gravar os vídeos dos dois apps no emulador e reexaminar os avisos Fabric no logcat (scripts prontos; bloqueado pela memória, ver acima).
-- Gravar os três portais com dados fictícios de telemetria (o seed descartável não traz leituras; usar o gerador de demonstração da ingestão num banco descartável, nunca na 037).
 - Ensaio de carga com a ingestão real (MQTT mensagem a mensagem).
+- Teste intermitente conhecido: `password-recovery.test.ts` → "keeps two-step verification in place after a reset" falhou 1 vez na integral de 18/10 (a ativação da MFA não devolveu a chave) e passou 3/3 isolado; mesmo sintoma de limite de requisições compartilhado já visto antes. Investigar sem afrouxar o limite.
+- Avisos Fabric: não se repetiram em quatro execuções no emulador em 18/10; a causa dos registros de outubro no CI segue sem demonstração.

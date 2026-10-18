@@ -5,7 +5,7 @@ import { ADMIN_URL, BUILDING_URL, RESIDENT_URL } from "../../e2e/environment";
 // The web servers of playwright.config.ts stay up while this runs the recorder.
 test("grava os três portais", () => {
   const out = process.env.VIDEO_OUT ?? ".local/videos";
-  execFileSync(process.execPath, ["scripts/record-portal-videos.mjs", out], {
+  execFileSync(process.execPath, ["scripts/record-portal-videos.mjs", out, ...(process.env.VIDEO_ONLY ?? "").split(",").filter(Boolean)], {
     stdio: "inherit", env: { ...process.env, ADMIN_URL, BUILDING_URL, RESIDENT_URL },
   });
 });

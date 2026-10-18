@@ -29,9 +29,15 @@ def adb(*args, timeout=30, check=True):
 
 
 def nodes():
-    adb("shell", "uiautomator", "dump", "/sdcard/predioon-video.xml", timeout=30)
-    xml = adb("shell", "cat", "/sdcard/predioon-video.xml").stdout
-    return ET.fromstring(xml[xml.index("<"):]).iter("node")
+    # A dump can fail while the screen is still changing; the caller retries.
+    dump = adb("shell", "uiautomator", "dump", "/data/local/tmp/predioon-video.xml", timeout=30, check=False)
+    xml = adb("shell", "cat", "/data/local/tmp/predioon-video.xml", check=False).stdout
+    if dump.returncode != 0 or "<" not in xml:
+        return iter(())
+    try:
+        return ET.fromstring(xml[xml.index("<"):]).iter("node")
+    except ET.ParseError:
+        return iter(())
 
 
 def center(node):
@@ -39,18 +45,22 @@ def center(node):
     return (x1 + x2) // 2, (y1 + y2) // 2
 
 
-def find(label, timeout=20):
+def find(label, timeout=20, field=False, last=False):
+    """A visible text or accessibility label; `field` wants the input itself, not its caption;
+    `last` picks the last match, e.g. the "Entrar" button below the "Entrar" heading."""
     deadline = time.time() + timeout
     while time.time() < deadline:
-        for node in nodes():
-            if label in (node.get("text"), node.get("content-desc")):
-                return node
+        matches = [node for node in nodes() if (
+            node.get("class") == "android.widget.EditText" and label in (node.get("content-desc"), node.get("hint"), node.get("text"))
+            if field else label in (node.get("text"), node.get("content-desc")))]
+        if matches:
+            return matches[-1] if last else matches[0]
         time.sleep(1)
     return None
 
 
-def tap(label, timeout=20):
-    node = find(label, timeout)
+def tap(label, timeout=20, last=False):
+    node = find(label, timeout, last=last)
     if node is None:
         print(f"  (sem \"{label}\" na tela, passo omitido)")
         return False
@@ -60,7 +70,7 @@ def tap(label, timeout=20):
 
 
 def fill(label, value):
-    node = find(label)
+    node = find(label, field=True)
     if node is None:
         raise SystemExit(f"Campo \"{label}\" não encontrado")
     adb("shell", "input", "tap", *map(str, center(node)))
@@ -90,13 +100,19 @@ def main():
         fill("E-mail", email)
         fill("Senha", PASSWORD)
         adb("shell", "input", "keyevent", "111")  # hide the keyboard
-        tap("Entrar")
+        tap("Entrar", last=True)
         time.sleep(4)
-        choose = find("Residencial", 8)
-        if choose is not None:
-            adb("shell", "input", "tap", *map(str, center(choose)))
-            time.sleep(3)
+        # One condominium in the seed: enter it from the chooser.
+        tap("Acessar condomínio", timeout=15)
+        time.sleep(2)
         for tab in tabs:
+            if find(tab, timeout=3) is None:
+                # Further tabs live off-screen in the horizontal tab bar.
+                bar = find("Avisos", timeout=5) or find("Resumo", timeout=5)
+                if bar is not None:
+                    y = str(center(bar)[1])
+                    adb("shell", "input", "swipe", "950", y, "150", y, "500")
+                    time.sleep(1.2)
             tap(tab)
             adb("shell", "input", "swipe", "540", "1700", "540", "700", "600")
             time.sleep(2)
