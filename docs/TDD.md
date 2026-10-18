@@ -85,7 +85,7 @@ exporta schema interno do banco.
 | 11 | Comando físico sem replay (QoS 0, `retain: false`, fila de saída desativada, prazo) | Portão reenviado depois é risco de segurança, não conveniência | Retry genérico de fila | Perda de conexão vira falha explícita, nunca reenvio |
 | 12 | Fila durável no PostgreSQL (destino) | Menos infraestrutura para operar na primeira VPS; contrato atrás de interface | Redis/Rabbit/Kafka desde já | Precisa de `FOR UPDATE SKIP LOCKED`, lease e quota por tenant |
 | 13 | RBAC explícito no lugar de `hasAtLeast` (em execução) | Manutenção e suporte não cabem numa hierarquia linear | Novo degrau na ordem de papéis | Decisão passa a exigir sujeito + ação + escopo + recurso + condição |
-| 14 | React Native **sem Expo** para os dois apps | Módulos nativos e configuração própria por produto | Expo | Build exige macOS, certificados e contas de loja |
+| 14 | React Native **sem Expo** para os dois apps | Módulos nativos e configuração própria por produto | Expo SDK (nenhuma versão acompanha o RN 0.87) | Build iOS exige macOS: sem Mac, o EAS Build/Submit entra só como serviço de build e assinatura iOS, sem o pacote `expo` |
 
 ## 4. Modelo de dados
 

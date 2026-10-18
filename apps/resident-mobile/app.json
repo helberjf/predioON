@@ -1,4 +1,11 @@
 {
   "name": "PredioONMorador",
-  "displayName": "Prédio ON Morador"
+  "displayName": "Prédio ON Morador",
+  "expo": {
+    "name": "Prédio ON Morador",
+    "slug": "predioon-morador",
+    "ios": {
+      "bundleIdentifier": "com.predioon.resident"
+    }
+  }
 }

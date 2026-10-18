@@ -1,4 +1,11 @@
 {
   "name": "PredioONOperacao",
-  "displayName": "Prédio ON Operação"
+  "displayName": "Prédio ON Operação",
+  "expo": {
+    "name": "Prédio ON Operação",
+    "slug": "predioon-operacao",
+    "ios": {
+      "bundleIdentifier": "com.predioon.operations"
+    }
+  }
 }

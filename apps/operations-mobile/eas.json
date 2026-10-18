@@ -1,0 +1,33 @@
+{
+  "cli": {
+    "version": ">= 24.12.1",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "production": {
+      "environment": "production",
+      "distribution": "store",
+      "autoIncrement": true,
+      "node": "24.21.0",
+      "pnpm": "10.17.1",
+      "ios": {
+        "scheme": "PredioONOperacao",
+        "buildConfiguration": "Release"
+      }
+    },
+    "simulator": {
+      "environment": "preview",
+      "distribution": "internal",
+      "node": "24.21.0",
+      "pnpm": "10.17.1",
+      "ios": {
+        "simulator": true,
+        "scheme": "PredioONOperacao",
+        "buildConfiguration": "Release"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

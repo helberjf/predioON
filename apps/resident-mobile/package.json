@@ -6,7 +6,8 @@
     "start": "react-native start",
     "android": "react-native run-android",
     "ios": "react-native run-ios",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "eas-build-post-install": "node ../../scripts/eas-api-origin.mjs --app resident-mobile"
   },
   "dependencies": {
     "@predioon/mobile": "workspace:*",

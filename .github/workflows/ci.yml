@@ -224,3 +224,5 @@ jobs:
         run: node --import tsx ../../scripts/test-ingest-restricted-suites.mjs
       - name: Runtime environment projection
         run: node --test scripts/test-ingest-runtime-env.mjs
+      - name: EAS iOS API origin hook
+        run: node --test scripts/test-eas-api-origin.mjs
