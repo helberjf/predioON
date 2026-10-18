@@ -25,6 +25,11 @@ O escopo do produto está no [PRD](docs/PRD.md) e o desenho técnico no [TDD](do
 | Transparência e contas | Atualizações da gestão e relatórios financeiros mensais com receitas, despesas, saldo, comprovantes por link e revisões publicadas. |
 | Suporte remoto | Cadastro do computador do condomínio, preparação do acesso pelo AnyDesk e registro manual do resultado do atendimento. |
 | Acesso de suporte | A plataforma mantém sua equipe de suporte e concede a uma pessoa, por até 7 dias e com motivo, a leitura de sensores, alertas, equipamentos, ordens atribuídas ou concessões de um condomínio. Revogação imediata, histórico preservado e consulta pelo síndico. |
+| Ordens de serviço e ativos | Ordens com distribuição para equipes, execução, anotações e conclusão (web e app Operação); cadastro de ativos do condomínio ligado às ordens. |
+| Automações | Abrir ordens de serviço automaticamente quando chega um alerta ou **em datas programadas** (manutenção preventiva), com versões, simulação e histórico; nada aciona equipamentos. [Detalhes](docs/AUTOMACOES.md). |
+| Identidade e segurança | Cookies HttpOnly com CSRF na web, verificação em duas etapas (TOTP), convites de moradores, recuperação de senha por e-mail, confirmação recente da senha para ações privilegiadas e RBAC por capacidade com RLS em todo o banco. [Autenticação](docs/AUTENTICACAO.md) · [Autorização](docs/AUTORIZACAO.md). |
+| Operação da plataforma | Saúde dos serviços (leituras recebidas, fila de avisos, comandos, tarefas agendadas, tamanho do banco), healthcheck em todos os serviços de produção, retenção opcional das leituras e auditoria. |
+| Apps Morador e Operação | React Native para Android e iOS: avisos, solicitações, reservas, transparência, acessos, consumo, aceite de convite; resumo, alertas, sensores e ordens de serviço. |
 | Controle de funcionalidades | 23 recursos ativados ou desativados globalmente e por condomínio, com justificativa, dependências e auditoria. |
 
 A disponibilidade nos portais segue as permissões do usuário e os controles de funcionalidades. Ao pausar um sensor, novas leituras correspondentes são descartadas, seu processamento e seus alertas ficam suspensos e o histórico é preservado. A comunicação dos gateways continua ativa. Consulte os efeitos e o procedimento de retomada em [Funcionalidades](docs/FUNCIONALIDADES.md).
@@ -308,24 +313,9 @@ scripts/           Inicialização local no Windows
 docs/              Implantação, integração, operação e materiais comerciais
 ```
 
-## Evolução em andamento
+## Estado atual
 
-A evolução de `codex/product-platform` foi integrada à `main` em 01/10/2026. O [tracker](docs/superpowers/plans/2026-09-27-product-execution.md) registra as evidências históricas; validações executadas no computador atual são registradas separadamente. Integração do código não significa conclusão de todos os critérios do produto.
-
-| Etapa | Conteúdo | Estado |
-|---|---|---|
-| 1 | Contratos (`@predioon/contracts`) e cliente HTTP portátil (`@predioon/api-client`) | Concluída |
-| 2A | Sessões com rotação atômica, famílias de refresh e JWT Ed25519 com `kid`; migração `013-sessions.sql` | Concluída |
-| 2B.1 | Fundação de RBAC e tenancy: catálogo de permissões, concessões, unidades, equipes e suporte temporário; migração `014-rbac-tenancy.sql`; rotas `/v1/tenancy` e `/v1/authorization` | Concluída |
-| 2B.2 | Credenciais restritas da API, separando identidade e autorização do broker; migração `015-api-runtime-roles.sql` | Integrada |
-| 2B.3 | Capacidades dos domínios operacionais, estacionamento033 e acesso físico034; auditoria036 | Parcial; administrativos legados e consumidores ainda têm pendências. Estado e validações em [Continuidade](docs/CONTINUIDADE.md). |
-| 2B.4 | Seleção de condomínio, gestão de unidades/equipes/vínculos e diretório mínimo por capacidade (025) | Integrada; regressão executada pela CI |
-| 5 | Apps Morador e Operação, sessão em Keychain/Keystore e fluxos existentes da API | Incremento integrado; publicação e módulos novos pendentes |
-| 2C | Cookies HttpOnly/CSRF, access em memória, coordenação entre abas, limites persistentes035 e troca da própria senha037 | Incrementos integrados; MFA, convites, recuperação e homologação nativa continuam pendentes |
-| 3 — primeiro incremento | Outbox038, produtores atômicos, worker de webhook e role própria | Implementado/testado no recorte; inbox, demais workers, retenção/replay, push e rollout real ainda pendentes |
-| 3, 4 e 6 | Processamento durável (inbox/outbox/workers), ativos e ordens de serviço, automações, planos/assinaturas e operação revisada | Pendentes; entregas operacionais parciais registradas no tracker |
-
-Evidências e números de teste por etapa ficam no [tracker de execução](docs/superpowers/plans/2026-09-27-product-execution.md). Os débitos técnicos conhecidos, incluindo a fronteira entre confirmação MQTT e commit, estão em [TDD, seção 18](docs/TDD.md#18-débitos-técnicos-e-riscos-de-implementação).
+Implementado e verificado localmente, **sem implantação e sem aceite de produção**: migrations 001–058, API 827 testes, ingestão 204, apps 224, Playwright 117 cenários no Chromium. Planos/assinaturas foram deixados por último e não foram feitos. O estado detalhado, o que depende do proprietário e como retomar estão em [Continuidade](docs/CONTINUIDADE.md); o histórico das etapas, no [tracker de execução](docs/superpowers/plans/2026-09-27-product-execution.md).
 
 ## Implantação e limites da versão
 
@@ -351,8 +341,10 @@ Para produção, siga [DEPLOY](docs/DEPLOY.md): segredos exclusivos, conexão re
 | Operação | [Acessos](docs/ACESSOS.md) · [Vagas e avisos](docs/VAGAS_AVISOS.md) |
 | Atendimento e gestão | [Suporte remoto](docs/SUPORTE_REMOTO.md) · [Gestão transparente](docs/GESTAO_TRANSPARENTE.md) |
 | Histórico e privacidade | [Auditoria por capacidades](docs/AUDITORIA.md) |
-| Identidade e encerramento de sessões | [Troca da própria senha037](docs/TROCA_DE_SENHA.md) |
+| Identidade e permissões | [Autenticação](docs/AUTENTICACAO.md) · [Autorização](docs/AUTORIZACAO.md) · [Troca da própria senha](docs/TROCA_DE_SENHA.md) |
+| Manutenção | [Ordens de serviço](docs/ORDENS_DE_SERVICO.md) · [Ativos](docs/ATIVOS.md) · [Automações](docs/AUTOMACOES.md) |
+| Entrega durável e banco | [Notificações duráveis](docs/NOTIFICACOES_DURAVEIS.md) · [Migrations](docs/MIGRATIONS.md) · [Backup e restauração](docs/BACKUP_E_RESTAURACAO.md) |
 | Hardware e MQTT | [Hardware/software](docs/HARDWARE_SOFTWARE.md) · [Contrato e entrega para Helber](docs/ENTREGA_HELBER.md) · [Teste MQTT](docs/TESTE_MQTT.md) |
 | Banco e arquitetura | [Modelo de dados](docs/DATABASE_MODEL.md) · [Preparação do banco](docs/DATABASE_SETUP.md) · [Plano técnico](docs/PLANO_TOTAL.md) |
-| Evolução | [Próximos passos](docs/NEXT_STEPS.md) |
+| Continuidade e evolução | [Continuidade (leia primeiro)](docs/CONTINUIDADE.md) · [Melhorias e evoluções](docs/MELHORIAS_E_EVOLUCOES.md) · [Próximos passos](docs/NEXT_STEPS.md) |
 | Material comercial | [Apresentação](docs/marketing/APRESENTACAO_COMERCIAL.md) · [Casos de uso](docs/marketing/CASOS_DE_USO_E_EVOLUCOES.md) |
