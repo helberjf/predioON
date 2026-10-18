@@ -165,7 +165,10 @@ async function verifyNotificationRecovery(source:postgres.Sql,target:postgres.Sq
     assert.equal((await worker`select notification_end_attempt() as closed`)[0]!.closed,true);
     const [remaining]=await target`select greatest(0,extract(epoch from (${fixture.claim.lease_until}::timestamptz-clock_timestamp())))*1000 as milliseconds`;
     const milliseconds=Number(remaining!.milliseconds);assert.ok(Number.isFinite(milliseconds)&&milliseconds<=20_000);
-    await delay(milliseconds+30);
+    // Expiry is decided by the database clock. Sleeping on the host clock alone
+    // raced it: Docker Desktop's VM clock drifts tens of milliseconds over 20 s.
+    await delay(milliseconds);
+    while((await target`select clock_timestamp()<=${fixture.claim.lease_until}::timestamptz as live`)[0]!.live)await delay(25);
     await worker`select notification_begin_attempt()`;
     const claims=await worker`select * from notification_claim(1)`;assert.equal(claims.length,1);
     const reclaimed=claims[0]!;assert.equal(reclaimed.delivery_id,fixture.claim.delivery_id);assert.notEqual(reclaimed.claim_token,fixture.claim.claim_token);
