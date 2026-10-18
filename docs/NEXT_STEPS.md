@@ -1,13 +1,13 @@
 # Estado da entrega — Prédio ON
 
-O escopo funcional da entrega de 23/09/2026 foi implementado no código local, com disjuntor/extintor fora do escopo. A matriz e as evidências estão em [REVISAO_FUNCIONALIDADES.md](REVISAO_FUNCIONALIDADES.md). A proposta ampliada de 27/09/2026 está na [arquitetura de produto](superpowers/specs/2026-09-27-arquitetura-produto-design.md) e ainda requer implementação; os resultados anteriores não validam essa nova arquitetura.
+O escopo funcional da entrega de 23/09/2026 foi implementado no código local, com disjuntor/extintor fora do escopo. **Este documento registra a entrega de 23/09.** O estado atual está em [CONTINUIDADE.md](CONTINUIDADE.md) e a matriz atual em [REVISAO_FUNCIONALIDADES.md](REVISAO_FUNCIONALIDADES.md). A proposta ampliada de 27/09/2026, na [arquitetura de produto](superpowers/specs/2026-09-27-arquitetura-produto-design.md), foi implementada depois, exceto planos/assinaturas; os resultados de 23/09 abaixo não validam essa nova arquitetura.
 
 ## Validação local concluída em 23/09/2026
 
 - Banco e broker ativos, com migrações adicionais 010 (suporte) e 011 (gestão e contas) aplicadas sem reset; o complemento do seed da entrega anterior permanece disponível.
-- Validação ampliada: 144 testes passaram, sem falhas ou testes pulados (API 77, ingestão 50, interface 17), com tipos e build aprovados. Evidências em [Revisão de funcionalidades](REVISAO_FUNCIONALIDADES.md).
+- Validação ampliada: 144 testes passaram, sem falhas ou testes pulados (API 77, ingestão 50, interface 17), com tipos e build aprovados. Evidências no histórico do git: `git show 6ee13e4:docs/REVISAO_FUNCIONALIDADES.md`.
 - Fluxo real de API → EMQX → controlador simulado → ACK → banco confirmado para garagem e pedestre, sem repetir o acionamento ao reenviar o mesmo pedido.
-- Navegação autenticada e leituras do simulador conferidas; detalhes na matriz de funcionalidades.
+- Navegação autenticada e leituras do simulador conferidas; detalhes no mesmo registro histórico.
 
 Tipos e geração dos painéis/serviços passaram. Esses resultados validam o software local e os simuladores; o comissionamento físico depende da instalação real.
 

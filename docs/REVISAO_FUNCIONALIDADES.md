@@ -1,24 +1,25 @@
 # Prédio ON — funcionalidades implementadas
 
-Revisão de 17/10/2026, sobre o código até a migration 054 (`infrastructure/054-users-memberships-capabilities.sql`). Esta matriz descreve o que existe no código e separa implementação de validação com hardware físico. **Disjuntor/extintor continua fora do escopo.** As 23 funcionalidades que a administração liga e desliga por condomínio estão em [Controle de funcionalidades](FUNCIONALIDADES.md).
+Revisão de 18/10/2026, sobre o código até a migration 058 (`infrastructure/058-platform-service-health.sql`). Esta matriz descreve o que existe no código e separa implementação de validação com hardware físico. **Disjuntor/extintor continua fora do escopo.** As 23 funcionalidades que a administração liga e desliga por condomínio estão em [Controle de funcionalidades](FUNCIONALIDADES.md).
 
 **O que mudou desde a versão de 22–23/09:**
 
 - Entraram módulos novos: ordens de serviço, ativos, automações, convites de moradores, verificação em duas etapas, recuperação de senha por e-mail, sessões pessoais, histórico de auditoria por escopo, clientes, edição e desativação de blocos/unidades/equipes, entrega durável de alertas, acesso temporário de suporte da plataforma (053), os apps Morador e Operação e a liberação de consumo para moradores.
-- Os apps ganharam a aba Consumo no Morador (só com a liberação do síndico), a abertura e atribuição de ordens de serviço no Operação e **Esqueci minha senha** nos dois.
+- Os apps ganharam a aba Consumo e o aceite de convite no Morador, a abertura e atribuição de ordens de serviço no Operação e **Esqueci minha senha** nos dois.
 - **Portões e vagas vêm desligados por padrão**, inclusive em instalações que já existiam (049 e 050). Só devem ser ligados quando o condomínio tiver o equipamento instalado e testado.
 - **O morador não vê mais o nível da caixa d'água**: nem no portal nem pela API (051).
 - A ingestão deixou de usar a conexão dona do banco e roda com duas roles restritas (052). Contas e vínculos passaram a ser decididos pelas capacidades vigentes, não pelo papel legado (054).
+- Ações que dão poder a alguém pedem a senha de novo se ela não foi provada na sessão nos últimos 10 minutos (055). As últimas leituras usam um catálogo de séries (056), as automações também abrem ordens em datas programadas (057) e a administração vê a saúde dos serviços (058).
 - O papel `BUILDING_ADMIN` aparece como **Síndico** em todas as telas. É um papel só; antes duas telas o chamavam de "Administrador do condomínio".
 
 ## Portais e aplicativos
 
 | Superfície | Para quem | O que oferece hoje |
 |---|---|---|
-| Portal de administração | Administração da plataforma | Condomínios, Clientes, Operação dos imóveis, Comunicação (gateways), Equipamentos, Suporte remoto, Usuários, Unidades e equipes, Acesso de suporte, Funcionalidades, Histórico de atividades, Minhas sessões |
+| Portal de administração | Administração da plataforma | Visão geral com Serviços da plataforma, Condomínios, Clientes, Operação dos imóveis, Comunicação (gateways), Equipamentos, Suporte remoto, Usuários, Unidades e equipes, Acesso de suporte, Funcionalidades, Histórico de atividades, Minhas sessões |
 | Portal de operação | Síndico e equipe do condomínio | Monitoramento (água, energia, consumo, sensores, equipamentos), alertas, ocorrências, ordens de serviço, ativos, avisos, áreas comuns, transparência e contas, unidades e equipes, regras de alerta, automações, histórico, Acesso de suporte (só leitura), Minhas sessões. Portões e vagas só aparecem quando ligados |
 | Portal do morador | Morador | Início, reservas, ocorrências, avisos, transparência, perfil com Minhas sessões. Acessos e Vagas só quando ligados; Consumo só quando o síndico libera |
-| App Morador (React Native) | Morador | Avisos, Solicitações, Reservas, Transparência e Minha conta. Consumo só quando o síndico libera; Acessos só quando ligado |
+| App Morador (React Native) | Morador | Avisos, Solicitações, Reservas, Transparência e Minha conta; **Tenho um convite** na entrada. Consumo só quando o síndico libera; Acessos só quando ligado |
 | App Operação (React Native) | Equipe do condomínio | Resumo, Alertas, Sensores, Solicitações, Ordens de serviço e Minha conta, conforme as permissões de cada pessoa |
 
 Os dois apps compartilham o código de `packages/mobile`, têm **Esqueci minha senha** na entrada e consultam o estado das funcionalidades do condomínio escolhido. Requisitos, execução e limites em [Aplicativos móveis](../packages/mobile/README.md).
@@ -38,6 +39,8 @@ Os dois apps compartilham o código de `packages/mobile`, têm **Esqueci minha s
 | Entrega durável de alertas (038) | Alerta e evento gravados na mesma transação; um serviço separado (`@predioon/notifications`) envia por webhook os alertas HIGH/CRITICAL, com reserva, tentativas e confirmação. Desligar uma funcionalidade cancela as entregas que deixaram de valer. | [Notificações duráveis](NOTIFICACOES_DURAVEIS.md) |
 | Recibo de leituras (048) | Leitura identificada por condomínio, dispositivo e evento; reentrega aplicada uma vez; leitura retida pelo broker vira só histórico; alerta só para leitura com até 300 s. Recusas contadas por categoria, sem conteúdo. | [Decisões da inbox](INBOX_DECISOES.md) |
 | Ingestão com roles restritas (052) | Leituras, recibos, consumo, vagas, alertas e outbox passam pela role `predioon_ingest`; comandos de portão e confirmações, pela `predioon_access_service`, só por funções privadas. O serviço confere as duas identidades antes de conectar ao MQTT e recusa iniciar com a conexão dona (`DATABASE_URL`). | [Migrações](MIGRATIONS.md), [Implantação](DEPLOY.md) |
+| Catálogo de séries e retenção (056) | Uma linha por série (condomínio, dispositivo, métrica) mantida por gatilho; as últimas leituras do painel passaram de 1,3 s para 0,27 s na medição com 50 dispositivos. A retenção das leituras é opcional e manual (`pnpm db:telemetry-retention`, mínimo de 13 meses); nada apaga leituras sozinho. Compressão e agregados contínuos não estão disponíveis com RLS. | [Modelo de dados](DATABASE_MODEL.md), [Migrações](MIGRATIONS.md) |
+| Saúde dos serviços (058) | Cartão **Serviços da plataforma** na visão geral da administração: última leitura e leituras da última hora, gateways online, fila e falhas de entrega de alertas, comandos de portão sem resposta, tarefas agendadas e tamanho do banco. Só contagens e instantes. Healthcheck nos serviços do Compose de produção. | [Migrações](MIGRATIONS.md), [Implantação](DEPLOY.md) |
 | Aplicação em diferentes imóveis | Cadastro de condomínio, casa ou imóvel comercial e fuso IANA, associado a um cliente. | Condomínios, no portal de administração |
 
 ## Acessos e vagas (desligados por padrão)
@@ -67,7 +70,7 @@ Detalhes em [Vagas e avisos](VAGAS_AVISOS.md). A agenda calcula a próxima ocorr
 |---|---|---|
 | Ordens de serviço (043) | A gestão abre, atribui a uma pessoa ou equipe, edita e cancela; quem executa inicia, pausa, conclui e anota. Histórico por ordem e recusa de lista desatualizada. No app Operação, a gestão também abre (título, detalhes, prioridade e responsável) e atribui, e quem executa inicia, pausa, conclui e anota; prazo, ativo e cancelamento ficam no portal. Morador não tem acesso. | [Ordens de serviço](ORDENS_DE_SERVICO.md) |
 | Ativos (044) | Cadastro dos bens físicos (bomba, elevador, gerador, portão), vínculo com os equipamentos monitorados e com as ordens de serviço, formando o histórico do ativo. O nome do ativo aparece na ordem, no portal e no app. | [Ativos](ATIVOS.md) |
-| Automações (045) | Regra versionada: quando chega um alerta que corresponde a uma versão publicada e ativa, abre uma ordem de serviço com título, prioridade, equipe e ativo definidos. Rascunho, publicação, ativação e simulação. **Nunca aciona equipamento**: não existe ação de comando. | [Automações](AUTOMACOES.md) |
+| Automações (045, 057) | Regra versionada que abre uma ordem de serviço com título, prioridade, equipe e ativo definidos, por um de dois gatilhos: um alerta que corresponde à versão publicada e ativa, ou datas programadas (a cada N dias a partir de uma data, às 8h, uma ordem por data). As programadas rodam no agendador do TimescaleDB a cada 5 minutos, sem processo novo. Rascunho, publicação, ativação e simulação. **Nunca aciona equipamento**: não existe ação de comando. | [Automações](AUTOMACOES.md) |
 
 ## Atendimento, transparência e contas
 
@@ -89,7 +92,8 @@ Detalhes em [Vagas e avisos](VAGAS_AVISOS.md). A agenda calcula a próxima ocorr
 | Troca da própria senha | Nos três portais e em Minha conta nos apps; encerra todas as sessões da conta, inclusive a atual. | [Troca de senha](TROCA_DE_SENHA.md) |
 | Verificação em duas etapas (046) | Código TOTP de aplicativo autenticador e códigos de recuperação de uso único. Ativação em Minhas sessões, nos portais; campo de código na entrada dos três portais e dos dois apps. | [Autenticação](AUTENTICACAO.md#verificação-em-duas-etapas-mfa) |
 | Recuperação de senha por e-mail (047) | **Esqueci minha senha** nos três portais e nos dois apps, envio pelo Resend. Resposta igual para conta inexistente; link de uso único com prazo; a troca encerra as sessões. Nos apps, a pessoa pede o link e cria a nova senha no portal. Sem `RESEND_API_KEY` as rotas respondem igual e nenhum e-mail sai. | [Autenticação](AUTENTICACAO.md#recuperação-de-senha-por-e-mail) |
-| Convites de moradores (042) | O gestor emite, lista e revoga; o morador aceita em **Tenho um convite**, no portal, e a conta nova recebe só o papel Morador e a unidade. Também por e-mail quando o Resend está configurado. | [Autenticação](AUTENTICACAO.md#convites-de-moradores) |
+| Convites de moradores (042) | O gestor emite, lista e revoga; o morador aceita em **Tenho um convite**, no portal, e a conta nova recebe só o papel Morador e a unidade. **Tenho um convite** existe também no app Morador. Também por e-mail quando o Resend está configurado. | [Autenticação](AUTENTICACAO.md#convites-de-moradores) |
+| Confirmação recente (055) | Criar conta, tornar alguém síndico, conceder papel, incluir na equipe de suporte, conceder acesso de suporte e emitir a credencial MQTT de um gateway exigem senha (e código, se a conta usa MFA) provada nesta sessão nos últimos 10 minutos. Nos portais, a janela **Confirme que é você** pede a prova e repete o pedido uma vez. Renovar o token não renova a prova; reduzir acesso não pede confirmação. | [Autenticação](AUTENTICACAO.md#confirmação-recente-para-ações-privilegiadas-055) |
 | Papéis e concessões | Concessões por pessoa ou equipe, com vigência, conferidas no banco a cada requisição. Papéis do condomínio: Síndico, Gestor de manutenção, Manutenção e Morador. | [Autorização](AUTORIZACAO.md) |
 | Contas e vínculos (054) | Listar pessoas, criar contas e vincular pessoas ao condomínio dependem das capacidades vigentes, não do papel legado. Um síndico só por papel lista e vincula pessoas do próprio condomínio; ninguém concede um papel com capacidades que não tem; vínculo é revogado, não apagado. Só o Suporte remoto ainda confere o papel legado. | [Migrações](MIGRATIONS.md) |
 | Blocos, unidades e equipes (041) | Criar, editar, desativar e reativar, com auditoria. Inativo suspende o acesso derivado até a reativação; não há exclusão. | [Autorização](AUTORIZACAO.md) |
@@ -107,7 +111,7 @@ Um desvio indica necessidade de investigação. O sistema não localiza sozinho 
 
 ## Verificações mais recentes
 
-Resumo das entradas de 07/10 a 17/10 em [Continuidade](CONTINUIDADE.md), onde estão os detalhes, as falhas encontradas no caminho e as correções. São execuções locais, com API e ingestão em Linux e banco novo. Em 17/10 elas rodaram no job `platform` reproduzido num contêiner Linux com memória limitada, porque em 16/10 o computador reiniciou durante uma regressão completa no Windows.
+Resumo de 07/10 a 18/10 a partir de [Continuidade](CONTINUIDADE.md) e do [histórico até 17/10](continuidade/historico-ate-2026-10-17.md), onde estão os detalhes, as falhas encontradas no caminho e as correções. São execuções locais, com API e ingestão em Linux e banco novo. Desde 17/10 elas rodam no job `platform` reproduzido num contêiner Linux com memória limitada, porque em 16/10 o computador reiniciou durante uma regressão completa no Windows.
 
 | Data | Mudança | Resultado registrado |
 |---|---|---|
@@ -124,15 +128,18 @@ Resumo das entradas de 07/10 a 17/10 em [Continuidade](CONTINUIDADE.md), onde es
 | 17/10 | Ingestão com roles restritas (052) | SQL052 73/73; suítes da ingestão com as duas roles 112/112; job platform: API 804/804, ingestão 196/196, banco 297/299 (2 skips de backup); restauração 2/2; MQTT com banco real e queda do receptor 2/2 |
 | 17/10 | Acesso temporário de suporte (053) | API do módulo 3/3; Chromium 1/1 no cenário novo e 30/30 nos vizinhos; job platform: API 806/807 (a falha foi um 429 do limitador num teste de recuperação de senha, que passou 8/8 isolado), ingestão 199/199, UI 98/98, mobile 219/219 |
 | 17/10 | Contas e vínculos por capacidade (054) | Teste novo 5/5; dirigidos 109/109; job platform: **API 812/812**, **ingestão 199/199**, banco 298/300 (2 skips de backup), UI 98/98, mobile 219/219, cliente 115/115; SQL052 73/73; restauração 2/2; Chromium 50/50 |
+| 17/10 | 055 a 058 e convite no app Morador (última rodada, clusters novos) | **API 827/827**, **ingestão 204/204**, banco 301/303 (2 skips de backup, cobertos pelo teste próprio), cliente 118/118, UI 108/108, mobile 224/224; SQL052 73/73; serviços restritos 114/114; restauração 2/2 três vezes; ingestão real com broker 12/12; **Chromium completo 117/117** |
+| 18/10 | Datas ISO nas rotas lidas pelos apps, `demo:data` e vídeos | API 828/829 (um teste intermitente conhecido de recuperação de senha, que passou 3/3 isolado); ingestão 204/204; teste novo de datas 2/2; os dois apps percorridos no emulador Android para os [vídeos](videos/README.md) |
 
 **Não verificado:**
 
 - **Hardware físico:** nenhum sensor, controlador ou portão real foi acionado. As leituras vieram do simulador e de dados fictícios gerados pela ingestão.
-- **Matriz em três navegadores depois de 09/10:** a última é a de 342/342. Em 17/10 o Firefox não estava instalado e o WebKit é bloqueado pelo AppControl desta máquina; 053 e 054 foram conferidos só no Chromium.
+- **Firefox e WebKit depois de 09/10:** a última matriz em três navegadores é a de 342/342. Desde então só o Chromium rodou (117/117 completo em 17/10): o Firefox não está instalado e o WebKit é bloqueado pelo AppControl desta máquina.
 - **CI do GitHub:** todo push desde o início de outubro termina em `startup_failure` antes de criar jobs, o que aponta para bloqueio da conta (cobrança ou minutos). Só o proprietário resolve.
-- **App Operação no Android:** a última observação manual no emulador é de 06/10 (entrada, Resumo e Ordens de serviço, sem ações de escrita). A abertura e atribuição de ordens e a recuperação de senha nos apps foram verificadas só por testes e bundles JS, sem emulador ou aparelho; o mesmo vale para a aba Consumo do app Morador.
-- **Instalação de demonstração do proprietário:** as migrations 050 a 054 não foram aplicadas nem observadas nela.
-- Também pendentes: entrega real de e-mail pelo Resend, verificação em duas etapas com aplicativo autenticador num celular, apps iOS autenticados, aparelhos físicos, MQTT de campo e implantação em produção.
+- **Apps no Android:** em 18/10 os dois foram percorridos no emulador para os vídeos (Morador: entrada com Tenho um convite, avisos, solicitações, reservas, transparência e acessos; Operação: resumo, alertas, sensores e ordens de serviço), sem avisos Fabric no logcat. A aba Consumo não aparece, porque a conta de demonstração não tem liberação; a recuperação de senha e a abertura/atribuição de ordens nos apps não estão descritas nesse percurso e seguem verificadas por testes e bundles JS. Nenhum aparelho físico.
+- **Instalação de demonstração do proprietário:** as migrations 050 a 058 não foram aplicadas nem observadas nela.
+- **Teste intermitente conhecido:** `password-recovery.test.ts` → "keeps two-step verification in place after a reset" falhou uma vez na integral de 18/10 e passou 3/3 isolado; a causa não foi demonstrada.
+- Também pendentes: entrega real de e-mail pelo Resend, verificação em duas etapas com aplicativo autenticador num celular, apps iOS autenticados, aparelhos físicos, MQTT de campo, ensaio de carga com a ingestão real e implantação em produção.
 
 O registro detalhado das verificações de 22–23/09 (144 testes, ensaios com broker local e conferências no navegador) continua no histórico do git: `git show 6ee13e4:docs/REVISAO_FUNCIONALIDADES.md`.
 
@@ -171,7 +178,7 @@ pnpm build
 - `pnpm test` roda, em série, cliente, UI, mobile, API e ingestão. Não inclui o pacote do banco (por isso o comando anterior), as suítes SQL038/worker, as suítes SQL052 nem a restauração de backup. Essas trocam senhas de roles do cluster inteiro e precisam de clusters próprios, como nos jobs `notifications`, `ingest-runtime` e `backup` de `.github/workflows/ci.yml`.
 - Matriz de navegadores: encerre `pnpm dev`, rode `pnpm exec playwright install chromium firefox webkit` e depois `pnpm test:e2e`, respeitando as restrições de `e2e/database-target.ts`. Neste Windows o WebKit foi bloqueado pelo AppControl: use um runner Linux ou a imagem oficial `mcr.microsoft.com/playwright:v1.63.0-noble`, sem desativar a proteção do sistema.
 
-Para uma demonstração local, e não para testes: com o `.env` copiado de `.env.example`, `pnpm setup:local` e depois `pnpm dev`. O `setup:local` já gera `services/ingest/.env.runtime` (`pnpm ingest:env`), sem o qual a ingestão não inicia. Sem a variável acima, portões e vagas ficam desligados, como numa instalação real. Para leituras ao vivo, use o simulador conforme [Sensores](SENSORES.md); o simulador de portões está em [Acessos](ACESSOS.md). O gerador de 7 dias de leituras fictícias (`pnpm --filter @predioon/ingest demo:data`) foi registrado em 08/10; não há registro de execução dele depois da troca da ingestão para as roles restritas (052).
+Para uma demonstração local, e não para testes: com o `.env` copiado de `.env.example`, `pnpm setup:local` e depois `pnpm dev`. O `setup:local` já gera `services/ingest/.env.runtime` (`pnpm ingest:env`), sem o qual a ingestão não inicia. Sem a variável acima, portões e vagas ficam desligados, como numa instalação real. Para leituras ao vivo, use o simulador conforme [Sensores](SENSORES.md); o simulador de portões está em [Acessos](ACESSOS.md). `pnpm --filter @predioon/ingest demo:data` gera leituras fictícias pelo pipeline real (só em banco de demonstração); foi usado em 18/10 para os vídeos, depois da correção que o faz terminar ao fechar o pool restrito da ingestão.
 
 ## Condições de operação
 

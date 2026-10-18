@@ -2,7 +2,7 @@
 
 ## Como configurar
 
-Em **Consumo e análise**, a administração associa um equipamento a Energia, Água ou Bomba. O recurso aparece no painel de operação do administrador, no painel do prédio e na consulta do morador. Água e Energia também exibem os respectivos indicadores nas suas próprias páginas.
+Em **Consumo e análise**, a administração associa um equipamento a Energia, Água ou Bomba. O recurso aparece no painel de operação do administrador e no painel do prédio. O morador só vê a quantidade diária de energia e de água dos últimos 7 dias, e só quando o síndico libera em **Consumo para moradores** (migration 051, desligada por padrão); nunca tarifa, custo, limite ou bomba. Ver [Controle de funcionalidades](FUNCIONALIDADES.md#consumo-para-moradores-liberação-do-síndico). Água e Energia também exibem os respectivos indicadores nas suas próprias páginas.
 
 - Energia recebe **energy_total_kwh**, acumulador não negativo em kWh.
 - Água recebe **water_total_m3**, acumulador não negativo em m³. O volume do reservatório permanece uma informação independente.

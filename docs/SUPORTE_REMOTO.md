@@ -73,4 +73,6 @@ O código e os testes locais não comprovam uma conexão ao computador real do c
 
 ## Verificação local
 
-Em 23/09/2026 foram conferidos no navegador cadastro, preparação do endereço `anydesk:`, encerramento manual, histórico, troca de condomínio e recuperação após falha de consulta. Nenhuma conexão externa foi iniciada; os dados temporários foram removidos. A regressão ampliada passou com 144 testes, incluindo os testes específicos de suporte, e tipos/build aprovados. Veja [Revisão de funcionalidades](REVISAO_FUNCIONALIDADES.md).
+Em 23/09/2026 foram conferidos no navegador cadastro, preparação do endereço `anydesk:`, encerramento manual, histórico, troca de condomínio e recuperação após falha de consulta. Nenhuma conexão externa foi iniciada; os dados temporários foram removidos. A regressão ampliada passou com 144 testes, incluindo os testes específicos de suporte, e tipos/build aprovados; o registro detalhado ficou no histórico do git (`git show 6ee13e4:docs/REVISAO_FUNCIONALIDADES.md`). As verificações atuais estão em [Revisão de funcionalidades](REVISAO_FUNCIONALIDADES.md).
+
+O acesso temporário de suporte da plataforma (migration 053, **Acesso de suporte** nos portais) é outro mecanismo: dá à equipe de suporte leitura de um condomínio com motivo e prazo, sem AnyDesk. Ver [MIGRATIONS.md](MIGRATIONS.md).

@@ -302,12 +302,20 @@ A API nova exige a 047 só nas duas rotas de recuperação; entrada, sessões e 
 `051-resident-consumption-opt-in.sql`:
 
 - retira do papel **Morador** a leitura do nível publicado da caixa d'água (`telemetry:read-published`). O vínculo antigo de morador (tabela `memberships`) perde a leitura junto, porque segue o mesmo catálogo. A equipe do condomínio continua com a leitura.
-- cria a capacidade `monitoring:read-published` para o papel Morador e a tabela `resident_consumption_settings`, sem privilégio para nenhuma role de execução. **Sem linha, o consumo não está liberado.**
+- cria a capacidade `monitoring:read-published` para os papéis Morador e Síndico (`BUILDING_ADMIN`) e a tabela `resident_consumption_settings`, sem privilégio para nenhuma role de execução. **Sem linha, o consumo não está liberado.**
 - cria três funções: `app_resident_consumption_released`, `app_set_resident_consumption` (só quem administra o condomínio; audita `RESIDENT_CONSUMPTION_CHANGED` na mesma transação) e `app_published_consumption`, a projeção fixa entregue ao morador.
 
 **O que o morador recebe quando liberado:** quantidade diária de energia e de água dos últimos 7 dias, somando os medidores do mesmo tipo. Nunca tarifa, custo, limite, bomba, referência aprendida, leitura bruta ou identificação de equipamento.
 
 **Efeito ao aplicar:** nenhum condomínio fica liberado. Quem já mostrava o nível da caixa d'água ao morador deixa de mostrar.
+
+O Síndico recebe a capacidade porque só concede um papel quem tem todas as permissões dele: sem ela, o síndico deixaria de convidar e vincular moradores. Consequência: quando o consumo está liberado, o síndico também enxerga a mesma visão reduzida do morador.
+
+## Release 052: ingestão e acesso físico com roles restritas
+
+`052-ingest-runtime-roles.sql` cria as roles `predioon_ingest` (observação: recibos, telemetria, consumo, heartbeat, estacionamento, alertas+outbox) e `predioon_access_service` (comandos físicos: expirar, selecionar, marcar SENT, falhas fechadas e ACK). As duas nascem sem login e sem privilégios amplos e só alcançam o banco por funções privadas; o provisionamento habilita o login. A migration recusa aplicar se encontrar direitos de `PUBLIC` em objetos da aplicação, em vez de mudar direitos de consumidores desconhecidos. Não traz senha nem transfere ownership.
+
+**Ordem de implantação:** parar ingestão e worker, backup com ensaio de restauração, aplicar a 052, provisionar as seis roles (`INGEST_DB_PASSWORD` e `ACCESS_SERVICE_DB_PASSWORD` são obrigatórias em `setup-prod.sh`) e iniciar a ingestão nova, preservando `MQTT_CLIENT_ID` e a sessão durável. A ingestão nova recebe só `DATABASE_URL_INGEST` e `DATABASE_URL_ACCESS_SERVICE`, confere as duas identidades antes de conectar ao broker e recusa iniciar com `DATABASE_URL`; não há fallback para a conexão dona. Localmente, `pnpm ingest:env` gera `services/ingest/.env.runtime`. Detalhes em [DEPLOY.md](DEPLOY.md).
 
 ## Release 053: acesso temporário de suporte
 

@@ -247,7 +247,7 @@ pnpm -r --workspace-concurrency=1 typecheck
 pnpm -r --workspace-concurrency=1 build
 ```
 
-Os resultados de validações anteriores e os ensaios com broker local estão em [Revisão de funcionalidades](docs/REVISAO_FUNCIONALIDADES.md).
+As verificações recentes estão resumidas em [Revisão de funcionalidades](docs/REVISAO_FUNCIONALIDADES.md) e detalhadas em [Continuidade](docs/CONTINUIDADE.md). O registro de 22–23/09, com os ensaios com broker local, ficou no histórico do git: `git show 6ee13e4:docs/REVISAO_FUNCIONALIDADES.md`.
 
 ## Comandos úteis
 
