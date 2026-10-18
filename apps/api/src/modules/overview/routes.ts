@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { isoTime } from "../../http/sql-time.js";
 import { sql } from "drizzle-orm";
 import { readFeatures } from "@predioon/db/runtime";
 import type { BuildingOverview, OverviewCoverage, PlatformOverview, PlatformServiceHealth } from "@predioon/contracts";
@@ -54,8 +55,8 @@ overviewRouter.get("/building", validateQuery(BuildingQuerySchema), async (req, 
   const payload=await inTenantContext(req,async tx=>{
     const initial=await buildingOverviewScope(tx,buildingId);
     const devices:DeviceStatus[]=initial.devices==='none'?[]:await tx.execute(sql`select id,status::text from devices where building_id=${buildingId}`) as unknown as DeviceStatus[];
-    const gateways:GatewayStatus[]=initial.gateways==='none'?[]:await tx.execute(sql`select id,name,status::text,last_seen_at from gateways where building_id=${buildingId} order by name,id`) as unknown as GatewayStatus[];
-    const candidates:LocalAlert[]=initial.alerts==='none'?[]:await tx.execute(sql`select id,device_id,severity::text,type,status::text,message,triggered_at from alerts where building_id=${buildingId} and status<>'RESOLVED' order by triggered_at desc,id desc`) as unknown as LocalAlert[];
+    const gateways:GatewayStatus[]=initial.gateways==='none'?[]:await tx.execute(sql`select id,name,status::text,${isoTime(sql`last_seen_at`)} as last_seen_at from gateways where building_id=${buildingId} order by name,id`) as unknown as GatewayStatus[];
+    const candidates:LocalAlert[]=initial.alerts==='none'?[]:await tx.execute(sql`select id,device_id,severity::text,type,status::text,message,${isoTime(sql`triggered_at`)} as triggered_at from alerts where building_id=${buildingId} and status<>'RESOLVED' order by triggered_at desc,id desc`) as unknown as LocalAlert[];
     const contexts=initial.alerts==='none'?[]:await authorizedAlertContexts(tx,buildingId);
     // Feature state is readable only after current domain authorization;
     // the shared feature lock remains held through final resource validation.

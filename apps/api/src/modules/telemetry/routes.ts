@@ -1,4 +1,5 @@
 import { featureDisabled, observationIsCurrent } from "../../auth/features.js";
+import { isoTime } from "../../http/sql-time.js";
 import { Router } from "express";
 import { sql } from "drizzle-orm";
 import { z } from "zod";
@@ -60,7 +61,7 @@ telemetryRouter.get("/latest", validateQuery(LatestQuerySchema), async (req, res
     const features = await readFeatures(tx, buildingId);
     const result = await tx.execute(sql`
       SELECT t.device_id, d.device_name, t.metric, t.value,
-             t.numeric_value, t.unit, t.quality, t.time
+             t.numeric_value, t.unit, t.quality, ${isoTime(sql`t.time`)} AS time
       FROM app_telemetry_authorized_devices(${buildingId}) d
       JOIN telemetry_series s ON s.building_id = d.building_id AND s.device_id = d.device_id
       CROSS JOIN LATERAL (
@@ -80,7 +81,8 @@ telemetryRouter.get("/latest", validateQuery(LatestQuerySchema), async (req, res
       const device = rawById.get(row.device_id);
       if (device && observationIsCurrent(features, telemetryFeatureKeys(device, row.metric), row.time)) visible.set(`${row.device_id}:${row.metric}`, row);
     }
-    const published = await tx.execute(sql`select * from app_published_water_levels(${buildingId})`);
+    const published = await tx.execute(sql`select device_id, device_name, metric, value, numeric_value, unit, quality, ${isoTime(sql`time`)} as time
+      from app_published_water_levels(${buildingId})`);
     for (const row of published as unknown as LatestRow[]) {
       const key = `${row.device_id}:${row.metric}`;
       if (!visible.has(key) && observationIsCurrent(features, ["WATER_TANK"], row.time)) visible.set(key, row);
@@ -104,7 +106,7 @@ telemetryRouter.get("/series", validateQuery(SeriesQuerySchema), async (req, res
     for (const key of telemetryFeatureKeys(device, metric)) if (!features[key].enabled) throw featureDisabled(key);
 
     const result = await tx.execute(sql`
-      SELECT time_bucket(${interval}::interval, time) AS bucket,
+      SELECT ${isoTime(sql`time_bucket(${interval}::interval, time)`)} AS bucket,
              avg(numeric_value) AS avg_value,
              min(numeric_value) AS min_value,
              max(numeric_value) AS max_value,
