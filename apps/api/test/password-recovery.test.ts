@@ -181,10 +181,13 @@ describe("password recovery by e-mailed link", () => {
 
   it("keeps two-step verification in place after a reset", async () => {
     const session = await login(server.url, address("mfa"), original);
-    const mfa = (path: string, body: unknown) => call(server.url, `/auth/mfa${path}`, { method: "POST", body, token: session.accessToken });
-    const enrolled = await (await mfa("/enroll", { currentPassword: original })).json() as { secret: string };
-    const secret = base32Decode(enrolled.secret)!;
-    assert.equal((await mfa("/confirm", { code: totpCode(secret, totpStep(Date.now())) })).status, 200);
+    // Enrolment spends the same network admission as sign-in, which earlier suites may have drained;
+    // the body is rebuilt per attempt so a retried confirmation carries a current code.
+    const mfa = (path: string, body: () => unknown) => patient(() => call(server.url, `/auth/mfa${path}`, { method: "POST", body: body(), token: session.accessToken }));
+    const enrolment = await mfa("/enroll", () => ({ currentPassword: original }));
+    assert.equal(enrolment.status, 200);
+    const secret = base32Decode((await enrolment.json() as { secret: string }).secret)!;
+    assert.equal((await mfa("/confirm", () => ({ code: totpCode(secret, totpStep(Date.now())) }))).status, 200);
 
     assert.equal((await forgot(address("mfa"))).status, 204);
     assert.equal((await reset(tokenIn(await mailTo("mfa")), strongPassword)).status, 204);
