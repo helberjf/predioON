@@ -11,6 +11,7 @@
 import { randomUUID } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
 import { sqlClient } from "@predioon/db";
+import { closeIngestDb } from "@predioon/db/ingest";
 import { telemetryTopic, waterTelemetryTopic } from "@predioon/shared";
 import { handleTelemetry } from "./pipeline/telemetry.js";
 import { initialState, nextState, type FieldState } from "./simulator/state.js";
@@ -75,5 +76,6 @@ try {
     await publish(state, new Date(), true);
   }
 } finally {
-  await sqlClient.end();
+  // Readings go through the restricted ingest pool (052): both must close for the process to exit.
+  await Promise.all([sqlClient.end(), closeIngestDb()]);
 }
