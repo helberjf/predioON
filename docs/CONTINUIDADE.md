@@ -152,7 +152,7 @@ Foi reservado **039-organizations-capabilities.sql** para o próximo recorte2B.3
 | Etapa da arquitetura | Estado | O que falta para encerrá-la |
 | --- | --- | --- |
 | 1. Contratos e cliente HTTP | Concluída no escopo original | Preservar regressões durante novas integrações. |
-| 2. Identidade e RBAC | Parcial; 2B.3 encerrada na 054 (17/10) | Concluir administrativos legados e consumidores restantes; preservar senha037 publicada; convites (042), MFA (046) e recuperação de senha (047) entregues; restam os demais fluxos de identidade. |
+| 2. Identidade e RBAC | 2B.3, 2B.4 e 2C concluídas (054/055, 17/10); MFA obrigatória para a plataforma é decisão pendente | Concluir administrativos legados e consumidores restantes; preservar senha037 publicada; convites (042), MFA (046) e recuperação de senha (047) entregues; restam os demais fluxos de identidade. |
 | 3. Processamento durável | Primeiro incremento038 integrado; credenciais restritas da ingestão/acesso (052) verificadas localmente | Outbox de alertas/worker restrito e ingestão sem owner entregues; concluir inbox, consumidores restantes, comandos/scheduler, retenção/replay, ensaio EMQX/CI e operação. Nunca repetir atuação física automaticamente. |
 | 4. Evolução dos domínios | Pendente para os novos módulos | Ativos, ordens de serviço, automações versionadas, planos/assinaturas e suporte com concessão explícita, com API/UI e testes. |
 | 5. Apps Morador/Operação | Parcial | Preservar jornadas Android de domínios/senha aprovadas, investigar avisos Fabric, corrigir preparação/inicialização iOS, testar suas jornadas autenticadas, integrar novos módulos/notificações e homologar em aparelhos. |
@@ -796,10 +796,25 @@ O último passo da migração para capacidades eram as contas e os vínculos leg
 
 **Próximo:** com a 2B.3 fechada, os itens de identidade que restam são a 2B.4 (gestão web integrada; cadastros já existem desde a 040–042) e a 2C (verificação adicional para ações privilegiadas). Planos/assinaturas continuam por último.
 
-### 17/10: confirmação recente para ações privilegiadas (055) — commit local, sem push
+### 17/10: releases 055–058 e convite no app Morador
 
-Criar conta, tornar síndico, conceder papel, incluir/conceder suporte e emitir credencial de gateway exigem senha (e código MFA, se ativo) provada **nesta sessão** nos últimos 10 minutos; a API responde 403 `VERIFICATION_REQUIRED` e os portais abrem a janela **Confirme que é você** e repetem o pedido uma vez. A autoridade é conferida antes. A 055 também retira da role da API a escrita em `sessions`. Detalhes em [AUTENTICACAO.md](AUTENTICACAO.md#confirmação-recente-para-ações-privilegiadas-055) e [MIGRATIONS.md](MIGRATIONS.md).
+Cinco incrementos, cada um com commit próprio, verificados juntos no fim:
 
-**Provas:** teste novo 5/5 (três execuções) e dirigidos de contas, suporte, tenancy, MFA, troca de senha e credenciais **88/88** em cluster novo com ledger 55; UI **103/103**; Playwright Chromium com cenário novo: 1ª rodada 50/51 (auditoria global falhou por timeout na abertura fria; passou 5/5 isolada e na 2ª rodada). **Pendente antes do push:** regressão integral do job platform no runner, SQL052, suítes restritas e restauração com a 055.
+| Commit | O que entrega |
+| --- | --- |
+| 055 `f1455ab` | **Confirmação recente para ações privilegiadas.** Criar conta, tornar síndico, conceder papel, incluir/conceder suporte e emitir credencial de gateway exigem senha (e código MFA, se ativo) provada nesta sessão nos últimos 10 minutos. A API responde 403 `VERIFICATION_REQUIRED`; os portais abrem **Confirme que é você** e repetem o pedido uma vez. A autoridade é conferida antes. A role da API perdeu a escrita em `sessions` (herança da 013), que permitiria forjar a confirmação. [AUTENTICACAO.md](AUTENTICACAO.md#confirmação-recente-para-ações-privilegiadas-055). |
+| 056 `b5dc7f5` | **Telemetria: capacidade, retenção e últimas leituras.** Medido: ~532 bytes por leitura (2/3 em índices), ~0,26 GiB/ano por dispositivo a 1 leitura/min. A consulta de últimas leituras caiu de **1,3 s para 0,27 s** (50 dispositivos, 1/min) com o catálogo `telemetry_series`, mantido por gatilho. TimescaleDB 2.17 **recusa compressão e agregados contínuos em tabelas com RLS**. Retenção é comando explícito do proprietário (`pnpm db:telemetry-retention --months N --confirm`, mínimo 13). [DATABASE_MODEL.md](DATABASE_MODEL.md#capacidade-e-retenção-medido-em-17102026). |
+| 057 `f7b98d2` | **Automações programadas (manutenção preventiva).** "A cada N dias, a partir de uma data, abrir esta ordem." Executa no agendador do próprio TimescaleDB a cada 5 min, sem processo novo; uma ordem por data, nunca um acúmulo de atrasadas. Tela com "Quando agir" e próximas datas. [AUTOMACOES.md](AUTOMACOES.md#automações-programadas-057). |
+| 058 `d5bc847` | **Saúde dos serviços.** Cartão **Serviços da plataforma** na visão geral da administração: leituras recebidas, fila e falhas de avisos, comandos de portão, tarefas do agendador e tamanho do banco, só contagens. A ingestão grava heartbeat (MQTT conectado e banco respondendo) e os seis serviços do Compose de produção têm healthcheck. [DEPLOY.md](DEPLOY.md#verificação-da-instalação). |
+| app `f4d4720` | **Convite no app Morador:** "Tenho um convite" na entrada — código, prévia, senha, volta para entrar. |
 
-**Também neste ponto (não commitado no 055):** CLI `pnpm db:telemetry-retention` (status; `--months N --confirm`, mínimo 13; `--off`) e medição `db:telemetry-capacity` (banco descartável). Medido: **533 bytes por leitura** (2/3 em índices), ~0,26 GiB/ano por dispositivo a 1 leitura/min; consulta de "últimas leituras" **~2 s** com 50 dispositivos/1 por min. TimescaleDB 2.17 recusa compressão e agregados contínuos em tabelas com RLS. Rascunho da 056 (catálogo de séries por trigger, para a consulta de últimas leituras) guardado fora da árvore; falta reescrever a rota `/telemetry/latest`, testar e medir.
+**Achados durante a verificação:**
+
+- A restauração falhava de forma intermitente desde 06/10 (a "observação aberta" daquela data). Causa demonstrada: o teste esperava o fim do lease de 20 s pelo relógio do Windows + 30 ms, mas quem decide é o relógio do banco, e o relógio da VM do Docker Desktop deriva dezenas de milissegundos nesse intervalo. A espera passou a consultar o relógio do banco (`5a08d1b`); a asserção não mudou. Três execuções seguidas: **2/2** cada.
+- A primeira versão da 055 pedia a senha antes de conferir a autoridade; quem não podia agir era convidado a digitar a senha à toa. Corrigido antes do commit.
+- Reaplicar só a 045 desfaria a 057; o teste de reaplicação agora reaplica 045 seguida da 057, a ordem real das migrations.
+
+**Provas (cluster novo por rodada, runner Linux com memória limitada):** regressão do job platform no HEAD: banco **301/303** (2 skips de backup), api-client **118/118**, UI **108/108**, mobile **224/224**, API **827/827**, ingestão **204/204**. Suítes SQL052 **73/73** e de serviço restritas **114/114** com a 058 na cadeia. Restauração **2/2** três vezes. Processo real da ingestão com broker e logins restritos **12/12**, incluindo o heartbeat (saudável conectado, falha ao perder o broker, arquivo removido no encerramento). Playwright Chromium completo: **117/117 (todos os arquivos, um worker)**. Medições e números por release em [evidência](evidencias/releases-055-058-2026-10-17.json).
+
+**Limites:** nada implantado; CI do GitHub segue bloqueado pela cobrança da conta. Firefox/WebKit não rodam nesta máquina. A MFA continua opcional (obrigatoriedade para a plataforma é decisão do proprietário). Avisos Fabric do Android e o app no emulador ainda não foram reexaminados nesta etapa.
+

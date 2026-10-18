@@ -1,0 +1,108 @@
+{
+  "date": "2026-10-17",
+  "timezone": "America/Sao_Paulo",
+  "scope": "Releases 055 (confirmação recente), 056 (catálogo de séries, retenção e capacidade), 057 (automações programadas), 058 (saúde dos serviços) e convite no app Morador.",
+  "status": "verified-locally-not-deployed",
+  "commits": {
+    "055": "f1455ab",
+    "056": "b5dc7f5",
+    "057": "f7b98d2",
+    "058": "d5bc847",
+    "mobile-invitation": "f4d4720",
+    "restore-test-fix": "5a08d1b"
+  },
+  "capacity": {
+    "setup": "PostgreSQL 16 + TimescaleDB 2.17.2, container de 1 GB, 50 dispositivos, 1 leitura/min, 14 dias, 1.008.000 leituras",
+    "bytesPerReading": {
+      "total": 532,
+      "table": 180,
+      "indexes": 352
+    },
+    "gibPerDevicePerYearAt1PerMinute": 0.261,
+    "latestReadingsMs": {
+      "before056": 1328,
+      "after056": 268
+    },
+    "seriesQueryMs": {
+      "24h_5min": 106,
+      "14d_1h": 129
+    },
+    "bulkInsertRowsPerSecond": {
+      "withoutTrigger": 13961,
+      "withTrigger": 14294
+    },
+    "timescaleRefusesWithRls": [
+      "compression",
+      "continuous aggregates"
+    ]
+  },
+  "results": [
+    {
+      "suite": "packages/db (job platform, HEAD)",
+      "tests": 303,
+      "pass": 301,
+      "skipped": 2
+    },
+    {
+      "suite": "@predioon/api-client",
+      "tests": 118,
+      "pass": 118
+    },
+    {
+      "suite": "@predioon/ui",
+      "tests": 108,
+      "pass": 108
+    },
+    {
+      "suite": "@predioon/mobile",
+      "tests": 224,
+      "pass": 224
+    },
+    {
+      "suite": "@predioon/api integral",
+      "tests": 827,
+      "pass": 827
+    },
+    {
+      "suite": "@predioon/ingest integral",
+      "tests": 204,
+      "pass": 204
+    },
+    {
+      "suite": "SQL052 com 058 na cadeia (lab)",
+      "tests": 73,
+      "pass": 73
+    },
+    {
+      "suite": "suítes de serviço restritas com 058 (lab)",
+      "tests": 114,
+      "pass": 114
+    },
+    {
+      "suite": "backup-restore, três execuções",
+      "tests": 6,
+      "pass": 6
+    },
+    {
+      "suite": "ingestão real com broker e logins restritos, incluindo heartbeat",
+      "tests": 12,
+      "pass": 12
+    },
+    {
+      "suite": "Playwright chromium completo",
+      "result": "117/117 (todos os arquivos, um worker)"
+    }
+  ],
+  "fixedDuringVerification": [
+    "restauração intermitente desde 06/10: espera do lease pelo relógio do banco, asserção inalterada",
+    "055 pedia senha antes de conferir a autoridade",
+    "teste de reaplicação da 045 agora reaplica 045 seguida da 057"
+  ],
+  "limits": [
+    "sem implantação",
+    "sem CI do GitHub (bloqueio da conta)",
+    "Firefox/WebKit não executados nesta máquina",
+    "MFA opcional",
+    "Android/Fabric não reexaminado nesta etapa"
+  ]
+}
