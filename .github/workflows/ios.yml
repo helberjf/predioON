@@ -1,17 +1,8 @@
 name: Native iOS verification
 
+# Manual only: macOS minutes count 10x against the private repository's
+# Actions quota. Run it from the Actions tab before an iOS release.
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'apps/*-mobile/**'
-      - 'packages/mobile/**'
-      - 'packages/api-client/**'
-      - 'packages/contracts/**'
-      - 'pnpm-lock.yaml'
-      - '.github/workflows/ios.yml'
-      - 'scripts/ios-smoke/**'
-      - 'scripts/android-smoke/prepare.py'
   workflow_dispatch:
 
 permissions:

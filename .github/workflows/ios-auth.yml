@@ -1,21 +1,8 @@
 name: iOS authenticated identity and password
 
+# Manual only: macOS minutes count 10x against the private repository's
+# Actions quota. Run it from the Actions tab before an iOS release.
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'apps/*-mobile/**'
-      - 'apps/api/src/auth/**'
-      - 'packages/mobile/**'
-      - 'packages/api-client/**'
-      - 'packages/contracts/src/auth.ts'
-      - 'packages/db/src/**'
-      - 'infrastructure/*.sql'
-      - 'pnpm-lock.yaml'
-      - 'scripts/ios-smoke/**'
-      - 'scripts/android-auth-smoke/**'
-      - 'scripts/android-password-smoke/password_proxy.py'
-      - '.github/workflows/ios-auth.yml'
   workflow_dispatch:
 
 permissions:

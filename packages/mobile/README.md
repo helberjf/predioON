@@ -24,7 +24,7 @@ Para Operação, substitua `resident-mobile` por `operations-mobile`. Execute um
 
 Android exige JDK 17 ou posterior compatível com Gradle 9.4.1, Android SDK Platform 37, Build Tools 37.0.0 e NDK 27.1.12297006 conforme o template. Configure `ANDROID_HOME`/`JAVA_HOME`, instale um emulador ou conecte um dispositivo autorizado. O mínimo de execução Android é API 24.
 
-iOS exige um Mac com Xcode compatível, Ruby/Bundler e CocoaPods. No diretório de cada app, execute `bundle install`, depois `cd ios && bundle exec pod install`, abra o workspace gerado ou execute `pnpm ios` no diretório do app. O deployment target do template é iOS 15.1. Sem Mac, o build iOS distribuível passa pelo EAS Build (abaixo); o CI `ios.yml` continua compilando o simulador no macOS do GitHub.
+iOS exige um Mac com Xcode compatível, Ruby/Bundler e CocoaPods. No diretório de cada app, execute `bundle install`, depois `cd ios && bundle exec pod install`, abra o workspace gerado ou execute `pnpm ios` no diretório do app. O deployment target do template é iOS 15.1. Sem Mac, o build iOS distribuível passa pelo EAS Build (abaixo); os workflows `ios.yml` e `ios-auth.yml` compilam e testam o simulador no macOS do GitHub, por disparo manual na aba Actions (minuto macOS conta 10× na cota do repositório privado).
 
 ### iOS sem Mac: EAS Build
 
