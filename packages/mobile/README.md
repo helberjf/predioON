@@ -26,6 +26,8 @@ Android exige JDK 17 ou posterior compatível com Gradle 9.4.1, Android SDK Plat
 
 iOS exige um Mac com Xcode compatível, Ruby/Bundler e CocoaPods. No diretório de cada app, execute `bundle install`, depois `cd ios && bundle exec pod install`, abra o workspace gerado ou execute `pnpm ios` no diretório do app. O deployment target do template é iOS 15.1. Sem Mac, o build iOS distribuível passa pelo EAS Build (abaixo); os workflows `ios.yml` e `ios-auth.yml` compilam e testam o simulador no macOS do GitHub, por disparo manual na aba Actions (minuto macOS conta 10× na cota do repositório privado).
 
+Num Mac emprestado, `scripts/ios-mac/verify.sh` confere os pré-requisitos, roda os testes, abre os dois apps no simulador e gera um relatório. Ele também instala no iPhone por cabo e envia ao TestFlight. Veja [scripts/ios-mac/README.md](../../scripts/ios-mac/README.md).
+
 ### iOS sem Mac: EAS Build
 
 O Expo entra somente como serviço de build, assinatura e envio do iOS. Os apps não usam o Expo SDK nem o pacote `expo`: nenhuma versão do SDK acompanha o React Native 0.87. O `eas-cli` lê o bloco `expo` do `app.json` e o `eas.json` de cada app. O Android continua no Gradle.

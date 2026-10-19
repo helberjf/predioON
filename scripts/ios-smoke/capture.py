@@ -2,7 +2,11 @@
 
 This proves launch/process survival and form text, not authenticated workflows.
 Each screenshot still requires visual review before being presented as evidence.
+Outside GitHub Actions it runs only with --allow-local-mac (scripts/ios-mac/verify.sh):
+it still creates, and then deletes, only its own simulator.
 """
+from __future__ import annotations
+
 import argparse
 import hashlib
 import json
@@ -55,8 +59,8 @@ def simulator_product(info: dict) -> str:
     return bundle
 
 
-def capture(application: Path, destination: Path) -> None:
-    if os.environ.get("GITHUB_ACTIONS") != "true":
+def capture(application: Path, destination: Path, allow_local_mac: bool = False) -> None:
+    if os.environ.get("GITHUB_ACTIONS") != "true" and not allow_local_mac:
         raise RuntimeError("This command manages only disposable GitHub macOS runner simulators")
     application = application.resolve(strict=True)
     destination.mkdir(parents=True, exist_ok=True)
@@ -161,5 +165,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--application", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--allow-local-mac", action="store_true",
+                        help="run on a developer Mac; only the simulator created here is deleted")
     arguments = parser.parse_args()
-    capture(arguments.application, arguments.output)
+    capture(arguments.application, arguments.output, arguments.allow_local_mac)

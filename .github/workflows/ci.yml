@@ -52,6 +52,11 @@ jobs:
         run: |
           pnpm typecheck
           pnpm check:boundaries
+      - name: iOS build helpers (EAS hook and Mac verification)
+        run: |
+          node --test scripts/test-eas-api-origin.mjs
+          (cd scripts/ios-mac && python3 -m unittest test_report -v)
+          (cd scripts/ios-smoke && python3 -m unittest test_capture -v)
       - name: Bootstrap isolated disposable database
         run: |
           pnpm db:bootstrap
@@ -224,5 +229,3 @@ jobs:
         run: node --import tsx ../../scripts/test-ingest-restricted-suites.mjs
       - name: Runtime environment projection
         run: node --test scripts/test-ingest-runtime-env.mjs
-      - name: EAS iOS API origin hook
-        run: node --test scripts/test-eas-api-origin.mjs

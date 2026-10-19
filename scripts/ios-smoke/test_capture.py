@@ -37,6 +37,12 @@ class RuntimeSelection(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "disposable GitHub"):
                 capture(Path("does-not-exist.app"), Path("must-not-be-created"))
 
+    def test_local_mac_opt_in_passes_the_guard_but_still_requires_the_application(self):
+        with patch.dict(os.environ, {"GITHUB_ACTIONS": "false"}):
+            with self.assertRaises(FileNotFoundError):
+                capture(Path("does-not-exist.app"), Path("must-not-be-created"), allow_local_mac=True)
+        self.assertFalse(Path("must-not-be-created").exists())
+
     def test_both_expected_products_are_accepted_only_as_simulator_builds(self):
         for bundle in ["com.predioon.resident", "com.predioon.operations"]:
             self.assertEqual(simulator_product({"CFBundleIdentifier": bundle, "CFBundleSupportedPlatforms": ["iPhoneSimulator"]}), bundle)
