@@ -1,92 +1,136 @@
-# Regressão real dos portais
+# Testes E2E com Playwright
 
-Os testes usam Chromium, Firefox e WebKit, a API do projeto e os bundles de produção dos três portais. A configuração compila cada portal e serve o resultado com `vite preview` em loopback; `VITE_API_URL` é definido antes do build. Assim a matriz verifica os arquivos que serão distribuídos, sem o cliente de atualização HMR do desenvolvimento. Cada cenário é executado nos três navegadores. Os percursos de domínio usam respostas reais; cenários específicos de indisponibilidade/concorrência interceptam falhas ou atrasam respostas para verificar recuperação. Não são ignorados quando falta infraestrutura: o processo falha com diagnóstico.
+A suíte abre os três portais (administração, condomínio, morador) em Chromium, Firefox e WebKit, contra a API real e os builds de produção (`vite build` + `vite preview`), num banco PostgreSQL/TimescaleDB **descartável**. Nada aqui toca dados reais. O histórico de execuções e decisões anteriores está em [HISTORICO.md](HISTORICO.md).
 
-Prepare um PostgreSQL/TimescaleDB **isolado e descartável**, com bootstrap, todas as migrations, credenciais restritas e seed de demonstração. Por padrão, a suíte usa `localhost:5436/predioon`; as variáveis `DATABASE_URL_APP`, `DATABASE_URL_IDENTITY` e `DATABASE_URL_BROKER_AUTH` podem selecionar outro banco local de teste. A configuração rejeita endereços de banco remotos. A única exceção de rede é o serviço literal `postgres:5432/predioon` dentro do job GitHub, com `GITHUB_ACTIONS=true` e `E2E_DATABASE_SERVICE=postgres`; owner e runtime precisam selecionar o mesmo alvo. Não execute contra dados reais.
-
-A preparação da release 038 exige também `DATABASE_URL_NOTIFICATIONS` para provisionar a quarta role no mesmo servidor/porta/banco, antes do seed. O browser continua usando somente as conexões da API. Testes SQL/worker de notificações pertencem a outro cluster: não defina `TEST_NOTIFICATION_DATABASE_URL` neste ambiente, pois eles alteram senhas de papéis globais. O workflow `browser.yml` fornece a quarta URL administrativa e conserva essa separação.
+## 1. Preparar a máquina (uma vez)
 
 ```powershell
+pnpm install
 pnpm exec playwright install chromium firefox webkit
-pnpm test:e2e
+pnpm e2e:db up
 ```
 
-Em runners Linux, use `pnpm exec playwright install --with-deps chromium firefox webkit`. Para investigar um navegador isoladamente, acrescente `--project=chromium`, `--project=firefox` ou `--project=webkit` ao comando de testes. As contas são `sindico@predioon.local`, `morador@predioon.local` e `admin@predioon.local`; a senha acompanha `SEED_PASSWORD`, com o padrão de demonstração `predioon123`.
+`pnpm e2e:db up` cria o contêiner `predioon-playwright-db-5446` em `127.0.0.1:5446` (imagem `timescale/timescaledb:2.17.2-pg16`, a mesma do CI), aplica bootstrap, migrations, credenciais restritas e o seed com portões e vagas ligados. Depois grava as sete `DATABASE_URL*` em `.local/e2e.env`, que o `playwright.config.ts` e as fixtures leem sozinhos.
 
-A configuração inicia a API na porta 3100 e os portais nas portas 5273–5275. `E2E_PORT_OFFSET` aceita um inteiro de 0 a 9999 e desloca as quatro portas e as pastas de resultado para execuções locais independentes; cada execução também precisa de seu próprio banco. Servidores existentes não são reutilizados. O serviço de ingestão não é necessário para estes testes: o dashboard pode mostrar ausência de telemetria, sem inventar leituras.
+- `pnpm e2e:db reset` recria o banco do zero; `pnpm e2e:db down` apaga o contêiner; `pnpm e2e:db status` mostra o estado.
+- Outra porta: `$env:E2E_DB_PORT=5447; pnpm e2e:db up`. Se a porta estiver ocupada, ou se já existir um contêiner com esse nome que o script não criou (ele confere um label de posse), o script para em vez de usar ou apagar o banco de outra sessão.
+- Memória: Docker + API + três portais + um navegador pedem de 4 a 5 GB livres. Confira antes (`Win32_PerfFormattedData_PerfOS_Memory`) e prefira rodar um navegador por vez nesta máquina.
 
-Os cenários cobrem:
+## 2. Rodar
 
-- Login real e inválido, validação HTML, dashboard, contas sem condomínio e recuperação do painel administrativo.
-- Menu móvel nos portais administrativo e do condomínio: foco inicial, ciclo de Tab/Shift+Tab, fundo inativo, fechamento por Escape/botão/fundo/navegação e transição para desktop sem modal oculto nem bloqueio de rolagem.
-- Cookie HttpOnly e SameSite, access somente em memória, limpeza dos tokens legados e SSE com bearer no cabeçalho, sem credencial na URL.
-- Restauração após reload, renovação simultânea em duas abas, propagação de logout/troca de conta, sessões independentes entre portais e revogação real de família.
-- Logout sem rede permanece bloqueado após reload; login inválido não recupera a identidade antiga; ausência de Web Locks apresenta diagnóstico sem enviar autenticação.
-- Proteção CSRF real para cabeçalho ausente, formulário e origem não permitida; cookie isolado não autentica rotas de domínio.
-- Criação e persistência de bloco/unidade/equipe/integrante, diretório de pessoas e administrador autorizado exclusivamente por RBAC.
-- Troca de condomínio com descarte de rascunhos, persistência da escolha e separação dos registros.
-- Concessão e revogação de papel com confirmação cancelável, verificação das capacidades no servidor e formulários ocultos para moradores.
-- Publicação, edição, agendamento e remoção de avisos; moradores recebem apenas publicados e a API nega consulta privada e escrita.
-- Chamado em tela de 390 px: criação, conversa, andamento pela gestão, cancelamento e privacidade entre moradores.
-- Reserva em tela de 390 px: solicitação, aprovação pela gestão, cancelamento e persistência após recarregar.
-- Mudança real da exigência de aprovação enquanto o formulário está aberto: mensagem e situação refletem a resposta atual do servidor.
-- Calendário diário sem dados pessoais, conflito real de horário e atualização após cancelamento para permitir uma nova reserva.
-- Dashboard com contagem de chamados próprios, do condomínio e do recurso autorizado; ausência de permissão e pausa não aparecem como zero, e o resumo nunca inclui o conteúdo privado dos relatos.
-- Contas com rascunho privado, edição, publicação dos totais e correção que preserva a publicação anterior; morador não recebe ações de gestão.
-- Gestão financeira limitada ao relatório selecionado, separada da consulta de outro relatório; revogar leitura ou gestão desmonta o editor e descarta o rascunho local, sem conceder criação no condomínio.
-- Regras de alerta com leitura/gestão próprias, concessões exatas por regra ou equipamento, criação sem acesso ao inventário e remoção dos controles após revogação; configurar equipamentos não concede gestão de regras.
-- Logout com revogação no servidor, histórico do navegador e nova identidade sem formulários da sessão anterior.
+| Comando | O que faz |
+|---|---|
+| `pnpm test:e2e` | Suíte completa, nos três navegadores |
+| `pnpm test:e2e:chromium` | Suíte completa só no Chromium (mais rápido no dia a dia) |
+| `pnpm test:e2e:smoke` | Abre **todas as páginas** dos três portais (`@smoke`) |
+| `pnpm test:e2e e2e/specs/auth` | Uma área inteira |
+| `pnpm test:e2e --grep "@permissions"` | Só os testes marcados com a tag |
+| `pnpm test:e2e --grep "reserva pendente" --project=firefox` | Um cenário num navegador |
+| `pnpm test:e2e:ui` | Modo UI: lista, roda, inspeciona passo a passo |
+| `pnpm test:e2e --headed --debug e2e/specs/finance` | Navegador visível com o Inspector parado em cada passo |
+| `pnpm typecheck:e2e` | Confere os tipos da suíte (o Playwright transpila sem checar) |
+| `pnpm check:e2e-selectors` | Reprova seletores frágeis (XPath, classe CSS, `.nth()`, `waitForTimeout`) |
 
-Cada cenário usa `test` de `e2e/fixtures.ts`. A preparação SQL no banco descartável cria três identidades exclusivas a partir das contas demonstrativas, conservando nomes, senha de demonstração, vínculos e escopos diretos. `demoAccountEmail` resolve os aliases somente durante esse cenário; a limpeza remove apenas seus três IDs. Isso separa sessões e o orçamento de tentativas de login entre cenários e navegadores. Não altera, apaga nem contorna o limitador: todo login correto ou inválido continua chegando à API real. Os logins manuais de cenários de erro também usam o alias correspondente.
+A configuração sobe a API na porta 3100 e os portais nas 5273 a 5275, sempre do zero (`reuseExistingServer: false`). Se uma delas já estiver em uso (o Playwright avisa `is already used`), `$env:E2E_PORT_OFFSET=200` desloca as quatro portas e as pastas de resultado para rodar ao lado de outro projeto ou de outra execução; duas execuções simultâneas precisam de bancos separados. O serviço de ingestão não é necessário: as telas sem leitura mostram ausência de dados, nunca valores inventados.
 
-As fixtures de domínio criam prédios, pessoas e vínculos pela API autenticada, usando as mesmas políticas de acesso do produto. A conta da plataforma cria o cadastro inicial; a conta do condomínio faz as operações. Os registros recebem nomes únicos e permanecem somente no banco descartável; a suíte não reseta o banco nem apaga registros de outros testes. Os casos que removem avisos ou revogam vínculos atuam apenas sobre registros criados pelo próprio cenário.
+**Tags:** `@smoke` (abre todas as páginas), `@critical` (regras centrais do negócio), `@permissions` (o servidor nega o que a tela esconde), `@validation` (campos e limites), `@agent-seed` (ponto de partida dos agentes), `@ai-generated` (gerado por IA, aguardando revisão).
 
-Os cenários de contador e finanças com escopo exato criam papéis exclusivos e seus vínculos por SQL, pois a API pública aceita apenas os papéis padrão no condomínio inteiro. Para eles, `DATABASE_URL` precisa apontar para a conexão owner do mesmo banco e porta locais de `DATABASE_URL_APP` (padrão `postgres://predioon:predioon@localhost:5436/predioon`). O helper valida protocolo PostgreSQL, loopback, banco e porta antes de abrir cada pool independente, limitado a uma conexão. Os cenários removem exatamente seus papéis/vínculos em `finally`, e o helper fecha o pool mesmo em falha; nenhuma permissão de papel padrão é alterada. As consultas e a renderização verificadas continuam usando a API real com credenciais restritas.
+## 3. Relatórios e evidências de falha
 
-Relatório HTML, capturas e traces de falhas ficam em `.local/playwright-report` e `.local/playwright-results`, ignorados pelo Git. As gravações podem conter sessões das contas de demonstração; use apenas o banco descartável preparado para a suíte.
+Cada teste que falha deixa, em `.local/playwright-results/<teste>/`:
 
-## Clientes e organizações039
+- `trace.zip`: linha do tempo com DOM, rede, console e cada ação. Abra com `pnpm exec playwright show-trace <caminho>/trace.zip`.
+- `video.webm`: gravação da execução.
+- `test-failed-1.png`: tela no momento da falha.
 
-`organizations.spec.ts` usa login real e a projeção finita `/v1/authorization/platform`. Uma conta com binding global `PLATFORM_ADMIN`, sem a flag legada, entra em Clientes mantendo o papel `RESIDENT` recebido no login. Ela não monta os módulos operacionais nem seus atalhos, mesmo por URL direta; Minhas sessões continua disponível a qualquer identidade autenticada. A flag legada mantém as demais rotas, mas não substitui `organizations:read`/`organizations:manage` nos controles comerciais.
+O relatório HTML fica em `.local/playwright-report`. Abra com `pnpm test:e2e:report`: ele tem os passos, os erros, os anexos acima e, no `@smoke`, uma captura de cada página aberta. Tudo em `.local/` é ignorado pelo Git, porque pode conter sessões das contas sintéticas.
 
-Os 24 cenários por navegador verificam consulta de ativos e inativos, criação única com dois eventos de submit, edição parcial sem sobrescrever metadata, confirmação/cancelamento de inativação e reativação, conflito409 e preservação do rascunho. Também cobrem revogação de leitura/gestão/binding, GET anterior atrasado, preflight pendente ao navegar/cancelar/trocar identidade inclusive para a mesma conta, erro transitório e resposta403 posterior à checagem. Perder a resposta de um POST realmente concluído ou receber seu JSON inválido deve orientar a atualizar a lista, conservar o rascunho e não reenviar a escrita. O teste de background injeta `visibilitychange` de maneira determinística; ele não representa suspensão real pelo sistema operacional.
+No GitHub Actions, cada navegador publica o artefato `playwright-evidence-<navegador>` (relatório + falhas, guardado por 3 dias). Para baixar: `gh run download <id-do-run> -n playwright-evidence-chromium`.
 
-Uma regressão libera, no mesmo turno, os corpos reais da revogação e de uma escrita já persistida. O MutationObserver detecta inclusive uma confirmação antiga inserida brevemente no DOM antes da limpeza passiva. O guard compara epochs sincronamente; reconceder a capacidade não recupera a intenção anterior. Outro caso retém a primeira projeção e verifica o destino entre pointerdown/up: o menu parcial movia Minhas sessões de y92 para y140. O Shell agora apresenta carregamento até a primeira projeção, conserva os links durante consultas periódicas com dados válidos e mantém Sair disponível.
+## 4. Gravar um fluxo com o Codegen
 
-O seletor comercial de Imóveis só consulta organizações quando a leitura atual é permitida. Uma revogação desmonta seu recurso, seleção e intenção; o retorno da permissão aguarda dados novos. O formulário revalida a leitura antes de criar o imóvel e não exige gestão de organizações, conservando a autorização legada própria desse domínio.
+O login usa refresh token rotativo, e reutilizar um token revoga a família inteira de sessões. Por isso um `--load-storage` salvo funcionaria uma vez só. O gravador faz um login novo a cada vez, com uma conta-alias isolada do seed, e então abre o Inspector.
 
-Esta spec altera temporariamente as duas linhas `role_permissions` de `PLATFORM_ADMIN` **apenas no banco descartável dedicado à sua execução**, para provar a ausência real de cada capacidade sem simular a autorização. Não execute a suíte junto a outro consumidor do mesmo banco. O `finally` repõe os registros originais, incluindo `created_at` com microssegundos via JSONB, e remove apenas usuários, organizações, imóveis e auditoria pertencentes aos UUIDs do cenário. Não há reset de banco nem uso de contas reais. As respostas atrasadas são respostas reais retidas; os únicos erros sintéticos são503 e a perda/corrupção explícita da resposta após persistência real.
+```powershell
+pnpm e2e:db up
+pnpm e2e:record                      # síndico no portal do condomínio
+pnpm e2e:record morador           # morador no portal do morador (tela de 390 px)
+pnpm e2e:record admin             # plataforma no portal da administração
+pnpm e2e:record anonimo resident  # sem login: entrada, convite, recuperação de senha
+pnpm e2e:record sindico resident  # qualquer perfil em qualquer portal
+```
 
-Evidência local: três REDs válidos demonstraram a entrada bloqueada do RBAC puro, controles indevidos para leitor e consulta indevida do seletor. Dois REDs adicionais reproduziram a mensagem inadequada de resultado incerto; a confirmação tardia e o deslocamento do menu também tiveram RED próprio. Antes do ajuste final do menu, a matriz de organizações passou **69/69**, em 3,9 min, e a regressão de platform/menu/auth-cookie/session-management passou **69/69**, em 5,0 min. São execuções distintas, com bundles de produção, API e PostgreSQL 001–039, um worker e zero retries (`work/org039-ui-final-three-browsers.log` e `work/org039-ui-adjacent.log`). O ajuste posterior do menu passou **3/3** dirigidos nos três motores (`work/org039-ui-menu-latency-green.log`). Tipos do portal e da spec passaram em Windows/Linux; cliente HTTP **64/64** e biblioteca UI **89/89** também passaram.
+1. Espere o build dos portais (cerca de 1 minuto). Abrem o Chromium e a janela **Playwright Inspector**.
+2. No Inspector, clique em **Record** e use o portal normalmente. Cada clique e digitação vira código, já com `getByRole`/`getByLabel`.
+3. Para gravar uma verificação, use os botões de asserção do Inspector (visível, texto, valor) e clique no elemento.
+4. Copie o código gerado e cole em `e2e/recorded/<fluxo>.ts`. Feche o Inspector: a conta-alias é apagada.
 
-Em 05/10/2026, a **integral da fonte final passou 312/312**, em 18 arquivos e 26,4 min: **104/104 em Chromium, 104/104 em Firefox e 104/104 em WebKit**, com um worker, zero retries, zero flaky e zero skips; processo encerrado com código 0. Essa execução única inclui os 24 cenários de organizações por motor, o ajuste final do menu e os demais percursos existentes. Não é a soma dos lotes anteriores. Foram usados a imagem oficial Playwright 1.63.0-noble, Node 24.20.0, pnpm 10.17.1, bundles de produção dos três portais e API/PostgreSQL 16.6 reais até a migration 039, em cluster exclusivo. Os hashes das fontes testadas conferem com o workspace. O cleanup final confirmou zero usuários, organizações, imóveis e auditoria próprios das fixtures de organizações, com as duas permissões originais do catálogo restauradas inclusive nos microssegundos de `created_at`.
+O que você fizer durante a gravação fica só no banco descartável. O código bruto **não roda** na suíte (`e2e/recorded` está fora de `testDir`). Para virar teste, revise:
 
-Evidências locais: `work/org039-ui-full-final.log`, `work/org039-ui-full-final-results`, `work/org039-ui-full-final-report`, `work/org039-ui-full-summary.json`, `work/org039-ui-full-runtime.json`, `work/org039-ui-final-runtime-hashes.json` e `work/org039-ui-full-cleanup.json`. Relatórios e traces ficam fora do Git, pois podem conter sessões sintéticas. Esse resultado local não afirma aprovação do CI, validação nativa nem conclusão de toda a plataforma.
+- [ ] Troque os dados do seed por dados próprios do cenário (`isolatedTenant`, nomes com `suffix`), para o teste não depender da ordem nem de outros testes.
+- [ ] Importe `test`/`expect` de `e2e/support/fixtures` e use `signIn` em vez dos passos de login gravados.
+- [ ] Acrescente `exact: true` nos seletores de texto e remova seletores por posição ou CSS.
+- [ ] Depois de cada ação que grava algo, confira a resposta real (`page.waitForResponse` + status) e o resultado visível.
+- [ ] Cubra também o erro, a permissão e a validação da mesma funcionalidade (veja a seção 6).
+- [ ] Coloque em `e2e/specs/<área>/`, rode nos três navegadores e apague o arquivo bruto.
 
-## Ambiente do CI e regressão de atualização
+Para gravar fora do gravador (com os servidores já de pé), também funciona `pnpm exec playwright codegen --target=playwright-test http://127.0.0.1:5274`.
 
-O workflow usa a [imagem oficial Playwright](https://playwright.dev/docs/ci#via-containers) `1.63.0-noble`, na mesma versão fixada do pacote. Os navegadores e dependências do sistema já vêm na imagem. O [PostgreSQL do job container](https://docs.github.com/en/actions/tutorials/use-containerized-services/create-postgresql-service-containers) é acessado pelo nome do serviço; não precisa publicar porta no host.
+## 5. Testes com auxílio de IA
 
-O container executa com UID 1001, conforme o exemplo oficial para GitHub Actions, para coincidir com o proprietário do diretório do runner. Em `7aed410`, os 51 cenários Firefox falharam antes da navegação porque o processo root não podia usar esse diretório. A mudança de UID em `983b996` permitiu aprovar todos os cenários Firefox no CI; Chromium também passou. Os três casos restantes daquela matriz eram WebKit, investigados separadamente.
+Os agentes do Playwright para o Claude Code estão em `.claude/agents/playwright-test-{planner,generator,healer}.md`. Eles usam o servidor MCP `playwright-test` de `.mcp.json`, que o Claude Code pede para aprovar na primeira vez.
 
-Após isolar as identidades de login em `5eda20e`, a matriz local Linux passou **153/153**, sem retries, com API e banco reais até SQL 035, em 15min30s. Antes dela, os 57 dirigidos de cookies, isolamento e portais também passaram. O snapshot não inclui a evolução posterior do AccessPanel nem a auditoria 036; a falha do ambiente Firefox do CI não é uma falha dessas 153 execuções locais.
+- **planner**: navega a partir de `e2e/specs/agents/seed.spec.ts` (síndico logado) e escreve um plano em `e2e/plans/<funcionalidade>.md`. Exemplo: *"use o playwright-test-planner para planejar os testes de Energia e fases, com sucesso, erro, permissão e validação"*.
+- **generator**: transforma cada cenário do plano em teste, executando os passos no navegador de verdade.
+- **healer**: roda um teste que falhou, investiga o trace e corrige seletores ou esperas. Ele não pode mudar regra de negócio: se a tela contradiz a regra, o defeito é relatado.
 
-Nos runs `f622949` e `ccac601`, seis traces WebKit registraram `Network process crashed`, abortando consultas e perdendo o cookie. Uma sétima falha ficou presa no reload sem causa demonstrada. A imagem fixa padronizou o ambiente, mas não eliminou os crashes: o CI de `aec9f41` passou170/174; o de `b4726b9` passou172/174. Os dois traces desta última rodada também contêm `Network process crashed`, seguido de requisições abortadas e perda da sessão. Não foi atribuída uma causa definitiva ao processo nativo.
+O fim de cada arquivo de agente tem as regras deste repositório (banco descartável, fixtures, seletores, tags). Rodar `playwright init-agents` de novo sobrescreve esses arquivos: reaplique as regras depois.
 
-Com os bundles de produção, a matriz local Linux após o AccessPanel passou **174/174**, em 22min30s, com API e PostgreSQL reais até035, um worker e zero retries. A fonte de produto corresponde à publicada até `b4726b9`; a configuração passa a compilar antes de servir. Tipos da configuração aprovados. Log local: work/browser035-preview-all.log. O resultado inclui as58 combinações por navegador e não contém os rascunhos036. É uma execução completa própria, sem somar resultados anteriores.
+Os testes gerados a partir das regras do código seguem o mesmo padrão: cada um diz, no comentário do topo, de qual arquivo veio a regra (ex.: `e2e/specs/platform/features.spec.ts`).
 
-O [CI de80c9798](https://github.com/helberjf/predioON/actions/runs/37024663752) confirmou **174/174**, em9,7min, um worker e zero retries, usando a nova configuração. O log foi preservado em work/browser-ci-80c9798.log. A matriz publicada passou por inteiro; esse sucesso não estabelece sozinho a causa interna dos crashes nativos anteriores. A implantação por Caddy permanece coberta pelos testes específicos de imagens/proxy.
+## 6. Como escrever um teste
 
-A falha Firefox de revogação teve causa diferente e foi reproduzida: `useResource` descartava Atualizar durante uma consulta pendente. O teste de gestão pontual segura respostas reais anteriores à revogação, solicita nova atualização e só então as libera. A correção preserva no máximo uma atualização seguinte, sem cancelar consultas lentas nem reutilizar dados de outro escopo. RED e relatórios dirigidos ficam em `.local`, separados dos artefatos dos runs originais.
+- **Um cenário cria os próprios dados.** `isolatedTenant(request)` cria condomínio, síndico e morador pela API autenticada, com nomes únicos. A fixture automática de `e2e/support/fixtures.ts` troca as contas do seed por aliases exclusivos do cenário e os apaga no fim.
+- **Seletores estáveis**, nesta ordem: `getByRole` (com `name` e `exact: true`), `getByLabel`, `getByText`. `data-testid` só onde não houver papel ou rótulo acessível (`testIdAttribute: "data-testid"`). Nunca classe CSS, XPath, `.nth()` ou `waitForTimeout`. Exceções existentes têm o comentário `e2e-selector-allow: <motivo>`.
+- **Quatro verificações por funcionalidade:** sucesso (persistiu na API e aparece), erro (falha real ou conflito 409 sem perder o rascunho), permissão (o controle some **e** a API responde 403) e validação (o botão bloqueia e a API responde 400).
+- **SQL direto só para preparar o que a API não oferece** (leituras de sensor, papéis com escopo exato), via `withFixtureDatabase`, e removendo exatamente o que criou.
+- **Nunca altere regra de negócio para o teste passar.** Mudanças nos apps se limitam a acessibilidade (`aria-*`, rótulos) quando faltar um seletor estável.
 
-## Auditoria036
+## 7. Organização
 
-`audit.spec.ts` acrescenta cinco cenários por motor: histórico global com DTO mínimo; paginação local com timestamps iguais; concessão exata, revogação e vazio autorizado; falha/retry e troca de condomínio; troca de conta no mesmo documento com resposta antiga retida. As contas, condomínios e grants têm IDs exclusivos e são removidos em `finally`. As consultas/renderização usam API eRLS reais. Somente fixtures específicas de grants e histórico sintético são inseridas pelo owner do banco descartável; papéis padrão não são alterados.
+```
+playwright.config.ts          suíte (3 navegadores, servidores, evidências)
+playwright.record.config.ts   gravador (Chromium visível, sem limite de tempo)
+e2e/
+  support/      environment, fixtures, helpers, database (+ guarda), routes, page-health
+  specs/
+    smoke/            todas as páginas de cada portal
+    auth/             login, cookie, sessões, MFA, troca e recuperação de senha, convites
+    tenancy/          isolamento entre condomínios, unidades e equipes
+    platform/         clientes, funcionalidades, auditoria, acesso de suporte
+    navigation/       menu móvel e foco
+    community/        avisos, chamados, reservas
+    finance/          transparência e prestação de contas
+    monitoring/       água, sensores, regras de alerta, consumo
+    maintenance/      ordens de serviço, ativos, automações
+    permissions/      ações com concessão exata por recurso
+    physical-access/  portões e vagas (desligados por padrão no produto)
+    agents/           seed dos agentes de IA
+  recorder/     sessão logada do gravador
+  recorded/     código bruto do Codegen, fora da suíte até ser revisado
+  plans/        planos de teste em Markdown
+scripts/e2e-db.mjs, e2e-record.mjs, check-e2e-selectors.mjs
+```
 
-O harness das respostas atrasadas consome um clone do corpo real e confere o resourceId antigo antes de verificar que ele não apareceu no novo escopo. Isso evita aguardar um stream que o cliente corretamente abandonou por mudança de identidade. Não cancela a resposta atrasada nem substitui seu conteúdo por uma resposta simulada. A falha503 é o único corpo injetado nesses casos de recuperação.
+Ao criar uma rota num portal, acrescente-a em `e2e/support/routes.ts`: o `@smoke` passa a abri-la.
 
-Em03/10, os dirigidos passaram **15/15**. A matriz integral posterior passou **189/189**,63 por motor, sem retries, um worker, bundles dos três portais e API/PostgreSQL reais até036, em26 minutos. Log local: work/audit036-web-full.log; relatórios/capturas ficaram em work/audit036-web-full-results e work/audit036-web-full-report. São duas execuções próprias; a integral não é a soma da matriz anterior com os novos dirigidos. A aprovação do CI precisa ser conferida no commit publicado.
+## 8. Segurança do ambiente
 
-Depois dessa integral, a apresentação de atorUSER sem userId foi corrigida para Conta não identificada; ela não pode afirmar que a ação veio do Sistema. A expectativa foi acrescentada ao cenário global e os cinco casos passaram novamente **15/15**, nos três motores, em1 minuto; tipos UI/E2E aprovados. Log work/audit036-actor-label.log. Essa é a validação dirigida da mudança posterior, não uma nova integral de189.
+- `e2e/support/database-target.ts` recusa qualquer banco que não esteja em loopback. A única exceção é o serviço `postgres` do job do GitHub, com `GITHUB_ACTIONS=true` e `E2E_DATABASE_SERVICE=postgres`. O teste dessa guarda roda no CI.
+- A API lê o `.env` da raiz. A configuração força `RESEND_API_KEY` vazio, para que convites e recuperação de senha nunca enviem e-mail de verdade, e passa as URLs de banco explicitamente.
+- As contas são as do seed (`admin@`, `sindico@`, `morador@predioon.local`), com a senha de demonstração `SEED_PASSWORD` (padrão `predioon123`). Não use credenciais reais.
+- `specs/platform/organizations.spec.ts` altera temporariamente permissões de `PLATFORM_ADMIN` no banco descartável e as restaura no `finally`: não compartilhe o banco com outra execução ao mesmo tempo.
 
-Validação local deste recorte: **71/72** no lote de recursos, isolamento, cookies e sessões; o caso restante aguardava apenas os cabeçalhos do comentário antes de clicar em outra mutação. Passou a esperar a resposta visível no histórico, preservando os asserts de cancelamento. A repetição dos quatro cenários de recursos nos três motores passou **12/12**, também pela rede de serviço `postgres:5432` da nova configuração. Resultado composto: 60 cenários não alterados aprovados no lote original +12 recursos aprovados no lote final, sem alegar uma execução única de72 inteiramente verde. Passaram também73 testes UI, três testes da guarda de banco, tipos UI/E2E e parsing do YAML/versão da imagem. A API desses ensaios permaneceu no snapshot033, separada das mudanças034/035 em curso.
+## 9. CI
+
+`.github/workflows/browser.yml` roda em push na `main`, em pull requests e manualmente. São três jobs em paralelo (um por navegador), cada um com o próprio Postgres de serviço, na imagem oficial `mcr.microsoft.com/playwright:v1.63.0-noble`. Antes dos testes, o CI confere a guarda do banco, os seletores e a versão do Playwright. Os testes rodam com um worker e zero retries: uma falha intermitente aparece como falha, não como sucesso disfarçado.

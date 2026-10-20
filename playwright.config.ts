@@ -1,6 +1,6 @@
 import { defineConfig } from "@playwright/test";
-import { ADMIN_URL, API_URL, BUILDING_URL, E2E_PORT_OFFSET, RESIDENT_URL } from "./e2e/environment";
-import { isDisposableDatabaseTarget } from "./e2e/database-target";
+import { ADMIN_URL, API_URL, BUILDING_URL, E2E_PORT_OFFSET, RESIDENT_URL } from "./e2e/support/environment";
+import { isDisposableDatabaseTarget } from "./e2e/support/database-target";
 
 const runSuffix = E2E_PORT_OFFSET ? `-${E2E_PORT_OFFSET}` : "";
 
@@ -16,7 +16,9 @@ const databaseEnvironment = Object.fromEntries(databaseRoles.map(role => {
 }));
 
 export default defineConfig({
-  testDir: "./e2e",
+  // One folder per product area (e2e/specs/<área>). Raw Codegen output in e2e/recorded never runs
+  // until it is reviewed and moved here; the recorder itself has its own config.
+  testDir: "./e2e/specs",
   testMatch: "**/*.spec.ts",
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
@@ -34,8 +36,11 @@ export default defineConfig({
     timezoneId: "America/Sao_Paulo",
     actionTimeout: 15_000,
     navigationTimeout: 30_000,
+    // Evidence only for failures: trace (DOM, network, console), final screenshot and video.
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
+    video: "retain-on-failure",
+    testIdAttribute: "data-testid",
   },
   projects: [
     { name: "chromium", use: { browserName: "chromium" } },
@@ -49,6 +54,9 @@ export default defineConfig({
       env: {
         ...databaseEnvironment,
         NODE_ENV: "test",
+        // The API also reads the root .env: never let a real Resend key send invitation or
+        // recovery e-mails from the suite. Blank means "not configured" in apps/api/src/config.ts.
+        RESEND_API_KEY: "",
         API_PORT: new URL(API_URL).port,
         CORS_ORIGINS: [ADMIN_URL, BUILDING_URL, RESIDENT_URL].join(","),
       },

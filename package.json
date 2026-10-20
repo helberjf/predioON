@@ -21,7 +21,15 @@
     "typecheck": "pnpm -r typecheck",
     "check:boundaries": "node scripts/check-boundaries.mjs",
     "test": "pnpm -r --workspace-concurrency=1 --filter @predioon/api-client --filter @predioon/ui --filter @predioon/mobile --filter @predioon/api --filter @predioon/ingest test",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:e2e:smoke": "playwright test --grep @smoke",
+    "test:e2e:chromium": "playwright test --project=chromium",
+    "test:e2e:ui": "playwright test --ui --project=chromium",
+    "test:e2e:report": "playwright show-report .local/playwright-report",
+    "typecheck:e2e": "pnpm --filter @predioon/mobile exec tsc -p ../../e2e/tsconfig.json",
+    "check:e2e-selectors": "node scripts/check-e2e-selectors.mjs",
+    "e2e:db": "node scripts/e2e-db.mjs",
+    "e2e:record": "node scripts/e2e-record.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0",

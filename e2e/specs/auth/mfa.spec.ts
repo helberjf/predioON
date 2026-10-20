@@ -1,0 +1,78 @@
+import { expect, test } from "../../support/fixtures";
+import { API_URL, BUILDING_URL, DEMO_PASSWORD } from "../../support/environment";
+import { base32Decode, totpCode, totpStep } from "../../../apps/api/src/auth/totp";
+import { isolatedTenant, signIn, signOut } from "../../support/helpers";
+
+test("gestor ativa a verificação em duas etapas, entra com código de recuperação e a desativa", async ({ page, request }) => {
+  const fixture = await isolatedTenant(request);
+  const email = fixture.manager.email;
+  const answered = (path: string) => page.waitForResponse(response => response.request().method() === "POST" && response.url() === `${API_URL}${path}`);
+
+  await signIn(page, BUILDING_URL, email);
+  await page.getByRole("link", { name: "Minhas sessões", exact: true }).click();
+  await expect(page.getByText("Desativada", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Ativar verificação", exact: true }).click();
+  const enable = page.getByRole("form", { name: "Ativar verificação em duas etapas", exact: true });
+  await enable.getByLabel("Senha atual", { exact: true }).fill("senha errada");
+  let response = answered("/auth/mfa/enroll");
+  await enable.getByRole("button", { name: "Continuar", exact: true }).click();
+  expect((await response).status()).toBe(400);
+  await expect(page.getByRole("alert")).toContainText("A senha atual está incorreta");
+  await enable.getByLabel("Senha atual", { exact: true }).fill(DEMO_PASSWORD);
+  response = answered("/auth/mfa/enroll");
+  await enable.getByRole("button", { name: "Continuar", exact: true }).click();
+  expect((await response).status()).toBe(200);
+
+  const confirm = page.getByRole("form", { name: "Confirmar código do autenticador", exact: true });
+  const key = await confirm.getByLabel("Chave de configuração", { exact: true }).inputValue();
+  expect(key).toMatch(/^[A-Z2-7]{32}$/);
+  const secret = base32Decode(key)!;
+  await confirm.getByLabel("Código do aplicativo", { exact: true }).fill(totpCode(secret, totpStep(Date.now())));
+  response = answered("/auth/mfa/confirm");
+  await confirm.getByRole("button", { name: "Confirmar e ativar", exact: true }).click();
+  expect((await response).status()).toBe(200);
+  const codes = await page.getByRole("list", { name: "Códigos de recuperação", exact: true }).getByRole("listitem").allTextContents();
+  expect(codes).toHaveLength(10);
+  await page.getByRole("button", { name: "Já guardei os códigos", exact: true }).click();
+  await expect(page.getByText("Ativada", { exact: true })).toBeVisible();
+  await expect(page.getByText("10 código(s) de recuperação disponível(is)", { exact: true })).toBeVisible();
+  expect(await page.content()).not.toContain(codes[0]!);
+
+  // The next sign-in asks for the code only after the password, and a spent code is refused.
+  await signOut(page);
+  await page.getByLabel("E-mail", { exact: true }).fill(email);
+  await page.getByLabel("Senha", { exact: true }).fill(DEMO_PASSWORD);
+  await expect(page.getByLabel("Código de verificação", { exact: true })).toHaveCount(0);
+  response = answered("/auth/web/login");
+  await page.getByRole("button", { name: "Entrar", exact: true }).click();
+  expect((await response).status()).toBe(401);
+  const codeField = page.getByLabel("Código de verificação", { exact: true });
+  await expect(codeField).toBeVisible();
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await codeField.fill("000000");
+  response = answered("/auth/web/login");
+  await page.getByRole("button", { name: "Entrar", exact: true }).click();
+  expect((await response).status()).toBe(401);
+  await expect(page.getByRole("alert")).toContainText("Código de verificação inválido");
+  await codeField.fill(codes[0]!);
+  response = answered("/auth/web/login");
+  await page.getByRole("button", { name: "Entrar", exact: true }).click();
+  expect((await response).status()).toBe(200);
+  await expect(page.getByLabel("Senha", { exact: true })).toHaveCount(0);
+
+  const reused = await request.post(`${API_URL}/auth/login`, { data: { email, password: DEMO_PASSWORD, code: codes[0] } });
+  expect(reused.status()).toBe(401);
+
+  await page.getByRole("link", { name: "Minhas sessões", exact: true }).click();
+  await expect(page.getByText("9 código(s) de recuperação disponível(is)", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Desativar verificação", exact: true }).click();
+  const disable = page.getByRole("form", { name: "Desativar verificação em duas etapas", exact: true });
+  await disable.getByLabel("Senha atual", { exact: true }).fill(DEMO_PASSWORD);
+  await disable.getByLabel("Código de verificação", { exact: true }).fill(codes[1]!);
+  response = answered("/auth/mfa/disable");
+  await disable.getByRole("button", { name: "Desativar", exact: true }).click();
+  expect((await response).status()).toBe(204);
+  await expect(page.getByText("Desativada", { exact: true })).toBeVisible();
+  const plain = await request.post(`${API_URL}/auth/login`, { data: { email, password: DEMO_PASSWORD } });
+  expect(plain.status()).toBe(200);
+});

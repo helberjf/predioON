@@ -15,7 +15,14 @@ concurrency:
 
 jobs:
   browser:
+    name: browser (${{ matrix.browser }})
     runs-on: ubuntu-latest
+    # One job per engine, each with its own disposable database: the suite keeps one worker
+    # and zero retries, so splitting by engine is what keeps the wall time under the limit.
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
     container:
       image: mcr.microsoft.com/playwright:v1.63.0-noble
       # Match the owner of GitHub's mounted home/workspace; Firefox refuses a
@@ -24,7 +31,7 @@ jobs:
     defaults:
       run:
         shell: bash
-    timeout-minutes: 20
+    timeout-minutes: 30
     services:
       postgres:
         image: timescale/timescaledb:2.17.2-pg16
@@ -51,9 +58,10 @@ jobs:
           node-version: '24'
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Verify disposable database guards and matching browser image
+      - name: Verify disposable database guards, stable selectors and matching browser image
         run: |
-          node --experimental-strip-types --test e2e/database-target.test.ts
+          node --experimental-strip-types --test e2e/support/database-target.test.ts
+          node scripts/check-e2e-selectors.mjs
           node -e "if (require('@playwright/test/package.json').version !== '1.63.0') throw new Error('Update the pinned Playwright image together with the package')"
       - name: Prepare disposable database for real browser workflows
         run: |
@@ -63,12 +71,12 @@ jobs:
           pnpm db:provision-runtime
           SEED_PHYSICAL_FEATURES=enabled pnpm db:seed
       - name: Exercise all three portals against the real API
-        run: pnpm test:e2e
+        run: pnpm test:e2e --project=${{ matrix.browser }}
       - name: Preserve report and failure evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-evidence
+          name: playwright-evidence-${{ matrix.browser }}
           path: |
             .local/playwright-results/
             .local/playwright-report/
