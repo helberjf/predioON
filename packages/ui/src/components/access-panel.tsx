@@ -178,7 +178,7 @@ function AccessWorkspace({
     <div className="space-y-5">
       <PageHeading
         title="Acessos"
-        description="Solicite a abertura da garagem ou da entrada de pedestres e acompanhe a resposta do controlador."
+        description="Solicite a abertura dos acessos liberados para você e acompanhe a resposta do controlador."
         action={
           creating ? (
             <Button

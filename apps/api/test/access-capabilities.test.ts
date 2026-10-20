@@ -274,6 +274,12 @@ describe("physical access uses current capabilities at request and dispatch", ()
       assert.equal((await open(f, f.ids.resident)).status, 403);
       const response = await open(f, f.ids.manager);
       assert.equal(response.status, 202, await response.clone().text());
+      // Only its managers are told the gate exists.
+      for (const [actor, listed] of [[f.ids.resident, []], [f.ids.requester, []], [f.ids.manager, [f.gate]]] as const) {
+        const list = await f.request(actor, `/access?buildingId=${f.building}`);
+        assert.equal(list.status, 200);
+        assert.deepEqual((await list.json()).items.map((r: any) => r.id), listed);
+      }
     }));
 
   for (const scope of ["gate", "device", "gateway"] as const)

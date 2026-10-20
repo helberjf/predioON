@@ -162,6 +162,9 @@ accessRouter.get("/", validateQuery(ListQuery), async (req, res) => {
         .map(async (gate) => {
           const permissions = await accessPermissions(tx, gate);
           if (!permissions.readable) return null;
+          // A gate closed to residents belongs to whoever manages it. Others are
+          // not told it exists, instead of seeing a button they cannot use.
+          if (!gate.allowResidents && !permissions.manageable) return null;
           const { gateway, device } = await accessHardware(tx, gate);
           const reason = accessCapabilityAvailability(
             gate,

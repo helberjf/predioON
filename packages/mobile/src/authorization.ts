@@ -21,20 +21,20 @@ export async function readResidentAccess(
   buildingId: string,
 ): Promise<ResidentAccess> {
   const authorization = await readResourceAuthorization(api, { buildingId });
-  let readable = authorization.capabilities.includes("gates:read");
-  if (!readable) {
-    try {
-      // The collection endpoint applies current gate/device/gateway grants.
-      // A resource grant must never be promoted into whole-building capabilities.
-      const gates = await api.get<AccessList>(
-        `/access?buildingId=${encodeURIComponent(buildingId)}`,
-      );
-      if (gates.items.some((gate) => gate.buildingId !== buildingId))
-        throw new Error("Os acessos não correspondem ao escopo solicitado.");
-      readable = true;
-    } catch (error) {
-      if (!(error instanceof ApiError && error.status === 403)) throw error;
-    }
+  let readable = false;
+  try {
+    // The collection endpoint applies current gate/device/gateway grants and
+    // leaves out gates not released to residents, so even a broad gates:read
+    // with nothing listed has nothing to show. A resource grant must never be
+    // promoted into whole-building capabilities.
+    const gates = await api.get<AccessList>(
+      `/access?buildingId=${encodeURIComponent(buildingId)}`,
+    );
+    if (gates.items.some((gate) => gate.buildingId !== buildingId))
+      throw new Error("Os acessos não correspondem ao escopo solicitado.");
+    readable = gates.items.length > 0;
+  } catch (error) {
+    if (!(error instanceof ApiError && error.status === 403)) throw error;
   }
   return {
     buildingId,

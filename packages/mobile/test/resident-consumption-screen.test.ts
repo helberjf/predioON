@@ -55,6 +55,7 @@ function fixture() {
     const buildingId = new URL(path, "https://fixture.invalid").searchParams.get("buildingId")!;
     if (path.startsWith("/v1/authorization")) return { buildingId, capabilities: state.capabilities } as T;
     if (path.startsWith("/overview/")) return null as T;
+    if (path.startsWith("/access?")) return { items: [], canManage: false, gateways: [], devices: [] } as T;
     if (path.startsWith("/monitoring/published?")) return await state.read(buildingId) as T;
     throw new Error(`unexpected fixture route: ${path}`);
   } } as ApiClient;

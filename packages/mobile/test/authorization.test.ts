@@ -97,22 +97,23 @@ test("resident discovery keeps exact gate access separate from broad capabilitie
     ),
     /escopo/,
   );
-  const broadPaths: string[] = [];
-  assert.deepEqual(
-    await readResidentAccess(
-      api((path) => {
-        broadPaths.push(path);
-        return { buildingId: "one", capabilities: ["gates:read"] };
-      }),
-      "one",
-    ),
-    {
-      buildingId: "one",
-      capabilities: ["gates:read"],
-      access: { buildingId: "one", readable: true },
-    },
-  );
-  assert.deepEqual(broadPaths, ["/v1/authorization?buildingId=one"]);
+  // A broad gates:read still hides the tab when no gate is released to the resident.
+  for (const items of [[], [{ buildingId: "one" }]])
+    assert.deepEqual(
+      await readResidentAccess(
+        api((path) =>
+          path.startsWith("/v1")
+            ? { buildingId: "one", capabilities: ["gates:read"] }
+            : { items, canManage: false, gateways: [], devices: [] },
+        ),
+        "one",
+      ),
+      {
+        buildingId: "one",
+        capabilities: ["gates:read"],
+        access: { buildingId: "one", readable: items.length > 0 },
+      },
+    );
 });
 test("operation discovery tolerates only denied broad scope and keeps current domain coverage separate", async () => {
   const reader = api((path) => {
