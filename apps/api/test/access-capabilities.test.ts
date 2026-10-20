@@ -282,6 +282,25 @@ describe("physical access uses current capabilities at request and dispatch", ()
       }
     }));
 
+  it("lists a switched-off gate, gateway or controller only to its managers", async () =>
+    fixture(async (f) => {
+      for (const off of [
+        () => sqlClient`update gates set enabled=false where id=${f.gate}`,
+        () => sqlClient`update gateways set enabled=false where id=${f.gateway}`,
+        () => sqlClient`update devices set enabled=false where id=${f.device}`,
+      ]) {
+        await sqlClient`update gates set enabled=true where id=${f.gate}`;
+        await sqlClient`update gateways set enabled=true where id=${f.gateway}`;
+        await sqlClient`update devices set enabled=true where id=${f.device}`;
+        await off();
+        for (const [actor, listed] of [[f.ids.resident, []], [f.ids.requester, []], [f.ids.manager, [f.gate]]] as const) {
+          const list = await f.request(actor, `/access?buildingId=${f.building}`);
+          assert.equal(list.status, 200);
+          assert.deepEqual((await list.json()).items.map((r: any) => r.id), listed);
+        }
+      }
+    }));
+
   for (const scope of ["gate", "device", "gateway"] as const)
     it(`uses only a real ${scope} grant without requiring inventory`, async () =>
       fixture(async (f) => {

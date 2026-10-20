@@ -162,10 +162,17 @@ accessRouter.get("/", validateQuery(ListQuery), async (req, res) => {
         .map(async (gate) => {
           const permissions = await accessPermissions(tx, gate);
           if (!permissions.readable) return null;
-          // A gate closed to residents belongs to whoever manages it. Others are
-          // not told it exists, instead of seeing a button they cannot use.
+          // A gate closed to residents, or switched off with its gateway or
+          // controller, belongs to whoever manages it. Others are not told it
+          // exists, instead of seeing a button they cannot use. Being offline
+          // is not switching off: that gate stays listed as unavailable.
           if (!gate.allowResidents && !permissions.manageable) return null;
           const { gateway, device } = await accessHardware(tx, gate);
+          if (
+            !permissions.manageable &&
+            !(gate.enabled && gateway?.enabled && device?.enabled)
+          )
+            return null;
           const reason = accessCapabilityAvailability(
             gate,
             gateway,
