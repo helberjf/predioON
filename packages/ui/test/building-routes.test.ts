@@ -7,7 +7,7 @@ import { buildingRouteAllowed, buildingRoutesNeedCoverage, type BuildingRouteSco
 // Every route the condominium portal declares in apps/building-web/src/App.tsx.
 const ROUTES = ["/", "/alertas", "/agua", "/energia", "/consumo", "/sensores", "/dispositivos", "/acessos", "/vagas", "/chamados", "/ordens-servico", "/ativos",
   "/avisos", "/areas", "/transparencia", "/unidades-equipes", "/regras", "/automacoes", "/auditoria", "/acesso-suporte", "/sessoes"];
-const none: BuildingOverview["coverage"] = { devices: "none", gateways: "none", alerts: "none", telemetry: "none", occurrences: "partial" };
+const none: BuildingOverview["coverage"] = { devices: "none", gateways: "none", alerts: "none", telemetry: "none", occurrences: "none" };
 const offered = (scope: BuildingRouteScope) => ROUTES.filter(path => buildingRouteAllowed(path, scope));
 
 test("a resident is offered only the community pages, never readings, equipment or administration", () => {
@@ -47,4 +47,20 @@ test("paths are normalized and unknown routes are never offered", () => {
   assert.equal(buildingRouteAllowed("", scope), true);
   assert.equal(buildingRouteAllowed("/funcionalidades", scope), false);
   assert.equal(buildingRouteAllowed("/agua", { capabilities: [], coverage: null, gatesListed: true }), false);
+});
+
+test("an exact occurrence grant opens its page without promoting other permissions", () => {
+  const scope = { capabilities: [], coverage: { ...none, occurrences: "partial" }, gatesListed: false } satisfies BuildingRouteScope;
+  assert.deepEqual(offered(scope), ["/", "/chamados", "/sessoes"]);
+  assert.deepEqual(offered({ ...scope, coverage: none }), ["/", "/sessoes"]);
+});
+
+test("resource-scoped lists authorize only their own pages", () => {
+  const scope = { capabilities: [], coverage: none, gatesListed: false, rulesReadable: false, financeReadable: false };
+  assert.deepEqual(offered(scope), ["/", "/sessoes"]);
+  assert.deepEqual(offered({ ...scope, gatesListed: true }), ["/", "/acessos", "/sessoes"]);
+  assert.deepEqual(offered({ ...scope, rulesReadable: true }), ["/", "/regras", "/sessoes"]);
+  assert.deepEqual(offered({ ...scope, financeReadable: true }), ["/", "/transparencia", "/sessoes"]);
+  assert.deepEqual(offered({ ...scope, parkingReadable: true }), ["/", "/vagas", "/sessoes"]);
+  assert.deepEqual(offered({ ...scope, auditReadable: true }), ["/", "/auditoria", "/sessoes"]);
 });

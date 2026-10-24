@@ -6,7 +6,7 @@ import {
   type Page,
 } from "../../support/fixtures";
 import { API_URL, BUILDING_URL } from "../../support/environment";
-import { isolatedTenant, signIn } from "../../support/helpers";
+import { authenticatedApi, isolatedTenant, signIn } from "../../support/helpers";
 import { withFixtureDatabase } from "../../support/database";
 
 async function rulesFixture(
@@ -290,10 +290,14 @@ test("regras: configuração de equipamento não concede gestão de regras", asy
 }) =>
   rulesFixture(request, async (f) => {
     await f.grant(["devices:read", "devices:configure"]);
-    await openRules(page, f.delegate.email);
+    await signIn(page, BUILDING_URL, f.delegate.email);
+    await page.goto(`${BUILDING_URL}/regras`);
     await expect(
       page.getByRole("heading", { name: "Regras de alerta", exact: true }),
-    ).toBeVisible();
+    ).toHaveCount(0);
+    await expect(page.getByText("Sua conta não tem acesso a esta área do condomínio.", { exact: true })).toBeVisible();
+    const deniedApi = await authenticatedApi(request, f.delegate.email);
+    expect((await deniedApi.get(`/alert-rules?buildingId=${f.building.id}`)).status()).toBe(403);
     await expect(
       page.getByRole("button", { name: "Criar regra", exact: true }),
     ).toHaveCount(0);
