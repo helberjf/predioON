@@ -144,6 +144,12 @@ O JSON contém access token e identidade; a validade do cookie acompanha a expir
 
 Os portais guardam access somente em memória, removem os tokens legados de localStorage e usam Web Locks para serializar alterações do cookie entre abas. Metadados sem credenciais propagam troca de identidade e logout; uma intenção de logout offline impede restauração indevida após reload. O SSE envia bearer no cabeçalho. A integração passou em 45/45 verificações dirigidas nos três navegadores, além de tipos, builds e testes de cliente/UI. Procedimento de implantação e limites em [AUTENTICACAO](AUTENTICACAO.md).
 
+## Menu do portal do síndico conforme as permissões
+
+O portal do condomínio (`apps/building-web`, `sindico.<domínio>`) mostra cada item do menu, cada atalho do Início e cada bloco do painel somente a quem tem acesso à tela correspondente, além de a funcionalidade estar ligada. A regra de cada rota fica em `packages/ui/src/building-routes.ts` e lê as capacidades do condomínio em `/v1/authorization`. Quem não tem `telemetry:read`, `devices:read` e `alerts:read` no condomínio inteiro também consulta a cobertura de `/overview/building`, para que a equipe com concessão em equipamentos ou alertas avulsos continue vendo o que alcança. Portões aparecem com `gates:manage` ou quando `/access` lista algum portão liberado à conta, como no portal do morador.
+
+Assim, um morador que entra no portal do síndico vê só Início (sem leituras, equipamentos nem alertas), Ocorrências, Avisos, Áreas comuns, Transparência, Vagas, os portões liberados e Minhas sessões. Água, energia, consumo, gás e sensores, equipamentos, alertas, ordens de serviço, ativos e o grupo Administração ficam fora do menu. A URL direta de uma dessas telas responde "Sua conta não tem acesso a esta área do condomínio." sem consultar a API da tela. Isso é só exibição: a API continua sendo a fronteira e já negava esses dados ao morador.
+
 ## Fronteiras ainda em migração
 
 A etapa 2B permanece aberta. Estacionamento, atuação física e parte da administração ainda precisam concluir a migração própria. Kinds novos de eventos precisam de projeção e autorização específicas. Consumidores web/mobile estão sendo alinhados às capacidades de cada domínio; telas ainda legadas não devem usar a ausência de uma capacidade nova para presumir que suas regras anteriores foram migradas.
