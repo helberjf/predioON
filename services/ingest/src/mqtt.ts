@@ -15,6 +15,9 @@ export function connectIngest(onMessage: MessageHandler): mqtt.MqttClient {
     clean: false, // durable session: messages published while ingest is down are redelivered
     queueQoSZero: false, // A physical command must never wait in an offline outbound queue.
     reconnectPeriod: 2000,
+    // The broker's HTTP authorizer can briefly reject connections during an API
+    // rollout. Retry admission without weakening authentication or queuing commands.
+    reconnectOnConnackError: true,
     rejectUnauthorized: true,
     ...(config.MQTT_CA_FILE ? { ca: readFileSync(config.MQTT_CA_FILE) } : {}),
     ...(config.MQTT_CERT_FILE ? { cert: readFileSync(config.MQTT_CERT_FILE) } : {}),
