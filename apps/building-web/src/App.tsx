@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import { AccessPanel, AssetsPanel, AuditPanel, SupportAccessPanel, AutomationsPanel, BuildingScopeProvider, BuildingScopeFeedback, FeatureProvider, FeatureContent, LoginScreen, PasswordRecoveryScreen, MonitoringPanel, ParkingPanel, ResidentConsumptionSwitch, SessionsPanel, TenancyPanel, TransparencyPanel, WorkOrdersPanel, useAuth, useBuildingScope } from "@predioon/ui";
+import { AccessPanel, AssetsPanel, AuditPanel, SupportAccessPanel, AutomationsPanel, BuildingScopeProvider, BuildingScopeFeedback, FeatureProvider, FeatureContent, PublicEntry, PlatformPresentation, PasswordRecoveryScreen, MonitoringPanel, ParkingPanel, ResidentConsumptionSwitch, SessionsPanel, TenancyPanel, TransparencyPanel, WorkOrdersPanel, useAuth, useBuildingScope } from "@predioon/ui";
 import { BuildingAccessProvider, RouteAccess, useBuildingAccess } from "./access.js";
 import { Shell } from "./layout/Shell.js";
 import { Dashboard } from "./pages/Dashboard.js";
@@ -18,8 +18,9 @@ export function App() {
 
   // A recovery link is honoured whoever is signed in on this browser; it ends every session anyway.
   if (window.location.pathname === "/redefinir-senha") return <PasswordRecoveryScreen />;
+  if (window.location.pathname === "/conheca") return <PlatformPresentation />;
   if (loading) return <p className="p-8 text-slate-500">Carregando...</p>;
-  if (!user) return <LoginScreen subtitle="Operação do condomínio" />;
+  if (!user) return <PublicEntry subtitle="Operação do condomínio" />;
 
   return <BuildingScopeProvider key={user.id}><BuildingApp /></BuildingScopeProvider>;
 }

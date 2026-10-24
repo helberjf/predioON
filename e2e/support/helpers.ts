@@ -4,7 +4,7 @@ import { API_URL, DEMO_PASSWORD } from "./environment";
 import { demoAccountEmail } from "./fixtures";
 
 export async function signIn(page: Page, origin: string, email: string) {
-  await page.goto(origin);
+  await page.goto(`${origin}/login`);
   await enterCredentials(page, email);
 }
 
@@ -21,6 +21,9 @@ export async function signOut(page: Page, button = "Sair da conta") {
   const response = page.waitForResponse(response => response.url() === `${API_URL}/auth/web/logout` && response.request().method() === "POST");
   await page.getByRole("button", { name: button, exact: true }).click();
   expect((await response).status()).toBe(204);
+  const login = page.getByRole("link", { name: "Login", exact: true });
+  await expect(login.or(page.getByRole("button", { name: "Entrar", exact: true }))).toBeVisible();
+  if (await login.isVisible()) await login.click();
   await expect(page.getByLabel("E-mail", { exact: true })).toBeVisible();
 }
 
