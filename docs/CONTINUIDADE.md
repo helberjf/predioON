@@ -1,8 +1,8 @@
 # Continuidade do Prédio ON
 
-Atualizado em **17/10/2026**, horário de São Paulo. Leia este arquivo primeiro ao retomar, em qualquer computador. O histórico completo de cada sessão até esta data, com todos os números e decisões, está em [continuidade/historico-ate-2026-10-17.md](continuidade/historico-ate-2026-10-17.md).
+Atualizado em **23/10/2026**, horário de São Paulo. Leia este arquivo primeiro ao retomar, em qualquer computador. O histórico completo de cada sessão até esta data, com todos os números e decisões, está em [continuidade/historico-ate-2026-10-17.md](continuidade/historico-ate-2026-10-17.md).
 
-**Situação:** o produto está implementado e verificado localmente, **sem implantação e sem aceite de produção**. Base: **main `3e06325`**, migrations **001–058**. Planos/assinaturas ficaram por último, por decisão do proprietário, e não foram feitos.
+**Situação:** o produto está implementado e verificado localmente, **sem implantação e sem aceite de produção**. Base: **main `949fc2f`**, migrations **001–058**. Planos/assinaturas ficaram por último, por decisão do proprietário, e não foram feitos.
 
 ## 1. Instruções permanentes do proprietário
 
@@ -38,7 +38,7 @@ Atualizado em **17/10/2026**, horário de São Paulo. Leia este arquivo primeiro
 | 2. Identidade e RBAC | Concluída: capacidades em todos os módulos (2B.3, 054), gestão web integrada (2B.4), convites, MFA, recuperação e confirmação recente (2C, 055). **Decisão do proprietário:** tornar a MFA obrigatória para a administração da plataforma (exige cadastro forçado no primeiro acesso). |
 | 3. Processamento durável | Outbox e worker de notificações (038), ingestão sem owner (052), garantias de telemetria (048). A fila separada da inbox foi adiada conscientemente ([INBOX_DECISOES.md](INBOX_DECISOES.md)). |
 | 4. Domínios | Ativos (044), ordens de serviço (043), automações por alerta e programadas (045/057), suporte com concessão explícita (053). **Planos/assinaturas: não iniciado**, por decisão. |
-| 5. Apps | Funcionais e testados (224 testes); jornadas Android aprovadas em CI até o bloqueio da conta; percorridos no emulador em 18/10 (vídeos), sem avisos Fabric no logcat. **Pendentes:** iOS autenticado (exige macOS/Apple) e homologação em aparelhos. |
+| 5. Apps | Funcionais e testados (224 testes); jornadas Android aprovadas em CI até o bloqueio da conta; percorridos no emulador em 18/10 (vídeos), sem avisos Fabric no logcat. Caminho iOS preparado em 18/10: EAS Build/Submit sem Expo SDK e `scripts/ios-mac/verify.sh` para um Mac emprestado. **Pendentes:** primeiro build iOS assinado, iOS autenticado e homologação em aparelhos. |
 | 6. Implantação e operação | Artefatos prontos e ensaiados localmente (Compose, healthchecks, backup/restauração, retenção, saúde dos serviços). **Sem implantação real.** |
 
 ## 4. Últimas releases (17/10)
@@ -57,6 +57,15 @@ Atualizado em **17/10/2026**, horário de São Paulo. Leia este arquivo primeiro
 
 **Depois (18/10):** datas ISO nas rotas lidas pelos apps (o app Operação mostrava "Data indisponível"), correção do `demo:data` e os cinco vídeos. API 828/829 na integral (1 intermitente conhecido, 3/3 isolado), ingestão 204/204, teste novo de datas 2/2.
 
+**Depois (18–20/10), sem nova rodada integral:**
+
+| Commit | Resumo |
+| --- | --- |
+| `19ea7f3` | iOS pelo EAS Build/Submit sem Expo SDK: `eas.json` por app (perfis `production` e `simulator`), hook que grava a origem HTTPS de `PRODUCTION_API_URL` no `config.ts` e falha sem ela, ícones iOS provisórios ([apps](../packages/mobile/README.md#ios-sem-mac-eas-build)) |
+| `194bb04` | Workflows iOS (`ios.yml`, `ios-auth.yml`) só por disparo manual: o minuto macOS conta 10× na cota do repositório privado |
+| `a2e1f50` | `scripts/ios-mac/verify.sh`: pré-requisitos, testes, simulador, iPhone por cabo (`--device`), TestFlight (`--testflight`) e relatório. Passa no shellcheck, **ainda não rodou num Mac** ([guia](../scripts/ios-mac/README.md)) |
+| `949fc2f` | Playwright por área em `e2e/specs/`, banco próprio (`pnpm e2e:db`), `@smoke` que abre todas as páginas dos portais, gravador (`pnpm e2e:record`), specs novas de funcionalidades e de água/segurança, agentes de teste para o Claude Code ([guia](../e2e/README.md)) |
+
 **Provas da última rodada (HEAD, clusters novos):** banco 301/303 (2 skips de backup, cobertos pelo teste próprio), api-client 118/118, UI 108/108, mobile 224/224, API 827/827, ingestão 204/204; SQL052 73/73; serviços restritos 114/114; restauração 2/2 três vezes; ingestão real com broker 12/12; Playwright Chromium completo 117/117. [Evidência](evidencias/releases-055-058-2026-10-17.json).
 
 ## 5. Como retomar e testar nesta máquina
@@ -74,7 +83,8 @@ pnpm install --frozen-lockfile
 pnpm setup:local      # só banco novo e descartável: inclui seed com contas de demonstração
 pnpm test             # pacotes; o banco tem suíte própria
 pnpm --filter @predioon/db exec node --import tsx --test --test-concurrency=1 test/*.test.ts
-pnpm exec playwright test --project=chromium   # encerre o pnpm dev antes
+pnpm e2e:db up        # banco descartável próprio em 127.0.0.1:5446
+pnpm test:e2e:chromium   # encerre o pnpm dev antes
 ```
 
 A sequência do job de plataforma, as flags das suítes SQL038/SQL052 e os clusters próprios de backup estão em `.github/workflows/ci.yml` e [BACKUP_E_RESTAURACAO.md](BACKUP_E_RESTAURACAO.md). Firefox não está instalado e o WebKit é bloqueado pelo AppControl nesta máquina. O CI do GitHub termina em `startup_failure` desde outubro por cobrança da conta; só o proprietário resolve.
@@ -88,12 +98,13 @@ A sequência do job de plataforma, as flags das suítes SQL038/SQL052 e os clust
 - Liberar a cobrança do GitHub Actions (CI bloqueado).
 - Implantação real: VPS, domínio, TLS, chave do Resend e remetente, `MFA_ENCRYPTION_KEY`, segredos do Compose ([DEPLOY.md](DEPLOY.md)).
 - Hardware real (gateways, sensores, portões) e homologação em condomínio.
-- Conta Apple/macOS para o iOS autenticado.
+- iOS: conta no Apple Developer Program e conta Expo para o primeiro build EAS assinado e o TestFlight; ou um Mac emprestado para rodar `scripts/ios-mac/verify.sh`.
 - Decidir: MFA obrigatória para a plataforma; prazo de retenção das leituras (sugestão de 24 meses).
 - Planos/assinaturas (deixados por último).
 
 **Técnico, nesta máquina:**
 
+- Rodar a suíte Playwright reorganizada por inteiro (`pnpm test:e2e:chromium`, depois Firefox), incluindo o `@smoke` e as specs novas, e registrar o resultado.
 - Ensaio de carga com a ingestão real (MQTT mensagem a mensagem).
 - Teste intermitente conhecido: `password-recovery.test.ts` → "keeps two-step verification in place after a reset" falhou 1 vez na integral de 18/10 (a ativação da MFA não devolveu a chave) e passou 3/3 isolado; mesmo sintoma de limite de requisições compartilhado já visto antes. Investigar sem afrouxar o limite.
 - Avisos Fabric: não se repetiram em quatro execuções no emulador em 18/10; a causa dos registros de outubro no CI segue sem demonstração.

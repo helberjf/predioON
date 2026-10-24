@@ -77,7 +77,9 @@ Sensores / gateway / simulador
 
 Para abertura de portões, a API registra o pedido, a ingestão publica o comando e o controlador devolve uma confirmação (ACK). O fluxo completo está em [Acessos](docs/ACESSOS.md).
 
-O portal do morador permanece disponível por compatibilidade. Os aplicativos **Morador** e **Operação**, em React Native **sem Expo**, estão em `apps/resident-mobile` e `apps/operations-mobile`, com sessão segura e fluxos conectados à API. Veja [execução, requisitos e limites dos apps](packages/mobile/README.md). A publicação e integrações nativas externas continuam separadas da validação do código. Não há aplicativo móvel administrativo da plataforma.
+O portal do morador permanece disponível por compatibilidade. Os aplicativos **Morador** e **Operação**, em React Native **sem Expo SDK**, estão em `apps/resident-mobile` e `apps/operations-mobile`, com sessão segura e fluxos conectados à API. Veja [execução, requisitos e limites dos apps](packages/mobile/README.md). Não há aplicativo móvel administrativo da plataforma.
+
+Distribuição iOS sem Mac próprio: o **EAS Build** é usado só como serviço de build, assinatura e envio ao TestFlight (perfil `production`) ou ao Appetize.io (perfil `simulator`, sem conta Apple); os apps continuam React Native puro. Num Mac emprestado, [`scripts/ios-mac/verify.sh`](scripts/ios-mac/README.md) confere pré-requisitos, roda os testes, abre os apps no simulador, instala no iPhone por cabo e envia ao TestFlight. Os workflows iOS do GitHub rodam só por disparo manual. Nenhum build iOS assinado foi feito ainda.
 
 ## Instalação local
 
@@ -111,7 +113,7 @@ if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 
 O [`.env.example`](.env.example) contém os valores do Docker Compose local. O comando acima preserva um `.env` existente.
 
-Ao atualizar uma instalação local anterior à038, acrescente `DATABASE_URL_NOTIFICATIONS` ao `.env` existente conforme o exemplo, com a role `predioon_notifications` no mesmo banco. O provisionamento exige a conexão administrativa e seis URLs restritas: app, identity, broker_auth, notifications e, desde a052, ingest e access_service. Depois de acrescentá-las ao `.env`, gere `services/ingest/.env.runtime` com `pnpm ingest:env`: a ingestão lê somente esse arquivo e recusa a conexão dona. Encerrar produtores antigos antes de aplicar038 e iniciar somente a versão compatível; seguir [o guia de notificações](docs/NOTIFICACOES_DURAVEIS.md#implantação-e-rollback). Um destino vazio termina as entregas em `no_destination`; configurar webhook depois não reenvia esses alertas automaticamente.
+Ao atualizar uma instalação local anterior à 038, acrescente `DATABASE_URL_NOTIFICATIONS` ao `.env` existente conforme o exemplo, com a role `predioon_notifications` no mesmo banco. O provisionamento exige a conexão administrativa e seis URLs restritas: app, identity, broker_auth, notifications e, desde a 052, ingest e access_service. Depois de acrescentá-las ao `.env`, gere `services/ingest/.env.runtime` com `pnpm ingest:env`: a ingestão lê somente esse arquivo e recusa a conexão dona. Encerrar produtores antigos antes de aplicar 038 e iniciar somente a versão compatível; seguir [o guia de notificações](docs/NOTIFICACOES_DURAVEIS.md#implantação-e-rollback). Um destino vazio termina as entregas em `no_destination`; configurar webhook depois não reenvia esses alertas automaticamente.
 
 ### 2. Preparar infraestrutura e banco
 
@@ -209,13 +211,19 @@ O simulador de portões é separado, aceita apenas broker local e exige gateway/
 | `MQTT_URL` / `MQTT_USERNAME` / `MQTT_PASSWORD` | Conexão da ingestão com o broker. |
 | `MQTT_AUTH_SECRET` / `MQTT_INGEST_USERNAME` / `MQTT_INGEST_PASSWORD` | Autenticação e autorização HTTP do broker quando configuradas. |
 | `GATEWAY_OFFLINE_TIMEOUT_SECONDS` / `DEVICE_OFFLINE_TIMEOUT_SECONDS` | Prazos para considerar gateway ou dispositivo sem comunicação. |
+| `DATABASE_URL_NOTIFICATIONS` / `DATABASE_URL_INGEST` / `DATABASE_URL_ACCESS_SERVICE` | Roles restritas do worker de notificações e da ingestão (telemetria e acesso físico). |
+| `TRUST_PROXY_CIDRS` | Proxies confiáveis para o IP real do cliente (limites de login e auditoria). |
+| `VITE_RESIDENT_URL` | Endereço do portal do morador mostrado nos links de convite dos painéis. |
+| `RESEND_API_KEY` / `RESEND_FROM_EMAIL` | Envio de convites e recuperação de senha pelo Resend. Sem chave, nenhum e-mail é enviado. |
+| `PASSWORD_RESET_URL` / `RESIDENT_PORTAL_URL` | Endereços usados nos links dos e-mails de recuperação e de convite. |
+| `MFA_ENCRYPTION_KEY` | Cifra dos segredos TOTP (mínimo 32 bytes); obrigatória em produção. |
 | `ALERT_WEBHOOK_URL` | Opcional: encaminhamento de alertas `HIGH` e `CRITICAL` a um integrador externo. |
 
 Consulte [`.env.example`](.env.example) para os padrões locais e [DEPLOY](docs/DEPLOY.md) para produção. Mantenha API e ingestão na mesma versão ao atualizar o controle de funcionalidades.
 
 ## Testes e verificações
 
-Use um banco **isolado e descartável**, separado dos dados de uso diário. A API/ingestão, worker de notificações e simuladores desse ambiente devem estar parados durante a regressão. O [guia de migrations](docs/MIGRATIONS.md#testes-em-banco-isolado) descreve uma preparação reproduzível na porta 5439. No mesmo PowerShell, configure a conexão administrativa e as quatro restritas para esse banco e habilite as duas famílias de testes de integração:
+Use um banco **isolado e descartável**, separado dos dados de uso diário. A API/ingestão, worker de notificações e simuladores desse ambiente devem estar parados durante a regressão. O [guia de migrations](docs/MIGRATIONS.md#testes-em-banco-isolado) descreve uma preparação reproduzível na porta 5439. No mesmo PowerShell, configure a conexão administrativa e as seis restritas para esse banco e habilite as duas famílias de testes de integração:
 
 ```powershell
 $env:RUN_ACCESS_DB_TESTS = "1"
@@ -227,11 +235,21 @@ pnpm test
 
 `pnpm test` executa `@predioon/api-client`, `@predioon/ui`, `@predioon/mobile`, `@predioon/api` e `@predioon/ingest` em sequência. A suíte de banco é chamada separadamente acima; sua conexão administrativa precisa poder criar/remover bancos temporários. As verificações incluem sessão, autorização HTTP/RLS, contratos MQTT, telemetria, comandos, pausa/retomada e histórico de migrations. Testes ignorados por falta de variáveis não contam como validação dessas integrações. Os testes de acesso simulam controladores e não comprovam atuação de um portão físico.
 
-SQL038/worker e produtores têm suítes próprias, com cluster exclusivo e opt-in explícito, pois alteram roles globais. Seguir [MIGRATIONS](docs/MIGRATIONS.md#testes-em-banco-isolado) e o job `notifications` em [ci.yml](.github/workflows/ci.yml); não ligar essas variáveis no cluster da API/navegador. Backup também usa job separado, com dois clusters para restauração. `pnpm test` sozinho não executa a suíte própria do worker.
+SQL 038/worker e produtores têm suítes próprias, com cluster exclusivo e opt-in explícito, pois alteram roles globais. Seguir [MIGRATIONS](docs/MIGRATIONS.md#testes-em-banco-isolado) e o job `notifications` em [ci.yml](.github/workflows/ci.yml); não ligar essas variáveis no cluster da API/navegador. Backup também usa job separado, com dois clusters para restauração. `pnpm test` sozinho não executa a suíte própria do worker.
 
-Os fluxos de navegador usam `pnpm exec playwright install chromium firefox webkit` e `pnpm test:e2e`; siga [o guia E2E](e2e/README.md) para preparar o banco e evitar disputa com outros serviços. O comportamento do inicializador Windows pode ser testado sem executar Docker ou alterar banco: `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/test-start-local.ps1`. O parâmetro de política vale somente para esse processo de teste.
+Os fluxos de navegador ficam em `e2e/specs/<área>/` e rodam contra um banco próprio e descartável:
 
-Mudanças em workflows têm [validação semântica independente](.github/workflows/workflow-validation.yml) com actionlint1.7.12 e checksum do archive fixado. Ela confere sintaxe, expressões e contextos disponíveis; parser YAML sozinho não detecta `job.services` ou `runner.temp` usados no nível incorreto. Para a mesma verificação local com actionlint instalado: `actionlint -shellcheck= -pyflakes=`. Esse recorte não verifica shell/Python nem substitui os testes dos serviços e as execuções nativas.
+```powershell
+pnpm exec playwright install chromium firefox webkit
+pnpm e2e:db up            # TimescaleDB em 127.0.0.1:5446, só contêiner criado pelo script
+pnpm test:e2e:chromium    # suíte completa num navegador; pnpm test:e2e roda os três
+pnpm test:e2e:smoke       # abre todas as páginas dos três portais (@smoke)
+pnpm e2e:record           # Codegen com o portal já logado
+```
+
+Tags, evidências de falha, gravação e agentes de IA estão no [guia E2E](e2e/README.md). O comportamento do inicializador Windows pode ser testado sem executar Docker ou alterar banco: `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/test-start-local.ps1`. O parâmetro de política vale somente para esse processo de teste.
+
+Mudanças em workflows têm [validação semântica independente](.github/workflows/workflow-validation.yml) com actionlint 1.7.12 e checksum do archive fixado. Ela confere sintaxe, expressões e contextos disponíveis; parser YAML sozinho não detecta `job.services` ou `runner.temp` usados no nível incorreto. Para a mesma verificação local com actionlint instalado: `actionlint -shellcheck= -pyflakes=`. Esse recorte não verifica shell/Python nem substitui os testes dos serviços e as execuções nativas.
 
 Para verificar tipos e compilar, execute cada etapa após a anterior terminar:
 
@@ -268,7 +286,7 @@ As verificações recentes estão resumidas em [Revisão de funcionalidades](doc
 | `pnpm --filter @predioon/resident-web dev` | Inicia apenas o portal do morador. |
 | `pnpm --filter @predioon/api dev` | Inicia apenas a API. |
 | `pnpm --filter @predioon/ingest dev` | Inicia apenas a ingestão MQTT. |
-| `pnpm --filter @predioon/notifications dev` | Inicia o worker restrito de webhook; exige SQL038 e sua própria URL de banco. |
+| `pnpm --filter @predioon/notifications dev` | Inicia o worker restrito de webhook; exige SQL 038 e sua própria URL de banco. |
 
 Para recriar uma demonstração descartável, pare os processos com `Ctrl+C` e execute:
 
@@ -298,24 +316,31 @@ pnpm dev
 
 ```text
 apps/
-  api/             API, autenticação e módulos de negócio
-  admin-web/       Administração da plataforma
-  building-web/    Painel do síndico
-  resident-web/    Portal do morador
+  api/                API, autenticação e módulos de negócio
+  admin-web/          Administração da plataforma
+  building-web/       Painel do síndico
+  resident-web/       Portal do morador
+  resident-mobile/    App Morador (React Native, Android/iOS)
+  operations-mobile/  App Operação (React Native, Android/iOS)
 services/
-  ingest/          MQTT, telemetria, alertas, análise e simuladores
+  ingest/             MQTT, telemetria, alertas, análise e simuladores
+  notifications/      Worker restrito de entrega de alertas por webhook
 packages/
-  db/              Schema, contexto RLS, migrações e seeds
-  shared/          Contratos, validações e regras compartilhadas
-  ui/              Componentes, autenticação e clientes dos painéis
-infrastructure/    Docker Compose, SQL, EMQX, Caddy e deploy
-scripts/           Inicialização local no Windows
-docs/              Implantação, integração, operação e materiais comerciais
+  db/                 Schema, contexto RLS, migrações e seeds
+  shared/             Validações e regras compartilhadas
+  contracts/          Contratos HTTP compartilhados
+  api-client/         Cliente HTTP com sessão e rotação de tokens
+  ui/                 Componentes, autenticação e clientes dos painéis
+  mobile/             Telas e sessão compartilhadas pelos dois apps
+infrastructure/       Docker Compose, SQL, EMQX, Caddy e deploy
+e2e/                  Testes Playwright por área, suporte, gravador e planos
+scripts/              Inicialização local, smokes Android/iOS, EAS, vídeos e utilitários
+docs/                 Implantação, integração, operação, vídeos e materiais comerciais
 ```
 
 ## Estado atual
 
-Implementado e verificado localmente, **sem implantação e sem aceite de produção**: migrations 001–058, API 827 testes, ingestão 204, apps 224, Playwright 117 cenários no Chromium. Planos/assinaturas foram deixados por último e não foram feitos. O estado detalhado, o que depende do proprietário e como retomar estão em [Continuidade](docs/CONTINUIDADE.md); o histórico das etapas, no [tracker de execução](docs/superpowers/plans/2026-09-27-product-execution.md).
+Implementado e verificado localmente, **sem implantação e sem aceite de produção**: migrations 001–058, API 827 testes, ingestão 204, apps 224, Playwright 117 cenários no Chromium (rodada de 17/10, antes da reorganização da suíte em 20/10). Planos/assinaturas foram deixados por último e não foram feitos. Os [cinco vídeos de demonstração](docs/videos/README.md), com dados fictícios, mostram os três portais e os dois apps. O estado detalhado, o que depende do proprietário e como retomar estão em [Continuidade](docs/CONTINUIDADE.md); o histórico das etapas, no [tracker de execução](docs/superpowers/plans/2026-09-27-product-execution.md).
 
 ## Implantação e limites da versão
 
@@ -327,7 +352,7 @@ Para produção, siga [DEPLOY](docs/DEPLOY.md): segredos exclusivos, conexão re
 - **Consumo:** os custos são estimativas calculadas com as tarifas configuradas. Desvios estatísticos indicam necessidade de investigação, sem identificar automaticamente sua causa.
 - **Sensores:** hardware e calibração precisam de validação no imóvel; sinais de fumaça/gás não substituem sistemas certificados.
 - **Suporte remoto:** exige AnyDesk instalado e configurado. O Prédio ON registra solicitações e resultados, sem confirmar automaticamente uma sessão externa. Os complementos de heartbeat e diagnóstico estão no [plano de comunicação e suporte](docs/superpowers/plans/2026-09-23-suporte-remoto-e-heartbeat.md).
-- **Mensagens:** WhatsApp/e-mail dependem de integração externa por webhook. A agenda de avisos não envia lembretes automaticamente por esses canais.
+- **Mensagens:** convites e recuperação de senha saem por e-mail pelo Resend. Alertas para WhatsApp/e-mail dependem de integração externa por webhook, e a agenda de avisos não envia lembretes por esses canais. Não há notificação push nos apps.
 
 ## Documentação
 
@@ -344,6 +369,7 @@ Para produção, siga [DEPLOY](docs/DEPLOY.md): segredos exclusivos, conexão re
 | Identidade e permissões | [Autenticação](docs/AUTENTICACAO.md) · [Autorização](docs/AUTORIZACAO.md) · [Troca da própria senha](docs/TROCA_DE_SENHA.md) |
 | Manutenção | [Ordens de serviço](docs/ORDENS_DE_SERVICO.md) · [Ativos](docs/ATIVOS.md) · [Automações](docs/AUTOMACOES.md) |
 | Entrega durável e banco | [Notificações duráveis](docs/NOTIFICACOES_DURAVEIS.md) · [Migrations](docs/MIGRATIONS.md) · [Backup e restauração](docs/BACKUP_E_RESTAURACAO.md) |
+| Apps e testes de navegador | [Aplicativos móveis e EAS](packages/mobile/README.md) · [iOS num Mac emprestado](scripts/ios-mac/README.md) · [Guia E2E](e2e/README.md) · [Vídeos](docs/videos/README.md) |
 | Hardware e MQTT | [Hardware/software](docs/HARDWARE_SOFTWARE.md) · [Contrato e entrega para Helber](docs/ENTREGA_HELBER.md) · [Teste MQTT](docs/TESTE_MQTT.md) |
 | Banco e arquitetura | [Modelo de dados](docs/DATABASE_MODEL.md) · [Preparação do banco](docs/DATABASE_SETUP.md) · [Plano técnico](docs/PLANO_TOTAL.md) |
 | Continuidade e evolução | [Continuidade (leia primeiro)](docs/CONTINUIDADE.md) · [Melhorias e evoluções](docs/MELHORIAS_E_EVOLUCOES.md) · [Próximos passos](docs/NEXT_STEPS.md) |

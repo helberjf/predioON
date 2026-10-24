@@ -2,10 +2,12 @@
 
 Biblioteca de experiência compartilhada por dois projetos **React Native sem Expo**:
 
-| Aplicativo | Android / iOS | Fluxos deste incremento |
+| Aplicativo | Android / iOS | Fluxos |
 | --- | --- | --- |
-| Morador | `com.predioon.resident` | Avisos publicados; solicitações próprias, criação e conversa; criação e cancelamento de reservas; transparência e prestação de contas; solicitação de abertura de portões autorizados |
-| Operação | `com.predioon.operations` | Resumo com indicação de cobertura; leituras; alertas e ações autorizadas; acompanhamento de solicitações |
+| Morador | `com.predioon.resident` | Avisos publicados; solicitações próprias, criação e conversa; criação e cancelamento de reservas; transparência e prestação de contas; abertura de portões autorizados (quando ligada); consumo liberado pelo síndico; Minha conta com troca de senha; **Tenho um convite** na entrada |
+| Operação | `com.predioon.operations` | Resumo com indicação de cobertura; sensores e leituras; alertas e ações autorizadas; acompanhamento de solicitações; ordens de serviço com abertura, distribuição e execução; Minha conta |
+
+Os dois têm verificação em duas etapas na entrada e **Esqueci minha senha**.
 
 Os aplicativos consultam a API existente, sem dados demonstrativos embutidos. A seleção de condomínio usa `/buildings`; as telas consultam `/v1/authorization` e funcionalidades do condomínio. As permissões são revalidadas pelo servidor em cada chamada. O produto Morador não exibe telas operacionais nem solicitações de terceiros, mesmo quando uma mesma conta possui permissões de gestão. Contas sem os módulos necessários veem uma mensagem de acesso indisponível.
 
@@ -73,7 +75,7 @@ pnpm --filter @predioon/resident-mobile exec react-native config
 
 Os testes cobrem persistência apenas de refresh, restauração, rotação concorrente, falha temporária, logout, revogação, separação entre públicos, mudança de escopo, funcionalidades, reservas/HTTPS, publicação financeira, idempotência de comandos, respostas fora de ordem e invalidação de intenções ao sair. A geração de bundle Metro verifica resolução de módulos JavaScript; não substitui build nativo nem teste em aparelho.
 
-Ainda exigem implementação/validação: push FCM/APNs e instalações móveis; ordens de serviço e automações quando os módulos da API forem entregues; navegação por concessões restritas a recursos (este incremento solicita capacidades no escopo do condomínio); MFA e identificação da audiência na sessão; ícones finais (os do iOS são provisórios) e publicação nas lojas, incluindo o primeiro build EAS assinado; execução em aparelho e confirmação com controlador físico. As rotas legadas de convivência e acessos ainda dependem dos vínculos aceitos pela API: um novo papel de manutenção não recebe um vínculo legado implicitamente. Não ampliar privilégios no cliente para contornar uma resposta 403.
+Ainda exigem implementação/validação: automações no app (hoje só na web); navegação por concessões restritas a recursos (os apps solicitam capacidades no escopo do condomínio); identificação da audiência na sessão; ícones finais (os do iOS são provisórios) e publicação nas lojas, incluindo o primeiro build EAS assinado; execução em aparelho e confirmação com controlador físico. As rotas legadas de convivência e acessos ainda dependem dos vínculos aceitos pela API: um novo papel de manutenção não recebe um vínculo legado implicitamente. Não ampliar privilégios no cliente para contornar uma resposta 403. Notificação push (FCM/APNs) não será feita, por decisão do proprietário.
 
 Os projetos nativos vêm de `@react-native-community/template` **0.87.2**, com React Native **0.87.1**, React **19.2.3** e CLI **20.2.0**. A licença original está em `TEMPLATE-LICENSE` de cada app. Identificadores, Metro para o monorepo e assinatura Android de release foram adaptados. A chave pública de debug do template serve apenas ao desenvolvimento; a release não é assinada com ela. Defina chaves próprias e equipe Apple fora do Git antes da publicação.
 
