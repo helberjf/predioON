@@ -52,6 +52,10 @@ No administrador, **Operação dos imóveis** reúne consumo/análise, portões/
 
 Os painéis precisam do servidor Vite; não abra os arquivos `index.html` diretamente.
 
+Sem sessão, a página inicial dos três portais oferece **Login** e **Conheça a plataforma** no celular. No desktop, o formulário continua na entrada, com acesso à apresentação pública em `/conheca`. O conteúdo apresenta os recursos e a rotina do síndico com base no [material comercial](docs/marketing/APRESENTACAO_COMERCIAL.md); `/login` abre o formulário diretamente em qualquer tamanho de tela.
+
+Para subir a plataforma numa VPS, use os [Dockerfiles, Compose de produção e roteiro de instalação](docs/DEPLOY.md). A [verificação de 24/10](docs/VERIFICACAO_2026-10-24.md) registra os testes e as correções desta entrega.
+
 ## Stack e arquitetura
 
 - **API:** Node.js, Express 5 e TypeScript, com módulos por domínio.
