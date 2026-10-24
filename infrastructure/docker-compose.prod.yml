@@ -2,17 +2,24 @@
 #
 #   cp infrastructure/.env.prod.example infrastructure/.env.prod
 #   # edite as senhas e o domínio
-#   docker compose -f infrastructure/docker-compose.prod.yml --env-file infrastructure/.env.prod up -d --build
+#   bash infrastructure/setup-prod.sh
 #
 # Só o Caddy expõe porta para a internet (80/443), mais a 8883 do broker para os gateways.
 # Banco e API ficam apenas na rede interna do compose.
 
 name: predioon
 
+x-logging: &bounded-logs
+  driver: local
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   db:
-    image: timescale/timescaledb:latest-pg16
+    image: timescale/timescaledb:2.30.1-pg16
     restart: unless-stopped
+    logging: *bounded-logs
     environment:
       POSTGRES_DB: predioon
       POSTGRES_USER: predioon
@@ -30,8 +37,12 @@ services:
   emqx:
     image: emqx/emqx:6.3.1
     restart: unless-stopped
+    logging: *bounded-logs
+    depends_on:
+      api:
+        condition: service_healthy
     ports:
-      - "8883:8883"
+      - "${MQTT_BIND_ADDRESS:-0.0.0.0}:${MQTT_TLS_PORT:-8883}:8883"
     environment:
       EMQX_NAME: predioon
       # Sem isto a sessão da ingestão vive só na memória do broker: reiniciar o EMQX perde as
@@ -67,16 +78,21 @@ services:
       start_period: 30s
 
   api:
-    build:
+    build: &api-build
       context: ..
       dockerfile: infrastructure/Dockerfile.node
       args:
         SERVICE: api
     restart: unless-stopped
+    logging: *bounded-logs
+    working_dir: /app/apps/api
+    init: true
+    security_opt:
+      - no-new-privileges:true
     depends_on:
       db:
         condition: service_healthy
-    environment:
+    environment: &api-environment
       API_PORT: 3000
       NODE_ENV: production
       DATABASE_URL_APP: postgres://predioon_app:${APP_DB_PASSWORD:?defina APP_DB_PASSWORD}@db:5432/predioon
@@ -109,8 +125,11 @@ services:
       retries: 3
       start_period: 20s
     networks:
-      - default
-      - edge_proxy
+      default:
+      edge_proxy:
+        # Reserve both peers: otherwise Docker may dynamically assign Caddy's
+        # .2 address to the API before the web service starts.
+        ipv4_address: ${API_PROXY_IPV4_ADDRESS:-172.30.250.3}
 
   ingest:
     build:
@@ -119,9 +138,15 @@ services:
       args:
         SERVICE: ingest
     restart: unless-stopped
+    logging: *bounded-logs
+    init: true
+    security_opt:
+      - no-new-privileges:true
     stop_grace_period: 30s
     depends_on:
       db:
+        condition: service_healthy
+      emqx:
         condition: service_healthy
     environment:
       # Only this workload's two restricted logins; never the owner or another service's.
@@ -150,6 +175,10 @@ services:
       args:
         SERVICE: notifications
     restart: unless-stopped
+    logging: *bounded-logs
+    init: true
+    security_opt:
+      - no-new-privileges:true
     stop_grace_period: 30s
     working_dir: /app/services/notifications
     depends_on:
@@ -174,11 +203,13 @@ services:
         VITE_API_URL: https://api.${DOMAIN}
         VITE_RESIDENT_URL: https://morador.${DOMAIN}
     restart: unless-stopped
+    logging: *bounded-logs
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     ports:
-      - "80:80"
-      - "443:443"
+      - "${WEB_BIND_ADDRESS:-0.0.0.0}:${HTTP_PORT:-80}:80"
+      - "${WEB_BIND_ADDRESS:-0.0.0.0}:${HTTPS_PORT:-443}:443"
     environment:
       DOMAIN: ${DOMAIN:?defina DOMAIN}
       ACME_EMAIL: ${ACME_EMAIL:?defina ACME_EMAIL}
@@ -194,6 +225,28 @@ services:
     networks:
       edge_proxy:
         ipv4_address: ${PROXY_IPV4_ADDRESS:-172.30.250.2}
+
+  # Explicitly invoked only by setup-prod.sh/administrative commands. Never
+  # included in ordinary `up`; owner credentials never reach runtime services.
+  db-admin:
+    profiles: [maintenance]
+    build: *api-build
+    restart: "no"
+    working_dir: /app/packages/db
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      <<: *api-environment
+      DATABASE_URL: postgres://predioon:${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD}@db:5432/predioon
+      DATABASE_URL_APP: postgres://predioon_app:${APP_DB_PASSWORD:?defina APP_DB_PASSWORD}@db:5432/predioon
+      DATABASE_URL_IDENTITY: postgres://predioon_identity:${IDENTITY_DB_PASSWORD:?defina IDENTITY_DB_PASSWORD}@db:5432/predioon
+      DATABASE_URL_BROKER_AUTH: postgres://predioon_broker_auth:${BROKER_AUTH_DB_PASSWORD:?defina BROKER_AUTH_DB_PASSWORD}@db:5432/predioon
+      DATABASE_URL_NOTIFICATIONS: postgres://predioon_notifications:${NOTIFICATIONS_DB_PASSWORD:?defina NOTIFICATIONS_DB_PASSWORD}@db:5432/predioon
+      DATABASE_URL_INGEST: postgres://predioon_ingest:${INGEST_DB_PASSWORD:?defina INGEST_DB_PASSWORD}@db:5432/predioon
+      DATABASE_URL_ACCESS_SERVICE: postgres://predioon_access_service:${ACCESS_SERVICE_DB_PASSWORD:?defina ACCESS_SERVICE_DB_PASSWORD}@db:5432/predioon
+      SEED_PASSWORD: ${SEED_PASSWORD:-}
+    command: [pnpm, --filter, "@predioon/db", "db:infra", --check]
 
 networks:
   default:
