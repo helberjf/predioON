@@ -5,7 +5,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { DoorOpen, LockKeyhole, Settings2 } from "lucide-react";
+import { DoorOpen, LockKeyhole, QrCode, Settings2 } from "lucide-react";
 import type {
   AccessCommandView,
   AccessGateView,
@@ -31,6 +31,7 @@ import {
   PageHeading,
 } from "./primitives.js";
 import { Field, Input, Select } from "./fields.js";
+import { GateTotemSection } from "./gate-totem.js";
 
 const labels: Record<AccessCommandView["status"], string> = {
   PENDING: "Aguardando envio",
@@ -218,6 +219,8 @@ function AccessWorkspace({
             intent && !intent.pending && !intent.command,
           );
           const busy = Boolean(intent?.pending || waiting(command));
+          // Managers keep the list button; the database refuses others anyway.
+          const qrOnly = gate.requireQr && !gate.canManage;
           return (
             <Card
               key={gate.id}
@@ -273,22 +276,36 @@ function AccessWorkspace({
                     permissão atual de histórico.
                   </p>
                 )}
+                {qrOnly && (
+                  <p className="flex items-center gap-2 rounded-lg bg-sky-50 p-3 text-sm text-sky-900">
+                    <QrCode size={18} className="shrink-0" />
+                    Este portão abre pelo QR do totem, no app do morador.
+                  </p>
+                )}
+                {gate.canManage && gate.qr && (
+                  <GateTotemSection
+                    gate={{ ...gate, qr: gate.qr }}
+                    onChanged={resource.reload}
+                  />
+                )}
                 <div className="flex flex-wrap gap-2">
-                  <Button
-                    onClick={() =>
-                      setConfirmation({ gate, generation: guard.capture() })
-                    }
-                    disabled={!gate.available || resource.loading || busy}
-                  >
-                    <DoorOpen size={16} />
-                    {busy
-                      ? "Aguardando confirmação…"
-                      : uncertain
-                        ? "Reenviar mesma solicitação"
-                        : gate.kind === "GARAGE"
-                          ? "Abrir garagem"
-                          : "Abrir entrada"}
-                  </Button>
+                  {!qrOnly && (
+                    <Button
+                      onClick={() =>
+                        setConfirmation({ gate, generation: guard.capture() })
+                      }
+                      disabled={!gate.available || resource.loading || busy}
+                    >
+                      <DoorOpen size={16} />
+                      {busy
+                        ? "Aguardando confirmação…"
+                        : uncertain
+                          ? "Reenviar mesma solicitação"
+                          : gate.kind === "GARAGE"
+                            ? "Abrir garagem"
+                            : "Abrir entrada"}
+                    </Button>
+                  )}
                   {gate.canManage && (
                     <Button
                       variant="secondary"
@@ -417,6 +434,10 @@ function GateEditor({
   const [allowResidents, setAllowResidents] = useState(
     gate?.allowResidents ?? false,
   );
+  const [requireQr, setRequireQr] = useState(gate?.requireQr ?? false);
+  // Outside the add-on the stored requirement is not shown, so it is never sent either.
+  const qrAvailable =
+    flags.enabled("GATE_QR_ACCESS") && flags.enabled(ACCESS_FEATURES[kind]!);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
@@ -473,6 +494,7 @@ function GateEditor({
         deviceId,
         enabled,
         allowResidents,
+        ...(qrAvailable ? { requireQr } : {}),
       };
       mutationStarted.current = true;
       if (gate) await api.patch(`/access/${gate.id}`, input);
@@ -601,6 +623,24 @@ function GateEditor({
           />
           Permitir abertura por pessoas com autorização de uso deste acesso
         </label>
+        {qrAvailable && (
+          <div className="space-y-1">
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={requireQr}
+                onChange={(event) => setRequireQr(event.target.checked)}
+              />
+              Exigir QR do totem para moradores (abrir só no local)
+            </label>
+            {requireQr && !gate?.qr?.totems.length && (
+              <p className="pl-6 text-xs text-amber-700">
+                Este portão ainda não tem tablet pareado. Sem ele, moradores não
+                conseguem abrir; síndico e administração continuam abrindo pela lista.
+              </p>
+            )}
+          </div>
+        )}
         <div className="flex gap-2">
           <Button
             type="submit"

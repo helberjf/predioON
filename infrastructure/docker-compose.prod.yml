@@ -90,6 +90,8 @@ services:
       AUTH_RATE_LIMIT_KEY: ${AUTH_RATE_LIMIT_KEY:?defina AUTH_RATE_LIMIT_KEY}
       # Opcional: sem ela a verificação em duas etapas fica indisponível para novas ativações.
       MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY:-}
+      # Opcional: sem ela a abertura pelo QR do totem fica indisponível.
+      GATE_QR_SECRET: ${GATE_QR_SECRET:-}
       # Opcionais: sem a chave do Resend nenhum e-mail é enviado.
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-}

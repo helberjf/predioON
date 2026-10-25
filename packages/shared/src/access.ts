@@ -1,4 +1,7 @@
 import { z } from "zod";
+import { parseGateQr } from "./gate-qr.js";
+
+export * from "./gate-qr.js";
 
 export const ACCESS_COMMAND_TTL_MS = 15_000;
 export const ACCESS_LIVE_MAX_AGE_MS = 60_000;
@@ -13,13 +16,22 @@ export const GateConfigSchema = z.object({
   deviceId: TopicId,
   enabled: z.boolean().default(false),
   allowResidents: z.boolean().default(false),
+  requireQr: z.boolean().default(false),
 }).strict();
 // Zod defaults inside partial() still materialize omitted booleans. A PATCH
 // must not disable a gate or change its resident policy when only naming it.
 export const GatePatchSchema = GateConfigSchema.omit({ buildingId: true }).extend({
-  enabled: z.boolean(), allowResidents: z.boolean(),
+  enabled: z.boolean(), allowResidents: z.boolean(), requireQr: z.boolean(),
 }).partial();
 export const OpenGateSchema = z.object({ requestId: z.string().uuid() }).strict();
+
+const GateQrContentSchema = z.string().max(128).refine(value => parseGateQr(value) !== null);
+export const ResolveGateQrSchema = z.object({ content: GateQrContentSchema }).strict();
+export const OpenGateByQrSchema = z.object({ content: GateQrContentSchema, requestId: z.string().uuid() }).strict();
+export const TotemPairSchema = z.object({
+  pairingCode: z.string().trim().min(10).max(16),
+  label: z.string().trim().min(2).max(60),
+}).strict();
 export const AccessAckSchema = z.object({
   commandId: z.string().uuid(), buildingId: TopicId, gatewayId: TopicId,
   gateId: TopicId, deviceId: TopicId, result: z.enum(["EXECUTED", "REJECTED"]),
@@ -54,5 +66,13 @@ export function validAccessAck(command: CommandIdentity, ack: AccessAck, now = n
     command.buildingId === ack.buildingId && command.gatewayId === ack.gatewayId && command.gateId === ack.gateId && command.deviceId === ack.deviceId;
 }
 export type AccessCommandView = { id: string; requestId: string; gateId: string; status: AccessCommandStatus; expiresAt: string; createdAt: string; failureReason: string | null };
-export type AccessGateView = { id: string; buildingId: string; name: string; kind: "GARAGE" | "PEDESTRIAN"; gatewayId: string; deviceId: string; enabled: boolean; allowResidents: boolean; canManage?: boolean; available: boolean; unavailableReason: string | null; latestCommand: AccessCommandView | null };
+export type GateTotemView = { id: string; label: string; pairedAt: string; lastSeenAt: string | null };
+export type AccessGateView = { id: string; buildingId: string; name: string; kind: "GARAGE" | "PEDESTRIAN"; gatewayId: string; deviceId: string; enabled: boolean; allowResidents: boolean; requireQr: boolean; canManage?: boolean; available: boolean; unavailableReason: string | null; latestCommand: AccessCommandView | null;
+  /** Managers only, and only while the QR add-on is enabled for this gate. */
+  qr?: { totems: GateTotemView[] } };
+export type TotemPairingView = { pairingCode: string; expiresAt: string };
+export type TotemDisplay = {
+  gate: { id: string; name: string; kind: "GARAGE" | "PEDESTRIAN" }; building: { name: string };
+  current: { content: string; validUntil: string }; next: { content: string; validFrom: string }; serverTime: string;
+};
 export type AccessList = { items: AccessGateView[]; canManage: boolean; gateways: Array<{ id: string; name: string }>; devices: Array<{ id: string; name: string; gatewayId: string | null; type: string }> };

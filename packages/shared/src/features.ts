@@ -1,10 +1,11 @@
 import { z } from "zod";
 
-export const FEATURE_KEYS = ["WATER_TANK", "WATER_CONSUMPTION", "ENERGY_CONSUMPTION", "ELECTRICAL", "PUMP", "WATER_LEAK", "SEWAGE_LEAK", "SMOKE", "TEMPERATURE", "GAS", "AI_ANALYSIS", "GARAGE_ACCESS", "PEDESTRIAN_ACCESS", "CAR_PARKING", "MOTORCYCLE_PARKING", "NOTICES", "RESERVATIONS", "TICKETS", "TICKET_GROUPING", "TICKET_PRIORITY", "TRANSPARENCY", "FINANCE", "REMOTE_SUPPORT"] as const;
+export const FEATURE_KEYS = ["WATER_TANK", "WATER_CONSUMPTION", "ENERGY_CONSUMPTION", "ELECTRICAL", "PUMP", "WATER_LEAK", "SEWAGE_LEAK", "SMOKE", "TEMPERATURE", "GAS", "AI_ANALYSIS", "GARAGE_ACCESS", "PEDESTRIAN_ACCESS", "GATE_QR_ACCESS", "CAR_PARKING", "MOTORCYCLE_PARKING", "NOTICES", "RESERVATIONS", "TICKETS", "TICKET_GROUPING", "TICKET_PRIORITY", "TRANSPARENCY", "FINANCE", "REMOTE_SUPPORT"] as const;
 export type FeatureKey = typeof FEATURE_KEYS[number];
 export const FeatureKeySchema = z.enum(FEATURE_KEYS);
 export const FeatureUpdateSchema = z.object({ enabled: z.boolean().nullable(), version: z.number().int().nonnegative(), reason: z.string().trim().min(3).max(1000) }).strict();
-export type FeatureDefinition = { key: FeatureKey; label: string; group: string; dependencies: FeatureKey[] };
+/** An opt-in feature is an add-on: a condominium without its own setting does not have it. */
+export type FeatureDefinition = { key: FeatureKey; label: string; group: string; dependencies: FeatureKey[]; optIn?: true };
 export const FEATURE_CATALOG: FeatureDefinition[] = [
   ...([
     ["WATER_TANK", "Caixa d’água"], ["WATER_CONSUMPTION", "Consumo de água"], ["ENERGY_CONSUMPTION", "Consumo de energia"],
@@ -14,6 +15,8 @@ export const FEATURE_CATALOG: FeatureDefinition[] = [
   ...([
     ["GARAGE_ACCESS", "Portão da garagem"], ["PEDESTRIAN_ACCESS", "Portão de pedestres"], ["CAR_PARKING", "Vagas de carros"], ["MOTORCYCLE_PARKING", "Vagas de motos"],
   ] as const).map(([key, label]) => ({ key, label, group: "Acessos e vagas", dependencies: [] })),
+  // Effective per gate only while that gate's own kind (garage/pedestrian) is enabled too.
+  { key: "GATE_QR_ACCESS", label: "Abertura por QR no totem", group: "Acessos e vagas", dependencies: [], optIn: true },
   ...([
     ["NOTICES", "Avisos"], ["RESERVATIONS", "Reservas de áreas comuns"], ["TICKETS", "Chamados"],
   ] as const).map(([key, label]) => ({ key, label, group: "Rotina", dependencies: [] })),
@@ -31,13 +34,18 @@ export type FeatureState = {
 };
 export type FeatureStates = Record<FeatureKey, FeatureState>;
 
-/** Global disable is a ceiling. Local intent survives global changes. Catalog order is topological. */
-export function resolveFeatures(global: FeatureSetting[], local: FeatureSetting[]): FeatureStates {
+/**
+ * Global disable is a ceiling. Local intent survives global changes. Catalog order is topological.
+ * An opt-in add-on is off in a condominium until it is explicitly enabled there; the global
+ * scope describes only the ceiling, so it does not apply that default.
+ */
+export function resolveFeatures(global: FeatureSetting[], local: FeatureSetting[], scope: "building" | "global" = "building"): FeatureStates {
   const result = {} as FeatureStates;
   for (const definition of FEATURE_CATALOG) {
     const g = global.find(row => row.key === definition.key), b = local.find(row => row.key === definition.key);
     const globalEnabled = g?.enabled ?? true, localEnabled = b?.enabled ?? null;
     const blockedBy = !globalEnabled ? "GLOBAL" : localEnabled === false ? "BUILDING"
+      : definition.optIn && scope === "building" && localEnabled !== true ? "OPT_IN"
       : definition.dependencies.find(key => !result[key].enabled) ?? null;
     result[definition.key] = { key: definition.key, enabled: blockedBy === null, globalEnabled, localEnabled,
       blockedBy, version: b?.version ?? 0, globalVersion: g?.version ?? 0, resumedAt: null };

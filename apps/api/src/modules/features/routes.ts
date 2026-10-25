@@ -20,7 +20,7 @@ async function assertBuilding(tx: AppTransaction, buildingId: string): Promise<v
   if (!building) throw notFound("Condomínio não encontrado");
 }
 async function globalView(tx: AppTransaction) {
-  const states = resolveFeatures(await tx.select().from(globalFeatureSettings), []);
+  const states = resolveFeatures(await tx.select().from(globalFeatureSettings), [], "global");
   return { items: Object.values(states).map(state => ({ ...state, version: state.globalVersion })) };
 }
 function featureParam(req: Request): FeatureKey {

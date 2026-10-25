@@ -25,6 +25,10 @@ export function assertAccessFeature(states: FeatureStates, kind: string): void {
   const feature = gateFeature(kind);
   if (!states[feature].enabled) throw featureDisabled(feature);
 }
+/** The add-on and the gate's own kind, as app_gate_qr_enabled decides it in the database. */
+export function gateQrEnabled(states: FeatureStates, kind: string): boolean {
+  return states.GATE_QR_ACCESS.enabled && states[gateFeature(kind)].enabled;
+}
 export async function accessPermissions(
   tx: AppTransaction,
   gate: Pick<AccessSubject, "id" | "buildingId">,

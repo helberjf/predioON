@@ -24,6 +24,46 @@ Síndicos e administradores configuram acessos. Moradores consultam e solicitam 
 
 `kind` aceita `GARAGE` e `PEDESTRIAN`. Repetir o mesmo `requestId` devolve o pedido original sem reenviar. Reutilizá-lo para outro acesso resulta em conflito. Solicitações concorrentes são serializadas por usuário e acesso. Existe intervalo mínimo de cinco segundos por portão, compartilhado por todos os usuários, e outro pedido não é aceito enquanto houver confirmação pendente dentro do prazo.
 
+## Abertura pelo QR do totem (059)
+
+Adicional por condomínio (`GATE_QR_ACCESS`). Um tablet fixado no portão mostra um QR que muda a cada hora cheia; o morador lê o QR **no app do morador**, o app confere no servidor e só então mostra o portão com o botão **Abrir**. O QR não é credencial: a abertura passa pela mesma função de admissão do botão da lista (`app_request_access_admit`), com a mesma sessão, permissões, conferência de equipamento, intervalo de 5 s e espera pela confirmação.
+
+**Quem faz o quê**
+
+| Quem | Onde | O quê |
+|---|---|---|
+| Administrador da plataforma | admin-web › Funcionalidades › condomínio | Libera o adicional. Sem linha própria do condomínio ele fica **desligado** (`optIn`), ao contrário das outras funcionalidades |
+| Síndico (`gates:manage`) | building-web › Portões e acessos | Pareia o tablet, renova o código, despareia e marca **Exigir QR do totem para moradores** |
+| Tablet | `https://<building-web>/totem` | Recebe o código de pareamento uma vez e passa a mostrar o QR |
+| Morador | app do morador › Acessos › **Ler QR do portão** | Lê, confere e abre |
+
+**Exigir QR.** Marcado, o morador não abre mais pela lista: a admissão recusa com `PQ403` → 403 `QR_REQUIRED` ("Este portão abre pelo QR do totem, no app do morador"). Síndico e administração continuam abrindo pela lista. A exigência só vale enquanto o adicional e a funcionalidade do tipo do portão estiverem ligados; desligado o adicional, a lista volta a valer sem apagar a marcação. A exigência fica só na admissão, não em `app_access_request_permitted_at`, para que a revalidação do dispatcher seja igual nos dois caminhos.
+
+**O código da hora.** O conteúdo é `predioon-portao:v1:<gateId>.<hora>.<mac>`, sem URL, para que a câmera do celular mostre texto em vez de abrir uma página. O `mac` são 16 bytes de HMAC-SHA256 com uma chave por portão derivada (HKDF) de `GATE_QR_SECRET` e da geração do portão. Vale a hora atual e a anterior nos primeiros 5 minutos da hora nova; uma hora futura nunca vale. O HMAC é calculado na API, que guarda a chave, porque o banco não tem `pgcrypto`; o banco guarda só `gates.qr_generation` e a confere sob o bloqueio do portão, então uma renovação não corre contra uma abertura. **Renovar código agora** incrementa a geração e invalida na hora o QR de todos os tablets do portão, inclusive fotos dele.
+
+**Pareamento.** O síndico gera um código de 10 caracteres (50 bits), válido por 10 minutos e de uso único; só o SHA-256 dele é guardado. O tablet troca o código por um token de 32 bytes, também guardado só como hash, que só permite desenhar o QR daquele portão. O pareamento passa pelo mesmo limite de tentativas do login e confere de novo que quem gerou o código ainda gerencia o portão. O tablet não abre sessão de usuário: `/totem` roda fora do `AuthProvider`. Nem token, nem código de pareamento, nem conteúdo do QR vão para a auditoria.
+
+| Método | Caminho | Uso |
+|---|---|---|
+| POST | `/access/qr/resolve` | `{ content }`: confere o QR e devolve o portão como na lista. QR inválido, de outra hora, renovado ou de portão oculto recebe o mesmo 404 |
+| POST | `/access/qr/open` | `{ content, requestId }`: mesma idempotência e respostas 202/200/429 do `/open` |
+| POST | `/access/:gateId/qr/renew` | Renova o código. Exige confirmação recente de senha |
+| POST | `/access/:gateId/totems/pairing` | Gera o código de pareamento. Exige confirmação recente de senha |
+| DELETE | `/access/:gateId/totems/:totemId` | Despareia o tablet; continua possível com o adicional desligado |
+| POST | `/totem/pair` | Público: `{ pairingCode, label }` → `{ token }` uma única vez |
+| GET | `/totem/display` | Público, `Authorization: Totem <token>`: QR atual, o da próxima hora e a hora do servidor |
+
+Auditoria: `ACCESS_TOTEM_PAIRING_CREATED`, `ACCESS_TOTEM_PAIRED`, `ACCESS_TOTEM_REVOKED`, `ACCESS_QR_RENEWED` e `via: "LIST" | "QR"` em `ACCESS_OPEN_REQUESTED`. Só as funções `SECURITY DEFINER` gravam essas ações.
+
+**Montagem do tablet.** Qualquer tablet ou monitor com navegador, em modo quiosque, ligado na tomada e no Wi-Fi do condomínio, abrindo `/totem` do portal de gestão. A página pede para manter a tela acesa (Wake Lock), troca de QR na virada da hora pelo relógio do servidor e já recebe o QR da hora seguinte, então aguenta oscilação de rede. Se ficar mais de uma hora sem conexão, mostra "Totem sem conexão". O síndico vê o último contato de cada tablet; acima de 3 minutos sem contato aparece em amarelo.
+
+**Limites, sem rodeios**
+
+- Uma foto do QR abre até o fim da hora, mais 5 minutos. A resposta é **Renovar código agora**. A versão forte contra fotos é o NFC com SUN (NTAG 424 DNA), que é outro plano.
+- O servidor não consegue provar que a chamada veio do app, e não de um script com a sessão do morador. Isso exigiria atestação (Play Integrity ou App Attest), fora deste módulo.
+- A verificação criptográfica do QR fica na API. Uma API comprometida poderia dispensá-la, mas continuaria barrada por sessão, permissões, adicional e equipamento no banco.
+- Sem `GATE_QR_SECRET`, em produção, as rotas de QR e do tablet respondem 503 e o resto funciona. Trocar a chave invalida os QR da hora; os tablets mostram o novo em até um minuto.
+
 ## Contrato MQTT
 
 Comando: `predio/{buildingId}/gateway/{gatewayId}/access/{gateId}/command`
@@ -97,10 +137,10 @@ O simulador publica sinais de presença e responde `EXECUTED` apenas a um comand
 ## Testes
 
 ```powershell
-pnpm --filter @predioon/api exec node --import tsx --test test/access-policy.test.ts
+pnpm --filter @predioon/api exec node --import tsx --test test/access-policy.test.ts test/access-qr-code.test.ts
 pnpm --filter @predioon/ingest exec node --import tsx --test test/access-dispatch.test.ts test/access-simulator.test.ts
 $env:RUN_ACCESS_DB_TESTS = "1"
-pnpm --filter @predioon/api exec node --import tsx --test test/access.integration.test.ts test/access-mqtt.integration.test.ts
+pnpm --filter @predioon/api exec node --import tsx --test test/access.integration.test.ts test/access-mqtt.integration.test.ts test/access-qr.test.ts
 pnpm --filter @predioon/ingest exec node --import tsx --test test/access.integration.test.ts
 ```
 

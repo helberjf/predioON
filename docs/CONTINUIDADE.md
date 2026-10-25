@@ -2,7 +2,7 @@
 
 Atualizado em **23/10/2026**, horário de São Paulo. Leia este arquivo primeiro ao retomar, em qualquer computador. O histórico completo de cada sessão até esta data, com todos os números e decisões, está em [continuidade/historico-ate-2026-10-17.md](continuidade/historico-ate-2026-10-17.md).
 
-**Situação:** o produto está implementado e verificado localmente, **sem implantação e sem aceite de produção**. Base: **main `949fc2f`**, migrations **001–058**. Planos/assinaturas ficaram por último, por decisão do proprietário, e não foram feitos.
+**Situação:** o produto está implementado e verificado localmente, **sem implantação e sem aceite de produção**. Base: **main `949fc2f`**, migrations **001–059** (a 059, abertura pelo QR do totem, está na branch `claude/qrcode-portao-feature-f6caeb`). Planos/assinaturas ficaram por último, por decisão do proprietário, e não foram feitos.
 
 ## 1. Instruções permanentes do proprietário
 
@@ -20,9 +20,9 @@ Atualizado em **23/10/2026**, horário de São Paulo. Leia este arquivo primeiro
 | Parte | O que faz | Referência |
 | --- | --- | --- |
 | Portal da administração | Carteira de condomínios e clientes, gateways e equipamentos, funcionalidades, usuários, acesso de suporte, auditoria, **saúde dos serviços** (058) | [FUNCIONALIDADES.md](FUNCIONALIDADES.md) |
-| Portal do síndico | Água, energia, sensores, alertas, ocorrências, avisos, áreas e reservas, portões e vagas (desligados por padrão), transparência, ordens de serviço, ativos, **automações por alerta e programadas** (045/057), unidades/equipes/permissões, convites, acesso de suporte | [GESTAO_TRANSPARENTE.md](GESTAO_TRANSPARENTE.md), [ORDENS_DE_SERVICO.md](ORDENS_DE_SERVICO.md), [ATIVOS.md](ATIVOS.md), [AUTOMACOES.md](AUTOMACOES.md) |
+| Portal do síndico | Água, energia, sensores, alertas, ocorrências, avisos, áreas e reservas, portões e vagas (desligados por padrão), **totem do QR do portão** (adicional, 059), transparência, ordens de serviço, ativos, **automações por alerta e programadas** (045/057), unidades/equipes/permissões, convites, acesso de suporte | [GESTAO_TRANSPARENTE.md](GESTAO_TRANSPARENTE.md), [ORDENS_DE_SERVICO.md](ORDENS_DE_SERVICO.md), [ATIVOS.md](ATIVOS.md), [AUTOMACOES.md](AUTOMACOES.md) |
 | Portal do morador | Avisos, ocorrências, reservas, transparência, acessos e vagas, consumo liberado pelo síndico, perfil e sessões, convite | [CONSUMO_E_ANALISE.md](CONSUMO_E_ANALISE.md) |
-| App Morador (React Native) | Avisos, solicitações, reservas, transparência, acessos, consumo, troca e recuperação de senha, MFA na entrada, **aceite de convite** | [packages/mobile/README.md](../packages/mobile/README.md) |
+| App Morador (React Native) | Avisos, solicitações, reservas, transparência, acessos com **leitura do QR do totem** (059), consumo, troca e recuperação de senha, MFA na entrada, **aceite de convite** | [packages/mobile/README.md](../packages/mobile/README.md) |
 | App Operação (React Native) | Resumo, alertas, sensores, ordens de serviço com distribuição | idem |
 | API (Express) | Autenticação com cookies/CSRF na web, MFA, recuperação por e-mail (Resend), **confirmação recente para ações privilegiadas** (055), RBAC por capacidade com RLS em todo o banco | [AUTENTICACAO.md](AUTENTICACAO.md), [AUTORIZACAO.md](AUTORIZACAO.md) |
 | Ingestão (MQTT/EMQX) | Telemetria, estados de gateway, comandos físicos com ACK, só com logins restritos (052); heartbeat de saúde (058) | [SENSORES.md](SENSORES.md), [ACESSOS.md](ACESSOS.md) |
@@ -92,6 +92,8 @@ A sequência do job de plataforma, as flags das suítes SQL038/SQL052 e os clust
 **Vídeos de demonstração:** `node scripts/record-portal-videos.mjs <pasta>` (portais, com servidores do Playwright via `pnpm exec playwright test -c playwright.videos.config.ts`) e `python scripts/record-app-video.py resident|operations <arquivo.mp4>` (emulador, salva também o logcat para conferir avisos Fabric).
 
 ## 6. O que falta
+
+**Depois (24–25/10), branch `claude/qrcode-portao-feature-f6caeb`:** abertura pelo QR do totem (059). O tablet no portão mostra um QR que muda a cada hora; o morador lê pelo app, que confere no servidor antes de mostrar **Abrir**. É um adicional liberado por condomínio pela plataforma, e o síndico pode exigir o QR por portão ([ACESSOS](ACESSOS.md#abertura-pelo-qr-do-totem-059)). Rodadas por pacote no banco descartável 5446: API 135/135 nos módulos tocados, banco 275/297 (22 skips de laboratório) e migrações/notificações 61/61, ingestão 35/35, mobile 231/231, UI 108/108, api-client 118/118, Playwright Chromium 59/59 (acessos, QR, funcionalidades e smoke). **Pendentes:** leitura pela câmera num celular real, build Android com a `react-native-camera-kit` e build iOS.
 
 **Depende do proprietário:**
 

@@ -139,6 +139,9 @@ importers:
       lucide-react:
         specifier: ^0.468.0
         version: 0.468.0(react@19.3.0)
+      qrcode-generator:
+        specifier: ^2.0.4
+        version: 2.0.4
       react:
         specifier: ^19.0.0
         version: 19.3.0
@@ -246,6 +249,9 @@ importers:
       react-native:
         specifier: 0.87.1
         version: 0.87.1(@babel/core@7.29.7)(@react-native-community/cli@20.2.0(typescript@5.9.3))(@react-native/metro-config@0.87.1(@babel/core@7.29.7))(@types/react@19.3.0)(react@19.2.3)
+      react-native-camera-kit:
+        specifier: 18.0.1
+        version: 18.0.1(react-native@0.87.1(@babel/core@7.29.7)(@react-native-community/cli@20.2.0(typescript@5.9.3))(@react-native/metro-config@0.87.1(@babel/core@7.29.7))(@types/react@19.3.0)(react@19.2.3))(react@19.2.3)
       react-native-get-random-values:
         specifier: 2.0.0
         version: 2.0.0(react-native@0.87.1(@babel/core@7.29.7)(@react-native-community/cli@20.2.0(typescript@5.9.3))(@react-native/metro-config@0.87.1(@babel/core@7.29.7))(@types/react@19.3.0)(react@19.2.3))
@@ -413,6 +419,9 @@ importers:
       react-native:
         specifier: 0.87.1
         version: 0.87.1(@babel/core@7.29.7)(@react-native-community/cli@20.2.0(typescript@5.9.3))(@react-native/metro-config@0.87.1(@babel/core@7.29.7))(@types/react@19.3.0)(react@19.2.3)
+      react-native-camera-kit:
+        specifier: 18.0.1
+        version: 18.0.1(react-native@0.87.1(@babel/core@7.29.7)(@react-native-community/cli@20.2.0(typescript@5.9.3))(@react-native/metro-config@0.87.1(@babel/core@7.29.7))(@types/react@19.3.0)(react@19.2.3))(react@19.2.3)
       react-native-get-random-values:
         specifier: 2.0.0
         version: 2.0.0(react-native@0.87.1(@babel/core@7.29.7)(@react-native-community/cli@20.2.0(typescript@5.9.3))(@react-native/metro-config@0.87.1(@babel/core@7.29.7))(@types/react@19.3.0)(react@19.2.3))
@@ -3256,6 +3265,9 @@ packages:
     resolution: {integrity: sha512-O+Wd1chXj5YE1DwmD+ae0bXiSLehmnS3czlC1R9FL/Nt/3q8uMS1bIHmg2lJfCoiimCxClWM8AAuJrF0EvNiog==}
     engines: {node: '>= 16'}
 
+  qrcode-generator@2.0.4:
+    resolution: {integrity: sha512-mZSiP6RnbHl4xL2Ap5HfkjLnmxfKcPWpWe/c+5XxCuetEenqmNFf1FH/ftXPCtFG5/TDobjsjz6sSNL0Sr8Z9g==}
+
   qs@6.16.0:
     resolution: {integrity: sha512-h6fhOIaRrID2CbEY2fqs+7t+UXZo+MLAnU5gRIq85uFtdiUPCdsApMlHhXogKVM4HM2DVbIjGNTTYH2OcmP1vA==}
     engines: {node: '>=0.6'}
@@ -3291,6 +3303,13 @@ packages:
 
   react-is@19.3.0:
     resolution: {integrity: sha512-UpMYezM4v5/18F28aC66AEsjXIgE02kyEMH6yLdgLXu/UTfa1Ntwck/nNLrbqJsEXW7gPb0coNO9FQse9WTovA==}
+
+  react-native-camera-kit@18.0.1:
+    resolution: {integrity: sha512-iI/4z4ZCrQTbcQVUkiKYiYvW4jru7JZ5T9/x7C8J1DXg3tXEBmf8ULnw2IGHCUpTPJnMlFJ9YE2hClu5YJ1FQw==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      react: '*'
+      react-native: '*'
 
   react-native-get-random-values@2.0.0:
     resolution: {integrity: sha512-wx7/aPqsUIiWsG35D+MsUJd8ij96e3JKddklSdrdZUrheTx89gPtz3Q2yl9knBArj5u26Cl23T88ai+Q0vypdQ==}
@@ -6694,6 +6713,8 @@ snapshots:
 
   qlobber@8.0.1: {}
 
+  qrcode-generator@2.0.4: {}
+
   qs@6.16.0:
     dependencies:
       es-define-property: 1.0.1
@@ -6730,6 +6751,11 @@ snapshots:
   react-is@18.3.1: {}
 
   react-is@19.3.0: {}
+
+  react-native-camera-kit@18.0.1(react-native@0.87.1(@babel/core@7.29.7)(@react-native-community/cli@20.2.0(typescript@5.9.3))(@react-native/metro-config@0.87.1(@babel/core@7.29.7))(@types/react@19.3.0)(react@19.2.3))(react@19.2.3):
+    dependencies:
+      react: 19.2.3
+      react-native: 0.87.1(@babel/core@7.29.7)(@react-native-community/cli@20.2.0(typescript@5.9.3))(@react-native/metro-config@0.87.1(@babel/core@7.29.7))(@types/react@19.3.0)(react@19.2.3)
 
   react-native-get-random-values@2.0.0(react-native@0.87.1(@babel/core@7.29.7)(@react-native-community/cli@20.2.0(typescript@5.9.3))(@react-native/metro-config@0.87.1(@babel/core@7.29.7))(@types/react@19.3.0)(react@19.2.3)):
     dependencies:

@@ -23,6 +23,7 @@ import { eventsRouter } from "./modules/events/routes.js";
 import { mqttRouter } from "./modules/mqtt/routes.js";
 import { monitoringRouter } from "./modules/monitoring/routes.js";
 import { accessRouter } from "./modules/access/routes.js";
+import { totemRouter } from "./modules/access/totem-routes.js";
 import { parkingRouter } from "./modules/parking/routes.js";
 import { supportRouter } from "./modules/support/routes.js";
 import { supportAccessRouter } from "./modules/support-access/routes.js";
@@ -38,13 +39,15 @@ export const app = express();
 app.set("trust proxy", config.trustedProxyCidrs.length ? config.trustedProxyCidrs : false);
 
 app.use(cors({ origin: config.corsOrigins, credentials: true }));
-app.use(["/auth/login", "/auth/web/login", "/auth/password", "/auth/web/password", "/auth/invitations", "/auth/mfa", "/auth/verify"], express.json({ limit: "8kb" }));
+app.use(["/auth/login", "/auth/web/login", "/auth/password", "/auth/web/password", "/auth/invitations", "/auth/mfa", "/auth/verify", "/totem"], express.json({ limit: "8kb" }));
 app.use(express.json({ limit: "1mb" }));
 
 app.get("/", (_req, res) => res.json({ name: "Prédio ON API", version: 1 }));
 app.use("/health", healthRouter);
 app.use("/auth", authRouter);
 app.use("/internal/mqtt", mqttRouter);
+// A paired totem tablet authenticates with its own token, never a user session.
+app.use("/totem", totemRouter);
 
 // SSE authenticates itself, because EventSource cannot send headers.
 app.use("/events", eventsRouter);

@@ -25,6 +25,8 @@ Configure `APP_DB_PASSWORD`, `IDENTITY_DB_PASSWORD`, `BROKER_AUTH_DB_PASSWORD` e
 
 A API em produção exige `JWT_ACTIVE_KID`, `JWT_PRIVATE_KEY` Ed25519 e `JWT_PUBLIC_KEYS`, um objeto JSON que associa cada `kid` ao PEM público. Use um par persistente guardado no gerenciador de segredos; o par efêmero de desenvolvimento é recusado em produção. PEMs podem usar a sequência literal `\n`. O access token tem duração de cinco minutos e a sessão é consultada a cada requisição. A configuração anterior `JWT_SECRET` não é mais usada; a transição exige novo login. Consulte [autenticação](AUTENTICACAO.md).
 
+Para a abertura pelo QR do totem (adicional, migration 059), gere também `GATE_QR_SECRET` com o comando acima. Sem ela, as rotas de QR e do tablet respondem 503 e o resto funciona. Trocá-la invalida só o QR da hora; os tablets mostram o novo em até um minuto. O tablet abre `https://sindico.SEUDOMINIO/totem`. Consulte [acessos](ACESSOS.md#abertura-pelo-qr-do-totem-059).
+
 O Caddy obtém TLS dos quatro serviços web. Para MQTT, obter separadamente um certificado
 válido para `mqtt.SEUDOMINIO` e colocar `fullchain.pem` e `privkey.pem` no diretório absoluto
 `MQTT_CERTS_DIR`. Os arquivos devem ser legíveis pelo usuário do EMQX. Configurar renovação

@@ -362,3 +362,11 @@ Também retira `INSERT`, `UPDATE` e `DELETE` de `sessions` da role da API de neg
 
 **Efeito ao aplicar:** a rota `GET /overview/platform/services` e o cartão **Serviços da plataforma** na visão geral da administração. Nada muda nas demais telas.
 
+
+## Release 059: abertura pelo QR do totem
+
+`059-access-qr-totem.sql` acrescenta a chave `GATE_QR_ACCESS` aos `CHECK` de funcionalidades da 012, as colunas `gates.require_qr` (o síndico pode gravar) e `gates.qr_generation` (só a função de renovar altera) e as tabelas `gate_totem_pairings` e `gate_totems`, que guardam apenas o SHA-256 do código de pareamento e do token do tablet. A role da API lê só id, portão, nome e contatos dos tablets, com RLS de quem gerencia o portão; nenhuma role lê os hashes.
+
+A admissão de abertura da 034 passou para `app_request_access_admit`, com um canal (`LIST` ou `QR`) e a geração esperada. `app_request_access(uuid,uuid,text,text)` continua com a mesma assinatura e chama o canal `LIST`; `app_request_access_by_qr` chama o canal `QR` depois que a API confere o HMAC. Novas funções `SECURITY DEFINER`: `app_gate_qr_renew`, `app_gate_totem_pairing_create`, `app_gate_totem_revoke` (para `predioon_app`) e `identity_totem_pair`, `identity_totem_display` (para `predioon_identity`). Detalhes em [ACESSOS](ACESSOS.md#abertura-pelo-qr-do-totem-059).
+
+**Efeito ao aplicar:** nenhum condomínio muda de comportamento. O adicional nasce não liberado em todos, e nenhum portão nasce exigindo QR. A API nova exige a 059. Em produção, defina `GATE_QR_SECRET` (32 bytes ou mais) antes de liberar o adicional; sem ela, as rotas de QR e do tablet respondem 503 e o resto funciona.

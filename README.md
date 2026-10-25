@@ -217,6 +217,7 @@ O simulador de portões é separado, aceita apenas broker local e exige gateway/
 | `RESEND_API_KEY` / `RESEND_FROM_EMAIL` | Envio de convites e recuperação de senha pelo Resend. Sem chave, nenhum e-mail é enviado. |
 | `PASSWORD_RESET_URL` / `RESIDENT_PORTAL_URL` | Endereços usados nos links dos e-mails de recuperação e de convite. |
 | `MFA_ENCRYPTION_KEY` | Cifra dos segredos TOTP (mínimo 32 bytes); obrigatória em produção. |
+| `GATE_QR_SECRET` | Chave do QR que o totem do portão troca a cada hora (mínimo 32 bytes). Sem ela, em produção, a abertura por QR fica indisponível. |
 | `ALERT_WEBHOOK_URL` | Opcional: encaminhamento de alertas `HIGH` e `CRITICAL` a um integrador externo. |
 
 Consulte [`.env.example`](.env.example) para os padrões locais e [DEPLOY](docs/DEPLOY.md) para produção. Mantenha API e ingestão na mesma versão ao atualizar o controle de funcionalidades.

@@ -29,6 +29,9 @@ const EnvSchema = z.object({
   // An empty value (the Compose default) means "not configured", not "invalid".
   MFA_ENCRYPTION_KEY: z.preprocess(blank,
     z.string().refine(value => Buffer.byteLength(value, "utf8") >= 32 && value.trim() === value, "MFA_ENCRYPTION_KEY exige pelo menos 32 bytes").optional()),
+  // Optional: without it, the hourly totem QR (059) is unavailable in production.
+  GATE_QR_SECRET: z.preprocess(blank,
+    z.string().refine(value => Buffer.byteLength(value, "utf8") >= 32 && value.trim() === value, "GATE_QR_SECRET exige pelo menos 32 bytes").optional()),
   // E-mail by Resend, same variable names as our other projects. Optional: without the key nothing is sent.
   RESEND_API_KEY: z.preprocess(blank, z.string().min(1).optional()),
   RESEND_FROM_EMAIL: z.preprocess(blank, z.string().min(3).max(200).default("Prédio ON <onboarding@resend.dev>")),
@@ -58,6 +61,7 @@ export const config = {
   authRateLimitKey: loginBudgetSecret(parsed.data.AUTH_RATE_LIMIT_KEY, parsed.data.NODE_ENV),
   // Development and test use a fixed local key; production must supply its own.
   mfaEncryptionKey: parsed.data.MFA_ENCRYPTION_KEY ?? (parsed.data.NODE_ENV === "production" ? null : "predioon-local-only-mfa-key-do-not-use-in-production"),
+  gateQrSecret: parsed.data.GATE_QR_SECRET ?? (parsed.data.NODE_ENV === "production" ? null : "predioon-local-only-gate-qr-key-do-not-use-in-production"),
   resendApiKey: parsed.data.RESEND_API_KEY ?? null,
   resendFromEmail: parsed.data.RESEND_FROM_EMAIL,
   passwordResetUrl: parsed.data.PASSWORD_RESET_URL?.replace(/\/+$/, "") ?? null,

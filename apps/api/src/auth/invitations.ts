@@ -1,4 +1,3 @@
-import { createHash, randomBytes } from "node:crypto";
 import { Router, type Response } from "express";
 import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -8,21 +7,13 @@ import { HttpError, notFound, unauthorized } from "../http/errors.js";
 import { generateId } from "../http/ids.js";
 import { validateBody } from "../http/validate.js";
 import { takeLoginBudget } from "./login-budget.js";
+import { createOpaqueToken, hashOpaqueToken } from "./opaque-token.js";
 import { PasswordChangeSchema } from "./password-change-schema.js";
 import { hashPassword, verifyPassword } from "./passwords.js";
 
 /** 32 random bytes, shown once to the manager. Only its SHA-256 is stored. */
-export function createInvitationToken(): { token: string; hash: Buffer } {
-  const secret = randomBytes(32);
-  return { token: secret.toString("base64url"), hash: createHash("sha256").update(secret).digest() };
-}
-
-/** Accepts only the canonical encoding, so one secret has one representation. */
-export function hashInvitationToken(token: string): Buffer | null {
-  const secret = Buffer.from(token, "base64url");
-  if (secret.length !== 32 || secret.toString("base64url") !== token) return null;
-  return createHash("sha256").update(secret).digest();
-}
+export const createInvitationToken = createOpaqueToken;
+export const hashInvitationToken = hashOpaqueToken;
 
 type Preview = { email: string; name: string; building_name: string; account_exists: boolean; expires_at: Date };
 const unavailable = () => notFound("Convite inválido, expirado ou já utilizado");
