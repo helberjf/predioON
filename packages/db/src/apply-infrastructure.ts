@@ -1,14 +1,16 @@
 import "./env.js";
 import postgres from "postgres";
 import { applyInfrastructure, checkInfrastructure, loadInfrastructureMigrations } from "./infrastructure-migrations.js";
+import { adaptNeonMigrations } from "./neon-migrations.js";
 
 /** Administrative CLI. Every script and its ledger entry share one connection. */
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
-  if (args.some(arg => arg !== "--check") || args.length > 1) throw new Error("Uso: db:infra [--check]. --check consulta o histórico sem aplicar alterações.");
+  if (args.some(arg => !["--check", "--provider=neon-demo"].includes(arg)) || new Set(args).size !== args.length) throw new Error("Uso: db:infra [--check] [--provider=neon-demo]. --check consulta o histórico sem aplicar alterações.");
   if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL administrativa é obrigatória");
   // Validate the full release before connecting or modifying the ledger.
-  const migrations = await loadInfrastructureMigrations();
+  const loaded = await loadInfrastructureMigrations();
+  const migrations = args.includes("--provider=neon-demo") ? adaptNeonMigrations(loaded) : loaded;
   const client = postgres(process.env.DATABASE_URL, { max: 1, onnotice: () => {} });
   try {
     if (args.includes("--check")) {

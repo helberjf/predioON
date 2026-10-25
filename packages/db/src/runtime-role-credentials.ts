@@ -24,9 +24,10 @@ function parseConnection(environment: Record<string, string | undefined>, key: s
 }
 
 /** Validate the entire configuration before any credential can be changed. */
-export function runtimeRoleCredentials(environment: Record<string, string | undefined>): RuntimeRoleCredential[] {
+export function runtimeRoleCredentials(environment: Record<string, string | undefined>, scope: "all" | "api" = "all"): RuntimeRoleCredential[] {
   const owner = parseConnection(environment, "DATABASE_URL");
-  return Object.entries(runtimeRoles).map(([key, role]) => {
+  return Object.entries(runtimeRoles).filter(([key]) => scope === "all" ||
+    ["DATABASE_URL_APP", "DATABASE_URL_IDENTITY", "DATABASE_URL_BROKER_AUTH"].includes(key)).map(([key, role]) => {
     const connection = parseConnection(environment, key);
     if (decodeURIComponent(connection.username) !== role || connection.hostname !== owner.hostname ||
       (connection.port || "5432") !== (owner.port || "5432") || connection.pathname !== owner.pathname || connection.username === owner.username) {
