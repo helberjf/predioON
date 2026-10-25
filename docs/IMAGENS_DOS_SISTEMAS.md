@@ -8,6 +8,8 @@ As **38 imagens —9Android,20web e9iOS—** e a [galeriaHTML](IMAGENS_DOS_SISTE
 
 Mais duas capturas acompanham esta entrega: [entrada mobile](imagens/2026-10-24/entrada-mobile.png) e [apresentação desktop](imagens/2026-10-24/apresentacao-desktop.png). [Origem, dimensões, hashes e limites](imagens/2026-10-24/README.md). A galeria anterior permanece preservada.
 
+A apresentação própria do morador tem novas capturas de [entrada mobile](imagens/2026-10-24/morador-entrada-mobile.png), [apresentação mobile](imagens/2026-10-24/morador-apresentacao-mobile.png) e [apresentação desktop](imagens/2026-10-24/morador-apresentacao-desktop.png), com origem e hashes no mesmo registro.
+
 ## Android — Morador: avisos
 
 Origem: [`f622949`](https://github.com/helberjf/predioON/commit/f62294935cc3005b5bc1bd287831bf48a2fb1276). Emulador Android com API/banco de teste; homologação em aparelho e todos os domínios continuam pendentes.

@@ -4,9 +4,15 @@ Entrega baseada em `origin/main` `c53117d6`, migrations 001–058. O checkout an
 
 ## Interface pública
 
-Os três portais compartilham a entrada mobile com **Login** e **Conheça a plataforma**, o formulário desktop e a apresentação pública `/conheca`. O conteúdo adapta `marketing/APRESENTACAO_COMERCIAL.md`, com recursos, benefícios por perfil e exemplo de consumo identificado como ilustrativo. `/login`, convites, recuperação e MFA conservam os fluxos existentes.
+Os três portais oferecem entrada mobile com **Login** e **Conheça a plataforma**, formulário desktop e a rota pública `/conheca`. Administração/síndico apresentam monitoramento e gestão, adaptando `marketing/APRESENTACAO_COMERCIAL.md`, com exemplo de consumo identificado como ilustrativo. O morador recebe uma página própria, voltada à rotina de quem mora. `/login`, convites, recuperação e MFA conservam os fluxos existentes.
 
 Foram acrescentados 15 cenários de navegador, com a navegação gravada no Codegen e depois revisada: rótulos exatos, URLs de cada portal e asserções após as ações. A revisão visual incluiu 360/390 px e desktop, ausência de overflow e axe WCAG A/AA para problemas sérios/críticos na entrada, apresentação e login. O botão primário recebeu contraste maior.
+
+### Apresentação própria do morador
+
+Após a revisão do proprietário, o portal do morador passou a usar `ResidentPresentation`, com headline “Seu condomínio mais perto de você.”, ilustração HTML da experiência no celular, avisos, reservas, chamados próprios, contas publicadas, acessos autorizados e consumo quando liberado. A entrada mobile também tem texto e destaques próprios. O convite usa a rota existente; a página não inventa links de lojas nem oferece funções de gestão.
+
+O teste novo primeiro falhou no título de morador, enquanto administração e síndico passaram. Após a implementação, a suíte pública passou **16/16** em Chromium, incluindo separação dos públicos, acesso por convite, layout e axe. O percurso foi regravado no Codegen, com **7 ações**. Tipos de UI/três portais e E2E, seletores, limites de módulos e os **115 testes da UI** passaram. A imagem Docker web foi reconstruída com sucesso. Capturas mobile/desktop foram abertas e conferidas, com origem e hashes em `imagens/2026-10-24/README.md`.
 
 ## Lacunas e falhas corrigidas
 

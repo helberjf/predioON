@@ -52,7 +52,9 @@ No administrador, **Operação dos imóveis** reúne consumo/análise, portões/
 
 Os painéis precisam do servidor Vite; não abra os arquivos `index.html` diretamente.
 
-Sem sessão, a página inicial dos três portais oferece **Login** e **Conheça a plataforma** no celular. No desktop, o formulário continua na entrada, com acesso à apresentação pública em `/conheca`. O conteúdo apresenta os recursos e a rotina do síndico com base no [material comercial](docs/marketing/APRESENTACAO_COMERCIAL.md); `/login` abre o formulário diretamente em qualquer tamanho de tela.
+Sem sessão, a página inicial dos três portais oferece **Login** e **Conheça a plataforma** no celular. No desktop, o formulário continua na entrada, com acesso à apresentação pública em `/conheca`. A versão de gestão apresenta os recursos e a rotina do síndico com base no [material comercial](docs/marketing/APRESENTACAO_COMERCIAL.md); `/login` abre o formulário diretamente em qualquer tamanho de tela.
+
+O morador tem uma apresentação própria em `/conheca`, com visual de celular e foco em avisos, reservas, chamados próprios, contas publicadas, acessos autorizados e consumo quando disponibilizado. A entrada mobile do morador também usa conteúdo próprio e a apresentação oferece acesso por convite. A versão do síndico apresenta monitoramento e gestão.
 
 Para subir a plataforma numa VPS, use os [Dockerfiles, Compose de produção e roteiro de instalação](docs/DEPLOY.md). A [verificação de 24/10](docs/VERIFICACAO_2026-10-24.md) registra os testes e as correções desta entrega.
 

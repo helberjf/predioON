@@ -78,6 +78,8 @@ Para gravar fora do gravador (com os servidores já de pé), também funciona `p
 
 O fluxo público **Conheça a plataforma → Explorar recursos → Login → Voltar ao início** foi gravado com o Codegen e revisado em `specs/public/platform-presentation.spec.ts`. Para reproduzir a gravação sem sessão, use `pnpm e2e:record anonimo resident`. Os testes dessa área verificam entrada mobile, formulário desktop, apresentação, retorno ao login, ausência de rolagem horizontal e problemas sérios/críticos de acessibilidade WCAG A/AA com axe nos três portais.
 
+A área pública tem 16 cenários. Os títulos e recursos esperados diferem por público, para impedir que a página de gestão reapareça no portal do morador. O percurso do morador foi regravado no Codegen após essa separação, incluindo o acesso a **Recebi um convite**; a suíte verifica a abertura do formulário real de convite.
+
 ```powershell
 pnpm test:e2e e2e/specs/public --project=chromium
 ```
