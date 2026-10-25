@@ -58,6 +58,8 @@ O morador tem uma apresentação própria em `/conheca`, com visual de celular e
 
 Para subir a plataforma numa VPS, use os [Dockerfiles, Compose de produção e roteiro de instalação](docs/DEPLOY.md). A [verificação de 24/10](docs/VERIFICACAO_2026-10-24.md) registra os testes e as correções desta entrega.
 
+A [demonstração dos três portais na Vercel com banco Neon](docs/VERCEL_NEON.md) foi publicada e verificada em 25/10. O documento contém os endereços, o perfil de instalação e os limites dos serviços contínuos nesse ambiente.
+
 ## Stack e arquitetura
 
 - **API:** Node.js, Express 5 e TypeScript, com módulos por domínio.

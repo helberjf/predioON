@@ -1,8 +1,10 @@
 # Continuidade do Prédio ON
 
-Atualizado em **24/10/2026**, horário de São Paulo. Leia este arquivo primeiro ao retomar, em qualquer computador. O histórico anterior está em [continuidade/historico-ate-2026-10-17.md](continuidade/historico-ate-2026-10-17.md); a entrega atual de entrada pública, testes e VPS está em [VERIFICACAO_2026-10-24.md](VERIFICACAO_2026-10-24.md).
+Atualizado em **25/10/2026**, horário de São Paulo. Leia este arquivo primeiro ao retomar, em qualquer computador. O histórico anterior está em [continuidade/historico-ate-2026-10-17.md](continuidade/historico-ate-2026-10-17.md); a entrega de entrada pública, testes e VPS está em [VERIFICACAO_2026-10-24.md](VERIFICACAO_2026-10-24.md). A demonstração publicada está em [VERCEL_NEON.md](VERCEL_NEON.md).
 
-**Situação:** o produto está implementado e verificado localmente, **sem implantação e sem aceite de produção**. Base desta rodada: **main `c53117d6`**, migrations **001–059** (a 059 é a abertura pelo QR do totem). Planos/assinaturas ficaram por último, por decisão do proprietário, e não foram feitos.
+**Situação:** demonstração web publicada na Vercel com banco novo no Neon e os três logins verificados com Playwright. A implantação completa da VPS e o aceite de produção continuam pendentes. Base da rodada de 24/10: **main `c53117d6`**, migrations atuais **001–059** (a 059 é a abertura pelo QR do totem). Planos/assinaturas ficaram por último, por decisão do proprietário, e não foram feitos.
+
+**Demonstração de 25/10:** `predioon-admin.vercel.app`, `predioon-sindico.vercel.app`, `predioon-morador.vercel.app` e API `predioon-api.vercel.app`. Banco `predioon-demo-db`, Neon `bold-leaf-99201114`, São Paulo, somente dados fictícios. Usar explicitamente `db:infra --provider=neon-demo` e provisionamento `--api-only`; nunca reaplicar seed. O perfil conserva as proteções de runtime, tem checksums próprios e não executa o agendador Timescale nem os workers permanentes. [Evidência dos logins, refresh e logout](evidencias/vercel-neon-2026-10-25.json).
 
 ## 1. Instruções permanentes do proprietário
 

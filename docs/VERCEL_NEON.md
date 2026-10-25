@@ -1,6 +1,13 @@
 # Demonstração na Vercel e no Neon
 
-Preparação em 25/10/2026. Este perfil publica os três portais e a API HTTP com dados fictícios. A implantação completa com broker, ingestão, notificações e agendador está em [DEPLOY.md](DEPLOY.md).
+Publicada e verificada em 25/10/2026. Este perfil publica os três portais e a API HTTP com dados fictícios. A implantação completa com broker, ingestão, notificações e agendador está em [DEPLOY.md](DEPLOY.md).
+
+| Painel | Endereço |
+| --- | --- |
+| Administração | https://predioon-admin.vercel.app/login |
+| Síndico | https://predioon-sindico.vercel.app/login |
+| Morador | https://predioon-morador.vercel.app/login |
+| API | https://predioon-api.vercel.app/health/ready |
 
 ## Projetos
 
@@ -56,4 +63,8 @@ O plano gratuito pode suspender o banco após inatividade; o primeiro acesso pod
 - API local em modo production, conectada ao Neon somente com credenciais restritas: health 200, três logins 200, três refreshes 200, listagem de condomínios 200 e saúde dos serviços da administração 200.
 - Entrada final `app.mjs` e bundle de 383 KB executados diretamente pelo Node: mesma validação aprovada, sem depender do carregador TypeScript de desenvolvimento. Isso cobre a ausência de fontes de workspace identificada no primeiro runtime da Vercel.
 
-A verificação nos endereços publicados deve ser registrada depois da configuração das variáveis e da nova implantação da API.
+A verificação real com Playwright Chromium aprovou os três painéis: login 200 com a identidade esperada, cookie seguro, refresh 200 após recarga, título autenticado, logout 204, volta à entrada e apresentação mobile própria. Nenhuma exceção JavaScript ou resposta 5xx foi observada na rodada aprovada. O Morador também foi autenticado e conferido no Chrome do proprietário.
+
+[Resultados sem tokens ou chaves](evidencias/vercel-neon-2026-10-25.json) e [captura do Morador publicado](imagens/2026-10-25/morador-vercel.jpg). Frontends: fonte `125e0360`; API: fonte `ed1017cf`. A API respondeu `{"ok":true,"database":"up"}` em HTTPS. Estes checks são da implantação; não representam uma nova execução integral das suítes de API, ingestão e aplicativos nativos.
+
+Referências dos provedores: [Express na Vercel](https://vercel.com/docs/frameworks/backend/express) e [TimescaleDB no Neon](https://neon.com/docs/extensions/timescaledb).

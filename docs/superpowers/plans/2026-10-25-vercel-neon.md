@@ -13,8 +13,8 @@
 - [x] Permitir `/api` na coordenação das sessões dos portais e verificar isolamento entre origens.
 - [x] Aplicar bootstrap/migrations no banco novo; confirmar compatibilidade real do TimescaleDB fornecido pelo Neon antes de adaptar qualquer SQL.
 - [x] Provisionar os três logins restritos usados pela API e inserir uma única vez os usuários de demonstração solicitados. Os serviços permanentes não publicados continuam NOLOGIN. Nunca executar seed numa instalação anterior.
-- [ ] Publicar API e os três portais com segredos somente na API, validar HTTPS, login, persistência de sessão e páginas autenticadas.
-- [ ] Registrar links, limites do ambiente gratuito e evidências; verificar diff e publicar alterações na main.
+- [x] Publicar API e os três portais com segredos somente na API, validar HTTPS, login, persistência de sessão e páginas autenticadas.
+- [x] Registrar links, limites do ambiente gratuito e evidências; verificar diff e publicar alterações na main.
 
 ## Validação
 

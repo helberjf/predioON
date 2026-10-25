@@ -10,6 +10,10 @@ Mais duas capturas acompanham esta entrega: [entrada mobile](imagens/2026-10-24/
 
 A apresentação própria do morador tem novas capturas de [entrada mobile](imagens/2026-10-24/morador-entrada-mobile.png), [apresentação mobile](imagens/2026-10-24/morador-apresentacao-mobile.png) e [apresentação desktop](imagens/2026-10-24/morador-apresentacao-desktop.png), com origem e hashes no mesmo registro.
 
+## Web — demonstração publicada em 25/10/2026
+
+A [captura real do Morador publicado na Vercel em 25/10](imagens/2026-10-25/morador-vercel.jpg) tem [origem, hash e limites próprios](imagens/2026-10-25/README.md), usando somente os dados fictícios do novo banco Neon.
+
 ## Android — Morador: avisos
 
 Origem: [`f622949`](https://github.com/helberjf/predioON/commit/f62294935cc3005b5bc1bd287831bf48a2fb1276). Emulador Android com API/banco de teste; homologação em aparelho e todos os domínios continuam pendentes.
