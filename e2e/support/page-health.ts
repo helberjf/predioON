@@ -3,7 +3,7 @@ import { API_URL } from "./environment";
 
 /** Collects what a user would not see but a broken page leaves behind: uncaught exceptions,
  * console errors and API answers >= 400. Navigation aborts (SSE, cancelled fetches) are normal. */
-export function trackPageHealth(page: Page) {
+export function trackPageHealth(page: Page, options: { allowAnonymousRefresh?: boolean } = {}) {
   const problems: string[] = [];
   page.on("pageerror", error => problems.push(`exceção JS: ${error.message.split("\n")[0]}`));
   page.on("console", message => {
@@ -12,6 +12,10 @@ export function trackPageHealth(page: Page) {
   });
   page.on("response", response => {
     if (response.url().startsWith(API_URL) && response.status() >= 400) {
+      // Public screens restore a cookie session on load; a browser without a
+      // refresh cookie legitimately receives 401. Other failures remain errors.
+      if (options.allowAnonymousRefresh && response.status() === 401 && response.request().method() === "POST"
+        && new URL(response.url()).pathname === "/auth/web/refresh") return;
       problems.push(`HTTP ${response.status()} ${response.request().method()} ${new URL(response.url()).pathname}`);
     }
   });

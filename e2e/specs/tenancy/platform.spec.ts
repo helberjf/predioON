@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { expect, test } from "../../support/fixtures";
 import { ADMIN_URL, BUILDING_URL, RESIDENT_URL } from "../../support/environment";
-import { createWithForm, enterCredentials, signIn, signOut } from "../../support/helpers";
+import { authenticatedApi, createWithForm, enterCredentials, signIn, signOut } from "../../support/helpers";
 
 test("síndico abre dashboard e cadastra bloco, unidade e equipe persistidos", async ({ page }) => {
   const suffix = randomUUID().slice(0, 8);
@@ -77,7 +77,7 @@ test("portal do morador apresenta avisos e não oferece ferramentas de gestão",
   await expect(page.getByLabel("Senha", { exact: true })).toBeVisible();
 });
 
-test("logout e entrada como morador removem formulários e capacidades do síndico", async ({ page }) => {
+test("logout e entrada como morador removem formulários e capacidades do síndico", async ({ page, request }) => {
   await signIn(page, BUILDING_URL, "sindico@predioon.local");
   await page.getByRole("link", { name: "Unidades e equipes", exact: true }).click();
   await page.getByLabel("Código do bloco", { exact: true }).fill(`rascunho-${randomUUID().slice(0, 8)}`);
@@ -88,13 +88,17 @@ test("logout e entrada como morador removem formulários e capacidades do síndi
 
   await enterCredentials(page, "morador@predioon.local");
   await expect(page.getByText("Morador Demo", { exact: true })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Unidades e equipes", exact: true })).toBeVisible();
+  await expect(page.getByText("Sua conta não tem acesso a esta área do condomínio.", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Unidades e equipes", exact: true })).toHaveCount(0);
+  const residentApi = await authenticatedApi(request, "morador@predioon.local");
+  expect((await residentApi.get("/v1/tenancy/teams?buildingId=bld_001")).status()).toBe(403);
   await expect(page.getByRole("button", { name: /Cadastrar bloco|Cadastrar unidade|Equipes|Permissões|Conceder permissão/ })).toHaveCount(0);
   await expect(page.getByLabel("Código do bloco", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Síndico Demo", { exact: true })).toHaveCount(0);
 
   await page.reload();
   await expect(page.getByText("Morador Demo", { exact: true })).toBeVisible();
+  await expect(page.getByText("Sua conta não tem acesso a esta área do condomínio.", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Cadastrar bloco", exact: true })).toHaveCount(0);
 });
 

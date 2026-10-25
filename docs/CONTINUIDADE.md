@@ -1,8 +1,8 @@
 # Continuidade do Prédio ON
 
-Atualizado em **23/10/2026**, horário de São Paulo. Leia este arquivo primeiro ao retomar, em qualquer computador. O histórico completo de cada sessão até esta data, com todos os números e decisões, está em [continuidade/historico-ate-2026-10-17.md](continuidade/historico-ate-2026-10-17.md).
+Atualizado em **24/10/2026**, horário de São Paulo. Leia este arquivo primeiro ao retomar, em qualquer computador. O histórico anterior está em [continuidade/historico-ate-2026-10-17.md](continuidade/historico-ate-2026-10-17.md); a entrega atual de entrada pública, testes e VPS está em [VERIFICACAO_2026-10-24.md](VERIFICACAO_2026-10-24.md).
 
-**Situação:** o produto está implementado e verificado localmente, **sem implantação e sem aceite de produção**. Base: **main `949fc2f`**, migrations **001–059** (a 059, abertura pelo QR do totem, está na branch `claude/qrcode-portao-feature-f6caeb`). Planos/assinaturas ficaram por último, por decisão do proprietário, e não foram feitos.
+**Situação:** o produto está implementado e verificado localmente, **sem implantação e sem aceite de produção**. Base desta rodada: **main `c53117d6`**, migrations **001–059** (a 059 é a abertura pelo QR do totem). Planos/assinaturas ficaram por último, por decisão do proprietário, e não foram feitos.
 
 ## 1. Instruções permanentes do proprietário
 
@@ -93,7 +93,7 @@ A sequência do job de plataforma, as flags das suítes SQL038/SQL052 e os clust
 
 ## 6. O que falta
 
-**Depois (24–25/10), branch `claude/qrcode-portao-feature-f6caeb`:** abertura pelo QR do totem (059). O tablet no portão mostra um QR que muda a cada hora; o morador lê pelo app, que confere no servidor antes de mostrar **Abrir**. É um adicional liberado por condomínio pela plataforma, e o síndico pode exigir o QR por portão ([ACESSOS](ACESSOS.md#abertura-pelo-qr-do-totem-059)). Rodadas por pacote no banco descartável 5446: API 135/135 nos módulos tocados, banco 275/297 (22 skips de laboratório) e migrações/notificações 61/61, ingestão 35/35, mobile 231/231, UI 108/108, api-client 118/118, Playwright Chromium 59/59 (acessos, QR, funcionalidades e smoke). **Pendentes:** leitura pela câmera num celular real, build Android com a `react-native-camera-kit` e build iOS.
+**Depois (24–25/10):** abertura pelo QR do totem (059). O tablet no portão mostra um QR que muda a cada hora; o morador lê pelo app, que confere no servidor antes de mostrar **Abrir**. É um adicional liberado por condomínio pela plataforma, e o síndico pode exigir o QR por portão ([ACESSOS](ACESSOS.md#abertura-pelo-qr-do-totem-059)). Rodadas por pacote no banco descartável 5446: API 135/135 nos módulos tocados, banco 275/297 (22 skips de laboratório) e migrações/notificações 61/61, ingestão 35/35, mobile 231/231, UI 108/108, api-client 118/118, Playwright Chromium 59/59 (acessos, QR, funcionalidades e smoke). **Pendentes:** leitura pela câmera num celular real, build Android com a `react-native-camera-kit` e build iOS.
 
 **Depende do proprietário:**
 

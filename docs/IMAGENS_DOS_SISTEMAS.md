@@ -4,6 +4,12 @@ Publicadas em **03/10/2026**, atualizadas em **05/10/2026**. Estas capturas fora
 
 As **38 imagens —9Android,20web e9iOS—** e a [galeriaHTML](IMAGENS_DOS_SISTEMAS.html) acompanham o clone. Todas as iOS mostram somente entrada; as duas novas de cf9b927 foram conferidas no startup aprovado dos dois produtos. Authcf9 parou no guardATS; Keychain/14POST/produção continuam pendentes. Duas novas JPEGs comerciais mostram QA manual em banco próprio039, com fonte ainda não publicada anterior ao ajuste finalShell; hashes e limites na [prova manual](evidencias/web-organizations039-manual.json). O [manifesto](imagens/2026-10-03/manifesto.json) registra dimensões, SHA e origem. Referências estáticas conferidas; acesso8765 continua bloqueado, sem bypass nem novo aceite de controles da galeria.
 
+## Web — entrada pública de 24/10/2026
+
+Mais duas capturas acompanham esta entrega: [entrada mobile](imagens/2026-10-24/entrada-mobile.png) e [apresentação desktop](imagens/2026-10-24/apresentacao-desktop.png). [Origem, dimensões, hashes e limites](imagens/2026-10-24/README.md). A galeria anterior permanece preservada.
+
+A apresentação própria do morador tem novas capturas de [entrada mobile](imagens/2026-10-24/morador-entrada-mobile.png), [apresentação mobile](imagens/2026-10-24/morador-apresentacao-mobile.png) e [apresentação desktop](imagens/2026-10-24/morador-apresentacao-desktop.png), com origem e hashes no mesmo registro.
+
 ## Android — Morador: avisos
 
 Origem: [`f622949`](https://github.com/helberjf/predioON/commit/f62294935cc3005b5bc1bd287831bf48a2fb1276). Emulador Android com API/banco de teste; homologação em aparelho e todos os domínios continuam pendentes.

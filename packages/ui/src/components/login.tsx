@@ -52,8 +52,10 @@ export function LoginScreen({ subtitle, invitationHref }: { subtitle: string; in
           {busy ? "Entrando..." : "Entrar"}
         </Button>
         <div className="space-y-1">
+          <a href="/conheca" className="mb-3 flex min-h-12 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-4 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100">Conheça a plataforma</a>
           <AuthLink href="/redefinir-senha">Esqueci minha senha</AuthLink>
           {invitationHref && <AuthLink href={invitationHref}>Tenho um convite</AuthLink>}
+          <AuthLink href="/">Voltar ao início</AuthLink>
         </div>
     </AuthLayout>
   );

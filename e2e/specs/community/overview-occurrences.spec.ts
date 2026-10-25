@@ -136,8 +136,7 @@ test("dashboard limita o contador ao recurso autorizado e não inventa zero para
     expect(unavailable.coverage.occurrences).toBe("none");
     expect(unavailable.occurrenceVisibility).toBe("none");
     const unavailableLink = page.getByRole("link", { name: "Acompanhar ocorrências", exact: true });
-    await expect(unavailableLink).toBeVisible();
-    await expect(unavailableLink).toHaveText("Acompanhar ocorrências");
+    await expect(unavailableLink).toHaveCount(0);
     await expect(page.getByRole("link", { name: /^(Seus chamados abertos|Chamados abertos)/ })).toHaveCount(0);
     for (const value of [privateTitle, visible.id, hidden.id, fixture.resident.id]) {
       expect(JSON.stringify(unavailable)).not.toContain(value);

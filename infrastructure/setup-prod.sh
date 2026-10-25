@@ -1,83 +1,56 @@
 #!/usr/bin/env bash
 #
-# Prepara o banco de produção na ordem certa:
-#   1. sobe o PostgreSQL e espera ficar saudável
-#   2. cria a estrutura inicial por SQL versionado se o banco estiver vazio
-#   3. aplica TimescaleDB, RLS, role da aplicação e constraints
-#   4. opcionalmente semeia os dados de demonstração
-#
-# Uso, a partir da raiz do repositório:
-#   ./infrastructure/setup-prod.sh            # sem seed
-#   ./infrastructure/setup-prod.sh --seed     # com usuários e dados de exemplo
+# Run from any directory: bash infrastructure/setup-prod.sh [--seed]
+# ENV_FILE and COMPOSE_PROJECT_NAME can select an isolated installation.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-ENV_FILE="infrastructure/.env.prod"
-[ -f "$ENV_FILE" ] || { echo "Falta $ENV_FILE. Copie de infrastructure/.env.prod.example."; exit 1; }
+if [ "$#" -gt 1 ] || { [ "$#" -eq 1 ] && [ "$1" != "--seed" ]; }; then
+  echo "Uso: bash infrastructure/setup-prod.sh [--seed]" >&2
+  exit 64
+fi
+ENV_FILE="${ENV_FILE:-infrastructure/.env.prod}"
+[ -f "$ENV_FILE" ] || { echo "Falta $ENV_FILE. Copie de infrastructure/.env.prod.example." >&2; exit 1; }
 
-set -a
-# shellcheck disable=SC1090
-. "$ENV_FILE"
-set +a
-
+# Docker Compose parses dotenv itself: never execute a secrets file as shell.
+# Do not print config without --quiet: its output contains credentials.
 COMPOSE=(docker compose -f infrastructure/docker-compose.prod.yml --env-file "$ENV_FILE")
+"${COMPOSE[@]}" config --quiet
+echo "→ construindo a release antes de interromper os serviços"
+"${COMPOSE[@]}" build api ingest notifications web db-admin
+echo "→ validando credenciais e chaves antes de interromper os serviços"
+"${COMPOSE[@]}" run --rm --no-deps db-admin node --import tsx /app/infrastructure/deploy-preflight.mjs api
+"${COMPOSE[@]}" run --rm --no-deps db-admin node --import tsx /app/infrastructure/deploy-preflight.mjs database "${1:-}"
+echo "→ conferindo leitura dos certificados com o usuário real do broker"
+"${COMPOSE[@]}" run --rm --no-deps --entrypoint sh emqx -ec 'test -s /opt/emqx/etc/certs/site/fullchain.pem && test -r /opt/emqx/etc/certs/site/fullchain.pem && test -s /opt/emqx/etc/certs/site/privkey.pem && test -r /opt/emqx/etc/certs/site/privkey.pem'
 
-# Validated before anything stops: a missing credential must not leave the platform down.
-for credential in NOTIFICATIONS_DB_PASSWORD INGEST_DB_PASSWORD ACCESS_SERVICE_DB_PASSWORD; do
-  [ -n "${!credential:-}" ] || { echo "Defina $credential antes de aplicar as releases 038/052."; exit 1; }
-done
-
-echo "→ interrompendo produtores e worker anteriores antes das migrations"
-"${COMPOSE[@]}" stop --timeout 30 ingest notifications
-active_producers=$("${COMPOSE[@]}" ps --status running --quiet ingest notifications)
+echo "→ interrompendo produtores e API anteriores antes das migrations"
+"${COMPOSE[@]}" stop --timeout 30 ingest notifications api
+active_producers=$("${COMPOSE[@]}" ps --status running --quiet ingest notifications api)
 if [ -n "$active_producers" ]; then echo "Produtor ou worker ainda ativo; nenhuma migration aplicada."; exit 1; fi
 # A parada dos containers é verificável. Ela não comprova drenagem MQTT ou a
 # ausência de produtores externos: confira o procedimento de rollout em DEPLOY.
 
-echo "→ subindo o banco"
-"${COMPOSE[@]}" up -d db
-
-echo "→ esperando o PostgreSQL aceitar conexões"
-database_ready=false
-for _ in $(seq 1 60); do
-  if "${COMPOSE[@]}" exec -T db pg_isready -U predioon -d predioon >/dev/null 2>&1; then database_ready=true; break; fi
-  sleep 2
-done
-if [ "$database_ready" != true ]; then echo "PostgreSQL indisponível; preparação interrompida."; exit 1; fi
+echo "→ subindo o banco e aguardando saúde"
+"${COMPOSE[@]}" up -d --wait --wait-timeout 180 db
 
 echo "→ criando as tabelas"
-"${COMPOSE[@]}" run --rm --build \
-  -e DATABASE_URL="postgres://predioon:${POSTGRES_PASSWORD}@db:5432/predioon" \
-  api pnpm --filter @predioon/db db:bootstrap
+"${COMPOSE[@]}" run --rm --no-deps db-admin pnpm --filter @predioon/db db:bootstrap
 
 echo "→ verificando histórico e aplicando migrations pendentes"
-"${COMPOSE[@]}" run --rm \
-  -e DATABASE_URL="postgres://predioon:${POSTGRES_PASSWORD}@db:5432/predioon" \
-  api pnpm --filter @predioon/db db:infra
+"${COMPOSE[@]}" run --rm --no-deps db-admin pnpm --filter @predioon/db db:infra
 
-# Worker and ingestion credentials reach only this transient administrative run,
-# never the persistent API container.
+# Owner and all runtime credentials reach only this transient administrative run.
 echo "→ provisionando as seis credenciais restritas"
-"${COMPOSE[@]}" run --rm \
-  -e DATABASE_URL="postgres://predioon:${POSTGRES_PASSWORD}@db:5432/predioon" \
-  -e DATABASE_URL_NOTIFICATIONS="postgres://predioon_notifications:${NOTIFICATIONS_DB_PASSWORD}@db:5432/predioon" \
-  -e DATABASE_URL_INGEST="postgres://predioon_ingest:${INGEST_DB_PASSWORD}@db:5432/predioon" \
-  -e DATABASE_URL_ACCESS_SERVICE="postgres://predioon_access_service:${ACCESS_SERVICE_DB_PASSWORD}@db:5432/predioon" \
-  api pnpm --filter @predioon/db db:provision-runtime
+"${COMPOSE[@]}" run --rm --no-deps db-admin pnpm --filter @predioon/db db:provision-runtime
 
 if [ "${1:-}" = "--seed" ]; then
   echo "→ semeando dados de demonstração"
-  "${COMPOSE[@]}" run --rm \
-    -e DATABASE_URL="postgres://predioon:${POSTGRES_PASSWORD}@db:5432/predioon" \
-    -e SEED_PASSWORD="${SEED_PASSWORD:-predioon123}" \
-    api pnpm --filter @predioon/db db:seed
+  "${COMPOSE[@]}" run --rm --no-deps db-admin pnpm --filter @predioon/db db:seed
 fi
 
-echo "→ subindo o restante da plataforma"
-"${COMPOSE[@]}" up -d --build
-
-echo
-echo "Pronto. Verifique:"
-echo "  https://api.${DOMAIN}/health/ready"
-echo "  https://sindico.${DOMAIN}"
+echo "→ subindo a release e aguardando todos os healthchecks"
+"${COMPOSE[@]}" up -d --no-build --wait --wait-timeout 240 db api emqx ingest notifications web
+"${COMPOSE[@]}" ps
+echo "Preparação concluída. Confira os portais, /health/ready, TLS MQTT e o roteiro docs/DEPLOY.md."

@@ -6,6 +6,7 @@ ARG SERVICE=api
 ENV SERVICE=${SERVICE}
 ENV PNPM_HOME=/pnpm
 ENV PATH="${PNPM_HOME}:${PATH}"
+ENV COREPACK_HOME=/opt/corepack
 RUN corepack enable
 
 WORKDIR /app
@@ -22,15 +23,19 @@ COPY apps/api/package.json apps/api/
 COPY services/ingest/package.json services/ingest/
 COPY services/notifications/package.json services/notifications/
 
-RUN pnpm install --frozen-lockfile --filter @predioon/api --filter @predioon/ingest --filter @predioon/notifications --filter @predioon/db --filter @predioon/shared
+RUN pnpm install --frozen-lockfile --filter @predioon/api... --filter @predioon/ingest... --filter @predioon/notifications... --filter @predioon/db...
 
 COPY packages ./packages
 COPY apps/api ./apps/api
 COPY services/ingest ./services/ingest
 COPY services/notifications ./services/notifications
 COPY infrastructure/*.sql ./infrastructure/
+COPY infrastructure/deploy-preflight.mjs ./infrastructure/
+
+# Runtime services and the transient migration CLI need no root privileges.
+USER node
 
 # tsx executa o TypeScript direto: sem etapa de build, sem risco de o artefato
 # publicado divergir do código. O custo é alguns segundos a mais no start.
-# Node recebe sinais como PID1; não há pnpm intermediário consumindo SIGTERM.
+# O init mínimo do Compose encaminha sinais ao Node; não há pnpm intermediário.
 CMD ["sh", "-c", "case \"$SERVICE\" in api) cd /app/apps/api && exec node --import tsx src/server.ts ;; ingest|notifications) cd \"/app/services/$SERVICE\" && exec node --import tsx src/index.ts ;; *) echo 'SERVICE inválido' >&2; exit 64 ;; esac"]
