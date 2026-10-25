@@ -15,6 +15,8 @@ Cada projeto Vercel usa a `main` de `helberjf/predioON`, com acesso aos arquivos
 
 Os portais compilam com `VITE_API_URL=/api` e encaminham esse caminho à API. A sessão mantém cookie `HttpOnly`, `Secure`, `SameSite=Strict`, prefixo `__Host-`, proteção por origem e header próprio. Cada origem conserva seu espaço de sessão. As rotas `/internal` do broker respondem 404 na entrada pública Vercel; o servidor do Compose mantém sua inicialização e suas rotas privadas.
 
+A API executa `pnpm build:vercel`: o esbuild inclui os fontes dos workspaces no bundle `dist/vercel.mjs`, e `app.mjs` fornece a entrada Express. Pacotes externos, incluindo o Argon2 nativo, continuam disponíveis para o rastreador da Vercel. O bundle não incorpora valores de variáveis privadas. A compilação padrão da API usada nos outros ambientes continua disponível.
+
 ## Banco novo
 
 Foi criado `predioon-demo-db`, projeto Neon `bold-leaf-99201114`, no plano Free, região AWS São Paulo. PostgreSQL 18.6 e TimescaleDB 2.24.0, com validação TLS habilitada. A instalação foi iniciada com zero tabelas públicas. O seed foi executado uma única vez nesse banco novo; não se deve executá-lo novamente em uma instalação com dados.
@@ -52,5 +54,6 @@ O plano gratuito pode suspender o banco após inatividade; o primeiro acesso pod
 - Adaptador Neon e seleção de credenciais: 55/55.
 - Typechecks de API, UI e banco e builds dos três portais aprovados.
 - API local em modo production, conectada ao Neon somente com credenciais restritas: health 200, três logins 200, três refreshes 200, listagem de condomínios 200 e saúde dos serviços da administração 200.
+- Entrada final `app.mjs` e bundle de 383 KB executados diretamente pelo Node: mesma validação aprovada, sem depender do carregador TypeScript de desenvolvimento. Isso cobre a ausência de fontes de workspace identificada no primeiro runtime da Vercel.
 
 A verificação nos endereços publicados deve ser registrada depois da configuração das variáveis e da nova implantação da API.
