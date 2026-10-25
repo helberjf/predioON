@@ -34,6 +34,9 @@ import { authorizationRouter } from "./modules/authorization/routes.js";
 import { workOrdersRouter } from "./modules/work-orders/routes.js";
 import { assetsRouter } from "./modules/assets/routes.js";
 import { automationsRouter } from "./modules/automations/routes.js";
+import { assertApiDatabaseRoles } from "./database.js";
+import { startRealtimeBus } from "./modules/events/bus.js";
+import { createServerlessApp } from "./http/serverless.js";
 
 export const app = express();
 app.set("trust proxy", config.trustedProxyCidrs.length ? config.trustedProxyCidrs : false);
@@ -82,3 +85,10 @@ app.use("/finance", financeRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
+
+// Vercel discovers the default Express export. The long-running server keeps
+// its existing explicit startup sequence and private broker routes.
+export default createServerlessApp(app, async () => {
+  await assertApiDatabaseRoles();
+  await startRealtimeBus();
+});
