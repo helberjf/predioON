@@ -2,6 +2,5 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "express",
   "regions": ["gru1"],
-  "installCommand": "cd ../.. && pnpm install --frozen-lockfile --filter @predioon/api...",
-  "buildCommand": ""
+  "installCommand": "cd ../.. && pnpm install --frozen-lockfile --filter @predioon/api..."
 }
