@@ -66,11 +66,11 @@ test("aviso pode ser publicado, editado e removido; agendamento fica restrito à
 });
 
 for (const route of [
-  { path: "/regras", heading: "Regras de alerta", management: /^(Criar regra|Ativar|Desativar)$/ },
-  { path: "/areas", heading: "Áreas comuns", management: /^(Aprovar|Recusar)$/ },
-  { path: "/alertas", heading: "Alertas", management: /^(Resolver|Reconhecer)$/ },
+  { path: "/regras", heading: "Regras de alerta", management: /^(Criar regra|Ativar|Desativar)$/, deniedApi: "/alert-rules?buildingId=bld_001" },
+  { path: "/areas", heading: "Áreas comuns", management: /^(Aprovar|Recusar)$/, deniedApi: null },
+  { path: "/alertas", heading: "Alertas", management: /^(Resolver|Reconhecer)$/, deniedApi: "/alerts?buildingId=bld_001" },
 ]) {
-  test(`morador abrindo ${route.path} diretamente não recebe ações de gestão`, async ({ page }) => {
+  test(`morador abrindo ${route.path} diretamente não recebe ações de gestão`, async ({ page, request }) => {
     await signIn(page, BUILDING_URL, "morador@predioon.local");
     const authorization = page.waitForResponse(response => new URL(response.url()).pathname === "/v1/authorization" && response.status() === 200);
     await page.goto(`${BUILDING_URL}${route.path}`);
@@ -78,7 +78,16 @@ for (const route of [
     expect(grants.capabilities).not.toContain("buildings:manage");
     expect(grants.capabilities).not.toContain("devices:configure");
     expect(grants.capabilities).not.toContain("alerts:resolve");
-    await expect(page.getByRole("heading", { name: route.heading, exact: true })).toBeVisible();
+    if (route.deniedApi) {
+      // Navigation follows the current capability boundary: residents have no
+      // alert/rule read grant, so these whole pages are denied, not read-only.
+      await expect(page.getByText("Sua conta não tem acesso a esta área do condomínio.", { exact: true })).toBeVisible();
+      await expect(page.getByRole("heading", { name: route.heading, exact: true })).toHaveCount(0);
+      const resident = await authenticatedApi(request, "morador@predioon.local");
+      expect((await resident.get(route.deniedApi)).status()).toBe(403);
+    } else {
+      await expect(page.getByRole("heading", { name: route.heading, exact: true })).toBeVisible();
+    }
     await expect(page.getByRole("button", { name: route.management })).toHaveCount(0);
   });
 }

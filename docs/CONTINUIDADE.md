@@ -1,8 +1,8 @@
 # Continuidade do Prédio ON
 
-Atualizado em **23/10/2026**, horário de São Paulo. Leia este arquivo primeiro ao retomar, em qualquer computador. O histórico completo de cada sessão até esta data, com todos os números e decisões, está em [continuidade/historico-ate-2026-10-17.md](continuidade/historico-ate-2026-10-17.md).
+Atualizado em **24/10/2026**, horário de São Paulo. Leia este arquivo primeiro ao retomar, em qualquer computador. O histórico anterior está em [continuidade/historico-ate-2026-10-17.md](continuidade/historico-ate-2026-10-17.md); a entrega atual de entrada pública, testes e VPS está em [VERIFICACAO_2026-10-24.md](VERIFICACAO_2026-10-24.md).
 
-**Situação:** o produto está implementado e verificado localmente, **sem implantação e sem aceite de produção**. Base: **main `949fc2f`**, migrations **001–058**. Planos/assinaturas ficaram por último, por decisão do proprietário, e não foram feitos.
+**Situação:** o produto está implementado e verificado localmente, **sem implantação e sem aceite de produção**. Base desta rodada: **main `c53117d6`**, migrations **001–058**. Planos/assinaturas ficaram por último, por decisão do proprietário, e não foram feitos.
 
 ## 1. Instruções permanentes do proprietário
 

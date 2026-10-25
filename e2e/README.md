@@ -76,6 +76,14 @@ O que você fizer durante a gravação fica só no banco descartável. O código
 
 Para gravar fora do gravador (com os servidores já de pé), também funciona `pnpm exec playwright codegen --target=playwright-test http://127.0.0.1:5274`.
 
+O fluxo público **Conheça a plataforma → Explorar recursos → Login → Voltar ao início** foi gravado com o Codegen e revisado em `specs/public/platform-presentation.spec.ts`. Para reproduzir a gravação sem sessão, use `pnpm e2e:record anonimo resident`. Os testes dessa área verificam entrada mobile, formulário desktop, apresentação, retorno ao login, ausência de rolagem horizontal e problemas sérios/críticos de acessibilidade WCAG A/AA com axe nos três portais.
+
+A área pública tem 16 cenários. Os títulos e recursos esperados diferem por público, para impedir que a página de gestão reapareça no portal do morador. O percurso do morador foi regravado no Codegen após essa separação, incluindo o acesso a **Recebi um convite**; a suíte verifica a abertura do formulário real de convite.
+
+```powershell
+pnpm test:e2e e2e/specs/public --project=chromium
+```
+
 ## 5. Testes com auxílio de IA
 
 Os agentes do Playwright para o Claude Code estão em `.claude/agents/playwright-test-{planner,generator,healer}.md`. Eles usam o servidor MCP `playwright-test` de `.mcp.json`, que o Claude Code pede para aprovar na primeira vez.
@@ -109,6 +117,7 @@ e2e/
     tenancy/          isolamento entre condomínios, unidades e equipes
     platform/         clientes, funcionalidades, auditoria, acesso de suporte
     navigation/       menu móvel e foco
+    public/           entrada, apresentação comercial, Codegen e acessibilidade
     community/        avisos, chamados, reservas
     finance/          transparência e prestação de contas
     monitoring/       água, sensores, regras de alerta, consumo

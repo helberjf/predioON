@@ -60,7 +60,7 @@ type ButtonProps = {
 };
 
 const BUTTON_VARIANTS = {
-  primary: "bg-emerald-600 text-white shadow-sm shadow-emerald-600/20 hover:bg-emerald-700 active:bg-emerald-800 disabled:bg-emerald-300 disabled:shadow-none",
+  primary: "bg-emerald-700 text-white shadow-sm shadow-emerald-700/20 hover:bg-emerald-800 active:bg-emerald-900 disabled:bg-emerald-300 disabled:shadow-none",
   secondary: "border border-slate-200 bg-white text-[#1b3a5c] shadow-sm shadow-slate-900/[0.03] hover:border-slate-300 hover:bg-slate-50",
   ghost: "text-slate-600 hover:bg-slate-100",
   danger: "bg-rose-600 text-white shadow-sm shadow-rose-600/20 hover:bg-rose-700",

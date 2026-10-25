@@ -143,4 +143,50 @@ describe("temporary platform support access (053)", () => {
     assert.ok((await f.audits("SUPPORT_GRANT_REVOKED")).some(row => (row.metadata as { cause?: string }).cause === "staff_removed"));
     assert.equal((await f.json(await f.request(f.admin, "/v1/support-access/staff"), 200)).items.some((row: { id: string }) => row.id === staff.id), false);
   }));
+
+  it("serializes simultaneous first grants so revoking the surviving grant ends access on the same session", async () => fixture(async f => {
+    await f.json(await f.request(f.admin, "/v1/support-access/staff", "POST", { userId: f.support, reason: "Equipe de atendimento" }), 201);
+    const requests: Array<Promise<Response>> = [];
+    try {
+      // SHARE allows the empty-grant reads but holds the first INSERT. Observe
+      // both requests actually waiting before release, including a request
+      // queued behind the other request's authoritative staff-row lock.
+      await sqlClient.begin(async blocker => {
+        await blocker`lock table support_grants in share mode`;
+        const [{ pid }] = await blocker`select pg_backend_pid() as pid`;
+        requests.push(f.grant({ hours: 1 }), f.grant({ hours: 4 }));
+        const appUser = new URL(process.env.DATABASE_URL_APP!).username;
+        const deadline = Date.now() + 10_000;
+        let waiting = 0;
+        while (Date.now() < deadline) {
+          const [row] = await sqlClient`with recursive blocked(pid) as (
+            select pid from pg_stat_activity where ${pid} = any(pg_blocking_pids(pid))
+            union
+            select a.pid from pg_stat_activity a join blocked b on b.pid = any(pg_blocking_pids(a.pid))
+          ) select count(*)::int as count from blocked b join pg_stat_activity a on a.pid=b.pid
+            where a.usename=${appUser} and a.state='active'`;
+          waiting = row.count;
+          if (waiting === 2) break;
+          await sqlClient`select pg_sleep(0.02)`;
+        }
+        assert.equal(waiting, 2, "both grant requests must overlap at a real database wait");
+      });
+      for (const response of await Promise.all(requests)) await f.json(response, 201);
+      const grants = (await f.json(await f.request(f.admin, `/v1/support-access/grants?buildingId=${f.a}`), 200)).items as Array<{ id: string; status: string }>;
+      const active = grants.filter(row => row.status === "ACTIVE");
+      assert.equal(active.length, 1, "concurrent replacement must leave exactly one active grant");
+      assert.equal(grants.filter(row => row.status === "REVOKED").length, 1);
+      assert.equal((await f.telemetry(f.a)).status, 200);
+      const mine = await f.json(await f.request(f.support, "/v1/support-access/mine"), 200);
+      assert.deepEqual(mine.items.map((row: { id: string }) => row.id), [active[0]!.id]);
+      await f.json(await f.request(f.admin, `/v1/support-access/grants/${active[0]!.id}`, "DELETE"), 204);
+      assert.equal((await f.telemetry(f.a)).status, 403, "the original support JWT loses its last authority immediately");
+      assert.deepEqual((await f.json(await f.request(f.support, "/v1/support-access/mine"), 200)).items, []);
+      assert.equal((await f.audits("SUPPORT_GRANT_CREATED")).length, 2);
+      assert.equal((await f.audits("SUPPORT_GRANT_REVOKED")).length, 2);
+    } finally {
+      // Never let fixture cleanup race requests released by a failed assertion.
+      await Promise.allSettled(requests);
+    }
+  }));
 });

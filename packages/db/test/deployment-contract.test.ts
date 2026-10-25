@@ -13,7 +13,7 @@ const skip = process.platform === "win32";
 /** Runs only a copied script against a fake docker executable and fake secrets.
  * No container, database, network, production file or service is touched. */
 const servicePasswords = ["NOTIFICATIONS_DB_PASSWORD", "INGEST_DB_PASSWORD", "ACCESS_SERVICE_DB_PASSWORD"] as const;
-async function rollout(options: { stopFails?: boolean; stillRunning?: boolean; missingPassword?: typeof servicePasswords[number] } = {}) {
+async function rollout(options: { stopFails?: boolean; stillRunning?: boolean; buildFails?: boolean; preflightFails?: boolean; missingPassword?: typeof servicePasswords[number] } = {}) {
   const root = await mkdtemp(join(tmpdir(), "predioon-rollout-"));
   try {
     await mkdir(join(root, "infrastructure"));
@@ -27,6 +27,9 @@ async function rollout(options: { stopFails?: boolean; stillRunning?: boolean; m
     await writeFile(docker, `#!/bin/sh
 printf '%s\\n' "$*" >> "$TEST_DOCKER_LOG"
 case "$*" in
+  *" config --quiet"*) if test "$TEST_MISSING_PASSWORD" = 1; then exit 1; fi ;;
+  *" build api "*) if test "$TEST_BUILD_FAIL" = 1; then exit 1; fi ;;
+  *"deploy-preflight.mjs "*) if test "$TEST_PREFLIGHT_FAIL" = 1; then exit 1; fi ;;
   *" stop "*) if test "$TEST_STOP_FAIL" = 1; then exit 1; fi ;;
   *" ps --status running "*) if test "$TEST_STILL_RUNNING" = 1; then printf 'fixture-container\\n'; fi ;;
 esac
@@ -37,7 +40,9 @@ exit 0
     try {
       await execute("bash", [join(root, "infrastructure/setup-prod.sh")], { timeout: 10_000,
         env: { ...process.env, PATH: join(root, "bin") + ":" + process.env.PATH, TEST_DOCKER_LOG: log,
-          TEST_STOP_FAIL: options.stopFails ? "1" : "0", TEST_STILL_RUNNING: options.stillRunning ? "1" : "0" } });
+          TEST_STOP_FAIL: options.stopFails ? "1" : "0", TEST_STILL_RUNNING: options.stillRunning ? "1" : "0",
+          TEST_BUILD_FAIL: options.buildFails ? "1" : "0", TEST_PREFLIGHT_FAIL: options.preflightFails ? "1" : "0",
+          TEST_MISSING_PASSWORD: options.missingPassword ? "1" : "0" } });
     } catch (error) {
       const status = (error as { code: unknown }).code;
       if (typeof status !== "number") throw new Error("The copied rollout fixture failed outside its expected exit boundary");
@@ -48,19 +53,22 @@ exit 0
   } finally { await rm(root, { recursive: true, force: true }); }
 }
 
-it("stops old producers before migration and supplies the service DSNs only to provisioning", { skip }, async () => {
+it("builds and validates before stopping writers; runs migrations only in transient admin containers", { skip }, async () => {
   const result = await rollout();
   assert.equal(result.code, 0);
   const stop = result.calls.findIndex(value => value.includes(" stop --timeout 30 ingest notifications"));
   const stopped = result.calls.findIndex(value => value.includes(" ps --status running --quiet ingest notifications"));
   const migration = result.calls.findIndex(value => value.includes(" db:infra"));
+  const build = result.calls.findIndex(value => value.includes(" build api "));
+  const preflight = result.calls.findIndex(value => value.includes("deploy-preflight.mjs database"));
+  assert.ok(build >= 0 && preflight > build && stop > preflight);
   assert.ok(stop >= 0 && stopped > stop && migration > stopped);
-  for (const variable of ["DATABASE_URL_NOTIFICATIONS", "DATABASE_URL_INGEST", "DATABASE_URL_ACCESS_SERVICE"]) {
-    const configured = result.calls.filter(value => value.includes(`${variable}=`));
-    assert.equal(configured.length, 1, `${variable} reaches exactly one command`);
-    assert.ok(configured[0]!.includes("db:provision-runtime"), `${variable} reaches only provisioning`);
+  for (const command of ["db:bootstrap", "db:infra", "db:provision-runtime"]) {
+    const call = result.calls.find(value => value.endsWith(command));
+    assert.ok(call?.includes(" run --rm --no-deps db-admin pnpm "), command);
   }
-  assert.ok(result.calls.at(-1)!.includes(" up -d --build"));
+  assert.ok(result.calls.some(value => value.includes(" up -d --no-build --wait --wait-timeout 240 ")));
+  assert.ok(result.calls.every(value => !value.includes("postgres://")), "secrets never enter command arguments");
 });
 
 for (const [label, options] of [["stop fails", { stopFails: true }], ["a producer remains active", { stillRunning: true }]] as const) {
@@ -76,8 +84,17 @@ for (const [label, options] of [["stop fails", { stopFails: true }], ["a produce
 for (const missingPassword of servicePasswords) it(`refuses a missing ${missingPassword} before stopping or mutating anything`, { skip }, async () => {
   const result = await rollout({ missingPassword });
   assert.notEqual(result.code, 0);
-  assert.deepEqual(result.calls, []);
+  assert.equal(result.calls.length, 1);
+  assert.ok(result.calls[0]!.endsWith(" config --quiet"));
 });
+
+for (const [label, options] of [["image build", { buildFails: true }], ["configuration preflight", { preflightFails: true }]] as const) {
+  it(`leaves old services running when ${label} fails`, { skip }, async () => {
+    const result = await rollout(options);
+    assert.notEqual(result.code, 0);
+    assert.ok(result.calls.every(value => !/ stop |db:bootstrap|db:infra|db:provision-runtime/.test(value)));
+  });
+}
 
 /** Environment keys of one Compose service, read as text: values are never resolved. */
 async function composeEnvironment(service: string): Promise<string[]> {
@@ -86,11 +103,11 @@ async function composeEnvironment(service: string): Promise<string[]> {
   assert.ok(start >= 0, `service ${service} exists`);
   const end = lines.findIndex((line, index) => index > start && /^  [a-z]/.test(line));
   const block = lines.slice(start, end < 0 ? undefined : end);
-  const environment = block.indexOf("    environment:");
+  const environment = block.findIndex(line => /^    environment:(?:\s+&[\w-]+)?$/.test(line));
   assert.ok(environment >= 0, `service ${service} declares environment`);
   const keys: string[] = [];
   for (const line of block.slice(environment + 1)) {
-    if (/^      #/.test(line)) continue;
+    if (/^      (#|<<:)/.test(line)) continue;
     const match = /^      ([A-Z0-9_]+):/.exec(line);
     if (!match) break;
     keys.push(match[1]!);
@@ -113,4 +130,17 @@ it("passes the ingest container only its two restricted logins and operational k
   for (const service of ["api", "notifications"]) {
     assert.ok((await composeEnvironment(service)).every(key => !/^DATABASE_URL_(INGEST|ACCESS_SERVICE)$/.test(key)), service);
   }
+});
+
+it("keeps owner credentials exclusively in the profiled administrative service", async () => {
+  for (const service of ["api", "ingest", "notifications"]) {
+    assert.ok(!(await composeEnvironment(service)).includes("DATABASE_URL"), service);
+  }
+  const admin = await composeEnvironment("db-admin");
+  assert.equal(admin.filter(key => key.startsWith("DATABASE_URL")).length, 7);
+  const source = await readFile(new URL("../../../infrastructure/docker-compose.prod.yml", import.meta.url), "utf8");
+  assert.match(source, /db-admin:\s+profiles: \[maintenance\]/);
+  const setup = await readFile(script, "utf8");
+  assert.doesNotMatch(setup, /^\s*\.\s+"?\$ENV_FILE/m, "dotenv must never be executed as shell");
+  assert.doesNotMatch(setup, /SEED_PASSWORD:-predioon123/);
 });

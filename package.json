@@ -32,6 +32,7 @@
     "e2e:record": "node scripts/e2e-record.mjs"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
     "@playwright/test": "1.63.0",
     "postgres": "3.4.9"
   }

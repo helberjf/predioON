@@ -29,10 +29,23 @@ export function BuildingAccessProvider({ buildingId, children }: { buildingId: s
   // Grants on single devices or alerts show only in the summary coverage.
   const overview = useResource<BuildingOverview>(known && buildingRoutesNeedCoverage(capabilities) ? `/overview/building?${scope}` : null);
   // The list leaves out every gate not released to this account, as in the resident portal.
-  const probeGates = known && capabilities.includes("gates:read") && !capabilities.includes("gates:manage") && flags.routeAllowed("/acessos");
+  const probeGates = known && !capabilities.includes("gates:manage") && flags.routeAllowed("/acessos");
   const gates = useResource<AccessList>(probeGates ? `/access?${scope}` : null);
+  // Broad authorization deliberately excludes grants on individual rules and reports.
+  // Their APIs verify the scope and filter the result; never infer these grants from another domain.
+  const probeRules = known && !capabilities.includes("alert-rules:read") && flags.routeAllowed("/regras");
+  const rules = useResource<{ items: unknown[] }>(probeRules ? `/alert-rules?${scope}` : null);
+  const probeFinance = known && !["finance:read", "finance:read-published", "notices:read"].some(key => capabilities.includes(key as Capability)) && flags.routeAllowed("/transparencia");
+  const finance = useResource<{ items: unknown[] }>(probeFinance ? `/finance?${scope}&limit=1` : null);
+  const probeParking = known && !capabilities.includes("parking:read") && !capabilities.includes("parking:manage") && flags.routeAllowed("/vagas");
+  const parking = useResource<{ items: unknown[] }>(probeParking ? `/parking?${scope}` : null);
+  const probeAudit = known && !capabilities.includes("audit:read") && flags.routeAllowed("/auditoria");
+  const audit = useResource<{ items: unknown[] }>(probeAudit ? `/audit?${scope}&limit=1` : null);
   const { reload: reloadAuthorization } = authorization, { reload: reloadOverview } = overview, { reload: reloadGates } = gates;
-  const refresh = useCallback(() => { reloadAuthorization(); reloadOverview(); reloadGates(); }, [reloadAuthorization, reloadOverview, reloadGates]);
+  const { reload: reloadRules } = rules, { reload: reloadFinance } = finance;
+  const { reload: reloadParking } = parking;
+  const { reload: reloadAudit } = audit;
+  const refresh = useCallback(() => { reloadAuthorization(); reloadOverview(); reloadGates(); reloadRules(); reloadFinance(); reloadParking(); reloadAudit(); }, [reloadAuthorization, reloadOverview, reloadGates, reloadRules, reloadFinance, reloadParking, reloadAudit]);
   useEffect(() => {
     window.addEventListener("focus", refresh);
     const interval = setInterval(refresh, 30_000);
@@ -42,15 +55,26 @@ export function BuildingAccessProvider({ buildingId, children }: { buildingId: s
   const overviewDenied = overview.errorStatus === 403;
   const error = (!denied && authorization.error) || (!overviewDenied && overview.error) || null;
   const coverageKnown = !buildingRoutesNeedCoverage(capabilities) || Boolean(overview.data) || overviewDenied;
-  const gatesKnown = !probeGates || Boolean(gates.data) || gates.errorStatus != null;
-  const ready = known && coverageKnown && gatesKnown && !error;
+  const gatesKnown = !probeGates || Boolean(gates.data) || Boolean(gates.error);
+  const rulesKnown = !probeRules || Boolean(rules.data) || Boolean(rules.error);
+  const financeKnown = !probeFinance || Boolean(finance.data) || Boolean(finance.error);
+  const parkingKnown = !probeParking || Boolean(parking.data) || Boolean(parking.error);
+  const auditKnown = !probeAudit || Boolean(audit.data) || Boolean(audit.error);
+  const ready = known && coverageKnown && gatesKnown && rulesKnown && financeKnown && parkingKnown && auditKnown && !error;
   const coverage = overview.data?.buildingId === buildingId ? overview.data.coverage : null;
   // Only a refusal hides the gates; another failure keeps them, so the problem is seen on the page.
-  const gatesListed = gates.errorStatus != null ? gates.errorStatus !== 403 : gates.data?.items.some(gate => gate.buildingId === buildingId) === true;
+  const gatesListed = gates.error ? gates.errorStatus !== 403 : gates.data?.items.some(gate => gate.buildingId === buildingId) === true;
   const value: BuildingAccess = {
     ready, error, refresh,
     can: capability => capabilities.includes(capability),
-    allowed: path => ready && buildingRouteAllowed(path, { capabilities, coverage, gatesListed }),
+    allowed: path => ready && buildingRouteAllowed(path, {
+      capabilities, coverage, gatesListed,
+      // A non-permission failure keeps the page reachable so its retry/error UI is available.
+      rulesReadable: probeRules && (Boolean(rules.data) || Boolean(rules.error && rules.errorStatus !== 403)),
+      financeReadable: probeFinance && (Boolean(finance.data) || Boolean(finance.error && finance.errorStatus !== 403)),
+      parkingReadable: probeParking && (Boolean(parking.data) || Boolean(parking.error && parking.errorStatus !== 403)),
+      auditReadable: probeAudit && (Boolean(audit.data) || Boolean(audit.error && audit.errorStatus !== 403)),
+    }),
   };
   return <Context.Provider value={value}>{children}</Context.Provider>;
 }
