@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import { AccessPanel, BuildingScopeProvider, BuildingScopeFeedback, FeatureProvider, FeatureContent, InvitationScreen, PublicEntry, PlatformPresentation, PasswordRecoveryScreen, PublishedConsumption, ParkingPanel, TransparencyPanel, useAuth, useBuildingScope } from "@predioon/ui";
+import { AccessPanel, BuildingScopeProvider, BuildingScopeFeedback, FeatureProvider, FeatureContent, InvitationScreen, PublicEntry, ResidentPresentation, PasswordRecoveryScreen, PublishedConsumption, ParkingPanel, TransparencyPanel, useAuth, useBuildingScope } from "@predioon/ui";
 import { MobileShell } from "./layout/MobileShell.js";
 import { Home } from "./pages/Home.js";
 import { Notices } from "./pages/Notices.js";
@@ -14,9 +14,9 @@ export function App() {
   if (window.location.pathname === "/convite") return <InvitationScreen />;
   // A recovery link is honoured whoever is signed in on this browser; it ends every session anyway.
   if (window.location.pathname === "/redefinir-senha") return <PasswordRecoveryScreen />;
-  if (window.location.pathname === "/conheca") return <PlatformPresentation />;
+  if (window.location.pathname === "/conheca") return <ResidentPresentation />;
   if (loading) return <p className="p-8 text-slate-500">Carregando...</p>;
-  if (!user) return <PublicEntry subtitle="Portal do morador" invitationHref="/convite" />;
+  if (!user) return <PublicEntry subtitle="Portal do morador" invitationHref="/convite" audience="resident" />;
 
   return <BuildingScopeProvider key={user.id}><ResidentApp /></BuildingScopeProvider>;
 }

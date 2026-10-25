@@ -19,6 +19,7 @@ export * from "./service-health-state.js";
 export * from "./components/primitives.js";
 export * from "./components/public-entry.js";
 export * from "./components/platform-presentation.js";
+export * from "./components/resident-presentation.js";
 export * from "./components/fields.js";
 export * from "./components/login.js";
 export * from "./components/auth-layout.js";
