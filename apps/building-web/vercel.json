@@ -1,10 +1,14 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
-  "buildCommand": "cd ../.. && pnpm install --frozen-lockfile && pnpm --filter @predioon/building-web build",
+  "buildCommand": "cd ../.. && pnpm install --frozen-lockfile --filter @predioon/building-web... && VITE_API_URL=/api pnpm --filter @predioon/building-web build",
   "outputDirectory": "dist",
-  "installCommand": "echo 'instala\u00e7\u00e3o feita no buildCommand, a partir da raiz do monorepo'",
+  "installCommand": "echo 'instalação feita no buildCommand, a partir da raiz do monorepo'",
   "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://predioon-api.vercel.app/:path*"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
