@@ -68,7 +68,7 @@ test("aviso pode ser publicado, editado e removido; agendamento fica restrito à
 for (const route of [
   { path: "/regras", heading: "Regras de alerta", management: /^(Criar regra|Ativar|Desativar)$/, deniedApi: "/alert-rules?buildingId=bld_001" },
   { path: "/areas", heading: "Áreas comuns", management: /^(Aprovar|Recusar)$/, deniedApi: null },
-  { path: "/alertas", heading: "Alertas", management: /^(Resolver|Reconhecer)$/, deniedApi: "/alerts?buildingId=bld_001" },
+  { path: "/alertas", heading: "Alertas", management: /^(Marcar como resolvido|Iniciar acompanhamento)$/, deniedApi: "/alerts?buildingId=bld_001" },
 ]) {
   test(`morador abrindo ${route.path} diretamente não recebe ações de gestão`, async ({ page, request }) => {
     await signIn(page, BUILDING_URL, "morador@predioon.local");

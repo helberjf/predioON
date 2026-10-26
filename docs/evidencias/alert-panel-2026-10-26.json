@@ -1,0 +1,14 @@
+{
+  "checkedAt": "2026-10-26T17:05:14.295Z",
+  "fixtures": 6,
+  "grouping": true,
+  "technicalDisclosure": true,
+  "keyboard": true,
+  "originalData": true,
+  "authorizationRevocation": true,
+  "statusActions": true,
+  "mobileOverflow": false,
+  "emptyAndErrorStates": true,
+  "externalWrites": 0,
+  "browserErrors": 0
+}
