@@ -48,6 +48,10 @@ O owner não é enviado à aplicação Vercel. Chaves Ed25519, segredo de limita
 
 O histórico inclui o SQL original e o adaptador no checksum. Um comando sem o perfil correto recusa o histórico diferente; não reescreva checksums nem troque o perfil de uma instalação existente. A aplicação confirmou as migrations 001–059 atomicamente, e `--check` confirmou que nenhuma ficou pendente.
 
+## Prédio vivo
+
+Para sensores, vagas e portões funcionando de ponta a ponta, com botões de cenário na administração, veja [DEMO_CAMPO.md](DEMO_CAMPO.md): broker, ingestão e gateway simulado numa máquina Oracle Cloud ligada a este mesmo banco, e `DEMO_SCENARIOS=on` na API.
+
 ## Limites da demonstração
 
 Os logins e os recursos HTTP dos painéis usam o banco real do Neon. Sensores, comandos físicos e entrega por workers dependem dos serviços da VPS. Automações programadas não executam neste perfil; para executá-las, use a implantação completa ou implemente e valide um agendador compatível. Portões e estacionamento começam desligados, conforme o padrão do produto. E-mails não são enviados sem configurar o Resend e um remetente autorizado.

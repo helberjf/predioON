@@ -32,6 +32,8 @@ const EnvSchema = z.object({
   // Optional: without it, the hourly totem QR (059) is unavailable in production.
   GATE_QR_SECRET: z.preprocess(blank,
     z.string().refine(value => Buffer.byteLength(value, "utf8") >= 32 && value.trim() === value, "GATE_QR_SECRET exige pelo menos 32 bytes").optional()),
+  // Demonstration only: exposes /v1/demo to switch the field simulator's scenario (062).
+  DEMO_SCENARIOS: z.preprocess(blank, z.enum(["on", "off"]).default("off")),
   // E-mail by Resend, same variable names as our other projects. Optional: without the key nothing is sent.
   RESEND_API_KEY: z.preprocess(blank, z.string().min(1).optional()),
   RESEND_FROM_EMAIL: z.preprocess(blank, z.string().min(3).max(200).default("Prédio ON <onboarding@resend.dev>")),
@@ -62,6 +64,7 @@ export const config = {
   // Development and test use a fixed local key; production must supply its own.
   mfaEncryptionKey: parsed.data.MFA_ENCRYPTION_KEY ?? (parsed.data.NODE_ENV === "production" ? null : "predioon-local-only-mfa-key-do-not-use-in-production"),
   gateQrSecret: parsed.data.GATE_QR_SECRET ?? (parsed.data.NODE_ENV === "production" ? null : "predioon-local-only-gate-qr-key-do-not-use-in-production"),
+  demoScenarios: parsed.data.DEMO_SCENARIOS === "on",
   resendApiKey: parsed.data.RESEND_API_KEY ?? null,
   resendFromEmail: parsed.data.RESEND_FROM_EMAIL,
   passwordResetUrl: parsed.data.PASSWORD_RESET_URL?.replace(/\/+$/, "") ?? null,

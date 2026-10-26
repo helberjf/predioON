@@ -5,8 +5,8 @@ import { runtimeRoleCredentials } from "./runtime-role-credentials.js";
 /** Administrative CLI only. Runtime processes never import this module. */
 async function provision(): Promise<void> {
   const args = process.argv.slice(2);
-  if (args.length && (args.length !== 1 || args[0] !== "--api-only")) throw new Error("Uso: db:provision-runtime [--api-only]");
-  const credentials = runtimeRoleCredentials(process.env, args.includes("--api-only") ? "api" : "all");
+  if (args.length && (args.length !== 1 || !["--api-only", "--field-only"].includes(args[0]!))) throw new Error("Uso: db:provision-runtime [--api-only | --field-only]");
+  const credentials = runtimeRoleCredentials(process.env, args[0] === "--api-only" ? "api" : args[0] === "--field-only" ? "field" : "all");
   const client = postgres(process.env.DATABASE_URL!, { max: 1, onnotice: () => {} });
   try {
     await client.begin(async tx => {

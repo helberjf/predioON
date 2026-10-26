@@ -15,6 +15,7 @@ import { Features } from "./pages/Features.js";
 import { Support } from "./pages/Support.js";
 import { SupportAccess } from "./pages/SupportAccess.js";
 import { Tenancy } from "./pages/Tenancy.js";
+import { Demo } from "./pages/Demo.js";
 import { OrganizationAccessFeedback, OrganizationAccessProvider, useOrganizationAccess } from "./organization-access.js";
 
 export function App() {
@@ -64,6 +65,7 @@ function AuthenticatedApp() {
         <Route path="/sessoes" element={<SessionsPanel />} />
         <Route path="/unidades-equipes" element={gated(<Tenancy />)} />
         <Route path="/funcionalidades" element={gated(<Features />)} />
+        <Route path="/demonstracao" element={gated(<Demo />)} />
         <Route path="/auditoria" element={gated(<Audit />)} />
         <Route path="/acesso-suporte" element={gated(<SupportAccess />)} />
         <Route path="/operacao" element={gated(<FeatureContent path="/operacao"><Operations /></FeatureContent>)} />

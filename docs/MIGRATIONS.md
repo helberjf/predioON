@@ -376,3 +376,9 @@ A admissão de abertura da 034 passou para `app_request_access_admit`, com um ca
 `061-totem-pairing-clock.sql` redefine só `app_gate_totem_pairing_create`, com a mesma assinatura, dono e permissão. A versão da 059 deixava `created_at` vir do padrão da coluna e calculava `expires_at` com outro `clock_timestamp()`. O PostgreSQL pode avaliar o padrão depois do valor explícito, e então o `CHECK` de 10 minutos recusava a linha por microssegundos. O síndico via, às vezes, "Controlador e gateway precisam pertencer a este prédio" ao clicar em **Parear tablet**. Agora as duas colunas usam o mesmo instante.
 
 **Efeito ao aplicar:** nenhum dado muda. No Neon de demonstração, aplicar com `pnpm --filter @predioon/db db:infra --provider=neon-demo`.
+
+## Release 062: cenários do campo de demonstração
+
+`062-demo-field-scenarios.sql` cria `demo_scenarios` (cenário por condomínio) e `app_demo_scenario_set`, que exige `features:manage` e audita `DEMO_SCENARIO_CHANGED`. A API lê a tabela só para quem tem `features:manage`; a ingestão lê todas as linhas para o gateway simulado; nenhuma role grava diretamente. Ver [DEMO_CAMPO](DEMO_CAMPO.md).
+
+**Efeito ao aplicar:** nenhum. A tabela fica vazia e as rotas só respondem com `DEMO_SCENARIOS=on` na API.

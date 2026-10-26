@@ -2,9 +2,11 @@
  * Pure model of a building's field equipment. No MQTT, no database: it can be unit tested
  * and it is what makes it possible to validate alarms and offline detection with no hardware.
  */
-export const SCENARIOS = ["normal", "low-water", "power-loss", "leak", "stuck-sensor", "gateway-drop",
-  "high-energy", "high-water-consumption", "pump-overrun", "gas", "smoke", "sewage-leak"] as const;
-export type Scenario = (typeof SCENARIOS)[number];
+import { DEMO_SCENARIOS, type DemoScenario } from "@predioon/shared";
+
+// One list for the CLI simulator, the demo field and the database CHECK (062).
+export const SCENARIOS = DEMO_SCENARIOS;
+export type Scenario = DemoScenario;
 
 export type FieldState = {
   waterLevelPercent: number;

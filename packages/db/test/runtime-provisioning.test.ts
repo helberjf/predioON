@@ -28,6 +28,14 @@ test("API-only provisioning requires just its three restricted logins and preser
   assert.throws(() => runtimeRoleCredentials({ ...api, DATABASE_URL_IDENTITY: api.DATABASE_URL_IDENTITY + "?role=owner" }, "api"), /DATABASE_URL_IDENTITY/);
 });
 
+test("field-only provisioning touches just ingestion and gate dispatch, never the API logins", () => {
+  const field = { DATABASE_URL: environment.DATABASE_URL, DATABASE_URL_INGEST: environment.DATABASE_URL_INGEST,
+    DATABASE_URL_ACCESS_SERVICE: environment.DATABASE_URL_ACCESS_SERVICE };
+  assert.deepEqual(runtimeRoleCredentials(field, "field").map(item => item.role), ["predioon_ingest", "predioon_access_service"]);
+  assert.ok(!runtimeRoleCredentials({ ...environment }, "field").some(item => ["predioon_app", "predioon_identity", "predioon_broker_auth"].includes(item.role)));
+  assert.throws(() => runtimeRoleCredentials({ ...field, DATABASE_URL_INGEST: field.DATABASE_URL }, "field"), /DATABASE_URL_INGEST/);
+});
+
 function safeConfigurationError(variable: string, configured?: string) {
   return (error: unknown) => {
     assert.ok(error instanceof Error);
