@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { noticeIsVisible } from "@predioon/shared";
-import { Badge, Card, cls, ErrorBanner, formatDateTime, ResourceFeedback, useResource } from "@predioon/ui";
+import { Badge, Card, cls, ErrorBanner, formatDateTime, ResourceFeedback, useResource, useNoticeNotifications } from "@predioon/ui";
 import type { Paged } from "@predioon/ui";
 import { nextDate, noticeLook, type ResidentNotice } from "../notices.js";
 
@@ -13,6 +13,7 @@ const FILTERS = [
 ];
 
 export function Notices({ buildingId }: { buildingId: string }) {
+  const { markSeen } = useNoticeNotifications();
   const notices = useResource<Paged<ResidentNotice>>(`/notices?buildingId=${encodeURIComponent(buildingId)}`);
   const [, setClockTick] = useState(0);
   const [filter, setFilter] = useState("");
@@ -25,6 +26,9 @@ export function Notices({ buildingId }: { buildingId: string }) {
   // Only categories that have something to show become a filter.
   const filters = FILTERS.filter(item => !item.key || visible.some(notice => notice.category === item.key));
   const items = visible.filter(notice => !filter || notice.category === filter);
+  useEffect(() => {
+    if (!notices.loading && !notices.error && notices.data) markSeen(notices.data.items.filter(notice => !filter || notice.category === filter));
+  }, [notices.data, notices.loading, notices.error, filter, markSeen]);
   return <>
     {filters.length > 2 && <div role="group" aria-label="Filtrar avisos" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
       {filters.map(item => <button key={item.key} type="button" aria-pressed={filter === item.key} onClick={() => setFilter(item.key)} className={cls("shrink-0 rounded-full border px-4 py-2 text-xs font-semibold transition", filter === item.key ? "border-emerald-600 bg-emerald-600 text-white shadow-sm" : "border-slate-200 bg-white text-slate-600 hover:border-emerald-200")}>{item.label}</button>)}
