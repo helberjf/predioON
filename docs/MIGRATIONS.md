@@ -370,3 +370,9 @@ Também retira `INSERT`, `UPDATE` e `DELETE` de `sessions` da role da API de neg
 A admissão de abertura da 034 passou para `app_request_access_admit`, com um canal (`LIST` ou `QR`) e a geração esperada. `app_request_access(uuid,uuid,text,text)` continua com a mesma assinatura e chama o canal `LIST`; `app_request_access_by_qr` chama o canal `QR` depois que a API confere o HMAC. Novas funções `SECURITY DEFINER`: `app_gate_qr_renew`, `app_gate_totem_pairing_create`, `app_gate_totem_revoke` (para `predioon_app`) e `identity_totem_pair`, `identity_totem_display` (para `predioon_identity`). Detalhes em [ACESSOS](ACESSOS.md#abertura-pelo-qr-do-totem-059).
 
 **Efeito ao aplicar:** nenhum condomínio muda de comportamento. O adicional nasce não liberado em todos, e nenhum portão nasce exigindo QR. A API nova exige a 059. Em produção, defina `GATE_QR_SECRET` (32 bytes ou mais) antes de liberar o adicional; sem ela, as rotas de QR e do tablet respondem 503 e o resto funciona.
+
+## Release 061: prazo do código de pareamento do totem
+
+`061-totem-pairing-clock.sql` redefine só `app_gate_totem_pairing_create`, com a mesma assinatura, dono e permissão. A versão da 059 deixava `created_at` vir do padrão da coluna e calculava `expires_at` com outro `clock_timestamp()`. O PostgreSQL pode avaliar o padrão depois do valor explícito, e então o `CHECK` de 10 minutos recusava a linha por microssegundos. O síndico via, às vezes, "Controlador e gateway precisam pertencer a este prédio" ao clicar em **Parear tablet**. Agora as duas colunas usam o mesmo instante.
+
+**Efeito ao aplicar:** nenhum dado muda. No Neon de demonstração, aplicar com `pnpm --filter @predioon/db db:infra --provider=neon-demo`.

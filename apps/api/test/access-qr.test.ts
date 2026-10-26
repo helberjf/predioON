@@ -33,7 +33,9 @@ describe("abertura pelo QR do totem", () => {
   };
   async function fixture(run: (value: Fixture) => Promise<void>) {
     const suffix = randomUUID(), org = `access-qr-org-${suffix}`, building = `access-qr-b-${suffix}`;
-    const gateway = `access-qr-gw-${suffix}`, device = `access-qr-device-${suffix}`, gate = randomUUID();
+    // Version nibble 0, like ids created outside gen_random_uuid() (the Neon demo data):
+    // PostgreSQL stores it, and the API must accept it as well.
+    const gateway = `access-qr-gw-${suffix}`, device = `access-qr-device-${suffix}`, gate = randomUUID().replace(/^(.{14})./, "$10");
     const ids = { manager: `access-qr-manager-${suffix}`, resident: `access-qr-resident-${suffix}`, admin: `access-qr-admin-${suffix}` };
     const tokens = new Map<Kind, string>();
     try {
@@ -154,6 +156,7 @@ describe("abertura pelo QR do totem", () => {
       assert.equal(resolved.json.id, f.gate);
       assert.equal(resolved.json.available, true);
       assert.equal((await f.request("manager", `/access/${f.gate}`, "PATCH", { requireQr: true })).status, 200);
+      assert.equal((await f.request("manager", "/access/nao-e-um-id", "PATCH", { name: "Outro" })).status, 404);
       assert.equal((await listed(f, "resident")).requireQr, true);
 
       const listOpen = await body(await f.request("resident", `/access/${f.gate}/open`, "POST", { requestId: randomUUID() }));

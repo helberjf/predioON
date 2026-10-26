@@ -48,6 +48,17 @@ import { gateQrSecret, verifyGateQr } from "./qr-code.js";
 import { newPairingCode, pairingCodeHash } from "./totem-pairing.js";
 
 export const accessRouter = Router();
+/**
+ * Row ids as PostgreSQL stores them: any 8-4-4-4-12 hex value. Zod's uuid()
+ * also demands an RFC version nibble, which ids created outside
+ * gen_random_uuid() (demo data, imports) may not have.
+ */
+const RowId = z.guid();
+function rowId(req: Request, name: string, missing: string): string {
+  const parsed = RowId.safeParse(param(req, name));
+  if (!parsed.success) throw notFound(missing);
+  return parsed.data;
+}
 const ListQuery = z.object({ buildingId: z.string().min(1).max(128) });
 
 /** Gate-bound status projection never requires or grants inventory access. */
@@ -289,7 +300,7 @@ accessRouter.get("/", validateQuery(ListQuery), async (req, res) => {
 });
 
 accessRouter.get("/commands/:commandId", async (req, res) => {
-  const id = z.string().uuid().parse(param(req, "commandId"));
+  const id = rowId(req, "commandId", "Solicitação não encontrada");
   const command = await inTenantContext(req, async (tx) => {
     const [row] = await tx
       .select()
@@ -365,7 +376,7 @@ accessRouter.patch(
   "/:gateId",
   validateBody(GatePatchSchema),
   async (req, res) => {
-    const id = z.string().uuid().parse(param(req, "gateId"));
+    const id = rowId(req, "gateId", "Acesso não encontrado");
     const input = req.body as z.infer<typeof GatePatchSchema>;
     try {
       const updated = await inTenantContext(req, async (tx) => {
@@ -505,7 +516,7 @@ accessRouter.post("/qr/open", async (req, res) => {
 });
 
 accessRouter.post("/:gateId/qr/renew", async (req, res) => {
-  const id = z.string().uuid().parse(param(req, "gateId"));
+  const id = rowId(req, "gateId", "Acesso não encontrado");
   await requireRecentVerification(req);
   try {
     await inTenantContext(req, (tx) =>
@@ -518,7 +529,7 @@ accessRouter.post("/:gateId/qr/renew", async (req, res) => {
 });
 
 accessRouter.post("/:gateId/totems/pairing", async (req, res) => {
-  const id = z.string().uuid().parse(param(req, "gateId"));
+  const id = rowId(req, "gateId", "Acesso não encontrado");
   await requireRecentVerification(req);
   const pairingCode = newPairingCode();
   try {
@@ -540,8 +551,8 @@ accessRouter.post("/:gateId/totems/pairing", async (req, res) => {
 });
 
 accessRouter.delete("/:gateId/totems/:totemId", async (req, res) => {
-  const gateId = z.string().uuid().parse(param(req, "gateId"));
-  const totemId = z.string().uuid().parse(param(req, "totemId"));
+  const gateId = rowId(req, "gateId", "Acesso não encontrado");
+  const totemId = rowId(req, "totemId", "Tablet não encontrado ou já despareado");
   let revoked = false;
   try {
     revoked = await inTenantContext(req, async (tx) => {
@@ -561,7 +572,7 @@ accessRouter.post("/:gateId/open", async (req, res) => {
   const auth = currentAuth(req);
   try {
     const parsed = OpenGateSchema.safeParse(req.body);
-    const gateId = z.string().uuid().safeParse(param(req, "gateId"));
+    const gateId = RowId.safeParse(param(req, "gateId"));
     if (!parsed.success || !gateId.success)
       throw badRequest(
         "Solicitação inválida. Atualize a página e tente novamente",
