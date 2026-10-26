@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { instantToLocalDateTime, localDateTimeToIso, type ScheduledNotice } from "@predioon/shared";
-import { api, Badge, Button, Card, ErrorBanner, Field, Input, Select, TextArea, useResource, ResourceFeedback, useFeatures } from "@predioon/ui";
+import { api, Badge, Button, Card, ErrorBanner, Field, Input, Select, TextArea, useResource, ResourceFeedback, useFeatures, useNoticeNotifications } from "@predioon/ui";
 import type { Notice, Paged } from "@predioon/ui";
 
 const CATEGORIES = [
@@ -14,8 +14,17 @@ const emptyForm = () => ({ title: "", body: "", category: "COMMUNICATION", pinne
 const dateInZone = (value: string | Date, timeZone: string) => new Intl.DateTimeFormat("pt-BR", { timeZone, dateStyle: "short", timeStyle: "short" }).format(new Date(value));
 
 export function Notices({ buildingId, canManage = false }: { buildingId: string; canManage?: boolean }) {
+  const { markSeen } = useNoticeNotifications();
   const flags = useFeatures();
   const notices = useResource<Paged<ManagedNotice>>(`/notices?buildingId=${encodeURIComponent(buildingId)}${canManage ? "&includeUnpublished=true&includeExpired=true" : ""}`);
+  useEffect(() => {
+    if (!notices.loading && !notices.error && notices.data) markSeen(notices.data.items);
+  }, [notices.data, notices.loading, notices.error, markSeen]);
+  useEffect(() => {
+    const timer = window.setInterval(notices.reload, 30_000);
+    window.addEventListener("focus", notices.reload);
+    return () => { clearInterval(timer); window.removeEventListener("focus", notices.reload); };
+  }, [notices.reload]);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [editing, setEditing] = useState<ManagedNotice | null>(null);

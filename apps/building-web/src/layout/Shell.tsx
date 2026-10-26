@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AlertTriangle, Boxes, LifeBuoy, CalendarDays, Car, ClipboardList, ChartNoAxesCombined, Cpu, DoorOpen, Droplets, House, Megaphone, Monitor, ScrollText, ShieldCheck, SlidersHorizontal, Workflow, Wrench, Zap } from "lucide-react";
-import { BuildingSelector, DashboardFrame, useFeatures, useAuth, useBuildingScope, useResource } from "@predioon/ui";
+import { BuildingSelector, DashboardFrame, useFeatures, useAuth, useBuildingScope, useResource, NoticeNotificationsProvider, useNoticeNotifications, NoticeCount, NewNoticesAlert } from "@predioon/ui";
 import { useBuildingAccess } from "../access.js";
 // Order and grouping are what the menu shows; each group gets one heading.
 // A link appears only where the feature is on and this account has access.
@@ -29,9 +29,19 @@ const LINKS = [
   { group: "Conta", to: "/sessoes", label: "Minhas sessões", icon: Monitor },
 ];
 export function Shell({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  const { buildingId } = useBuildingScope();
+  const flags = useFeatures();
+  const access = useBuildingAccess();
+  return <NoticeNotificationsProvider userId={user?.id ?? ""} buildingId={buildingId ?? ""} enabled={Boolean(user && buildingId && flags.enabled("NOTICES") && access.ready && !access.error && access.allowed("/avisos"))}><ShellContent>{children}</ShellContent></NoticeNotificationsProvider>;
+}
+
+function ShellContent({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
   const { buildingId } = useBuildingScope();
   const location = useLocation();
+  const navigate = useNavigate();
+  const { count } = useNoticeNotifications();
   const flags = useFeatures();
   const access = useBuildingAccess();
   const building = useResource<{ name: string; address: Record<string, unknown> }>(buildingId ? `/buildings/${encodeURIComponent(buildingId)}` : null);
@@ -45,5 +55,5 @@ export function Shell({ children }: { children: ReactNode }) {
   const navigationFeedback = loading
     ? <p role="status" className="min-h-64 px-3 py-4 text-sm text-slate-300">Carregando menu…</p>
     : failed ? <div className="min-h-64 space-y-3 px-3 py-4 text-sm text-slate-300"><p role="alert">Não foi possível carregar o menu.</p><button onClick={refresh} className="rounded-md border border-slate-500 px-3 py-2 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-400">Atualizar menu</button></div> : undefined;
-  return <DashboardFrame title={building.data?.name ?? "Painel do condomínio"} subtitle={addressText || "Gestão inteligente do seu condomínio"} userName={user?.name ?? ""} role="Operação" links={loading || failed ? [] : LINKS.filter(link => flags.routeAllowed(link.to) && access.allowed(link.to))} navigationFeedback={navigationFeedback} navigationBusy={loading} pathname={location.pathname} signOut={() => void signOut()} renderLink={(to, content, className) => access.allowed(to) ? <Link to={to} className={className}>{content}</Link> : null}><BuildingSelector />{children}</DashboardFrame>;
+  return <DashboardFrame title={building.data?.name ?? "Painel do condomínio"} subtitle={addressText || "Gestão inteligente do seu condomínio"} userName={user?.name ?? ""} role="Operação" links={loading || failed ? [] : LINKS.filter(link => flags.routeAllowed(link.to) && access.allowed(link.to))} navigationFeedback={navigationFeedback} navigationBusy={loading} pathname={location.pathname} signOut={() => void signOut()} renderLink={(to, content, className) => access.allowed(to) ? <Link to={to} className={className}>{content}{to === "/avisos" && <NoticeCount count={count} />}</Link> : null}><BuildingSelector />{location.pathname !== "/avisos" && <NewNoticesAlert onView={() => navigate("/avisos")} />}{children}</DashboardFrame>;
 }

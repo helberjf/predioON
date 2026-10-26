@@ -1,9 +1,9 @@
 import { useEffect, useId, useRef, useState, type ComponentType, type ReactNode } from "react";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, Bell, CalendarDays, Car, ChartNoAxesCombined, Ellipsis, Home, KeyRound, Megaphone, ScrollText, User, Wrench, X } from "lucide-react";
 import { useConsumptionAvailable } from "../consumption.js";
 import { useAccessAvailable } from "../access.js";
-import { Brand, BuildingSelector, buildingImage, cls, useFeatures, useAuth, useBuildingScope, useResource } from "@predioon/ui";
+import { Brand, BuildingSelector, buildingImage, cls, useFeatures, useAuth, useBuildingScope, useResource, NoticeNotificationsProvider, useNoticeNotifications, NoticeCount, NewNoticesAlert } from "@predioon/ui";
 
 type Destination = { to: string; label: string; title?: string; icon: ComponentType<{ size?: number; strokeWidth?: number }>; ownHeading?: boolean };
 /**
@@ -27,7 +27,16 @@ const TAB = "flex flex-1 flex-col items-center gap-1 rounded-xl py-1.5 text-[10p
 export function MobileShell({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const { buildingId } = useBuildingScope();
+  const flags = useFeatures();
+  return <NoticeNotificationsProvider userId={user?.id ?? ""} buildingId={buildingId ?? ""} enabled={Boolean(user && buildingId && flags.enabled("NOTICES"))}><MobileShellContent>{children}</MobileShellContent></NoticeNotificationsProvider>;
+}
+
+function MobileShellContent({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  const { buildingId } = useBuildingScope();
   const location = useLocation();
+  const navigate = useNavigate();
+  const { count } = useNoticeNotifications();
   const flags = useFeatures();
   const [moreOpen, setMoreOpen] = useState(false);
   const moreId = useId();
@@ -60,7 +69,7 @@ export function MobileShell({ children }: { children: ReactNode }) {
       <div className="flex items-center justify-between gap-2">
         <Brand dark />
         <div className="flex items-center gap-1.5">
-          {flags.enabled("NOTICES") && <Link to="/avisos" aria-label="Ver avisos" className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-white/10"><Bell size={22} /></Link>}
+          {flags.enabled("NOTICES") && <Link to="/avisos" aria-label={count ? `Ver avisos, ${count} novos` : "Ver avisos"} className="relative flex h-10 w-10 items-center justify-center rounded-full hover:bg-white/10"><Bell size={22} /><NoticeCount count={count} /></Link>}
           {avatar("bg-white/20 ring-1 ring-white/30 hover:bg-white/30")}
         </div>
       </div>
@@ -87,7 +96,7 @@ export function MobileShell({ children }: { children: ReactNode }) {
       {location.pathname !== "/perfil" && avatar("bg-[#1b3f60] text-white hover:bg-[#234d74]")}
     </header>}
 
-    <main className={cls("relative space-y-4 px-4 pb-4", home ? "-mt-6 rounded-t-[28px] bg-[#f1f6f9] pt-5" : "pt-4")}><BuildingSelector />{children}</main>
+    <main className={cls("relative space-y-4 px-4 pb-4", home ? "-mt-6 rounded-t-[28px] bg-[#f1f6f9] pt-5" : "pt-4")}><BuildingSelector />{location.pathname !== "/avisos" && <NewNoticesAlert onView={() => navigate("/avisos")} />}{children}</main>
 
     {moreOpen && <button type="button" tabIndex={-1} aria-hidden="true" onClick={() => setMoreOpen(false)} className="fixed inset-0 z-20 cursor-default bg-slate-900/40" />}
     <nav aria-label="Navegação do morador" className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md">
@@ -97,12 +106,12 @@ export function MobileShell({ children }: { children: ReactNode }) {
           <button type="button" aria-label="Fechar mais opções" onClick={() => setMoreOpen(false)} className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100"><X size={18} /></button>
         </div>
         <div className="grid grid-cols-3 gap-2">{more.map(({ to, label, icon: Icon }) => <NavLink key={to} to={to} onClick={() => setMoreOpen(false)} className={({ isActive }) => cls("flex min-h-[84px] flex-col items-center justify-center gap-2 rounded-2xl border px-2 py-3 text-center text-xs font-semibold", isActive ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-slate-100 bg-slate-50/70 text-[#152d4b] hover:border-emerald-200")}>
-          <Icon size={22} />{label}
+          <span className="relative"><Icon size={22} />{to === "/avisos" && <NoticeCount count={count} />}</span>{label}
         </NavLink>)}</div>
       </div>}
       <div className="flex justify-around rounded-t-3xl border-t border-slate-100 bg-white px-2 pb-[max(10px,env(safe-area-inset-bottom))] pt-2 shadow-[0_-4px_20px_rgba(20,45,70,0.06)]">
         {tabs.map(({ to, label, icon: Icon }) => <NavLink key={to} to={to} end={to === "/"} className={({ isActive }) => cls(TAB, isActive && !moreOpen ? "font-semibold text-emerald-600" : "text-slate-500 hover:text-slate-700")}>
-          {({ isActive }) => <><Icon size={23} strokeWidth={isActive && !moreOpen ? 2.4 : 2} />{label}</>}
+          {({ isActive }) => <><span className="relative"><Icon size={23} strokeWidth={isActive && !moreOpen ? 2.4 : 2} />{to === "/avisos" && <NoticeCount count={count} />}</span>{label}</>}
         </NavLink>)}
         <button type="button" aria-expanded={moreOpen} aria-controls={moreOpen ? moreId : undefined} onClick={() => setMoreOpen(open => !open)} className={cls(TAB, moreOpen || inMore ? "font-semibold text-emerald-600" : "text-slate-500 hover:text-slate-700")}>
           <Ellipsis size={23} strokeWidth={moreOpen || inMore ? 2.4 : 2} />Mais

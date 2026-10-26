@@ -7,6 +7,7 @@ export * from "./labels.js";
 export * from "./device-labels.js";
 export * from "./types.js";
 export * from "./use-resource.js";
+export * from "./notice-notifications.js";
 export * from "./use-current-authorization.js";
 export * from "./resource-permissions.js";
 export * from "./telemetry.js";
