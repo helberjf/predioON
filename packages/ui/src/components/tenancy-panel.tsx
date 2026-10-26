@@ -45,6 +45,7 @@ function TenancyWorkspace({ buildingId, capabilities, refreshAuthorization }: { 
   const teamMembers = useTenancyCollection<Membership>(can("teams:read") ? route("team-members") : null);
   const bindings = useTenancyCollection<Binding>(can("memberships:manage") ? route("role-bindings") : null);
   const people = useTenancyCollection<Person>(can("memberships:manage") || can("teams:manage") ? route("people") : null);
+  const teamPeople = useTenancyCollection<Person>(can("teams:manage") ? `${route("people")}&purpose=team-members` : null);
   const [tab, setTab] = useState("units");
   const tabs = [{ value: "units", label: "Blocos e unidades", visible: can("units:read") }, { value: "teams", label: "Equipes", visible: can("teams:read") }, { value: "people", label: "Moradores e vínculos", visible: can("memberships:read") }, { value: "roles", label: "Permissões", visible: can("memberships:manage") }].filter(item => item.visible);
   const currentTab = tabs.some(item => item.value === tab) ? tab : tabs[0]?.value;
@@ -67,9 +68,8 @@ function TenancyWorkspace({ buildingId, capabilities, refreshAuthorization }: { 
     const block = blocks.data.find(item => item.id === unit?.blockId);
     return unit ? `${block ? `${block.code} · ` : ""}${unit.code}` : `Unidade ${id}`;
   };
-  const personOptions = [{ value: "", label: "Selecione uma pessoa" }, ...people.data.map(person => ({ value: person.id, label: `${person.name} · ${person.email}` }))];
   const teamOptions = [{ value: "", label: "Selecione uma equipe" }, ...teams.data.filter(team => team.active).map(team => ({ value: team.id, label: team.name }))];
-  const refresh = () => { for (const resource of [blocks, units, teams, residents, teamMembers, bindings]) resource.reload(); people.reload(); refreshAuthorization(); };
+  const refresh = () => { for (const resource of [blocks, units, teams, residents, teamMembers, bindings, people, teamPeople]) resource.reload(); refreshAuthorization(); };
 
   async function mutate(action: () => Promise<unknown>, message: string, after?: () => void) {
     if (busy.current) return;
@@ -80,7 +80,7 @@ function TenancyWorkspace({ buildingId, capabilities, refreshAuthorization }: { 
     finally { busy.current = false; setPending(false); }
   }
   const post = (name: string, payload: object) => api.post(`/v1/tenancy/${name}`, { buildingId, ...payload });
-  const personField = (value: string, onChange: (id: string) => void) => <Field label="Pessoa"><Select required value={value} onChange={onChange} options={personOptions} disabled={people.loading || pending} /></Field>;
+  const personField = (value: string, onChange: (id: string) => void, candidates = people) => <Field label="Pessoa"><Select required value={value} onChange={onChange} options={[{ value: "", label: "Selecione uma pessoa" }, ...candidates.data.map(person => ({ value: person.id, label: `${person.name} · ${person.email}` }))]} disabled={candidates.loading || Boolean(candidates.error) || pending} /></Field>;
   const editButton = (next: Editing) => <Button variant="ghost" disabled={pending} onClick={() => { setEditing(next); setConfirmation(null); setError(null); setSuccess(""); }}>Editar</Button>;
   function saveEdit(draft: Editing) {
     // Compare with the record as last loaded; an untouched form makes no request.
@@ -116,6 +116,7 @@ function TenancyWorkspace({ buildingId, capabilities, refreshAuthorization }: { 
       <div className="flex flex-wrap gap-2"><Button type="submit" disabled={pending}>{pending ? "Salvando…" : "Salvar alterações"}</Button><Button variant="secondary" disabled={pending} onClick={() => setEditing(null)}>Cancelar edição</Button></div>
     </fieldset></form></Card>}
     {people.error && ["teams", "people", "roles"].includes(currentTab ?? "") && <Card><ErrorBanner message={`Não foi possível carregar as pessoas: ${people.error}`} /><Button variant="secondary" onClick={people.reload}>Tentar carregar pessoas</Button></Card>}
+    {teamPeople.error && currentTab === "teams" && <Card><ErrorBanner message={`Não foi possível carregar os candidatos às equipes: ${teamPeople.error}`} /><Button variant="secondary" onClick={teamPeople.reload}>Tentar carregar candidatos</Button></Card>}
 
     {currentTab === "units" && <div className="grid gap-4 xl:grid-cols-2">
       <Card title="Blocos">
@@ -134,7 +135,7 @@ function TenancyWorkspace({ buildingId, capabilities, refreshAuthorization }: { 
         <Rows resource={teams} empty="Nenhuma equipe cadastrada." render={team => <><strong>{team.name}</strong>{can("teams:manage") && statusControls(team, `/v1/tenancy/teams/${team.id}`, `equipe ${team.name}`, { kind: "team", id: team.id, name: team.name })}</>} />
       </Card>
       <Card title="Integrantes das equipes" subtitle="O acesso da equipe é definido na aba Permissões.">
-        {can("teams:manage") && <form className="mb-5 space-y-3" onSubmit={event => { event.preventDefault(); void mutate(() => post("team-members", { userId: teamMember.userId, teamId: teamMember.teamId, ...membershipValidity(teamMember.startsAt, teamMember.endsAt) }), "Integrante incluído na equipe.", () => setTeamMember({ ...teamMember, userId: "" })); }}><fieldset disabled={pending} className="space-y-3">{personField(teamMember.userId, userId => setTeamMember({ ...teamMember, userId }))}<Field label="Equipe"><Select required value={teamMember.teamId} onChange={teamId => setTeamMember({ ...teamMember, teamId })} options={teamOptions} /></Field><ValidityFields value={teamMember} onChange={value => setTeamMember({ ...teamMember, ...value })} /><Button type="submit" disabled={pending || !teamMember.userId || !teamMember.teamId}>Adicionar integrante</Button></fieldset></form>}
+        {can("teams:manage") && <form className="mb-5 space-y-3" onSubmit={event => { event.preventDefault(); void mutate(() => post("team-members", { userId: teamMember.userId, teamId: teamMember.teamId, ...membershipValidity(teamMember.startsAt, teamMember.endsAt) }), "Integrante incluído na equipe.", () => setTeamMember({ ...teamMember, userId: "" })); }}><fieldset disabled={pending} className="space-y-3">{personField(teamMember.userId, userId => setTeamMember({ ...teamMember, userId }), teamPeople)}<p className="text-xs text-slate-500">Moradores não podem integrar equipes do condomínio.</p><Field label="Equipe"><Select required value={teamMember.teamId} onChange={teamId => setTeamMember({ ...teamMember, teamId })} options={teamOptions} /></Field><ValidityFields value={teamMember} onChange={value => setTeamMember({ ...teamMember, ...value })} /><Button type="submit" disabled={pending || teamPeople.loading || Boolean(teamPeople.error) || !teamPeople.data.some(person => person.id === teamMember.userId) || !teamMember.teamId}>Adicionar integrante</Button></fieldset></form>}
         <Rows resource={teamMembers} empty="Nenhum integrante cadastrado." render={member => <><div><strong>{personLabel(member.userId)}</strong><p>{teamLabel(member.teamId ?? "")}</p><Validity value={member} /></div>{can("teams:manage") && revokeButton(`/v1/tenancy/team-members/${member.id}`, `${personLabel(member.userId)} na equipe ${teamLabel(member.teamId ?? "")}`)}</>} />
       </Card>
     </div>}

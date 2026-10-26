@@ -74,6 +74,21 @@ describe("tenancy HTTP with scoped capabilities", () => {
     assert.equal((await request(`/team-members/${member.id}`, "DELETE")).status, 204);
     assert.equal((await call(server.url, `/v1/authorization?buildingId=${building}`, { token: workerToken })).status, 403);
   });
+  it("rejects adding residents to a team through the API without creating a membership or audit entry", async () => {
+    const before = await sqlClient`select id from audit_logs where building_id=${building} and action='TEAM_MEMBER_ADDED'`;
+    const response = await request("/team-members", "POST", { buildingId: building, teamId, userId: resident });
+    assert.equal(response.status, 400, JSON.stringify(await response.json()));
+    assert.equal((await sqlClient`select id from team_members where team_id=${teamId} and user_id=${resident}`).length, 0);
+    assert.equal((await sqlClient`select id from audit_logs where building_id=${building} and action='TEAM_MEMBER_ADDED'`).length, before.length);
+    const [binding] = await sqlClient`insert into role_bindings(user_id,building_id,role_key) values(${worker},${building},'RESIDENT') returning id`;
+    try {
+      assert.equal((await request("/team-members", "POST", { buildingId: building, teamId, userId: worker })).status, 400);
+    } finally { await sqlClient`delete from role_bindings where id=${binding!.id}`; }
+    const [occupant] = await sqlClient`insert into unit_memberships(user_id,building_id,unit_id) values(${worker},${building},${unitId}) returning id`;
+    try {
+      assert.equal((await request("/team-members", "POST", { buildingId: building, teamId, userId: worker })).status, 400);
+    } finally { await sqlClient`delete from unit_memberships where id=${occupant!.id}`; }
+  });
   it("rejects platform delegation and loses permissions immediately when membership ends", async () => {
     assert.equal((await request("/role-bindings", "POST", { buildingId: building, userId: worker, roleKey: "PLATFORM_ADMIN", reason: "Escalation" })).status, 400);
     await sqlClient`update memberships set active=false where user_id=${manager} and building_id=${building}`;
@@ -81,6 +96,17 @@ describe("tenancy HTTP with scoped capabilities", () => {
       assert.equal((await request(`/role-bindings?buildingId=${building}`)).status, 403);
       assert.equal((await request("/teams", "POST", { buildingId: building, name: "Revoked" })).status, 403);
     } finally { await sqlClient`update memberships set active=true where user_id=${manager} and building_id=${building}`; }
+  });
+  it("rolls back inclusion when the destination team would itself grant resident status", async () => {
+    const [binding] = await sqlClient`insert into role_bindings(team_id,building_id,role_key) values(${teamId},${building},'RESIDENT') returning id`;
+    const before = await sqlClient`select * from team_members where team_id=${teamId} and user_id=${worker}`;
+    const auditBefore = await sqlClient`select id from audit_logs where building_id=${building} and action='TEAM_MEMBER_ADDED'`;
+    try {
+      const response = await request("/team-members", "POST", { buildingId: building, teamId, userId: worker });
+      assert.equal(response.status, 400, JSON.stringify(await response.json()));
+      assert.deepEqual(await sqlClient`select * from team_members where team_id=${teamId} and user_id=${worker}`, before);
+      assert.equal((await sqlClient`select id from audit_logs where building_id=${building} and action='TEAM_MEMBER_ADDED'`).length, auditBefore.length);
+    } finally { await sqlClient`delete from role_bindings where id=${binding!.id}`; }
   });
   it("can add revoked and expired team members again without duplicating a live grant", async () => {
     const input = { buildingId: building, teamId, userId: worker };

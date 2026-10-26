@@ -19,7 +19,7 @@ const id = z.string().uuid();
 const name = z.string().trim().min(1).max(120);
 const ListSchema = z.object({ buildingId, after: id.optional(), limit: z.coerce.number().int().min(1).max(100).default(50) });
 // Users have text IDs; the UUID cursor used by units/teams is not interchangeable.
-const PeopleListSchema = ListSchema.extend({ after: z.string().min(1).max(128).optional() });
+const PeopleListSchema = ListSchema.extend({ after: z.string().min(1).max(128).optional(), purpose: z.enum(["team-members"]).optional() });
 type ListQuery = z.infer<typeof ListSchema>;
 // Inactive records are a management view; the plain list stays the active structure.
 const StructureListSchema = ListSchema.extend({ includeInactive: z.enum(["true", "false"]).optional() });
@@ -73,7 +73,7 @@ tenancyRouter.get("/people", validateQuery(PeopleListSchema), async (req, res) =
   const result = await inTenancy(req, async tx => {
     // The narrow helper authorizes memberships:manage OR teams:manage and
     // returns only current tenant-linked people. It never grants raw users access.
-    const rows = await tx.execute(sql`select id, name, email from app_tenancy_people(${q.buildingId}, ${q.after ?? null}, ${q.limit})`);
+    const rows = await tx.execute(sql`select id, name, email from app_tenancy_people(${q.buildingId}, ${q.after ?? null}, ${q.limit}, ${q.purpose === "team-members"})`);
     return page(rows as unknown as Array<{ id: string; name: string; email: string }>, q.limit);
   });
   res.json(result);
@@ -175,6 +175,10 @@ tenancyRouter.post("/team-members", validateBody(CreateTeamMember), async (req, 
       setWhere: and(eq(teamMembers.buildingId, input.buildingId), or(eq(teamMembers.active, false), sql`${teamMembers.endsAt} <= current_timestamp`)),
     }).returning();
     if (!created) throw conflict("Este integrante já possui vínculo ativo na equipe");
+    // Check the resulting state too: a resident role on the destination team
+    // must not turn an otherwise eligible person into a resident on insertion.
+    const [person] = await tx.execute(sql`select app_tenancy_is_resident(${input.buildingId}, ${input.userId}) as resident`);
+    if (person?.resident) throw badRequest("Moradores não podem integrar equipes do condomínio.");
     await recordAudit(tx, req, { userId: currentAuth(req).userId, buildingId: input.buildingId, action: "TEAM_MEMBER_ADDED", resourceType: "team_member", resourceId: created.id,
       metadata: { startsAt: created.startsAt?.toISOString() ?? null, endsAt: created.endsAt?.toISOString() ?? null } });
     return created;
