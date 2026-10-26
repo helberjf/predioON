@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Prepara uma máquina Ubuntu (por exemplo Oracle Cloud Always Free, ARM) para o
+# Prepara uma máquina Ubuntu ou Oracle Linux (por exemplo Oracle Cloud Always Free, ARM) para o
 # campo de demonstração: Docker, o repositório e o compose. Idempotente.
 #
 #   bash infrastructure/setup-demo-field.sh            instala e sobe
@@ -14,9 +14,17 @@ compose=(docker compose -f infrastructure/docker-compose.demo-field.yml --env-fi
 
 if ! command -v docker >/dev/null 2>&1; then
   echo "Instalando o Docker..."
-  sudo apt-get update -y
-  sudo apt-get install -y ca-certificates curl
-  curl -fsSL https://get.docker.com | sudo sh
+  if command -v apt-get >/dev/null 2>&1; then
+    sudo apt-get update -y
+    sudo apt-get install -y ca-certificates curl
+    curl -fsSL https://get.docker.com | sudo sh
+  else
+    # Oracle Linux / RHEL: o repositório oficial do Docker para CentOS serve para os dois.
+    sudo dnf install -y dnf-plugins-core curl
+    sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+    sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+    sudo systemctl enable --now docker
+  fi
   sudo usermod -aG docker "$USER"
   echo "Docker instalado. Saia e entre de novo na sessão SSH e rode este script outra vez."
   exit 0

@@ -382,3 +382,5 @@ A admissão de abertura da 034 passou para `app_request_access_admit`, com um ca
 `062-demo-field-scenarios.sql` cria `demo_scenarios` (cenário por condomínio) e `app_demo_scenario_set`, que exige `features:manage` e audita `DEMO_SCENARIO_CHANGED`. A API lê a tabela só para quem tem `features:manage`; a ingestão lê todas as linhas para o gateway simulado; nenhuma role grava diretamente. Ver [DEMO_CAMPO](DEMO_CAMPO.md).
 
 **Efeito ao aplicar:** nenhum. A tabela fica vazia e as rotas só respondem com `DEMO_SCENARIOS=on` na API.
+
+`063-service-guard-admin-memberships.sql` redefine `service_runtime_guard` para aceitar a participação só de administração (sem herdar e sem `SET ROLE`) que o PostgreSQL 16+ concede ao dono que cria o login, como no Neon. Participações que herdam ou permitem `SET ROLE` continuam recusadas. A mesma regra vale em `provision-runtime-roles.ts` e em `verifyRestrictedDatabaseRole`.

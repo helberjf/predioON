@@ -13,7 +13,9 @@ async function provision(): Promise<void> {
       for (const { role, password } of credentials) {
         const [current] = await tx`select r.rolname from pg_roles r where r.rolname=${role}
           and not r.rolsuper and not r.rolbypassrls and not r.rolcreatedb and not r.rolcreaterole and not r.rolinherit and not r.rolreplication
-          and not exists(select 1 from pg_auth_members m where m.member=r.oid or (r.rolname in ('predioon_notifications','predioon_ingest','predioon_access_service') and m.roleid=r.oid))
+          and not exists(select 1 from pg_auth_members m where m.member=r.oid or (r.rolname in ('predioon_notifications','predioon_ingest','predioon_access_service') and m.roleid=r.oid
+            -- A membership that can neither inherit nor SET ROLE (PostgreSQL 16+, which Neon gives the creating owner) grants no privilege of the role.
+            and (coalesce((to_jsonb(m)->>'inherit_option')::boolean,true) or coalesce((to_jsonb(m)->>'set_option')::boolean,true))))
           and not exists(select 1 from pg_shdepend d where d.refclassid='pg_authid'::regclass and d.refobjid=r.oid and d.deptype='o')`;
         if (!current) throw new Error("Aplique a migração de roles restritas antes do provisionamento");
         // PostgreSQL quotes both the fixed identifier and the password as SQL data.
