@@ -79,13 +79,37 @@ export function nextParking(lots: readonly DemoParkingLot[], current: ReadonlyMa
   random = Math.random): Map<string, number> {
   const hour = Number(at.toLocaleString("en-US", { hour: "numeric", hour12: false, timeZone: "America/Sao_Paulo" }));
   // Residents are home at night and leave in the morning.
-  const target = hour >= 20 || hour < 7 ? 0.85 : hour >= 9 && hour < 17 ? 0.35 : 0.6;
+  const target = hour >= 20 || hour < 7 ? 0.78 : hour >= 9 && hour < 17 ? 0.4 : 0.6;
   const next = new Map<string, number>();
   for (const lot of lots) {
+    // A presentation must never show a full or an empty lot: keep a margin at both ends.
+    const floor = Math.min(lot.capacity, Math.ceil(lot.capacity * 0.1)), ceiling = Math.max(floor, Math.floor(lot.capacity * 0.9));
     const previous = current.get(lot.sensorId) ?? Math.round(lot.capacity * target);
     const drift = previous < lot.capacity * target ? 0.65 : 0.35;
     const step = random() < 0.4 ? 0 : random() < drift ? 1 : -1;
-    next.set(lot.sensorId, Math.max(0, Math.min(lot.capacity, previous + step)));
+    next.set(lot.sensorId, Math.max(floor, Math.min(ceiling, previous + step)));
   }
   return next;
+}
+
+export type LastReading = { deviceId: string; metric: string; value: number };
+/** Metrics whose last stored value lets a restarted field continue instead of starting over. */
+export const RESUME_METRICS = ["water_total_m3", "energy_total_kwh", "water_level_percent", "parking_occupied"] as const;
+
+/**
+ * A restart must not look like a meter reset: the totals, the tank and the parking
+ * counters continue from what the database already holds.
+ */
+export function resumeField(base: FieldState, readings: readonly LastReading[]): { state: FieldState; parking: Map<string, number> } {
+  const state: FieldState = { ...base }, parking = new Map<string, number>();
+  for (const { deviceId, metric, value } of readings) {
+    if (!Number.isFinite(value)) continue;
+    if (metric === "water_total_m3" && value >= 0) state.waterTotalM3 = value;
+    else if (metric === "energy_total_kwh" && value >= 0) state.energyTotalKwh = value;
+    else if (metric === "water_level_percent" && value >= 0 && value <= 100) {
+      state.waterLevelPercent = value;
+      state.waterVolumeLiters = Math.round(value * 100);
+    } else if (metric === "parking_occupied" && value >= 0) parking.set(deviceId, Math.round(value));
+  }
+  return { state, parking };
 }

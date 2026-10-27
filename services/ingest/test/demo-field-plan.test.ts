@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { TelemetrySchema, WaterTelemetrySchema, parseTelemetryTopic, parseWaterTelemetryTopic } from "@predioon/shared";
-import { demoCycleMessages, nextParking } from "../src/simulator/demo-field-plan.js";
+import { demoCycleMessages, nextParking, resumeField } from "../src/simulator/demo-field-plan.js";
 import { initialState, nextState } from "../src/simulator/state.js";
 
 const devices = [
@@ -56,5 +56,34 @@ describe("gateway de demonstração", () => {
       assert.ok(next.get("car")! >= 0 && next.get("car")! <= 3);
       occupied = next;
     }
+  });
+
+  it("nunca mostra um estacionamento cheio ou vazio, nem à noite", () => {
+    const lots = [{ sensorId: "car", capacity: 72 }];
+    const night = new Date("2026-10-27T01:00:00Z");
+    let occupied = new Map([["car", 72]]);
+    for (let i = 0; i < 2000; i++) {
+      occupied = nextParking(lots, occupied, night, () => 0.99);
+      assert.ok(occupied.get("car")! <= 64, "sempre sobram vagas livres");
+    }
+    for (let i = 0; i < 2000; i++) {
+      occupied = nextParking(lots, occupied, night, () => 0.5 - 0.5 * (i % 2));
+      assert.ok(occupied.get("car")! >= 8, "sempre há carros");
+    }
+  });
+
+  it("retoma do histórico para um reinício não parecer reinício de medidor", () => {
+    const base = initialState();
+    const { state, parking } = resumeField(base, [
+      { deviceId: "meter", metric: "water_total_m3", value: 851.25 }, { deviceId: "energy", metric: "energy_total_kwh", value: 12999.5 },
+      { deviceId: "water", metric: "water_level_percent", value: 61 }, { deviceId: "car", metric: "parking_occupied", value: 40.2 },
+      { deviceId: "bad", metric: "water_total_m3", value: Number.NaN }, { deviceId: "tank", metric: "water_level_percent", value: 250 },
+    ]);
+    assert.equal(state.waterTotalM3, 851.25);
+    assert.equal(state.energyTotalKwh, 12999.5);
+    assert.equal(state.waterLevelPercent, 61);
+    assert.equal(state.waterVolumeLiters, 6100);
+    assert.equal(parking.get("car"), 40);
+    assert.equal(resumeField(base, []).state.waterTotalM3, base.waterTotalM3, "sem histórico começa do valor inicial");
   });
 });

@@ -33,7 +33,10 @@ export function runtimeDatabaseUrl(variable: RuntimeDatabaseVariable, role: Runt
 /** Keep driver option parsing inside the same secret-safe boundary as URL parsing. */
 export function createRuntimeSqlClient(variable: RuntimeDatabaseVariable, role: RuntimeDatabaseRole, max: number): postgres.Sql {
   try {
-    return postgres(runtimeDatabaseUrl(variable, role), { max, connect_timeout: 5 });
+    // Each serverless instance keeps its own pool: on a small shared database (Neon free) dozens of
+    // warm instances holding ten idle connections each exhaust its memory. Idle connections are
+    // closed, and a serverless instance only needs a few.
+    return postgres(runtimeDatabaseUrl(variable, role), { max: process.env.VERCEL ? Math.min(max, 3) : max, connect_timeout: 5, idle_timeout: 30 });
   } catch {
     throw new Error(`${variable}: configuração de banco restrita inválida`);
   }

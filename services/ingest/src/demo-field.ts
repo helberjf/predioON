@@ -15,7 +15,7 @@ import { and, eq, inArray } from "drizzle-orm";
 import { devices, gateways, gates, ingestDb, ingestSqlClient, parkingLots } from "@predioon/db/ingest";
 import { accessTopic, DEMO_SCENARIOS, gatewayStatusTopic, type DemoScenario, type GatewayStatus } from "@predioon/shared";
 import { createGateSimulator } from "./access/simulation.js";
-import { DEMO_FULL_EVERY, demoCycleMessages, nextParking, type DemoParkingLot } from "./simulator/demo-field-plan.js";
+import { DEMO_FULL_EVERY, RESUME_METRICS, demoCycleMessages, nextParking, resumeField, type DemoParkingLot, type LastReading } from "./simulator/demo-field-plan.js";
 import { initialState, nextState, type FieldState } from "./simulator/state.js";
 
 if (process.env.DEMO_FIELD !== "on") throw new Error("Defina DEMO_FIELD=on: este processo simula equipamentos e só pode rodar numa demonstração");
@@ -145,6 +145,23 @@ async function tick() {
   }
 }
 
+// Continue where the database left off, so restarting the field never looks like a meter reset.
+async function resume() {
+  for (const [buildingId, field] of fields) {
+    const rows = await ingestSqlClient<{ device_id: string; metric: string; value: number }[]>`
+      select distinct on (device_id, metric) device_id, metric, numeric_value as value from telemetry
+      where building_id = ${buildingId} and metric = any(${RESUME_METRICS as unknown as string[]}) and numeric_value is not null
+        and time > now() - interval '2 days'
+      order by device_id, metric, time desc`;
+    const readings: LastReading[] = rows.map(row => ({ deviceId: row.device_id, metric: row.metric, value: Number(row.value) }));
+    const resumed = resumeField(field.state, readings);
+    field.state = resumed.state;
+    field.parking = resumed.parking;
+    console.log(`[demo] ${buildingId}: retomado de ${readings.length} leituras (água ${field.state.waterTotalM3.toFixed(2)} m³, energia ${field.state.energyTotalKwh.toFixed(1)} kWh)`);
+  }
+}
+
+await resume().catch(error => console.error("[demo] sem histórico para retomar; começando do zero:", error.message));
 await refreshInventory();
 setInterval(() => void refreshInventory().catch(error => console.error("[demo] inventário:", error.message)), DISCOVERY_MS);
 setInterval(() => void tick().catch(error => console.error("[demo] ciclo:", error.message)), intervalMs);

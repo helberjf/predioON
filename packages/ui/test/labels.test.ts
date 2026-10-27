@@ -26,4 +26,12 @@ describe("labels for stored codes", () => {
     assert.equal(resourceTypeLabel("reservation"), "Reserva");
     assert.deepEqual(Object.keys(SEVERITY_LABELS), ["INFO", "LOW", "MEDIUM", "HIGH", "CRITICAL"]);
   });
+
+  it("translates the audit trail of gates, totems, parking, support and the demonstration", () => {
+    for (const action of ["ACCESS_COMMAND_ACKNOWLEDGED", "ACCESS_QR_RENEWED", "ACCESS_TOTEM_PAIRED", "DEMO_SCENARIO_CHANGED", "PARKING_SENSOR_UPDATED", "SUPPORT_GRANT_CREATED"]) {
+      assert.notEqual(auditActionLabel(action), action.replaceAll("_", " "), action);
+    }
+    assert.equal(auditActionLabel("PARKING_SENSOR_UPDATED"), "Contagem de vagas atualizada pelo sensor");
+    assert.equal(resourceTypeLabel("parking"), "Vagas");
+  });
 });

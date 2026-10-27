@@ -122,7 +122,7 @@ function runInFreshProcess(runtime: RuntimeModule, mode: "loader" | "injected" |
         assert.equal(typeof onnotice, "function");
         assert.equal(onnotice(), undefined);
       } else {
-        assert.deepEqual(pool.options, { max: runtime.max, connect_timeout: 5 });
+        assert.deepEqual(pool.options, { max: runtime.max, connect_timeout: 5, idle_timeout: 30 });
       }
     }
   `;
@@ -207,7 +207,7 @@ function runServiceInFreshProcess(runtime: typeof serviceModules[number], config
       assert.equal(pools.length, 1, "the entrypoint constructs exactly its own physical pool");
       assert.equal(pools[0].url, url);
       assert.equal(new URL(pools[0].url).username, runtime.role);
-      assert.deepEqual(pools[0].options, { max: 10, connect_timeout: 5 });
+      assert.deepEqual(pools[0].options, { max: 10, connect_timeout: 5, idle_timeout: 30 });
       assert.equal(imported[runtime.client], pools[0].client);
       assert.equal(executors.length, 1);
       assert.equal(imported[runtime.db], executors[0]);
