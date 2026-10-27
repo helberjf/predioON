@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from "react";
 import { Alert, Linking, Text, View } from "react-native";
 import type { ApiClient } from "@predioon/api-client";
-import type { FinancialReport } from "@predioon/contracts";
+import type { BuildingEvent, FinancialReport } from "@predioon/contracts";
 import type { Product, Scope } from "./scope.ts";
 import {
   ownedTickets,
@@ -22,6 +22,11 @@ import { readResourceAuthorization } from "./authorization.ts";
 import { useMutation } from "./mutation.ts";
 import { ReservationCalendarPanel } from "./reservation-calendar-panel.tsx";
 import {
+  buildingEvents,
+  eventAnswerPath,
+  eventGuests,
+  eventResultMessage,
+  eventSpotsLeft,
   money,
   publishedReports,
   reservationResultMessage,
@@ -729,6 +734,146 @@ export function Reservations({
             )}
         </Card>
       ))}
+    </>
+  );
+}
+
+export function Events({
+  api,
+  buildingId,
+  scope,
+}: Props & { scope: Scope }) {
+  const events = useResource<List<BuildingEvent>>(
+    api,
+    `/v1/building-events?buildingId=${encodeURIComponent(buildingId)}`,
+  );
+  const canAnswer = scope.capabilities.includes("events:respond-own");
+  const [guests, setGuests] = useState<Record<string, number>>({});
+  const mutation = useMutation();
+  const items = buildingEvents(events.data?.items ?? [], buildingId);
+  return (
+    <>
+      <Refresh resource={events} />
+      {mutation.error && <ErrorMessage message={mutation.error} />}
+      {mutation.success && (
+        <Text accessibilityLiveRegion="polite" style={styles.text}>
+          {mutation.success}
+        </Text>
+      )}
+      <Feedback
+        resource={events}
+        empty={items.length === 0}
+        emptyMessage="Nenhum evento marcado."
+      />
+      {items.map((event) => {
+        const mine = event.myResponse;
+        const companions = eventGuests(
+          true,
+          guests[event.id] ?? mine?.guests ?? 0,
+          event.maxGuests,
+        );
+        const left = eventSpotsLeft(event);
+        const full =
+          left !== null && left === 0 && !(mine?.attending ?? false);
+        const answer = (attending: boolean) =>
+          void mutation.run(async () => {
+            await api.put(eventAnswerPath(event.id), {
+              attending,
+              guests: eventGuests(attending, companions, event.maxGuests),
+            });
+            events.reload();
+          }, eventResultMessage(event.title, attending));
+        return (
+          <Card key={event.id}>
+            <Text style={styles.subtitle}>{event.title}</Text>
+            {event.status === "CANCELLED" ? (
+              <Badge value="CANCELLED" />
+            ) : mine ? (
+              <Text style={styles.muted}>
+                {mine.attending
+                  ? `Você vai${mine.guests ? ` com ${mine.guests} acompanhante${mine.guests === 1 ? "" : "s"}` : ""}.`
+                  : "Você avisou que não vai."}
+              </Text>
+            ) : null}
+            <Text style={styles.text}>
+              {dateTime(event.startsAt)} até {dateTime(event.endsAt)}
+            </Text>
+            {(event.areaName || event.location) && (
+              <Text style={styles.muted}>
+                {[event.areaName, event.location].filter(Boolean).join(" · ")}
+              </Text>
+            )}
+            {event.description !== "" && (
+              <Text style={styles.text}>{event.description}</Text>
+            )}
+            <Text style={styles.muted}>
+              {event.attendingPeople === 1
+                ? "1 pessoa confirmada"
+                : `${event.attendingPeople} pessoas confirmadas`}
+              {left !== null &&
+                ` · ${left === 0 ? "sem vagas" : left === 1 ? "1 vaga" : `${left} vagas`}`}
+            </Text>
+            {event.rsvpUntil && (
+              <Text style={styles.muted}>
+                Confirme até {dateTime(event.rsvpUntil)}
+              </Text>
+            )}
+            {event.status === "SCHEDULED" &&
+              canAnswer &&
+              (event.answersOpen ? (
+                <>
+                  {event.maxGuests > 0 && (
+                    <View style={styles.row}>
+                      <Text style={styles.text}>
+                        Acompanhantes: {companions} (até {event.maxGuests})
+                      </Text>
+                      <Button
+                        secondary
+                        label="−"
+                        disabled={mutation.pending || companions <= 0}
+                        onPress={() =>
+                          setGuests({ ...guests, [event.id]: companions - 1 })
+                        }
+                      />
+                      <Button
+                        secondary
+                        label="+"
+                        disabled={
+                          mutation.pending || companions >= event.maxGuests
+                        }
+                        onPress={() =>
+                          setGuests({ ...guests, [event.id]: companions + 1 })
+                        }
+                      />
+                    </View>
+                  )}
+                  <View style={styles.row}>
+                    <Button
+                      secondary={!(mine && !mine.attending)}
+                      label="Não vou"
+                      disabled={mutation.pending}
+                      onPress={() => answer(false)}
+                    />
+                    <Button
+                      secondary={!mine?.attending}
+                      label={
+                        mine?.attending && companions !== mine.guests
+                          ? "Atualizar presença"
+                          : "Vou"
+                      }
+                      disabled={mutation.pending || full}
+                      onPress={() => answer(true)}
+                    />
+                  </View>
+                </>
+              ) : (
+                <Text style={styles.muted}>
+                  As confirmações deste evento já foram encerradas.
+                </Text>
+              ))}
+          </Card>
+        );
+      })}
     </>
   );
 }

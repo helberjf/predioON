@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import type {
   AccessCommandView,
   AccessGateView,
+  BuildingEvent,
   FinancialReport,
 } from "@predioon/contracts";
 import {
@@ -12,6 +13,11 @@ import {
   requestIdFromBytes,
 } from "../src/access-intents.ts";
 import {
+  buildingEvents,
+  eventAnswerPath,
+  eventGuests,
+  eventResultMessage,
+  eventSpotsLeft,
   publishedReports,
   residentGates,
   safeReceiptUrl,
@@ -240,4 +246,40 @@ test("receipt links reject native/file/javascript schemes and embedded credentia
   assert.equal(validReportMonth("2030-12"), true);
   for (const value of ["2030-13", "30-01", "2030-1", "2030-00"])
     assert.equal(validReportMonth(value), false);
+});
+
+const event = (overrides: Partial<BuildingEvent> = {}): BuildingEvent => ({
+  id: "event-one", buildingId: "one", title: "Festa", description: "", location: "",
+  areaId: null, areaName: null, startsAt: "2030-01-02T20:00:00.000Z", endsAt: "2030-01-02T23:00:00.000Z",
+  rsvpUntil: null, capacity: null, maxGuests: 2, status: "SCHEDULED", version: 1, answersOpen: true,
+  attendingResponses: 0, attendingPeople: 0, declinedResponses: 0, myResponse: null, ...overrides,
+});
+
+test("events are kept to this building and ordered by start", () => {
+  const listed = buildingEvents(
+    [event({ id: "later", startsAt: "2030-02-01T10:00:00.000Z" }), event({ id: "other", buildingId: "two" }), event({ id: "sooner" })],
+    "one",
+  );
+  assert.deepEqual(listed.map((item) => item.id), ["sooner", "later"]);
+});
+
+test("event spots count people, not answers, and an unlimited event has none to count", () => {
+  assert.equal(eventSpotsLeft(event()), null);
+  assert.equal(eventSpotsLeft(event({ capacity: 10, attendingPeople: 4 })), 6);
+  assert.equal(eventSpotsLeft(event({ capacity: 4, attendingPeople: 9 })), 0);
+});
+
+test("companions stay inside the event limit and vanish for a refusal", () => {
+  assert.equal(eventGuests(true, 5, 2), 2);
+  assert.equal(eventGuests(true, -1, 2), 0);
+  assert.equal(eventGuests(true, 1.9, 2), 1);
+  assert.equal(eventGuests(true, Number.NaN, 2), 0);
+  assert.equal(eventGuests(true, 3, 0), 0);
+  assert.equal(eventGuests(false, 2, 2), 0);
+});
+
+test("the answer goes to the resident's own response route with an encoded id", () => {
+  assert.equal(eventAnswerPath("a/b c"), "/v1/building-events/a%2Fb%20c/response");
+  assert.equal(eventResultMessage("Festa", true), 'Presença confirmada em "Festa".');
+  assert.equal(eventResultMessage("Festa", false), 'Você avisou que não vai a "Festa".');
 });

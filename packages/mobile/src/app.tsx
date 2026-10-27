@@ -46,7 +46,7 @@ import { ResidentConsumptionScreen } from "./resident-consumption-screen.tsx";
 import { readOperationsAccess, readResidentAccess } from "./authorization.ts";
 import { Alerts, Overview, Readings } from "./operations.tsx";
 import { WorkOrders } from "./work-orders-screen.tsx";
-import { Notices, Reservations, Tickets, Transparency } from "./resident.tsx";
+import { Events, Notices, Reservations, Tickets, Transparency } from "./resident.tsx";
 import { Access, type GateScannerComponent } from "./access.tsx";
 import { Account } from "./account.tsx";
 import { Login } from "./login.tsx";
@@ -69,6 +69,7 @@ const titles: Record<Screen, string> = {
   notices: "Avisos",
   tickets: "Solicitações",
   reservations: "Reservas",
+  events: "Eventos",
   transparency: "Transparência",
   access: "Acessos",
   consumption: "Consumo",
@@ -470,6 +471,9 @@ function BuildingApp({
             )}
             {current === "reservations" && (
               <Reservations api={api} buildingId={building.id} scope={scope} />
+            )}
+            {current === "events" && (
+              <Events api={api} buildingId={building.id} scope={scope} />
             )}
             {current === "transparency" && (
               <Transparency api={api} buildingId={building.id} scope={scope} />

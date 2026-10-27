@@ -445,3 +445,29 @@ test("work orders follow their own permissions in the operations app only", () =
   assert.deepEqual(screensFor("operations", { ...technician, capabilities: ["work-orders:assign"], overview: partialOverview, features: [] }), ["overview", "alerts", "workOrders"]);
   assert.deepEqual(screensFor("operations", { ...technician, capabilities: ["work-orders:update-assigned"] }), [], "updating alone never lists orders");
 });
+
+test("events navigation needs its own read grant and the reservations switch, for residents only", () => {
+  const base: Scope = {
+    buildingId: "one",
+    capabilities: ["events:read", "events:respond-own"],
+    features: [{ key: "RESERVATIONS", enabled: true }],
+  };
+  assert.deepEqual(screensFor("resident", base), ["events"]);
+  assert.deepEqual(screensFor("operations", base), []);
+  // Reservation grants do not open events, and events do not need reservation grants.
+  assert.deepEqual(
+    screensFor("resident", { ...base, capabilities: ["reservations:read-own", "common-areas:read"] }),
+    ["reservations"],
+  );
+  assert.deepEqual(
+    screensFor("resident", { ...base, features: [{ key: "RESERVATIONS", enabled: false }] }),
+    [],
+  );
+  assert.deepEqual(
+    screensFor("resident", {
+      ...base,
+      capabilities: ["events:read", "reservations:read-own"],
+    }),
+    ["reservations", "events"],
+  );
+});

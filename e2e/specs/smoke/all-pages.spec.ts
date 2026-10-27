@@ -34,7 +34,8 @@ for (const portal of PORTALS) {
           await expect.soft(link, "o menu oferece esta página").toBeVisible();
         }
         await expect.soft(main.getByText("Esta funcionalidade está desativada", { exact: false }), "funcionalidade ligada no seed").toHaveCount(0);
-        await expect.soft(main.getByRole("alert"), "nenhuma mensagem de erro na tela").toHaveCount(0);
+        // The "você tem N avisos novos" banner is information, not an error.
+        await expect.soft(main.getByRole("alert").filter({ hasNotText: /avisos? novos?/ }), "nenhuma mensagem de erro na tela").toHaveCount(0);
         const expected = [...(portal.expected ?? []), ...(route.expected ?? [])];
         const unexpected = health.since(mark).filter(problem => !expected.some(item => item.problem.test(problem)));
         expect.soft(unexpected, "sem exceções nem chamadas de API com erro").toEqual([]);

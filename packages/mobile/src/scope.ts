@@ -7,6 +7,7 @@ export type Screen =
   | "notices"
   | "tickets"
   | "reservations"
+  | "events"
   | "transparency"
   | "access"
   | "consumption"
@@ -91,6 +92,10 @@ export function screensFor(product: Product, scope: Scope): Screen[] {
         ? ["tickets" as const]
         : []),
       ...(reservationActions(scope).read ? ["reservations" as const] : []),
+      // Events follow the reservations switch; answering has its own grant.
+      ...(has("events:read") && feature("RESERVATIONS")
+        ? ["events" as const]
+        : []),
       ...(consumptionItems(scope).length ? ["consumption" as const] : []),
       ...(transparency.notices || transparency.finance
         ? ["transparency" as const]
