@@ -73,6 +73,9 @@ jobs:
       - name: Preserve pages and drafts when returning to the browser
         if: matrix.browser == 'chromium'
         run: pnpm test:e2e:focus
+      - name: Validate saved alert rules and activation states
+        if: matrix.browser == 'chromium'
+        run: pnpm exec playwright test --config playwright.rules.config.ts
       - name: Exercise all three portals against the real API
         run: pnpm test:e2e --project=${{ matrix.browser }}
       - name: Preserve report and failure evidence
@@ -84,6 +87,7 @@ jobs:
             .local/playwright-results/
             .local/playwright-report/
             .local/focus-results/
+            .local/rules-results/
           include-hidden-files: true
           if-no-files-found: ignore
           retention-days: 3

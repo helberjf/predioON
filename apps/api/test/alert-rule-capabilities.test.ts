@@ -36,6 +36,8 @@ describe('alert rule capabilities preserve configuration and current resource sc
     try{
       await sqlClient`insert into organizations(id,name,slug) values(${org},'Rule capabilities',${org})`;
       for(const building of [a,b])await sqlClient`insert into buildings(id,organization_id,name,code) values(${building},${org},${building},${building})`;
+      // These cases compare only their explicit resource grants, independently of the default catalog.
+      await sqlClient`delete from alert_rules where building_id in (${a},${b}) and template_key is not null`;
       for(const [kind,id] of Object.entries(ids))await sqlClient`insert into users(id,name,email,password_hash,is_platform_admin) values(${id},${kind},${id+'@rules.test'},${passwordHash},${kind==='flag'})`;
       for(const role of Object.values(roles))await sqlClient`insert into roles(key,scope,label) values(${role},'BUILDING',${role})`;
       await sqlClient`insert into role_permissions(role_key,permission_key) values(${roles.manager},'alert-rules:read'),(${roles.manager},'alert-rules:manage'),(${roles.reader},'alert-rules:read'),(${roles.action},'alert-rules:manage'),(${roles.technical},'devices:read'),(${roles.technical},'telemetry:read'),(${roles.technical},'alerts:read')`;
@@ -167,6 +169,14 @@ describe('alert rule capabilities preserve configuration and current resource sc
     for(const id of ['bad-id',randomUUID()])assert.equal((await remove(f,f.ids.manager,id)).status,404);
   }));
   it('classifies gates and parking through minimal owner context without exposing equipment',async()=>fixture(async f=>{
+    const physicalKeys=['PEDESTRIAN_ACCESS','MOTORCYCLE_PARKING'];
+    const previous=await sqlClient`select feature_key,enabled from global_feature_settings where feature_key in ${sqlClient(physicalKeys)}`;
+    try {
+    // Physical features now require both global availability and explicit tenant opt-in.
+    for(const key of physicalKeys){
+      await sqlClient`insert into global_feature_settings(feature_key,enabled) values(${key},true) on conflict(feature_key) do update set enabled=true`;
+      await sqlClient`insert into building_feature_settings(building_id,feature_key,enabled) values(${f.a},${key},true)`;
+    }
     const gateDevice=`rule-gate-${randomUUID()}`,parkingDevice=`rule-parking-${randomUUID()}`,gateRule=randomUUID(),parkingRule=randomUUID();
     await sqlClient`insert into devices(id,building_id,gateway_id,name,type,metadata) values(${gateDevice},${f.a},${f.gateway},'Gate','GATE_CONTROLLER','{"private":"gate secret"}'),(${parkingDevice},${f.a},null,'Parking','PARKING_SENSOR','{}')`;
     await sqlClient`insert into gates(building_id,name,kind,gateway_id,device_id) values(${f.a},'Pedestrian gate','PEDESTRIAN',${f.gateway},${gateDevice})`;
@@ -174,12 +184,19 @@ describe('alert rule capabilities preserve configuration and current resource sc
     for(const [id,device,name] of [[gateRule,gateDevice,'Gate rule'],[parkingRule,parkingDevice,'Parking rule']])await sqlClient`insert into alert_rules(id,building_id,device_id,name,metric,operator,threshold,alert_type,message_template,created_by) values(${id!},${f.a},${device!},${name!},'custom_metric','GT',1,'CUSTOM','Private message',${f.ids.manager})`;
     await sqlClient`insert into building_feature_settings(building_id,feature_key,enabled) values(${f.a},'GARAGE_ACCESS',false),(${f.a},'CAR_PARKING',false)`;
     assert.equal((await patch(f,f.ids.manager,{threshold:2},gateRule)).status,200);assert.equal((await patch(f,f.ids.manager,{threshold:2},parkingRule)).status,200);
-    await sqlClient`insert into building_feature_settings(building_id,feature_key,enabled) values(${f.a},'PEDESTRIAN_ACCESS',false),(${f.a},'MOTORCYCLE_PARKING',false)`;
+    await sqlClient`update building_feature_settings set enabled=false where building_id=${f.a} and feature_key in ${sqlClient(physicalKeys)}`;
     assert.equal((await patch(f,f.ids.manager,{threshold:3},gateRule)).status,403);assert.equal((await patch(f,f.ids.manager,{threshold:3},parkingRule)).status,403);
     const context=await as(f.ids.reader,tx=>tx.execute(sql`select * from app_alert_rule_context(${f.a},${gateRule})`));
     assert.deepEqual(Object.keys(context[0]!).sort(),['device_type','gate_kind','parking_vehicle_type']);assert.equal(context[0]!.gate_kind,'PEDESTRIAN');
     assert.equal((await as(f.ids.reader,tx=>tx.execute(sql`select id from devices where id=${gateDevice}`))).length,0);
     await sqlClient`delete from gates where device_id=${gateDevice}`;
+    } finally {
+      for(const key of physicalKeys){
+        const original=previous.find(row=>row.feature_key===key);
+        if(original)await sqlClient`update global_feature_settings set enabled=${original.enabled} where feature_key=${key}`;
+        else await sqlClient`delete from global_feature_settings where feature_key=${key}`;
+      }
+    }
   }));
   async function waitPast(boundary:unknown){for(let i=0;i<100;i++){if((await sqlClient`select clock_timestamp()>${boundary as string}::timestamptz as expired`)[0]!.expired)return;await sqlClient`select pg_sleep(0.02)`;}assert.fail('bounded database expiry wait failed');}
   async function locked<T>(f:Fixture,start:()=>Promise<T>,during:()=>Promise<void>,deviceId?:string){

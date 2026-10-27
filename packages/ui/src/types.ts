@@ -47,6 +47,7 @@ export type { BuildingOverview, PlatformOverview, PlatformServiceHealth } from "
 
 export type AlertRule = {
   id: string;
+  templateKey?: string | null;
   name: string;
   metric: string;
   operator: string;

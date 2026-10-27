@@ -242,6 +242,7 @@ export const alertRules = pgTable(
       .notNull()
       .references(() => buildings.id, { onDelete: "cascade" }),
     deviceId: text("device_id").references(() => devices.id, { onDelete: "cascade" }),
+    templateKey: text("template_key"),
     name: text("name").notNull(),
     metric: text("metric").notNull(),
     operator: alertOperatorEnum("operator").notNull(),
@@ -257,6 +258,7 @@ export const alertRules = pgTable(
   },
   (table) => [
     uniqueIndex("alert_rules_building_device_name_uq").on(table.buildingId, table.deviceId, table.name),
+    uniqueIndex("alert_rules_building_template_uq").on(table.buildingId, table.templateKey),
     index("alert_rules_building_metric_idx").on(table.buildingId, table.metric),
     index("alert_rules_device_idx").on(table.deviceId),
   ],

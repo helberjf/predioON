@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import type { WorkOrderView } from "@predioon/contracts/work-orders";
+import type { WorkOrderView } from "../packages/contracts/src/work-orders";
 
 const API = "http://127.0.0.1:3197";
 const title = "Higienização do reservatório";

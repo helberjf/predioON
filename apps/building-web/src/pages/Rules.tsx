@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   api,
   ApiError,
@@ -70,6 +70,10 @@ export function Rules({ buildingId }: { buildingId: string }) {
     null,
   );
   const [selectedRule, setSelectedRule] = useState<string | null>(null);
+  const [tab, setTab] = useState<"active" | "saved">("active");
+  const pendingChanges = useRef(new Set<string>());
+  const [pendingRuleIds, setPendingRuleIds] = useState<string[]>([]);
+  const [ruleErrors, setRuleErrors] = useState<Record<string, string | null>>({});
   const rules = useResource<Paged<AlertRule>>(
     `/alert-rules?buildingId=${encodeURIComponent(buildingId)}`,
     [revision],
@@ -112,6 +116,32 @@ export function Rules({ buildingId }: { buildingId: string }) {
     if (!keys.length || keys.some(flags.enabled))
       options.set(device.id, { id: device.id, label: device.name });
   }
+  const activeRules = (rules.data?.items ?? []).filter(rule => rule.enabled);
+  const savedRules = (rules.data?.items ?? []).filter(rule => !rule.enabled);
+  const visibleRules = tab === "active" ? activeRules : savedRules;
+  async function toggleRule(rule: AlertRule) {
+    if (pendingChanges.current.has(rule.id)) return;
+    pendingChanges.current.add(rule.id);
+    setPendingRuleIds([...pendingChanges.current]);
+    setRuleErrors(current => ({ ...current, [rule.id]: null }));
+    try {
+      // Keep both current permission checks when a row moves between tabs.
+      const [exactRights, deviceRights] = await Promise.all([
+        currentCapabilities(buildingId, "alert_rule", rule.id),
+        rule.deviceId ? currentCapabilities(buildingId, "device", rule.deviceId) : Promise.resolve([]),
+      ]);
+      if (!manages([...exactRights, ...deviceRights]))
+        throw new Error("Sua permissão para alterar esta regra não está mais disponível.");
+      await api.patch(`/alert-rules/${rule.id}`, { enabled: !rule.enabled });
+      refresh();
+    } catch (cause) {
+      setRuleErrors(current => ({ ...current, [rule.id]: cause instanceof Error ? cause.message : "Falha ao atualizar regra" }));
+      refresh();
+    } finally {
+      pendingChanges.current.delete(rule.id);
+      setPendingRuleIds([...pendingChanges.current]);
+    }
+  }
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -150,16 +180,49 @@ export function Rules({ buildingId }: { buildingId: string }) {
             canCreate || selectedDevice ? "xl:col-span-2" : "xl:col-span-3"
           }
         >
-          {rules.data?.items.length ? (
+          <div role="tablist" aria-label="Regras de alerta" className="mb-4 flex gap-1 border-b border-slate-200">
+            {([
+              { key: "active", label: "Regras ativas", count: activeRules.length },
+              { key: "saved", label: "Regras salvas", count: savedRules.length },
+            ] as const).map(item => (
+              <button
+                key={item.key}
+                id={`rules-${item.key}-tab`}
+                type="button"
+                role="tab"
+                aria-selected={tab === item.key}
+                aria-controls="rules-panel"
+                tabIndex={tab === item.key ? 0 : -1}
+                onClick={() => setTab(item.key)}
+                onKeyDown={event => {
+                  if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+                  event.preventDefault();
+                  const next = event.key === "Home" ? "active" : event.key === "End" ? "saved" : tab === "active" ? "saved" : "active";
+                  setTab(next);
+                  document.getElementById(`rules-${next}-tab`)?.focus();
+                }}
+                className={`flex items-center gap-2 border-b-2 px-3 py-3 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-700 ${tab === item.key ? "border-emerald-700 text-emerald-800" : "border-transparent text-slate-500 hover:text-slate-800"}`}
+              >
+                {item.label}
+                <span aria-hidden="true" className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{rules.data ? item.count : "—"}</span>
+              </button>
+            ))}
+          </div>
+          <div id="rules-panel" role="tabpanel" aria-labelledby={`rules-${tab}-tab`} aria-busy={rules.loading} tabIndex={0}>
+          {tab === "saved" && <p className="mb-4 text-sm leading-6 text-slate-600">As regras salvas estão desativadas e não geram alertas. Os padrões são disponibilizados para todos os condomínios. Revise os limites antes de ativar.</p>}
+          {visibleRules.length ? (
             <ul className="space-y-3">
-              {rules.data.items.map((rule) => (
+              {visibleRules.map((rule) => (
                 <RuleRow
                   key={rule.id}
                   rule={rule}
                   buildingId={buildingId}
                   whole={whole}
                   revision={revision}
-                  refresh={refresh}
+                  pending={pendingRuleIds.includes(rule.id)}
+                  error={ruleErrors[rule.id] ?? null}
+                  onToggle={() => void toggleRule(rule)}
+                  onDismissError={() => setRuleErrors(current => ({ ...current, [rule.id]: null }))}
                   onCreate={setSelectedDevice}
                   selected={selectedRule === rule.id}
                   onSelect={() =>
@@ -173,9 +236,10 @@ export function Rules({ buildingId }: { buildingId: string }) {
           ) : (
             <ResourceFeedback
               resource={rules}
-              emptyText="Nenhuma regra cadastrada."
+              emptyText={tab === "active" ? "Nenhuma regra ativa. Ative uma regra na aba Regras salvas ou crie uma nova." : "Nenhuma regra salva. As regras desativadas aparecem aqui."}
             />
           )}
+          </div>
         </Card>
       </div>
     </>
@@ -187,7 +251,10 @@ function RuleRow({
   buildingId,
   whole,
   revision,
-  refresh,
+  pending,
+  error,
+  onToggle,
+  onDismissError,
   onCreate,
   selected,
   onSelect,
@@ -196,7 +263,10 @@ function RuleRow({
   buildingId: string;
   whole: string[];
   revision: number;
-  refresh: () => void;
+  pending: boolean;
+  error: string | null;
+  onToggle: () => void;
+  onDismissError: () => void;
   onCreate: (device: DeviceChoice) => void;
   selected: boolean;
   onSelect: () => void;
@@ -221,42 +291,12 @@ function RuleRow({
   ]);
   const canCreate =
     rule.deviceId && manages([...whole, ...capabilities(device)]);
-  const [pending, setPending] = useState(false),
-    [error, setError] = useState<string | null>(null);
-  async function toggle() {
-    if (pending) return;
-    setPending(true);
-    setError(null);
-    try {
-      // Independent read/manage grants may come from the rule and its device.
-      // Refresh them before acting; the API also checks the current real parent.
-      const [exactRights, deviceRights] = await Promise.all([
-        currentCapabilities(buildingId, "alert_rule", rule.id),
-        rule.deviceId
-          ? currentCapabilities(buildingId, "device", rule.deviceId)
-          : Promise.resolve([]),
-      ]);
-      if (!manages([...exactRights, ...deviceRights]))
-        throw new Error(
-          "Sua permissão para alterar esta regra não está mais disponível.",
-        );
-      await api.patch(`/alert-rules/${rule.id}`, { enabled: !rule.enabled });
-      refresh();
-    } catch (cause) {
-      setError(
-        cause instanceof Error ? cause.message : "Falha ao atualizar regra",
-      );
-      refresh();
-    } finally {
-      setPending(false);
-    }
-  }
   return (
     <li className="space-y-3 rounded-xl border border-slate-100 p-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <p className="text-sm font-medium text-slate-800">{rule.name}</p>
-          <p className="mt-0.5 text-xs text-slate-500">
+          <p className="mt-0.5 break-words text-xs leading-5 text-slate-500">
             {rule.metric}{" "}
             {OPERATORS.find((item) => item.value === rule.operator)?.label ??
               rule.operator}{" "}
@@ -265,16 +305,17 @@ function RuleRow({
             {rule.deviceId ? " · equipamento específico" : " · todos do prédio"}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {rule.templateKey && <Badge tone="info">Padrão</Badge>}
           <Badge>{rule.severity}</Badge>
           <Badge>{rule.enabled ? "Ativa" : "Desativada"}</Badge>
           {canManage && (
             <Button
               variant="secondary"
               disabled={pending}
-              onClick={() => void toggle()}
+              onClick={onToggle}
             >
-              {rule.enabled ? "Desativar" : "Ativar"}
+              {pending ? "Salvando…" : rule.enabled ? "Desativar" : "Ativar"}
             </Button>
           )}
         </div>
@@ -303,7 +344,7 @@ function RuleRow({
         </Button>
       )}
       {error && (
-        <ErrorBanner message={error} onDismiss={() => setError(null)} />
+        <ErrorBanner message={error} onDismiss={onDismissError} />
       )}
     </li>
   );
@@ -412,7 +453,7 @@ function CreateRule({
       title={fixedDevice ? "Nova regra neste equipamento" : "Nova regra"}
       className="xl:col-span-1"
     >
-      <div className="space-y-3">
+      <div className="space-y-3 [&_.text-slate-400]:text-slate-500">
         {error && (
           <ErrorBanner message={error} onDismiss={() => setError(null)} />
         )}

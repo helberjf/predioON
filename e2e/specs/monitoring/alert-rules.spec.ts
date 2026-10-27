@@ -202,6 +202,7 @@ test("regras: permissões exatas separam leitura de ação e desaparecem após r
     expect(rule.enabled).toBe(false);
     expect(rule.severity).toBe("CRITICAL");
     expect(rule.cooldownSeconds).toBe(123);
+    await page.getByRole("tab", { name: "Regras salvas" }).click();
     await f.revoke(manager, "alert-rules:manage");
     await page
       .getByRole("button", { name: "Atualizar regras", exact: true })
@@ -216,6 +217,7 @@ test("regras: permissões exatas separam leitura de ação e desaparecem após r
       .getByRole("button", { name: "Atualizar regras", exact: true })
       .click();
     await expect(page.getByText(f.first.name, { exact: true })).toHaveCount(0);
+    await page.getByRole("tab", { name: "Regras ativas" }).click();
     await expect(row(page, f.second.name)).toBeVisible();
     expect(inventory).toEqual([]);
   }));

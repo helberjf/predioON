@@ -1,7 +1,6 @@
 import { hash } from "@node-rs/argon2";
 import { seedFeatures } from "./seed-features.js";
 import {
-  alertRules,
   buildings,
   commonAreas,
   db,
@@ -133,16 +132,7 @@ await db
   .onConflictDoNothing();
 
 // ---------------------------------------------------------------- regras de alerta
-await db
-  .insert(alertRules)
-  .values([
-    { buildingId: "bld_001", deviceId: "water_01", name: "Nível baixo da caixa", metric: "water_level_percent", operator: "LT", threshold: 20, severity: "HIGH", alertType: "LOW_WATER_LEVEL", messageTemplate: "Nível baixo da caixa d'água: {value}%", cooldownSeconds: 900, createdBy: "building_admin" },
-    { buildingId: "bld_001", deviceId: "water_01", name: "Nível crítico da caixa", metric: "water_level_percent", operator: "LT", threshold: 10, severity: "CRITICAL", alertType: "CRITICAL_WATER_LEVEL", messageTemplate: "Nível crítico da caixa d'água: {value}%", cooldownSeconds: 600, createdBy: "building_admin" },
-    { buildingId: "bld_001", deviceId: "phase_01", name: "Subtensão na fase L1", metric: "voltage_l1", operator: "LT", threshold: 180, severity: "CRITICAL", alertType: "LOW_VOLTAGE_L1", messageTemplate: "Tensão L1 fora do parâmetro: {value} V", cooldownSeconds: 300, createdBy: "building_admin" },
-    { buildingId: "bld_001", deviceId: "phase_01", name: "Falta de fase L3", metric: "voltage_l3", operator: "LT", threshold: 100, severity: "CRITICAL", alertType: "PHASE_LOSS_L3", messageTemplate: "Possível falta de fase em L3: {value} V", cooldownSeconds: 300, createdBy: "building_admin" },
-    { buildingId: "bld_001", deviceId: "temp_01", name: "Temperatura alta na sala técnica", metric: "temperature_c", operator: "GT", threshold: 45, severity: "MEDIUM", alertType: "HIGH_TEMPERATURE", messageTemplate: "Temperatura da sala técnica em {value} °C", cooldownSeconds: 1800, createdBy: "building_admin" },
-  ])
-  .onConflictDoNothing();
+await sqlClient`select seed_default_alert_rules(${"bld_001"})`;
 
 // ---------------------------------------------------------------- convivência
 await db
