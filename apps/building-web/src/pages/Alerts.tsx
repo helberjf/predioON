@@ -63,13 +63,14 @@ function TechnicalInformation({ alert }: { alert: Alert }) {
 }
 
 function Workspace({ buildingId }: { buildingId: string }) {
-  const alerts = useResource<Paged<Alert>>(`/alerts?buildingId=${encodeURIComponent(buildingId)}&limit=100`);
+  const alerts = useResource<Paged<Alert>>(`/alerts?buildingId=${encodeURIComponent(buildingId)}&limit=50`);
   const [selected, setSelected] = useState<string | null>(null), [revision, setRevision] = useState(0);
   const reload = () => { alerts.reload(); setRevision(value => value + 1); };
   useRealtime(event => { if (event.kind === "alert") reload(); });
   useEffect(() => {
     window.addEventListener("focus", alerts.reload);
-    const timer = setInterval(alerts.reload, 30_000);
+    // Realtime events already trigger a reload; this is only a safety net.
+    const timer = setInterval(alerts.reload, 120_000);
     return () => { window.removeEventListener("focus", alerts.reload); clearInterval(timer); };
   }, [alerts.reload]);
   // A revoked item must not reopen its previous action state when granted again.
