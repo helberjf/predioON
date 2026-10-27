@@ -23,6 +23,7 @@
     "test": "pnpm -r --workspace-concurrency=1 --filter @predioon/api-client --filter @predioon/ui --filter @predioon/mobile --filter @predioon/api --filter @predioon/ingest test",
     "test:e2e": "playwright test",
     "test:e2e:devices": "playwright test --config e2e/devices.config.ts",
+    "test:e2e:focus": "playwright test --config e2e/focus.config.ts",
     "test:e2e:smoke": "playwright test --grep @smoke",
     "test:e2e:chromium": "playwright test --project=chromium",
     "test:e2e:ui": "playwright test --ui --project=chromium",

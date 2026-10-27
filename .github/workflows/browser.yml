@@ -70,6 +70,9 @@ jobs:
           pnpm db:infra
           pnpm db:provision-runtime
           SEED_PHYSICAL_FEATURES=enabled pnpm db:seed
+      - name: Preserve pages and drafts when returning to the browser
+        if: matrix.browser == 'chromium'
+        run: pnpm test:e2e:focus
       - name: Exercise all three portals against the real API
         run: pnpm test:e2e --project=${{ matrix.browser }}
       - name: Preserve report and failure evidence
@@ -80,6 +83,7 @@ jobs:
           path: |
             .local/playwright-results/
             .local/playwright-report/
+            .local/focus-results/
           include-hidden-files: true
           if-no-files-found: ignore
           retention-days: 3

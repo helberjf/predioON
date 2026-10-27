@@ -14,8 +14,7 @@ export function FeatureProvider({ buildingId, children }: { buildingId?: string;
   const generation = useRef(0);
   const refresh = useCallback(() => {
     const request = ++generation.current;
-    // Close the visible workspace before validating a focus/event refresh.
-    setSnapshot({ path, items: null, error: null });
+    // Revalidate in the background so unchanged flags preserve the mounted workspace.
     void api.get<{ items: FeatureState[] }>(path).then(result => {
       if (request === generation.current) setSnapshot({ path, items: result.items, error: null });
     }).catch((cause: unknown) => {
