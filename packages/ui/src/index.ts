@@ -4,6 +4,7 @@ export * from "./building-scope.js";
 export * from "./sse.js";
 export * from "./format.js";
 export * from "./labels.js";
+export * from "./alert-rule-summary.js";
 export * from "./device-labels.js";
 export * from "./types.js";
 export * from "./use-resource.js";

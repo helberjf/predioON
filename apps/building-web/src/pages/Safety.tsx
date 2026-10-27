@@ -1,18 +1,28 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Droplets, Flame, RefreshCw, Settings2, Thermometer, Waves, Wind, type LucideIcon } from "lucide-react";
-import { sensorReadingState } from "@predioon/shared";
-import { Feature, Badge, Button, Card, ErrorBanner, findReading, formatNumber, formatRelative, numericReading, PageHeading, sensorChoices, useResource } from "@predioon/ui";
-import type { Device, LatestReading, Paged } from "@predioon/ui";
+import { sensorMetricDefinition, sensorReadingState } from "@predioon/shared";
+import { alertRuleSummary, Feature, Badge, Button, Card, ErrorBanner, findReading, formatNumber, formatRelative, numericReading, PageHeading, sensorChoices, useResource } from "@predioon/ui";
+import type { AlertRule, Device, LatestReading, Paged } from "@predioon/ui";
 import { HistoryCard } from "../components/HistoryCard.js";
 import { SensorPicker } from "../components/SensorPicker.js";
 
+/** The rules that raise an alert for this sensor, as quiet one-liners (the same rule is not repeated). */
+function RuleHints({ rules, deviceId, metrics }: { rules: AlertRule[]; deviceId: string; metrics: string[] }) {
+  const lines = [...new Set(rules.filter((rule) => metrics.includes(rule.metric) && (rule.deviceId === deviceId || rule.deviceId === null))
+    .map((rule) => alertRuleSummary(rule, sensorMetricDefinition(rule.metric))))];
+  if (!deviceId) return null;
+  return <ul className="space-y-0.5 border-t border-slate-100 pt-3" aria-label="Quando este sensor gera alerta">
+    {lines.length ? lines.map((line) => <li key={line} className="text-xs text-slate-400">{line}</li>) : <li className="text-xs text-slate-400">Nenhuma regra de alerta configurada para este sensor.</li>}
+  </ul>;
+}
+
 type DetectionProps = {
   title: string; description: string; metrics: string[]; types: string[]; icon: LucideIcon;
-  readings: LatestReading[]; devices: Device[]; loading: boolean;
+  readings: LatestReading[]; devices: Device[]; loading: boolean; rules: AlertRule[] | undefined;
 };
 
-function DetectionCard({ title, description, metrics, types, icon: Icon, readings, devices, loading }: DetectionProps) {
+function DetectionCard({ title, description, metrics, types, icon: Icon, readings, devices, loading, rules }: DetectionProps) {
   const [selected, setSelected] = useState("");
   const options = sensorChoices(readings, metrics, devices, types);
   const deviceId = options.some((option) => option.value === selected) ? selected : options[0]?.value ?? "";
@@ -30,11 +40,13 @@ function DetectionCard({ title, description, metrics, types, icon: Icon, reading
       <p className="text-xs text-slate-500">{reading ? `Última leitura ${formatRelative(reading.time)}` : "Aguardando dados deste sensor"}</p>
       {types.includes("GAS_SENSOR") && <div className="border-t border-slate-100 pt-3"><p className="text-xs text-slate-500">Concentração informada</p><p className="mt-1 text-xl font-semibold text-slate-900">{gasState.status === "reading" && numericReading(gas) !== null ? `${formatNumber(numericReading(gas), 0)} ppm` : "—"}</p><p className="mt-1 text-xs text-slate-500">{gasState.label}. O estado de detecção é enviado pelo detector.</p></div>}
     </div>
+    {rules && <div className="mt-4"><RuleHints rules={rules} deviceId={deviceId} metrics={metrics} /></div>}
   </Card>;
 }
 
 export function Safety({ buildingId }: { buildingId: string }) {
   const latest = useResource<Paged<LatestReading>>(`/telemetry/latest?buildingId=${encodeURIComponent(buildingId)}`);
+  const alertRules = useResource<Paged<AlertRule>>(`/alert-rules?buildingId=${encodeURIComponent(buildingId)}`);
   const sensors = useResource<Paged<Device>>(`/devices?buildingId=${encodeURIComponent(buildingId)}`);
   const [selectedTemperature, setSelectedTemperature] = useState("");
   useEffect(() => { const timer = setInterval(latest.reload, 10_000); return () => clearInterval(timer); }, [latest.reload]);
@@ -45,7 +57,7 @@ export function Safety({ buildingId }: { buildingId: string }) {
   const temperature = findReading(readings, temperatureId, "temperature_c");
   const temperatureState = sensorReadingState(temperature, Date.now(), devices.find((device) => device.id === temperatureId)?.enabled !== false);
   const gasSensors = sensorChoices(readings, ["gas_ppm"], devices, ["GAS_SENSOR"]);
-  const shared = { readings, devices, loading: latest.loading };
+  const shared = { readings, devices, loading: latest.loading, rules: alertRules.data?.items };
 
   return <>
     <PageHeading title="Sensores e segurança" description="Gás, central de incêndio, vazamentos e temperatura por sensor." action={<Button variant="secondary" disabled={latest.loading} onClick={() => { latest.reload(); sensors.reload(); }}><RefreshCw size={16} />Atualizar leituras</Button>} />
@@ -60,6 +72,7 @@ export function Safety({ buildingId }: { buildingId: string }) {
     <Feature name="GAS"><HistoryCard deviceId={gasSensors[0]?.value ?? ""} metric="gas_ppm" title="Histórico de concentração de gás" unit="ppm" color="#0ea5e9" /></Feature>
     <Feature name="TEMPERATURE"><Card title="Temperatura" subtitle="Leitura da sala técnica ou ambiente selecionado" action={<Thermometer size={20} className="text-slate-400" />}>
       <div className="grid gap-5 sm:grid-cols-2"><SensorPicker label="Sensor de temperatura" options={temperatures} value={temperatureId} onChange={setSelectedTemperature} /><div><p className="text-3xl font-bold text-slate-900">{temperatureState.status === "reading" && numericReading(temperature) !== null ? `${formatNumber(numericReading(temperature), 1)} °C` : "—"}</p><p className="mt-2 text-xs text-slate-500">{temperatureState.label}{temperature ? ` · ${formatRelative(temperature.time)}` : ""}</p></div></div>
+      {alertRules.data && <div className="mt-4"><RuleHints rules={alertRules.data.items} deviceId={temperatureId} metrics={["temperature_c"]} /></div>}
     </Card>
     <HistoryCard deviceId={temperatureId} metric="temperature_c" title="Histórico de temperatura" unit="°C" color="#f59e0b" /></Feature>
     <p className="text-xs leading-5 text-slate-500">As detecções exibem o sinal recebido do equipamento. Leituras com mais de 15 minutos ou qualidade não validada não descrevem o estado atual. Limites e procedimentos dependem do projeto e da configuração dos sensores.</p>
