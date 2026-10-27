@@ -362,6 +362,29 @@ Também retira `INSERT`, `UPDATE` e `DELETE` de `sessions` da role da API de neg
 
 **Efeito ao aplicar:** a rota `GET /overview/platform/services` e o cartão **Serviços da plataforma** na visão geral da administração. Nada muda nas demais telas.
 
+
+## Release 059: abertura pelo QR do totem
+
+`059-access-qr-totem.sql` acrescenta a chave `GATE_QR_ACCESS` aos `CHECK` de funcionalidades da 012, as colunas `gates.require_qr` (o síndico pode gravar) e `gates.qr_generation` (só a função de renovar altera) e as tabelas `gate_totem_pairings` e `gate_totems`, que guardam apenas o SHA-256 do código de pareamento e do token do tablet. A role da API lê só id, portão, nome e contatos dos tablets, com RLS de quem gerencia o portão; nenhuma role lê os hashes.
+
+A admissão de abertura da 034 passou para `app_request_access_admit`, com um canal (`LIST` ou `QR`) e a geração esperada. `app_request_access(uuid,uuid,text,text)` continua com a mesma assinatura e chama o canal `LIST`; `app_request_access_by_qr` chama o canal `QR` depois que a API confere o HMAC. Novas funções `SECURITY DEFINER`: `app_gate_qr_renew`, `app_gate_totem_pairing_create`, `app_gate_totem_revoke` (para `predioon_app`) e `identity_totem_pair`, `identity_totem_display` (para `predioon_identity`). Detalhes em [ACESSOS](ACESSOS.md#abertura-pelo-qr-do-totem-059).
+
+**Efeito ao aplicar:** nenhum condomínio muda de comportamento. O adicional nasce não liberado em todos, e nenhum portão nasce exigindo QR. A API nova exige a 059. Em produção, defina `GATE_QR_SECRET` (32 bytes ou mais) antes de liberar o adicional; sem ela, as rotas de QR e do tablet respondem 503 e o resto funciona.
+
+## Release 061: prazo do código de pareamento do totem
+
+`061-totem-pairing-clock.sql` redefine só `app_gate_totem_pairing_create`, com a mesma assinatura, dono e permissão. A versão da 059 deixava `created_at` vir do padrão da coluna e calculava `expires_at` com outro `clock_timestamp()`. O PostgreSQL pode avaliar o padrão depois do valor explícito, e então o `CHECK` de 10 minutos recusava a linha por microssegundos. O síndico via, às vezes, "Controlador e gateway precisam pertencer a este prédio" ao clicar em **Parear tablet**. Agora as duas colunas usam o mesmo instante.
+
+**Efeito ao aplicar:** nenhum dado muda. No Neon de demonstração, aplicar com `pnpm --filter @predioon/db db:infra --provider=neon-demo`.
+
+## Release 062: cenários do campo de demonstração
+
+`062-demo-field-scenarios.sql` cria `demo_scenarios` (cenário por condomínio) e `app_demo_scenario_set`, que exige `features:manage` e audita `DEMO_SCENARIO_CHANGED`. A API lê a tabela só para quem tem `features:manage`; a ingestão lê todas as linhas para o gateway simulado; nenhuma role grava diretamente. Ver [DEMO_CAMPO](DEMO_CAMPO.md).
+
+**Efeito ao aplicar:** nenhum. A tabela fica vazia e as rotas só respondem com `DEMO_SCENARIOS=on` na API.
+
+`063-service-guard-admin-memberships.sql` redefine `service_runtime_guard` para aceitar a participação só de administração (sem herdar e sem `SET ROLE`) que o PostgreSQL 16+ concede ao dono que cria o login, como no Neon. Participações que herdam ou permitem `SET ROLE` continuam recusadas. A mesma regra vale em `provision-runtime-roles.ts` e em `verifyRestrictedDatabaseRole`.
+
 ## Release 064: limites de reserva, unidade da reserva e eventos
 
 `064-reservation-limits-events.sql` faz quatro coisas, todas decididas no banco:
@@ -372,4 +395,3 @@ Também retira `INSERT`, `UPDATE` e `DELETE` de `sessions` da role da API de neg
 - **Nome para a gestão.** `app_building_person_name()` devolve só o nome de quem tem algum vínculo com o condomínio, para quem gerencia reservas, eventos ou vínculos ali. Moradores convidados por e-mail só têm role binding e unidade, e a 054 não abre a linha da conta para esses casos.
 
 **Efeito ao aplicar:** nenhuma área ganha limite sozinha e nenhuma reserva existente muda; `unit_id` fica vazio nas reservas antigas. Os eventos seguem a funcionalidade **Reservas**: desligada, eles também saem das telas e da API.
-

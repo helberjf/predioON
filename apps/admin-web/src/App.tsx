@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Link, Navigate, Route, Routes } from "react-router-dom";
-import { Button, FeatureProvider, FeatureContent, LoginScreen, PasswordRecoveryScreen, SessionsPanel, useAuth } from "@predioon/ui";
+import { Button, FeatureProvider, FeatureContent, PublicEntry, PlatformPresentation, PasswordRecoveryScreen, SessionsPanel, useAuth } from "@predioon/ui";
 import { Shell } from "./layout/Shell.js";
 import { Overview } from "./pages/Overview.js";
 import { Clients } from "./pages/Clients.js";
@@ -15,6 +15,7 @@ import { Features } from "./pages/Features.js";
 import { Support } from "./pages/Support.js";
 import { SupportAccess } from "./pages/SupportAccess.js";
 import { Tenancy } from "./pages/Tenancy.js";
+import { Demo } from "./pages/Demo.js";
 import { OrganizationAccessFeedback, OrganizationAccessProvider, useOrganizationAccess } from "./organization-access.js";
 
 export function App() {
@@ -22,8 +23,9 @@ export function App() {
 
   // A recovery link is honoured whoever is signed in on this browser; it ends every session anyway.
   if (window.location.pathname === "/redefinir-senha") return <PasswordRecoveryScreen />;
+  if (window.location.pathname === "/conheca") return <PlatformPresentation />;
   if (loading) return <p className="p-8 text-slate-500">Carregando...</p>;
-  if (!user) return <LoginScreen subtitle="Administração da plataforma" />;
+  if (!user) return <PublicEntry subtitle="Administração da plataforma" />;
 
   return <OrganizationAccessProvider key={user.id}><AuthenticatedApp /></OrganizationAccessProvider>;
 }
@@ -63,6 +65,7 @@ function AuthenticatedApp() {
         <Route path="/sessoes" element={<SessionsPanel />} />
         <Route path="/unidades-equipes" element={gated(<Tenancy />)} />
         <Route path="/funcionalidades" element={gated(<Features />)} />
+        <Route path="/demonstracao" element={gated(<Demo />)} />
         <Route path="/auditoria" element={gated(<Audit />)} />
         <Route path="/acesso-suporte" element={gated(<SupportAccess />)} />
         <Route path="/operacao" element={gated(<FeatureContent path="/operacao"><Operations /></FeatureContent>)} />

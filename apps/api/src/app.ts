@@ -23,6 +23,7 @@ import { eventsRouter } from "./modules/events/routes.js";
 import { mqttRouter } from "./modules/mqtt/routes.js";
 import { monitoringRouter } from "./modules/monitoring/routes.js";
 import { accessRouter } from "./modules/access/routes.js";
+import { totemRouter } from "./modules/access/totem-routes.js";
 import { parkingRouter } from "./modules/parking/routes.js";
 import { supportRouter } from "./modules/support/routes.js";
 import { supportAccessRouter } from "./modules/support-access/routes.js";
@@ -34,18 +35,24 @@ import { workOrdersRouter } from "./modules/work-orders/routes.js";
 import { assetsRouter } from "./modules/assets/routes.js";
 import { automationsRouter } from "./modules/automations/routes.js";
 import { buildingEventsRouter } from "./modules/building-events/routes.js";
+import { demoRouter } from "./modules/demo/routes.js";
+import { assertApiDatabaseRoles } from "./database.js";
+import { startRealtimeBus } from "./modules/events/bus.js";
+import { createServerlessApp } from "./http/serverless.js";
 
 export const app = express();
 app.set("trust proxy", config.trustedProxyCidrs.length ? config.trustedProxyCidrs : false);
 
 app.use(cors({ origin: config.corsOrigins, credentials: true }));
-app.use(["/auth/login", "/auth/web/login", "/auth/password", "/auth/web/password", "/auth/invitations", "/auth/mfa", "/auth/verify"], express.json({ limit: "8kb" }));
+app.use(["/auth/login", "/auth/web/login", "/auth/password", "/auth/web/password", "/auth/invitations", "/auth/mfa", "/auth/verify", "/totem"], express.json({ limit: "8kb" }));
 app.use(express.json({ limit: "1mb" }));
 
 app.get("/", (_req, res) => res.json({ name: "Prédio ON API", version: 1 }));
 app.use("/health", healthRouter);
 app.use("/auth", authRouter);
 app.use("/internal/mqtt", mqttRouter);
+// A paired totem tablet authenticates with its own token, never a user session.
+app.use("/totem", totemRouter);
 
 // SSE authenticates itself, because EventSource cannot send headers.
 app.use("/events", eventsRouter);
@@ -57,6 +64,7 @@ app.use("/v1/work-orders", workOrdersRouter);
 app.use("/v1/assets", assetsRouter);
 app.use("/v1/automations", automationsRouter);
 app.use("/v1/building-events", buildingEventsRouter);
+app.use("/v1/demo", demoRouter);
 app.use("/v1/support-access", supportAccessRouter);
 app.use("/features", featuresRouter);
 app.use("/organizations", organizationsRouter);
@@ -81,3 +89,10 @@ app.use("/finance", financeRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
+
+// Vercel discovers the default Express export. The long-running server keeps
+// its existing explicit startup sequence and private broker routes.
+export default createServerlessApp(app, async () => {
+  await assertApiDatabaseRoles();
+  await startRealtimeBus();
+});

@@ -1,0 +1,93 @@
+# Campo de demonstração: broker, ingestão e gateways simulados para um banco de
+# demonstração cuja API e portais rodam em outro lugar (Vercel + Neon).
+#
+#   cp infrastructure/.env.demo-field.example infrastructure/.env.demo-field
+#   docker compose -f infrastructure/docker-compose.demo-field.yml --env-file infrastructure/.env.demo-field up -d --build
+#
+# Nada é exposto à internet: o broker só existe na rede interna deste compose, onde
+# os únicos clientes são a ingestão e o gateway simulado. Por isso ele não usa a
+# autenticação HTTP da produção (que depende da API local). Nunca aponte este
+# arquivo para um banco com condomínios e equipamentos reais.
+
+name: predioon-demo-field
+
+x-logging: &bounded-logs
+  driver: local
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+x-node: &node
+  build:
+    context: ..
+    dockerfile: infrastructure/Dockerfile.node
+    args:
+      SERVICE: ingest
+  restart: unless-stopped
+  logging: *bounded-logs
+  init: true
+  security_opt:
+    - no-new-privileges:true
+  working_dir: /app/services/ingest
+
+services:
+  emqx:
+    image: emqx/emqx:6.3.1
+    restart: unless-stopped
+    logging: *bounded-logs
+    environment:
+      EMQX_NAME: predioon-demo
+      EMQX_DURABLE_SESSIONS__ENABLE: "true"
+      # Sem porta publicada: o painel só é acessível de dentro da máquina, por túnel SSH.
+      EMQX_DASHBOARD__DEFAULT_PASSWORD: ${EMQX_DASHBOARD_PASSWORD:?defina EMQX_DASHBOARD_PASSWORD}
+      EMQX_LISTENERS__WS__DEFAULT__ENABLE: "false"
+      EMQX_LISTENERS__WSS__DEFAULT__ENABLE: "false"
+      EMQX_LISTENERS__SSL__DEFAULT__ENABLE: "false"
+    volumes:
+      - emqx_data:/opt/emqx/data
+    healthcheck:
+      test: ["CMD", "/opt/emqx/bin/emqx", "ctl", "status"]
+      interval: 15s
+      timeout: 10s
+      retries: 4
+      start_period: 30s
+
+  ingest:
+    <<: *node
+    stop_grace_period: 30s
+    depends_on:
+      emqx:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL_INGEST: ${DATABASE_URL_INGEST:?defina DATABASE_URL_INGEST}
+      DATABASE_URL_ACCESS_SERVICE: ${DATABASE_URL_ACCESS_SERVICE:?defina DATABASE_URL_ACCESS_SERVICE}
+      MQTT_URL: mqtt://emqx:1883
+      MQTT_CLIENT_ID: predioon-ingest
+      GATEWAY_OFFLINE_TIMEOUT_SECONDS: 120
+      DEVICE_OFFLINE_TIMEOUT_SECONDS: 300
+    command: ["node", "--import", "tsx", "src/index.ts"]
+    healthcheck:
+      test: ["CMD", "node", "--import", "tsx", "src/health.ts"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  demo-field:
+    <<: *node
+    depends_on:
+      ingest:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DEMO_FIELD: "on"
+      DEMO_FIELD_BUILDINGS: ${DEMO_FIELD_BUILDINGS:?defina DEMO_FIELD_BUILDINGS}
+      DEMO_FIELD_INTERVAL_MS: ${DEMO_FIELD_INTERVAL_MS:-15000}
+      # Só leitura do inventário e do cenário; o campo nunca grava no banco.
+      DATABASE_URL_INGEST: ${DATABASE_URL_INGEST}
+      MQTT_URL: mqtt://emqx:1883
+    command: ["node", "--import", "tsx", "src/demo-field.ts"]
+
+volumes:
+  emqx_data:

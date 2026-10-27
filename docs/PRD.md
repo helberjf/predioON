@@ -286,7 +286,7 @@ não autorizada, funcionalidade pausada ou equipamento sem comunicação recente
 
 | ID | Requisito | Prio | Estado |
 |---|---|---|---|
-| RF-82 | 23 funcionalidades ligadas/desligadas globalmente e por condomínio, com herança | P0 | Entregue |
+| RF-82 | 24 funcionalidades ligadas/desligadas globalmente e por condomínio, com herança; adicionais (QR do totem) só valem onde a plataforma libera | P0 | Entregue |
 | RF-83 | Justificativa de 3 a 1.000 caracteres em cada alteração | P0 | Entregue |
 | RF-84 | Dependências respeitadas (agrupamento e gravidade dependem de chamados) | P0 | Entregue |
 | RF-85 | Bloqueio efetivo na API, com `403` e `FEATURE_DISABLED` | P0 | Entregue |

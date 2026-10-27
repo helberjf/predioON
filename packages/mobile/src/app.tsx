@@ -47,7 +47,7 @@ import { readOperationsAccess, readResidentAccess } from "./authorization.ts";
 import { Alerts, Overview, Readings } from "./operations.tsx";
 import { WorkOrders } from "./work-orders-screen.tsx";
 import { Notices, Reservations, Tickets, Transparency } from "./resident.tsx";
-import { Access } from "./access.tsx";
+import { Access, type GateScannerComponent } from "./access.tsx";
 import { Account } from "./account.tsx";
 import { Login } from "./login.tsx";
 import {
@@ -87,9 +87,12 @@ const boundedFetch = createBoundedFetch((input, init) => fetch(input, init));
 export function PredioApp({
   product,
   apiUrl,
+  gateScanner,
 }: {
   product: Product;
   apiUrl: string;
+  /** Only the resident app passes the camera reader (see gate-scanner.tsx). */
+  gateScanner?: GateScannerComponent;
 }) {
   let normalized = "";
   try {
@@ -106,6 +109,7 @@ export function PredioApp({
             key={`${product}:${normalized}`}
             product={product}
             baseUrl={normalized}
+            gateScanner={gateScanner}
           />
         ) : (
           <View style={styles.page}>
@@ -121,9 +125,11 @@ export function PredioApp({
 function ConnectedApp({
   product,
   baseUrl,
+  gateScanner,
 }: {
   product: Product;
   baseUrl: string;
+  gateScanner?: GateScannerComponent;
 }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [booting, setBooting] = useState(true);
@@ -290,7 +296,7 @@ function ConnectedApp({
       ) : selected ? (
         <BuildingApp
           key={`${user.id}:${selected.id}`}
-          {...{ api, product, user, accessIntents }}
+          {...{ api, product, user, accessIntents, gateScanner }}
           building={selected}
           chooseBuilding={() => setSelected(null)}
         />
@@ -336,6 +342,7 @@ function BuildingApp({
   building,
   chooseBuilding,
   accessIntents,
+  gateScanner,
 }: {
   api: ApiClient;
   product: Product;
@@ -343,6 +350,7 @@ function BuildingApp({
   building: Building;
   chooseBuilding(): void;
   accessIntents: AccessIntentStore;
+  gateScanner?: GateScannerComponent;
 }) {
   const readResident = useCallback(
     () => readResidentAccess(api, building.id),
@@ -467,7 +475,12 @@ function BuildingApp({
               <Transparency api={api} buildingId={building.id} scope={scope} />
             )}
             {current === "access" && (
-              <Access api={api} scope={scope} intents={accessIntents} />
+              <Access
+                api={api}
+                scope={scope}
+                intents={accessIntents}
+                scanner={product === "resident" ? gateScanner : undefined}
+              />
             )}
             {current === "overview" && (
               <Overview api={api} buildingId={building.id} />

@@ -13,3 +13,4 @@ export * from "./support.js";
 export * from "./governance.js";
 export * from "./features.js";
 export * from "./rbac.js";
+export * from "./demo.js";

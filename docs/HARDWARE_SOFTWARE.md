@@ -1,6 +1,7 @@
 # Integração hardware → software — Prédio ON
 
 Contrato vigente da caixa d'água e entrega local: [ENTREGA_HELBER.md](ENTREGA_HELBER.md).
+Escolha e custo dos equipamentos: [ESTUDO_HARDWARE.md](ESTUDO_HARDWARE.md).
 
 ## 1. Escopo
 

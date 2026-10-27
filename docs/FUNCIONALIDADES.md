@@ -1,14 +1,14 @@
 # Controle de funcionalidades
 
-Revisão de 17/10/2026, sobre o código até a migration 054. A administração da plataforma controla 23 funcionalidades em **Administração → Funcionalidades** (`/funcionalidades`, painel administrativo). O controle afeta o software; não desliga fisicamente equipamentos.
+Revisão de 25/10/2026, sobre o código até a migration 059. A administração da plataforma controla 24 funcionalidades em **Administração → Funcionalidades** (`/funcionalidades`, painel administrativo). O controle afeta o software; não desliga fisicamente equipamentos.
 
-**Mudanças desde a revisão de 24/09:** portões e vagas passaram a vir **desligados por padrão**, inclusive em instalações que já existiam (migrations 049 e 050). A permissão de alterar deixou de ser conferida pelo papel e passou a ser a capacidade vigente `features:manage`. Desligar um recurso também cancela entregas de alerta que deixaram de valer. O consumo para moradores ganhou uma liberação própria, decidida pelo síndico e desligada por padrão (migration 051), e o morador deixou de ver o nível da caixa d'água.
+**Mudanças desde a revisão de 24/09:** portões e vagas passaram a vir **desligados por padrão**, inclusive em instalações que já existiam (migrations 049 e 050). A permissão de alterar deixou de ser conferida pelo papel e passou a ser a capacidade vigente `features:manage`. Desligar um recurso também cancela entregas de alerta que deixaram de valer. O consumo para moradores ganhou uma liberação própria, decidida pelo síndico e desligada por padrão (migration 051), e o morador deixou de ver o nível da caixa d'água. A 059 trouxe o primeiro **adicional**, a abertura pelo QR do totem, que nasce desligado em cada condomínio e só vale onde a plataforma o liberar.
 
 ## Passo a passo rápido
 
 1. Entre no painel administrativo com uma conta de administrador da plataforma.
 2. Abra **Funcionalidades** e escolha **Global · todos os condomínios** ou o condomínio em **Onde aplicar**.
-3. Escolha **Ativar**, **Desativar** ou, no condomínio, **Herdar global**.
+3. Escolha **Ativar**, **Desativar** ou, no condomínio, **Herdar global**. Num adicional, as opções do condomínio são **Liberar**, **Desativar** e **Não liberado**.
 4. Leia os efeitos, preencha a justificativa e confirme a alteração.
 5. Confira o estado efetivo, o motivo de eventual bloqueio e os portais do síndico e do morador.
 6. Ao reativar sensores, aguarde novas leituras válidas e confira medidores e vagas antes de liberar o uso.
@@ -24,6 +24,8 @@ A API exige a capacidade global `features:manage`, que pertence ao papel Adminis
 | Ativa | Desativar | Bloqueada no condomínio |
 | Desativada | Qualquer preferência | Bloqueada globalmente |
 
+Um **adicional** (`optIn` no catálogo) segue a mesma tabela, exceto por uma linha: sem preferência gravada no condomínio, ele fica **bloqueado** (`blockedBy: "OPT_IN"`), e o condomínio só o tem com **Liberar**. Na visão global, o adicional mostra apenas o teto. Hoje o único adicional é a abertura pelo QR do totem.
+
 O desligamento global é teto: enquanto valer, nenhum condomínio liga o recurso localmente, e a preferência local fica preservada para quando o global voltar. Agrupamento e gravidade dependem de chamados. Transparência e prestação de contas são independentes. Ativar um recurso não habilita automaticamente um equipamento ou portão desativado em seu cadastro.
 
 ### Estado inicial
@@ -31,6 +33,7 @@ O desligamento global é teto: enquanto valer, nenhum condomínio liga o recurso
 | Funcionalidades | Global | Condomínios |
 |---|---|---|
 | Portão da garagem, portão de pedestres, vagas de carros, vagas de motos | **Desligadas** (049 em instalação nova; 050 em instalação existente) | Herdam |
+| Abertura por QR no totem (adicional) | Sem teto gravado | **Não liberado** até a plataforma liberar no condomínio (059) |
 | As outras 19 | Ligadas (sem configuração gravada, regra da 012) | Herdam |
 
 Portões e vagas só devem ser ligados quando o condomínio tiver de fato o equipamento instalado e testado. Desligados, Acessos e Vagas somem dos portais web, a aba Acessos some do app Morador, a API recusa as rotas e a ingestão descarta as leituras desses módulos. Cadastros de portões, vagas e equipamentos continuam guardados para quando forem ligados.
@@ -40,7 +43,7 @@ Portões e vagas só devem ser ligados quando o condomínio tiver de fato o equi
 | Área | Controles separados |
 |---|---|
 | Monitoramento | Caixa d'água; consumo de água; consumo de energia; fases e parâmetros elétricos; bomba; vazamento de água; vazamento de esgoto; fumaça; temperatura; gás; análise de desvios por IA |
-| Acessos e vagas | Portão da garagem; portão de pedestres; vagas de carros; vagas de motos |
+| Acessos e vagas | Portão da garagem; portão de pedestres; abertura por QR no totem (adicional, só vale com o portão do mesmo tipo ligado); vagas de carros; vagas de motos |
 | Rotina | Avisos; reservas de áreas comuns; chamados |
 | Atendimento | Agrupamento de chamados repetidos; seleção e alteração de gravidade |
 | Administração | Transparência da gestão; prestação de contas; suporte remoto |
@@ -49,7 +52,7 @@ Ficam fora da central e sempre disponíveis, sujeitos apenas às permissões de 
 
 ## Consumo para moradores (liberação do síndico)
 
-Não faz parte das 23 funcionalidades da central: é uma liberação por condomínio, decidida pela administração do condomínio e **desligada por padrão**. Fica no portal de operação, em **Consumo e análise**, no cartão **Consumo para moradores**, com o botão **Liberar para moradores**. Só aparece para quem administra o condomínio e lê as medições.
+Não faz parte das 24 funcionalidades da central: é uma liberação por condomínio, decidida pela administração do condomínio e **desligada por padrão**. Fica no portal de operação, em **Consumo e análise**, no cartão **Consumo para moradores**, com o botão **Liberar para moradores**. Só aparece para quem administra o condomínio e lê as medições.
 
 | Situação | O que o morador vê |
 |---|---|
@@ -109,7 +112,7 @@ Exemplo de corpo: `{"enabled":false,"version":0,"reason":"Manutenção do medido
 
 ## Implantação e teste de aceitação
 
-As migrations do controle são a 012 (tabelas e transições), 016 e 021 (autorização por capacidade e vigência), 038 (cancelamento de entregas de alerta), 049 e 050 (portões e vagas desligados) e 051 (liberação de consumo para moradores). Aplicar com `pnpm db:infra` pelo procedimento de [DEPLOY](DEPLOY.md) e [MIGRATIONS](MIGRATIONS.md), atualizando API e ingestão conjuntamente antes de liberar a central. Não apagar dados, não executar reset e não usar seed de demonstração em produção.
+As migrations do controle são a 012 (tabelas e transições), 016 e 021 (autorização por capacidade e vigência), 038 (cancelamento de entregas de alerta), 049 e 050 (portões e vagas desligados), 051 (liberação de consumo para moradores) e 059 (chave do adicional `GATE_QR_ACCESS`; ver [ACESSOS](ACESSOS.md#abertura-pelo-qr-do-totem-059)). Aplicar com `pnpm db:infra` pelo procedimento de [DEPLOY](DEPLOY.md) e [MIGRATIONS](MIGRATIONS.md), atualizando API e ingestão conjuntamente antes de liberar a central. Não apagar dados, não executar reset e não usar seed de demonstração em produção.
 
 **Ao aplicar a 050 numa instalação em uso:** portões e vagas saem do ar em todos os condomínios onde estavam ligados, pendentes de portão são cancelados e a ocupação das vagas fica desconhecida. Uma configuração global já gravada por alguém, ligada ou desligada, é mantida. Para religar, use a central.
 

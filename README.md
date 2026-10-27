@@ -52,6 +52,14 @@ No administrador, **Operação dos imóveis** reúne consumo/análise, portões/
 
 Os painéis precisam do servidor Vite; não abra os arquivos `index.html` diretamente.
 
+Sem sessão, a página inicial dos três portais oferece **Login** e **Conheça a plataforma** no celular. No desktop, o formulário continua na entrada, com acesso à apresentação pública em `/conheca`. A versão de gestão apresenta os recursos e a rotina do síndico com base no [material comercial](docs/marketing/APRESENTACAO_COMERCIAL.md); `/login` abre o formulário diretamente em qualquer tamanho de tela.
+
+O morador tem uma apresentação própria em `/conheca`, com visual de celular e foco em avisos, reservas, chamados próprios, contas publicadas, acessos autorizados e consumo quando disponibilizado. A entrada mobile do morador também usa conteúdo próprio e a apresentação oferece acesso por convite. A versão do síndico apresenta monitoramento e gestão.
+
+Para subir a plataforma numa VPS, use os [Dockerfiles, Compose de produção e roteiro de instalação](docs/DEPLOY.md). A [verificação de 24/10](docs/VERIFICACAO_2026-10-24.md) registra os testes e as correções desta entrega.
+
+A [demonstração dos três portais na Vercel com banco Neon](docs/VERCEL_NEON.md) foi publicada e verificada em 25/10. O documento contém os endereços, o perfil de instalação e os limites dos serviços contínuos nesse ambiente.
+
 ## Stack e arquitetura
 
 - **API:** Node.js, Express 5 e TypeScript, com módulos por domínio.
@@ -217,6 +225,7 @@ O simulador de portões é separado, aceita apenas broker local e exige gateway/
 | `RESEND_API_KEY` / `RESEND_FROM_EMAIL` | Envio de convites e recuperação de senha pelo Resend. Sem chave, nenhum e-mail é enviado. |
 | `PASSWORD_RESET_URL` / `RESIDENT_PORTAL_URL` | Endereços usados nos links dos e-mails de recuperação e de convite. |
 | `MFA_ENCRYPTION_KEY` | Cifra dos segredos TOTP (mínimo 32 bytes); obrigatória em produção. |
+| `GATE_QR_SECRET` | Chave do QR que o totem do portão troca a cada hora (mínimo 32 bytes). Sem ela, em produção, a abertura por QR fica indisponível. |
 | `ALERT_WEBHOOK_URL` | Opcional: encaminhamento de alertas `HIGH` e `CRITICAL` a um integrador externo. |
 
 Consulte [`.env.example`](.env.example) para os padrões locais e [DEPLOY](docs/DEPLOY.md) para produção. Mantenha API e ingestão na mesma versão ao atualizar o controle de funcionalidades.

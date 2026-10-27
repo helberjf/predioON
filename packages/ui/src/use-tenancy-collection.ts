@@ -8,7 +8,9 @@ export function useTenancyCollection<T extends { id: string }>(path: string | nu
   const reload = useCallback(() => setNonce(value => value + 1), []);
   useEffect(() => {
     let active = true;
-    setState({ path, data: [], loading: Boolean(path), error: null });
+    setState(previous => previous.path === path && previous.data.length > 0
+      ? { ...previous, error: null }
+      : { path, data: [], loading: Boolean(path), error: null });
     if (path) void loadTenancyCollection<T>(path, route => api.get(route), () => active)
       .then(data => { if (active) setState({ path, data, loading: false, error: null }); })
       .catch((cause: unknown) => { if (active) setState({ path, data: [], loading: false, error: cause instanceof Error ? cause.message : "Falha ao consultar o cadastro." }); });

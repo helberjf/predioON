@@ -4,6 +4,24 @@ export const readableCode = (code: string) => code.replaceAll("_", " ");
 export const SEVERITY_LABELS: Record<string, string> = { INFO: "Informativa", LOW: "Baixa", MEDIUM: "Média", HIGH: "Alta", CRITICAL: "Crítica" };
 
 const AUDIT_ACTIONS: Record<string, string> = {
+  ACCESS_COMMAND_ACKNOWLEDGED: "Execução reconhecida pelo controlador",
+  ACCESS_COMMAND_EXPIRED: "Prazo de confirmação do acesso encerrado",
+  ACCESS_COMMAND_FAILED: "Comando de acesso falhou",
+  ACCESS_COMMAND_REJECTED: "Comando de acesso recusado pelo controlador",
+  ACCESS_QR_RENEWED: "QR do totem renovado",
+  ACCESS_REQUEST_REPEATED: "Pedido de abertura repetido",
+  ACCESS_TOTEM_PAIRED: "Tablet do totem pareado",
+  ACCESS_TOTEM_PAIRING_CREATED: "Código de pareamento do totem emitido",
+  ACCESS_TOTEM_REVOKED: "Tablet do totem desligado",
+  DEMO_SCENARIO_CHANGED: "Cenário da demonstração alterado",
+  GATEWAY_CREDENTIALS_ISSUED: "Credencial do gateway emitida",
+  MEMBERSHIP_UPSERTED: "Vínculo com o condomínio definido",
+  PARKING_CONFIGURED: "Vagas configuradas",
+  PARKING_SENSOR_UPDATED: "Contagem de vagas atualizada pelo sensor",
+  SUPPORT_GRANT_CREATED: "Acesso de suporte concedido",
+  SUPPORT_GRANT_REVOKED: "Acesso de suporte revogado",
+  SUPPORT_STAFF_ADDED: "Integrante de suporte adicionado",
+  SUPPORT_STAFF_REMOVED: "Integrante de suporte removido",
   ACCESS_COMMAND_CANCELLED_BY_FEATURE: "Comando de acesso cancelado por pausa da funcionalidade",
   ACCESS_COMMAND_SENT: "Comando de acesso enviado",
   ACCESS_CONFIG_CREATED: "Acesso cadastrado",
@@ -80,6 +98,8 @@ const RESOURCE_TYPES: Record<string, string> = {
   alert: "Alerta", alert_rule: "Regra de alerta", asset: "Ativo", automation: "Automação", block: "Bloco", building: "Condomínio",
   common_area: "Área comum", device: "Equipamento", event: "Evento", gate: "Acesso", gateway: "Gateway", invitation: "Convite", notice: "Aviso",
   occurrence: "Chamado", organization: "Cliente", reservation: "Reserva", team: "Equipe", unit: "Unidade", user: "Conta", work_order: "Ordem de serviço",
+  feature: "Funcionalidade", membership: "Vínculo", monitoring_profile: "Monitoramento", parking: "Vagas", platform_support: "Suporte da plataforma",
+  remote_support: "Suporte remoto", role_binding: "Permissão", support_grant: "Acesso de suporte", team_member: "Integrante da equipe", unit_membership: "Vínculo com a unidade",
 };
 export const resourceTypeLabel = (type: string): string => RESOURCE_TYPES[type] ?? type;
 

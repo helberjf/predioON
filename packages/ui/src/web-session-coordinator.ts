@@ -126,5 +126,5 @@ export function browserSessionCoordinator(baseUrl: string): ReturnType<typeof cr
 }
 
 export function webSessionNamespace(portalOrigin: string, baseUrl: string): string {
-  return encodeURIComponent(`${portalOrigin}|${new URL(baseUrl).origin}`);
+  return encodeURIComponent(`${portalOrigin}|${new URL(baseUrl, portalOrigin === "unavailable" ? undefined : portalOrigin).origin}`);
 }

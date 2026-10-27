@@ -1,0 +1,63 @@
+{
+  "date": "2026-10-25",
+  "frontendRevision": "125e0360eb85459e341a5c2ec1570db6765cc5d4",
+  "apiRevision": "ed1017cfed31fdcc7bf4adb46534fe73a979ac7e",
+  "database": {
+    "provider": "Neon",
+    "project": "bold-leaf-99201114",
+    "name": "predioon-demo-db",
+    "region": "São Paulo",
+    "postgres": "18.6",
+    "timescaledb": "2.24.0",
+    "profile": "neon-demo",
+    "migrations": 59,
+    "data": "synthetic"
+  },
+  "browser": "Playwright Chromium",
+  "portals": [
+    {
+      "panel": "admin",
+      "origin": "https://predioon-admin.vercel.app",
+      "role": "PLATFORM_ADMIN",
+      "login": 200,
+      "refresh": 200,
+      "logout": 204,
+      "secureCookie": true,
+      "authenticatedHeading": "Visão geral dos condomínios",
+      "mobilePresentation": true,
+      "browserErrors": 0,
+      "serverErrors": 0
+    },
+    {
+      "panel": "sindico",
+      "origin": "https://predioon-sindico.vercel.app",
+      "role": "BUILDING_ADMIN",
+      "login": 200,
+      "refresh": 200,
+      "logout": 204,
+      "secureCookie": true,
+      "authenticatedHeading": "Olá, Síndico!",
+      "mobilePresentation": true,
+      "browserErrors": 0,
+      "serverErrors": 0
+    },
+    {
+      "panel": "morador",
+      "origin": "https://predioon-morador.vercel.app",
+      "role": "RESIDENT",
+      "login": 200,
+      "refresh": 200,
+      "logout": 204,
+      "secureCookie": true,
+      "authenticatedHeading": "Olá, Morador!",
+      "mobilePresentation": true,
+      "browserErrors": 0,
+      "serverErrors": 0
+    }
+  ],
+  "limits": [
+    "No MQTT broker or permanent ingestion/notification workers on Vercel",
+    "No scheduled Timescale automations in the Neon demo profile",
+    "No Resend configured"
+  ]
+}

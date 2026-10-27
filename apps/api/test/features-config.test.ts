@@ -45,9 +45,9 @@ describe("central de funcionalidades", () => {
     await db.delete(organizations).where(eq(organizations.id, org));
     await closeAppDb(); await sqlClient.end();
   });
-  it("defaults keep all 23 features available and only platform admin can configure", async () => {
-    assert.equal((await ok("/features/catalog")).items.length, 23);
-    assert.equal((await ok(`/features/buildings/${b}`, "GET", undefined, manager)).items.length, 23);
+  it("defaults list all 24 features and only platform admin can configure", async () => {
+    assert.equal((await ok("/features/catalog")).items.length, 24);
+    assert.equal((await ok(`/features/buildings/${b}`, "GET", undefined, manager)).items.length, 24);
     assert.equal((await request("/features/global", "GET", undefined, manager)).status, 403);
     assert.equal((await request(`/features/buildings/${b}/GAS`, "PUT", { enabled: false, version: 0, reason: "Sem permissão" }, manager)).status, 403);
     assert.equal((await request(`/features/buildings/${other}`, "GET", undefined, manager)).status, 403);

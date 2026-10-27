@@ -602,6 +602,8 @@ describe("physical access uses current capabilities at request and dispatch", ()
         "app_access_operational_reason(uuid,timestamp with time zone)",
         "app_access_role(text)",
         "app_access_request_throttled(uuid)",
+        "app_request_access_admit(uuid,uuid,text,text,text,integer)",
+        "app_gate_qr_enabled(text,text)",
       ];
       for (const role of [
         "predioon_app",

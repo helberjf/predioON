@@ -4,7 +4,8 @@ import { api, ApiError, Badge, Button, Card, ErrorBanner, Field, PageHeading, Re
 
 const SENSOR_FEATURES = new Set<FeatureKey>(["WATER_TANK", "WATER_CONSUMPTION", "ENERGY_CONSUMPTION", "ELECTRICAL", "PUMP", "WATER_LEAK", "SEWAGE_LEAK", "SMOKE", "TEMPERATURE", "GAS", "CAR_PARKING", "MOTORCYCLE_PARKING"]);
 type Change = { state: FeatureState; enabled: boolean | null; reason: string };
-const label = (key: string) => key === "GLOBAL" ? "configuração global" : key === "BUILDING" ? "configuração deste condomínio" : FEATURE_CATALOG.find(item => item.key === key)?.label ?? key;
+const label = (key: string) => key === "GLOBAL" ? "configuração global" : key === "BUILDING" ? "configuração deste condomínio" : key === "OPT_IN" ? "adicional ainda não liberado para este condomínio" : FEATURE_CATALOG.find(item => item.key === key)?.label ?? key;
+const optIn = (key: FeatureKey) => FEATURE_CATALOG.some(item => item.key === key && item.optIn);
 
 export function Features() {
   const buildings = useResource<Paged<{ id: string; name: string }>>("/buildings");
@@ -13,7 +14,7 @@ export function Features() {
   return <>
     <PageHeading title="Funcionalidades" description="Defina o que está disponível na plataforma e as exceções de cada condomínio." />
     <Card><Field label="Onde aplicar"><Select value={scope} onChange={setScope} options={[{ value: "", label: "Global · todos os condomínios" }, ...(buildings.data?.items ?? []).map(building => ({ value: building.id, label: building.name }))]} /></Field>
-      <p className="mt-3 text-sm text-slate-500">Uma desativação global bloqueia o módulo em todos os condomínios. No condomínio, “Herdar” acompanha o estado global. A configuração continua acessível para reativar os módulos.</p>
+      <p className="mt-3 text-sm text-slate-500">Uma desativação global bloqueia o módulo em todos os condomínios. No condomínio, “Herdar” acompanha o estado global. Os adicionais começam desligados em cada condomínio e só funcionam onde forem liberados. A configuração continua acessível para reativar os módulos.</p>
       {buildings.error && <ErrorBanner message={buildings.error} />}
     </Card>
     <FeatureSettings key={scope} buildingId={scope} scopeName={name} />
@@ -48,7 +49,7 @@ function FeatureSettings({ buildingId, scopeName }: { buildingId: string; scopeN
     {notice && <p role="status" className="rounded-xl bg-emerald-50 p-4 text-sm text-emerald-800">{notice}</p>}
     {change && <div ref={confirmation} className="scroll-mt-24"><Card title={`Confirmar alteração · ${label(change.state.key)}`} subtitle={scopeName}>
       <div role="alert" className="mb-4 space-y-2 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
-        <p>Aplicar: <strong>{change.enabled === null ? "Herdar o estado global" : change.enabled ? "Ativar" : "Desativar"}</strong>. {buildingId ? "Esta alteração vale para o condomínio selecionado." : "Esta alteração afeta todos os condomínios."}</p>
+        <p>Aplicar: <strong>{change.enabled === null ? (optIn(change.state.key) ? "Não liberar o adicional" : "Herdar o estado global") : change.enabled ? (optIn(change.state.key) && buildingId ? "Liberar o adicional" : "Ativar") : "Desativar"}</strong>. {buildingId ? "Esta alteração vale para o condomínio selecionado." : "Esta alteração afeta todos os condomínios."}</p>
         {change.enabled === false && <><p>Menus, cartões, ações e consultas deste módulo ficarão indisponíveis. O histórico existente será preservado.</p>
           <p>Análises e novos alertas correspondentes ficarão suspensos enquanto o recurso estiver desativado.</p>
           {SENSOR_FEATURES.has(change.state.key) && <p className="font-semibold">Novas leituras recebidas durante a desativação serão descartadas, sem armazenamento nem recomposição posterior. A retomada aguardará novas leituras válidas.</p>}
@@ -58,6 +59,7 @@ function FeatureSettings({ buildingId, scopeName }: { buildingId: string; scopeN
           {["GARAGE_ACCESS", "PEDESTRIAN_ACCESS"].includes(change.state.key) && <p>Pedidos ainda pendentes serão cancelados. Comandos já enviados podem concluir a abertura e continuarão recebendo confirmação.</p>}
           {change.state.key === "REMOTE_SUPPORT" && <p>Novas solicitações de acesso remoto serão bloqueadas. Sessões externas do AnyDesk já iniciadas não serão encerradas.</p>}
         </>}
+        {change.enabled !== true && change.state.key === "GATE_QR_ACCESS" && <p>Os totens deixam de mostrar o QR, e os portões marcados com “Exigir QR do totem” voltam a abrir pela lista do morador. Os tablets continuam pareados.</p>}
         {change.enabled !== false && <p>A disponibilidade final respeita o bloqueio global e as dependências. O histórico preservado reaparece; leituras descartadas durante a pausa não são recuperadas.</p>}
         <p>Esta configuração não desliga fisicamente sensores, bombas, portões ou computadores.</p>
       </div>
@@ -70,11 +72,11 @@ function FeatureSettings({ buildingId, scopeName }: { buildingId: string; scopeN
         if (!state) return <li key={item.key} className="py-3 text-sm text-slate-500">{item.label}: estado indisponível</li>;
         const configured = buildingId ? state.localEnabled : state.globalEnabled;
         return <li key={item.key} className="flex flex-wrap items-start justify-between gap-4 py-4">
-          <div className="min-w-0 flex-1"><h2 className="font-semibold text-slate-900">{item.label}</h2><div className="mt-2 flex flex-wrap gap-2"><Badge tone={state.enabled ? "success" : "neutral"}>{state.enabled ? "Disponível" : "Desativada"}</Badge><Badge>Global: {state.globalEnabled ? "ativo" : "desativado"}</Badge>{buildingId && <Badge>{state.localEnabled === null ? "Herdando global" : state.localEnabled ? "Ativada no condomínio" : "Desativada no condomínio"}</Badge>}</div>
+          <div className="min-w-0 flex-1"><h2 className="font-semibold text-slate-900">{item.label}</h2><div className="mt-2 flex flex-wrap gap-2"><Badge tone={state.enabled ? "success" : "neutral"}>{state.enabled ? "Disponível" : "Desativada"}</Badge><Badge>Global: {state.globalEnabled ? "ativo" : "desativado"}</Badge>{buildingId && <Badge>{state.localEnabled === null ? (item.optIn ? "Adicional não liberado" : "Herdando global") : state.localEnabled ? (item.optIn ? "Liberado no condomínio" : "Ativada no condomínio") : "Desativada no condomínio"}</Badge>}{!buildingId && item.optIn && <Badge>Adicional: liberar por condomínio</Badge>}</div>
             {!state.enabled && <p className="mt-2 text-xs text-slate-500">{!state.globalEnabled ? "Bloqueada pela configuração global." : state.blockedBy ? `Bloqueio: ${label(state.blockedBy)}.` : "Desativada neste escopo."}</p>}
             {item.dependencies.length > 0 && <p className="mt-2 text-xs text-slate-500">Depende de: {item.dependencies.map(label).join(", ")}.</p>}
           </div>
-          <div className="w-44"><Field label={`Configurar ${item.label}`}><Select value={configured === null ? "inherit" : configured ? "on" : "off"} onChange={value => { setNotice(""); setChange({ state, enabled: value === "inherit" ? null : value === "on", reason: "" }); }} options={[...(buildingId ? [{ value: "inherit", label: "Herdar global" }] : []), { value: "on", label: "Ativar" }, { value: "off", label: "Desativar" }]} /></Field></div>
+          <div className="w-44"><Field label={`Configurar ${item.label}`}><Select value={configured === null ? "inherit" : configured ? "on" : "off"} onChange={value => { setNotice(""); setChange({ state, enabled: value === "inherit" ? null : value === "on", reason: "" }); }} options={[...(buildingId ? [{ value: "inherit", label: item.optIn ? "Não liberado" : "Herdar global" }] : []), { value: "on", label: item.optIn && buildingId ? "Liberar" : "Ativar" }, { value: "off", label: "Desativar" }]} /></Field></div>
         </li>;
       })}</ul>
     </Card>)}

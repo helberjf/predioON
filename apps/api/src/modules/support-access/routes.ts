@@ -145,9 +145,13 @@ supportAccessRouter.post("/grants", validateBody(CreateGrant), async (req, res) 
     const [building] = await tx.execute(sql`select active from buildings where id=${input.buildingId}`) as unknown as Array<{ active: boolean }>;
     if (!building) throw notFound("Condomínio não encontrado");
     if (!building.active) throw badRequest("Condomínio desativado");
-    const staff = await tx.execute(sql`select 1 from role_bindings rb join users u on u.id=rb.user_id and u.active
+    // The first grant has no grant row to lock. Serialize replacements on the
+    // existing staff binding, also locked when removing this person from staff.
+    // Stable ordering chooses the same binding even with legacy duplicates.
+    const staff = await tx.execute(sql`select rb.id from role_bindings rb join users u on u.id=rb.user_id and u.active
       where rb.user_id=${input.supportUserId} and rb.role_key='PLATFORM_SUPPORT' and rb.building_id is null and rb.active
-        and (rb.starts_at is null or rb.starts_at<=statement_timestamp()) and (rb.ends_at is null or rb.ends_at>statement_timestamp()) limit 1`);
+        and (rb.starts_at is null or rb.starts_at<=statement_timestamp()) and (rb.ends_at is null or rb.ends_at>statement_timestamp())
+      order by rb.id limit 1 for update of rb`);
     if (!staff.length) throw badRequest("A pessoa precisa estar na equipe de suporte da plataforma");
     const created: GrantRow[] = [];
     for (const capability of input.capabilities) {

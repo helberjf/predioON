@@ -171,10 +171,13 @@ const physicalFeatures = process.env.SEED_PHYSICAL_FEATURES === "enabled";
 if (physicalFeatures) {
   await sqlClient`update global_feature_settings set enabled=true, version=version+1, updated_at=now()
     where feature_key in ('GARAGE_ACCESS','PEDESTRIAN_ACCESS','CAR_PARKING','MOTORCYCLE_PARKING') and not enabled`;
+  // The QR totem is a per-condominium add-on (migration 059); release it for the demo building only.
+  await sqlClient`insert into building_feature_settings(building_id, feature_key, enabled)
+    values('bld_001','GATE_QR_ACCESS',true) on conflict (building_id, feature_key) do nothing`;
 }
 console.log("Seed concluído. Usuários de demonstração (senha definida por SEED_PASSWORD ou padrão local):");
 console.log("  admin@predioon.local    (administrador da plataforma)");
 console.log("  sindico@predioon.local  (síndico)");
 console.log("  morador@predioon.local  (morador)");
-console.log(physicalFeatures ? "Portões e vagas: funcionalidades ligadas por SEED_PHYSICAL_FEATURES=enabled." : "Portões e vagas: desligados por padrão; ligue em Funcionalidades, na administração, se o condomínio tiver o equipamento.");
+console.log(physicalFeatures ? "Portões e vagas: funcionalidades ligadas por SEED_PHYSICAL_FEATURES=enabled (QR no totem liberado em bld_001)." : "Portões e vagas: desligados por padrão; ligue em Funcionalidades, na administração, se o condomínio tiver o equipamento.");
 process.exit(0);

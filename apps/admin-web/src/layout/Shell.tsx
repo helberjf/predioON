@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { AlertTriangle, Building2, LifeBuoy, ChartNoAxesCombined, Cpu, House, Monitor, RadioTower, ScrollText, ShieldCheck, Users } from "lucide-react";
+import { AlertTriangle, Building2, LifeBuoy, ChartNoAxesCombined, Cpu, FlaskConical, House, Monitor, RadioTower, ScrollText, ShieldCheck, Users } from "lucide-react";
 import { DashboardFrame, useFeatures, useAuth } from "@predioon/ui";
 import { organizationRouteAllowed, useOrganizationAccess } from "../organization-access.js";
+import { useDemoAvailable } from "../pages/Demo.js";
 // Order and grouping are what the menu shows; each group gets one heading.
 const LINKS = [
   { group: "Visão geral", to: "/", label: "Dashboard", icon: House },
@@ -19,6 +20,7 @@ const LINKS = [
   { group: "Administração", to: "/funcionalidades", label: "Funcionalidades", icon: ShieldCheck },
   { group: "Administração", to: "/auditoria", label: "Histórico de atividades", icon: ScrollText },
   { group: "Administração", to: "/sessoes", label: "Minhas sessões", icon: Monitor },
+  { group: "Administração", to: "/demonstracao", label: "Demonstração", icon: FlaskConical },
 ];
 export function Shell({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
@@ -26,7 +28,8 @@ export function Shell({ children }: { children: ReactNode }) {
   const flags = useFeatures();
   const access = useOrganizationAccess();
   const legacy = user?.role === "PLATFORM_ADMIN";
-  const allowed = (path: string) => organizationRouteAllowed(path, legacy, access.canRead) && flags.routeAllowed(path);
+  const demo = useDemoAvailable();
+  const allowed = (path: string) => (path !== "/demonstracao" || (legacy && demo)) && organizationRouteAllowed(path, legacy, access.canRead) && flags.routeAllowed(path);
   // Do not move a usable link between pointerdown and pointerup as Clients arrives.
   // Periodic checks retain a confirmed projection and therefore keep navigation stable.
   const navigationPending = access.capabilities === null && access.checking;

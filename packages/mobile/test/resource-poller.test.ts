@@ -86,3 +86,24 @@ test("unmounted resources do not publish late data or start another request", as
   assert.deepEqual(events, ["loading"]);
   assert.equal(requests.length, 1);
 });
+
+test("a screen can ask for a faster interval, still with one request in flight", async t => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  const requests: ReturnType<typeof deferred<string>>[] = [];
+  const poller = createResourcePoller({
+    active: true,
+    intervalMs: 3_000,
+    read() { const request = deferred<string>(); requests.push(request); return request.promise; },
+    loading() {}, loaded() {}, failed() {}, inactive() {},
+  });
+  t.after(() => poller.dispose());
+  poller.start();
+  t.mock.timers.tick(10_000);
+  assert.equal(requests.length, 1, "a slow answer is never overlapped");
+  requests[0]!.resolve("first");
+  await Promise.resolve(); await Promise.resolve();
+  t.mock.timers.tick(2_999);
+  assert.equal(requests.length, 1);
+  t.mock.timers.tick(1);
+  assert.equal(requests.length, 2);
+});

@@ -1,4 +1,4 @@
-import { boolean, index, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { boolean, index, integer, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { buildings, devices, gateways, users } from "./schema.js";
 
 /** Explicitly enabled after the administrator binds a dedicated gate controller. */
@@ -11,6 +11,10 @@ export const gates = pgTable("gates", {
   deviceId: text("device_id").notNull().references(() => devices.id, { onDelete: "restrict" }),
   enabled: boolean("enabled").notNull().default(false),
   allowResidents: boolean("allow_residents").notNull().default(false),
+  /** Residents open only by the totem QR while the add-on is on; managers still use the list (059). */
+  requireQr: boolean("require_qr").notNull().default(false),
+  /** Bumped by app_gate_qr_renew; part of the QR key, so renewing invalidates every printed or photographed QR. */
+  qrGeneration: integer("qr_generation").notNull().default(1),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [index("gates_building_idx").on(table.buildingId), uniqueIndex("gates_device_uq").on(table.deviceId)]);

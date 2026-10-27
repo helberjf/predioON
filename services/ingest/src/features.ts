@@ -31,7 +31,7 @@ export async function permitsDeviceAlert(tx: IngestTransaction, features: Featur
   if (device.type === "PARKING_SENSOR") {
     required = await readingFeatures(tx, buildingId, device, "parking_occupied");
   } else if (device.type === "GATE_CONTROLLER") {
-    const bound = await tx.select().from(gates).where(and(eq(gates.buildingId, buildingId), eq(gates.deviceId, device.id)));
+    const bound = await tx.select({ kind: gates.kind }).from(gates).where(and(eq(gates.buildingId, buildingId), eq(gates.deviceId, device.id)));
     required = bound.length ? bound.map(gate => gateFeature(gate.kind)) : ["GARAGE_ACCESS", "PEDESTRIAN_ACCESS"];
   }
   return !required.length || required.some(feature => permitsFeature(features, feature, at));

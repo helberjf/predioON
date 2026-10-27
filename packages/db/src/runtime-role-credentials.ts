@@ -23,10 +23,18 @@ function parseConnection(environment: Record<string, string | undefined>, key: s
   } catch { throw new Error(`${key}: conexão PostgreSQL inválida ou incompleta`); }
 }
 
+const SCOPES = {
+  api: ["DATABASE_URL_APP", "DATABASE_URL_IDENTITY", "DATABASE_URL_BROKER_AUTH"],
+  // The field stack (broker, ingestion, gate dispatch) of a demo whose API runs elsewhere:
+  // enabling it must never rotate the passwords that API is using.
+  field: ["DATABASE_URL_INGEST", "DATABASE_URL_ACCESS_SERVICE"],
+} as const;
+
 /** Validate the entire configuration before any credential can be changed. */
-export function runtimeRoleCredentials(environment: Record<string, string | undefined>): RuntimeRoleCredential[] {
+export function runtimeRoleCredentials(environment: Record<string, string | undefined>, scope: "all" | "api" | "field" = "all"): RuntimeRoleCredential[] {
   const owner = parseConnection(environment, "DATABASE_URL");
-  return Object.entries(runtimeRoles).map(([key, role]) => {
+  return Object.entries(runtimeRoles).filter(([key]) => scope === "all" ||
+    (SCOPES[scope] as readonly string[]).includes(key)).map(([key, role]) => {
     const connection = parseConnection(environment, key);
     if (decodeURIComponent(connection.username) !== role || connection.hostname !== owner.hostname ||
       (connection.port || "5432") !== (owner.port || "5432") || connection.pathname !== owner.pathname || connection.username === owner.username) {

@@ -96,6 +96,49 @@ describe("tenant people directory without broadening users RLS", () => {
     assert.equal((await call(server.url, `/v1/tenancy/people?buildingId=${f.building}`)).status, 401);
   }));
 
+  it("excludes current residents from team candidates before pagination, including with teams:manage alone", async () => fixture(async f => {
+    const expected = f.expected.filter(id => ![f.ids.legacy, f.ids.unit].includes(id));
+    for (const actor of [f.ids.manager, f.ids.teamManager]) {
+      const found: string[] = [];
+      let cursor: string | null = null;
+      do {
+        const body = await ok(f, actor, `buildingId=${f.building}&purpose=team-members&limit=1${cursor ? `&after=${encodeURIComponent(cursor)}` : ""}`);
+        assert.ok(body.items.length <= 1);
+        found.push(...body.items.map(row => row.id));
+        cursor = body.nextCursor;
+      } while (cursor);
+      assert.deepEqual(found.sort(), expected);
+    }
+    assert.deepEqual((await ok(f)).items.map(row => row.id).sort(), f.expected);
+  }));
+
+  it("recognizes direct and team resident roles and rechecks eligibility when a resident link ends", async () => fixture(async f => {
+    await sqlClient`insert into role_bindings(user_id,building_id,role_key) values(${f.ids.personal},${f.building},'RESIDENT')`;
+    await sqlClient`insert into role_bindings(team_id,building_id,role_key) values(${f.teamId},${f.building},'RESIDENT')`;
+    const query = `buildingId=${f.building}&purpose=team-members`;
+    const body = await ok(f, f.ids.manager, query);
+    for (const resident of [f.ids.legacy, f.ids.unit, f.ids.personal, f.ids.team]) assert.ok(!body.items.some(row => row.id === resident));
+    await sqlClient`update role_bindings set active=false where building_id=${f.building} and role_key='RESIDENT'`;
+    const updated = await ok(f, f.ids.manager, query);
+    for (const staff of [f.ids.personal, f.ids.team]) assert.ok(updated.items.some(row => row.id === staff));
+    assert.equal((await f.request(f.ids.legacy, query)).status, 403);
+    assert.equal((await f.request(f.ids.manager, `buildingId=${f.building}&purpose=invalid`)).status, 400);
+  }));
+
+  it("checks resident status in the selected tenant and respects expired, future and revoked links", async () => fixture(async f => {
+    const resident = async (userId: string) => (await as(f.ids.teamManager, tx => tx.execute(sql`select app_tenancy_is_resident(${f.building},${userId}) as resident`)))[0]!.resident;
+    assert.equal(await resident(f.ids.legacy), true);
+    for (const user of [f.ids.foreign, f.ids.expired, f.ids.future, f.ids.revoked, f.ids.personal]) assert.equal(await resident(user), false);
+    await sqlClient`insert into unit_memberships(user_id,building_id,unit_id) values(${f.ids.personal},${f.building},${f.unitId})`;
+    assert.equal(await resident(f.ids.personal), true);
+    await sqlClient`update units set active=false where id=${f.unitId}`;
+    assert.equal(await resident(f.ids.personal), false);
+    await assert.rejects(as(f.ids.legacy, tx => tx.execute(sql`select app_tenancy_is_resident(${f.building},${f.ids.personal})`)), error => pgErrorCode(error) === "42501");
+    await assert.rejects(as(f.ids.manager, tx => tx.execute(sql`select app_tenancy_is_resident(${f.other},${f.ids.foreign})`)), error => pgErrorCode(error) === "42501");
+    await assert.rejects(identitySqlClient`select app_tenancy_is_resident(${f.building},${f.ids.personal})`, { code: "42501" });
+    await assert.rejects(brokerAuthSqlClient`select * from app_tenancy_people(${f.building},null,100,true)`, { code: "42501" });
+  }));
+
   it("never enumerates another tenant and ignores foreign/unlinked cursors as selectors", async () => fixture(async f => {
     assert.equal((await f.request(f.ids.manager, `buildingId=${f.other}`)).status, 403);
     await assert.rejects(as(f.ids.manager, tx => tx.execute(sql`select * from app_tenancy_people(${f.other},null,100)`)), error => pgErrorCode(error) === "42501");

@@ -150,7 +150,7 @@ test("prestação escopada separa consulta de gestão, revoga o editor e não co
       const otherPage = await otherContext.newPage();
       await signIn(otherPage, BUILDING_URL, legacyManager.email);
       await otherPage.goto(`${BUILDING_URL}/transparencia`);
-      await expect(otherPage.getByText("Seu perfil não permite consultar as contas deste condomínio.", { exact: true })).toBeVisible();
+      await expect(otherPage.getByText("Sua conta não tem acesso a esta área do condomínio.", { exact: true })).toBeVisible();
       await expect(otherPage.getByRole("button", { name: /^(Nova prestação|Editar rascunho|Publicar para os moradores)$/ })).toHaveCount(0);
       await expect(otherPage.getByRole("heading", { name: managedTitle, exact: true })).toHaveCount(0);
       await expect(otherPage.getByText("Escrever atualização para os moradores", { exact: true })).toHaveCount(0);

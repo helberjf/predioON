@@ -8,6 +8,7 @@
     "typecheck": "tsc --noEmit",
     "simulator": "tsx src/hardware-simulator.ts",
     "demo:data": "tsx src/demo-data.ts",
+    "demo:field": "tsx src/demo-field.ts",
     "test": "node --import tsx --test --test-concurrency=1 test/*.test.ts"
   },
   "dependencies": {

@@ -13,15 +13,17 @@ export type Resource<T> = {
 export function useResource<T>(
   api: ApiClient,
   path: string | null,
+  intervalMs?: number,
 ): Resource<T> {
   const read = useCallback(() => api.get<T>(path!), [api, path]);
-  return useReadResource(path, read);
+  return useReadResource(path, read, intervalMs);
 }
 
 /** A keyed composite read shares the same foreground/generation guarantees. */
 export function useReadResource<T>(
   path: string | null,
   read: () => Promise<T>,
+  intervalMs?: number,
 ): Resource<T> {
   const [revision, setRevision] = useState(0);
   const [state, setState] = useState<
@@ -40,6 +42,7 @@ export function useReadResource<T>(
     }
     const poller = createResourcePoller({
       active: AppState.currentState === "active",
+      intervalMs,
       read,
       loading: () =>
         setState((previous) => ({
@@ -81,7 +84,7 @@ export function useReadResource<T>(
       poller.dispose();
       listener.remove();
     };
-  }, [read, path, revision]);
+  }, [read, path, revision, intervalMs]);
   return {
     ...(state.path === path
       ? state

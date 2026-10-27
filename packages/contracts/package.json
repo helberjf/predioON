@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "main": "./src/index.ts",
-  "exports": { ".": "./src/index.ts", "./auth": "./src/auth.ts", "./tenancy": "./src/tenancy.ts", "./work-orders": "./src/work-orders.ts", "./assets": "./src/assets.ts", "./automations": "./src/automations.ts" },
+  "exports": { ".": "./src/index.ts", "./auth": "./src/auth.ts", "./tenancy": "./src/tenancy.ts", "./work-orders": "./src/work-orders.ts", "./assets": "./src/assets.ts", "./automations": "./src/automations.ts", "./gate-qr": "./src/gate-qr.ts" },
   "scripts": { "typecheck": "tsc --noEmit" },
   "dependencies": { "@predioon/shared": "workspace:*" },
   "devDependencies": { "typescript": "^5.0.0" }

@@ -11,19 +11,20 @@
 
 # ---------------------------------------------------------------- API
 api.{$DOMAIN} {
-    @internal path /internal/*
-    respond @internal 404
-	reverse_proxy api:3000 {
-		header_up X-Forwarded-For {remote_host}
-		header_up -Forwarded
-	}
-
-	# SSE precisa passar sem buffer, senão o painel só recebe os eventos em lote.
-	@sse path /events/*
-	reverse_proxy @sse api:3000 {
-		flush_interval -1
-		header_up X-Forwarded-For {remote_host}
-		header_up -Forwarded
+	# route preserves the order: internal denial, streaming, ordinary requests.
+	route {
+		@internal path /internal /internal/*
+		respond @internal 404
+		@sse path /events/*
+		reverse_proxy @sse api:3000 {
+			flush_interval -1
+			header_up X-Forwarded-For {remote_host}
+			header_up -Forwarded
+		}
+		reverse_proxy api:3000 {
+			header_up X-Forwarded-For {remote_host}
+			header_up -Forwarded
+		}
 	}
 
 	header {

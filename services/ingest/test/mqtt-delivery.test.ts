@@ -66,6 +66,23 @@ async function fixture(t: TestContext) {
   };
 }
 
+it("recovers from a temporary authentication refusal while the broker authorizer restarts", { timeout: 10_000 }, async t => {
+  const f = await fixture(t);
+  let attempts = 0, received = false;
+  f.broker.authenticate = (_client, _username, _password, done) => {
+    attempts++;
+    if (attempts === 1) {
+      const failure = Object.assign(new Error("Authorizer is restarting"), { returnCode: 4 as const });
+      done(failure, false);
+    } else done(null, true);
+  };
+  const client = await f.connect(async () => { received = true; });
+  assert.equal(attempts, 2, "retry the connection once authorization becomes available");
+  assert.equal(client.options.queueQoSZero, false, "physical commands must remain unqueued");
+  await f.publish("after-authorizer-recovery");
+  await until(() => received, "telemetry after authorizer recovery");
+});
+
 it("exposes the delivered QoS without treating a QoS0 publication as QoS1", { timeout: 10_000 }, async t => {
   const f = await fixture(t);
   const received: Array<{ value: string; metadata: unknown }> = [];

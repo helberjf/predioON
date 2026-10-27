@@ -13,5 +13,6 @@ predio-on-platform-v4.zip
 
 # segredos de produção
 infrastructure/.env.prod
+infrastructure/.env.demo-field
 .local/
 infrastructure/emqx/certs/

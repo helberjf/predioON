@@ -2,9 +2,11 @@
  * Pure model of a building's field equipment. No MQTT, no database: it can be unit tested
  * and it is what makes it possible to validate alarms and offline detection with no hardware.
  */
-export const SCENARIOS = ["normal", "low-water", "power-loss", "leak", "stuck-sensor", "gateway-drop",
-  "high-energy", "high-water-consumption", "pump-overrun", "gas", "smoke", "sewage-leak"] as const;
-export type Scenario = (typeof SCENARIOS)[number];
+import { DEMO_SCENARIOS, type DemoScenario } from "@predioon/shared";
+
+// One list for the CLI simulator, the demo field and the database CHECK (062).
+export const SCENARIOS = DEMO_SCENARIOS;
+export type Scenario = DemoScenario;
 
 export type FieldState = {
   waterLevelPercent: number;
@@ -50,7 +52,7 @@ export function initialState(): FieldState {
     currentL3: 20.2,
     frequencyHz: 60,
     gasDetected: false,
-    gasPpm: 0,
+    gasPpm: 4,
     smokeDetected: false,
     sewageLeakDetected: false,
   };
@@ -103,7 +105,8 @@ export function nextState(state: FieldState, tick: number, scenario: Scenario, e
   next.currentL3 = Math.round(next.currentL1 * 1.02 * 100) / 100;
   next.frequencyHz = scenario === "power-loss" ? 0 : Math.round((60 + Math.sin(tick / 7) * 0.03) * 100) / 100;
   next.gasDetected = scenario === "gas";
-  next.gasPpm = scenario === "gas" ? Math.round(1800 + Math.sin(tick / 4) * 100) : 0;
+  // A real detector reads a small background concentration, never exactly zero.
+  next.gasPpm = scenario === "gas" ? Math.round(1800 + Math.sin(tick / 4) * 100) : Math.round((4 + Math.sin(tick / 5) * 1.5) * 10) / 10;
   next.smokeDetected = scenario === "smoke";
   next.sewageLeakDetected = scenario === "sewage-leak";
 

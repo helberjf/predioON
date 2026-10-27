@@ -33,7 +33,10 @@ export function runtimeDatabaseUrl(variable: RuntimeDatabaseVariable, role: Runt
 /** Keep driver option parsing inside the same secret-safe boundary as URL parsing. */
 export function createRuntimeSqlClient(variable: RuntimeDatabaseVariable, role: RuntimeDatabaseRole, max: number): postgres.Sql {
   try {
-    return postgres(runtimeDatabaseUrl(variable, role), { max, connect_timeout: 5 });
+    // Each serverless instance keeps its own pool: on a small shared database (Neon free) dozens of
+    // warm instances holding ten idle connections each exhaust its memory. Idle connections are
+    // closed, and a serverless instance only needs a few.
+    return postgres(runtimeDatabaseUrl(variable, role), { max: process.env.VERCEL ? Math.min(max, 3) : max, connect_timeout: 5, idle_timeout: 30 });
   } catch {
     throw new Error(`${variable}: configuração de banco restrita inválida`);
   }
@@ -45,7 +48,9 @@ export async function verifyRestrictedDatabaseRole(client: postgres.Sql, expecte
     const [role] = await client`
       select current_user as effective_user, session_user as session_user_name,
         r.rolname, r.rolsuper, r.rolbypassrls, r.rolinherit, r.rolcreatedb, r.rolcreaterole, r.rolreplication,
-        exists(select 1 from pg_catalog.pg_auth_members m where m.member=r.oid or (r.rolname in ('predioon_notifications', 'predioon_ingest', 'predioon_access_service') and m.roleid=r.oid)) as has_memberships,
+        exists(select 1 from pg_catalog.pg_auth_members m where m.member=r.oid or (r.rolname in ('predioon_notifications', 'predioon_ingest', 'predioon_access_service') and m.roleid=r.oid
+          -- Admin-only membership (no inherit, no SET ROLE; PostgreSQL 16+ gives it to the creating owner, as on Neon) grants nothing.
+          and (coalesce((pg_catalog.to_jsonb(m)->>'inherit_option')::boolean,true) or coalesce((pg_catalog.to_jsonb(m)->>'set_option')::boolean,true)))) as has_memberships,
         exists(select 1 from pg_catalog.pg_shdepend d where d.refclassid='pg_catalog.pg_authid'::pg_catalog.regclass and d.refobjid=r.oid and d.deptype='o') as owns_objects
       from pg_catalog.pg_stat_activity a join pg_catalog.pg_roles r on r.oid=a.usesysid
       where a.pid=pg_catalog.pg_backend_pid()`;

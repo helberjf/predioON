@@ -5,7 +5,8 @@
   "type": "module",
   "main": "./src/index.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./gate-scanner": "./src/gate-scanner.tsx"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
@@ -16,6 +17,7 @@
     "@predioon/contracts": "workspace:*",
     "react": "19.2.3",
     "react-native": "0.87.1",
+    "react-native-camera-kit": "18.0.1",
     "react-native-get-random-values": "2.0.0",
     "react-native-keychain": "10.0.0",
     "react-native-safe-area-context": "5.10.1"

@@ -5,8 +5,21 @@ import * as shared from "@predioon/shared";
 it("feature catalog covers independent controls and preserves default availability", () => {
   assert.equal(typeof shared.resolveFeatures, "function", "central resolver is required");
   const states = shared.resolveFeatures([], []);
-  assert.equal(Object.keys(states).length, 23);
-  assert.ok(Object.values(states).every(state => state.enabled));
+  assert.equal(Object.keys(states).length, 24);
+  assert.ok(Object.values(states).filter(state => state.key !== "GATE_QR_ACCESS").every(state => state.enabled));
+});
+
+it("an opt-in add-on is off in a condominium until it is explicitly released there", () => {
+  const unset = shared.resolveFeatures([], []);
+  assert.equal(unset.GATE_QR_ACCESS.enabled, false);
+  assert.equal(unset.GATE_QR_ACCESS.blockedBy, "OPT_IN");
+  assert.equal(shared.resolveFeatures([], [], "global").GATE_QR_ACCESS.enabled, true);
+  const released = [{ key: "GATE_QR_ACCESS" as const, enabled: true, version: 1 }];
+  assert.equal(shared.resolveFeatures([], released).GATE_QR_ACCESS.enabled, true);
+  const ceiling = shared.resolveFeatures([{ key: "GATE_QR_ACCESS", enabled: false, version: 1 }], released).GATE_QR_ACCESS;
+  assert.equal(ceiling.enabled, false);
+  assert.equal(ceiling.blockedBy, "GLOBAL");
+  assert.equal(shared.resolveFeatures([], [{ key: "GATE_QR_ACCESS", enabled: false, version: 2 }]).GATE_QR_ACCESS.blockedBy, "BUILDING");
 });
 
 it("global disable wins over local enable and local preference survives", () => {

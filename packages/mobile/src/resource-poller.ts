@@ -5,6 +5,8 @@ type ResourcePollerOptions<T> = {
   loaded(value: T): void;
   failed(error: unknown): void;
   inactive(): void;
+  /** Delay between foreground reads; 15 s unless a screen needs a faster answer. */
+  intervalMs?: number;
 };
 
 /** Poll only in the foreground, with at most one request in flight. */
@@ -32,7 +34,7 @@ export function createResourcePoller<T>(options: ResourcePollerOptions<T>) {
         // Returning to the foreground invalidates the outstanding response.
         // Wait for it to settle to preserve backpressure, then fetch fresh data.
         if (startedGeneration !== generation) void load();
-        else timer = setTimeout(() => void load(), 15_000);
+        else timer = setTimeout(() => void load(), options.intervalMs ?? 15_000);
       }
     }
   }
