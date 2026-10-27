@@ -76,7 +76,7 @@ export function DashboardFrame({ children, title, subtitle, userName, role, link
 
   const nav = () => links.map(({ to, label, icon: Icon, group }, index) => <div key={to}>
     {group && group !== links[index - 1]?.group && <p className={cls("px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400/80", index ? "pt-5" : "pt-1")}>{group}</p>}
-    {renderLink(to, <><span className={cls("absolute inset-y-2 left-0 w-[3px] rounded-full", pathname === to ? "bg-emerald-400" : "bg-transparent")}/><Icon size={18}/><span className="min-w-0 truncate">{label}</span></>, cls("relative flex h-10 items-center gap-3 rounded-lg pl-4 pr-3 text-[13px] transition", pathname === to ? "bg-white/[0.08] font-semibold text-white" : "text-slate-300 hover:bg-white/5 hover:text-white"))}
+    {renderLink(to, <><span className={cls("absolute inset-y-2 left-0 w-[3px] rounded-full", pathname === to ? "bg-emerald-400" : "bg-transparent")}/><Icon size={18} className="shrink-0"/><span className="min-w-0 whitespace-normal leading-5">{label}</span></>, cls("relative flex min-h-10 items-center gap-3 rounded-lg py-2 pl-4 pr-3 text-[13px] transition", pathname === to ? "bg-white/[0.08] font-semibold text-white" : "text-slate-300 hover:bg-white/5 hover:text-white"))}
   </div>);
 
   // Mesma coluna escura serve à barra fixa do desktop e ao painel deslizante do celular.
