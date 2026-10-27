@@ -44,6 +44,7 @@ export function Safety({ buildingId }: { buildingId: string }) {
   const temperatureId = temperatures.some((sensor) => sensor.value === selectedTemperature) ? selectedTemperature : temperatures[0]?.value ?? "";
   const temperature = findReading(readings, temperatureId, "temperature_c");
   const temperatureState = sensorReadingState(temperature, Date.now(), devices.find((device) => device.id === temperatureId)?.enabled !== false);
+  const gasSensors = sensorChoices(readings, ["gas_ppm"], devices, ["GAS_SENSOR"]);
   const shared = { readings, devices, loading: latest.loading };
 
   return <>
@@ -56,6 +57,7 @@ export function Safety({ buildingId }: { buildingId: string }) {
       <Feature name="WATER_LEAK"><DetectionCard {...shared} title="Vazamento de água" description="Pontos monitorados de água" metrics={["water_leak_detected", "leak_detected"]} types={["LEAK_SENSOR"]} icon={Droplets} /></Feature>
       <Feature name="SEWAGE_LEAK"><DetectionCard {...shared} title="Vazamento de esgoto" description="Pontos monitorados de esgoto" metrics={["sewage_leak_detected"]} types={["SEWAGE_LEAK_SENSOR"]} icon={Waves} /></Feature>
     </div>
+    <Feature name="GAS"><HistoryCard deviceId={gasSensors[0]?.value ?? ""} metric="gas_ppm" title="Histórico de concentração de gás" unit="ppm" color="#0ea5e9" /></Feature>
     <Feature name="TEMPERATURE"><Card title="Temperatura" subtitle="Leitura da sala técnica ou ambiente selecionado" action={<Thermometer size={20} className="text-slate-400" />}>
       <div className="grid gap-5 sm:grid-cols-2"><SensorPicker label="Sensor de temperatura" options={temperatures} value={temperatureId} onChange={setSelectedTemperature} /><div><p className="text-3xl font-bold text-slate-900">{temperatureState.status === "reading" && numericReading(temperature) !== null ? `${formatNumber(numericReading(temperature), 1)} °C` : "—"}</p><p className="mt-2 text-xs text-slate-500">{temperatureState.label}{temperature ? ` · ${formatRelative(temperature.time)}` : ""}</p></div></div>
     </Card>
