@@ -51,7 +51,7 @@ function BuildingApp() {
         <Route path="/chamados" element={<FeatureContent path="/chamados"><Occurrences buildingId={buildingId} /></FeatureContent>} />
         <Route path="/transparencia" element={<FeatureContent path="/transparencia"><TransparencyPanel buildingId={buildingId} /></FeatureContent>} />
         <Route path="/avisos" element={<FeatureContent path="/avisos"><Notices buildingId={buildingId} canManage={can("notices:manage")} /></FeatureContent>} />
-        <Route path="/areas" element={<FeatureContent path="/areas"><Areas buildingId={buildingId} canManage={can("reservations:manage") && can("common-areas:read")} /></FeatureContent>} />
+        <Route path="/areas" element={<FeatureContent path="/areas"><Areas buildingId={buildingId} canManage={can("reservations:manage") && can("common-areas:read")} canConfigure={can("common-areas:manage")} canEvents={can("events:manage")} /></FeatureContent>} />
         <Route path="/ordens-servico" element={<WorkOrdersPanel key={buildingId} buildingId={buildingId} />} />
         <Route path="/ativos" element={<AssetsPanel key={buildingId} buildingId={buildingId} />} />
         <Route path="/automacoes" element={<AutomationsPanel key={buildingId} buildingId={buildingId} />} />

@@ -33,6 +33,7 @@ import { authorizationRouter } from "./modules/authorization/routes.js";
 import { workOrdersRouter } from "./modules/work-orders/routes.js";
 import { assetsRouter } from "./modules/assets/routes.js";
 import { automationsRouter } from "./modules/automations/routes.js";
+import { buildingEventsRouter } from "./modules/building-events/routes.js";
 
 export const app = express();
 app.set("trust proxy", config.trustedProxyCidrs.length ? config.trustedProxyCidrs : false);
@@ -55,6 +56,7 @@ app.use("/v1/authorization", authorizationRouter);
 app.use("/v1/work-orders", workOrdersRouter);
 app.use("/v1/assets", assetsRouter);
 app.use("/v1/automations", automationsRouter);
+app.use("/v1/building-events", buildingEventsRouter);
 app.use("/v1/support-access", supportAccessRouter);
 app.use("/features", featuresRouter);
 app.use("/organizations", organizationsRouter);

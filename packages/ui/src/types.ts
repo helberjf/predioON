@@ -92,6 +92,11 @@ export type CommonArea = {
   closesAt: string;
   requiresApproval: boolean;
   maxHoursPerBooking: number;
+  description?: string | null;
+  rules?: string | null;
+  /** Reservations per calendar month; null means no limit. */
+  monthlyLimitPerResident?: number | null;
+  monthlyLimitPerUnit?: number | null;
 };
 
 export type Reservation = {
@@ -106,3 +111,5 @@ export type Reservation = {
 };
 
 export type Paged<T> = { items: T[] };
+
+export type { BuildingEvent, BuildingEventAnswer, ManagedReservation, OwnUnit, ReservationCalendarResponse } from "@predioon/contracts";

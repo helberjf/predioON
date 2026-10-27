@@ -18,7 +18,7 @@ Revisão de 18/10/2026, sobre o código até a migration 058 (`infrastructure/05
 |---|---|---|
 | Portal de administração | Administração da plataforma | Visão geral com Serviços da plataforma, Condomínios, Clientes, Operação dos imóveis, Comunicação (gateways), Equipamentos, Suporte remoto, Usuários, Unidades e equipes, Acesso de suporte, Funcionalidades, Histórico de atividades, Minhas sessões |
 | Portal de operação | Síndico e equipe do condomínio | Monitoramento (água, energia, consumo, sensores, equipamentos), alertas, ocorrências, ordens de serviço, ativos, avisos, áreas comuns, transparência e contas, unidades e equipes, regras de alerta, automações, histórico, Acesso de suporte (só leitura), Minhas sessões. Portões e vagas só aparecem quando ligados |
-| Portal do morador | Morador | Início, reservas, ocorrências, avisos, transparência, perfil com Minhas sessões. Acessos e Vagas só quando ligados; Consumo só quando o síndico libera |
+| Portal do morador | Morador | Início, reservas (calendário com os dias e horários livres, sem ver quem reservou; unidade do próprio cadastro; limites do mês), eventos com confirmação de presença e acompanhantes, ocorrências, avisos, transparência, perfil com Minhas sessões. Acessos e Vagas só quando ligados; Consumo só quando o síndico libera |
 | App Morador (React Native) | Morador | Avisos, Solicitações, Reservas, Transparência e Minha conta; **Tenho um convite** na entrada. Consumo só quando o síndico libera; Acessos só quando ligado |
 | App Operação (React Native) | Equipe do condomínio | Resumo, Alertas, Sensores, Solicitações, Ordens de serviço e Minha conta, conforme as permissões de cada pessoa |
 
@@ -59,7 +59,7 @@ As quatro funcionalidades (portão da garagem, portão de pedestres, vagas de ca
 | Dia da coleta de lixo | Atalho de categoria, data, publicação programada e repetição semanal. |
 | Reunião | Aviso com data e hora de ocorrência e período de publicação. |
 | Limpeza do hall | Atalho de categoria, data e repetição semanal opcional. |
-| Agendamento do salão | Módulo de reservas, aprovação, cancelamento e conflito de horários, nos portais e no app Morador. |
+| Agendamento do salão | Módulo de reservas, aprovação, cancelamento e conflito de horários, nos portais e no app Morador. Desde a 064: calendário do mês por área para o síndico (quem reservou e a unidade), limite de reservas por mês por morador e por unidade em cada área, e eventos que ocupam a área, com confirmação de presença. |
 | Caixa de serviços a fazer | Módulo de chamados, protocolo, prioridade e situação. Para o trabalho da manutenção, ver ordens de serviço abaixo. |
 
 Detalhes em [Vagas e avisos](VAGAS_AVISOS.md). A agenda calcula a próxima ocorrência e controla a publicação; lembretes por WhatsApp/e-mail não são enviados por esse módulo.

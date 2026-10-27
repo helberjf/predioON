@@ -30,6 +30,9 @@ const AUDIT_ACTIONS: Record<string, string> = {
   DEVICE_CREATED: "Equipamento cadastrado",
   DEVICE_METRIC_CREATED: "Métrica de equipamento cadastrada",
   DEVICE_UPDATED: "Equipamento alterado",
+  EVENT_CANCELLED: "Evento cancelado",
+  EVENT_CREATED: "Evento criado",
+  EVENT_UPDATED: "Evento alterado",
   FEATURE_CONFIGURATION_CHANGED: "Funcionalidade alterada",
   FINANCIAL_DRAFT_CREATED: "Rascunho de prestação de contas criado",
   FINANCIAL_DRAFT_UPDATED: "Rascunho de prestação de contas alterado",
@@ -75,7 +78,7 @@ export const auditActionLabel = (action: string): string => AUDIT_ACTIONS[action
 
 const RESOURCE_TYPES: Record<string, string> = {
   alert: "Alerta", alert_rule: "Regra de alerta", asset: "Ativo", automation: "Automação", block: "Bloco", building: "Condomínio",
-  common_area: "Área comum", device: "Equipamento", gate: "Acesso", gateway: "Gateway", invitation: "Convite", notice: "Aviso",
+  common_area: "Área comum", device: "Equipamento", event: "Evento", gate: "Acesso", gateway: "Gateway", invitation: "Convite", notice: "Aviso",
   occurrence: "Chamado", organization: "Cliente", reservation: "Reserva", team: "Equipe", unit: "Unidade", user: "Conta", work_order: "Ordem de serviço",
 };
 export const resourceTypeLabel = (type: string): string => RESOURCE_TYPES[type] ?? type;

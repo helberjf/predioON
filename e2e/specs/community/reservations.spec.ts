@@ -43,7 +43,7 @@ test("reserva informa o estado real quando a gestão altera a aprovação com o 
   }
 });
 
-test("calendário mostra só ocupação, informa conflito real e atualiza após cancelamento", async ({ page, request }) => {
+test("calendário mostra só os horários livres, informa conflito real e atualiza após cancelamento", async ({ page, request }) => {
   const fixture = await isolatedTenant(request);
   const areaName = `Ocupação ${fixture.suffix}`;
   const area = await fixture.managerApi.create<{ id: string }>("/common-areas", {
@@ -60,22 +60,24 @@ test("calendário mostra só ocupação, informa conflito real e atualiza após 
   await page.setViewportSize({ width: 390, height: 844 });
   await signIn(page, RESIDENT_URL, fixture.resident.email);
   await page.goto(`${RESIDENT_URL}/reservas`);
-  await page.getByRole("button").filter({ has: page.getByRole("heading", { name: areaName, exact: true }) }).click();
   const calendarResponse = () => page.waitForResponse(response => {
     const url = new URL(response.url());
     return url.pathname === "/reservations/availability" && url.searchParams.get("areaId") === area.id;
   });
-  const occupancy = calendarResponse();
+  // Every occupancy answer the page receives carries only instants, never who or why.
+  const answers: Array<Promise<Array<Record<string, unknown>>>> = [];
+  page.on("response", response => {
+    const url = new URL(response.url());
+    if (url.pathname === "/reservations/availability" && url.searchParams.get("areaId") === area.id) answers.push(response.json().then(body => body.items));
+  });
+  await page.getByRole("button").filter({ has: page.getByRole("heading", { name: areaName, exact: true }) }).click();
+  await expect(page.getByRole("region", { name: "Dias livres no mês", exact: true })).toBeVisible();
   await page.getByLabel("Data", { exact: true }).fill(date);
-  const loaded = await occupancy;
-  expect(loaded.status()).toBe(200);
-  const intervals = (await loaded.json()).items as Array<Record<string, unknown>>;
-  expect(intervals).toHaveLength(1);
-  expect(Object.keys(intervals[0]!).sort()).toEqual(["endsAt", "startsAt"]);
-  const calendar = page.getByRole("region", { name: "Horários ocupados", exact: true });
+  const calendar = page.getByRole("region", { name: "Horários livres", exact: true });
   await expect(page.getByText("Horários no fuso America/Sao_Paulo.", { exact: true })).toBeVisible();
-  await expect(calendar).toContainText("10:00");
-  await expect(calendar).toContainText("12:00");
+  // The neighbour holds 10:00 to 12:00 (São Paulo): only the time around it is offered.
+  await expect(calendar.getByRole("listitem")).toHaveText(["Livre das 08:00 às 10:00", "Livre das 12:00 às 22:00"]);
+  for (const items of await Promise.all(answers)) for (const item of items) expect(Object.keys(item).sort()).toEqual(["endsAt", "startsAt"]);
   for (const privateValue of [secret, "VIZINHO-999", neighbor.id, booked.id]) await expect(page.locator("body")).not.toContainText(privateValue);
 
   await page.getByLabel("Início", { exact: true }).fill("10:00");
@@ -92,8 +94,7 @@ test("calendário mostra só ocupação, informa conflito real e atualiza após 
   const refreshed = calendarResponse();
   await calendar.getByRole("button", { name: "Atualizar horários", exact: true }).click();
   expect((await refreshed).status()).toBe(200);
-  await expect(calendar.getByText("Nenhum horário ocupado nesta data.", { exact: true })).toBeVisible();
-  await expect(calendar.getByRole("listitem")).toHaveCount(0);
+  await expect(calendar.getByRole("listitem")).toHaveText(["Livre das 08:00 às 22:00"]);
   const accepted = page.waitForResponse(response => response.url() === `${API_URL}/reservations` && response.request().method() === "POST");
   await page.getByRole("button", { name: "Confirmar reserva", exact: true }).click();
   expect((await accepted).status()).toBe(201);

@@ -460,6 +460,9 @@ export const commonAreas = pgTable(
     closesAt: text("closes_at").notNull().default("22:00"),
     requiresApproval: boolean("requires_approval").notNull().default(true),
     maxHoursPerBooking: integer("max_hours_per_booking").notNull().default(6),
+    /** Reservations one resident, and one apartment, may hold per calendar month (infrastructure/064). */
+    monthlyLimitPerResident: integer("monthly_limit_per_resident"),
+    monthlyLimitPerUnit: integer("monthly_limit_per_unit"),
     active: boolean("active").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -492,6 +495,8 @@ export const reservations = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     unit: text("unit"),
+    /** One of the requester's current apartments, filled in by the database (infrastructure/064). */
+    unitId: uuid("unit_id"),
     startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
     endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
     status: reservationStatusEnum("status").notNull().default("PENDING"),

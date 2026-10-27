@@ -29,3 +29,14 @@ export function pgErrorCode(error: unknown): string | undefined {
   }
   return undefined;
 }
+
+/** The constraint a database rule names when it refuses a change, also when raised by a trigger. */
+export function pgConstraintName(error: unknown): string | undefined {
+  let current = error;
+  for (let depth = 0; depth < 5 && current; depth += 1) {
+    const name = (current as { constraint_name?: unknown }).constraint_name;
+    if (typeof name === "string") return name;
+    current = (current as { cause?: unknown }).cause;
+  }
+  return undefined;
+}

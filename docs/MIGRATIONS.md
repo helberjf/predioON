@@ -362,3 +362,14 @@ Também retira `INSERT`, `UPDATE` e `DELETE` de `sessions` da role da API de neg
 
 **Efeito ao aplicar:** a rota `GET /overview/platform/services` e o cartão **Serviços da plataforma** na visão geral da administração. Nada muda nas demais telas.
 
+## Release 064: limites de reserva, unidade da reserva e eventos
+
+`064-reservation-limits-events.sql` faz quatro coisas, todas decididas no banco:
+
+- **Limites por mês.** `common_areas` ganha `monthly_limit_per_resident` e `monthly_limit_per_unit` (1 a 31; vazio é sem limite). O gatilho `reservations_booking_guard` conta, no mês civil do fuso do condomínio, as reservas pendentes e confirmadas da mesma área, do mesmo morador ou da mesma unidade. Recusadas e canceladas liberam a vaga. As reservas e os eventos de uma área passam por um único advisory lock, então dois pedidos simultâneos não furam o limite.
+- **Unidade da reserva.** `reservations.unit_id` aponta para uma unidade atual de quem pede (vínculos de `unit_memberships`). Com uma só unidade ela é preenchida sozinha; um código digitado que corresponda a uma das unidades também vale (apps antigos mandam o texto). Unidade de outra pessoa é recusada. Uma área com limite por unidade exige a unidade. O campo de texto `unit` passa a repetir o código da unidade quando ela existe, e a guarda de transição (029) agora também mantém `unit_id` imutável.
+- **Eventos.** `building_events` e `building_event_responses`, com as capacidades novas `events:read`, `events:respond-own` (todos os papéis do condomínio) e `events:manage` (síndico). Um evento pode ocupar uma área comum: no horário dele a área fica ocupada para reservas e outros eventos, e a ocupação vista pelos moradores inclui o intervalo (sem detalhes). Respostas têm acompanhantes até o limite do evento, prazo opcional e limite de pessoas, conferidos com bloqueio por evento. Auditoria: `EVENT_CREATED`, `EVENT_UPDATED`, `EVENT_CANCELLED`.
+- **Nome para a gestão.** `app_building_person_name()` devolve só o nome de quem tem algum vínculo com o condomínio, para quem gerencia reservas, eventos ou vínculos ali. Moradores convidados por e-mail só têm role binding e unidade, e a 054 não abre a linha da conta para esses casos.
+
+**Efeito ao aplicar:** nenhuma área ganha limite sozinha e nenhuma reserva existente muda; `unit_id` fica vazio nas reservas antigas. Os eventos seguem a funcionalidade **Reservas**: desligada, eles também saem das telas e da API.
+

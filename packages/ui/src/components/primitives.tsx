@@ -18,7 +18,7 @@ export function toneFor(value: string): Tone {
   if (["CRITICAL", "HIGH", "OFFLINE", "ERROR", "OPEN", "REJECTED", "BAD"].includes(value)) return "danger";
   if (["MEDIUM", "PENDING", "PROVISIONING", "IN_ANALYSIS", "IN_PROGRESS", "ACKNOWLEDGED", "UNCERTAIN"].includes(value))
     return "warning";
-  if (["LOW", "INFO"].includes(value)) return "info";
+  if (["LOW", "INFO", "SCHEDULED"].includes(value)) return "info";
   return "neutral";
 }
 
@@ -37,7 +37,7 @@ const STATUS_LABELS: Record<string, string> = {
   HIGH: "Alto", MEDIUM: "Médio", LOW: "Baixo", INFO: "Informativo", PENDING: "Pendente",
   CONFIRMED: "Confirmada", REJECTED: "Recusada", CANCELLED: "Cancelado", DONE: "Concluído",
   IN_PROGRESS: "Em andamento", IN_ANALYSIS: "Em análise", GOOD: "Validada", BAD: "Inválida",
-  UNCERTAIN: "Incerta", ATIVO: "Ativo", INATIVO: "Inativo", ERROR: "Erro",
+  UNCERTAIN: "Incerta", ATIVO: "Ativo", INATIVO: "Inativo", ERROR: "Erro", SCHEDULED: "Agendado",
 };
 
 export function Brand({ dark = false, compact = false }: { dark?: boolean; compact?: boolean }) {

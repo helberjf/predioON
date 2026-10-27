@@ -26,6 +26,9 @@ const FieldsSchema = z.object({
   closesAt: z.string().regex(TIME, "use HH:MM"),
   requiresApproval: z.boolean(),
   maxHoursPerBooking: z.number().int().min(1).max(24),
+  // Reservations per calendar month; null means no limit.
+  monthlyLimitPerResident: z.number().int().min(1).max(31).nullable(),
+  monthlyLimitPerUnit: z.number().int().min(1).max(31).nullable(),
 });
 const CreateSchema = FieldsSchema.extend({
   buildingId: z.string().min(1),
@@ -33,6 +36,8 @@ const CreateSchema = FieldsSchema.extend({
   closesAt: FieldsSchema.shape.closesAt.default("22:00"),
   requiresApproval: FieldsSchema.shape.requiresApproval.default(true),
   maxHoursPerBooking: FieldsSchema.shape.maxHoursPerBooking.default(6),
+  monthlyLimitPerResident: FieldsSchema.shape.monthlyLimitPerResident.default(null),
+  monthlyLimitPerUnit: FieldsSchema.shape.monthlyLimitPerUnit.default(null),
 }).strict();
 // PATCH has no creation defaults: changing the name preserves every omitted field.
 const UpdateSchema = FieldsSchema.partial().extend({ active: z.boolean().optional() }).strict();

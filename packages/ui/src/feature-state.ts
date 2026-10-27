@@ -5,7 +5,7 @@ export const ROUTE_FEATURES: Record<string, FeatureKey[]> = {
   "/consumo": ["WATER_CONSUMPTION", "ENERGY_CONSUMPTION", "PUMP"],
   "/sensores": ["WATER_LEAK", "SEWAGE_LEAK", "SMOKE", "TEMPERATURE", "GAS"],
   "/acessos": ["GARAGE_ACCESS", "PEDESTRIAN_ACCESS"], "/vagas": ["CAR_PARKING", "MOTORCYCLE_PARKING"],
-  "/avisos": ["NOTICES"], "/reservas": ["RESERVATIONS"], "/areas": ["RESERVATIONS"], "/chamados": ["TICKETS"],
+  "/avisos": ["NOTICES"], "/reservas": ["RESERVATIONS"], "/eventos": ["RESERVATIONS"], "/areas": ["RESERVATIONS"], "/chamados": ["TICKETS"],
   "/transparencia": ["TRANSPARENCY", "FINANCE"], "/suporte-remoto": ["REMOTE_SUPPORT"],
   "/operacao": ["WATER_CONSUMPTION", "ENERGY_CONSUMPTION", "PUMP", "GARAGE_ACCESS", "PEDESTRIAN_ACCESS", "CAR_PARKING", "MOTORCYCLE_PARKING"],
 };

@@ -5,6 +5,7 @@ import { Home } from "./pages/Home.js";
 import { Notices } from "./pages/Notices.js";
 import { Occurrences } from "./pages/Occurrences.js";
 import { Reservations } from "./pages/Reservations.js";
+import { Events } from "./pages/Events.js";
 import { Profile } from "./pages/Profile.js";
 
 export function App() {
@@ -35,6 +36,7 @@ function ResidentApp() {
         <Route path="/chamados" element={<FeatureContent path="/chamados"><Occurrences buildingId={buildingId} /></FeatureContent>} />
         <Route path="/transparencia" element={<FeatureContent path="/transparencia"><TransparencyPanel buildingId={buildingId} /></FeatureContent>} />
         <Route path="/reservas" element={<FeatureContent path="/reservas"><Reservations buildingId={buildingId} /></FeatureContent>} />
+        <Route path="/eventos" element={<FeatureContent path="/eventos"><Events buildingId={buildingId} /></FeatureContent>} />
         <Route path="/perfil" element={<Profile />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

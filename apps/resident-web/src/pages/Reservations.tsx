@@ -1,8 +1,19 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { CalendarDays, CheckCircle2, ChevronRight, Flame, PartyPopper, Trees, Users } from "lucide-react";
-import { api, Badge, Button, Card, cls, ErrorBanner, Field, formatDateTime, Input, ReservationAvailability, ResourceFeedback, useResource } from "@predioon/ui";
+import { api, Badge, Button, Card, cls, ErrorBanner, Field, formatDateTime, Input, ReservationMonth, ResourceFeedback, Select, useResource } from "@predioon/ui";
 import type { CommonArea, Paged, Reservation } from "@predioon/ui";
+
+type OwnUnit = { id: string; code: string };
+/** The area's monthly limits in the resident's words, or null when it has none. */
+export function limitText(area: Pick<CommonArea, "monthlyLimitPerResident" | "monthlyLimitPerUnit">): string | null {
+  const count = (value: number) => value === 1 ? "1 reserva" : `${value} reservas`;
+  const parts = [
+    ...(area.monthlyLimitPerUnit ? [`${count(area.monthlyLimitPerUnit)} por mês por unidade`] : []),
+    ...(area.monthlyLimitPerResident ? [`${count(area.monthlyLimitPerResident)} por mês por morador`] : []),
+  ];
+  return parts.length ? `Limite: ${parts.join(" e ")}.` : null;
+}
 
 export function Reservations({ buildingId }: { buildingId: string }) {
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -22,13 +33,16 @@ export function Reservations({ buildingId }: { buildingId: string }) {
   const canChooseArea = canCreate || canCalendar;
   const areas = useResource<Paged<CommonArea>>(canAreas ? `/common-areas?buildingId=${encodeURIComponent(buildingId)}` : null);
   const mine = useResource<Paged<Reservation>>(canRead ? `/reservations?buildingId=${encodeURIComponent(buildingId)}&mine=true` : null);
+  // The apartments in the resident's own record; with only one, the reservation is for it.
+  const units = useResource<Paged<OwnUnit>>(canCreate ? `/reservations/units?buildingId=${encodeURIComponent(buildingId)}` : null);
+  const ownUnits = units.data?.items ?? [];
   const [search, setSearch] = useSearchParams();
   const tab = canRead && (search.get("tab") === "minhas" || !canChooseArea) ? "minhas" : "nova";
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState("");
   const [pending, setPending] = useState(false);
   const [calendarRevision, setCalendarRevision] = useState(0);
-  const [form, setForm] = useState({ areaId: "", date: "", start: "19:00", hours: "4", unit: "" });
+  const [form, setForm] = useState({ areaId: "", date: "", start: "19:00", hours: "4", unit: "", unitId: "" });
   const area = areas.data?.items.find(item => item.id === form.areaId);
   const areaName = (id: string) => areas.data?.items.find(item => item.id === id)?.name ?? "Área comum";
   async function book() {
@@ -38,7 +52,8 @@ export function Reservations({ buildingId }: { buildingId: string }) {
       const startsAt = new Date(`${form.date}T${form.start}:00`);
       const hours = Number(form.hours);
       if (!Number.isFinite(startsAt.getTime()) || !Number.isFinite(hours) || hours <= 0) throw new Error("Informe uma data, horário e duração válidos.");
-      const created = await api.post<Reservation>("/reservations", { areaId: form.areaId, startsAt: startsAt.toISOString(), endsAt: new Date(startsAt.getTime() + hours * 3600000).toISOString(), unit: form.unit || undefined });
+      const unit = ownUnits.length > 1 ? { unitId: form.unitId || undefined } : ownUnits.length === 0 ? { unit: form.unit || undefined } : {};
+      const created = await api.post<Reservation>("/reservations", { areaId: form.areaId, startsAt: startsAt.toISOString(), endsAt: new Date(startsAt.getTime() + hours * 3600000).toISOString(), ...unit });
       setSuccess(created.status === "CONFIRMED" ? "Reserva confirmada com sucesso." : created.status === "PENDING" ? "Reserva enviada para aprovação da administração." : "Reserva registrada. Confira a situação em Minhas reservas.");
       mine.reload(); setSearch({ tab: "minhas" }); setForm({ ...form, date: "" });
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Falha ao reservar"); }
@@ -72,18 +87,23 @@ export function Reservations({ buildingId }: { buildingId: string }) {
           </button>
           {selected && <form onSubmit={event => { event.preventDefault(); void book(); }} className="space-y-3 border-t border-emerald-100 p-4">
             <p className="text-xs text-slate-500">Funcionamento: {item.opensAt.slice(0, 5)} às {item.closesAt.slice(0, 5)}</p>
+            {limitText(item) && <p className="text-xs font-medium text-slate-600">{limitText(item)}</p>}
             <p className="text-xs text-slate-500">Horários no fuso {timeZone}.</p>
             <div className="grid grid-cols-2 gap-3"><Field label="Data"><Input type="date" required value={form.date} onChange={date => setForm({ ...form, date })} /></Field>{canCreate && <Field label="Início"><Input type="time" required value={form.start} onChange={start => setForm({ ...form, start })} /></Field>}</div>
-            {canCalendar && <ReservationAvailability buildingId={buildingId} areaId={item.id} date={form.date} revision={calendarRevision} />}
+            {canCalendar && <ReservationMonth buildingId={buildingId} areaId={item.id} opensAt={item.opensAt} closesAt={item.closesAt} date={form.date} onDate={date => setForm(current => ({ ...current, date }))} revision={calendarRevision} />}
             {canCreate && <>
-              <div className="grid grid-cols-2 gap-3"><Field label="Duração (h)" hint={`máx. ${item.maxHoursPerBooking}h`}><Input type="number" required value={form.hours} onChange={hours => setForm({ ...form, hours })} /></Field><Field label="Unidade"><Input value={form.unit} onChange={unit => setForm({ ...form, unit })} placeholder="101" /></Field></div>
+              <div className="grid grid-cols-2 gap-3"><Field label="Duração (h)" hint={`máx. ${item.maxHoursPerBooking}h`}><Input type="number" required value={form.hours} onChange={hours => setForm({ ...form, hours })} /></Field><Field label="Unidade">{ownUnits.length > 1
+                ? <Select required value={form.unitId} onChange={unitId => setForm({ ...form, unitId })} options={[{ value: "", label: "Escolha a unidade" }, ...ownUnits.map(unit => ({ value: unit.id, label: unit.code }))]} />
+                : ownUnits.length === 1 ? <Input value={ownUnits[0]!.code} disabled onChange={() => undefined} />
+                : <Input value={form.unit} onChange={unit => setForm({ ...form, unit })} placeholder="101" />}</Field></div>
               {item.requiresApproval && <p className="rounded-lg bg-amber-50 p-3 text-xs text-amber-700">A reserva será enviada para aprovação da administração.</p>}
-              <Button type="submit" full disabled={pending || !form.date}>{pending ? "Enviando…" : "Confirmar reserva"}</Button>
+              {units.data && !ownUnits.length && item.monthlyLimitPerUnit ? <p role="status" className="rounded-lg bg-amber-50 p-3 text-xs text-amber-700">Esta área limita as reservas por unidade, e o seu cadastro ainda não está vinculado a uma unidade. Peça à administração para fazer o vínculo.</p> : null}
+              <Button type="submit" full disabled={pending || !form.date || Boolean(units.data && !ownUnits.length && item.monthlyLimitPerUnit) || (ownUnits.length > 1 && !form.unitId)}>{pending ? "Enviando…" : "Confirmar reserva"}</Button>
             </>}
           </form>}
         </div>;
       })}</div> : <Card><ResourceFeedback resource={areas} emptyText="Nenhuma área comum disponível para reserva." /></Card>}
-      <p className="px-1 text-xs leading-5 text-slate-500">Escolha o espaço e informe a data{canCreate ? " e o horário. Você pode acompanhar a situação em Minhas reservas." : " para consultar os horários ocupados."}</p>
-    </> : <Card title="Suas reservas">{mine.data?.items.length ? <ul className="divide-y divide-slate-100">{mine.data.items.map(reservation => <li key={reservation.id} className="py-4 first:pt-0"><div className="flex items-start justify-between gap-3"><div className="flex gap-3"><span className="h-fit rounded-lg bg-emerald-50 p-2 text-emerald-600"><CalendarDays size={22} /></span><div><p className="text-sm font-semibold text-[#152d4b]">{areaName(reservation.areaId)}</p><p className="mt-1 text-xs leading-5 text-slate-500">{formatDateTime(reservation.startsAt)}</p></div></div><Badge>{reservation.status}</Badge></div>{canCancel && ["PENDING", "CONFIRMED"].includes(reservation.status) && <div className="mt-2 text-right"><Button variant="ghost" disabled={pending} onClick={() => void cancel(reservation.id)}>Cancelar reserva</Button></div>}</li>)}</ul> : <ResourceFeedback resource={mine} emptyText="Você não tem reservas futuras." />}</Card>}
+      <p className="px-1 text-xs leading-5 text-slate-500">Escolha o espaço e informe a data{canCreate ? " e o horário. Você pode acompanhar a situação em Minhas reservas." : " para consultar os dias e horários livres."}</p>
+    </> : <Card title="Suas reservas">{mine.data?.items.length ? <ul className="divide-y divide-slate-100">{mine.data.items.map(reservation => <li key={reservation.id} className="py-4 first:pt-0"><div className="flex items-start justify-between gap-3"><div className="flex gap-3"><span className="h-fit rounded-lg bg-emerald-50 p-2 text-emerald-600"><CalendarDays size={22} /></span><div><p className="text-sm font-semibold text-[#152d4b]">{areaName(reservation.areaId)}</p><p className="mt-1 text-xs leading-5 text-slate-500">{formatDateTime(reservation.startsAt)}{reservation.unit ? ` · unidade ${reservation.unit}` : ""}</p></div></div><Badge>{reservation.status}</Badge></div>{canCancel && ["PENDING", "CONFIRMED"].includes(reservation.status) && <div className="mt-2 text-right"><Button variant="ghost" disabled={pending} onClick={() => void cancel(reservation.id)}>Cancelar reserva</Button></div>}</li>)}</ul> : <ResourceFeedback resource={mine} emptyText="Você não tem reservas futuras." />}</Card>}
   </>;
 }

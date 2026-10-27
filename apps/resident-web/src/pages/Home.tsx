@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
-import { CalendarDays, Car, ChartNoAxesCombined, ChevronRight, CheckCircle2, KeyRound, Leaf, Megaphone, ScrollText, Wrench } from "lucide-react";
+import { CalendarDays, Car, ChartNoAxesCombined, ChevronRight, CheckCircle2, KeyRound, Leaf, Megaphone, PartyPopper, ScrollText, Wrench } from "lucide-react";
 import { noticeIsVisible } from "@predioon/shared";
 import { Feature, useFeatures, Badge, Card, cls, ResourceFeedback, useResource } from "@predioon/ui";
-import type { Occurrence, Paged } from "@predioon/ui";
+import type { BuildingEvent, Occurrence, Paged } from "@predioon/ui";
 import { noticeLook, whenLabel, type ResidentNotice } from "../notices.js";
 import { useConsumptionAvailable } from "../consumption.js";
 import { useAccessAvailable } from "../access.js";
+import { eventWhen } from "./Events.js";
 
 /** The six most used destinations the condominium has enabled; the rest live under "Mais". */
 const SHORTCUTS = [
@@ -16,6 +17,7 @@ const SHORTCUTS = [
   { to: "/transparencia", label: "Transparência e contas", icon: ScrollText, tone: "bg-violet-50 text-violet-600" },
   { to: "/vagas", label: "Vagas de carros e motos", icon: Car, tone: "bg-sky-50 text-sky-600" },
   { to: "/consumo", label: "Consumo do imóvel", icon: ChartNoAxesCombined, tone: "bg-amber-50 text-amber-600" },
+  { to: "/eventos", label: "Eventos", icon: PartyPopper, tone: "bg-violet-50 text-violet-600" },
 ];
 const SEE_ALL = "rounded-md text-xs font-semibold text-sky-700 hover:underline";
 
@@ -25,6 +27,8 @@ export function Home({ buildingId }: { buildingId: string }) {
   const access = useAccessAvailable(buildingId);
   const notices = useResource<Paged<ResidentNotice>>(flags.enabled("NOTICES") ? `/notices?buildingId=${buildingId}` : null);
   const mine = useResource<Paged<Occurrence>>(flags.enabled("TICKETS") ? `/occurrences?buildingId=${buildingId}&limit=5` : null);
+  const events = useResource<Paged<BuildingEvent>>(flags.enabled("RESERVATIONS") ? `/v1/building-events?buildingId=${encodeURIComponent(buildingId)}` : null);
+  const upcoming = events.data?.items.filter(event => event.status === "SCHEDULED").slice(0, 3) ?? [];
   const now = new Date();
   const current = notices.data?.items.filter(notice => noticeIsVisible(notice, now)).slice(0, 3) ?? [];
   return <>
@@ -46,6 +50,17 @@ export function Home({ buildingId }: { buildingId: string }) {
         </Link></li>;
       })}</ul> : <ResourceFeedback resource={notices} emptyText="Nenhum aviso publicado." />}
     </Card></Feature>
+
+    {upcoming.length > 0 && <Card title="Próximos eventos" action={<Link to="/eventos" className={SEE_ALL}>Ver todos</Link>}>
+      <ul className="-my-1 divide-y divide-slate-100">{upcoming.map(event => <li key={event.id}><Link to="/eventos" className="flex items-center gap-3 py-3">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-violet-50 text-violet-600"><PartyPopper size={21} /></span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[13px] font-semibold leading-5 text-[#152d4b]">{event.title}</p>
+          <p className="truncate text-xs leading-5 text-slate-500">{eventWhen(event)}</p>
+        </div>
+        {event.myResponse ? <Badge tone={event.myResponse.attending ? "success" : "neutral"}>{event.myResponse.attending ? "Você vai" : "Não vai"}</Badge> : event.answersOpen ? <Badge tone="info">Confirme</Badge> : null}
+      </Link></li>)}</ul>
+    </Card>}
 
     <Feature name="TICKETS"><Card title="Minhas ocorrências" action={<Link to="/chamados" className={SEE_ALL}>Ver todas</Link>}>
       {mine.data?.items.length ? <ul className="-my-1 divide-y divide-slate-100">{mine.data.items.map(occurrence => <li key={occurrence.id} className="flex items-center gap-3 py-3">

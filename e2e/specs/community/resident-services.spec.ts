@@ -111,6 +111,7 @@ test("reserva pendente passa pela aprovação da gestão e cancelamento pelo mor
   await page.reload();
   await expect(residentRow).toContainText("Cancelado");
   await managerPage.reload();
+  await managerPage.getByRole("tab", { name: "Próximas reservas", exact: true }).click();
   await expect(managerPage.getByText("Sem reservas confirmadas.", { exact: true })).toBeVisible();
   await managerPage.close();
 });

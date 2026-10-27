@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState, type ComponentType, type ReactNode } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { ArrowLeft, Bell, CalendarDays, Car, ChartNoAxesCombined, Ellipsis, Home, KeyRound, Megaphone, ScrollText, User, Wrench, X } from "lucide-react";
+import { ArrowLeft, Bell, CalendarDays, Car, ChartNoAxesCombined, Ellipsis, Home, KeyRound, Megaphone, PartyPopper, ScrollText, User, Wrench, X } from "lucide-react";
 import { useConsumptionAvailable } from "../consumption.js";
 import { useAccessAvailable } from "../access.js";
 import { Brand, BuildingSelector, buildingImage, cls, useFeatures, useAuth, useBuildingScope, useResource } from "@predioon/ui";
@@ -17,6 +17,7 @@ const DESTINATIONS: Destination[] = [
   { to: "/acessos", label: "Acessos", title: "Portões e acessos", icon: KeyRound, ownHeading: true },
   { to: "/chamados", label: "Ocorrências", icon: Wrench, ownHeading: true },
   { to: "/avisos", label: "Avisos", icon: Megaphone },
+  { to: "/eventos", label: "Eventos", title: "Eventos do condomínio", icon: PartyPopper },
   { to: "/vagas", label: "Vagas", title: "Vagas de carros e motos", icon: Car },
   { to: "/consumo", label: "Consumo", title: "Consumo e análise", icon: ChartNoAxesCombined, ownHeading: true },
   { to: "/transparencia", label: "Transparência", title: "Transparência e contas", icon: ScrollText, ownHeading: true },
