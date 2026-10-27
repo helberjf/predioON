@@ -7,13 +7,14 @@ type Props = {
   area?: CommonArea;
   loadingArea?: boolean;
   canManage?: boolean;
-  decision?: { id: string; status: "CONFIRMED" | "REJECTED" } | null;
+  decision?: { id: string; status: "CONFIRMED" | "REJECTED" | "CANCELLED" } | null;
   onDecide?: (id: string, status: "CONFIRMED" | "REJECTED") => void;
+  onCancel?: (reservation: Reservation) => void;
 };
 const month = new Intl.DateTimeFormat("pt-BR", { month: "short" });
 const date = new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "long", year: "numeric" });
 
-export function AreaReservationCard({ reservation, area, loadingArea, canManage, decision, onDecide }: Props) {
+export function AreaReservationCard({ reservation, area, loadingArea, canManage, decision, onDecide, onCancel }: Props) {
   const starts = parseTimestamp(reservation.startsAt);
   const sameDay = localDate(reservation.startsAt) === localDate(reservation.endsAt);
   const pending = reservation.status === "PENDING";
@@ -39,9 +40,12 @@ export function AreaReservationCard({ reservation, area, loadingArea, canManage,
         {!area && !loadingArea && <p className="flex items-start gap-1.5 text-xs leading-5 text-slate-600"><MapPin size={13} aria-hidden="true" className="mt-0.5 shrink-0" />Atualize os espaços para identificar esta reserva.</p>}
       </div>
     </div>
-    {canManage && pending && <div className="flex shrink-0 gap-2 border-t border-slate-100 pt-3 xl:border-0 xl:pt-0">
+    {canManage && <div className="flex shrink-0 flex-wrap gap-2 border-t border-slate-100 pt-3 xl:border-0 xl:pt-0">
+      {pending && <>
       <Button variant="secondary" disabled={!area || Boolean(decision)} onClick={() => onDecide?.(reservation.id, "REJECTED")}>{busy && decision.status === "REJECTED" ? "Recusando…" : "Recusar"}</Button>
       <Button disabled={!area || Boolean(decision)} onClick={() => onDecide?.(reservation.id, "CONFIRMED")}>{busy && decision.status === "CONFIRMED" ? "Aprovando…" : "Aprovar"}</Button>
+      </>}
+      <Button variant="ghost" disabled={!area || Boolean(decision)} onClick={() => onCancel?.(reservation)}>{busy && decision.status === "CANCELLED" ? "Cancelando…" : "Cancelar reserva"}</Button>
     </div>}
   </li>;
 }

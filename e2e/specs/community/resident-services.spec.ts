@@ -71,7 +71,7 @@ test("reserva pendente passa pela aprovação da gestão e cancelamento pelo mor
   const fixture = await isolatedTenant(request);
   const areaName = `Salão E2E ${fixture.suffix}`;
   await fixture.managerApi.create("/common-areas", {
-    buildingId: fixture.building.id, name: areaName, requiresApproval: true, opensAt: "08:00", closesAt: "22:00", maxHoursPerBooking: 4,
+    buildingId: fixture.building.id, name: areaName, requiresApproval: true, opensAt: "08:00", closesAt: "22:00", maxHoursPerBooking: 4, monthlyLimitPerUnit: null,
   });
   await page.setViewportSize({ width: 390, height: 844 });
   await signIn(page, RESIDENT_URL, fixture.resident.email);
@@ -96,7 +96,7 @@ test("reserva pendente passa pela aprovação da gestão e cancelamento pelo mor
   await signIn(managerPage, BUILDING_URL, fixture.manager.email);
   await managerPage.goto(`${BUILDING_URL}/areas`);
   const pending = managerPage.getByRole("listitem").filter({ hasText: areaName }).filter({ has: managerPage.getByRole("button", { name: "Aprovar", exact: true }) });
-  await expect(pending).toContainText("unidade 101");
+  await expect(pending).toContainText("Unidade 101");
   const approved = managerPage.waitForResponse(response => response.url() === `${API_URL}/reservations/${reservation.id}/decision` && response.request().method() === "POST");
   await pending.getByRole("button", { name: "Aprovar", exact: true }).click();
   expect((await approved).status()).toBe(200);

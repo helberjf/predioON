@@ -395,3 +395,9 @@ A admissão de abertura da 034 passou para `app_request_access_admit`, com um ca
 - **Nome para a gestão.** `app_building_person_name()` devolve só o nome de quem tem algum vínculo com o condomínio, para quem gerencia reservas, eventos ou vínculos ali. Moradores convidados por e-mail só têm role binding e unidade, e a 054 não abre a linha da conta para esses casos.
 
 **Efeito ao aplicar:** nenhuma área ganha limite sozinha e nenhuma reserva existente muda; `unit_id` fica vazio nas reservas antigas. Os eventos seguem a funcionalidade **Reservas**: desligada, eles também saem das telas e da API.
+
+## Release 067: padrão mensal por apartamento
+
+`067-reservation-default-unit-limit.sql` define `DEFAULT 1` em `common_areas.monthly_limit_per_unit`. A criação pela API também usa 1 quando o campo é omitido. O síndico pode escolher de 1 a 31 reservas por mês por apartamento em cada espaço ou **Ilimitado** (`NULL`). O PATCH continua preservando campos omitidos.
+
+**Efeito ao aplicar:** apenas áreas novas recebem o novo padrão; todos os limites existentes são preservados, inclusive `NULL`. O cancelamento pelo síndico usa a transição auditada para `CANCELLED`, mantendo o histórico e liberando horário e cota, como definido nas releases 029/064. No Neon da demonstração, aplicar pelo executor com `pnpm db:infra --provider=neon-demo`, sem seed ou reaplicação de migrations antigas.

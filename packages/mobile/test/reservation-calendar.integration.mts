@@ -69,7 +69,7 @@ test("native calendar reads private occupancy through the real API, rechecks con
         await tx`insert into role_permissions(role_key,permission_key) values(${baseRole},${capability})`;
       await tx`insert into role_permissions(role_key,permission_key) values(${calendarRole},'reservations:read-calendar')`;
       await tx`insert into role_bindings(user_id,building_id,role_key) values(${user},${buildingId},${baseRole})`;
-      await tx`insert into common_areas(id,building_id,name,requires_approval) values(${areaId},${buildingId},'Allowed area',false),(${otherArea},${buildingId},'Other area',false),(${foreignArea},${foreign},'Foreign area',false)`;
+      await tx`insert into common_areas(id,building_id,name,requires_approval,monthly_limit_per_unit) values(${areaId},${buildingId},'Allowed area',false,null),(${otherArea},${buildingId},'Other area',false,null),(${foreignArea},${foreign},'Foreign area',false,null)`;
       await tx`insert into role_bindings(id,user_id,building_id,role_key,resource_type,resource_id) values(${binding},${user},${buildingId},${calendarRole},'common_area',${areaId})`;
       await tx`insert into reservations(id,building_id,area_id,user_id,starts_at,ends_at,status,unit,notes) values(${neighborBooking},${buildingId},${areaId},${neighbor},${startsAt},${endsAt},'CONFIRMED','PRIVATE UNIT','PRIVATE NOTES')`;
     });

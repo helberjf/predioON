@@ -111,6 +111,37 @@ describe("limites de reserva, unidade da reserva e eventos com confirmação", (
     assert.equal(row!.total, 1);
   });
 
+  it("áreas novas têm uma reserva por apartamento; síndico cancela e altera para duas ou ilimitadas", async () => {
+    const created = await json(await request(ids.manager, "/common-areas", "POST", { buildingId: a, name: "Brinquedoteca" }), 201);
+    assert.equal(created.monthlyLimitPerUnit, 1);
+    assert.equal(created.monthlyLimitPerResident, null);
+    const [raw] = await sqlClient`insert into common_areas(building_id,name) values(${a},'Padrão SQL') returning monthly_limit_per_unit`;
+    assert.equal(raw!.monthly_limit_per_unit, 1);
+    const first = await json(await book(ids.first, created.id, local(6, 2, 10)), 201);
+    await json(await book(ids.second, created.id, local(6, 3, 10)), 409);
+    await json(await request(ids.outsider, `/reservations/${first.id}`, "DELETE"), 404);
+    await json(await request(ids.second, `/reservations/${first.id}`, "DELETE"), 404);
+    await json(await request(ids.manager, `/reservations/${first.id}`, "DELETE"), 204);
+    const [cancelled] = await sqlClient`select status from reservations where id=${first.id}`;
+    assert.equal(cancelled!.status, "CANCELLED");
+    const [audit] = await sqlClient`select user_id from audit_logs where action='RESERVATION_CANCELLED' and resource_id=${first.id}`;
+    assert.equal(audit!.user_id, ids.manager);
+    const pending = await json(await book(ids.second, created.id, local(6, 3, 10)), 201);
+    await json(await request(ids.manager, `/reservations/${pending.id}/decision`, "POST", { status: "CONFIRMED" }), 200);
+    await json(await request(ids.manager, `/reservations/${pending.id}`, "DELETE"), 204);
+    await json(await request(ids.manager, `/common-areas/${created.id}`, "PATCH", { monthlyLimitPerUnit: 2 }), 200);
+    await json(await book(ids.first, created.id, local(6, 4, 10)), 201);
+    await json(await book(ids.second, created.id, local(6, 5, 10)), 201);
+    await json(await book(ids.first, created.id, local(6, 6, 10)), 409);
+    await json(await request(ids.first, `/common-areas/${created.id}`, "PATCH", { monthlyLimitPerUnit: null }), 403);
+    await json(await request(ids.manager, `/common-areas/${created.id}`, "PATCH", { monthlyLimitPerUnit: null }), 200);
+    await json(await book(ids.first, created.id, local(6, 6, 10)), 201);
+    const keptUnlimited = await json(await request(ids.manager, `/common-areas/${created.id}`, "PATCH", { name: "Brinquedoteca ampliada" }), 200);
+    assert.equal(keptUnlimited.monthlyLimitPerUnit, null);
+    const explicit = await json(await request(ids.manager, "/common-areas", "POST", { buildingId: a, name: "Biblioteca", monthlyLimitPerUnit: null }), 201);
+    assert.equal(explicit.monthlyLimitPerUnit, null);
+  });
+
   it("o evento ocupa a área: reservas e calendário respeitam o horário", async () => {
     await json(await book(ids.double, area.events, local(2, 12, 10), { unitId: unit.u201 }), 201);
     const overlapping = await json(await request(ids.manager, "/v1/building-events", "POST", {

@@ -464,7 +464,7 @@ export const commonAreas = pgTable(
     maxHoursPerBooking: integer("max_hours_per_booking").notNull().default(6),
     /** Reservations one resident, and one apartment, may hold per calendar month (infrastructure/064). */
     monthlyLimitPerResident: integer("monthly_limit_per_resident"),
-    monthlyLimitPerUnit: integer("monthly_limit_per_unit"),
+    monthlyLimitPerUnit: integer("monthly_limit_per_unit").default(1),
     active: boolean("active").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

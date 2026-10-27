@@ -83,7 +83,7 @@ Campos vazios não são aplicados. Limite alto demais esconde problema; baixo de
 | Módulo | O que fazer | Limite a conhecer |
 |---|---|---|
 | **Avisos** | Título, local, data do evento, quando publicar/encerrar; repetição semanal. | Não envia lembrete por WhatsApp/e-mail; aparece no app/portal. |
-| **Áreas comuns** | Cadastrar salão etc., aprovar/recusar reservas; conflito de horário é tratado. | Sem cobrança nem pagamento. |
+| **Áreas comuns** | Cadastrar espaços, aprovar, recusar ou cancelar reservas; conflito de horário é tratado. Em **Regras das áreas**, definir o limite mensal por apartamento de cada espaço (1, 2 etc. ou **Ilimitado**). | Novas áreas começam com 1 reserva por mês por apartamento. Pendentes e confirmadas contam juntas; cancelar ou recusar libera a cota. As configurações de áreas existentes são preservadas. Sem cobrança nem pagamento. |
 | **Ocorrências** | Responder, mudar gravidade (com justificativa), agrupar chamados repetidos e concluir. | Não contrata prestador; você define quem encaminha. Morador só vê o próprio chamado. |
 | **Transparência e contas** | Publicar andamento de serviços e prestação mensal (receitas, despesas, saldo, links HTTPS de comprovantes). Rascunho é invisível ao morador; correção = nova revisão (a anterior é preservada). | Sem conciliação bancária; o saldo não é transferido automaticamente entre meses. Defina quem confere os valores. |
 | **Vagas** | Cadastrar carros e motos separados; atualizar a contagem manualmente ou por sensor. | Dado expira (padrão 5 min, configurável de 30 s a 24 h) e passa a "Desatualizado". Não atribui vaga a veículo. |

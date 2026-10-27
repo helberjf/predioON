@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-27",
+  "behavior": {
+    "managerCancellation": "Pendentes e confirmadas, com confirmação por espaço/data/unidade, proteção contra duplicidade e erro com nova tentativa explícita.",
+    "monthlyQuota": "Áreas novas: 1 reserva por mês por apartamento. Configurável de 1 a 31 ou ilimitado. Moradores do mesmo apartamento compartilham a cota por espaço.",
+    "history": "Cancelamento mantém a reserva com status CANCELLED e auditoria; canceladas e recusadas liberam horário e cota.",
+    "existingSettings": "Preservados todos os valores existentes, inclusive NULL (ilimitado)."
+  },
+  "verification": {
+    "apiReservationsAreasFeatures": { "passed": 54, "failed": 0, "database": "descartável em loopback:5478" },
+    "apiSecurityAndNativeCalendarContract": { "passed": 11, "failed": 0 },
+    "playwrightIsolated": { "passed": 12, "failed": 0, "includes": ["cancelamento, confirmação, falha e retry", "aprovar e depois cancelar", "listas com atualização atrasada", "limites 1, 2 e ilimitado persistidos", "sem controles para leitor", "Axe em desktop, mobile, regras e diálogo", "Codegen do cancelamento e configuração"] },
+    "playwrightRealApi": { "passed": 3, "failed": 0, "includes": ["reservations.spec.ts", "resident-services.spec.ts: reserva pendente passa pela aprovação da gestão e cancelamento pelo morador"], "execution": "API real, portais síndico/morador e banco descartável; previews pré-compilados para limitar uso de memória" },
+    "builds": ["building-web", "resident-web"],
+    "typechecks": ["api", "db", "building-web", "e2e", "mobile integration contracts"],
+    "review": "Revisão independente concluída; fixtures antigas ajustadas explicitamente para ilimitado onde o teste é de privacidade/disponibilidade, sem alterar a regra do produto."
+  },
+  "demoDatabase": {
+    "project": "predioon-demo-db",
+    "migration": "067-reservation-default-unit-limit",
+    "executor": "db:infra --provider=neon-demo",
+    "status": "Aplicada e histórico/checksums verificados, nenhuma pendente.",
+    "existingSpaces": 6,
+    "configurationPreserved": true,
+    "comparison": "SHA-256 das configurações por espaço antes/depois, sem mudança.",
+    "defaultAfter": 1
+  }
+}

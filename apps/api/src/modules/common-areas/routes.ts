@@ -37,7 +37,7 @@ const CreateSchema = FieldsSchema.extend({
   requiresApproval: FieldsSchema.shape.requiresApproval.default(true),
   maxHoursPerBooking: FieldsSchema.shape.maxHoursPerBooking.default(6),
   monthlyLimitPerResident: FieldsSchema.shape.monthlyLimitPerResident.default(null),
-  monthlyLimitPerUnit: FieldsSchema.shape.monthlyLimitPerUnit.default(null),
+  monthlyLimitPerUnit: FieldsSchema.shape.monthlyLimitPerUnit.default(1),
 }).strict();
 // PATCH has no creation defaults: changing the name preserves every omitted field.
 const UpdateSchema = FieldsSchema.partial().extend({ active: z.boolean().optional() }).strict();

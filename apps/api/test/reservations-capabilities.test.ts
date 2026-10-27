@@ -31,7 +31,8 @@ describe("reservas privadas, calendário mínimo e capacidades atuais",()=>{
       await sqlClient`insert into teams(id,building_id,name) values(${team},${a},'Reservation team')`;
       await sqlClient`insert into team_members(team_id,building_id,user_id) values(${team},${a},${ids.worker})`;
       await sqlClient`insert into role_bindings(team_id,building_id,role_key) values(${team},${a},'BUILDING_ADMIN')`;
-      await sqlClient`insert into common_areas(id,building_id,name,requires_approval) values(${area},${a},'Approval area',true),(${second},${a},'Automatic area',false),(${foreign},${b},'Foreign area',true)`;
+      // These fixtures isolate authorization; apartment quotas have their own suite.
+      await sqlClient`insert into common_areas(id,building_id,name,requires_approval,monthly_limit_per_unit) values(${area},${a},'Approval area',true,null),(${second},${a},'Automatic area',false,null),(${foreign},${b},'Foreign area',true,null)`;
       for(const [id,tenant,parent,user,day] of [[own,a,area,ids.resident,2],[other,a,area,ids.neighbor,3],[secondBooking,a,second,ids.neighbor,4],[foreignBooking,b,foreign,ids.neighbor,5]] as const){
         await sqlClient`insert into reservations(id,building_id,area_id,user_id,starts_at,ends_at,unit,notes) values(${id},${tenant},${parent},${user},clock_timestamp()+${day}*interval '1 day',clock_timestamp()+${day}*interval '1 day'+interval '1 hour',${'unit-'+id},${'private-'+id})`;
       }

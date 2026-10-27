@@ -6,7 +6,7 @@ test("reserva informa o estado real quando a gestão altera a aprovação com o 
   const fixture = await isolatedTenant(request);
   const areaName = `Aprovação atual ${fixture.suffix}`;
   const area = await fixture.managerApi.create<{ id: string }>("/common-areas", {
-    buildingId: fixture.building.id, name: areaName, requiresApproval: true, maxHoursPerBooking: 4,
+    buildingId: fixture.building.id, name: areaName, requiresApproval: true, maxHoursPerBooking: 4, monthlyLimitPerUnit: null,
   });
   await page.setViewportSize({ width: 390, height: 844 });
   await signIn(page, RESIDENT_URL, fixture.resident.email);
@@ -47,7 +47,7 @@ test("calendário mostra só os horários livres, informa conflito real e atuali
   const fixture = await isolatedTenant(request);
   const areaName = `Ocupação ${fixture.suffix}`;
   const area = await fixture.managerApi.create<{ id: string }>("/common-areas", {
-    buildingId: fixture.building.id, name: areaName, requiresApproval: false, maxHoursPerBooking: 4,
+    buildingId: fixture.building.id, name: areaName, requiresApproval: false, maxHoursPerBooking: 4, monthlyLimitPerUnit: null,
   });
   const neighbor = await fixture.person("Vizinho");
   await fixture.membership(neighbor, fixture.building, "RESIDENT");

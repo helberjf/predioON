@@ -316,7 +316,13 @@ describe("áreas comuns com capacidades atuais e configuração preservada", () 
       const before=await snapshot();
       await sqlClient.begin(tx=>tx.unsafe(migration));
       assert.deepEqual(await snapshot(),before);
-    } finally { await sqlClient`update permissions set active=${permission!.active} where key='common-areas:read'`; }
+    } finally {
+      await sqlClient`update permissions set active=${permission!.active} where key='common-areas:read'`;
+      // The historical 028 replay revokes UPDATE on columns added by 064.
+      // Restore its later grants so this compatibility test cannot change
+      // the installation used by the following reservation suites.
+      await sqlClient`grant update(monthly_limit_per_resident,monthly_limit_per_unit) on common_areas to predioon_app`;
+    }
     assert.deepEqual((await sqlClient`select key from permissions order by key`).map(row=>row.key),[...CAPABILITIES].sort());
     for(const [role,capabilities] of Object.entries(ROLE_CAPABILITIES))assert.deepEqual((await sqlClient`select permission_key from role_permissions where role_key=${role} order by permission_key`).map(row=>row.permission_key),[...capabilities].sort(),role);
   });

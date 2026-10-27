@@ -173,7 +173,7 @@ describe("segurança da plataforma", () => {
       // A dedicated area makes this test independent of existing bookings and repeated runs.
       const areaResponse = await call(server.url, "/common-areas", {
         method: "POST", token: sindico.accessToken,
-        body: { buildingId, name: unique("Área de teste"), maxHoursPerBooking: 6 },
+        body: { buildingId, name: unique("Área de teste"), maxHoursPerBooking: 6, monthlyLimitPerUnit: null },
       });
       assert.equal(areaResponse.status, 201);
       const areaId = (await json<{ id: string }>(areaResponse)).id;

@@ -7,19 +7,23 @@ import { AreaReservationCard } from "../components/AreaReservationCard.js";
 
 type Props = { buildingId: string; canManage?: boolean; canConfigure?: boolean; canEvents?: boolean };
 type DecisionStatus = "CONFIRMED" | "REJECTED";
-type Decision = { id: string; status: DecisionStatus };
+type ReservationChange = DecisionStatus | "CANCELLED";
+type Decision = { id: string; status: ReservationChange };
 const errorText = (cause: unknown, fallback: string) => cause instanceof Error ? cause.message : fallback;
 const count = (value: number, one: string, many: string) => `${value} ${value === 1 ? one : many}`;
 
-/** "Limite: 1 por mês por unidade e 2 por mês por morador", or nothing when the area has no limit. */
 export function areaRules(area: CommonArea): string {
   const limits = [
-    ...(area.monthlyLimitPerUnit ? [`${area.monthlyLimitPerUnit} por mês por unidade`] : []),
+    area.monthlyLimitPerUnit ? `${count(area.monthlyLimitPerUnit, "reserva", "reservas")} por mês por apartamento` : "sem limite mensal por apartamento",
     ...(area.monthlyLimitPerResident ? [`${area.monthlyLimitPerResident} por mês por morador`] : []),
   ];
   return [`${area.opensAt.slice(0, 5)}–${area.closesAt.slice(0, 5)}`, `até ${area.maxHoursPerBooking}h`,
     ...(area.capacity ? [`${area.capacity} pessoas`] : []), area.requiresApproval ? "requer aprovação" : "reserva automática",
-    ...(limits.length ? [`limite de ${limits.join(" e ")}`] : [])].join(" · ");
+    limits.join(" · ")].join(" · ");
+}
+
+function withSettledStatus<T extends Reservation>(item: T, settled: Record<string, ReservationChange>): T {
+  return (item.status === "PENDING" || item.status === "CONFIRMED") && settled[item.id] ? { ...item, status: settled[item.id]! } : item;
 }
 
 export function Areas({ buildingId, canManage = false, canConfigure = false, canEvents = false }: Props) {
@@ -28,7 +32,9 @@ export function Areas({ buildingId, canManage = false, canConfigure = false, can
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [decision, setDecision] = useState<Decision | null>(null);
-  const [settled, setSettled] = useState<Record<string, DecisionStatus>>({});
+  const [settled, setSettled] = useState<Record<string, ReservationChange>>({});
+  const [cancelling, setCancelling] = useState<Reservation | null>(null);
+  const [cancellationError, setCancellationError] = useState<string | null>(null);
   const completed = useRef(new Set<string>());
   const deciding = useRef(false);
   const tabId = useId();
@@ -44,27 +50,36 @@ export function Areas({ buildingId, canManage = false, canConfigure = false, can
   const areaList = areas.data?.items ?? [];
   const changed = () => { reservations.reload(); setRevision(value => value + 1); };
 
-  async function decide(id: string, status: DecisionStatus, areaId = reservations.data?.items.find(item => item.id === id)?.areaId) {
-    if (!canManage || deciding.current || completed.current.has(id)) return;
-    if (!areaId || !areaList.some(area => area.id === areaId)) return;
+  async function decide(id: string, status: ReservationChange, areaId = reservations.data?.items.find(item => item.id === id)?.areaId) {
+    if (!canManage || deciding.current || settled[id] === "CANCELLED" || (status !== "CANCELLED" && completed.current.has(id))) return false;
+    if (!areaId || !areaList.some(area => area.id === areaId)) return false;
     deciding.current = true;
     setDecision({ id, status }); setError(null); setMessage(null);
     try {
-      await api.post(`/reservations/${id}/decision`, { status });
-      completed.current.add(id);
+      if (status === "CANCELLED") await api.delete(`/reservations/${id}`);
+      else await api.post(`/reservations/${id}/decision`, { status });
+      if (status !== "CANCELLED") completed.current.add(id);
       setSettled(previous => ({ ...previous, [id]: status }));
-      setMessage(status === "CONFIRMED" ? "Reserva aprovada." : "Reserva recusada.");
+      setMessage(status === "CANCELLED" ? "Reserva cancelada. O horário e a cota do apartamento foram liberados." : status === "CONFIRMED" ? "Reserva aprovada." : "Reserva recusada.");
       changed();
+      return true;
     } catch (cause) {
-      setError(errorText(cause, "Falha ao decidir reserva"));
+      if (status === "CANCELLED") setCancellationError(errorText(cause, "Não foi possível cancelar a reserva."));
+      else setError(errorText(cause, "Falha ao decidir reserva"));
+      return false;
     } finally {
       deciding.current = false; setDecision(null);
     }
   }
 
+  function askCancel(item: Reservation) {
+    if (!canManage || deciding.current || settled[item.id] === "CANCELLED" || !areaList.some(area => area.id === item.areaId)) return;
+    setCancellationError(null); setCancelling(item);
+  }
+
   // A successful decision is authoritative while either list is refreshing.
   // Never override a later terminal state (for example a cancellation).
-  const rows = (reservations.data?.items ?? []).map(item => item.status === "PENDING" && settled[item.id] ? { ...item, status: settled[item.id]! } : item);
+  const rows = (reservations.data?.items ?? []).map(item => withSettledStatus(item, settled));
   const pending = rows.filter(item => item.status === "PENDING");
   const confirmed = rows.filter(item => item.status === "CONFIRMED");
 
@@ -84,7 +99,7 @@ export function Areas({ buildingId, canManage = false, canConfigure = false, can
       <Card title="Reservas aguardando aprovação" subtitle="Confira o espaço, a data e a unidade antes de decidir." action={<Badge tone="warning">{pending.length} pendentes</Badge>} className="rounded-2xl">
         {pending.length ? (
           <ul className="space-y-3">
-            {pending.map(reservation => <AreaReservationCard key={reservation.id} reservation={reservation} area={areaList.find(area => area.id === reservation.areaId)} loadingArea={areas.loading} canManage={canManage} decision={decision} onDecide={(id, status) => void decide(id, status)} />)}
+            {pending.map(reservation => <AreaReservationCard key={reservation.id} reservation={reservation} area={areaList.find(area => area.id === reservation.areaId)} loadingArea={areas.loading} canManage={canManage} decision={decision} onDecide={(id, status) => void decide(id, status)} onCancel={askCancel} />)}
           </ul>
         ) : (
           <ResourceFeedback resource={reservations} emptyText="Nenhuma reserva aguardando aprovação." />
@@ -99,12 +114,12 @@ export function Areas({ buildingId, canManage = false, canConfigure = false, can
       </div>
 
       <div role="tabpanel" id={`${tabId}-panel`} aria-labelledby={`${tabId}-${tab}`} tabIndex={0} className="focus-visible:outline-emerald-600">
-      {tab === "calendario" && !areas.error && <MonthCalendar buildingId={buildingId} areas={areas} revision={revision} onChanged={changed} onError={setError} decision={decision} settled={settled} onDecide={(item, status) => void decide(item.id, status, item.areaId)} />}
+      {tab === "calendario" && !areas.error && <MonthCalendar buildingId={buildingId} areas={areas} revision={revision} decision={decision} settled={settled} onDecide={(item, status) => void decide(item.id, status, item.areaId)} onCancel={askCancel} />}
 
       {tab === "proximas" && <Card title="Próximas reservas confirmadas">
         {confirmed.length ? (
           <ul className="space-y-2">
-            {confirmed.map(reservation => <AreaReservationCard key={reservation.id} reservation={reservation} area={areaList.find(area => area.id === reservation.areaId)} loadingArea={areas.loading} />)}
+            {confirmed.map(reservation => <AreaReservationCard key={reservation.id} reservation={reservation} area={areaList.find(area => area.id === reservation.areaId)} loadingArea={areas.loading} canManage={canManage} decision={decision} onCancel={askCancel} />)}
           </ul>
         ) : (
           <ResourceFeedback resource={reservations} emptyText="Sem reservas confirmadas." />
@@ -115,30 +130,49 @@ export function Areas({ buildingId, canManage = false, canConfigure = false, can
 
       {tab === "regras" && !areas.error && <AreaRules buildingId={buildingId} areas={areas} canConfigure={canConfigure} />}
       </div>
+      {cancelling && <CancelReservationDialog reservation={cancelling} area={areaList.find(area => area.id === cancelling.areaId)} busy={Boolean(decision)} error={cancellationError}
+        onClose={() => setCancelling(null)} onConfirm={() => { setCancellationError(null); void decide(cancelling.id, "CANCELLED", cancelling.areaId).then(success => { if (success) setCancelling(null); }); }} />}
     </div>
   );
+}
+
+function CancelReservationDialog({ reservation, area, busy, error, onClose, onConfirm }: {
+  reservation: Reservation; area?: CommonArea; busy: boolean; error: string | null; onClose: () => void; onConfirm: () => void;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const title = useId(), description = useId();
+  useEffect(() => { const element = dialog.current; element?.showModal(); return () => { element?.close(); }; }, []);
+  const unit = reservation.unit?.trim();
+  return <dialog ref={dialog} aria-labelledby={title} aria-describedby={description} onCancel={event => { event.preventDefault(); if (!busy) onClose(); }}
+    className="m-auto max-h-[90dvh] w-[min(92vw,460px)] overflow-y-auto rounded-2xl border border-slate-200 p-0 shadow-xl backdrop:bg-slate-900/40">
+    <div className="space-y-5 p-6">
+      <div><h2 id={title} className="text-lg font-bold text-[#17334b]">Cancelar reserva?</h2><p id={description} className="mt-2 text-sm leading-6 text-slate-600">O horário ficará disponível e esta reserva deixará de contar no limite mensal do apartamento.</p></div>
+      <div className="space-y-1 rounded-xl bg-slate-50 p-4 text-sm text-slate-600"><p className="font-semibold text-[#17334b]">{area?.name ?? "Espaço não disponível"}</p><p>{formatDateTime(reservation.startsAt)} → {formatDateTime(reservation.endsAt)}</p><p>{unit ? (/^unidade\b/i.test(unit) ? unit : `Unidade ${unit}`) : "Unidade não informada"}</p></div>
+      {error && <ErrorBanner message={error} />}
+      <div className="flex flex-wrap justify-end gap-2"><Button variant="secondary" disabled={busy} onClick={onClose}>Manter reserva</Button><Button variant="danger" disabled={busy || !area} onClick={onConfirm}>{busy ? "Cancelando…" : "Confirmar cancelamento"}</Button></div>
+    </div>
+  </dialog>;
 }
 
 const STATUS_CHIP: Record<string, string> = {
   PENDING: "bg-amber-100 text-amber-800", CONFIRMED: "bg-emerald-100 text-emerald-800", EVENT: "bg-violet-100 text-violet-800",
 };
 
-function MonthCalendar({ buildingId, areas, revision, onChanged, onError, decision, settled, onDecide }: {
-  buildingId: string; areas: ReturnType<typeof useResource<Paged<CommonArea>>>; revision: number; onChanged: () => void; onError: (message: string) => void;
-  decision: Decision | null; settled: Record<string, DecisionStatus>; onDecide: (item: ManagedReservation, status: DecisionStatus) => void;
+function MonthCalendar({ buildingId, areas, revision, decision, settled, onDecide, onCancel }: {
+  buildingId: string; areas: ReturnType<typeof useResource<Paged<CommonArea>>>; revision: number;
+  decision: Decision | null; settled: Record<string, ReservationChange>; onDecide: (item: ManagedReservation, status: DecisionStatus) => void; onCancel: (item: ManagedReservation) => void;
 }) {
   const list = areas.data?.items ?? [];
   const [areaId, setAreaId] = useState("");
   const area = list.find(item => item.id === areaId) ?? list[0];
   const [month, setMonth] = useState(monthOf);
   const [day, setDay] = useState(() => localDate(new Date()));
-  const [busy, setBusy] = useState(false);
   const grid = monthGrid(month)!;
   const calendar = useResource<ReservationCalendarResponse>(area
     ? `/reservations/calendar?${new URLSearchParams({ buildingId, areaId: area.id, from: grid.from, to: grid.to })}` : null, [revision]);
   if (!area) return <Card><ResourceFeedback resource={areas} emptyText="Nenhuma área cadastrada. Cadastre em Regras das áreas." /></Card>;
 
-  const reservations = (calendar.data?.reservations ?? []).map(item => item.status === "PENDING" && settled[item.id] ? { ...item, status: settled[item.id]! } : item);
+  const reservations = (calendar.data?.reservations ?? []).map(item => withSettledStatus(item, settled));
   const events = calendar.data?.events ?? [];
   const active = reservations.filter(item => item.status === "PENDING" || item.status === "CONFIRMED");
   const scheduled = events.filter(item => item.status === "SCHEDULED");
@@ -148,13 +182,6 @@ function MonthCalendar({ buildingId, areas, revision, onChanged, onError, decisi
     events: events.filter(item => localDate(item.startsAt) <= date && localDate(new Date(Date.parse(item.endsAt) - 1)) >= date),
   });
   const selected = onDay(day);
-  async function act(run: () => Promise<unknown>) {
-    if (busy) return;
-    setBusy(true);
-    try { await run(); onChanged(); }
-    catch (cause) { onError(errorText(cause, "Não foi possível alterar a reserva.")); }
-    finally { setBusy(false); }
-  }
   const who = (item: ManagedReservation) => [item.requesterName ?? "Morador", item.unit ? `unidade ${item.unit}` : null].filter(Boolean).join(" · ");
 
   return <Card>
@@ -215,10 +242,10 @@ function MonthCalendar({ buildingId, areas, revision, onChanged, onError, decisi
                 {item.notes && <p className="mt-0.5 text-xs text-slate-500">{item.notes}</p>}
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <Badge>{item.status}</Badge>
-                {item.status === "PENDING" && <><Button variant="secondary" disabled={busy || Boolean(decision)} onClick={() => onDecide(item, "REJECTED")}>Recusar</Button>
-                  <Button disabled={busy || Boolean(decision)} onClick={() => onDecide(item, "CONFIRMED")}>Aprovar</Button></>}
-                {item.status === "CONFIRMED" && <Button variant="ghost" disabled={busy || Boolean(decision)} onClick={() => void act(() => api.delete(`/reservations/${item.id}`))}>Cancelar reserva</Button>}
+                <Badge>{item.status === "CANCELLED" ? "Cancelada" : item.status}</Badge>
+                {item.status === "PENDING" && <><Button variant="secondary" disabled={Boolean(decision)} onClick={() => onDecide(item, "REJECTED")}>Recusar</Button>
+                  <Button disabled={Boolean(decision)} onClick={() => onDecide(item, "CONFIRMED")}>Aprovar</Button></>}
+                {(item.status === "PENDING" || item.status === "CONFIRMED") && <Button variant="ghost" disabled={Boolean(decision)} onClick={() => onCancel(item)}>Cancelar reserva</Button>}
               </div>
             </li>)}
           </ul>}
@@ -343,7 +370,7 @@ type AreaDraft = { name: string; opensAt: string; closesAt: string; maxHoursPerB
 const draftOf = (area?: CommonArea): AreaDraft => ({
   name: area?.name ?? "", opensAt: area?.opensAt.slice(0, 5) ?? "08:00", closesAt: area?.closesAt.slice(0, 5) ?? "22:00",
   maxHoursPerBooking: String(area?.maxHoursPerBooking ?? 6), requiresApproval: area?.requiresApproval ?? true, capacity: area?.capacity ? String(area.capacity) : "",
-  monthlyLimitPerResident: area?.monthlyLimitPerResident ? String(area.monthlyLimitPerResident) : "", monthlyLimitPerUnit: area?.monthlyLimitPerUnit ? String(area.monthlyLimitPerUnit) : "",
+  monthlyLimitPerResident: area?.monthlyLimitPerResident ? String(area.monthlyLimitPerResident) : "", monthlyLimitPerUnit: area ? (area.monthlyLimitPerUnit ? String(area.monthlyLimitPerUnit) : "") : "1",
 });
 const optionalNumber = (value: string) => value.trim() ? Number(value) : null;
 
@@ -378,7 +405,7 @@ function AreaForm({ buildingId, area, onSaved }: { buildingId: string; area?: Co
     finally { setBusy(false); }
   }
   return <Card title={area ? area.name : "Cadastrar área"}>
-    <form className="space-y-3" onSubmit={submit => { submit.preventDefault(); void save(); }}>
+    <form aria-label={area ? area.name : "Cadastrar área"} className="space-y-3 [&_[id$='-hint']]:text-slate-600" onSubmit={submit => { submit.preventDefault(); void save(); }}>
       {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
       {message && <p role="status" className="rounded-lg bg-emerald-50 p-2 text-sm text-emerald-700">{message}</p>}
       <Field label="Nome da área"><Input required value={draft.name} onChange={name => setDraft({ ...draft, name })} placeholder="Salão de festas" /></Field>
@@ -387,8 +414,11 @@ function AreaForm({ buildingId, area, onSaved }: { buildingId: string; area?: Co
         <Field label="Fecha às"><Input type="time" required value={draft.closesAt} onChange={closesAt => setDraft({ ...draft, closesAt })} /></Field>
         <Field label="Máx. horas"><Input type="number" min={1} max={24} required value={draft.maxHoursPerBooking} onChange={maxHoursPerBooking => setDraft({ ...draft, maxHoursPerBooking })} /></Field>
       </div>
-      <div className="grid grid-cols-3 gap-3">
-        <Field label="Limite por unidade" hint="Reservas por mês. Vazio = sem limite."><Input type="number" min={1} max={31} value={draft.monthlyLimitPerUnit} onChange={monthlyLimitPerUnit => setDraft({ ...draft, monthlyLimitPerUnit })} /></Field>
+      <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-4">
+        <Field label="Limite por apartamento" hint="Por mês, neste espaço. Reservas pendentes e confirmadas contam juntas."><Select value={draft.monthlyLimitPerUnit} onChange={monthlyLimitPerUnit => setDraft({ ...draft, monthlyLimitPerUnit })}
+          options={[...Array.from({ length: 31 }, (_, index) => ({ value: String(index + 1), label: `${count(index + 1, "reserva", "reservas")} por mês` })), { value: "", label: "Ilimitado" }]} /></Field>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
         <Field label="Limite por morador" hint="Reservas por mês. Vazio = sem limite."><Input type="number" min={1} max={31} value={draft.monthlyLimitPerResident} onChange={monthlyLimitPerResident => setDraft({ ...draft, monthlyLimitPerResident })} /></Field>
         <Field label="Capacidade" hint="Pessoas. Opcional."><Input type="number" min={1} value={draft.capacity} onChange={capacity => setDraft({ ...draft, capacity })} /></Field>
       </div>

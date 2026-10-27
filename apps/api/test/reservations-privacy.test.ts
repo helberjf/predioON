@@ -37,7 +37,8 @@ describe("privacidade do DTO de reservas", () => {
       await sqlClient`insert into memberships(user_id,building_id,role) values
         (${manager},${a},'BUILDING_ADMIN'),(${manager},${b},'RESIDENT'),
         (${resident},${a},'RESIDENT'),(${neighbor},${a},'RESIDENT'),(${neighbor},${b},'BUILDING_ADMIN')`;
-      await sqlClient`insert into common_areas(id,building_id,name) values(${areaA},${a},'Private A'),(${areaB},${b},'Private B')`;
+      // Privacy fixtures deliberately allow reservations without apartment links.
+      await sqlClient`insert into common_areas(id,building_id,name,monthly_limit_per_unit) values(${areaA},${a},'Private A',null),(${areaB},${b},'Private B',null)`;
       let index = 0;
       for (const [key, user, building, area] of [
         ["managerA", manager, a, areaA], ["residentA", resident, a, areaA], ["neighborA", neighbor, a, areaA],
