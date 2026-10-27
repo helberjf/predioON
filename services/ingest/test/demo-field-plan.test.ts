@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { TelemetrySchema, WaterTelemetrySchema, parseTelemetryTopic, parseWaterTelemetryTopic } from "@predioon/shared";
-import { demoCycleMessages, nextParking, resumeField } from "../src/simulator/demo-field-plan.js";
+import { demoCycleMessages, nextParking, recoverTank, resumeField } from "../src/simulator/demo-field-plan.js";
 import { initialState, nextState } from "../src/simulator/state.js";
 
 const devices = [
@@ -85,5 +85,12 @@ describe("gateway de demonstração", () => {
     assert.equal(state.waterVolumeLiters, 6100);
     assert.equal(parking.get("car"), 40);
     assert.equal(resumeField(base, []).state.waterTotalM3, base.waterTotalM3, "sem histórico começa do valor inicial");
+  });
+
+  it("o tanque se recupera ao sair do cenário de nível baixo, e só então", () => {
+    const low = { ...initialState(), waterLevelPercent: 18, waterVolumeLiters: 1800 };
+    assert.equal(recoverTank(low, "low-water").waterLevelPercent, 18, "durante o cenário continua baixo");
+    assert.equal(recoverTank(low, "normal").waterLevelPercent, 62);
+    assert.equal(recoverTank({ ...low, waterLevelPercent: 40 }, "normal").waterLevelPercent, 40, "nível normal não é mexido");
   });
 });

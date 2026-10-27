@@ -15,7 +15,7 @@ import { and, eq, inArray } from "drizzle-orm";
 import { devices, gateways, gates, ingestDb, ingestSqlClient, parkingLots } from "@predioon/db/ingest";
 import { accessTopic, DEMO_SCENARIOS, gatewayStatusTopic, type DemoScenario, type GatewayStatus } from "@predioon/shared";
 import { createGateSimulator } from "./access/simulation.js";
-import { DEMO_FULL_EVERY, RESUME_METRICS, demoCycleMessages, nextParking, resumeField, type DemoParkingLot, type LastReading } from "./simulator/demo-field-plan.js";
+import { DEMO_FULL_EVERY, RESUME_METRICS, demoCycleMessages, nextParking, recoverTank, resumeField, type DemoParkingLot, type LastReading } from "./simulator/demo-field-plan.js";
 import { initialState, nextState, type FieldState } from "./simulator/state.js";
 
 if (process.env.DEMO_FIELD !== "on") throw new Error("Defina DEMO_FIELD=on: este processo simula equipamentos e só pode rodar numa demonstração");
@@ -129,7 +129,7 @@ async function tick() {
   for (const [buildingId, field] of fields) {
     const scenario = chosen.get(buildingId) ?? "normal";
     field.tick++;
-    field.state = nextState(field.state, field.tick, scenario, intervalMs / 1000);
+    field.state = nextState(recoverTank(field.state, scenario), field.tick, scenario, intervalMs / 1000);
     const lots: DemoParkingLot[] = inventory.lots.filter(lot => lot.buildingId === buildingId);
     field.parking = nextParking(lots, field.parking, at);
     for (const gateway of inventory.gateways.filter(item => item.buildingId === buildingId)) {

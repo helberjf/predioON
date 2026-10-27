@@ -92,6 +92,16 @@ export function nextParking(lots: readonly DemoParkingLot[], current: ReadonlyMa
   return next;
 }
 
+/**
+ * Leaving the low-water scenario means the tank was refilled: without this the presenter would
+ * wait over an hour for the pump. In normal operation the pump starts at 35%, so a tank below
+ * 25% outside that scenario can only be a leftover of it.
+ */
+export function recoverTank(state: FieldState, scenario: string): FieldState {
+  if (scenario === "low-water" || state.waterLevelPercent >= 25) return state;
+  return { ...state, waterLevelPercent: 62, waterVolumeLiters: 6200, pumpRunning: false };
+}
+
 export type LastReading = { deviceId: string; metric: string; value: number };
 /** Metrics whose last stored value lets a restarted field continue instead of starting over. */
 export const RESUME_METRICS = ["water_total_m3", "energy_total_kwh", "water_level_percent", "parking_occupied"] as const;
