@@ -1,10 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { CalendarDays, ChevronLeft, ChevronRight, MapPin, Users } from "lucide-react";
+import { CalendarCheck2, CalendarDays, ChevronLeft, ChevronRight, Clock3, MapPin, RefreshCw, Users } from "lucide-react";
 import { api, Badge, Button, Card, cls, dayLabel, ErrorBanner, Field, formatDateTime, formatTime, Input, localDate, monthGrid, monthLabel, monthOf, ResourceFeedback, Select, shiftMonth, TextArea, useResource, WEEKDAYS } from "@predioon/ui";
 import type { BuildingEvent, BuildingEventAnswer, CommonArea, ManagedReservation, Paged, Reservation, ReservationCalendarResponse } from "@predioon/ui";
+import { AreaReservationCard } from "../components/AreaReservationCard.js";
 
 type Props = { buildingId: string; canManage?: boolean; canConfigure?: boolean; canEvents?: boolean };
+type DecisionStatus = "CONFIRMED" | "REJECTED";
+type Decision = { id: string; status: DecisionStatus };
 const errorText = (cause: unknown, fallback: string) => cause instanceof Error ? cause.message : fallback;
 const count = (value: number, one: string, many: string) => `${value} ${value === 1 ? one : many}`;
 
@@ -23,6 +26,12 @@ export function Areas({ buildingId, canManage = false, canConfigure = false, can
   const areas = useResource<Paged<CommonArea>>(`/common-areas?buildingId=${buildingId}`);
   const reservations = useResource<Paged<Reservation>>(`/reservations?buildingId=${buildingId}`);
   const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [decision, setDecision] = useState<Decision | null>(null);
+  const [settled, setSettled] = useState<Record<string, DecisionStatus>>({});
+  const completed = useRef(new Set<string>());
+  const deciding = useRef(false);
+  const tabId = useId();
   const [revision, setRevision] = useState(0);
   const [search, setSearch] = useSearchParams();
   const tabs = [
@@ -33,75 +42,69 @@ export function Areas({ buildingId, canManage = false, canConfigure = false, can
   ];
   const tab = tabs.find(item => item.key === search.get("aba"))?.key ?? tabs[0]!.key;
   const areaList = areas.data?.items ?? [];
-  const areaName = (areaId: string) => areaList.find((area) => area.id === areaId)?.name ?? areaId;
   const changed = () => { reservations.reload(); setRevision(value => value + 1); };
 
-  async function decide(id: string, status: "CONFIRMED" | "REJECTED") {
+  async function decide(id: string, status: DecisionStatus, areaId = reservations.data?.items.find(item => item.id === id)?.areaId) {
+    if (!canManage || deciding.current || completed.current.has(id)) return;
+    if (!areaId || !areaList.some(area => area.id === areaId)) return;
+    deciding.current = true;
+    setDecision({ id, status }); setError(null); setMessage(null);
     try {
       await api.post(`/reservations/${id}/decision`, { status });
+      completed.current.add(id);
+      setSettled(previous => ({ ...previous, [id]: status }));
+      setMessage(status === "CONFIRMED" ? "Reserva aprovada." : "Reserva recusada.");
       changed();
     } catch (cause) {
       setError(errorText(cause, "Falha ao decidir reserva"));
+    } finally {
+      deciding.current = false; setDecision(null);
     }
   }
 
-  const pending = reservations.data?.items.filter((r) => r.status === "PENDING") ?? [];
-  const confirmed = reservations.data?.items.filter((r) => r.status === "CONFIRMED") ?? [];
+  // A successful decision is authoritative while either list is refreshing.
+  // Never override a later terminal state (for example a cancellation).
+  const rows = (reservations.data?.items ?? []).map(item => item.status === "PENDING" && settled[item.id] ? { ...item, status: settled[item.id]! } : item);
+  const pending = rows.filter(item => item.status === "PENDING");
+  const confirmed = rows.filter(item => item.status === "CONFIRMED");
 
   return (
-    <>
-      <h1 className="text-2xl font-bold text-slate-900">Áreas comuns</h1>
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-4"><div><p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-700">Comunidade · Reservas</p><h1 className="text-[28px] font-bold tracking-tight text-[#17334b] sm:text-[32px]">Áreas comuns</h1><p className="mt-1.5 text-sm leading-6 text-slate-600">Organize os espaços do condomínio e acompanhe cada reserva.</p></div><Button variant="secondary" disabled={areas.loading || reservations.loading} onClick={() => { areas.reload(); changed(); }}><RefreshCw size={16} aria-hidden="true" />Atualizar agenda</Button></div>
       {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
+      {message && <p role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{message}</p>}
+      {areas.error && <div className="space-y-3 rounded-2xl border border-amber-200 bg-amber-50 p-4"><p role="alert" className="text-sm leading-6 text-amber-900">Não foi possível carregar os espaços. Atualize para ver os nomes e o calendário. As reservas ainda não identificadas ficam protegidas contra aprovação.</p><Button variant="secondary" onClick={areas.reload}>Atualizar espaços</Button></div>}
 
-      <Card title="Reservas aguardando aprovação">
+      <div className="grid gap-3 sm:grid-cols-3">{[
+        { label: "Espaços disponíveis", value: areas.data ? areaList.length : "—", detail: "Áreas cadastradas no condomínio", icon: MapPin, tone: "bg-sky-50 text-sky-700" },
+        { label: "Aguardando aprovação", value: reservations.data ? pending.length : "—", detail: "Solicitações para analisar", icon: Clock3, tone: "bg-amber-50 text-amber-800" },
+        { label: "Próximas reservas", value: reservations.data ? confirmed.length : "—", detail: "Reservas já confirmadas", icon: CalendarCheck2, tone: "bg-emerald-50 text-emerald-700" },
+      ].map(({ label, value, detail, icon: Icon, tone }) => <section key={label} aria-label={label} className="flex items-center gap-4 rounded-2xl border border-slate-200/80 bg-white p-5"><span aria-hidden="true" className={cls("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl", tone)}><Icon size={21} /></span><div><p className="text-xs font-medium text-slate-600">{label}</p><p className="mt-1 text-2xl font-bold tabular-nums text-[#17334b]">{value}</p><p className="mt-1 text-xs leading-5 text-slate-500">{detail}</p></div></section>)}</div>
+
+      <Card title="Reservas aguardando aprovação" subtitle="Confira o espaço, a data e a unidade antes de decidir." action={<Badge tone="warning">{pending.length} pendentes</Badge>} className="rounded-2xl">
         {pending.length ? (
           <ul className="space-y-3">
-            {pending.map((reservation) => (
-              <li key={reservation.id} className="flex flex-col gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <p className="font-medium text-slate-800">{areaName(reservation.areaId)}</p>
-                  <p className="mt-1 text-sm text-slate-600">
-                    {formatDateTime(reservation.startsAt)} → {formatDateTime(reservation.endsAt)}
-                  </p>
-                  <p className="mt-1 text-xs text-slate-500">
-                    unidade {reservation.unit ?? "—"}
-                    {reservation.notes ? ` · ${reservation.notes}` : ""}
-                  </p>
-                </div>
-                {canManage && <div className="flex gap-2">
-                  <Button variant="secondary" onClick={() => void decide(reservation.id, "REJECTED")}>
-                    Recusar
-                  </Button>
-                  <Button onClick={() => void decide(reservation.id, "CONFIRMED")}>Aprovar</Button>
-                </div>}
-              </li>
-            ))}
+            {pending.map(reservation => <AreaReservationCard key={reservation.id} reservation={reservation} area={areaList.find(area => area.id === reservation.areaId)} loadingArea={areas.loading} canManage={canManage} decision={decision} onDecide={(id, status) => void decide(id, status)} />)}
           </ul>
         ) : (
           <ResourceFeedback resource={reservations} emptyText="Nenhuma reserva aguardando aprovação." />
         )}
       </Card>
 
-      <div role="tablist" aria-label="Áreas comuns" className="flex flex-wrap gap-2">
-        {tabs.map(item => <button key={item.key} type="button" role="tab" aria-selected={tab === item.key}
+      <div role="tablist" aria-label="Áreas comuns" className="flex gap-1 overflow-x-auto rounded-xl border border-slate-200 bg-white p-1.5">
+        {tabs.map((item, index) => <button key={item.key} id={`${tabId}-${item.key}`} aria-controls={`${tabId}-panel`} tabIndex={tab === item.key ? 0 : -1} type="button" role="tab" aria-selected={tab === item.key}
+          onKeyDown={event => { const target = event.key === "ArrowRight" ? (index + 1) % tabs.length : event.key === "ArrowLeft" ? (index + tabs.length - 1) % tabs.length : event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : null; if (target === null) return; event.preventDefault(); const next = tabs[target]!; setSearch(next.key === tabs[0]!.key ? {} : { aba: next.key }); document.getElementById(`${tabId}-${next.key}`)?.focus(); }}
           onClick={() => setSearch(item.key === tabs[0]!.key ? {} : { aba: item.key })}
-          className={cls("rounded-full border px-4 py-2 text-sm font-semibold transition", tab === item.key ? "border-emerald-600 bg-emerald-600 text-white" : "border-slate-200 bg-white text-slate-600 hover:border-emerald-200")}>{item.label}</button>)}
+          className={cls("shrink-0 whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-semibold transition", tab === item.key ? "bg-[#17334b] text-white" : "text-slate-600 hover:bg-slate-50")}>{item.label}</button>)}
       </div>
 
-      {tab === "calendario" && <MonthCalendar buildingId={buildingId} areas={areas} revision={revision} onChanged={changed} onError={setError} />}
+      <div role="tabpanel" id={`${tabId}-panel`} aria-labelledby={`${tabId}-${tab}`} tabIndex={0} className="focus-visible:outline-emerald-600">
+      {tab === "calendario" && !areas.error && <MonthCalendar buildingId={buildingId} areas={areas} revision={revision} onChanged={changed} onError={setError} decision={decision} settled={settled} onDecide={(item, status) => void decide(item.id, status, item.areaId)} />}
 
       {tab === "proximas" && <Card title="Próximas reservas confirmadas">
         {confirmed.length ? (
           <ul className="space-y-2">
-            {confirmed.map((reservation) => (
-              <li key={reservation.id} className="flex items-center justify-between rounded-xl border border-slate-100 p-3 text-sm">
-                <div>
-                  <p className="font-medium text-slate-800">{areaName(reservation.areaId)}</p>
-                  <p className="text-xs text-slate-500">{formatDateTime(reservation.startsAt)}{reservation.unit ? ` · unidade ${reservation.unit}` : ""}</p>
-                </div>
-                <Badge>{reservation.status}</Badge>
-              </li>
-            ))}
+            {confirmed.map(reservation => <AreaReservationCard key={reservation.id} reservation={reservation} area={areaList.find(area => area.id === reservation.areaId)} loadingArea={areas.loading} />)}
           </ul>
         ) : (
           <ResourceFeedback resource={reservations} emptyText="Sem reservas confirmadas." />
@@ -110,8 +113,9 @@ export function Areas({ buildingId, canManage = false, canConfigure = false, can
 
       {tab === "eventos" && <EventsPanel buildingId={buildingId} areas={areaList} onChanged={changed} />}
 
-      {tab === "regras" && <AreaRules buildingId={buildingId} areas={areas} canConfigure={canConfigure} />}
-    </>
+      {tab === "regras" && !areas.error && <AreaRules buildingId={buildingId} areas={areas} canConfigure={canConfigure} />}
+      </div>
+    </div>
   );
 }
 
@@ -119,8 +123,9 @@ const STATUS_CHIP: Record<string, string> = {
   PENDING: "bg-amber-100 text-amber-800", CONFIRMED: "bg-emerald-100 text-emerald-800", EVENT: "bg-violet-100 text-violet-800",
 };
 
-function MonthCalendar({ buildingId, areas, revision, onChanged, onError }: {
+function MonthCalendar({ buildingId, areas, revision, onChanged, onError, decision, settled, onDecide }: {
   buildingId: string; areas: ReturnType<typeof useResource<Paged<CommonArea>>>; revision: number; onChanged: () => void; onError: (message: string) => void;
+  decision: Decision | null; settled: Record<string, DecisionStatus>; onDecide: (item: ManagedReservation, status: DecisionStatus) => void;
 }) {
   const list = areas.data?.items ?? [];
   const [areaId, setAreaId] = useState("");
@@ -133,7 +138,7 @@ function MonthCalendar({ buildingId, areas, revision, onChanged, onError }: {
     ? `/reservations/calendar?${new URLSearchParams({ buildingId, areaId: area.id, from: grid.from, to: grid.to })}` : null, [revision]);
   if (!area) return <Card><ResourceFeedback resource={areas} emptyText="Nenhuma área cadastrada. Cadastre em Regras das áreas." /></Card>;
 
-  const reservations = calendar.data?.reservations ?? [];
+  const reservations = (calendar.data?.reservations ?? []).map(item => item.status === "PENDING" && settled[item.id] ? { ...item, status: settled[item.id]! } : item);
   const events = calendar.data?.events ?? [];
   const active = reservations.filter(item => item.status === "PENDING" || item.status === "CONFIRMED");
   const scheduled = events.filter(item => item.status === "SCHEDULED");
@@ -171,7 +176,7 @@ function MonthCalendar({ buildingId, areas, revision, onChanged, onError }: {
       {calendar.error && <ErrorBanner message={calendar.error} />}
       <div className="overflow-x-auto">
         <div className="grid min-w-[640px] grid-cols-7 gap-1">
-          {WEEKDAYS.map(name => <p key={name} className="px-1 text-center text-[11px] font-semibold uppercase text-slate-400">{name}</p>)}
+          {WEEKDAYS.map(name => <p key={name} className="px-1 text-center text-[11px] font-semibold uppercase text-slate-600">{name}</p>)}
           {grid.days.map(date => {
             const items = onDay(date);
             const shown = [
@@ -181,9 +186,9 @@ function MonthCalendar({ buildingId, areas, revision, onChanged, onError }: {
             ];
             const outside = date.slice(0, 7) !== month;
             return <button key={date} type="button" aria-pressed={date === day} onClick={() => setDay(date)}
-              aria-label={`${dayLabel(date)}: ${count(items.reservations.filter(item => item.status === "PENDING" || item.status === "CONFIRMED").length, "reserva", "reservas")}, ${count(items.events.filter(item => item.status === "SCHEDULED").length, "evento", "eventos")}`}
-              className={cls("flex min-h-[92px] flex-col gap-1 rounded-lg border p-1.5 text-left align-top transition", outside ? "border-slate-100 bg-slate-50/60 text-slate-400" : "border-slate-200 bg-white text-slate-800 hover:border-emerald-300", date === day && "ring-2 ring-emerald-500", date === localDate(new Date()) && "border-emerald-400")}>
-              <span className="text-xs font-semibold">{Number(date.slice(8))}</span>
+              className={cls("relative flex min-h-[92px] flex-col gap-1 rounded-lg border p-1.5 text-left align-top transition", outside ? "border-slate-100 bg-slate-50/60 text-slate-500" : "border-slate-200 bg-white text-slate-800 hover:border-emerald-300", date === day && "ring-2 ring-emerald-500", date === localDate(new Date()) && "border-emerald-400")}>
+              <span className="sr-only">{dayLabel(date)}: {count(items.reservations.filter(item => item.status === "PENDING" || item.status === "CONFIRMED").length, "reserva", "reservas")}, {count(items.events.filter(item => item.status === "SCHEDULED").length, "evento", "eventos")}. </span>
+              <span aria-hidden="true" className="text-xs font-semibold">{Number(date.slice(8))}</span>
               {shown.slice(0, 3).map(item => <span key={item.key} className={cls("truncate rounded px-1 py-0.5 text-[10px] font-medium", STATUS_CHIP[item.tone])}>{item.text}</span>)}
               {shown.length > 3 && <span className="text-[10px] text-slate-500">+{shown.length - 3}</span>}
             </button>;
@@ -211,9 +216,9 @@ function MonthCalendar({ buildingId, areas, revision, onChanged, onError }: {
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Badge>{item.status}</Badge>
-                {item.status === "PENDING" && <><Button variant="secondary" disabled={busy} onClick={() => void act(() => api.post(`/reservations/${item.id}/decision`, { status: "REJECTED" }))}>Recusar</Button>
-                  <Button disabled={busy} onClick={() => void act(() => api.post(`/reservations/${item.id}/decision`, { status: "CONFIRMED" }))}>Aprovar</Button></>}
-                {item.status === "CONFIRMED" && <Button variant="ghost" disabled={busy} onClick={() => void act(() => api.delete(`/reservations/${item.id}`))}>Cancelar reserva</Button>}
+                {item.status === "PENDING" && <><Button variant="secondary" disabled={busy || Boolean(decision)} onClick={() => onDecide(item, "REJECTED")}>Recusar</Button>
+                  <Button disabled={busy || Boolean(decision)} onClick={() => onDecide(item, "CONFIRMED")}>Aprovar</Button></>}
+                {item.status === "CONFIRMED" && <Button variant="ghost" disabled={busy || Boolean(decision)} onClick={() => void act(() => api.delete(`/reservations/${item.id}`))}>Cancelar reserva</Button>}
               </div>
             </li>)}
           </ul>}
