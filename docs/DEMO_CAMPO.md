@@ -10,6 +10,8 @@ Os portais e a API da demonstração rodam na Vercel com o banco no Neon ([VERCE
 
 O `demo-field` descobre no banco os equipamentos de cada condomínio listado e publica o que cada tipo publicaria de verdade: caixa d'água, hidrômetro, energia, fases, bomba, vazamentos, gás, fumaça, temperatura, vagas e a presença dos controladores de portão. Ele também responde aos comandos de portão com o ACK do protocolo; nenhum relé ou equipamento real existe ali. Ele só lê o banco, com o login restrito da ingestão.
 
+Para apresentar a clientes, siga o [roteiro de demonstração](ROTEIRO_DEMONSTRACAO.md).
+
 ## Cadência
 
 O ciclo é de 15 s (`DEMO_FIELD_INTERVAL_MS`, de 5 a 30 s). Medidores e controladores de portão publicam a cada ciclo: o consumo precisa de leituras com no máximo 5 minutos de intervalo, e o portão só abre com o controlador visto nos últimos 60 s. Os demais sensores publicam a cada três ciclos ou na hora em que o valor muda. Assim o vazamento de um cenário aparece em segundos, e a ingestão não acumula fila: medido com atraso de 2 s e cerca de 75 leituras por minuto num condomínio.
