@@ -54,11 +54,13 @@ export function TextArea({
   onChange,
   rows = 4,
   placeholder,
+  maxLength,
 }: {
   value: string;
   onChange: (value: string) => void;
   rows?: number;
   placeholder?: string;
+  maxLength?: number;
 }) {
   return (
     <textarea
@@ -67,6 +69,7 @@ export function TextArea({
       rows={rows}
       value={value}
       placeholder={placeholder}
+      maxLength={maxLength}
       onChange={(event) => onChange(event.target.value)}
     />
   );

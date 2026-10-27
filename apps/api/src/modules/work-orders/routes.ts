@@ -20,8 +20,10 @@ const title = z.string().trim().min(1).max(160);
 const description = z.string().trim().max(4000);
 const note = z.string().trim().min(1).max(2000);
 const version = z.number().int().positive();
-const assignee = { assignedUserId: z.string().min(1).max(128).nullable().optional(), assignedTeamId: id.nullable().optional() };
-const oneAssignee = (value: { assignedUserId?: string | null; assignedTeamId?: string | null }) => !value.assignedUserId || !value.assignedTeamId;
+const assignee = { assignedUserId: z.string().min(1).max(128).nullable().optional(), assignedTeamId: id.nullable().optional(),
+  assignedName: z.string().trim().min(1).max(160).nullable().optional() };
+const oneAssignee = (value: { assignedUserId?: string | null; assignedTeamId?: string | null; assignedName?: string | null }) =>
+  [value.assignedUserId, value.assignedTeamId, value.assignedName].filter(Boolean).length <= 1;
 const List = z.object({ buildingId, status: Status.optional(), after: id.optional(), limit: z.coerce.number().int().min(1).max(100).default(50) });
 const Create = z.object({ buildingId, title, description: description.default(""), priority: Priority.default("NORMAL"),
   dueAt: z.coerce.date().nullable().optional(), occurrenceId: id.nullable().optional(), assetId: id.nullable().optional(), ...assignee }).strict().refine(oneAssignee, "Atribua a uma pessoa ou a uma equipe");
@@ -31,10 +33,10 @@ const Update = z.object({ version, title: title.optional(), description: descrip
 const Transition = z.object({ version, status: Status, note: note.optional() }).strict();
 const Note = z.object({ note }).strict();
 
-type WorkOrder = { id: string; buildingId: string; status: z.infer<typeof Status>; version: number; assignedUserId: string | null; assignedTeamId: string | null };
+type WorkOrder = { id: string; buildingId: string; status: z.infer<typeof Status>; version: number; assignedUserId: string | null; assignedTeamId: string | null; assignedName: string | null };
 const view = sql`w.id, w.building_id as "buildingId", w.title, w.description, w.priority, w.status, w.occurrence_id as "occurrenceId", w.asset_id as "assetId",
   (select s.name from assets s where s.id=w.asset_id) as "assetName",
-  w.assigned_user_id as "assignedUserId", w.assigned_team_id as "assignedTeamId", ${isoTime(sql`w.due_at`)} as "dueAt", w.created_by as "createdBy", w.version,
+  w.assigned_user_id as "assignedUserId", w.assigned_team_id as "assignedTeamId", w.assigned_name as "assignedName", ${isoTime(sql`w.due_at`)} as "dueAt", w.created_by as "createdBy", w.version,
   ${isoTime(sql`w.created_at`)} as "createdAt", ${isoTime(sql`w.updated_at`)} as "updatedAt",
   ${isoTime(sql`w.started_at`)} as "startedAt", ${isoTime(sql`w.closed_at`)} as "closedAt",
   app_work_order_assigned(w.building_id, w.assigned_user_id, w.assigned_team_id) as "assignedToMe"`;
@@ -88,10 +90,10 @@ workOrdersRouter.post("/", validateBody(Create), async (req, res) => {
   const input = req.body as z.infer<typeof Create>;
   const actor = currentAuth(req).userId;
   const created = await inWorkOrders(req, async tx => {
-    const [order] = await rows<WorkOrder>(tx, sql`insert into work_orders as w(building_id,title,description,priority,occurrence_id,asset_id,assigned_user_id,assigned_team_id,due_at,created_by)
+    const [order] = await rows<WorkOrder>(tx, sql`insert into work_orders as w(building_id,title,description,priority,occurrence_id,asset_id,assigned_user_id,assigned_team_id,assigned_name,due_at,created_by)
       values(${input.buildingId},${input.title},${input.description},${input.priority},${input.occurrenceId ?? null},${input.assetId ?? null},${input.assignedUserId ?? null},
-        ${input.assignedTeamId ?? null},${input.dueAt?.toISOString() ?? null}::timestamptz,${actor}) returning ${view}`);
-    await event(tx, order!, actor, "CREATED");
+        ${input.assignedTeamId ?? null},${input.assignedName ?? null},${input.dueAt?.toISOString() ?? null}::timestamptz,${actor}) returning ${view}`);
+    await event(tx, order!, actor, "CREATED", { note: input.assignedName ? `Responsável: ${input.assignedName}` : undefined });
     await recordAudit(tx, req, { userId: actor, buildingId: input.buildingId, action: "WORK_ORDER_CREATED", resourceType: "work_order", resourceId: order!.id });
     return order!;
   });
@@ -116,8 +118,9 @@ workOrdersRouter.patch("/:id", validateBody(Update), async (req, res) => {
     const current = await visible(tx, target);
     const has = (key: keyof typeof changes) => Object.hasOwn(changes, key);
     // Choosing one kind of assignee clears the other.
-    const user = has("assignedUserId") ? changes.assignedUserId ?? null : has("assignedTeamId") && changes.assignedTeamId ? null : current.assignedUserId;
-    const team = has("assignedTeamId") ? changes.assignedTeamId ?? null : has("assignedUserId") && changes.assignedUserId ? null : current.assignedTeamId;
+    const user = has("assignedUserId") ? changes.assignedUserId ?? null : changes.assignedTeamId || changes.assignedName ? null : current.assignedUserId;
+    const team = has("assignedTeamId") ? changes.assignedTeamId ?? null : changes.assignedUserId || changes.assignedName ? null : current.assignedTeamId;
+    const name = has("assignedName") ? changes.assignedName ?? null : changes.assignedUserId || changes.assignedTeamId ? null : current.assignedName;
     const [updated] = await rows<WorkOrder>(tx, sql`update work_orders as w set version=w.version+1,
       title=case when ${has("title")} then ${changes.title ?? null} else w.title end,
       description=case when ${has("description")} then ${changes.description ?? null} else w.description end,
@@ -125,11 +128,13 @@ workOrdersRouter.patch("/:id", validateBody(Update), async (req, res) => {
       due_at=case when ${has("dueAt")} then ${changes.dueAt?.toISOString() ?? null}::timestamptz else w.due_at end,
       occurrence_id=case when ${has("occurrenceId")} then ${changes.occurrenceId ?? null}::uuid else w.occurrence_id end,
       asset_id=case when ${has("assetId")} then ${changes.assetId ?? null}::uuid else w.asset_id end,
-      assigned_user_id=${user}, assigned_team_id=${team}::uuid
+      assigned_user_id=${user}, assigned_team_id=${team}::uuid, assigned_name=${name}
       where w.id=${target} and w.version=${expected} returning ${view}`);
     if (!updated) throw conflict("A ordem de serviço foi alterada. Recarregue antes de tentar novamente.");
-    const reassigned = user !== current.assignedUserId || team !== current.assignedTeamId;
-    await event(tx, updated, actor, reassigned ? "ASSIGNED" : "UPDATED");
+    const reassigned = user !== current.assignedUserId || team !== current.assignedTeamId || name !== current.assignedName;
+    await event(tx, updated, actor, reassigned ? "ASSIGNED" : "UPDATED", {
+      note: reassigned && (name || current.assignedName) ? `${current.assignedName ? `Responsável anterior: ${current.assignedName}. ` : ""}${name ? `Responsável: ${name}` : user || team ? "Responsável cadastrado selecionado." : "Sem responsável."}` : undefined,
+    });
     await recordAudit(tx, req, { userId: actor, buildingId: updated.buildingId, action: "WORK_ORDER_UPDATED", resourceType: "work_order", resourceId: target,
       metadata: { fields: Object.keys(changes).sort() } });
     return updated;

@@ -8,6 +8,8 @@ export type WorkOrderView = {
   /** Name of the linked asset when the caller may read it; `null` otherwise, even with an `assetId`. */
   assetName: string | null;
   assignedUserId: string | null; assignedTeamId: string | null; dueAt: string | null;
+  /** Person or company entered without a user account. Does not grant access. */
+  assignedName?: string | null;
   createdBy: string; version: number; createdAt: string; updatedAt: string;
   startedAt: string | null; closedAt: string | null;
   /** Assigned to the caller directly or through a team they belong to now. */
@@ -21,7 +23,7 @@ export type WorkOrderDetail = WorkOrderView & { events: WorkOrderEventView[] };
 /** `canDistribute` tells the client whether creation and assignment controls apply. */
 export type WorkOrderListResponse = { items: WorkOrderView[]; nextCursor: string | null; canDistribute: boolean };
 
-type Assignee = { assignedUserId?: string | null; assignedTeamId?: string | null };
+type Assignee = { assignedUserId?: string | null; assignedTeamId?: string | null; assignedName?: string | null };
 export type CreateWorkOrderRequest = Assignee & {
   buildingId: string; title: string; description?: string; priority?: WorkOrderPriority;
   dueAt?: string | null; occurrenceId?: string | null; assetId?: string | null;

@@ -74,6 +74,44 @@ describe("work orders are distributed by managers and executed by their assignee
     assert.deepEqual(await audits(order.id), ["WORK_ORDER_CREATED", "WORK_ORDER_UPDATED", "WORK_ORDER_UPDATED", "WORK_ORDER_UPDATED"].map(action => `${action}:${people.manager}`));
   });
 
+  it("saves a typed provider, switches assignment kinds and records the named change", async () => {
+    const order = await create({ assignedName: "  João da Silva · Hidráulica  " });
+    assert.equal(order.assignedName, "João da Silva · Hidráulica");
+    assert.equal(order.assignedUserId, null);
+    assert.equal(order.assignedTeamId, null);
+    assert.equal(order.assignedToMe, false);
+    const listed = await ok<{ items: Order[] }>(`?buildingId=${building}`, "manager");
+    assert.equal(listed.items.find(item => item.id === order.id)?.assignedName, order.assignedName);
+    assert.equal((await api(`/${order.id}`, "worker")).status, 404, "a typed name grants no account access");
+    const team = await ok(`/${order.id}`, "manager", "PATCH", { version: 1, assignedTeamId: teamId });
+    assert.equal(team.assignedName, null);
+    const named = await ok(`/${order.id}`, "manager", "PATCH", { version: 2, assignedName: "Empresa Limpa Água" });
+    assert.equal(named.assignedTeamId, null);
+    assert.equal(named.assignedUserId, null);
+    assert.equal(named.assignedName, "Empresa Limpa Água");
+    assert.equal((await api(`/${order.id}`, "manager", "PATCH", { version: 2, assignedName: "Versão antiga" })).status, 409);
+    const personal = await ok(`/${order.id}`, "manager", "PATCH", { version: 3, assignedUserId: people.worker });
+    assert.equal(personal.assignedName, null);
+    const unchanged = await ok(`/${order.id}`, "manager", "PATCH", { version: 4, title: "Novo título" });
+    assert.equal(unchanged.assignedUserId, people.worker);
+    const cleared = await ok(`/${order.id}`, "manager", "PATCH", { version: 5, assignedName: null, assignedUserId: null, assignedTeamId: null });
+    assert.equal(cleared.assignedName, null);
+    assert.equal(cleared.assignedUserId, null);
+    const detail = await ok<Order & { events: Array<{ kind: string; note: string }> }>(`/${order.id}`, "manager");
+    assert.ok(detail.events.some(event => event.kind === "ASSIGNED" && event.note.includes("Empresa Limpa Água")));
+  });
+
+  it("rejects blank, excessive and conflicting provider names and executor changes", async () => {
+    for (const extra of [{ assignedName: "   " }, { assignedName: "x".repeat(161) }, { assignedName: "João", assignedTeamId: teamId }, { assignedName: "João", assignedUserId: people.worker }]) {
+      assert.equal((await api("", "manager", "POST", { buildingId: building, title: "Nome inválido", ...extra })).status, 400);
+    }
+    const order = await create({ assignedUserId: people.worker });
+    assert.equal((await api(`/${order.id}`, "worker", "PATCH", { version: 1, assignedName: "Outro prestador" })).status, 403);
+    await assert.rejects(withUserContext({ userId: people.worker, role: "RESIDENT" }, tx => tx.execute(
+      sql`update work_orders set assigned_name='Outro prestador',assigned_user_id=null,version=version+1 where id=${order.id}`)), error => pgErrorCode(error) === "42501");
+    await ok(`/${order.id}`, "manager", "PATCH", { version: 1, assignedUserId: null });
+  });
+
   it("shows executors only their own and their team's orders", async () => {
     const mine = await create({ title: "Do executor", assignedUserId: people.worker });
     const teams = await create({ title: "Da equipe", assignedTeamId: teamId });

@@ -20,7 +20,11 @@ test("gestão distribui uma ordem de serviço para a equipe, que executa, anota 
   for (const [name, assignee] of [[title, `Equipe · ${teamName}`], [spare, "Sem responsável"]] as const) {
     await form.getByLabel("O que precisa ser feito", { exact: true }).fill(name);
     await form.getByLabel("Prioridade", { exact: true }).selectOption("HIGH");
-    await form.getByLabel("Responsável", { exact: true }).selectOption({ label: assignee });
+    if (assignee === "Sem responsável") await form.getByRole("radio", { name: "Definir depois" }).check();
+    else {
+      await form.getByRole("radio", { name: "Selecionar cadastrado" }).check();
+      await form.getByLabel("Responsável", { exact: true }).selectOption({ label: assignee });
+    }
     const created = posted(page, "/v1/work-orders");
     await form.getByRole("button", { name: "Abrir ordem de serviço", exact: true }).click();
     expect((await created).status()).toBe(201);
@@ -38,7 +42,7 @@ test("gestão distribui uma ordem de serviço para a equipe, que executa, anota 
   await expect(item(bench, spare)).toHaveCount(0);
   await expect(bench.getByRole("form", { name: "Nova ordem de serviço", exact: true })).toHaveCount(0);
   await expect(item(bench, title).getByRole("button", { name: "Cancelar", exact: true })).toHaveCount(0);
-  await expect(item(bench, title).getByLabel("Atribuir a", { exact: true })).toHaveCount(0);
+  await expect(item(bench, title).getByRole("button", { name: "Alterar responsável", exact: true })).toHaveCount(0);
   let changed = posted(bench, "/status");
   await item(bench, title).getByRole("button", { name: "Iniciar", exact: true }).click();
   expect((await changed).status()).toBe(200);
