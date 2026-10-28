@@ -1,0 +1,610 @@
+=== SQL contracts ===
+▶ physical access operations on real restricted PostgreSQL
+  ✔ owner exercises all domain seed SQL, enabled physical features and real human admission on canonical 051 (149.422712ms)
+  ✔ 052 supplies private physical transitions before actual restricted authentication (250.487641ms)
+  ✔ reads feature state and holds the shared barrier without direct command, audit, request or observation authority (37.628432ms)
+  ✔ next_pending locks one ordered PENDING row, SKIP LOCKED separates two real logins, and commit leaves no reservation (98.438344ms)
+  ✔ expires only overdue PENDING/SENT commands with one derived audit and preserves terminal/live rows (109.645208ms)
+  ✔ accepts only three pending-failure codes and preserves SENT/terminal states (147.016021ms)
+  ✔ marks SENT using the persisted requester, preserves caller GUCs and derives its SYSTEM audit (42.201257ms)
+  ✔ refuses and atomically fails a still-PENDING request after its scoped capability is revoked before SENT (36.466714ms)
+  ✔ accepts only six publish-failure codes for SENT and persists closed public reasons (276.936791ms)
+  ✔ applies EXECUTED only to a correlated SENT command and derives its audit without renewed human authorization (51.262807ms)
+  ✔ applies REJECTED only to a correlated SENT command and derives its audit without renewed human authorization (43.490991ms)
+  ✔ closes malformed/foreign/PENDING/terminal/expired ACK paths without effects and rejects unknown result codes (74.231429ms)
+  ✔ rechecks the ACK deadline after a specific held parent lock and commits no success audit after expiry (1074.008021ms)
+  ✔ rolls back ACK state and audit together when a controlled writer skips or rewrites persistence (184.182413ms)
+  ✔ private physical helpers reject owner disguises and opposite-service execution despite forged human GUCs (36.704097ms)
+✔ physical access operations on real restricted PostgreSQL (4093.265859ms)
+▶ physical access service real PostgreSQL contract
+  ✔ owner positive control sees the canonical schema, exact ledger and isolated synthetic UUID (10.563238ms)
+  ✔ 052 provides the physical role and private helpers before real authentication (238.73542ms)
+  ✔ authenticated physical service has no private-table, observational or DDL shortcut (15.719182ms)
+✔ physical access service real PostgreSQL contract (1724.358683ms)
+▶ 052 preserves actual Timescale extension ACLs
+  ✔ owner and independent observer inventory real extension ACLs on 051 before checking candidate presence (42.211501ms)
+  ✔ 052 preserves extension owners and PUBLIC ACL inventory without adding an own grant for either service (112.380266ms)
+✔ 052 preserves actual Timescale extension ACLs (1361.413984ms)
+▶ 052 exact pure matcher exception and heartbeat association
+  ✔ accepts the unchanged canonical matcher and rejects a foreign gateway while inactive/disabled-gateway heartbeat remains operational (1743.38556ms)
+  ✔ does not extend the matcher exception to a rewritten body (1260.603594ms)
+  ✔ does not extend the matcher exception to a SECURITY DEFINER (1219.935313ms)
+  ✔ does not extend the matcher exception to a non-immutable definition (1238.796234ms)
+  ✔ does not extend the matcher exception to a changed effective ACL (1256.12039ms)
+✔ 052 exact pure matcher exception and heartbeat association (6720.070118ms)
+▶ 052 ingest/access catalogue migration on real PostgreSQL
+  ✔ 051 owner positive control sees the real canonical schema, 51 checksums and committed synthetic UUID (254.678498ms)
+  ✔ 052 feature contract requires a canonical candidate after the successful real 051 owner control (68.612019ms)
+  ✔ applies only 052, preserves old consumers/data and replays with an unchanged committed catalogue (1726.708631ms)
+  ✔ rolls back a deliberate exception appended after canonical 052 and then passes the clean positive control (1695.878433ms)
+  ✔ removes only the new roles' unsafe direct grants, column ACLs, defaults, flags and both membership directions (1386.708875ms)
+  ✔ aborts atomically and preserves reintroduced PUBLIC database TEMP in a fresh 051 database (1623.962567ms)
+  ✔ aborts atomically and preserves reintroduced PUBLIC database CREATE in a fresh 051 database (1541.574084ms)
+  ✔ aborts atomically and preserves reintroduced PUBLIC schema CREATE in a fresh 051 database (1583.387197ms)
+  ✔ aborts atomically and preserves reintroduced PUBLIC private table SELECT in a fresh 051 database (1667.028001ms)
+  ✔ aborts atomically and preserves reintroduced PUBLIC private password column in a fresh 051 database (2089.387283ms)
+  ✔ aborts atomically and preserves reintroduced PUBLIC private gateway metadata column in a fresh 051 database (2264.691144ms)
+  ✔ aborts atomically and preserves reintroduced PUBLIC sensitive human EXECUTE in a fresh 051 database (2222.412793ms)
+  ✔ aborts atomically and preserves reintroduced PUBLIC sensitive helper EXECUTE in a fresh 051 database (2236.610814ms)
+  ✔ aborts without transferring or dropping an existing object owned by predioon_ingest (2536.26552ms)
+  ✔ aborts without transferring or dropping an existing object owned by predioon_access_service (2552.217267ms)
+  ✔ changes the owner's global future-function default while preserving old function ACLs and other defaults (2183.62298ms)
+  ✔ retargets only operational legacy PUBLIC policies and preserves explicit consumers and human helper bodies (1891.845983ms)
+✔ 052 ingest/access catalogue migration on real PostgreSQL (30734.657125ms)
+▶ observational ingest operations on real restricted PostgreSQL
+  ✔ owner exercises all domain seed SQL, enabled physical features and real human admission on canonical 051 (270.412331ms)
+  ✔ 052 supplies private observational operations before actual restricted authentication (419.362765ms)
+  ✔ reads safe inventory and features and keeps heartbeat updates working in an inactive building (44.929128ms)
+  ✔ appends receipt/raw MQTT evidence while foreign, disabled and inactive sources cannot write either table (69.891219ms)
+  ✔ privately locks enabled matching profiles in stable order without configuration UPDATE authority (47.592121ms)
+  ✔ privately locks only the matching parking sensor while direct row locking and writes remain forbidden (22.430854ms)
+  ✔ upserts only usage payloads and reads global-rule cooldown across devices (94.526319ms)
+  ✔ derives five rejection counters with UTC database time and rejects unbounded category/building inputs (45.010928ms)
+  ✔ privately produces OPEN alerts and opaque durable outbox signatures, including inactive-building communication (83.072775ms)
+  ✔ rejects invalid alert origins/rules and duplicate producers without replacing source state (59.005686ms)
+  ✔ keeps source and outbox invisible until commit and rolls both back together (12.560455ms)
+  ✔ detects a later writer through the opaque snapshot and lets the caller roll back all operational writes (54.086991ms)
+  ✔ rolls back producer skips, RETURNING rewrites and a late source rewrite with 40001 (57.827857ms)
+  ✔ writes only a proven parking observation with a derived SYSTEM audit and restores ambient human GUCs (21.57177ms)
+  ✔ rejects parking proof/version/association mismatches and rolls back silently skipped or rewritten observations/audits (138.336412ms)
+  ✔ private helpers reject owner disguises and remain inaccessible through forged GUCs, opposite service and human/worker APIs (88.445463ms)
+✔ observational ingest operations on real restricted PostgreSQL (3634.585464ms)
+▶ observational ingest real PostgreSQL contract
+  ✔ owner positive control sees the canonical schema, exact ledger and isolated synthetic UUID (19.717381ms)
+  ✔ 052 provides the observational role and private helpers before real authentication (388.37656ms)
+  ✔ authenticated ingest cannot read secrets, forge human access, write physical state or perform DDL (18.376657ms)
+✔ observational ingest real PostgreSQL contract (2890.382533ms)
+✔ ordinary runs skip only when no TEST_INGEST_* variable was supplied (2.177861ms)
+✔ partial opt-in fails closed before a client can be constructed (0.555943ms)
+✔ complete opt-in accepts only local hosts and the root-attested Docker alias (0.600566ms)
+✔ unsafe opt-in values and startup parameters are rejected without echoing values (0.569199ms)
+✔ administrative child receives only OS essentials and the seven explicit database variables (0.810037ms)
+✔ cleanup accepts only the exact fixture UUID database namespace (0.359194ms)
+✔ permission predicates accept only the exact SQLSTATE and reject an aborted transaction (0.260349ms)
+✔ query and child failure boundaries discard original errors, parameters, causes and streams (1.811196ms)
+✔ the optional 051 baseline preserves canonical sources and the default current release (0.528344ms)
+✔ candidate failures recover only the fixed runner SQLSTATE without retaining diagnostic text (0.43191ms)
+✔ created-role tracking captures late and contaminated roles but never adopts original or unrelated identities (0.312266ms)
+✔ both known service identities are validated before any role mutator can run (0.554665ms)
+ℹ tests 73
+ℹ suites 7
+ℹ pass 73
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 52947.832908
+
+=== Source/outbox producers ===
+▶ SQL038 source producers are atomic, durable and transport-free
+  ✔ persists rules, raw source and outbox once despite MQTT replay, without producer HTTP (132.904019ms)
+  ✔ records low severity domain events without a webhook delivery (45.486224ms)
+  ✔ enqueues usage limits in the source transaction (121.507562ms)
+  ✔ rolls back raw, dedup, usage and alerts when outbox insertion fails before commit (79.014684ms)
+  ✔ keeps committed pending delivery after realtime fails and replay cannot duplicate it (46.919032ms)
+[offline] 1 gateway(s) e 0 dispositivo(s) verificados.
+  ✔ commits gateway OFFLINE, source alert and outbox before SSE, exactly once (27.23157ms)
+  ✔ rolls back gateway OFFLINE if its source alert/outbox cannot be persisted (17.382465ms)
+  ✔ does not ACK telemetry after a devices heartbeat trigger silently skips ONLINE (29.06778ms)
+  ✔ does not ACK telemetry after a gateways heartbeat trigger silently skips ONLINE (28.919362ms)
+  ✔ does not ACK a ingest_events source insertion silently skipped by a trigger (18.306601ms)
+  ✔ does not ACK a telemetry source insertion silently skipped by a trigger (19.829813ms)
+  ✔ rolls back accepted source when daily_usage silently skips the usage change (54.124759ms)
+  ✔ rolls back accepted source when usage_cursors silently skips the usage change (58.668075ms)
+  ✔ survives an actual process kill before the source transaction commit (810.550038ms)
+  ✔ survives an actual process kill after the source transaction commit (707.65352ms)
+  ✔ serializes rule cooldown for concurrent accepted readings (59.519717ms)
+[offline] 0 gateway(s) e 1 dispositivo(s) verificados.
+[offline] 0 gateway(s) e 1 dispositivo(s) verificados.
+[offline] 0 gateway(s) e 1 dispositivo(s) verificados.
+  ✔ commits device OFFLINE plus exactly one communication alert/outbox under concurrent sweeps (33.244483ms)
+[offline] 0 gateway(s) e 1 dispositivo(s) verificados.
+  ✔ preserves paused device communication status without inventing module alerts (15.745049ms)
+  ✔ captures only the eligible ANY communication alternative at the producer boundary (20.777937ms)
+  ✔ does not sweep fresh, disabled or never-seen sources (9.904937ms)
+[offline] 0 gateway(s) e 1 dispositivo(s) verificados.
+  ✔ rechecks devices heartbeat after waiting for the source row (46.232729ms)
+[offline] 0 gateway(s) e 1 dispositivo(s) verificados.
+  ✔ uses DB clock after the devices lock wait when source crosses the stale cutoff (828.990606ms)
+  ✔ rolls back devices OFFLINE when its UPDATE is silently skipped (13.025329ms)
+[offline] 1 gateway(s) e 0 dispositivo(s) verificados.
+  ✔ rechecks gateways heartbeat after waiting for the source row (46.286882ms)
+[offline] 1 gateway(s) e 0 dispositivo(s) verificados.
+  ✔ uses DB clock after the gateways lock wait when source crosses the stale cutoff (814.342248ms)
+  ✔ rolls back gateways OFFLINE when its UPDATE is silently skipped (13.121695ms)
+  ✔ rolls back a BEFORE trigger that rewrites the source alert message (22.309084ms)
+  ✔ rolls back a AFTER trigger that rewrites the source alert message (20.490904ms)
+  ✔ does not acknowledge an alert insertion silently skipped by a trigger (21.018982ms)
+  ✔ rolls back communication after an AFTER alert trigger reverts the confirmed OFFLINE status (20.92283ms)
+  ✔ rejects an AFTER alert trigger deleting previously confirmed ingest_events (28.569928ms)
+  ✔ rejects an AFTER alert trigger deleting previously confirmed telemetry (29.796781ms)
+  ✔ rejects an AFTER alert trigger rewriting previously confirmed daily_usage (74.852262ms)
+  ✔ rejects an AFTER alert trigger rewriting previously confirmed usage_cursors (71.0469ms)
+  ✔ rejects an AFTER gateway heartbeat trigger rewriting the confirmed device heartbeat (32.288064ms)
+  ✔ rejects a later alert that rewrites a previously confirmed alert in the same transaction (38.056895ms)
+  ✔ preserves literal JSON string "10" without coercion when confirming source (22.700452ms)
+  ✔ preserves literal JSON string "false" without coercion when confirming source (19.534996ms)
+  ✔ preserves literal JSON string "null" without coercion when confirming source (29.107319ms)
+  ✔ rejects an AFTER gateway heartbeat that invalidates a previously confirmed outbox delivery (30.284855ms)
+✔ SQL038 source producers are atomic, durable and transport-free (4739.028029ms)
+ℹ tests 40
+ℹ suites 1
+ℹ pass 40
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5548.016548
+
+=== Other integrated suites ===
+▶ telemetry receipt: scoped identity, content conflict, retained replay and freshness
+  ✔ claims an event per condominium and device, so a homonym elsewhere is another reading (219.564382ms)
+  ✔ applies a redelivery once and refuses a different body under the same identity (233.959135ms)
+  ✔ tells the text 10 from the number 10 and ignores transport-only differences (0.653702ms)
+  ✔ keeps suppressing an identity recorded before the fingerprint existed (25.776279ms)
+  ✔ stores a retained replay as history only: no contact, no alert, and only once (113.937873ms)
+  ✔ keeps an old reading as history without raising an incident about the past (115.523685ms)
+  ✔ counts what it refuses without keeping the payload (31.792788ms)
+  ✔ leaves the counters out of reach of the API runtime roles (12.115151ms)
+✔ telemetry receipt: scoped identity, content conflict, retained replay and freshness (1019.682725ms)
+ℹ tests 8
+ℹ suites 1
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2691.714621
+▶ motor de regras
+  ✔ avalia cada operador (0.644405ms)
+✔ motor de regras (105.838852ms)
+▶ contrato de tópicos
+  ✔ faz o ida e volta do tópico de telemetria (0.794759ms)
+  ✔ recusa tópicos fora do contrato (0.109183ms)
+✔ contrato de tópicos (1.092222ms)
+▶ simulador de campo
+  ✔ esvazia a caixa quando a bomba está desligada (0.425639ms)
+  ✔ mantém o valor constante no cenário de sensor travado (0.129772ms)
+  ✔ zera a fase L3 na queda de energia (0.229303ms)
+✔ simulador de campo (1.061189ms)
+▶ ingestão
+  ✔ descarta telemetria cujo payload não bate com o tópico (34.919183ms)
+  ✔ grava uma única linha mesmo recebendo o mesmo eventId três vezes (127.709232ms)
+✔ ingestão (168.857193ms)
+ℹ tests 8
+ℹ suites 4
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1319.571711
+▶ contrato da caixa d'água
+  ✔ persiste nível, distância e volume uma única vez no reenvio QoS 1 (142.878927ms)
+  ✔ aceita somente nível quando os outros campos não foram medidos (24.83696ms)
+  ✔ descarta valores inválidos, tópico divergente e JSON quebrado sem gravar parcialmente (26.65915ms)
+  ✔ gera um alerta quando 18% fica abaixo do limite de 20%, sem duplicá-lo (96.740013ms)
+  ✔ ignora equipamento desativado (10.81114ms)
+✔ contrato da caixa d'água (410.045661ms)
+ℹ tests 5
+ℹ suites 1
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1345.499597
+▶ ingestão dos detectores de segurança
+  ✔ gas_detected: não alarma com false/qualidade ruim; persiste true e alerta uma vez (287.484931ms)
+  ✔ smoke_detected: não alarma com false/qualidade ruim; persiste true e alerta uma vez (151.492541ms)
+  ✔ water_leak_detected: não alarma com false/qualidade ruim; persiste true e alerta uma vez (154.728828ms)
+  ✔ sewage_leak_detected: não alarma com false/qualidade ruim; persiste true e alerta uma vez (124.220471ms)
+  ✔ leak_detected: não alarma com false/qualidade ruim; persiste true e alerta uma vez (120.453062ms)
+✔ ingestão dos detectores de segurança (991.712298ms)
+ℹ tests 5
+ℹ suites 1
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2428.554928
+▶ parking ingest integration
+  ✔ starts unknown and updates only the configured vehicle type (100.769936ms)
+  ✔ rejects invalid counts, unconfigured sensors, stale data and bad quality (250.081167ms)
+  ✔ does not let delayed telemetry overwrite a manual count, but resumes on a newer reading (91.779756ms)
+  ✔ ignores disabled devices and disabled gateways (15.998323ms)
+  ✔ records a sensor update audit trail (2.920141ms)
+✔ parking ingest integration (630.874262ms)
+ℹ tests 5
+ℹ suites 1
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1599.273531
+✔ paused device communication does not create module alerts; gateway communication still does (39.343455ms)
+✔ one device keeps enabled metrics while paused metrics leave no raw or dedup rows (6.060953ms)
+✔ realtime delivery rechecks a paused module while gateway status remains core (0.445671ms)
+✔ a pending gate command is failed without publishing when its feature is paused (1.183289ms)
+✔ physical gate publish happens after SENT commit while the feature lock transaction stays open (0.987919ms)
+✔ a fully paused sensor still refreshes both hardware heartbeats (1.050435ms)
+✔ reactivation rejects queued readings at or before the restart boundary (2.770629ms)
+✔ first resumed cumulative reading establishes a new baseline and an incomplete day (12.840542ms)
+✔ delivery rechecks a rule metric after the module was paused (0.791208ms)
+✔ AI paused skips adaptive alerts while preserving base usage limits (1.745939ms)
+✔ incomplete training days skips adaptive alerts while preserving base usage limits (2.089314ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1106.045924
+✔ counter deltas produce measured quantity and estimated cost (28.876938ms)
+✔ retransmission and out of order samples do not increase usage (0.536279ms)
+✔ meter resets and missing intervals never create negative or invented usage (0.285978ms)
+✔ bad quality breaks a continuous run and does not accrue pump time (0.296696ms)
+✔ pump counts several cycles and resets the continuous timer on OFF (0.456814ms)
+✔ local midnight splits pump time between actual days (0.535486ms)
+✔ day boundaries support IANA timezones and daylight saving (0.39102ms)
+✔ learned reference needs seven valid days and ignores one extreme day (0.237908ms)
+✔ unconfigured tariff remains unknown and invalid values are rejected (0.524417ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 180.079487
+▶ comando e ACK persistidos
+  ✔ mantém SENT sem ACK e ignora forjados antes de confirmar uma única vez (87.658122ms)
+  ✔ falha offline e não reenvia ao reconectar (18.597384ms)
+  ✔ recusa vínculo revogado entre o pedido e o envio (28.538046ms)
+  ✔ não envia um pedido pendente após desativar a organização e não o repete ao reativar (26.119256ms)
+  ✔ processo que cai depois do SENT e antes do envio nunca reenvia; o prazo registra EXPIRED (787.796029ms)
+  ✔ ACK vencido não confirma e varredura registra EXPIRED (18.726058ms)
+✔ comando e ACK persistidos (1123.375779ms)
+ℹ tests 6
+ℹ suites 1
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1866.694184
+▶ current capabilities at the physical SENT checkpoint
+  ✔ dispatches an exact RBAC-only request once with QoS0, confirms only a matching ACK (201.084279ms)
+  ✔ publishes zero commands after read is revoked before SENT (59.344241ms)
+  ✔ publishes zero commands after request is revoked before SENT (56.847651ms)
+  ✔ publishes zero commands after binding is revoked before SENT (55.580987ms)
+  ✔ publishes zero commands after account is revoked before SENT (52.136915ms)
+  ✔ publishes zero commands after organization is revoked before SENT (53.427453ms)
+  ✔ publishes zero commands after building is revoked before SENT (45.509763ms)
+  ✔ publishes zero commands after policy is revoked before SENT (51.082281ms)
+  ✔ publishes zero commands after device is revoked before SENT (46.604938ms)
+  ✔ publishes zero commands after gateway is revoked before SENT (42.154589ms)
+  ✔ rechecks authority after waiting on device, before SENT and publication (94.60657ms)
+  ✔ rechecks authority after waiting on gateway, before SENT and publication (79.589049ms)
+  ✔ rechecks authority after waiting on user, before SENT and publication (69.731987ms)
+  ✔ uses the database clock after an audit wait when the grant expires (281.910493ms)
+  ✔ keeps only the real actor local to the service transaction (49.205363ms)
+✔ current capabilities at the physical SENT checkpoint (1326.91052ms)
+ℹ tests 15
+ℹ suites 1
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2139.73188
+▶ MQTT QoS1 durability with the restricted ingestion login
+  ✔ withholds PUBACK until commit and rolls everything back when the receiver dies before it (2741.253127ms)
+  ✔ redelivers a committed reading whose PUBACK was lost without duplicating any durable effect (2030.230518ms)
+✔ MQTT QoS1 durability with the restricted ingestion login (4830.597545ms)
+ℹ tests 2
+ℹ suites 1
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5812.192956
+
+=== Startup/configuration/boundaries ===
+TAP version 13
+# Subtest: pipeline/telemetry uses only the restricted observation entrypoint
+ok 1 - pipeline/telemetry uses only the restricted observation entrypoint
+  ---
+  duration_ms: 1.6888
+  type: 'test'
+  ...
+# Subtest: pipeline/gateway-status uses only the restricted observation entrypoint
+ok 2 - pipeline/gateway-status uses only the restricted observation entrypoint
+  ---
+  duration_ms: 0.5525
+  type: 'test'
+  ...
+# Subtest: offline-sweeper uses only the restricted observation entrypoint
+ok 3 - offline-sweeper uses only the restricted observation entrypoint
+  ---
+  duration_ms: 0.4156
+  type: 'test'
+  ...
+# Subtest: analytics/usage uses only the restricted observation entrypoint
+ok 4 - analytics/usage uses only the restricted observation entrypoint
+  ---
+  duration_ms: 0.3683
+  type: 'test'
+  ...
+# Subtest: rules/evaluate uses only the restricted observation entrypoint
+ok 5 - rules/evaluate uses only the restricted observation entrypoint
+  ---
+  duration_ms: 0.4551
+  type: 'test'
+  ...
+# Subtest: parking/index uses only the restricted observation entrypoint
+ok 6 - parking/index uses only the restricted observation entrypoint
+  ---
+  duration_ms: 0.2728
+  type: 'test'
+  ...
+# Subtest: notify/index uses only the restricted observation entrypoint
+ok 7 - notify/index uses only the restricted observation entrypoint
+  ---
+  duration_ms: 0.3137
+  type: 'test'
+  ...
+# Subtest: features uses only the restricted observation entrypoint
+ok 8 - features uses only the restricted observation entrypoint
+  ---
+  duration_ms: 0.2574
+  type: 'test'
+  ...
+# Subtest: realtime uses only the restricted observation entrypoint
+ok 9 - realtime uses only the restricted observation entrypoint
+  ---
+  duration_ms: 0.3918
+  type: 'test'
+  ...
+# Subtest: configuration accepts only the explicit runtime identities without owner credentials
+ok 10 - configuration accepts only the explicit runtime identities without owner credentials
+  ---
+  duration_ms: 618.125
+  type: 'test'
+  ...
+# Subtest: configuration rejects different database targets before any pool opens
+ok 11 - configuration rejects different database targets before any pool opens
+  ---
+  duration_ms: 560.5743
+  type: 'test'
+  ...
+# Subtest: configuration rejects owner username and redacts credentials
+ok 12 - configuration rejects owner username and redacts credentials
+  ---
+  duration_ms: 502.3782
+  type: 'test'
+  ...
+# (node:35412) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: closes pools when verifyIngest fails without starting MQTT or timers
+ok 13 - closes pools when verifyIngest fails without starting MQTT or timers
+  ---
+  duration_ms: 16.2679
+  type: 'test'
+  ...
+# Subtest: closes pools when verifyAccess fails without starting MQTT or timers
+ok 14 - closes pools when verifyAccess fails without starting MQTT or timers
+  ---
+  duration_ms: 2.286
+  type: 'test'
+  ...
+# Subtest: waits for the other verifier to settle before closing pools after a partial failure
+ok 15 - waits for the other verifier to settle before closing pools after a partial failure
+  ---
+  duration_ms: 2.8032
+  type: 'test'
+  ...
+# Subtest: starts effects only after both identities pass and fully shuts them down
+ok 16 - starts effects only after both identities pass and fully shuts them down
+  ---
+  duration_ms: 3.0108
+  type: 'test'
+  ...
+# Subtest: sanitizes pool close failures on identity failure
+ok 17 - sanitizes pool close failures on identity failure
+  ---
+  duration_ms: 2.6439
+  type: 'test'
+  ...
+# Subtest: runs the other verifier even if one throws synchronously
+ok 18 - runs the other verifier even if one throws synchronously
+  ---
+  duration_ms: 2.4556
+  type: 'test'
+  ...
+# Subtest: cleans up created resources if connect throws
+ok 19 - cleans up created resources if connect throws
+  ---
+  duration_ms: 2.3
+  type: 'test'
+  ...
+# Subtest: cleans up created resources if startOffline throws
+ok 20 - cleans up created resources if startOffline throws
+  ---
+  duration_ms: 2.1353
+  type: 'test'
+  ...
+# Subtest: cleans up created resources if startAccess throws
+ok 21 - cleans up created resources if startAccess throws
+  ---
+  duration_ms: 2.1319
+  type: 'test'
+  ...
+# Subtest: finishes cleanup and sanitizes a MQTT callback shutdown error
+ok 22 - finishes cleanup and sanitizes a MQTT callback shutdown error
+  ---
+  duration_ms: 2.3977
+  type: 'test'
+  ...
+# Subtest: finishes cleanup and sanitizes a MQTT throw shutdown error
+ok 23 - finishes cleanup and sanitizes a MQTT throw shutdown error
+  ---
+  duration_ms: 2.0764
+  type: 'test'
+  ...
+# Subtest: finishes cleanup and sanitizes a dispatcher shutdown error
+ok 24 - finishes cleanup and sanitizes a dispatcher shutdown error
+  ---
+  duration_ms: 2.887
+  type: 'test'
+  ...
+# Subtest: finishes cleanup and sanitizes a databases shutdown error
+ok 25 - finishes cleanup and sanitizes a databases shutdown error
+  ---
+  duration_ms: 2.0289
+  type: 'test'
+  ...
+# Subtest: duplicate shutdown calls share one cleanup without repeating effects
+ok 26 - duplicate shutdown calls share one cleanup without repeating effects
+  ---
+  duration_ms: 2.0564
+  type: 'test'
+  ...
+# Subtest: keeps the pools until an in-flight access dispatch finishes during shutdown
+ok 27 - keeps the pools until an in-flight access dispatch finishes during shutdown
+  ---
+  duration_ms: 2.1035
+  type: 'test'
+  ...
+# Subtest: stops the liveness heartbeat before closing the pools it pings
+ok 28 - stops the liveness heartbeat before closing the pools it pings
+  ---
+  duration_ms: 2.1301
+  type: 'test'
+  ...
+1..28
+# tests 28
+# suites 0
+# pass 28
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2941.2408
+
+=== Runtime environment CLI ===
+TAP version 13
+# Subtest: projects only the allowlisted runtime keys and never the owner or another workload
+ok 1 - projects only the allowlisted runtime keys and never the owner or another workload
+  ---
+  duration_ms: 250.4584
+  type: 'test'
+  ...
+# Subtest: refuses to overwrite a different existing runtime file and leaves it intact
+ok 2 - refuses to overwrite a different existing runtime file and leaves it intact
+  ---
+  duration_ms: 104.6172
+  type: 'test'
+  ...
+# Subtest: rejects missing access URL without creating any file
+ok 3 - rejects missing access URL without creating any file
+  ---
+  duration_ms: 94.1619
+  type: 'test'
+  ...
+# Subtest: rejects owner as ingest without creating any file
+ok 4 - rejects owner as ingest without creating any file
+  ---
+  duration_ms: 93.3162
+  type: 'test'
+  ...
+# Subtest: rejects crossed service roles without creating any file
+ok 5 - rejects crossed service roles without creating any file
+  ---
+  duration_ms: 114.0067
+  type: 'test'
+  ...
+# Subtest: rejects different databases without creating any file
+ok 6 - rejects different databases without creating any file
+  ---
+  duration_ms: 169.3429
+  type: 'test'
+  ...
+# Subtest: rejects role-changing startup parameter without creating any file
+ok 7 - rejects role-changing startup parameter without creating any file
+  ---
+  duration_ms: 100.1649
+  type: 'test'
+  ...
+# Subtest: rejects missing password without creating any file
+ok 8 - rejects missing password without creating any file
+  ---
+  duration_ms: 101.6584
+  type: 'test'
+  ...
+# Subtest: the pure projection rejects values that would break the file format
+ok 9 - the pure projection rejects values that would break the file format
+  ---
+  duration_ms: 1.5485
+  type: 'test'
+  ...
+# Subtest: keeps backslashes, dollars and double quotes exactly as the runtime loader reads them
+ok 10 - keeps backslashes, dollars and double quotes exactly as the runtime loader reads them
+  ---
+  duration_ms: 9.6285
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1273.1286
+
+=== Deployment contract (Linux) ===
+✔ builds and validates before stopping writers; runs migrations only in transient admin containers (20.102034ms)
+✔ refuses migration and application launch when stop fails (21.341549ms)
+✔ refuses migration and application launch when a producer remains active (9.851415ms)
+✔ refuses a missing NOTIFICATIONS_DB_PASSWORD before stopping or mutating anything (5.530693ms)
+✔ refuses a missing INGEST_DB_PASSWORD before stopping or mutating anything (6.416651ms)
+✔ refuses a missing ACCESS_SERVICE_DB_PASSWORD before stopping or mutating anything (5.643388ms)
+✔ leaves old services running when image build fails (6.289156ms)
+✔ leaves old services running when configuration preflight fails (7.755949ms)
+✔ never copies a locally generated ingestion runtime file into an image or Git (1.061236ms)
+✔ passes the ingest container only its two restricted logins and operational keys (2.335921ms)
+✔ keeps owner credentials exclusively in the profiled administrative service (2.290296ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 174.299508

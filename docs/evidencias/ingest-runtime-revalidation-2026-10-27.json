@@ -1,0 +1,124 @@
+{
+  "date": "2026-10-27",
+  "timezone": "America/Sao_Paulo",
+  "sourceCommit": "eb9b8861c3ffb7c66ff08934b49a6cad4e925083",
+  "status": "LOCAL_REVALIDATION_PASSED_CI_PENDING",
+  "implementationAlreadyPublished": [
+    "57df9c72",
+    "0eef1e3a"
+  ],
+  "databaseScope": "UUID disposable databases from the current 001–064 chain; historical migration tests also exercise 051/052 explicitly",
+  "results": [
+    {
+      "suite": "SQL contracts",
+      "tests": 73,
+      "pass": 73,
+      "fail": 0,
+      "skipped": 0,
+      "logSha256": "85ffcf7715d03e3de506ca53c5c97d009034a892bd37c77ba2ad9dd91582fe2b"
+    },
+    {
+      "suite": "Source/outbox producers",
+      "tests": 40,
+      "pass": 40,
+      "fail": 0,
+      "skipped": 0,
+      "logSha256": "64bc7d3163388935cbdc25a7cb15df7f904ade0b1492849994b65e16bfef0d71"
+    },
+    {
+      "suite": "Other integrated suites",
+      "tests": 74,
+      "pass": 74,
+      "fail": 0,
+      "skipped": 0,
+      "logSha256": "0e791b82f8848416a0697ec3cb1eecf2a2fbbb329ea892360cd4eedcddfd158e"
+    },
+    {
+      "suite": "Startup/configuration/boundaries",
+      "tests": 28,
+      "pass": 28,
+      "fail": 0,
+      "skipped": 0,
+      "logSha256": "e4c422d8f4909242651c168f3bf17fe6c48ced15d17e3d3684814e9c8bcf584b"
+    },
+    {
+      "suite": "Runtime environment CLI",
+      "tests": 10,
+      "pass": 10,
+      "fail": 0,
+      "skipped": 0,
+      "logSha256": "1f5c9fae6a855450c2a9a4bd14bb48ed429e1114b25cf3b93a829a4cc9ac9e58"
+    },
+    {
+      "suite": "Deployment contract (Linux)",
+      "tests": 11,
+      "pass": 11,
+      "fail": 0,
+      "skipped": 0,
+      "logSha256": "e6c0f0414af81b6d9789e1ea65526c8f6f52e8028b4ac0ce9ca79a9a0ed5087a"
+    }
+  ],
+  "integratedSuites": {
+    "files": 11,
+    "tests": 114,
+    "note": "40 producer tests plus 74 tests from ten other suites; separate from the SQL contract suite"
+  },
+  "checks": {
+    "architectureBoundaries": true,
+    "databaseAndIngestTypecheck": true,
+    "ingestBuild": true,
+    "referenceDatabasePreserved": true,
+    "noDisposableDatabasesRemaining": true
+  },
+  "ci": {
+    "runId": 40440235671,
+    "url": "https://github.com/helberjf/predioON/actions/runs/40440235671",
+    "head": "eb9b8861c3ffb7c66ff08934b49a6cad4e925083",
+    "status": "completed",
+    "conclusion": "startup_failure",
+    "jobs": 0,
+    "checkSuiteId": 109607271199,
+    "cause": "Not independently established by this read-only check; prior documentation records account billing blockage"
+  },
+  "limits": [
+    "No new full monorepo/API/native/browser regression",
+    "Restore and EMQX evidence remains the historical 2026-10-17 evidence; not repeated here",
+    "No deployment, physical hardware or signed mobile build",
+    "Existing accepted review limits in the 2026-10-17 evidence remain open",
+    "Old product-platform worktree and unrelated work-order edits were preserved"
+  ],
+  "sources": [
+    {
+      "path": "services/ingest/src/index.ts",
+      "sha256": "33dcede4802d3c2fd669295cc90957f4b49858c64124494afa4bdce2b9383f68"
+    },
+    {
+      "path": "services/ingest/src/config.ts",
+      "sha256": "3572fe74202dcbd5d4a7e82d056a61cfda7608e8e9c93efe7a88bf989d87c6b1"
+    },
+    {
+      "path": "services/ingest/src/access/dispatcher.ts",
+      "sha256": "62bfaa2e44800271a688cc4579bec304729db10e8057dc9d623f569f375fc363"
+    },
+    {
+      "path": "services/ingest/src/notify/index.ts",
+      "sha256": "33798efbfe7d75718d36718b9f56ffe98df048db71ed0ba093ec7ce093ae38b3"
+    },
+    {
+      "path": "packages/db/src/provision-runtime-roles.ts",
+      "sha256": "3c79eff588c08ecbe1ffb6e8eaa50bf234f8d50f6e26db95d1c0f692fddd247c"
+    },
+    {
+      "path": "infrastructure/052-ingest-runtime-roles.sql",
+      "sha256": "95d5c8fd9a1f1268ad8c97e02ba92919d311d707deeaa3179ee9526d68683ed4"
+    },
+    {
+      "path": "infrastructure/063-service-guard-admin-memberships.sql",
+      "sha256": "976b7564ec540f91c4ce12bf368d13376f8357b44db78d54d58a8e4deeef059d"
+    },
+    {
+      "path": "infrastructure/docker-compose.prod.yml",
+      "sha256": "71728a385e219fddc4168cb0712a12469761cd355e5d1527969a3cdfbe15019a"
+    }
+  ]
+}
