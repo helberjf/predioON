@@ -2,6 +2,7 @@ import { and, eq } from "drizzle-orm";
 import { ingestDb, gateways } from "@predioon/db/ingest";
 import { GatewayStatusSchema, parseGatewayStatusTopic } from "@predioon/shared";
 import { publishRealtime } from "../realtime.js";
+import { markGatewayOffline } from "../offline-sweeper.js";
 
 /**
  * Gateways publish ONLINE retained on connect and register the OFFLINE payload
@@ -23,6 +24,11 @@ export async function handleGatewayStatus(topic: string, raw: Buffer): Promise<v
   const data = parsed.data;
   if (data.buildingId !== topicParts.buildingId || data.gatewayId !== topicParts.gatewayId) {
     console.warn("Status descartado: payload não confere com o tópico", { topic });
+    return;
+  }
+
+  if (data.state === "OFFLINE") {
+    await markGatewayOffline(data.buildingId, data.gatewayId);
     return;
   }
 

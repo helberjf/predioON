@@ -10,8 +10,10 @@ import { initialState, nextState } from "../src/simulator/state.js";
 
 const BUILDING = "bld_001";
 const DEVICE = "water_01";
+const fixtureEvents: string[] = [];
 
 function payload(eventId: string, value: number): Buffer {
+  fixtureEvents.push(eventId);
   return Buffer.from(
     JSON.stringify({
       schemaVersion: 1,
@@ -69,7 +71,9 @@ describe("simulador de campo", () => {
 /** Precisa da infraestrutura local: `pnpm infra:up && pnpm db:seed`. */
 describe("ingestão", () => {
   after(async () => {
-    await db.execute(sql`delete from telemetry where metric = 'water_level_percent' and unit = '%' and value::text = '42'`);
+    for (const eventId of new Set(fixtureEvents)) {
+      await db.delete(telemetry).where(and(eq(telemetry.buildingId, BUILDING), eq(telemetry.deviceId, DEVICE), eq(telemetry.eventId, eventId)));
+    }
     // Sem fechar o pool, o processo de teste nunca encerra.
     await sqlClient.end();
   });

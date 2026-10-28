@@ -50,7 +50,7 @@ export async function evaluateRules(tx: IngestTransaction, reading: Reading, che
     const [recent] = await tx
       .select({ id: alerts.id })
       .from(alerts)
-      .where(and(eq(alerts.ruleId, rule.id), gt(alerts.triggeredAt, cooldownFrom)))
+      .where(and(eq(alerts.ruleId, rule.id), eq(alerts.deviceId, reading.deviceId), gt(alerts.createdAt, cooldownFrom)))
       .limit(1);
     if (recent) continue;
 

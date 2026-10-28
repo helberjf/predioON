@@ -10,7 +10,7 @@ type CommunicationAlert = { buildingId: string; message: string; deviceId?: stri
 type CommunicationResult = { status?: RealtimeEvent; alert?: AlertNotification; deviceId: string | null; gatewayId: string | null };
 
 /** Source lock first, then fresh DB cutoff; state + alert + outbox commit together. */
-async function persistCommunication(tx: IngestTransaction, input: CommunicationAlert, markOffline: boolean): Promise<CommunicationResult | null> {
+async function persistCommunication(tx: IngestTransaction, input: CommunicationAlert, markOffline: boolean, lastWill = false): Promise<CommunicationResult | null> {
   await lockFeatures(tx);
   if (!!input.deviceId === !!input.gatewayId) throw new Error("Exactly one communication source is required");
   const isDevice = !!input.deviceId;
@@ -23,10 +23,10 @@ async function persistCommunication(tx: IngestTransaction, input: CommunicationA
   const [{ evaluatedAt: databaseClock }] = await tx.execute<{ evaluatedAt: string }>(sql`select clock_timestamp() as "evaluatedAt"`);
   const evaluatedAt = new Date(databaseClock);
   const seconds = isDevice ? config.DEVICE_OFFLINE_TIMEOUT_SECONDS : config.GATEWAY_OFFLINE_TIMEOUT_SECONDS;
-  if ((source.lastSeenAt && source.lastSeenAt.getTime() >= evaluatedAt.getTime() - seconds * 1000) || (markOffline && !source.lastSeenAt)) return null;
+  if (!lastWill && ((source.lastSeenAt && source.lastSeenAt.getTime() >= evaluatedAt.getTime() - seconds * 1000) || (markOffline && !source.lastSeenAt))) return null;
   // Gateway sweep does not replay historic OFFLINE incidents. Device sweeps keep
   // the existing unresolved-alert dedup check even when it is already OFFLINE.
-  if (markOffline && !isDevice && source.status === "OFFLINE") return null;
+  if (!lastWill && markOffline && !isDevice && source.status === "OFFLINE") return null;
   const result: CommunicationResult = { deviceId: isDevice ? source.id : null, gatewayId: isDevice ? null : source.id };
   const checks = new PersistenceChecks();
   let expected = source;
@@ -88,6 +88,11 @@ export async function sweepOffline(): Promise<void> {
 /** Direct communication producers use the same source/outbox transaction. */
 export async function raiseCommunicationAlert(input: CommunicationAlert): Promise<void> {
   await publishCommunication(await ingestDb.transaction(tx => persistCommunication(tx, input, false)));
+}
+
+/** Broker Last Will is a confirmed disconnect, independent of heartbeat timeout. */
+export async function markGatewayOffline(buildingId: string, gatewayId: string): Promise<void> {
+  await publishCommunication(await ingestDb.transaction(tx => persistCommunication(tx, { buildingId, gatewayId, message: "" }, true, true)));
 }
 
 export function startOfflineSweeper(): NodeJS.Timeout {
