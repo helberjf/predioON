@@ -17,8 +17,16 @@ const STEPS = [
   { number: "03", title: "Dê visibilidade", text: "Mostre aos moradores os avisos, o andamento dos serviços e as contas publicadas." },
 ];
 
+const PEOPLE = [
+  { title: "Síndico e equipe", text: "Informação para organizar prioridades, serviços e decisões." },
+  { title: "Moradores", text: "Avisos, reservas e acompanhamento dos próprios chamados." },
+];
+
+const ADMINISTRATION = { title: "Administração", text: "Visão dos imóveis, equipamentos e recursos de cada instalação." };
+
 /** Public copy based on docs/marketing/APRESENTACAO_COMERCIAL.md; no live tenant data. */
-export function PlatformPresentation() {
+export function PlatformPresentation({ includeAdministration = false }: { includeAdministration?: boolean }) {
+  const people = includeAdministration ? [...PEOPLE, ADMINISTRATION] : PEOPLE;
   return <div className="min-h-screen bg-[#f7faf9] text-[#142f45]">
     <a href="#apresentacao" className="sr-only z-50 rounded-lg bg-white p-3 text-emerald-800 focus:not-sr-only focus:fixed focus:left-4 focus:top-4">Pular para o conteúdo</a>
     <header className="bg-[#0c202e] text-white">
@@ -78,7 +86,7 @@ export function PlatformPresentation() {
       </section>
 
       <section className="mx-auto max-w-6xl px-5 pb-14 sm:px-8 sm:pb-20">
-        <div className="rounded-[28px] bg-[#e7f1eb] px-6 py-9 sm:p-10"><h2 className="text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">Uma plataforma. Cada pessoa no seu lugar.</h2><div className="mt-7 grid gap-6 sm:grid-cols-3">{[{ title: "Síndico e equipe", text: "Informação para organizar prioridades, serviços e decisões." }, { title: "Moradores", text: "Avisos, reservas e acompanhamento dos próprios chamados." }, { title: "Administração", text: "Visão dos imóveis, equipamentos e recursos de cada instalação." }].map(item => <div key={item.title}><h3 className="flex items-center gap-2 text-sm font-semibold"><Check size={17} className="shrink-0 text-emerald-800" aria-hidden="true" />{item.title}</h3><p className="mt-2 text-sm leading-6 text-slate-600">{item.text}</p></div>)}</div><a href="/login" className="mt-8 inline-flex min-h-12 items-center gap-3 rounded-xl bg-[#102c3c] px-5 text-sm font-semibold text-white transition hover:bg-[#194253]">Entrar na plataforma<ArrowRight size={17} aria-hidden="true" /></a></div>
+        <div className="rounded-[28px] bg-[#e7f1eb] px-6 py-9 sm:p-10"><h2 className="text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">Uma plataforma. Cada pessoa no seu lugar.</h2><div className={`mt-7 grid gap-6 ${includeAdministration ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>{people.map(item =><div key={item.title}><h3 className="flex items-center gap-2 text-sm font-semibold"><Check size={17} className="shrink-0 text-emerald-800" aria-hidden="true" />{item.title}</h3><p className="mt-2 text-sm leading-6 text-slate-600">{item.text}</p></div>)}</div><a href="/login" className="mt-8 inline-flex min-h-12 items-center gap-3 rounded-xl bg-[#102c3c] px-5 text-sm font-semibold text-white transition hover:bg-[#194253]">Entrar na plataforma<ArrowRight size={17} aria-hidden="true" /></a></div>
       </section>
     </main>
 

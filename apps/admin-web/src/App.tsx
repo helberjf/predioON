@@ -23,7 +23,7 @@ export function App() {
 
   // A recovery link is honoured whoever is signed in on this browser; it ends every session anyway.
   if (window.location.pathname === "/redefinir-senha") return <PasswordRecoveryScreen />;
-  if (window.location.pathname === "/conheca") return <PlatformPresentation />;
+  if (window.location.pathname === "/conheca") return <PlatformPresentation includeAdministration />;
   if (loading) return <p className="p-8 text-slate-500">Carregando...</p>;
   if (!user) return <PublicEntry subtitle="Administração da plataforma" />;
 

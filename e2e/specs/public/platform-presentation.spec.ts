@@ -101,6 +101,15 @@ for (const portal of portals) {
   });
 }
 
+test("@critical apresentação do síndico não menciona a administração da plataforma", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto(`${BUILDING_URL}/conheca`);
+  await expect(page.getByRole("heading", { name: "Síndico e equipe", exact: true })).toBeVisible();
+  await expect(page.getByText(/administra/i)).toHaveCount(0);
+  await page.goto(`${ADMIN_URL}/conheca`);
+  await expect(page.getByRole("heading", { name: "Administração", exact: true })).toBeVisible();
+});
+
 test("@critical apresentação do morador oferece convite e não direciona para ferramentas de gestão", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`${RESIDENT_URL}/conheca`);
