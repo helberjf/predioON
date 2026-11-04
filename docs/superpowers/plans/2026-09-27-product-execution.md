@@ -461,3 +461,7 @@ O ponto corrente está na [continuidade](../../CONTINUIDADE.md), sem rascunhos d
 ### Baseline API de 04/11
 
 [API geral](../../evidencias/api-full-baseline-2026-11-04.json):81 arquivos originais, uma invocação serial,865/865 casos/74 suítes/zero skips ou falhas, fonte4eb7cab equivalente em código à14e. UUID67, seis roles/restauração/cleanup/fonte verificados. UI dirigida14e separada:4+skip1,4+skip1,5 e7 em Chromium com API sintética. Não somar esses conjuntos para anunciar produto integral. Ingestão completa, builds, MFA obrigatória e aceites nativos/produção continuam pendentes; depois da alteração de identidade, revalidar o baseline.
+
+### Baseline ingestão de 04/11
+
+[Ingestão geral](../../evidencias/ingest-full-baseline-2026-11-04.json):21 arquivos originais, uma invocação serial,220/220 casos/18 suítes/zero falhas/skips, fonte d43dc46 equivalente em código à14e. UUID67, seis roles/credenciais/settings/cleanup/fonte verificados. Aedes local, sem hardware; receiver original sem heap384 e picoRSS não medido. Wrapper11 não executado nem somado. Tipos/builds, MFA obrigatória e aceites de navegador real/nativos/produção ainda pendentes.

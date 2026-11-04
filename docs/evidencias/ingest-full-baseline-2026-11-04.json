@@ -1,0 +1,213 @@
+{
+  "schemaVersion": 1,
+  "status": "INGEST_FULL_ORIGINAL_PACKAGE_BASELINE_PASS",
+  "recordedUtc": "2026-11-04T12:23:54.6116250Z",
+  "expectedSourceCommit": "d43dc46ab1bcb392b297060a927b18ae17395783",
+  "observedHeadAfter": "d43dc46ab1bcb392b297060a927b18ae17395783",
+  "nonDocsSourceFilesVerified": 989,
+  "sourceHashesAfterMatch": true,
+  "sourceArchiveSha256": "97be0a58e0b3ffa6a729a4ad2275998593dfecce5a717c9c030be13f31326bf8",
+  "testFiles": 21,
+  "runner": "One original node --import tsx --test --test-concurrency=1 test/*.test.ts invocation, TAP reporter",
+  "tap": {
+    "tests": 220.0,
+    "suites": 18.0,
+    "pass": 220.0,
+    "fail": 0.0,
+    "cancelled": 0.0,
+    "skipped": 0.0,
+    "todo": 0.0,
+    "duration_ms": 47474.2325
+  },
+  "execution": {
+    "label": "test-ingest-full",
+    "pid": 37656,
+    "exitCode": 0,
+    "signal": null,
+    "spawnError": false,
+    "errorCode": null,
+    "timedOut": false,
+    "logSha256": "d3597ef4c46473fb4cdbe74bac0b497b02c4928c26269ddccd0377fd4a5d35a4"
+  },
+  "testStartedUtc": "2026-11-04T12:21:41.395Z",
+  "testEndedUtc": "2026-11-04T12:22:29.91Z",
+  "fixture": {
+    "official": "packages/db/test/fixtures/runtime-services.ts",
+    "freshUuidDatabase": true,
+    "canonicalMigrations": 67,
+    "bootstrapProvisionSeed": "official",
+    "physicalFeaturesSeed": "enabled only in own UUID",
+    "sixRuntimeRolePasswords": "fresh random; restored privately",
+    "ownerAvailableOnlyForAdministrativeTestFixture": true,
+    "runnerDatabaseUrlAbsent": true,
+    "twoRestrictedRuntimeUrlsExplicit": true,
+    "runtimeNoOwnerFallback": true,
+    "cleanupPassed": true
+  },
+  "postchecks": {
+    "exitCode": 0,
+    "systemIdentifierMatches": true,
+    "basePublicTables": 0,
+    "temporaryDatabases": 0,
+    "otherDatabases": 0,
+    "rolesRestoredIncludingPrivateCredentials": true,
+    "settingsRestored": true,
+    "roles": 6,
+    "otherClients": 0,
+    "containerAttestationMatches": true,
+    "freeMiBAtStart": 2490.0,
+    "computerRestarted": false,
+    "credentialsPublished": false
+  },
+  "resources": {
+    "parentHeapMiB": 256,
+    "mainRunnerHeapMiB": 384,
+    "testConcurrency": 1,
+    "hostGuardMiB": 1536,
+    "freeMiBAtStart": 2490.0,
+    "receiverOriginalExplicitV8HeapCap": false,
+    "receiverExceptionAcceptedByRoot": true,
+    "receiverRssPeakMeasured": false,
+    "receiverMonitoringLimit": "Short-lived MQTT receiver was not captured by the two point-in-time process samples; no continuous RSS bound claimed",
+    "receiverProtocol": "Two original60s cases,one222byte publish percase,Aedes loopback,original and replacement sequential; unchanged",
+    "databaseCapMiB": 384,
+    "databaseCpu": 1,
+    "databaseCumulativePeakBytes": 402653184,
+    "databaseCumulativeMaxEvents": 42,
+    "databaseCgroupCountersIncludePriorApiRun": true,
+    "databaseOom": 0,
+    "databaseOomKill": 0,
+    "databaseRestarts": 0
+  },
+  "scope": {
+    "fullOriginalPackageGlob": true,
+    "separateDirectedWrapper11Executed": false,
+    "nestedDatabaseFixture": false,
+    "externalBrokerOrHardware": false,
+    "apiRunIncluded": false,
+    "mfaCandidateIncluded": false,
+    "productionAcceptance": false
+  },
+  "endState": {
+    "ownedClusterRunningIdle": true,
+    "otherDatabaseClients": 0,
+    "ownedNodeProcessesRemaining": 0,
+    "receiverProcessesRemaining": 0,
+    "computerDockerWslRestarted": false,
+    "automaticRetry": false
+  },
+  "artifacts": [
+    {
+      "artifact": "launch-ingest-full.ps1",
+      "sha256": "3bda47cbbc83ee2c3f332aa036da8947533b75dd0e9afa5a8dd1e00bba72d2f7",
+      "bytes": 9767
+    },
+    {
+      "artifact": "run-ingest-full.mjs",
+      "sha256": "d901be1b90ec7126754d304c5ca3e86e9114bd14e65d16eb847c1a6afc101809",
+      "bytes": 7401
+    },
+    {
+      "artifact": "PLAN.md",
+      "sha256": "c8a206a1b79a5e815eebddba80bdf65536f49695e7228044c6bfe03b4bdcfe02",
+      "bytes": 4695
+    },
+    {
+      "artifact": "plan-handoff-v1.json",
+      "sha256": "6777617c538ea11d3ab7dcbf0b4a9aa3cd82fe840d9eef6b8dd0012aac508429",
+      "bytes": 1507
+    },
+    {
+      "artifact": "receiver-scope-review-v1.json",
+      "sha256": "15aa6aba3ebbc946b5936f1ba2918b2e5c03a1c77d60c0e433bb978874b4f62e",
+      "bytes": 1594
+    },
+    {
+      "artifact": "controller-start.json",
+      "sha256": "363b0fcc917bf21b73bee9d7439b204c636765ca2a1e180c7f9fc29eeec85a7d",
+      "bytes": 214
+    },
+    {
+      "artifact": "execute-attempt-1.log",
+      "sha256": "46518a66cd6ceb06cc1955dc07fa20fca9e8e4bb9d52a71b1a1c255b810743b0",
+      "bytes": 390
+    },
+    {
+      "artifact": "execute-attempt-1-result.json",
+      "sha256": "09aa1c0e9a524ea04e5836d3ae859dc0baf0ddd165ad175598d1de95c488c859",
+      "bytes": 122
+    },
+    {
+      "artifact": "ingest-full-result.json",
+      "sha256": "0844ac38d5dafbaf88484c51424e1e2b1603719ef25664f641c58011a9bf24a4",
+      "bytes": 154217
+    },
+    {
+      "artifact": "ingest-full-postchecks.json",
+      "sha256": "46518a66cd6ceb06cc1955dc07fa20fca9e8e4bb9d52a71b1a1c255b810743b0",
+      "bytes": 390
+    },
+    {
+      "artifact": "test-ingest-full.log",
+      "sha256": "d3597ef4c46473fb4cdbe74bac0b497b02c4928c26269ddccd0377fd4a5d35a4",
+      "bytes": 52377
+    },
+    {
+      "artifact": "provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "artifact": "seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "artifact": "process-progress.jsonl",
+      "sha256": "174384e7eaf278d32303cfdcbf787ea679728b4c3cb365fe29feb56eac155420",
+      "bytes": 861
+    },
+    {
+      "artifact": "process-postchecks.json",
+      "sha256": "13f80e570576827c931f1ba451326eb0c47a198d767a91ab84db896fdd34b9c8",
+      "bytes": 150
+    },
+    {
+      "artifact": "container-final-metadata.txt",
+      "sha256": "84c345c74c69dc21352975e21613c1e879f313beba7164958c7cbbdcca99d81b",
+      "bytes": 317
+    },
+    {
+      "artifact": "container-final-cgroup.txt",
+      "sha256": "8d276404f42dd4875b12f9c29d6bd11e40924cb40a2d78485d8ab269203e960a",
+      "bytes": 207
+    },
+    {
+      "artifact": "source-d43dc46ab1bcb392b297060a927b18ae17395783.tar",
+      "sha256": "97be0a58e0b3ffa6a729a4ad2275998593dfecce5a717c9c030be13f31326bf8",
+      "bytes": 29593600
+    }
+  ],
+  "kind": "full-original-ingestion-test-glob-baseline",
+  "sourceCommitUrl": "https://github.com/helberjf/predioON/commit/d43dc46ab1bcb392b297060a927b18ae17395783",
+  "handoffSha256": "22cf5daddb9779d2d4c8cd8c5b718a73ca066f16cb155e17861577534bc58a2f",
+  "executionFlags": {
+    "RUN_ACCESS_DB_TESTS": "1",
+    "NODE_ENV": "test",
+    "RESEND_API_KEY": "blank"
+  },
+  "independentReadOnlyReview": {
+    "approved": true,
+    "artifactsVerified": 18,
+    "nonDocsSourcesVerified": 989,
+    "reviewerExecutedTests": false
+  },
+  "limits": [
+    "One original serial package glob of21 files, canonical SQL001–067, before mandatory MFA implementation. No retry.",
+    "Owner only arranges and observes the official administrative fixture; runtime uses explicit restricted INGEST/ACCESS URLs and runner DATABASE_URL is absent.",
+    "The two original MQTT receiver cases use local Aedes and synthetic payloads; no physical gateway or external broker.",
+    "Original receiver fork strips NODE_OPTIONS and overrides execArgv; its V8 heap is not capped384MiB. Short-lived receiver peak RSS was not measured.",
+    "Database cgroup max42/peak384MiB are cumulative from prior API execution and did not increase in ingestion.",
+    "The separate11-suite directed wrapper was not executed and is not added to the integral count. No browser, native or production acceptance."
+  ]
+}
