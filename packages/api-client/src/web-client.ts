@@ -1,21 +1,23 @@
 import type { WebSession } from "@predioon/contracts/auth";
-import { createBearerClient, type AuthGate, type AuthOperation } from "#engine";
+import { createBearerClient, type AuthGate, type AuthOperation, type MfaRestriction } from "#engine";
 import { ApiError } from "#errors";
 
-/** Coordination stores identity epochs and logout intent only, never credentials. */
+/** Coordination stores identity epochs, restriction hints and logout intent; never credentials or proof. */
 export type WebSessionCoordinator = {
   assertCurrent(): void;
   blocked(): boolean;
   beginIdentityChange(): void;
   blockSession(): void;
+  recheckSession(restriction: MfaRestriction): void;
   gate(operation: AuthOperation): AuthGate;
-  subscribe(listener: (available: boolean) => void): () => void;
+  subscribe(listener: (available: boolean, restriction?: MfaRestriction) => void): () => void;
 };
 export type WebApiClientOptions = {
   baseUrl: string;
   fetch: typeof globalThis.fetch;
   coordinator: WebSessionCoordinator;
   onAuthLost?: () => void;
+  onMfaRequired?: (restriction: MfaRestriction) => void;
   onSessionAvailable?: () => void;
   authTimeoutMs?: number;
 };
@@ -40,6 +42,12 @@ export function createWebApiClient(options: WebApiClientOptions) {
     },
     assertSession: () => coordinator.assertCurrent(),
     authGate: operation => coordinator.gate(operation),
+    onMfaRequired: restriction => {
+      // Core invalidated authorization only; keep bootstrap and rotation alive.
+      // Publish authorization state, never a logout tombstone.
+      coordinator.recheckSession(restriction);
+      options.onMfaRequired?.(restriction);
+    },
     onAuthLost: () => { session = null; try { coordinator.blockSession(); } finally { options.onAuthLost?.(); } },
     protocol: {
       beforeLogin: () => webRequest("logout"),
@@ -51,7 +59,14 @@ export function createWebApiClient(options: WebApiClientOptions) {
       ignoreLogoutFailure: false,
     },
   });
-  const unsubscribe = coordinator.subscribe(available => {
+  const unsubscribe = coordinator.subscribe((available, restriction) => {
+    if (restriction) {
+      core.invalidateAuthorization();
+      options.onMfaRequired?.(restriction);
+      // Do not auto-restore: a refresh403 must not ping-pong between tabs.
+      // Consumers can recheck /me while preserving a visible recovery-code panel.
+      return;
+    }
     invalidate();
     options.onAuthLost?.();
     if (available) options.onSessionAvailable?.();

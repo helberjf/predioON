@@ -1,0 +1,393 @@
+{
+  "recordedAt": "2026-11-04T13:08:34.280555-03:00",
+  "kind": "mfa-client-transport-foundation",
+  "baseCommit": "987396a21cc2e57e439e1844fbbdac3483970767",
+  "candidateManifestSha256": "f11cc8298c8834547bca0b2d84a5e0734dfa60efe844725cf8ecdb8bdeb928a8",
+  "sources": [
+    {
+      "file": "packages/api-client/src/engine.ts",
+      "originalSha256": "dcb66cdc2c7d4dcf6caf08885484d1a1335d4a3c7d824ea7d1e41388f9307838",
+      "publishedSha256": "a53b42e6278b7343fd2b2d17900059d1f6e6762d66af9aa2fddaaf227527c134"
+    },
+    {
+      "file": "packages/api-client/src/index.ts",
+      "originalSha256": "645ace7f3703977d0ff6b0cea40dcfa5d9d28f12aae9834fdfe17c803bd1493a",
+      "publishedSha256": "85811c979283808af21427cc0fc57d52eb13e0a6e8b210706bef87fa83120ca4"
+    },
+    {
+      "file": "packages/api-client/src/web-client.ts",
+      "originalSha256": "b7d03443f82daa94509a6b86d1fdabed078dc5dfe562d0bfa09ca8a3c2cfc2f4",
+      "publishedSha256": "d62ef33a2d3283d445365c0bb163d74134f1a40f2d666073fe6146a4bf131b57"
+    },
+    {
+      "file": "packages/ui/src/web-session-coordinator.ts",
+      "originalSha256": "a6bf7e6c18055ab728ae43ae89adf0d38e54e0fe4ce722634fbe0915eee2c735",
+      "publishedSha256": "69eb9dbe4fbb3b27950c0d58fbc72b8416c564dd4a316ce86b062d943720c374"
+    },
+    {
+      "file": "packages/api-client/test/mfa-required.test.ts",
+      "originalSha256": null,
+      "publishedSha256": "88a8ca38e4a4795967f033f5ddfe48108aeaf8a99ec2d5c28bc14527f18f0b4c"
+    }
+  ],
+  "red": {
+    "phase": "red",
+    "args": [
+      "--experimental-strip-types",
+      "--test",
+      "--test-concurrency=1",
+      "--test-timeout=10000",
+      "--test-reporter=tap",
+      "--test-name-pattern=confirmed password204",
+      "test/mfa-required.test.ts"
+    ],
+    "freeMiB": 1846.046875,
+    "parentHeapMiB": 256,
+    "childHeapMiB": 384,
+    "startedAt": "2026-11-04T16:11:12.972Z",
+    "finishedAt": "2026-11-04T16:11:13.359Z",
+    "durationMs": 388,
+    "exitCode": 1,
+    "signal": null,
+    "errorCode": null,
+    "timedOut": false,
+    "childPid": 2004,
+    "counters": {
+      "tests": 1,
+      "suites": 0,
+      "pass": 0,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 249.6821
+    },
+    "logSha256": "336f41e24300d78eb8210662d80a1df8c18afe792cc7e4f812003c5f6d81b93e"
+  },
+  "directedGreen": {
+    "phase": "green",
+    "args": [
+      "--experimental-strip-types",
+      "--test",
+      "--test-concurrency=1",
+      "--test-timeout=10000",
+      "--test-reporter=tap",
+      "test/mfa-required.test.ts"
+    ],
+    "freeMiB": 1824.12890625,
+    "parentHeapMiB": 256,
+    "childHeapMiB": 384,
+    "startedAt": "2026-11-04T16:11:22.011Z",
+    "finishedAt": "2026-11-04T16:11:23.419Z",
+    "durationMs": 1408,
+    "exitCode": 0,
+    "signal": null,
+    "errorCode": null,
+    "timedOut": false,
+    "childPid": 3380,
+    "counters": {
+      "tests": 25,
+      "suites": 0,
+      "pass": 25,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 769.6078
+    },
+    "logSha256": "a5da0fbb9b64d09ce888c6aac83b2f4aa778ff219724eb6cc6e08174a585445a"
+  },
+  "originalSuite": {
+    "phase": "original",
+    "args": [
+      "--experimental-strip-types",
+      "--test",
+      "--test-concurrency=1",
+      "--test-timeout=10000",
+      "--test-reporter=tap",
+      "test/boundaries.test.ts",
+      "test/client.test.ts",
+      "test/invitation.test.ts",
+      "test/password-change.test.ts",
+      "test/password-recovery.test.ts",
+      "test/web-adapter.test.ts",
+      "test/web-client.test.ts"
+    ],
+    "freeMiB": 1829.76953125,
+    "parentHeapMiB": 256,
+    "childHeapMiB": 384,
+    "startedAt": "2026-11-04T16:11:31.6Z",
+    "finishedAt": "2026-11-04T16:11:36.295Z",
+    "durationMs": 4695,
+    "exitCode": 0,
+    "signal": null,
+    "errorCode": null,
+    "timedOut": false,
+    "childPid": 14768,
+    "counters": {
+      "tests": 118,
+      "suites": 0,
+      "pass": 118,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 4550.3949
+    },
+    "logSha256": "3ac3d53224119a0f0a55eab587dd6923c0693d785b94b4a4046b734f83f2b9b0"
+  },
+  "redClassification": {
+    "against": "candidateV2",
+    "cases": 1,
+    "assertionFailures": 1,
+    "preparationFailure": false,
+    "behavior": "Same-identity confirmed password204 incorrectly became SESSION_CHANGED after an MFA hint, preventing local credential cleanup. V3 accepts204 by identity, clears once and does not replay; a newer login still wins."
+  },
+  "harnessFailurePreserved": "Harness MODULE_NOT_FOUND typescript via scripts/runtime-import-graph using packages/db/package.json;63 cases passed, boundary test file could not load. Not a product RED or118-case pass. Only readonly packages/db/node_modules junction added; original files/assertions unchanged. Authorized attempt2 then118/118 passed.",
+  "typecheck": {
+    "phase": "types",
+    "freeMiB": 1728.2421875,
+    "parentHeapMiB": 256,
+    "childHeapMiB": 384,
+    "startedAt": "2026-11-04T16:11:42.139Z",
+    "finishedAt": "2026-11-04T16:11:44.09Z",
+    "durationMs": 1951,
+    "exitCode": 0,
+    "signal": null,
+    "errorCode": null,
+    "timedOut": false,
+    "childPid": 28204,
+    "counters": {},
+    "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "typecheckCommand": [
+    "tsc",
+    "--noEmit"
+  ],
+  "independentStaticReviewApproved": true,
+  "rootVerifiedArtifactCount": 36,
+  "sourceAndTestsPreserved": {
+    "isolatedArchiveNonDocsWith4OverlaysVerified": 989,
+    "newTestVerified": true,
+    "originalTestsUnchanged": [
+      {
+        "file": "packages/api-client/test/boundaries.test.ts",
+        "sha256": "73c2580a61fa594bddf07a6e76a2308a626e591549ea7924b538267facce711f"
+      },
+      {
+        "file": "packages/api-client/test/client.test.ts",
+        "sha256": "bf741b40ec4fb54d59ee2349f293db165c21321f65d11548588699707d796a86"
+      },
+      {
+        "file": "packages/api-client/test/invitation.test.ts",
+        "sha256": "671bb9028f7aa3cc40520c408cbe0ef1a895eb651c52ba82a2d7233246516334"
+      },
+      {
+        "file": "packages/api-client/test/password-change.test.ts",
+        "sha256": "8f369b065eff685dec7385d6cde60bfd270d2bae11608508f931283c0a5b7bb8"
+      },
+      {
+        "file": "packages/api-client/test/password-recovery.test.ts",
+        "sha256": "bc4dace373d2a3887f021eadc16cdb94a35aa72da77c6aa490f3aa4698ba11b5"
+      },
+      {
+        "file": "packages/api-client/test/web-adapter.test.ts",
+        "sha256": "dc5b4ac61eccd3872674700e7a4b47c9b467d613cf36064a0fbf5b0e5ef64622"
+      },
+      {
+        "file": "packages/api-client/test/web-client.test.ts",
+        "sha256": "a2b27f201847e542e8f5540aa143b5afefbac0308fb2b6be1afccf6c94cd8b81"
+      }
+    ],
+    "main5FilesRemainV2": true
+  },
+  "limits": [
+    "Only transport behavior with synthetic HTTP is validated; no database or native execution.",
+    "Typecheck covers api-client/src only; the UI coordinator is exercised by runtime tests, not a full UI typecheck.",
+    "The optional callbacks and separate authorization epoch prepare mandatory MFA. API, SQL and consumer enforcement remain pending.",
+    "The original baseline24 run and V2 outcomes remain historical. V3 adds a reproduced password204 concurrency correction; current directed count is25, not the sum of runs.",
+    "No automatic retry of a write denied for mandatory MFA; ordinary055 verification behavior is preserved."
+  ],
+  "previousCandidateV2": {
+    "candidateManifestSha256": "adce4f15a9b4315718a85d8457b6cb64ba8d00b277f38e054fca04d931bb30ac",
+    "red": {
+      "phase": "red",
+      "args": [
+        "--experimental-strip-types",
+        "--test",
+        "--test-concurrency=1",
+        "--test-timeout=10000",
+        "--test-reporter=tap",
+        "test/mfa-required.test.ts"
+      ],
+      "freeMiB": 1810.37890625,
+      "parentHeapMiB": 256,
+      "childHeapMiB": 384,
+      "startedAt": "2026-11-04T16:01:47.159Z",
+      "finishedAt": "2026-11-04T16:01:47.649Z",
+      "durationMs": 490,
+      "exitCode": 1,
+      "signal": null,
+      "errorCode": null,
+      "timedOut": false,
+      "childPid": 39960,
+      "counters": {
+        "tests": 24,
+        "suites": 0,
+        "pass": 9,
+        "fail": 15,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 343.8008
+      },
+      "logSha256": "a58b2113fa1f0eecf3aacc75dd56d8564c94506f89c1688735c69f2858949286"
+    },
+    "directedGreen": {
+      "phase": "green",
+      "args": [
+        "--experimental-strip-types",
+        "--test",
+        "--test-concurrency=1",
+        "--test-timeout=10000",
+        "--test-reporter=tap",
+        "test/mfa-required.test.ts"
+      ],
+      "freeMiB": 1831.5234375,
+      "parentHeapMiB": 256,
+      "childHeapMiB": 384,
+      "startedAt": "2026-11-04T16:02:17.825Z",
+      "finishedAt": "2026-11-04T16:02:18.19Z",
+      "durationMs": 365,
+      "exitCode": 0,
+      "signal": null,
+      "errorCode": null,
+      "timedOut": false,
+      "childPid": 26024,
+      "counters": {
+        "tests": 24,
+        "suites": 0,
+        "pass": 24,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 239.8125
+      },
+      "logSha256": "d1c61331a363c82799b6238743a5f61ca716070dbdf34fa7bc149317242ab061"
+    },
+    "originalSuite": {
+      "phase": "original",
+      "args": [
+        "--experimental-strip-types",
+        "--test",
+        "--test-concurrency=1",
+        "--test-timeout=10000",
+        "--test-reporter=tap",
+        "test/boundaries.test.ts",
+        "test/client.test.ts",
+        "test/invitation.test.ts",
+        "test/password-change.test.ts",
+        "test/password-recovery.test.ts",
+        "test/web-adapter.test.ts",
+        "test/web-client.test.ts"
+      ],
+      "freeMiB": 1640.1953125,
+      "parentHeapMiB": 256,
+      "childHeapMiB": 384,
+      "startedAt": "2026-11-04T16:03:33.044Z",
+      "finishedAt": "2026-11-04T16:03:38.914Z",
+      "durationMs": 5870,
+      "exitCode": 0,
+      "signal": null,
+      "errorCode": null,
+      "timedOut": false,
+      "childPid": 27172,
+      "counters": {
+        "tests": 118,
+        "suites": 0,
+        "pass": 118,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 5721.0989
+      },
+      "logSha256": "ea6f372b2b3ac6f096cff87bddad6c8f6cd43eb612ca5289d554fe4a3b688e13"
+    },
+    "redClassification": {
+      "actual24Cases": true,
+      "passedControls": [
+        "does not classify 403/VERIFICATION_REQUIRED as MFA restriction",
+        "does not classify 403/MFA_REQUIRED as MFA restriction",
+        "does not classify 400/MFA_VERIFICATION_REQUIRED as MFA restriction",
+        "does not classify 403/mfa_verification_required as MFA restriction",
+        "old error JSON cannot restrict a newer explicit login",
+        "login errors do not invoke operational MFA callback",
+        "in-flight confirmation recovery codes survive same-family MFA restriction",
+        "in-flight confirmation recovery codes discard after new login",
+        "other-tab MFA hint preserves confirmation JSON and ten recovery codes"
+      ],
+      "failedAssertions": 15,
+      "importOrFixtureFailures": false,
+      "explanation": "Four reason negatives, old-error/new-login guard, login challenge and three confirmation preservation controls already pass baseline. Fifteen assertions fail for missing MFA callback/authorization invalidation and refresh preservation. No run against discarded candidateV1 was performed; do not claim its confirmation race reproduced in runtime."
+    },
+    "harnessFailurePreserved": "Harness MODULE_NOT_FOUND typescript via scripts/runtime-import-graph using packages/db/package.json;63 cases passed, boundary test file could not load. Not a product RED or118-case pass. Only readonly packages/db/node_modules junction added; original files/assertions unchanged. Authorized attempt2 then118/118 passed.",
+    "typecheck": {
+      "phase": "types",
+      "freeMiB": 2273.578125,
+      "parentHeapMiB": 256,
+      "childHeapMiB": 384,
+      "startedAt": "2026-11-04T16:05:29.537Z",
+      "finishedAt": "2026-11-04T16:05:31.071Z",
+      "durationMs": 1534,
+      "exitCode": 0,
+      "signal": null,
+      "errorCode": null,
+      "timedOut": false,
+      "childPid": 14228,
+      "counters": {},
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "sourceAndTestsPreserved": {
+      "checkedAt": "2026-11-04T13:04:37.76377-03:00",
+      "isolatedNonDocsFiles": 989,
+      "isolatedArchiveWithExact4SourceOverlaysVerified": true,
+      "candidate5FilesUnchanged": true,
+      "checkout4SourcesUnchanged": true,
+      "originalTests7RawArchiveUnchanged": [
+        {
+          "file": "packages/api-client/test/boundaries.test.ts",
+          "sha256": "73c2580a61fa594bddf07a6e76a2308a626e591549ea7924b538267facce711f"
+        },
+        {
+          "file": "packages/api-client/test/client.test.ts",
+          "sha256": "bf741b40ec4fb54d59ee2349f293db165c21321f65d11548588699707d796a86"
+        },
+        {
+          "file": "packages/api-client/test/invitation.test.ts",
+          "sha256": "671bb9028f7aa3cc40520c408cbe0ef1a895eb651c52ba82a2d7233246516334"
+        },
+        {
+          "file": "packages/api-client/test/password-change.test.ts",
+          "sha256": "8f369b065eff685dec7385d6cde60bfd270d2bae11608508f931283c0a5b7bb8"
+        },
+        {
+          "file": "packages/api-client/test/password-recovery.test.ts",
+          "sha256": "bc4dace373d2a3887f021eadc16cdb94a35aa72da77c6aa490f3aa4698ba11b5"
+        },
+        {
+          "file": "packages/api-client/test/web-adapter.test.ts",
+          "sha256": "dc5b4ac61eccd3872674700e7a4b47c9b467d613cf36064a0fbf5b0e5ef64622"
+        },
+        {
+          "file": "packages/api-client/test/web-client.test.ts",
+          "sha256": "a2b27f201847e542e8f5540aa143b5afefbac0308fb2b6be1afccf6c94cd8b81"
+        }
+      ],
+      "runtimeImportsDB": false,
+      "newTestSha256": "e128dfb2c4be3b092b978d1a2cdf938724a7c5f0623c55b900bbbcf402421fc0"
+    }
+  },
+  "v3HandoffSha256": "f11cc8298c8834547bca0b2d84a5e0734dfa60efe844725cf8ecdb8bdeb928a8"
+}

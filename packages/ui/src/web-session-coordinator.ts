@@ -1,6 +1,6 @@
-import { ApiError, type WebSessionCoordinator } from "@predioon/api-client";
+import { ApiError, type WebSessionCoordinator, type MfaRestriction } from "@predioon/api-client";
 
-type State = { epoch: string; blocked: boolean };
+type State = { epoch: string; blocked: boolean; authorizationEpoch?: string; restriction?: MfaRestriction };
 type LockProvider = { request<T>(name: string, callback: () => Promise<T>): Promise<T> };
 type Environment = {
   namespace: string;
@@ -13,12 +13,14 @@ type Environment = {
 const changed = () => new ApiError(0, "A sessão mudou em outra aba. Tente novamente.", "SESSION_CHANGED");
 const unsupported = () => new ApiError(0, "Este navegador precisa permitir armazenamento local e bloqueios entre abas para entrar com segurança. Use uma versão atual em HTTPS ou localhost.", "BROWSER_UNSUPPORTED");
 
-/** The only persisted values are an opaque identity epoch and a logout tombstone.
+/** Persisted values separate identity epoch, authorization epoch and logout intent.
+ * Restriction hints change authorization only; they never replace family identity.
+ * A hint never proves MFA or grants access; the API remains authoritative.
  * Intents are written synchronously; the last intent wins. Network cookie changes
  * all hold the same Web Lock, including body consumption and identity checks. */
 export function createWebSessionCoordinator(environment: Environment): WebSessionCoordinator & { dispose(): void } {
   const key = `predioon.web-session.${environment.namespace}`;
-  const listeners = new Set<(available: boolean) => void>();
+  const listeners = new Set<(available: boolean, restriction?: MfaRestriction) => void>();
   let current: State | null = null;
   let cleanedLegacy = false;
   function supported() { if (!environment.locks) throw unsupported(); }
@@ -34,16 +36,29 @@ export function createWebSessionCoordinator(environment: Environment): WebSessio
       if (!raw) return { epoch: "initial", blocked: false };
       const parsed = JSON.parse(raw) as Partial<State>;
       if (typeof parsed.epoch !== "string" || !parsed.epoch || typeof parsed.blocked !== "boolean") throw unsupported();
-      return { epoch: parsed.epoch, blocked: parsed.blocked };
+      if (parsed.restriction !== undefined && parsed.restriction !== "enrollment-required"
+        && parsed.restriction !== "verification-required") throw unsupported();
+      if ((parsed.restriction === undefined) !== (parsed.authorizationEpoch === undefined)) throw unsupported();
+      if (parsed.authorizationEpoch !== undefined && (typeof parsed.authorizationEpoch !== "string" || !parsed.authorizationEpoch)) throw unsupported();
+      if (parsed.blocked && parsed.restriction !== undefined) throw unsupported();
+      return { epoch: parsed.epoch, blocked: parsed.blocked,
+        ...(parsed.restriction ? { restriction: parsed.restriction, authorizationEpoch: parsed.authorizationEpoch } : {}) };
     } catch { throw unsupported(); }
   }
   function sync(): boolean {
     const next = read();
     const previous = current;
     current = next;
-    if (!previous || (next.epoch === previous.epoch && next.blocked === previous.blocked)) return false;
-    for (const listener of listeners) listener(!next.blocked);
-    return true;
+    if (!previous) return false;
+    const identityChanged = next.epoch !== previous.epoch || next.blocked !== previous.blocked;
+    if (identityChanged) {
+      // A different family/intent invalidates everything even if it has a hint.
+      for (const listener of listeners) listener(!next.blocked);
+    } else if (next.authorizationEpoch !== previous.authorizationEpoch || next.restriction !== previous.restriction) {
+      if (next.restriction) for (const listener of listeners) listener(!next.blocked, next.restriction);
+    }
+    // Authorization changes notify consumers without aborting bootstrap/auth gates.
+    return identityChanged;
   }
   function write(next: State) {
     try { environment.storage.setItem(key, JSON.stringify(next)); }
@@ -66,6 +81,13 @@ export function createWebSessionCoordinator(environment: Environment): WebSessio
     blocked() { assertCurrent(); return current!.blocked; },
     beginIdentityChange: block,
     blockSession: block,
+    recheckSession(restriction) {
+      // A delayed rejection cannot override a newer login/logout intent.
+      assertCurrent();
+      if (current!.blocked) throw changed();
+      if (restriction !== "enrollment-required" && restriction !== "verification-required") throw unsupported();
+      write({ epoch: current!.epoch, blocked: false, authorizationEpoch: environment.newId(), restriction });
+    },
     gate(kind) {
       assertCurrent();
       const snapshot = current!;

@@ -6,6 +6,7 @@ export type CredentialStorage<C> = {
   setTokens(tokens: C): Promise<void>;
   clearTokens(): Promise<void>;
 };
+export type MfaRestriction = "enrollment-required" | "verification-required";
 export type AuthOperation = "login" | "refresh" | "logout" | "password";
 type AuthRequest = { path: string; init: RequestInit };
 export type AuthGate = <T>(operation: () => Promise<T>) => Promise<T>;
@@ -14,6 +15,7 @@ type Options<C extends { accessToken: string }, S extends C> = {
   fetch: typeof globalThis.fetch;
   storage: CredentialStorage<C>;
   onAuthLost?: () => void;
+  onMfaRequired?: (restriction: MfaRestriction) => void;
   assertSession?: () => void;
   /** Capture the caller's identity before any asynchronous work starts. */
   authGate?: (operation: AuthOperation) => AuthGate;
@@ -34,6 +36,7 @@ type Options<C extends { accessToken: string }, S extends C> = {
 export function createBearerClient<C extends { accessToken: string }, S extends C>(options: Options<C, S>) {
   const baseUrl = options.baseUrl.replace(/\/+$/, "");
   let version = 0;
+  let authorizationVersion = 0;
   let locallySignedOut = false;
   let storageQueue: Promise<unknown> = Promise.resolve();
   let refreshInFlight: { version: number; promise: Promise<void> } | null = null;
@@ -44,9 +47,9 @@ export function createBearerClient<C extends { accessToken: string }, S extends 
     storageQueue = pending.catch(() => undefined);
     return pending;
   }
-  function assertCurrent(expected: number): void {
+  function assertCurrent(expected: number, expectedAuthorization?: number): void {
     options.assertSession?.();
-    if (version !== expected) throw new ApiError(0, "A sessão mudou. Tente novamente.", "SESSION_CHANGED");
+    if (version !== expected || expectedAuthorization !== undefined && authorizationVersion !== expectedAuthorization) throw new ApiError(0, "A sessão mudou. Tente novamente.", "SESSION_CHANGED");
   }
   async function readTokens(expected: number): Promise<C | null> {
     assertCurrent(expected);
@@ -70,6 +73,20 @@ export function createBearerClient<C extends { accessToken: string }, S extends 
     assertCurrent(clearedVersion);
     options.onAuthLost?.();
   }
+  function restrictSession(error: ApiError, expected: number, expectedAuthorization: number): boolean {
+    if (error.status !== 403) return false;
+    const restriction = error.reason === "MFA_ENROLLMENT_REQUIRED" ? "enrollment-required"
+      : error.reason === "MFA_VERIFICATION_REQUIRED" ? "verification-required" : null;
+    if (!restriction) return false;
+    assertCurrent(expected);
+    // A prior restriction already invalidated this authorization snapshot.
+    if (authorizationVersion !== expectedAuthorization) return true;
+    // Keep this family and in-flight bootstrap/rotation alive, but invalidate
+    // domain responses synchronously before notifying consumers.
+    authorizationVersion++;
+    options.onMfaRequired?.(restriction);
+    return true;
+  }
   function networkError(): ApiError {
     return new ApiError(0, `Não foi possível falar com a API em ${baseUrl}. Verifique sua conexão e tente novamente.`, "NETWORK_ERROR");
   }
@@ -77,16 +94,16 @@ export function createBearerClient<C extends { accessToken: string }, S extends 
     try { return await options.fetch(`${baseUrl}${path}`, init); }
     catch { throw networkError(); }
   }
-  async function readJson<T>(response: Response, expected: number, signal?: AbortSignal): Promise<T> {
+  async function readJson<T>(response: Response, expected: number, signal?: AbortSignal, expectedAuthorization?: number): Promise<T> {
     let body: T;
     try { body = await response.json() as T; }
     catch (error) {
-      assertCurrent(expected);
+      assertCurrent(expected, expectedAuthorization);
       if (signal?.aborted) throw networkError();
       if (error instanceof SyntaxError) throw new ApiError(response.status, "A API retornou uma resposta JSON inválida.", "INVALID_RESPONSE");
       throw networkError();
     }
-    assertCurrent(expected);
+    assertCurrent(expected, expectedAuthorization);
     if (signal?.aborted) throw networkError();
     return body;
   }
@@ -121,6 +138,7 @@ export function createBearerClient<C extends { accessToken: string }, S extends 
     return response;
   }
   async function renewSession(expected: number): Promise<void> {
+    const authorization = authorizationVersion;
     const gate = options.authGate?.("refresh") ?? direct;
     return gate(() => authDeadline(async signal => {
       const tokens = await readTokens(expected);
@@ -134,6 +152,7 @@ export function createBearerClient<C extends { accessToken: string }, S extends 
         const error = await responseError(response);
         assertCurrent(expected);
         if (signal?.aborted) throw networkError();
+        if (restrictSession(error, expected, authorization)) throw error;
         if (response.status === 401 || response.status === 403) await loseSession(expected);
         throw error;
       }
@@ -148,28 +167,39 @@ export function createBearerClient<C extends { accessToken: string }, S extends 
     refreshInFlight = { version: expected, promise };
     return promise;
   }
-  async function request<T>(path: string, init: RequestInit = {}, retry = true, expected = version): Promise<T> {
+  function isMfaBootstrap(path: string, method: string): boolean {
+    // Exact method/path pairs only. Session metadata listing and factor disable
+    // are operational; query strings/prefix lookalikes are not bootstrap.
+    if (method === "GET") return path === "/auth/me" || path === "/auth/mfa" || path === "/auth/mfa/";
+    if (method === "POST") return path === "/auth/mfa/enroll" || path === "/auth/mfa/confirm"
+      || path === "/auth/verify" || path === "/auth/sessions/revoke-all";
+    return method === "DELETE" && /^\/auth\/sessions\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(path);
+  }
+  async function request<T>(path: string, init: RequestInit = {}, retry = true, expected = version, authorization = authorizationVersion): Promise<T> {
+    const protectedResponse = !isMfaBootstrap(path, init.method ?? "GET");
+    const assertRequest = () => assertCurrent(expected, protectedResponse ? authorization : undefined);
     const tokens = await readTokens(expected);
     const headers = new Headers(init.headers);
     if (!headers.has("Content-Type")) headers.set("Content-Type", "application/json");
     if (tokens?.accessToken) headers.set("Authorization", `Bearer ${tokens.accessToken}`);
-    assertCurrent(expected);
+    assertRequest();
     const response = await send(path, { ...init, headers, ...(options.domainCredentials ? { credentials: options.domainCredentials } : {}) });
-    assertCurrent(expected);
+    assertRequest();
     if (response.status === 401 && retry) {
       const currentTokens = await readTokens(expected);
       if (!currentTokens?.accessToken || currentTokens.accessToken === tokens?.accessToken) await refreshSession(expected);
-      assertCurrent(expected);
-      return request<T>(path, init, false, expected);
+      assertRequest();
+      return request<T>(path, init, false, expected, authorization);
     }
     if (!response.ok) {
       const error = await responseError(response);
-      assertCurrent(expected);
+      assertRequest();
+      if (restrictSession(error, expected, authorization)) throw error;
       if (response.status === 401) await loseSession(expected);
       throw error;
     }
     if (response.status === 204) return undefined as T;
-    return readJson<T>(response, expected);
+    return readJson<T>(response, expected, undefined, protectedResponse ? authorization : undefined);
   }
   return {
     baseUrl,
@@ -179,15 +209,19 @@ export function createBearerClient<C extends { accessToken: string }, S extends 
     patch: <T>(path: string, body: unknown) => request<T>(path, { ...json(body), method: "PATCH" }),
     delete: <T>(path: string) => request<T>(path, { method: "DELETE" }),
     invalidateSession(): void { version++; },
+    invalidateAuthorization(): void { authorizationVersion++; },
     /** A confirmed change revokes all server families. Invalidate this exact
      * identity only after204; delayed success must never clear a newer login. */
     async changePassword(body: PasswordChangeRequest): Promise<void> {
       const expected = version;
+      const authorization = authorizationVersion;
       const perform = () => {
+        assertCurrent(expected, authorization);
         const gate = options.authGate?.("password") ?? direct;
         return gate(() => authDeadline(async signal => {
           const tokens = await readTokens(expected);
           if (!tokens?.accessToken) throw new ApiError(401, "Entre novamente para continuar.");
+          assertCurrent(expected, authorization);
           const request = options.protocol.password(body);
           const headers = new Headers(request.init.headers);
           headers.set("Authorization", `Bearer ${tokens.accessToken}`);
@@ -195,6 +229,8 @@ export function createBearerClient<C extends { accessToken: string }, S extends 
         }));
       };
       let response = await perform();
+      assertCurrent(expected);
+      if (response.status !== 204) assertCurrent(expected, authorization);
       if (response.status === 401) {
         await response.body?.cancel();
         // Release the web cookie lock before renewing, then revalidate the
@@ -207,10 +243,13 @@ export function createBearerClient<C extends { accessToken: string }, S extends 
         const error = response.ok
           ? new ApiError(response.status, "A API não confirmou a alteração da senha.", "INVALID_RESPONSE")
           : await responseError(response);
-        assertCurrent(expected);
+        assertCurrent(expected, authorization);
+        if (restrictSession(error, expected, authorization)) throw error;
         if (response.status === 401) await loseSession(expected);
         throw error;
       }
+      // A confirmed204 already revoked the server families. Authorization hints
+      // cannot turn it into a retry; only a newer identity supersedes this result.
       assertCurrent(expected);
       try { await loseSession(expected); }
       catch (error) {
@@ -221,9 +260,14 @@ export function createBearerClient<C extends { accessToken: string }, S extends 
     },
     async restore(): Promise<C | null> {
       const expected = version;
+      const authorization = authorizationVersion;
       if (locallySignedOut) return null;
+      // Complete credential rotation even if authorization changes, but do not
+      // hand an old profile snapshot back to UI after a restriction callback.
       await refreshSession(expected);
-      return readTokens(expected);
+      const tokens = await readTokens(expected);
+      assertCurrent(expected, authorization);
+      return tokens;
     },
     async login(email: string, password: string, code?: string): Promise<S> {
       const expected = ++version;

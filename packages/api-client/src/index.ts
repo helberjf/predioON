@@ -1,8 +1,9 @@
 import type { InvitationAcceptRequest, InvitationPreview, InvitationPreviewRequest, PasswordForgotRequest, Session, SessionTokens } from "@predioon/contracts/auth";
 import type { ReservationAvailabilityQuery } from "@predioon/contracts";
-import { createBearerClient, type CredentialStorage } from "#engine";
+import { createBearerClient, type CredentialStorage, type MfaRestriction } from "#engine";
 import { ApiError } from "#errors";
 
+export type { MfaRestriction } from "#engine";
 export { ApiError, type ApiErrorCode } from "#errors";
 export type { PasswordChangeRequest, Session, SessionTokens, WebSession } from "@predioon/contracts/auth";
 export { createWebApiClient, type WebApiClient, type WebApiClientOptions, type WebSessionCoordinator } from "#web-client";
@@ -21,6 +22,7 @@ export type ApiClientOptions = {
   fetch: typeof globalThis.fetch;
   storage: TokenStorage;
   onAuthLost?: () => void;
+  onMfaRequired?: (restriction: MfaRestriction) => void;
 };
 
 /** Public recovery deliberately bypasses authenticated storage and session effects. */
