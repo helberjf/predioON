@@ -1,0 +1,138 @@
+{
+  "recordedAt": "2026-11-04T14:21:01.228Z",
+  "status": "TYPECHECK_PASS_RUNTIME_UNEXECUTED",
+  "candidateManifestSha256": "60fbbb69942861e948352d42cff6be5c1a83866b3bf4184570bd4154daf0c92e",
+  "oneCompilerExecution": true,
+  "preparationV1": "Refused before overlay/junction/compiler because10 checkout files differ from archive only in CRLF/LF; preserved and audited. Not a typecheck failure.",
+  "command": "node apps/api/node_modules/typescript/bin/tsc --noEmit -p tsconfig.json (cwd isolated apps/api)",
+  "sourceBase": "b259f80b158aff08f255a83f9d8ae551289d5fcf",
+  "observedHead": "8d2992d1d16a63472007868acdf0cb56a83b4315",
+  "sourceCount": 989,
+  "freeMiBBefore": 2826,
+  "parentHeapMiB": 256,
+  "childHeapMiB": 640,
+  "deadlineMs": 300000,
+  "result": {
+    "status": "TYPECHECK_PASS",
+    "runtimeExecuted": false,
+    "databaseStarted": false,
+    "expected": "b259f80b158aff08f255a83f9d8ae551289d5fcf",
+    "observedAfter": "8d2992d1d16a63472007868acdf0cb56a83b4315",
+    "startedAt": "2026-11-04T14:20:14.846Z",
+    "finishedAt": "2026-11-04T14:20:28.808Z",
+    "durationMs": 13962,
+    "childPid": 3344,
+    "exitCode": 0,
+    "signal": null,
+    "errorCode": null,
+    "timedOut": false,
+    "mainVerified": true,
+    "candidateVerified": true,
+    "isolatedVerified": true,
+    "nonDocsDiff": "",
+    "dirty": "",
+    "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "preparedSha256": "60808c84f1363b77a6e74e24e677e0d87e20ef4d77d130b8fb963ef516c9aa90"
+  },
+  "limits": {
+    "databaseStarted": false,
+    "migrationApplied": false,
+    "runtimeTests": false,
+    "nativeBuild": false,
+    "mainModified": false,
+    "dependencyInstallation": false,
+    "dependencyResolution": "Only node_modules junctions reuse installed dependencies; workspace package sources may resolve to original checkout, whose989nonDocbytes were frozen and verified unchanged."
+  },
+  "artifacts": [
+    {
+      "file": "handoff-v1.json",
+      "bytes": 2431,
+      "sha256": "60fbbb69942861e948352d42cff6be5c1a83866b3bf4184570bd4154daf0c92e"
+    },
+    {
+      "file": "typecheck-v1.mjs",
+      "bytes": 5318,
+      "sha256": "22a15f96c0245eb4fd40302a137cdf3d47eb57b1ad732afc586c614ad7437fbd"
+    },
+    {
+      "file": "typecheck-v1/preparation-refusal.json",
+      "bytes": 3154,
+      "sha256": "5787ed772d433a6e0d178d72e30259d2028daab6c3471da10cf8a6886d4997ea"
+    },
+    {
+      "file": "typecheck-v1/canonical-archive-review.json",
+      "bytes": 229,
+      "sha256": "e64bc926cb0d42a56a5ded17e6c882835dcdc23af5ed517a18121eeb5d775f8f"
+    },
+    {
+      "file": "typecheck-v2.mjs",
+      "bytes": 9172,
+      "sha256": "149c1436017aecf322c526548878272921cded30b1156a5c75a8bd97d02b3988"
+    },
+    {
+      "file": "typecheck-v2-helper.patch",
+      "bytes": 9034,
+      "sha256": "db2f8e722653655b63515be1832595467bf9ba1a4eff75697de0ab13c125c459"
+    },
+    {
+      "file": "typecheck-v2/base.tar",
+      "bytes": 29655040,
+      "sha256": "ae72d006ff9e4563b68727c7903736a5d3ee31c19fc99115887c1f84f3eeb71e"
+    },
+    {
+      "file": "typecheck-v2/prepared.json",
+      "bytes": 371583,
+      "sha256": "60808c84f1363b77a6e74e24e677e0d87e20ef4d77d130b8fb963ef516c9aa90"
+    },
+    {
+      "file": "typecheck-v2/result.json",
+      "bytes": 704,
+      "sha256": "d64870b0c92d653c60a32f0124155bdc19616a7a4da7d19dc33897b167d31558"
+    },
+    {
+      "file": "typecheck-v2/typecheck.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "kind": "external-mfa-four-auth-files-api-typecheck",
+  "handoffSha256": "1c6d0043e0cfaeb1f613023e8ccfc965c837da6672d0b4217cb5aeecb1faf897",
+  "candidateFiles": [
+    {
+      "path": "apps/api/src/auth/mfa-factor.ts",
+      "part": "api",
+      "state": "modified",
+      "beforeSha256": "f349ef155cab5bb4edb038edf8ade46c003e18b9166bda87f50e992b355d6532",
+      "sha256": "cafb6d5120cdcf851beee85d82bca8d71eee543ccea4c1f39930a33b895ff6ac"
+    },
+    {
+      "path": "apps/api/src/auth/mfa.ts",
+      "part": "api",
+      "state": "modified",
+      "beforeSha256": "8430c78d4946da6b22162c19cf7b63da3ae56217896d3983b6741e6ef38d1ab5",
+      "sha256": "87e3dd393485dd5079785d9e36dff5c3236fdb7cd8e2abe2c03199ce0a1298c1"
+    },
+    {
+      "path": "apps/api/src/auth/service.ts",
+      "part": "api",
+      "state": "modified",
+      "beforeSha256": "ba0a3538eec7c5de93d1275bde5376f014d0957d7fb46681ab682653d5d422a6",
+      "sha256": "df12d9beec32a8961e04056c918b8226456a8e185ebdc22804bddfb26ddbd639"
+    },
+    {
+      "path": "apps/api/src/auth/verification.ts",
+      "part": "api",
+      "state": "modified",
+      "beforeSha256": "f3b5b1784d574484e7b1cb9ffaaed3c0e955aea8e9c907303babbd7782f5f15c",
+      "sha256": "5a7b7404c8f7358f4c878fb5ff09b2001572b94adc1ef4c7d2996eede967217c"
+    }
+  ],
+  "independentReadOnlyReview": {
+    "approved": true,
+    "artifactsVerified": 10,
+    "sourceFilesVerified": 989,
+    "candidateFilesVerified": 4,
+    "reviewerExecutedCompiler": false
+  },
+  "scope": "Original API tsconfig/src with exactly four auth candidate overlays; the two future test files were not typechecked or executed."
+}

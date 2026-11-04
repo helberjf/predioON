@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "recordedOn": "2026-11-04",
-  "status": "INCOMPLETE_UNEXECUTED_CANDIDATE_NOT_FOR_ROLLOUT",
+  "status": "INCOMPLETE_RUNTIME_UNEXECUTED_NOT_FOR_ROLLOUT",
   "baseCommit": "b259f80b158aff08f255a83f9d8ae551289d5fcf",
   "baseCommitUrl": "https://github.com/helberjf/predioON/commit/b259f80b158aff08f255a83f9d8ae551289d5fcf",
   "files": [
@@ -85,13 +85,9 @@
   ],
   "testsExecuted": 0,
   "redObserved": false,
-  "typecheckExecuted": false,
+  "typecheckExecuted": true,
   "migrationApplied": false,
   "productionSourceModified": false,
-  "syntaxOnly": {
-    "fourApiFiles": "TypeScript parser PASS, no emission/typecheck",
-    "harness": "PowerShell parser0 errors and node --check0, no imports/DB"
-  },
   "independentReadOnlyReview": {
     "testFixtureApprovedForHarness": true,
     "apiCandidateApprovedForPreservation": true,
@@ -110,8 +106,20 @@
     "Candidate SQL only protects organizations and legacy support. The third devices race is outside that SQL slice; other domains and SECURITY DEFINER projections need explicit coverage.",
     "Disable checks obligation and later deletes in separate statements; promotion between them remains unresolved.",
     "Persisted-field readback after triggers and expiration while waiting for family locks require directed proofs; no reproduced failure or runtime-role attack claimed.",
-    "No typecheck, DB, RED, GREEN, native build or production acceptance of this candidate. SQL068 number is not reserved; recheck current main before implementation."
+    "API typecheck passed; no DB, RED, GREEN, native build or production acceptance of this candidate. SQL068 number is not reserved; recheck current main before implementation."
   ],
   "previousCheckpoints": "The old six-case and two-case draft checkpoints remain byte-identical historical designs. This candidate has the corrected six-case policy and three race cases; do not combine their counts.",
-  "harnessAttempt": "See ../../evidencias/mfa-memory-refusal-2026-11-04.json; guard refused before any Node/fixture/test execution."
+  "harnessAttempt": "See ../../evidencias/mfa-memory-refusal-2026-11-04.json; guard refused before any Node/fixture/test execution.",
+  "typecheckResult": {
+    "passed": true,
+    "sourceFiles": 4,
+    "durationMs": 13962,
+    "evidence": "../../evidencias/mfa-family-typecheck-2026-11-04.json",
+    "runtimeTestsExecuted": false
+  },
+  "preTypecheckSyntaxChecks": {
+    "fourApiFiles": "TypeScript parser PASS, no emission/typecheck",
+    "harness": "PowerShell parser0 errors and node --check0, no imports/DB",
+    "scope": "Historical syntax-only checks before the later successful API compiler run."
+  }
 }

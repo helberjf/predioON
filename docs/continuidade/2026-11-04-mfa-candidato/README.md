@@ -1,14 +1,14 @@
 # Retomada do candidato de MFA — 04/11/2026
 
-**INCOMPLETO, NÃO EXECUTADO, SEM RED/GREEN E SEM ACEITE PARA PRODUÇÃO.** O código principal continua em migrations001–067; os arquivos desta pasta são documentos de recuperação e não participam do runtime, do glob da API ou do executor de migrations. O guard recusou o ensaio por falta de memória antes de iniciar Node/fixture/testes. A revisão foi estática.
+**INCOMPLETO, SEM TESTES FUNCIONAIS, SEM RED/GREEN E SEM ACEITE PARA PRODUÇÃO.** O código principal continua em migrations001–067; os arquivos desta pasta são documentos de recuperação e não participam do runtime, do glob da API ou do executor de migrations. O guard recusou o ensaio por falta de memória antes de iniciar Node/fixture/testes. A revisão de comportamento foi estática. Depois dela, o typecheck da API com quatro fontes candidatas passou em uma execução de13,962s, sem diagnósticos; [prova e limites](../../evidencias/mfa-family-typecheck-2026-11-04.json). Os dois arquivos de testes não foram compilados/executados nessa fase.
 
 ## Conteúdo e estado
 
 - [Manifesto](MANIFESTO.json): base exata, seis fontes, hashes, patches e limites.
 - [Testes](testes-red.patch): dois arquivos novos, nove casos planejados. Corrige o controle de catálogo/flag e acrescenta a promoção após uma capacidade local legítima, antes da leitura de devices. Cleanup remove o prédio próprio antes da organização. Os checkpoints anteriores de seis/dois casos ficam históricos; não somar suas contagens.
-- [API candidata](prova-por-familia.patch): quatro arquivos auth, com consumo por geração e prova por família, preservando055. Apenas parser TypeScript passou; não houve verificação de tipos ou execução.
+- [API candidata](prova-por-familia.patch): quatro arquivos auth, com consumo por geração e prova por família, preservando055. Parser e typecheck da API passaram; nenhum teste funcional foi executado.
 - [SQL candidato](068-plataforma-mfa.candidata.sql.txt): persistência, helpers, ACL normalizada e primeira fatia de policies/envelope de organizações e suporte. É um documento.txt, não uma migration aplicada ou número reservado.
-- [Mapa de integração](MAPA_INTEGRACAO.txt) e [revisão do recorte API](REVISAO_API.md): raciocínio, arquivos e provas futuras. A orientação antiga do itemB do mapa, sobre promoção depois de assertGlobalCapability em organizações, foi substituída pelo terceiro caso de capacidade local/devices; um usuário comum não deve ultrapassar um assert global administrativo para fabricar a fixture.
+- [Mapa de integração](MAPA_INTEGRACAO.txt) e [revisão do recorte API](REVISAO_API.md): raciocínio, arquivos e provas futuras. Essa revisão foi escrita antes do typecheck; a prova posterior acima atualiza somente o estado de tipos, sem validar comportamento. A orientação antiga do itemB do mapa, sobre promoção depois de assertGlobalCapability em organizações, foi substituída pelo terceiro caso de capacidade local/devices; um usuário comum não deve ultrapassar um assert global administrativo para fabricar a fixture.
 
 ## O que falta implementar
 
