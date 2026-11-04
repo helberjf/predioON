@@ -34,6 +34,8 @@ Atualizado em **04/11/2026**, horário de São Paulo. Leia este arquivo primeiro
 
 **Rascunho atual de MFA: um arquivo novo, ainda não executado.** Seis casos foram autorados e revisados estaticamente em cópia externa; não houve teste/typecheck, RED observado, implementação ou migration068. [Manifesto e instruções](continuidade/2026-11-04-mfa-reds-manifesto.json) e [patch](continuidade/2026-11-04-mfa-reds.patch), base exata14e3008; restauração comprovada somente para esse novo arquivo. O arquivo não foi inserido no glob real da API, que conserva81 arquivos. O checkpoint vazio anterior é o da ingestão já publicada. Rever a fronteira de catálogo/flag/suporte010 antes do aceite da política MFA. Próximo: baseline API atual, depois RED dirigido em UUID exclusiva e implementação.
 
+**API geral atual aprovada — fonte `4eb7cab`:** uma execução original serial dos **81 arquivos**, **865/865 casos e 74 suítes**, zero falhas/skips/cancelamentos, **19min29s**. Flags de integração ativas, PostgreSQL UUID com67 migrations; cleanup e seis roles/credenciais/settings restaurados por igualdade privada, bancos/clients temporários0. Os989 arquivos fora de docs foram conferidos antes/depois; a atualização documental paralela atéee542 não mudou código. [Prova, recursos e limites](evidencias/api-full-baseline-2026-11-04.json). É o baseline anterior à MFA obrigatória, não aceite dessa implementação futura ou de produção. Próximo: ingestão completa e builds ainda pendentes, depois RED/implementação MFA e aceites nativos/operacionais.
+
 ## 1. Instruções permanentes do proprietário
 
 - Commits pequenos em Conventional Commits (`feat:`, `fix:`, `test:`, `docs:`), com push na `main` depois de cada incremento verificado.
@@ -144,7 +146,7 @@ A sequência do job de plataforma, as flags das suítes SQL038/SQL052 e os clust
 
 - Ledger 067 corrigido em `1769caf`: RED preservado; notificações 54/54 e restores 2/2 passaram, com dados, ACL/RLS, seis roles e cleanup conferidos. Manter esses ensaios na regressão; não restaurar os testes antigos de 040.
 - Rodar a suíte Playwright reorganizada por inteiro (`pnpm test:e2e:chromium`, depois Firefox), incluindo o `@smoke` e as specs novas, e registrar o resultado.
-- Manter as provas dirigidas de 04/11 na regressão. Executar a API geral atual e os demais módulos recentes ainda não cobertos, incluindo responsável de ordens e regras padrão de alertas, antes de declarar aprovação ampla; não somar os 47 casos API nem os ensaios de ingestão como integrais.
+- Manter as provas dirigidas de 04/11 na regressão. API geral atual passou865/865; preservar esse baseline e completar ingestão, consumidores/builds e aceites operacionais antes de declarar aprovação ampla; não somar os 47 casos API nem os ensaios de ingestão como integrais.
 - Ensaio de carga com a ingestão real (MQTT mensagem a mensagem).
 - Teste intermitente conhecido: `password-recovery.test.ts` → "keeps two-step verification in place after a reset" falhou 1 vez na integral de 18/10 (a ativação da MFA não devolveu a chave) e passou 3/3 isolado; mesmo sintoma de limite de requisições compartilhado já visto antes. Investigar sem afrouxar o limite.
 - Avisos Fabric: não se repetiram em quatro execuções no emulador em 18/10; a causa dos registros de outubro no CI segue sem demonstração.

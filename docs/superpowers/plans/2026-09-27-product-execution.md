@@ -457,3 +457,7 @@ O ponto corrente está na [continuidade](../../CONTINUIDADE.md), sem rascunhos d
 ### Próximo recorte de identidade — plano de 04/11
 
 [MFA obrigatória da administração](2026-11-04-platform-admin-mfa.md): planejamento técnico revisado, **não implementado e REDs não executados**. Sessão restrita e prova por geração/família, autoridade vigente incluindo binding global, HTTP/SSE, consumidores e adaptação explícita das fixtures. Não marcar a obrigatoriedade administrativa como concluída nem RF-07 amplo como aceito. Migration068 permanece proposta, fonte atual001–067. A [continuidade](../../CONTINUIDADE.md) registra o checkpoint de recursos e os testes já observados; retomar o primeiro RED em banco descartável quando houver memória.
+
+### Baseline API de 04/11
+
+[API geral](../../evidencias/api-full-baseline-2026-11-04.json):81 arquivos originais, uma invocação serial,865/865 casos/74 suítes/zero skips ou falhas, fonte4eb7cab equivalente em código à14e. UUID67, seis roles/restauração/cleanup/fonte verificados. UI dirigida14e separada:4+skip1,4+skip1,5 e7 em Chromium com API sintética. Não somar esses conjuntos para anunciar produto integral. Ingestão completa, builds, MFA obrigatória e aceites nativos/produção continuam pendentes; depois da alteração de identidade, revalidar o baseline.

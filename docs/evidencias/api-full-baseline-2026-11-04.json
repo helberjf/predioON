@@ -1,0 +1,206 @@
+{
+  "schemaVersion": 2,
+  "status": "API_FULL_ORIGINAL_BASELINE_PASS",
+  "recordedUtc": "2026-11-04T05:37:24.8487543Z",
+  "expectedSourceCommit": "4eb7cab35817e3f46688eac8df43d16b289fb8d2",
+  "observedHeadAfter": "ee54217831589351c135dc3f08055bf50337fbca",
+  "nonDocsCommitChanges": "NONE",
+  "documentationScopeExcluded": "docs/ only; no API/DB/shared/contracts runtime/test reads identified",
+  "documentationWorkingChangesBefore": " M docs/COMPRAS_PILOTO.md\n",
+  "documentationWorkingChangesAfter": "",
+  "sourceArchiveSha256": "a5d84cbb4add3ee8dfb2d9ae48977c7b365ea41701d7243af19c538c0cc5e912",
+  "nonDocsSourceFilesVerified": 989,
+  "sourceHashesAfterMatch": true,
+  "testFiles": 81,
+  "runner": "One original node --import tsx --test --test-concurrency=1 test/*.test.ts invocation, TAP reporter",
+  "tap": {
+    "tests": 865.0,
+    "suites": 74.0,
+    "pass": 865.0,
+    "fail": 0.0,
+    "cancelled": 0.0,
+    "skipped": 0.0,
+    "todo": 0.0,
+    "duration_ms": 1168779.0577
+  },
+  "execution": {
+    "label": "test-api-full",
+    "pid": 15500,
+    "exitCode": 0,
+    "signal": null,
+    "spawnError": false,
+    "errorCode": null,
+    "timedOut": false,
+    "logSha256": "07c28a3474233b825d051c02e03a3a64896ff054955504be6f27f2260e054ef9"
+  },
+  "testStartedUtc": "2026-11-04T05:16:46.958Z",
+  "testEndedUtc": "2026-11-04T05:36:16.385Z",
+  "fixture": {
+    "official": "packages/db/test/fixtures/runtime-services.ts",
+    "freshUuidDatabase": true,
+    "canonicalMigrations": 67,
+    "bootstrapProvisionSeed": "official",
+    "physicalFeaturesSeed": "enabled only in own UUID",
+    "seedPassword": "original synthetic fixture default; no real credentials",
+    "sevenUrlsSameOwnedDatabase": true,
+    "sixRuntimeRolePasswords": "fresh random; restored privately",
+    "ownerAvailableToAdministrativeFixtures": true,
+    "runtimePoolsRestricted": true,
+    "cleanupPassed": true
+  },
+  "postchecks": {
+    "exitCode": 0,
+    "systemIdentifierMatches": true,
+    "basePublicTables": 0,
+    "temporaryDatabases": 0,
+    "otherDatabases": 0,
+    "rolesRestoredIncludingPrivateCredentials": true,
+    "settingsRestored": true,
+    "roles": 6,
+    "otherClients": 0,
+    "containerAttestationMatches": true,
+    "freeMiBAtStart": 1768.0,
+    "computerRestarted": false,
+    "credentialsPublished": false
+  },
+  "resource": {
+    "parentHeapMiB": 256,
+    "childHeapMiB": 384,
+    "testConcurrency": 1,
+    "hostGuardMiB": 1536,
+    "freeMiBAtStart": 1768.0,
+    "minimumSampledHostFreeMiB": 739.0,
+    "databaseCapMiB": 384,
+    "databaseCpu": 1,
+    "databaseCgroupPeakBytes": 402653184,
+    "databaseMaxEvents": 42,
+    "databaseOomEvents": 0,
+    "databaseOomKills": 0,
+    "databaseRestartCount": 0
+  },
+  "scope": {
+    "originalApiFullGlob": true,
+    "browserMatrix": false,
+    "ingestFull": false,
+    "nativeMobile": false,
+    "newMfaCandidateExecuted": false,
+    "productionAcceptance": false
+  },
+  "endState": {
+    "ownedClusterRunningIdle": true,
+    "otherDatabaseClients": 0,
+    "ownedNodeProcessesRemaining": 0,
+    "noComputerOrDockerWslRestart": true,
+    "noAutomaticRetry": true
+  },
+  "artifacts": [
+    {
+      "artifact": "launch-api-full-v2.ps1",
+      "sha256": "3bb6e900b97303d066681b82a3f87464780910f27348a24b7b8c7ac1fa5fa60d",
+      "bytes": 9682
+    },
+    {
+      "artifact": "run-api-full-v2.mjs",
+      "sha256": "e8939d9e0ee9f2fa7da5604fa4f2e80df550aa501b37ed52be29372a08322067",
+      "bytes": 6650
+    },
+    {
+      "artifact": "plan-handoff-v2.json",
+      "sha256": "d0869a154ef248869652a17746afa552b4beea938024df8c48e0e68e6263567e",
+      "bytes": 933
+    },
+    {
+      "artifact": "PLAN-v2.md",
+      "sha256": "8a4ed18be3d519cfbc8e02d13c44d28ff84002f7f49d7a2ad0088039d1d1f951",
+      "bytes": 2468
+    },
+    {
+      "artifact": "controller-start.json",
+      "sha256": "1551adf2099a9f72202cac1a395318f45a55ebc47cd0170ab40584fca7a372b6",
+      "bytes": 252
+    },
+    {
+      "artifact": "execute-v2-attempt-1.log",
+      "sha256": "3d0e14e4f01fb0c503b52f4e90b393653a9ce65dffb3aaedc2a5a4d399a53bd7",
+      "bytes": 390
+    },
+    {
+      "artifact": "execute-v2-attempt-1-result.json",
+      "sha256": "06a4c8a51d1ae11b0d724fc996583c59cb1b7911b2a9aafefaad832fa1c1cd00",
+      "bytes": 122
+    },
+    {
+      "artifact": "api-full-result.json",
+      "sha256": "f2868fa70505401e972baeadfbcb7f9af2b71338a31b89899d10b8f74f259067",
+      "bytes": 156280
+    },
+    {
+      "artifact": "api-full-postchecks.json",
+      "sha256": "3d0e14e4f01fb0c503b52f4e90b393653a9ce65dffb3aaedc2a5a4d399a53bd7",
+      "bytes": 390
+    },
+    {
+      "artifact": "test-api-full.log",
+      "sha256": "07c28a3474233b825d051c02e03a3a64896ff054955504be6f27f2260e054ef9",
+      "bytes": 249090
+    },
+    {
+      "artifact": "provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "artifact": "seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "artifact": "process-progress.jsonl",
+      "sha256": "1dca263f46e68c7bda33462305f09ff7ccfca7d13e369b56606d3349e66d97ae",
+      "bytes": 4229
+    },
+    {
+      "artifact": "process-postchecks.json",
+      "sha256": "bd1aaa87c40ca7995d57af68c7ae562eeef510a8035e7108a9272b27d99e4ece",
+      "bytes": 115
+    },
+    {
+      "artifact": "container-final-metadata.txt",
+      "sha256": "84c345c74c69dc21352975e21613c1e879f313beba7164958c7cbbdcca99d81b",
+      "bytes": 317
+    },
+    {
+      "artifact": "container-final-cgroup.txt",
+      "sha256": "8cd2512a774e1f625162b83bd56e35aa9b48095cc1afb51c148f510a27c7f146",
+      "bytes": 207
+    },
+    {
+      "artifact": "source-4eb7cab35817e3f46688eac8df43d16b289fb8d2.tar",
+      "sha256": "a5d84cbb4add3ee8dfb2d9ae48977c7b365ea41701d7243af19c538c0cc5e912",
+      "bytes": 29562880
+    }
+  ],
+  "kind": "full-original-api-test-glob-baseline",
+  "sourceCommitUrl": "https://github.com/helberjf/predioON/commit/4eb7cab35817e3f46688eac8df43d16b289fb8d2",
+  "handoffSha256": "45a32145283a6d195a09b42df8c939d303a0de102f409ef0fb294f2f5d9a860a",
+  "executionFlags": {
+    "RUN_ACCESS_DB_TESTS": "1",
+    "RUN_RBAC_DB_TESTS": "1",
+    "NODE_ENV": "test",
+    "RESEND_API_KEY": "blank",
+    "DEMO_SCENARIOS": "absent; original default preserved"
+  },
+  "independentReadOnlyReview": {
+    "approved": true,
+    "artifactsVerified": 17,
+    "nonDocsSourcesVerified": 989,
+    "reviewerExecutedTests": false
+  },
+  "limits": [
+    "One original serial API glob execution with a fresh UUID PostgreSQL fixture and canonical migrations001–067; baseline before mandatory MFA implementation.",
+    "Documentation-only changes were excluded after dependency review; code, tests, configuration and lockfiles outside docs were frozen and verified.",
+    "Owner was available to administrative fixture arrangements/observations; runtime handlers used their restricted URLs. No all-processes-without-owner claim.",
+    "Host memory guard was checked before execution; the sampled739MiB during execution is retained, not a continuous-minimum guarantee.",
+    "No full ingestion, current three-engine real-backend browser matrix, native, physical-equipment, new MFA candidate or production acceptance."
+  ]
+}
