@@ -1,0 +1,419 @@
+{
+  "recordedOn": "2026-11-04",
+  "status": "CANDIDATE_PURE_UNITS_PASSED_INTEGRATION_PENDING",
+  "consumerVersion": 5,
+  "baseCommit": "b259f80b158aff08f255a83f9d8ae551289d5fcf",
+  "clientSourceCommit": "9e79bdeed2b074bd8b9c4fd46e3a51ff9fa4377f",
+  "candidateSources": [
+    {
+      "path": "apps/admin-web/src/App.tsx",
+      "sha256": "749ff4ad79175a63f41b0bd9aa898cb95ff09c6ad23caddd4ad9d17a7930c76d",
+      "bytes": 4236
+    },
+    {
+      "path": "apps/building-web/src/App.tsx",
+      "sha256": "6ce0fb1859eccb1a320123543b122bc25e12579bf17ffdb966c78aa18e6b6f2a",
+      "bytes": 5800
+    },
+    {
+      "path": "apps/operations-mobile/App.tsx",
+      "sha256": "51707283bce00301229eebbc1adbb53989662da5fcbbe136f807de49edaaeaa8",
+      "bytes": 251
+    },
+    {
+      "path": "apps/operations-mobile/config.ts",
+      "sha256": "250eb254d04ad9ba2542ac944882039e12434098c6d5e65c4cfcc1aec7a352f2",
+      "bytes": 426
+    },
+    {
+      "path": "apps/resident-mobile/App.tsx",
+      "sha256": "9af80149bd82a7bcbc5710693a7b13718af188375ef5da86bb4054bf3b580271",
+      "bytes": 336
+    },
+    {
+      "path": "apps/resident-mobile/config.ts",
+      "sha256": "250eb254d04ad9ba2542ac944882039e12434098c6d5e65c4cfcc1aec7a352f2",
+      "bytes": 426
+    },
+    {
+      "path": "apps/resident-web/src/App.tsx",
+      "sha256": "d9408c0a7a00741b3047989b993a0bc8bbcebcb164f24d951761f5d58d13b620",
+      "bytes": 3110
+    },
+    {
+      "path": "packages/mobile/src/access-intent-lifecycle.ts",
+      "sha256": "37dc42dde59c3ef7a68f4fd2df8f2f554c7fd44a88afe005aef9261472d58b9d",
+      "bytes": 503
+    },
+    {
+      "path": "packages/mobile/src/app.tsx",
+      "sha256": "f8d7a1c636df8c1a6d90ac25684bae36eade0e2eb0369351bc263aa854a6b46f",
+      "bytes": 17841
+    },
+    {
+      "path": "packages/mobile/src/mfa-profile-recheck.ts",
+      "sha256": "e1049ece49d55d1903fe91fdbe982a003d939c2419543f58198ec10dbfdb9f6a",
+      "bytes": 470
+    },
+    {
+      "path": "packages/mobile/src/mfa-session-gate.tsx",
+      "sha256": "476b3164470bc914d46756ef3421bbef80c55e8cf4905f80bde477a2ae05d434",
+      "bytes": 2587
+    },
+    {
+      "path": "packages/mobile/test/access-intent-lifecycle.test.ts",
+      "sha256": "ceb42d84832bc5769fa76a4bbf6ab58d7a27baab00197bebbbb31ddadb14712a",
+      "bytes": 1857
+    },
+    {
+      "path": "packages/mobile/test/mfa-profile-recheck.test.ts",
+      "sha256": "aa0dc58c0e444dea37524a49f279cd7c08e66ef1a48e6a1ebccb0dd108d0b25a",
+      "bytes": 1061
+    },
+    {
+      "path": "packages/ui/src/api.ts",
+      "sha256": "a335a8a58c5b15929365acf92b86fdf8e715f85e4a19fde6d69fd126ecdd6bfa",
+      "bytes": 3034
+    },
+    {
+      "path": "packages/ui/src/auth-state.ts",
+      "sha256": "e15bb1ad5aae806ffb0296ce4508a3e9cd1af79e866a49ab42abf4f59fc626ce",
+      "bytes": 6160
+    },
+    {
+      "path": "packages/ui/src/auth.tsx",
+      "sha256": "98dad11ff14705294222f1d7d855301619f9967aa01c6936c0dc6e6f94ac185f",
+      "bytes": 3885
+    },
+    {
+      "path": "packages/ui/src/components/mfa-ceremony-host.tsx",
+      "sha256": "e95f7426f28e53cec15b71ae2c86c97d4aa96d545355a4870ec16e95d63a75b5",
+      "bytes": 4678
+    },
+    {
+      "path": "packages/ui/src/components/mfa-panel.tsx",
+      "sha256": "4e49c42a428bb85c181412e1263809bda4ec76bf0955a383c2948bb4f99dec5a",
+      "bytes": 7600
+    },
+    {
+      "path": "packages/ui/src/components/mfa-session-gate.tsx",
+      "sha256": "783a7c07a3799fe746b93ae938461affedf68fe44541428b725c33b6f00f1681",
+      "bytes": 1556
+    },
+    {
+      "path": "packages/ui/src/components/sessions-panel.tsx",
+      "sha256": "e7762efd7ea1379bf371d052a55ad333ac76d7e2dea4de43a1f5b0ae71f5ed75",
+      "bytes": 7788
+    },
+    {
+      "path": "packages/ui/src/index.ts",
+      "sha256": "f40810ac9c10c77a068c1b33c81ed4063062a0a2bb243c13fcb3ad0435eb6b8e",
+      "bytes": 2211
+    },
+    {
+      "path": "packages/ui/src/mfa-ceremony.tsx",
+      "sha256": "8f158b0eb94edef2cfbe01586b603655cd9c01c2a4efa490f57caaca2f35ba75",
+      "bytes": 1604
+    },
+    {
+      "path": "packages/ui/src/sse.ts",
+      "sha256": "28a8f447fb0d281836ba2960b76cf0c9aed8e5aa93d3df5d4c59f9dee5e06058",
+      "bytes": 1262
+    },
+    {
+      "path": "packages/ui/test/auth-mfa-profile.test.ts",
+      "sha256": "be05b36d43368b7e1dc2149d3ffe047cb4f803c7ea4c4f8353bbbe43222c19a4",
+      "bytes": 7359
+    }
+  ],
+  "candidateArchiveSha256": "e23772f77c29136d1851a5fb30d329a019439f5723ed9dd4cd734d66c6400f6d",
+  "publicCheckpoint": "docs/continuidade/2026-11-04-mfa-integracao/MANIFESTO.json",
+  "publicPatch": "docs/continuidade/2026-11-04-mfa-integracao/consumidores.patch",
+  "publicPatchSha256": "19b290c5fcf436f8115f19a0d169ff24b30dc8914c969284b93f00651672e59d",
+  "pureUnitTests": {
+    "passed": 19,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "durationMs": 492.4401,
+    "startedUtc": "2026-11-04T16:21:02.9988015Z",
+    "endedUtc": "2026-11-04T16:21:03.6920924Z",
+    "exitCode": 0,
+    "timedOut": false,
+    "testFiles": [
+      "packages/mobile/test/access-intent-lifecycle.test.ts",
+      "packages/mobile/test/mfa-profile-recheck.test.ts",
+      "packages/ui/test/auth-mfa-profile.test.ts"
+    ],
+    "command": [
+      "node.exe",
+      "--max-old-space-size=384",
+      "--experimental-strip-types",
+      "--test",
+      "--test-concurrency=1",
+      "--test-timeout=10000",
+      "packages/ui/test/auth-mfa-profile.test.ts",
+      "packages/mobile/test/mfa-profile-recheck.test.ts",
+      "packages/mobile/test/access-intent-lifecycle.test.ts"
+    ],
+    "workingDirectoryRelativeToWork": "mfa-consumer-pure-v5-qa-20261104/source",
+    "commandRecord": "Reported by the executing agent from ProcessStartInfo.ArgumentList; PowerShell wrapper was inline, not persisted. Executable was resolved by Get-Command node.exe; absolute executable path was not recorded.",
+    "coverage": [
+      "Mobile command stores: foreground, MFA hints, new identity and unmount; only new explicit gestures accepted.",
+      "Profile rereads: stale success/failure rejection, current success/failure, coalescing, bounded 403 notifications and unmount cancellation.",
+      "Ceremony identity: authorization hints preserve identity while login/logout/restore replace it.",
+      "SSE profile policy: restricted 200 response rejects reconnect; unknown state rejects with 503; current operational states pass; late identity cannot publish."
+    ],
+    "freeMiBBefore": 2095.0,
+    "heapMiB": 384,
+    "deadlineSeconds": 60,
+    "fileTimeoutMs": 10000,
+    "frozenSourceFiles": 44,
+    "sourceHashMismatches": 0,
+    "ownedProcessAliveAfter": false,
+    "sourceComposition": "Backend candidate contracts + published client 9e79bde + consumer V5 in an isolated source tree.",
+    "frozenSources": [
+      {
+        "path": "apps/admin-web/src/App.tsx",
+        "sha256": "749ff4ad79175a63f41b0bd9aa898cb95ff09c6ad23caddd4ad9d17a7930c76d"
+      },
+      {
+        "path": "apps/building-web/src/App.tsx",
+        "sha256": "6ce0fb1859eccb1a320123543b122bc25e12579bf17ffdb966c78aa18e6b6f2a"
+      },
+      {
+        "path": "apps/operations-mobile/App.tsx",
+        "sha256": "51707283bce00301229eebbc1adbb53989662da5fcbbe136f807de49edaaeaa8"
+      },
+      {
+        "path": "apps/operations-mobile/config.ts",
+        "sha256": "250eb254d04ad9ba2542ac944882039e12434098c6d5e65c4cfcc1aec7a352f2"
+      },
+      {
+        "path": "apps/resident-mobile/App.tsx",
+        "sha256": "9af80149bd82a7bcbc5710693a7b13718af188375ef5da86bb4054bf3b580271"
+      },
+      {
+        "path": "apps/resident-mobile/config.ts",
+        "sha256": "250eb254d04ad9ba2542ac944882039e12434098c6d5e65c4cfcc1aec7a352f2"
+      },
+      {
+        "path": "apps/resident-web/src/App.tsx",
+        "sha256": "d9408c0a7a00741b3047989b993a0bc8bbcebcb164f24d951761f5d58d13b620"
+      },
+      {
+        "path": "packages/api-client/package.json",
+        "sha256": "20a7b3926b50d0ac6dd8819c2eb524312e8d78bad95aab4cac86bfb17ae08d19"
+      },
+      {
+        "path": "packages/api-client/src/engine.ts",
+        "sha256": "a53b42e6278b7343fd2b2d17900059d1f6e6762d66af9aa2fddaaf227527c134"
+      },
+      {
+        "path": "packages/api-client/src/errors.ts",
+        "sha256": "73133370d32afb26d6ae897dd722437a71d6b0151e1e806e7ba651dc4ee7638e"
+      },
+      {
+        "path": "packages/api-client/src/index.ts",
+        "sha256": "85811c979283808af21427cc0fc57d52eb13e0a6e8b210706bef87fa83120ca4"
+      },
+      {
+        "path": "packages/api-client/src/web-client.ts",
+        "sha256": "d62ef33a2d3283d445365c0bb163d74134f1a40f2d666073fe6146a4bf131b57"
+      },
+      {
+        "path": "packages/contracts/package.json",
+        "sha256": "3dbfd02102733ef013eb95167a9ebb48f44d246b5170524eee34672d542b5da6"
+      },
+      {
+        "path": "packages/contracts/src/assets.ts",
+        "sha256": "d815ff830ec5c4ca680c6804449da20bb9cdfa347765bf06523e5d4ecd36c19d"
+      },
+      {
+        "path": "packages/contracts/src/audit.ts",
+        "sha256": "120c831f3c42363498968b7000e44d962f9db9fec6171b3ce380a2d4326c1103"
+      },
+      {
+        "path": "packages/contracts/src/auth.ts",
+        "sha256": "5e186ceb93bd0f4691c6d75a92fad4ca13d62314f646c84637971e2afd5c10a1"
+      },
+      {
+        "path": "packages/contracts/src/automations.ts",
+        "sha256": "5219780e47a4b8d58b95434f7f6b848e779cfa966ff902431449a5a86590cc31"
+      },
+      {
+        "path": "packages/contracts/src/gate-qr.ts",
+        "sha256": "598edca568d8f36685dd6f6e3eb27fae2d2024a2c496734371ae6058f28058ba"
+      },
+      {
+        "path": "packages/contracts/src/index.ts",
+        "sha256": "312c351ad94c3c9a2692ce40f7ea55b223f1c71095f0f1f806a86e3dbdc8b115"
+      },
+      {
+        "path": "packages/contracts/src/organizations.ts",
+        "sha256": "f66c0da67a6a7bb9b02072d1fcd053dedc74046c37ea681dd3d5902b319f8b4c"
+      },
+      {
+        "path": "packages/contracts/src/overview.ts",
+        "sha256": "7427762944a770ebf87417117cf51f8d1ae0194d9019564413268f0bacd985fc"
+      },
+      {
+        "path": "packages/contracts/src/reservations.ts",
+        "sha256": "c639c9574eac35139e8181462d2f82ea4bb22b96de9b39447a9d478d88956e45"
+      },
+      {
+        "path": "packages/contracts/src/tenancy.ts",
+        "sha256": "f1a28816ae49ba2532cc6822c07bd4b050f7286faf40556171e2edf50a9f82a0"
+      },
+      {
+        "path": "packages/contracts/src/work-orders.ts",
+        "sha256": "bb88b2fb0dadf5e85f4505078d3eeb23a09c96f22272204e0a11284f951219d2"
+      },
+      {
+        "path": "packages/mobile/package.json",
+        "sha256": "7f43114172506bf4c16ec4cfce65d744d84e29036df760322b424851d6309504"
+      },
+      {
+        "path": "packages/mobile/src/access-intent-lifecycle.ts",
+        "sha256": "37dc42dde59c3ef7a68f4fd2df8f2f554c7fd44a88afe005aef9261472d58b9d"
+      },
+      {
+        "path": "packages/mobile/src/access-intents.ts",
+        "sha256": "6db6017b78f695571978fb588e9c2f4c7ead45ac9cee65473c319e881e8daf9f"
+      },
+      {
+        "path": "packages/mobile/src/app.tsx",
+        "sha256": "f8d7a1c636df8c1a6d90ac25684bae36eade0e2eb0369351bc263aa854a6b46f"
+      },
+      {
+        "path": "packages/mobile/src/mfa-profile-recheck.ts",
+        "sha256": "e1049ece49d55d1903fe91fdbe982a003d939c2419543f58198ec10dbfdb9f6a"
+      },
+      {
+        "path": "packages/mobile/src/mfa-session-gate.tsx",
+        "sha256": "476b3164470bc914d46756ef3421bbef80c55e8cf4905f80bde477a2ae05d434"
+      },
+      {
+        "path": "packages/mobile/test/access-intent-lifecycle.test.ts",
+        "sha256": "ceb42d84832bc5769fa76a4bbf6ab58d7a27baab00197bebbbb31ddadb14712a"
+      },
+      {
+        "path": "packages/mobile/test/mfa-profile-recheck.test.ts",
+        "sha256": "aa0dc58c0e444dea37524a49f279cd7c08e66ef1a48e6a1ebccb0dd108d0b25a"
+      },
+      {
+        "path": "packages/ui/package.json",
+        "sha256": "493d41c371ec9dd065b15531ee3774bd6b8f80035a50615fc4b55cad7268a429"
+      },
+      {
+        "path": "packages/ui/src/api.ts",
+        "sha256": "a335a8a58c5b15929365acf92b86fdf8e715f85e4a19fde6d69fd126ecdd6bfa"
+      },
+      {
+        "path": "packages/ui/src/auth-state.ts",
+        "sha256": "e15bb1ad5aae806ffb0296ce4508a3e9cd1af79e866a49ab42abf4f59fc626ce"
+      },
+      {
+        "path": "packages/ui/src/auth.tsx",
+        "sha256": "98dad11ff14705294222f1d7d855301619f9967aa01c6936c0dc6e6f94ac185f"
+      },
+      {
+        "path": "packages/ui/src/components/mfa-ceremony-host.tsx",
+        "sha256": "e95f7426f28e53cec15b71ae2c86c97d4aa96d545355a4870ec16e95d63a75b5"
+      },
+      {
+        "path": "packages/ui/src/components/mfa-panel.tsx",
+        "sha256": "4e49c42a428bb85c181412e1263809bda4ec76bf0955a383c2948bb4f99dec5a"
+      },
+      {
+        "path": "packages/ui/src/components/mfa-session-gate.tsx",
+        "sha256": "783a7c07a3799fe746b93ae938461affedf68fe44541428b725c33b6f00f1681"
+      },
+      {
+        "path": "packages/ui/src/components/sessions-panel.tsx",
+        "sha256": "e7762efd7ea1379bf371d052a55ad333ac76d7e2dea4de43a1f5b0ae71f5ed75"
+      },
+      {
+        "path": "packages/ui/src/index.ts",
+        "sha256": "f40810ac9c10c77a068c1b33c81ed4063062a0a2bb243c13fcb3ad0435eb6b8e"
+      },
+      {
+        "path": "packages/ui/src/mfa-ceremony.tsx",
+        "sha256": "8f158b0eb94edef2cfbe01586b603655cd9c01c2a4efa490f57caaca2f35ba75"
+      },
+      {
+        "path": "packages/ui/src/sse.ts",
+        "sha256": "28a8f447fb0d281836ba2960b76cf0c9aed8e5aa93d3df5d4c59f9dee5e06058"
+      },
+      {
+        "path": "packages/ui/test/auth-mfa-profile.test.ts",
+        "sha256": "be05b36d43368b7e1dc2149d3ffe047cb4f803c7ea4c4f8353bbbe43222c19a4"
+      }
+    ]
+  },
+  "staticReview": {
+    "independent": true,
+    "status": "APPROVED_FOR_CANDIDATE_PRESERVATION_ONLY",
+    "reviewed": [
+      "Single MFA ceremony owner above private providers",
+      "Mobile intent store replacement and identity lifecycle",
+      "Operational profile validation before SSE reconnect",
+      "24 candidate source hashes and 19-case QA evidence"
+    ],
+    "runtimeValidationPerformedByReviewer": false
+  },
+  "artifacts": [
+    {
+      "localRelativePath": "mfa-consumer-gates-v5-20261104/consumer-v5-snapshot.tar",
+      "sha256": "e23772f77c29136d1851a5fb30d329a019439f5723ed9dd4cd734d66c6400f6d",
+      "bytes": 114688
+    },
+    {
+      "localRelativePath": "mfa-consumer-gates-v5-20261104/SOURCE-MANIFEST.json",
+      "sha256": "a6fa44914465ec42a3e012429e9da823456134542f417510211273c3bc55741e",
+      "bytes": 3952
+    },
+    {
+      "localRelativePath": "mfa-consumer-gates-v5-20261104/consumer-v5.patch",
+      "sha256": "18c38fcaedeeae8c81df07a5a370e75584df3403043f7ae2f73513fe7c407b9e",
+      "bytes": 57366
+    },
+    {
+      "localRelativePath": "mfa-consumer-gates-v5-20261104/HANDOFF.txt",
+      "sha256": "7bba72ca9434fb1d49233e6e6a1ae93e59a4731b2286c9c04f69f5ec46b1d7f7",
+      "bytes": 3943
+    },
+    {
+      "localRelativePath": "mfa-consumer-pure-v5-qa-20261104/result.json",
+      "sha256": "914d47397aa32f54e6d341e4838de1d13e3a8237da226d54dd2ec1fee2e36347",
+      "bytes": 506
+    },
+    {
+      "localRelativePath": "mfa-consumer-pure-v5-qa-20261104/test-nineteen-pure.log",
+      "sha256": "82652d7f14c5f37a3e774da77536dc189fc6c065ed24846b2d7fb552cd271b51",
+      "bytes": 1841
+    },
+    {
+      "localRelativePath": "mfa-consumer-pure-v5-qa-20261104/source-manifest.json",
+      "sha256": "81323b2adc3759fd7943263ca36440189c5cc72c347b822d47b929a83550b415",
+      "bytes": 14055
+    }
+  ],
+  "frozenSnapshotNote": "SNAPSHOT.json and HANDOFF.txt predate QA; their STATIC_UNEXECUTED/pending-review statements remain historical. This later evidence records the completed 19 pure cases and static review without rewriting those originals.",
+  "integratedAcceptance": false,
+  "typecheckPerformedForConsumerV5": false,
+  "reactRenderingTested": false,
+  "browserTested": false,
+  "nativeBuildOrDeviceTested": false,
+  "databaseCasesExecuted": 0,
+  "mainConsumerRuntimeChanged": false,
+  "remaining": [
+    "Complete backend SQL statement-snapshot enforcement and HTTP/SSE integration before rollout.",
+    "Validate React ceremony ownership/effects and recovery-code acknowledgment with rendered integration tests.",
+    "Validate AppState lifecycle and secure session behavior in both native apps.",
+    "Configure MFA_PORTAL_URL to the deployment HTTPS origin; candidate default is empty. Portal proof does not authorize the native session family.",
+    "Run candidate typechecks, nine database cases, original regressions, real-backend Playwright and current Android/iOS acceptance."
+  ],
+  "productionAccepted": false
+}

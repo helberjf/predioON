@@ -113,17 +113,246 @@
       "afterSha256": "698c9fac15d8a7c3574a6bb37b54474d836172df6906a5c7784e207b266cbc90",
       "bytes": 23228,
       "component": "backend"
+    },
+    {
+      "path": "packages/api-client/src/engine.ts",
+      "beforeSha256": "dcb66cdc2c7d4dcf6caf08885484d1a1335d4a3c7d824ea7d1e41388f9307838",
+      "afterSha256": "a53b42e6278b7343fd2b2d17900059d1f6e6762d66af9aa2fddaaf227527c134",
+      "bytes": 16270,
+      "component": "transport-published"
+    },
+    {
+      "path": "packages/api-client/src/index.ts",
+      "beforeSha256": "645ace7f3703977d0ff6b0cea40dcfa5d9d28f12aae9834fdfe17c803bd1493a",
+      "afterSha256": "85811c979283808af21427cc0fc57d52eb13e0a6e8b210706bef87fa83120ca4",
+      "bytes": 6182,
+      "component": "transport-published"
+    },
+    {
+      "path": "packages/api-client/src/web-client.ts",
+      "beforeSha256": "b7d03443f82daa94509a6b86d1fdabed078dc5dfe562d0bfa09ca8a3c2cfc2f4",
+      "afterSha256": "d62ef33a2d3283d445365c0bb163d74134f1a40f2d666073fe6146a4bf131b57",
+      "bytes": 4675,
+      "component": "transport-published"
+    },
+    {
+      "path": "packages/ui/src/web-session-coordinator.ts",
+      "beforeSha256": "a6bf7e6c18055ab728ae43ae89adf0d38e54e0fe4ce722634fbe0915eee2c735",
+      "afterSha256": "69eb9dbe4fbb3b27950c0d58fbc72b8416c564dd4a316ce86b062d943720c374",
+      "bytes": 7795,
+      "component": "transport-published"
+    },
+    {
+      "path": "packages/api-client/test/mfa-required.test.ts",
+      "beforeSha256": null,
+      "afterSha256": "88a8ca38e4a4795967f033f5ddfe48108aeaf8a99ec2d5c28bc14527f18f0b4c",
+      "bytes": 14687,
+      "component": "transport-published"
+    },
+    {
+      "path": "apps/admin-web/src/App.tsx",
+      "beforeSha256": "d229e9e779467243975c80b26ca1cae1964e5b838d23752514a14d140ae68f35",
+      "afterSha256": "749ff4ad79175a63f41b0bd9aa898cb95ff09c6ad23caddd4ad9d17a7930c76d",
+      "bytes": 4236,
+      "component": "consumers"
+    },
+    {
+      "path": "apps/building-web/src/App.tsx",
+      "beforeSha256": "5a1b35334e945cdac76957233a83c1d94c827642b4c1b39f5866d2060cb01280",
+      "afterSha256": "6ce0fb1859eccb1a320123543b122bc25e12579bf17ffdb966c78aa18e6b6f2a",
+      "bytes": 5800,
+      "component": "consumers"
+    },
+    {
+      "path": "apps/operations-mobile/App.tsx",
+      "beforeSha256": "6d44d90bfd9c876423ad6953f4d4985358e4a1c37d05d83146e125578e47e843",
+      "afterSha256": "51707283bce00301229eebbc1adbb53989662da5fcbbe136f807de49edaaeaa8",
+      "bytes": 251,
+      "component": "consumers"
+    },
+    {
+      "path": "apps/operations-mobile/config.ts",
+      "beforeSha256": "abbf2967fdefbbec174789939a2cbec5a9d0a39e8bb731815855aa557d047a23",
+      "afterSha256": "250eb254d04ad9ba2542ac944882039e12434098c6d5e65c4cfcc1aec7a352f2",
+      "bytes": 426,
+      "component": "consumers"
+    },
+    {
+      "path": "apps/resident-mobile/App.tsx",
+      "beforeSha256": "421426f431cf8aad589ac65a4af8efe8c27d644dd0f9b7c79bb143998ff3e754",
+      "afterSha256": "9af80149bd82a7bcbc5710693a7b13718af188375ef5da86bb4054bf3b580271",
+      "bytes": 336,
+      "component": "consumers"
+    },
+    {
+      "path": "apps/resident-mobile/config.ts",
+      "beforeSha256": "abbf2967fdefbbec174789939a2cbec5a9d0a39e8bb731815855aa557d047a23",
+      "afterSha256": "250eb254d04ad9ba2542ac944882039e12434098c6d5e65c4cfcc1aec7a352f2",
+      "bytes": 426,
+      "component": "consumers"
+    },
+    {
+      "path": "apps/resident-web/src/App.tsx",
+      "beforeSha256": "dbd204246ccc9a7f40cb30c7aaa5a5a928e7e28eaa127a0a987a19e8a246f1df",
+      "afterSha256": "d9408c0a7a00741b3047989b993a0bc8bbcebcb164f24d951761f5d58d13b620",
+      "bytes": 3110,
+      "component": "consumers"
+    },
+    {
+      "path": "packages/mobile/src/access-intent-lifecycle.ts",
+      "beforeSha256": null,
+      "afterSha256": "37dc42dde59c3ef7a68f4fd2df8f2f554c7fd44a88afe005aef9261472d58b9d",
+      "bytes": 503,
+      "component": "consumers"
+    },
+    {
+      "path": "packages/mobile/src/app.tsx",
+      "beforeSha256": "a9518d0231155cb426ce7e5933d9b448c95eedc74a2f7ce6c725a0330dd5d4c0",
+      "afterSha256": "f8d7a1c636df8c1a6d90ac25684bae36eade0e2eb0369351bc263aa854a6b46f",
+      "bytes": 17841,
+      "component": "consumers"
+    },
+    {
+      "path": "packages/mobile/src/mfa-profile-recheck.ts",
+      "beforeSha256": null,
+      "afterSha256": "e1049ece49d55d1903fe91fdbe982a003d939c2419543f58198ec10dbfdb9f6a",
+      "bytes": 470,
+      "component": "consumers"
+    },
+    {
+      "path": "packages/mobile/src/mfa-session-gate.tsx",
+      "beforeSha256": null,
+      "afterSha256": "476b3164470bc914d46756ef3421bbef80c55e8cf4905f80bde477a2ae05d434",
+      "bytes": 2587,
+      "component": "consumers"
+    },
+    {
+      "path": "packages/mobile/test/access-intent-lifecycle.test.ts",
+      "beforeSha256": null,
+      "afterSha256": "ceb42d84832bc5769fa76a4bbf6ab58d7a27baab00197bebbbb31ddadb14712a",
+      "bytes": 1857,
+      "component": "consumers"
+    },
+    {
+      "path": "packages/mobile/test/mfa-profile-recheck.test.ts",
+      "beforeSha256": null,
+      "afterSha256": "aa0dc58c0e444dea37524a49f279cd7c08e66ef1a48e6a1ebccb0dd108d0b25a",
+      "bytes": 1061,
+      "component": "consumers"
+    },
+    {
+      "path": "packages/ui/src/api.ts",
+      "beforeSha256": "d39e12d003e7b69d2afc708240b9fcf2f292ddcdd47369b47ddd220c386cf1cc",
+      "afterSha256": "a335a8a58c5b15929365acf92b86fdf8e715f85e4a19fde6d69fd126ecdd6bfa",
+      "bytes": 3034,
+      "component": "consumers"
+    },
+    {
+      "path": "packages/ui/src/auth-state.ts",
+      "beforeSha256": "5736910acab58a7a25a3f7780cee59502de85319c435cda2b87dc1285a65c0b5",
+      "afterSha256": "e15bb1ad5aae806ffb0296ce4508a3e9cd1af79e866a49ab42abf4f59fc626ce",
+      "bytes": 6160,
+      "component": "consumers"
+    },
+    {
+      "path": "packages/ui/src/auth.tsx",
+      "beforeSha256": "c8e7b0375c0a6691742eff723b50b77d4cc720c73a0da47f998f90acd5f0f407",
+      "afterSha256": "98dad11ff14705294222f1d7d855301619f9967aa01c6936c0dc6e6f94ac185f",
+      "bytes": 3885,
+      "component": "consumers"
+    },
+    {
+      "path": "packages/ui/src/components/mfa-ceremony-host.tsx",
+      "beforeSha256": null,
+      "afterSha256": "e95f7426f28e53cec15b71ae2c86c97d4aa96d545355a4870ec16e95d63a75b5",
+      "bytes": 4678,
+      "component": "consumers"
+    },
+    {
+      "path": "packages/ui/src/components/mfa-panel.tsx",
+      "beforeSha256": "cd0cb15b973bf6292088b0c76753e8bb9eae5944e0c94aba04182aee7036a2ce",
+      "afterSha256": "4e49c42a428bb85c181412e1263809bda4ec76bf0955a383c2948bb4f99dec5a",
+      "bytes": 7600,
+      "component": "consumers"
+    },
+    {
+      "path": "packages/ui/src/components/mfa-session-gate.tsx",
+      "beforeSha256": null,
+      "afterSha256": "783a7c07a3799fe746b93ae938461affedf68fe44541428b725c33b6f00f1681",
+      "bytes": 1556,
+      "component": "consumers"
+    },
+    {
+      "path": "packages/ui/src/components/sessions-panel.tsx",
+      "beforeSha256": "123cd93edb2797699720e2fe44f576913571b3dc3b42611f18ec93d475ecbc68",
+      "afterSha256": "e7762efd7ea1379bf371d052a55ad333ac76d7e2dea4de43a1f5b0ae71f5ed75",
+      "bytes": 7788,
+      "component": "consumers"
+    },
+    {
+      "path": "packages/ui/src/index.ts",
+      "beforeSha256": "600079e983d5b93d55e8f355db24610c1c003249f4a8fd2d7dafb1963b9c9fc3",
+      "afterSha256": "f40810ac9c10c77a068c1b33c81ed4063062a0a2bb243c13fcb3ad0435eb6b8e",
+      "bytes": 2211,
+      "component": "consumers"
+    },
+    {
+      "path": "packages/ui/src/mfa-ceremony.tsx",
+      "beforeSha256": null,
+      "afterSha256": "8f158b0eb94edef2cfbe01586b603655cd9c01c2a4efa490f57caaca2f35ba75",
+      "bytes": 1604,
+      "component": "consumers"
+    },
+    {
+      "path": "packages/ui/src/sse.ts",
+      "beforeSha256": "2dd66e5142ea40618b6afe4bc9b1de6f729a204fea2b29d4e839af8980574b7e",
+      "afterSha256": "28a8f447fb0d281836ba2960b76cf0c9aed8e5aa93d3df5d4c59f9dee5e06058",
+      "bytes": 1262,
+      "component": "consumers"
+    },
+    {
+      "path": "packages/ui/test/auth-mfa-profile.test.ts",
+      "beforeSha256": null,
+      "afterSha256": "be05b36d43368b7e1dc2149d3ffe047cb4f803c7ea4c4f8353bbbe43222c19a4",
+      "bytes": 7359,
+      "component": "consumers"
+    },
+    {
+      "path": "apps/api/test/platform-mfa-required.test.ts",
+      "beforeSha256": null,
+      "afterSha256": "6e44b8fe9a729e043b09a44f1298dae547075aabc670aca210f64479326768f6",
+      "bytes": 11721,
+      "component": "database-tests"
+    },
+    {
+      "path": "apps/api/test/platform-mfa-authority-races.test.ts",
+      "beforeSha256": null,
+      "afterSha256": "7573e310beb175b24705a6fa9dacaeea616ec7647bfdf827394976a5fe331589",
+      "bytes": 10214,
+      "component": "database-tests"
     }
   ],
   "patches": [
     {
       "file": "backend.patch",
       "sha256": "0608b7544831f3a383c23d6d41cd8b2041bffb5d4461eae255d22afbd4f379af"
+    },
+    {
+      "file": "transport-publicado.patch",
+      "sha256": "5289a7841709270d63bbf378c24b488dacd9fc542345b7ada3a9c6eacff9b04e"
+    },
+    {
+      "file": "consumidores.patch",
+      "sha256": "19b290c5fcf436f8115f19a0d169ff24b30dc8914c969284b93f00651672e59d"
+    },
+    {
+      "file": "testes-banco.patch",
+      "sha256": "a88bd0afaa90813b272a42f4ee71b0211eebdfc520428524152630e8d7ff2a81"
     }
   ],
   "restoreCheck": {
     "passed": true,
-    "files": 16,
+    "files": 47,
     "exactCandidateBytes": true,
     "completeProjectRestored": false
   },
@@ -131,5 +360,46 @@
   "migrationApplied": false,
   "functionalDatabaseCasesExecuted": 0,
   "policyPureUnitCasesPassed": 7,
-  "apiTypecheck": "TIMEOUT_WITHOUT_COMPILER_RESULT"
+  "apiTypecheck": "TIMEOUT_WITHOUT_COMPILER_RESULT",
+  "recordedAt": "2026-11-04T16:23:13.328678+00:00",
+  "publishedFiles": [
+    {
+      "path": "packages/api-client/src/engine.ts",
+      "publishedSha256": "a53b42e6278b7343fd2b2d17900059d1f6e6762d66af9aa2fddaaf227527c134",
+      "commit": "9e79bdeed2b074bd8b9c4fd46e3a51ff9fa4377f"
+    },
+    {
+      "path": "packages/api-client/src/index.ts",
+      "publishedSha256": "85811c979283808af21427cc0fc57d52eb13e0a6e8b210706bef87fa83120ca4",
+      "commit": "9e79bdeed2b074bd8b9c4fd46e3a51ff9fa4377f"
+    },
+    {
+      "path": "packages/api-client/src/web-client.ts",
+      "publishedSha256": "d62ef33a2d3283d445365c0bb163d74134f1a40f2d666073fe6146a4bf131b57",
+      "commit": "9e79bdeed2b074bd8b9c4fd46e3a51ff9fa4377f"
+    },
+    {
+      "path": "packages/ui/src/web-session-coordinator.ts",
+      "publishedSha256": "69eb9dbe4fbb3b27950c0d58fbc72b8416c564dd4a316ce86b062d943720c374",
+      "commit": "9e79bdeed2b074bd8b9c4fd46e3a51ff9fa4377f"
+    },
+    {
+      "path": "packages/api-client/test/mfa-required.test.ts",
+      "publishedSha256": "88a8ca38e4a4795967f033f5ddfe48108aeaf8a99ec2d5c28bc14527f18f0b4c",
+      "commit": "9e79bdeed2b074bd8b9c4fd46e3a51ff9fa4377f"
+    }
+  ],
+  "draftFiles": 42,
+  "consumerVersion": 5,
+  "consumerIntegratedAcceptance": false,
+  "publishedClient": {
+    "commit": "9e79bdeed2b074bd8b9c4fd46e3a51ff9fa4377f",
+    "directedPass": 25,
+    "originalPass": 118,
+    "clientTypesPass": true
+  },
+  "consumerAuthoredPureCases": 19,
+  "consumerPureUnitCasesPassed": 19,
+  "consumerStaticReview": "APPROVED_FOR_CANDIDATE_PRESERVATION_ONLY",
+  "consumerEvidence": "docs/evidencias/mfa-consumer-candidate-2026-11-04.json"
 }

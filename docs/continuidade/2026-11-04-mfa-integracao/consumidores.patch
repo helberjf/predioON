@@ -1,0 +1,1143 @@
+--- a/apps/admin-web/src/App.tsx
++++ b/apps/admin-web/src/App.tsx
+@@ -1,6 +1,6 @@
+ import type { ReactNode } from "react";
+ import { Link, Navigate, Route, Routes } from "react-router-dom";
+-import { Button, FeatureProvider, FeatureContent, PublicEntry, PlatformPresentation, PasswordRecoveryScreen, SessionsPanel, useAuth } from "@predioon/ui";
++import { Button, FeatureProvider, FeatureContent, PublicEntry, PlatformPresentation, PasswordRecoveryScreen, SessionsPanel, MfaSessionGate, useAuth } from "@predioon/ui";
+ import { Shell } from "./layout/Shell.js";
+ import { Overview } from "./pages/Overview.js";
+ import { Clients } from "./pages/Clients.js";
+@@ -27,7 +27,7 @@
+   if (loading) return <p className="p-8 text-slate-500">Carregando...</p>;
+   if (!user) return <PublicEntry subtitle="Administração da plataforma" />;
+
+-  return <OrganizationAccessProvider key={user.id}><AuthenticatedApp /></OrganizationAccessProvider>;
++  return <MfaSessionGate><OrganizationAccessProvider key={user.id}><AuthenticatedApp /></OrganizationAccessProvider></MfaSessionGate>;
+ }
+
+ function Denied() {
+--- a/apps/building-web/src/App.tsx
++++ b/apps/building-web/src/App.tsx
+@@ -1,5 +1,5 @@
+ import { Navigate, Route, Routes } from "react-router-dom";
+-import { AccessPanel, AssetsPanel, AuditPanel, SupportAccessPanel, AutomationsPanel, BuildingScopeProvider, BuildingScopeFeedback, FeatureProvider, FeatureContent, PublicEntry, PlatformPresentation, PasswordRecoveryScreen, MonitoringPanel, ParkingPanel, ResidentConsumptionSwitch, SessionsPanel, TenancyPanel, TransparencyPanel, WorkOrdersPanel, useAuth, useBuildingScope } from "@predioon/ui";
++import { AccessPanel, AssetsPanel, AuditPanel, SupportAccessPanel, AutomationsPanel, BuildingScopeProvider, BuildingScopeFeedback, FeatureProvider, FeatureContent, PublicEntry, PlatformPresentation, PasswordRecoveryScreen, MonitoringPanel, ParkingPanel, ResidentConsumptionSwitch, SessionsPanel, TenancyPanel, TransparencyPanel, WorkOrdersPanel, MfaSessionGate, useAuth, useBuildingScope } from "@predioon/ui";
+ import { BuildingAccessProvider, RouteAccess, useBuildingAccess } from "./access.js";
+ import { Shell } from "./layout/Shell.js";
+ import { Dashboard } from "./pages/Dashboard.js";
+@@ -22,7 +22,7 @@
+   if (loading) return <p className="p-8 text-slate-500">Carregando...</p>;
+   if (!user) return <PublicEntry subtitle="Operação do condomínio" />;
+
+-  return <BuildingScopeProvider key={user.id}><BuildingApp /></BuildingScopeProvider>;
++  return <MfaSessionGate><BuildingScopeProvider key={user.id}><BuildingApp /></BuildingScopeProvider></MfaSessionGate>;
+ }
+
+ function BuildingApp() {
+--- a/apps/operations-mobile/App.tsx
++++ b/apps/operations-mobile/App.tsx
+@@ -1,6 +1,6 @@
+ import React from "react";
+ import { PredioApp } from "@predioon/mobile";
+-import { API_URL } from "./config";
++import { API_URL, MFA_PORTAL_URL } from "./config";
+ export default function App() {
+-  return <PredioApp product="operations" apiUrl={API_URL} />;
++  return <PredioApp product="operations" apiUrl={API_URL} mfaPortalUrl={MFA_PORTAL_URL} />;
+ }
+--- a/apps/operations-mobile/config.ts
++++ b/apps/operations-mobile/config.ts
+@@ -2,6 +2,8 @@
+
+ // Set the production HTTPS origin before signing a release. No service secrets belong here.
+ const PRODUCTION_API_URL = "";
++// Static HTTPS portal origin for mandatory MFA enrollment. No credentials/query.
++export const MFA_PORTAL_URL = "";
+ export const API_URL = __DEV__
+   ? Platform.OS === "android"
+     ? "http://10.0.2.2:3000"
+--- a/apps/resident-mobile/App.tsx
++++ b/apps/resident-mobile/App.tsx
+@@ -1,7 +1,7 @@
+ import React from "react";
+ import { PredioApp } from "@predioon/mobile";
+ import { GateScanner } from "@predioon/mobile/gate-scanner";
+-import { API_URL } from "./config";
++import { API_URL, MFA_PORTAL_URL } from "./config";
+ export default function App() {
+-  return <PredioApp product="resident" apiUrl={API_URL} gateScanner={GateScanner} />;
++  return <PredioApp product="resident" apiUrl={API_URL} mfaPortalUrl={MFA_PORTAL_URL} gateScanner={GateScanner} />;
+ }
+--- a/apps/resident-mobile/config.ts
++++ b/apps/resident-mobile/config.ts
+@@ -2,6 +2,8 @@
+
+ // Set the production HTTPS origin before signing a release. No service secrets belong here.
+ const PRODUCTION_API_URL = "";
++// Static HTTPS portal origin for mandatory MFA enrollment. No credentials/query.
++export const MFA_PORTAL_URL = "";
+ export const API_URL = __DEV__
+   ? Platform.OS === "android"
+     ? "http://10.0.2.2:3000"
+--- a/apps/resident-web/src/App.tsx
++++ b/apps/resident-web/src/App.tsx
+@@ -1,5 +1,5 @@
+ import { Navigate, Route, Routes } from "react-router-dom";
+-import { AccessPanel, BuildingScopeProvider, BuildingScopeFeedback, FeatureProvider, FeatureContent, InvitationScreen, PublicEntry, ResidentPresentation, PasswordRecoveryScreen, PublishedConsumption, ParkingPanel, TransparencyPanel, useAuth, useBuildingScope } from "@predioon/ui";
++import { AccessPanel, BuildingScopeProvider, BuildingScopeFeedback, FeatureProvider, FeatureContent, InvitationScreen, PublicEntry, ResidentPresentation, PasswordRecoveryScreen, PublishedConsumption, ParkingPanel, TransparencyPanel, MfaSessionGate, useAuth, useBuildingScope } from "@predioon/ui";
+ import { MobileShell } from "./layout/MobileShell.js";
+ import { Home } from "./pages/Home.js";
+ import { Notices } from "./pages/Notices.js";
+@@ -19,7 +19,7 @@
+   if (loading) return <p className="p-8 text-slate-500">Carregando...</p>;
+   if (!user) return <PublicEntry subtitle="Portal do morador" invitationHref="/convite" audience="resident" />;
+
+-  return <BuildingScopeProvider key={user.id}><ResidentApp /></BuildingScopeProvider>;
++  return <MfaSessionGate><BuildingScopeProvider key={user.id}><ResidentApp /></BuildingScopeProvider></MfaSessionGate>;
+ }
+
+ function ResidentApp() {
+--- /dev/null
++++ b/packages/mobile/src/access-intent-lifecycle.ts
+@@ -0,0 +1,15 @@
++import { createAccessIntentStore } from "./access-intents.ts";
++
++/** Every authorization/identity boundary retires the old commands permanently. */
++export function createAccessIntentLifecycle(newRequestId: () => string) {
++  let current = createAccessIntentStore(newRequestId);
++  return {
++    get current() { return current; },
++    reset() {
++      current.invalidate();
++      current = createAccessIntentStore(newRequestId);
++      return current;
++    },
++    invalidate() { current.invalidate(); },
++  };
++}
+--- a/packages/mobile/src/app.tsx
++++ b/packages/mobile/src/app.tsx
+@@ -7,6 +7,7 @@
+ } from "react";
+ import {
+   ActivityIndicator,
++  AppState,
+   KeyboardAvoidingView,
+   Platform,
+   ScrollView,
+@@ -50,10 +51,12 @@
+ import { Access, type GateScannerComponent } from "./access.tsx";
+ import { Account } from "./account.tsx";
+ import { Login } from "./login.tsx";
++import { NativeMfaSessionGate } from "./mfa-session-gate.tsx";
++import { createMfaProfileRecheck } from "./mfa-profile-recheck.ts";
+ import {
+-  createAccessIntentStore,
+   type AccessIntentStore,
+ } from "./access-intents.ts";
++import { createAccessIntentLifecycle } from "./access-intent-lifecycle.ts";
+ import { createNativeRequestId } from "./secure-request-id.ts";
+ import {
+   Button,
+@@ -88,10 +91,13 @@
+ export function PredioApp({
+   product,
+   apiUrl,
++  mfaPortalUrl,
+   gateScanner,
+ }: {
+   product: Product;
+   apiUrl: string;
++  /** Static release configuration; never read from an API response or deep link. */
++  mfaPortalUrl?: string;
+   /** Only the resident app passes the camera reader (see gate-scanner.tsx). */
+   gateScanner?: GateScannerComponent;
+ }) {
+@@ -110,6 +116,7 @@
+             key={`${product}:${normalized}`}
+             product={product}
+             baseUrl={normalized}
++            mfaPortalUrl={mfaPortalUrl}
+             gateScanner={gateScanner}
+           />
+         ) : (
+@@ -126,10 +133,12 @@
+ function ConnectedApp({
+   product,
+   baseUrl,
++  mfaPortalUrl,
+   gateScanner,
+ }: {
+   product: Product;
+   baseUrl: string;
++  mfaPortalUrl?: string;
+   gateScanner?: GateScannerComponent;
+ }) {
+   const [user, setUser] = useState<AuthUser | null>(null);
+@@ -138,13 +147,15 @@
+   const [retry, setRetry] = useState(0);
+   const [selected, setSelected] = useState<Building | null>(null);
+   const [accountOpen, setAccountOpen] = useState(false);
+-  const accessIntents = useMemo(
+-    () => createAccessIntentStore(createNativeRequestId),
+-    [user?.id],
+-  );
+-  const accessRef = useRef(accessIntents);
+-  accessRef.current = accessIntents;
++  const accessLifecycle = useMemo(() => createAccessIntentLifecycle(createNativeRequestId), []);
++  const [accessIntents, setAccessIntents] = useState(() => accessLifecycle.current);
++  const resetAccessIntents = useCallback(() => {
++    setAccessIntents(accessLifecycle.reset());
++  }, [accessLifecycle]);
+   const actions = useMemo(createSessionActionScope, []);
++  const mfaRecheck = useMemo(createMfaProfileRecheck, []);
++  const userRef = useRef(user);
++  userRef.current = user;
+   const storage = useMemo(
+     () => nativeTokenStorage(product, baseUrl),
+     [product, baseUrl],
+@@ -156,14 +167,30 @@
+         storage,
+         fetch: boundedFetch,
+         onAuthLost: () => {
+-          accessRef.current.invalidate();
++          actions.begin();
++          setBooting(false);
++          resetAccessIntents();
+           setUser(null);
+           setSelected(null);
+           setAccountOpen(false);
+         },
++        onMfaRequired: requirement => {
++          actions.begin();
++          resetAccessIntents();
++          setSelected(null); setAccountOpen(false);
++          setUser(current => current ? { ...current, memberships: [], mfaRequirement: requirement } : null);
++          if (mfaRecheck.request()) setRetry(value => value + 1);
++          else setBooting(false);
++        },
+       }),
+-    [baseUrl, storage],
+-  );
++    [baseUrl, storage, actions, mfaRecheck, resetAccessIntents],
++  );
++  // Identity fence only on real client lifetime end, never on an MFA reread.
++  useEffect(() => () => {
++    actions.begin();
++    accessLifecycle.invalidate();
++    api.invalidateSession();
++  }, [api, actions, accessLifecycle]);
+   const recoverPassword = useCallback((email: string, signal?: AbortSignal) =>
+     requestPasswordRecovery({ baseUrl: api.baseUrl, fetch: boundedFetch }, email, signal), [api]);
+   // Invitations are for residents; the operations app has no such entry.
+@@ -173,17 +200,27 @@
+   } : undefined, [api, product]);
+   useEffect(() => {
+     let live = true;
++    const action = actions.begin();
++    const check = mfaRecheck.begin();
++    resetAccessIntents();
+     setBooting(true);
+     setBootError(null);
+     void (async () => {
+-      if (!(await storage.getTokens())) return;
++      if (!(await storage.getTokens())) {
++        if (live && actions.isCurrent(action)) setUser(null);
++        return;
++      }
+       const profile = await api.get<AuthUser>("/auth/me");
+-      if (live) setUser(profile);
++      if (live && actions.isCurrent(action)) {
++        setUser(profile);
++        if (profile.mfaRequirement !== "not-required" && profile.mfaRequirement !== "satisfied") {
++          setSelected(null); setAccountOpen(false);
++        }
++      }
+     })()
+       .catch((error) => {
+         if (
+-          live &&
+-          !(error instanceof ApiError && [401, 403].includes(error.status))
++          live && actions.isCurrent(action)
+         )
+           setBootError(
+             error instanceof Error
+@@ -192,16 +229,30 @@
+           );
+       })
+       .finally(() => {
+-        if (live) setBooting(false);
++        mfaRecheck.finish(check);
++        if (live && actions.isCurrent(action)) setBooting(false);
+       });
+     return () => {
+       live = false;
+-      api.invalidateSession();
++      mfaRecheck.finish(check);
++      api.invalidateAuthorization();
+     };
+-  }, [api, storage, retry]);
++  }, [api, storage, retry, actions, mfaRecheck, resetAccessIntents]);
++  useEffect(() => {
++    const subscription = AppState.addEventListener("change", state => {
++      if (state === "active" && userRef.current) {
++        api.invalidateAuthorization();
++        resetAccessIntents();
++        setBooting(true);
++        setRetry(value => value + 1);
++      }
++    });
++    return () => subscription.remove();
++  }, [api, resetAccessIntents]);
+   async function signOut() {
+     const action = actions.begin();
+-    accessRef.current.invalidate();
++    setBooting(false);
++    resetAccessIntents();
+     setUser(null);
+     setSelected(null);
+     setAccountOpen(false);
+@@ -255,7 +306,7 @@
+         invitationRequests={invitationRequests}
+         beginSignIn={() => {
+           actions.begin();
+-          accessRef.current.invalidate();
++          resetAccessIntents();
+           setBootError(null);
+         }}
+         signedIn={(profile) => {
+@@ -265,6 +316,11 @@
+         }}
+       />
+     );
++  if (user.mfaRequirement !== "not-required" && user.mfaRequirement !== "satisfied") {
++    return <NativeMfaSessionGate requirement={user.mfaRequirement} portalUrl={mfaPortalUrl}
++      refresh={() => { setBooting(true); setRetry(value => value + 1); }}
++      signOut={() => void signOut()} />;
++  }
+   return (
+     <>
+       <View
+--- /dev/null
++++ b/packages/mobile/src/mfa-profile-recheck.ts
+@@ -0,0 +1,13 @@
++/** A notification during /me must update the gate without recursively rereading. */
++export function createMfaProfileRecheck() {
++  let busy = false, generation = 0;
++  return {
++    request(): boolean {
++      if (busy) return false;
++      busy = true; // Reserve before scheduling React's effect.
++      return true;
++    },
++    begin(): number { busy = true; return ++generation; },
++    finish(expected: number): void { if (generation === expected) busy = false; },
++  };
++}
+--- /dev/null
++++ b/packages/mobile/src/mfa-session-gate.tsx
+@@ -0,0 +1,49 @@
++import React, { useState } from "react";
++import { Linking, Text, View } from "react-native";
++import type { MfaRequirement } from "@predioon/contracts/auth";
++import { Button, ErrorMessage, styles } from "./ui.tsx";
++
++/** Only a static application configuration can select this destination. */
++export function configuredMfaPortal(value: string | undefined): string | null {
++  if (!value || value.trim() !== value) return null;
++  try {
++    const url = new URL(value);
++    if (url.protocol !== "https:" || !url.hostname || url.username || url.password
++      || url.search || url.hash || url.pathname !== "/") return null;
++    return url.origin;
++  } catch { return null; }
++}
++
++export function NativeMfaSessionGate({ requirement, portalUrl, refresh, signOut }: {
++  requirement: MfaRequirement;
++  portalUrl?: string;
++  refresh: () => void;
++  signOut: () => void;
++}) {
++  const [error, setError] = useState<string | null>(null);
++  const [opening, setOpening] = useState(false);
++  const portal = configuredMfaPortal(portalUrl);
++  const enrollment = requirement === "enrollment-required";
++  const verification = requirement === "verification-required";
++  async function openPortal() {
++    if (!portal || opening) return;
++    setOpening(true); setError(null);
++    try { await Linking.openURL(portal); }
++    catch { setError("Não foi possível abrir o portal. Tente novamente."); }
++    finally { setOpening(false); }
++  }
++  return <View style={styles.page}>
++    <Text style={styles.title}>Proteja seu acesso administrativo</Text>
++    <Text style={styles.muted}>{enrollment
++      ? "Cadastre seu autenticador no portal configurado. Depois, volte e entre novamente neste aplicativo usando sua senha e o código."
++      : verification
++        ? "Este aparelho ainda precisa de verificação. Saia e entre novamente com sua senha e um código do autenticador ou de recuperação."
++        : "Não foi possível confirmar a proteção desta sessão. Confira novamente antes de continuar."}</Text>
++    {error && <ErrorMessage message={error} />}
++    {enrollment && (portal
++      ? <><Text selectable style={styles.muted}>{portal}</Text><Button label={opening ? "Abrindo…" : "Abrir portal configurado"} disabled={opening} onPress={() => void openPortal()} /></>
++      : <Text style={styles.muted}>O portal seguro ainda não foi configurado neste aplicativo. Consulte a administração para obter acesso.</Text>)}
++    <Button secondary label="Conferir sessão novamente" onPress={refresh} />
++    <Button secondary label={verification ? "Sair e entrar com código" : "Sair"} onPress={signOut} />
++  </View>;
++}
+--- /dev/null
++++ b/packages/mobile/test/access-intent-lifecycle.test.ts
+@@ -0,0 +1,41 @@
++import assert from "node:assert/strict";
++import { it } from "node:test";
++import { createAccessIntentLifecycle } from "../src/access-intent-lifecycle.ts";
++
++// AUTHORED ONLY: pure lifecycle model, not a React/AppState render test.
++for (const boundary of ["foreground reread", "MFA authorization hint", "new identity"] as const) {
++  it(`${boundary} retires old commands and accepts only a new explicit gesture`, async () => {
++    let requests = 0;
++    const lifecycle = createAccessIntentLifecycle(() => `synthetic-${++requests}`);
++    const old = lifecycle.current;
++    let rejectOld!: (cause: Error) => void;
++    let posts = 0;
++    const pending = old.submit("building", "gate", () => {
++      posts++;
++      return new Promise((_, reject) => { rejectOld = reject; });
++    });
++    assert.equal(posts, 1);
++    const next = lifecycle.reset();
++    assert.notEqual(next, old);
++    assert.deepEqual(next.getSnapshot(), {});
++    assert.equal(posts, 1, "reset must not replay the physical command");
++    await old.submit("building", "gate", async () => { posts++; throw new Error("must never run"); });
++    assert.equal(posts, 1);
++    rejectOld(new Error("late old failure"));
++    await pending;
++    assert.deepEqual(old.getSnapshot(), {});
++    assert.deepEqual(next.getSnapshot(), {});
++    await next.submit("building", "gate", async () => { posts++; throw new Error("synthetic response"); });
++    assert.equal(posts, 2);
++    assert.equal(requests, 2);
++  });
++}
++it("real unmount retires current commands without creating a replacement", async () => {
++  const lifecycle = createAccessIntentLifecycle(() => "synthetic");
++  const old = lifecycle.current;
++  lifecycle.invalidate();
++  assert.equal(lifecycle.current, old);
++  let posts = 0;
++  await old.submit("building", "gate", async () => { posts++; throw new Error("must never run"); });
++  assert.equal(posts, 0);
++});
+--- /dev/null
++++ b/packages/mobile/test/mfa-profile-recheck.test.ts
+@@ -0,0 +1,27 @@
++import assert from "node:assert/strict";
++import { it } from "node:test";
++import { createMfaProfileRecheck } from "../src/mfa-profile-recheck.ts";
++
++// DRAFT NOT EXECUTED: no React Native, network or device runtime is imported.
++it("does not schedule another /me when that read emits mandatory403 callbacks", () => {
++  const gate = createMfaProfileRecheck();
++  let scheduledReads = 0;
++  const notify = () => { if (gate.request()) scheduledReads++; };
++  notify(); notify();
++  assert.equal(scheduledReads, 1);
++  const read = gate.begin();
++  notify(); notify(); // /me itself failed with the mandatory-MFA reason.
++  assert.equal(scheduledReads, 1);
++  gate.finish(read);
++  notify();
++  assert.equal(scheduledReads, 2, "a later user/server event can retry once");
++});
++
++it("completion of an older foreground check does not unlock a newer one", () => {
++  const gate = createMfaProfileRecheck();
++  const older = gate.begin(), newer = gate.begin();
++  gate.finish(older);
++  assert.equal(gate.request(), false);
++  gate.finish(newer);
++  assert.equal(gate.request(), true);
++});
+--- a/packages/ui/src/api.ts
++++ b/packages/ui/src/api.ts
+@@ -1,4 +1,4 @@
+-import { createWebApiClient } from "@predioon/api-client";
++import { createWebApiClient, type MfaRestriction } from "@predioon/api-client";
+ import { browserSessionCoordinator } from "#web-session-coordinator";
+ import { withRecentVerification } from "#verification-state";
+
+@@ -8,9 +8,11 @@
+ const BASE_URL = (import.meta.env?.VITE_API_URL as string | undefined) ?? "http://localhost:3000";
+ let onAuthLost: (() => void) | null = null;
+ let onSessionAvailable: (() => void) | null = null;
++let onMfaRequired: ((requirement: MfaRestriction) => void) | null = null;
+
+ export function setAuthLostHandler(handler: (() => void) | null): void { onAuthLost = handler; }
+ export function setSessionAvailableHandler(handler: (() => void) | null): void { onSessionAvailable = handler; }
++export function setMfaRequiredHandler(handler: ((requirement: MfaRestriction) => void) | null): void { onMfaRequired = handler; }
+
+ const client = createWebApiClient({
+   baseUrl: BASE_URL,
+@@ -18,9 +20,11 @@
+   coordinator: browserSessionCoordinator(BASE_URL),
+   onAuthLost: () => onAuthLost?.(),
+   onSessionAvailable: () => onSessionAvailable?.(),
++  onMfaRequired: requirement => onMfaRequired?.(requirement),
+ });
+
+-/** Writes that hit a privileged action ask for the password once and repeat (055). */
++/** Mandatory403 invalidation/callback belongs to the shared engine exactly once.
++ * Existing055 replay remains limited to its distinct VERIFICATION_REQUIRED. */
+ export const api: typeof client = {
+   ...client,
+   post: <T>(path: string, body?: unknown) => withRecentVerification(() => client.post<T>(path, body)),
+--- a/packages/ui/src/auth-state.ts
++++ b/packages/ui/src/auth-state.ts
+@@ -1,14 +1,37 @@
+ import { ApiError, type WebApiClient } from "@predioon/api-client";
+-import type { AuthUser } from "@predioon/contracts/auth";
++import type { AuthUser, MfaRequirement } from "@predioon/contracts/auth";
+
+ type Options = {
+-  api: Pick<WebApiClient, "restore" | "login" | "logout" | "clearMemory">;
++  api: Pick<WebApiClient, "restore" | "login" | "logout" | "clearMemory" | "get">;
+   onUserChange(user: AuthUser | null): void;
+   onLoadingChange(loading: boolean): void;
+   onErrorChange(error: string | null): void;
+   /** Invalidate memory owned by an identity before asynchronous work can finish. */
+   onSessionReset?(): void;
++  /** Actual identity/family change; authorization-only MFA hints must not call it. */
++  onIdentityReset?(): void;
++  onMfaRequirementChange?(requirement: MfaRequirement): void;
+ };
++
++/** Coalesce mandatory-factor notifications, including a403 from /me itself. */
++export function createMfaRecheck(
++  markRequired: (requirement: MfaRequirement) => void,
++  refreshProfile: () => Promise<void>,
++) {
++  let pending: Promise<void> | null = null;
++  let cancelled = false;
++  return {
++    request(requirement: MfaRequirement): Promise<void> {
++      if (cancelled) return Promise.resolve();
++      markRequired(requirement);
++      if (pending) return pending;
++      pending = Promise.resolve().then(() => cancelled ? undefined : refreshProfile())
++        .catch(() => undefined).finally(() => { pending = null; });
++      return pending;
++    },
++    cancel(): void { cancelled = true; },
++  };
++}
+
+ /** Keep React identity updates in the same order as explicit authentication actions. */
+ export function createAuthActions(options: Options) {
+@@ -16,6 +39,7 @@
+
+   function clearIdentity() {
+     generation++;
++    options.onIdentityReset?.();
+     options.onSessionReset?.();
+     options.onUserChange(null);
+     options.onLoadingChange(false);
+@@ -33,9 +57,53 @@
+     }
+   }
+
++  async function readProfile(): Promise<AuthUser> {
++      const expected = ++generation;
++      options.onErrorChange(null);
++      try {
++        const user = await options.api.get<AuthUser>("/auth/me");
++        if (generation !== expected) throw new ApiError(0, "A sessão mudou. Confira novamente.", "SESSION_CHANGED");
++        options.onUserChange(user);
++        return user;
++      } catch (error) {
++        if (generation !== expected || (error instanceof ApiError && error.code === "SESSION_CHANGED"))
++          throw new ApiError(0, "A sessão mudou. Confira novamente.", "SESSION_CHANGED");
++        options.onErrorChange(error instanceof Error ? error.message : "Não foi possível conferir a sessão.");
++        throw error;
++      }
++  }
++
+   return {
++    /** Same-family recheck; rejects stale responses without releasing recovery codes. */
++    async refreshProfile(): Promise<void> {
++      const expected = generation + 1;
++      await readProfile();
++      if (generation !== expected) throw new ApiError(0, "A sessão mudou. Confira novamente.", "SESSION_CHANGED");
++    },
++
++    /** Publish restricted/unknown identity state, then synchronously block reconnect. */
++    async validateOperationalProfile(): Promise<void> {
++      const expected = generation + 1;
++      const user = await readProfile();
++      if (generation !== expected) throw new ApiError(0, "A sessão mudou. Confira novamente.", "SESSION_CHANGED");
++      if (user.mfaRequirement === "not-required" || user.mfaRequirement === "satisfied") return;
++      const reason = user.mfaRequirement === "enrollment-required" ? "MFA_ENROLLMENT_REQUIRED"
++        : user.mfaRequirement === "verification-required" ? "MFA_VERIFICATION_REQUIRED" : null;
++      if (reason) throw new ApiError(403, "Conclua a verificação desta sessão.", "HTTP_ERROR", reason);
++      throw new ApiError(503, "Não foi possível confirmar a proteção desta sessão.");
++    },
++    /** A new mandatory-factor denial invalidates all outstanding identity work. */
++    mfaRequired(requirement: MfaRequirement): void {
++      generation++;
++      options.onSessionReset?.();
++      options.onMfaRequirementChange?.(requirement);
++      options.onLoadingChange(false);
++      options.onErrorChange(null);
++    },
++
+     async restore(): Promise<void> {
+       const expected = ++generation;
++      options.onIdentityReset?.();
+       options.onSessionReset?.();
+       options.onLoadingChange(true);
+       options.onErrorChange(null);
+@@ -74,6 +142,6 @@
+     },
+
+     authLost: clearIdentity,
+-    cancel(): void { generation++; options.onSessionReset?.(); },
++    cancel(): void { generation++; options.onSessionReset?.(); options.onIdentityReset?.(); },
+   };
+ }
+--- a/packages/ui/src/auth.tsx
++++ b/packages/ui/src/auth.tsx
+@@ -11,9 +11,12 @@
+   api,
+   setAuthLostHandler,
+   setSessionAvailableHandler,
++  setMfaRequiredHandler,
+   type Session,
+ } from "./api.js";
+-import { createAuthActions } from "./auth-state.js";
++import { createAuthActions, createMfaRecheck } from "./auth-state.js";
++import { MfaCeremonyProvider } from "./mfa-ceremony.js";
++import { MfaCeremonyHost } from "./components/mfa-ceremony-host.js";
+ import {
+   createAccessIntentStore,
+   type AccessIntentStore,
+@@ -26,6 +29,8 @@
+   loading: boolean;
+   error: string | null;
+   retryRestore: () => Promise<void>;
++  refreshProfile: () => Promise<void>;
++  validateOperationalProfile: () => Promise<void>;
+   signIn: (email: string, password: string, code?: string) => Promise<void>;
+   signOut: () => Promise<void>;
+   signOutAfter: (operation: () => Promise<void>) => Promise<void>;
+@@ -40,6 +45,7 @@
+   const [user, setUser] = useState<AuthUser | null>(null);
+   const [loading, setLoading] = useState(true);
+   const [error, setError] = useState<string | null>(null);
++  const [identityEpoch, setIdentityEpoch] = useState(0);
+   const [accessIntents, setAccessIntents] = useState(() =>
+     createAccessIntentStore(() => crypto.randomUUID()),
+   );
+@@ -51,6 +57,9 @@
+         onUserChange: setUser,
+         onLoadingChange: setLoading,
+         onErrorChange: setError,
++        onIdentityReset: () => setIdentityEpoch(value => value + 1),
++        onMfaRequirementChange: requirement => setUser(current => current
++          ? { ...current, mfaRequirement: requirement, memberships: [] } : null),
+         onSessionReset: () => {
+           // Invalidate synchronously: an awaited preflight may resume before React
+           // commits the next identity. A normal token refresh does not reset this.
+@@ -65,13 +74,17 @@
+
+   useEffect(() => {
+     setAuthLostHandler(actions.authLost);
++    const mfaRecheck = createMfaRecheck(actions.mfaRequired, actions.refreshProfile);
++    setMfaRequiredHandler(requirement => { void mfaRecheck.request(requirement); });
+     setSessionAvailableHandler(() => {
+       void actions.restore();
+     });
+     void actions.restore();
+     return () => {
++      mfaRecheck.cancel();
+       actions.cancel();
+       setAuthLostHandler(null);
++      setMfaRequiredHandler(null);
+       setSessionAvailableHandler(null);
+     };
+   }, [actions]);
+@@ -82,6 +95,8 @@
+       loading,
+       error,
+       retryRestore: actions.restore,
++      refreshProfile: actions.refreshProfile,
++      validateOperationalProfile: actions.validateOperationalProfile,
+       signIn: actions.signIn,
+       signOut: actions.signOut,
+       signOutAfter: actions.signOutAfter,
+@@ -91,7 +106,12 @@
+     [user, loading, error, actions, accessIntents],
+   );
+
+-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
++  return <AuthContext.Provider value={value}>
++    <MfaCeremonyProvider key={identityEpoch}>
++      {children}
++      <MfaCeremonyHost />
++    </MfaCeremonyProvider>
++  </AuthContext.Provider>;
+ }
+
+ export function useAuth(): AuthState {
+--- /dev/null
++++ b/packages/ui/src/components/mfa-ceremony-host.tsx
+@@ -0,0 +1,82 @@
++import { useEffect, useRef, useState, type FormEvent } from "react";
++import type { MfaStatus } from "@predioon/contracts/auth";
++import { api } from "../api.js";
++import { useAuth } from "../auth.js";
++import { useMfaCeremony } from "../mfa-ceremony.js";
++import { useResource } from "../use-resource.js";
++import { Field, Input } from "./fields.js";
++import { MfaPanel } from "./mfa-panel.js";
++import { Button, Card, ErrorBanner, ResourceFeedback } from "./primitives.js";
++
++/** Outside private providers; one panel owns secrets for this identity epoch. */
++export function MfaCeremonyHost() {
++  const { user, refreshProfile, signOut } = useAuth();
++  const ceremony = useMfaCeremony();
++  const dialog = useRef<HTMLDialogElement>(null);
++  useEffect(() => {
++    const element = dialog.current;
++    if (!element) return;
++    if (ceremony.open && !element.open) element.showModal();
++    if (!ceremony.open && element.open) element.close();
++  }, [ceremony.open, ceremony.activated, user?.id]);
++  if (!user || !ceremony.activated) return null;
++  const verify = ceremony.mode === "verification" && !ceremony.held;
++  const complete = async () => {
++    // Rejects stale /me: neither codes nor the hold are cleared on that path.
++    await refreshProfile();
++    ceremony.complete();
++  };
++  return <dialog ref={dialog} aria-label="Verificação em duas etapas" className="w-full max-w-xl rounded-xl p-5 backdrop:bg-slate-900/50"
++    onCancel={event => { event.preventDefault(); ceremony.close(); }}>
++    <div className="space-y-4">
++      {/* Never conditionally replace this owner while the identity is alive. */}
++      <div hidden={verify}><MfaPanel required={user.mfaRequirement !== "not-required"}
++        onConfirmationPendingChange={ceremony.setConfirming}
++        onRecoveryCodesReady={() => ceremony.setPendingCodes(true)} onComplete={complete} /></div>
++      {verify && <VerifyCurrentFamily onComplete={complete} />}
++      <div className="flex gap-2">
++        <Button variant="secondary" disabled={ceremony.held} onClick={ceremony.close}>Fechar</Button>
++        <Button variant="secondary" onClick={() => void signOut()}>Sair</Button>
++      </div>
++    </div>
++  </dialog>;
++}
++function VerifyCurrentFamily({ onComplete }: { onComplete: () => Promise<void> }) {
++  const status = useResource<MfaStatus>("/auth/mfa");
++  const [password, setPassword] = useState("");
++  const [code, setCode] = useState("");
++  const [error, setError] = useState<string | null>(null);
++  const [pending, setPending] = useState(false);
++  const [verified, setVerified] = useState(false);
++  const busy = useRef(false);
++  async function submit(event: FormEvent) {
++    event.preventDefault();
++    if (busy.current || !status.data?.available) return;
++    busy.current = true; setPending(true); setError(null);
++    try {
++      await api.post("/auth/verify", { currentPassword: password, code: code.trim() });
++      setVerified(true);
++      setPassword(""); setCode("");
++      await onComplete();
++    } catch (cause) { setError(cause instanceof Error ? cause.message : "Não foi possível confirmar esta sessão."); }
++    finally { busy.current = false; setPending(false); }
++  }
++  return <Card title="Confirme esta sessão" subtitle="Use sua senha e um código do autenticador ou de recuperação.">
++    {error && <ErrorBanner message={error} />}
++    {!status.data ? <ResourceFeedback resource={status} emptyText="Verificação indisponível." />
++      : !status.data.available ? <p role="status" className="text-sm text-slate-600">A verificação está indisponível neste ambiente. Tente novamente mais tarde ou saia.</p>
++        : verified ? <Button disabled={pending} onClick={() => {
++          if (busy.current) return;
++          busy.current = true; setPending(true); setError(null);
++          void onComplete().catch(cause => setError(cause instanceof Error ? cause.message : "Não foi possível conferir a sessão."))
++            .finally(() => { busy.current = false; setPending(false); });
++        }}>{pending ? "Conferindo…" : "Conferir acesso"}</Button>
++        : <form onSubmit={submit} aria-label="Confirmar sessão administrativa" className="space-y-3">
++          <fieldset disabled={pending} className="space-y-3">
++            <Field label="Senha atual"><Input type="password" required autoComplete="current-password" value={password} onChange={setPassword} /></Field>
++            <Field label="Código de verificação"><Input required minLength={6} maxLength={16} autoComplete="one-time-code" value={code} onChange={setCode} /></Field>
++            <Button type="submit" disabled={pending}>{pending ? "Conferindo…" : "Confirmar e continuar"}</Button>
++          </fieldset>
++        </form>}
++  </Card>;
++}
+--- a/packages/ui/src/components/mfa-panel.tsx
++++ b/packages/ui/src/components/mfa-panel.tsx
+@@ -8,7 +8,13 @@
+ type Step = { kind: "idle" } | { kind: "password"; purpose: "enroll" | "disable" } | { kind: "confirm"; enrollment: MfaEnrollResponse } | { kind: "codes"; codes: string[] };
+
+ /** Two-step verification for the signed-in account. Lives beside the password panel in every portal. */
+-export function MfaPanel() {
++export function MfaPanel({ required = false, onComplete, onRecoveryCodesReady, onConfirmationPendingChange }: {
++  required?: boolean;
++  /** Called only after explicit acknowledgment, never immediately on confirmation. */
++  onComplete?: () => Promise<void>;
++  onRecoveryCodesReady?: () => void;
++  onConfirmationPendingChange?: (pending: boolean) => void;
++} = {}) {
+   const status = useResource<MfaStatus>("/auth/mfa");
+   const [step, setStep] = useState<Step>({ kind: "idle" });
+   const [password, setPassword] = useState("");
+@@ -32,24 +38,36 @@
+       setPassword(""); setCode(""); setStep({ kind: "confirm", enrollment });
+     });
+     if (step.kind === "password" && step.purpose === "disable") void run(async () => {
++      if (required) return;
+       await api.post("/auth/mfa/disable", { currentPassword: password, code: code.trim() });
+       reset();
+     });
+     if (step.kind === "confirm") void run(async () => {
+-      const result = await api.post<MfaConfirmResponse>("/auth/mfa/confirm", { code: code.trim() });
+-      setCode(""); setStep({ kind: "codes", codes: result.recoveryCodes }); status.reload();
++      // Keep this exact panel mounted across a same-family authorization change
++      // BEFORE the response arrives as well as while its codes await acknowledgment.
++      onConfirmationPendingChange?.(true);
++      try {
++        const result = await api.post<MfaConfirmResponse>("/auth/mfa/confirm", { code: code.trim() });
++        // Never refresh /me here: it could replace the gate before codes are saved.
++        onRecoveryCodesReady?.();
++        setCode(""); setStep({ kind: "codes", codes: result.recoveryCodes });
++      } finally { onConfirmationPendingChange?.(false); }
+     });
+   }
+
+   if (!status.data) return <Card title="Verificação em duas etapas"><ResourceFeedback resource={status} emptyText="Indisponível no momento." /></Card>;
+   const enabled = status.data.enabled;
+-  return <Card title="Verificação em duas etapas" subtitle="Além da senha, a entrada pede um código do seu aplicativo autenticador">
++  return <Card title="Verificação em duas etapas" subtitle={required
++    ? "Cadastre seu autenticador para continuar nesta sessão administrativa."
++    : "Além da senha, a entrada pede um código do seu aplicativo autenticador"}>
+     {error && <div className="mb-3"><ErrorBanner message={error} onDismiss={() => setError(null)} /></div>}
+     {step.kind === "idle" && <>
+       <div className="mb-4 flex flex-wrap items-center gap-2"><Badge tone={enabled ? "success" : "neutral"}>{enabled ? "Ativada" : "Desativada"}</Badge>
+         {enabled && <span className="text-sm text-slate-600">{status.data.recoveryCodesRemaining} código(s) de recuperação disponível(is)</span>}</div>
+-      {!status.data.available && !enabled ? <p className="text-sm text-slate-600">Este ambiente ainda não foi configurado para a verificação em duas etapas.</p>
+-        : enabled ? <Button variant="secondary" onClick={() => setStep({ kind: "password", purpose: "disable" })}>Desativar verificação</Button>
++      {!status.data.available ? <p role="status" className="text-sm text-slate-600">A verificação em duas etapas está indisponível neste ambiente. Tente novamente mais tarde.</p>
++        : enabled ? required
++          ? <><p className="mb-3 text-sm text-slate-600">O autenticador está cadastrado. A verificação é obrigatória para o acesso administrativo.</p>{onComplete && <Button disabled={pending} onClick={() => void run(onComplete)}>Conferir esta sessão</Button>}</>
++          : <Button variant="secondary" onClick={() => setStep({ kind: "password", purpose: "disable" })}>Desativar verificação</Button>
+         : <><p className="mb-4 text-sm text-slate-600">Use um aplicativo como Google Authenticator, Microsoft Authenticator ou 1Password. Você vai precisar dele toda vez que entrar.</p>
+           <Button variant="secondary" onClick={() => setStep({ kind: "password", purpose: "enroll" })}>Ativar verificação</Button></>}
+     </>}
+@@ -67,7 +85,10 @@
+     {step.kind === "codes" && <div role="status" className="space-y-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
+       <p><strong>Verificação em duas etapas ativada.</strong> Guarde estes códigos de recuperação em local seguro: cada um entra uma única vez se você ficar sem o aplicativo, e eles <strong>não serão exibidos novamente</strong>.</p>
+       <ul aria-label="Códigos de recuperação" className="grid grid-cols-2 gap-1 font-mono">{step.codes.map(item => <li key={item}>{item}</li>)}</ul>
+-      <Button variant="secondary" onClick={reset}>Já guardei os códigos</Button>
++      <Button variant="secondary" disabled={pending} onClick={() => void run(async () => {
++        await onComplete?.();
++        reset();
++      })}>{pending ? "Conferindo sessão…" : "Já guardei os códigos"}</Button>
+     </div>}
+   </Card>;
+ }
+--- /dev/null
++++ b/packages/ui/src/components/mfa-session-gate.tsx
+@@ -0,0 +1,24 @@
++import { useEffect, type ReactNode } from "react";
++import { useAuth } from "../auth.js";
++import { useMfaCeremony } from "../mfa-ceremony.js";
++import { Button, ErrorBanner } from "./primitives.js";
++
++/** Closes private providers while the identity-owned ceremony remains mounted. */
++export function MfaSessionGate({ children }: { children: ReactNode }) {
++  const { user, signOut, refreshProfile, error } = useAuth();
++  const ceremony = useMfaCeremony();
++  const requirement = user?.mfaRequirement;
++  const mode = requirement === "enrollment-required" ? "enrollment"
++    : requirement === "verification-required" ? "verification" : null;
++  useEffect(() => { if (mode) ceremony.show(mode); }, [mode, ceremony.show]);
++  if (!user) return null;
++  if (!ceremony.held && (requirement === "not-required" || requirement === "satisfied")) return children;
++  return <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-4 p-6" aria-label="Verificação obrigatória da sessão">
++    <h1 className="text-xl font-semibold text-slate-900">Proteja seu acesso administrativo</h1>
++    <p className="text-sm text-slate-600">Conclua a verificação e guarde os códigos de recuperação antes de continuar.</p>
++    {error && <ErrorBanner message={error} />}
++    {mode ? <Button onClick={() => ceremony.show(mode)}>Abrir verificação</Button>
++      : !ceremony.held && <Button onClick={() => void refreshProfile().catch(() => undefined)}>Conferir sessão novamente</Button>}
++    <Button variant="secondary" onClick={() => void signOut()}>Sair</Button>
++  </main>;
++}
+--- a/packages/ui/src/components/sessions-panel.tsx
++++ b/packages/ui/src/components/sessions-panel.tsx
+@@ -7,14 +7,15 @@
+ import { Badge, Button, Card, ErrorBanner, ResourceFeedback } from "./primitives.js";
+ import { describeUserAgent } from "../labels.js";
+ import { PasswordChangePanel } from "./password-change-panel.js";
+-import { MfaPanel } from "./mfa-panel.js";
++import { useMfaCeremony } from "../mfa-ceremony.js";
+
+ const active = (session: SessionView) => !session.revokedAt && new Date(session.expiresAt).getTime() > Date.now();
+
+ /** The server always selects and revokes sessions belonging to the current user. */
+ export function SessionsPanel() {
++  const ceremony = useMfaCeremony();
+   const { user } = useAuth();
+-  return user ? <div key={user.id} className="space-y-6"><PasswordChangePanel /><MfaPanel /><SessionsWorkspace /></div> : null;
++  return user ? <div key={user.id} className="space-y-6"><PasswordChangePanel /><Card title="Verificação em duas etapas"><Button onClick={() => ceremony.show("settings")}>Gerenciar verificação</Button></Card><SessionsWorkspace /></div> : null;
+ }
+
+ function SessionsWorkspace() {
+--- a/packages/ui/src/index.ts
++++ b/packages/ui/src/index.ts
+@@ -49,3 +49,4 @@
+ export * from "./reservation-state.js";
+ export * from "./feature-state.js";
+ export * from "./features.js";
++export * from "./components/mfa-session-gate.js";
+--- /dev/null
++++ b/packages/ui/src/mfa-ceremony.tsx
+@@ -0,0 +1,36 @@
++import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
++
++type Mode = "settings" | "enrollment" | "verification";
++type Ceremony = {
++  open: boolean;
++  activated: boolean;
++  mode: Mode;
++  held: boolean;
++  show(mode: Mode): void;
++  close(): void;
++  complete(): void;
++  setConfirming(value: boolean): void;
++  setPendingCodes(value: boolean): void;
++};
++const Context = createContext<Ceremony | null>(null);
++
++/** Identity-keyed owner of display/hold state only. Secrets stay in ONE host panel. */
++export function MfaCeremonyProvider({ children }: { children: ReactNode }) {
++  const [open, setOpen] = useState(false);
++  const [activated, setActivated] = useState(false);
++  const [mode, setMode] = useState<Mode>("settings");
++  const [confirming, setConfirming] = useState(false);
++  const [pendingCodes, setPendingCodes] = useState(false);
++  const held = confirming || pendingCodes;
++  const show = useCallback((next: Mode) => { setActivated(true); setMode(next); setOpen(true); }, []);
++  const close = useCallback(() => { if (!held) setOpen(false); }, [held]);
++  const complete = useCallback(() => { setPendingCodes(false); setOpen(false); }, []);
++  const value = useMemo(() => ({ open, activated, mode, held, show, close, complete,
++    setConfirming, setPendingCodes }), [open, activated, mode, held, show, close, complete]);
++  return <Context.Provider value={value}>{children}</Context.Provider>;
++}
++export function useMfaCeremony(): Ceremony {
++  const value = useContext(Context);
++  if (!value) throw new Error("MFA ceremony requires AuthProvider");
++  return value;
++}
+--- a/packages/ui/src/sse.ts
++++ b/packages/ui/src/sse.ts
+@@ -1,5 +1,6 @@
+ import { useEffect, useRef, useState } from "react";
+ import type { RealtimeEvent } from "@predioon/shared";
++import { useAuth } from "./auth.js";
+ import { api, tokens } from "./api.js";
+ import { startRealtimeConnection } from "./realtime-connection.js";
+ import { createFetchEventSource } from "./fetch-event-source.js";
+@@ -8,6 +9,7 @@
+
+ /** A failed stream validates the session and reconnects with the current token. */
+ export function useRealtime(onEvent: (event: RealtimeEvent) => void, { enabled = true }: Options = {}): boolean {
++  const { validateOperationalProfile } = useAuth();
+   const [connected, setConnected] = useState(false);
+   const handler = useRef(onEvent);
+   handler.current = onEvent;
+@@ -15,12 +17,12 @@
+     if (!enabled) return;
+     return startRealtimeConnection({
+       accessToken: tokens.access,
+-      validateSession: () => api.get("/auth/me"),
++      validateSession: validateOperationalProfile,
+       openStream: access => createFetchEventSource(`${api.baseUrl}/events/stream`, access),
+       schedule: (callback, delay) => { const timer = setTimeout(callback, delay); return () => clearTimeout(timer); },
+       onConnection: setConnected,
+       onEvent: event => handler.current(event),
+     });
+-  }, [enabled]);
++  }, [enabled, validateOperationalProfile]);
+   return connected;
+ }
+--- /dev/null
++++ b/packages/ui/test/auth-mfa-profile.test.ts
+@@ -0,0 +1,167 @@
++import assert from "node:assert/strict";
++import { it } from "node:test";
++import { ApiError } from "@predioon/api-client";
++import type { AuthUser } from "@predioon/contracts/auth";
++import { createAuthActions, createMfaRecheck } from "../src/auth-state.ts";
++
++// DRAFT, NOT EXECUTED. Same real action factory, no React/HTTP/database runtime.
++function deferred<T>() {
++  let resolve!: (value: T) => void, reject!: (error: unknown) => void;
++  const promise = new Promise<T>((done, fail) => { resolve = done; reject = fail; });
++  return { promise, resolve, reject };
++}
++function profile(requirement: AuthUser["mfaRequirement"]): AuthUser {
++  return { id: "fixture", name: "Fixture", email: "fixture@example.invalid",
++    role: "PLATFORM_ADMIN", memberships: [], mfaRequirement: requirement };
++}
++function harness() {
++  const pending = deferred<AuthUser>();
++  let user: AuthUser | null = profile("enrollment-required");
++  let error: string | null = null;
++  let updates = 0;
++  let identityResets = 0;
++  const actions = createAuthActions({
++    api: {
++      get: async <T>(path: string) => { assert.equal(path, "/auth/me"); return pending.promise as Promise<T>; },
++      restore: async () => null,
++      login: async () => ({ accessToken: "synthetic", user: profile("satisfied") }),
++      logout: async () => undefined,
++      clearMemory: () => undefined,
++    },
++    onIdentityReset: () => { identityResets++; },
++    onUserChange: next => { user = next; updates++; },
++    onLoadingChange: () => undefined,
++    onErrorChange: next => { error = next; },
++    onMfaRequirementChange: requirement => { user = profile(requirement); },
++  });
++  return { actions, pending, state: () => ({ user, error, updates, identityResets }) };
++}
++const changed = (error: unknown) => error instanceof ApiError && error.code === "SESSION_CHANGED";
++
++it("rejects stale profile success so explicit recovery acknowledgment cannot release its hold", async () => {
++  const f = harness();
++  let pendingCodes = true;
++  const acknowledgment = f.actions.refreshProfile().then(() => { pendingCodes = false; });
++  const rejection = assert.rejects(acknowledgment, changed);
++  f.actions.mfaRequired("verification-required");
++  const before = f.state();
++  f.pending.resolve(profile("satisfied"));
++  await rejection;
++  assert.equal(pendingCodes, true);
++  assert.deepEqual(f.state(), before);
++});
++
++it("rejects stale profile failure without overwriting newer identity or error state", async () => {
++  const f = harness();
++  const reading = f.actions.refreshProfile();
++  const rejection = assert.rejects(reading, changed);
++  f.actions.authLost();
++  const before = f.state();
++  f.pending.reject(new Error("old request failed"));
++  await rejection;
++  assert.deepEqual(f.state(), before);
++});
++
++it("accepts the current profile before an acknowledgment caller releases its hold", async () => {
++  const f = harness();
++  let pendingCodes = true;
++  const acknowledgment = f.actions.refreshProfile().then(() => { pendingCodes = false; });
++  f.pending.resolve(profile("satisfied"));
++  await acknowledgment;
++  assert.equal(pendingCodes, false);
++  assert.equal(f.state().user?.mfaRequirement, "satisfied");
++  assert.equal(f.state().updates, 1);
++});
++
++it("keeps a current failed reread rejected and records its retryable error", async () => {
++  const f = harness();
++  const reading = f.actions.refreshProfile();
++  const rejection = assert.rejects(reading, /current request failed/);
++  f.pending.reject(new Error("current request failed"));
++  await rejection;
++  assert.equal(f.state().user?.mfaRequirement, "enrollment-required");
++  assert.equal(f.state().updates, 0);
++  assert.equal(f.state().error, "current request failed");
++});
++
++it("bounds /me403 callback recursion to one reread and allows a later explicit notification", async () => {
++  let reads = 0, notifications = 0;
++  const recheck = createMfaRecheck(() => { notifications++; }, async () => {
++    reads++;
++    // Same synchronous callback behavior as the shared transport, followed by
++    // the original rejected request; the callback must not start another GET.
++    void recheck.request("verification-required");
++    throw new ApiError(403, "MFA needed", "HTTP_ERROR", "MFA_VERIFICATION_REQUIRED");
++  });
++  await recheck.request("enrollment-required");
++  assert.equal(reads, 1);
++  assert.equal(notifications, 2);
++  await recheck.request("verification-required");
++  assert.equal(reads, 2);
++});
++
++it("coalesces concurrent restrictions and cancels a not-yet-started reread on unmount", async () => {
++  const read = deferred<void>();
++  let reads = 0;
++  const recheck = createMfaRecheck(() => undefined, async () => { reads++; await read.promise; });
++  const first = recheck.request("enrollment-required");
++  const second = recheck.request("verification-required");
++  recheck.cancel();
++  read.resolve();
++  await Promise.all([first, second]);
++  assert.equal(reads, 0);
++});
++
++it("authorization hints retain ceremony identity; logout/login/restore replace it", async () => {
++  const f = harness();
++  f.actions.mfaRequired("verification-required");
++  assert.equal(f.state().identityResets, 0);
++  await f.actions.signOut();
++  assert.equal(f.state().identityResets, 1);
++  await f.actions.signIn("fixture@example.invalid", "synthetic");
++  assert.equal(f.state().identityResets, 2);
++  await f.actions.restore();
++  assert.equal(f.state().identityResets, 3);
++});
++
++for (const requirement of ["enrollment-required", "verification-required"] as const) {
++  it(`SSE rejects restricted 200 ${requirement} after publishing the restricted profile`, async () => {
++    const f = harness();
++    const reading = f.actions.validateOperationalProfile();
++    const rejection = assert.rejects(reading, cause => cause instanceof ApiError && cause.status === 403
++      && cause.reason === (requirement === "enrollment-required" ? "MFA_ENROLLMENT_REQUIRED" : "MFA_VERIFICATION_REQUIRED"));
++    f.pending.resolve(profile(requirement));
++    await rejection;
++    assert.equal(f.state().user?.mfaRequirement, requirement);
++    assert.equal(f.state().updates, 1);
++  });
++}
++it("SSE rejects unknown/missing requirement with 503 after publishing fail-closed state", async () => {
++  const f = harness();
++  const reading = f.actions.validateOperationalProfile();
++  const rejection = assert.rejects(reading, cause => cause instanceof ApiError && cause.status === 503);
++  // Malformed wire DTO: intentional runtime-contract negative, not production typing.
++  f.pending.resolve({ ...profile("satisfied"), mfaRequirement: undefined } as unknown as AuthUser);
++  await rejection;
++  assert.equal(f.state().user?.mfaRequirement, undefined);
++  assert.equal(f.state().updates, 1);
++});
++for (const requirement of ["not-required", "satisfied"] as const) {
++  it(`SSE permits current operational profile ${requirement}`, async () => {
++    const f = harness();
++    const reading = f.actions.validateOperationalProfile();
++    f.pending.resolve(profile(requirement));
++    await reading;
++    assert.equal(f.state().user?.mfaRequirement, requirement);
++  });
++}
++it("SSE rejects a late old-identity profile without publishing it", async () => {
++  const f = harness();
++  const reading = f.actions.validateOperationalProfile();
++  const rejection = assert.rejects(reading, changed);
++  f.actions.authLost();
++  const before = f.state();
++  f.pending.resolve(profile("satisfied"));
++  await rejection;
++  assert.deepEqual(f.state(), before);
++});

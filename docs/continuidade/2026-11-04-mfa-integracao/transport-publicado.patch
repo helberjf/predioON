@@ -1,0 +1,392 @@
+--- a/packages/api-client/src/engine.ts
++++ b/packages/api-client/src/engine.ts
+@@ -6,6 +6,7 @@
+   setTokens(tokens: C): Promise<void>;
+   clearTokens(): Promise<void>;
+ };
++export type MfaRestriction = "enrollment-required" | "verification-required";
+ export type AuthOperation = "login" | "refresh" | "logout" | "password";
+ type AuthRequest = { path: string; init: RequestInit };
+ export type AuthGate = <T>(operation: () => Promise<T>) => Promise<T>;
+@@ -14,6 +15,7 @@
+   fetch: typeof globalThis.fetch;
+   storage: CredentialStorage<C>;
+   onAuthLost?: () => void;
++  onMfaRequired?: (restriction: MfaRestriction) => void;
+   assertSession?: () => void;
+   /** Capture the caller's identity before any asynchronous work starts. */
+   authGate?: (operation: AuthOperation) => AuthGate;
+@@ -34,6 +36,7 @@
+ export function createBearerClient<C extends { accessToken: string }, S extends C>(options: Options<C, S>) {
+   const baseUrl = options.baseUrl.replace(/\/+$/, "");
+   let version = 0;
++  let authorizationVersion = 0;
+   let locallySignedOut = false;
+   let storageQueue: Promise<unknown> = Promise.resolve();
+   let refreshInFlight: { version: number; promise: Promise<void> } | null = null;
+@@ -44,9 +47,9 @@
+     storageQueue = pending.catch(() => undefined);
+     return pending;
+   }
+-  function assertCurrent(expected: number): void {
++  function assertCurrent(expected: number, expectedAuthorization?: number): void {
+     options.assertSession?.();
+-    if (version !== expected) throw new ApiError(0, "A sessão mudou. Tente novamente.", "SESSION_CHANGED");
++    if (version !== expected || expectedAuthorization !== undefined && authorizationVersion !== expectedAuthorization) throw new ApiError(0, "A sessão mudou. Tente novamente.", "SESSION_CHANGED");
+   }
+   async function readTokens(expected: number): Promise<C | null> {
+     assertCurrent(expected);
+@@ -70,6 +73,20 @@
+     assertCurrent(clearedVersion);
+     options.onAuthLost?.();
+   }
++  function restrictSession(error: ApiError, expected: number, expectedAuthorization: number): boolean {
++    if (error.status !== 403) return false;
++    const restriction = error.reason === "MFA_ENROLLMENT_REQUIRED" ? "enrollment-required"
++      : error.reason === "MFA_VERIFICATION_REQUIRED" ? "verification-required" : null;
++    if (!restriction) return false;
++    assertCurrent(expected);
++    // A prior restriction already invalidated this authorization snapshot.
++    if (authorizationVersion !== expectedAuthorization) return true;
++    // Keep this family and in-flight bootstrap/rotation alive, but invalidate
++    // domain responses synchronously before notifying consumers.
++    authorizationVersion++;
++    options.onMfaRequired?.(restriction);
++    return true;
++  }
+   function networkError(): ApiError {
+     return new ApiError(0, `Não foi possível falar com a API em ${baseUrl}. Verifique sua conexão e tente novamente.`, "NETWORK_ERROR");
+   }
+@@ -77,16 +94,16 @@
+     try { return await options.fetch(`${baseUrl}${path}`, init); }
+     catch { throw networkError(); }
+   }
+-  async function readJson<T>(response: Response, expected: number, signal?: AbortSignal): Promise<T> {
++  async function readJson<T>(response: Response, expected: number, signal?: AbortSignal, expectedAuthorization?: number): Promise<T> {
+     let body: T;
+     try { body = await response.json() as T; }
+     catch (error) {
+-      assertCurrent(expected);
++      assertCurrent(expected, expectedAuthorization);
+       if (signal?.aborted) throw networkError();
+       if (error instanceof SyntaxError) throw new ApiError(response.status, "A API retornou uma resposta JSON inválida.", "INVALID_RESPONSE");
+       throw networkError();
+     }
+-    assertCurrent(expected);
++    assertCurrent(expected, expectedAuthorization);
+     if (signal?.aborted) throw networkError();
+     return body;
+   }
+@@ -121,6 +138,7 @@
+     return response;
+   }
+   async function renewSession(expected: number): Promise<void> {
++    const authorization = authorizationVersion;
+     const gate = options.authGate?.("refresh") ?? direct;
+     return gate(() => authDeadline(async signal => {
+       const tokens = await readTokens(expected);
+@@ -134,6 +152,7 @@
+         const error = await responseError(response);
+         assertCurrent(expected);
+         if (signal?.aborted) throw networkError();
++        if (restrictSession(error, expected, authorization)) throw error;
+         if (response.status === 401 || response.status === 403) await loseSession(expected);
+         throw error;
+       }
+@@ -148,28 +167,39 @@
+     refreshInFlight = { version: expected, promise };
+     return promise;
+   }
+-  async function request<T>(path: string, init: RequestInit = {}, retry = true, expected = version): Promise<T> {
++  function isMfaBootstrap(path: string, method: string): boolean {
++    // Exact method/path pairs only. Session metadata listing and factor disable
++    // are operational; query strings/prefix lookalikes are not bootstrap.
++    if (method === "GET") return path === "/auth/me" || path === "/auth/mfa" || path === "/auth/mfa/";
++    if (method === "POST") return path === "/auth/mfa/enroll" || path === "/auth/mfa/confirm"
++      || path === "/auth/verify" || path === "/auth/sessions/revoke-all";
++    return method === "DELETE" && /^\/auth\/sessions\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(path);
++  }
++  async function request<T>(path: string, init: RequestInit = {}, retry = true, expected = version, authorization = authorizationVersion): Promise<T> {
++    const protectedResponse = !isMfaBootstrap(path, init.method ?? "GET");
++    const assertRequest = () => assertCurrent(expected, protectedResponse ? authorization : undefined);
+     const tokens = await readTokens(expected);
+     const headers = new Headers(init.headers);
+     if (!headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+     if (tokens?.accessToken) headers.set("Authorization", `Bearer ${tokens.accessToken}`);
+-    assertCurrent(expected);
++    assertRequest();
+     const response = await send(path, { ...init, headers, ...(options.domainCredentials ? { credentials: options.domainCredentials } : {}) });
+-    assertCurrent(expected);
++    assertRequest();
+     if (response.status === 401 && retry) {
+       const currentTokens = await readTokens(expected);
+       if (!currentTokens?.accessToken || currentTokens.accessToken === tokens?.accessToken) await refreshSession(expected);
+-      assertCurrent(expected);
+-      return request<T>(path, init, false, expected);
++      assertRequest();
++      return request<T>(path, init, false, expected, authorization);
+     }
+     if (!response.ok) {
+       const error = await responseError(response);
+-      assertCurrent(expected);
++      assertRequest();
++      if (restrictSession(error, expected, authorization)) throw error;
+       if (response.status === 401) await loseSession(expected);
+       throw error;
+     }
+     if (response.status === 204) return undefined as T;
+-    return readJson<T>(response, expected);
++    return readJson<T>(response, expected, undefined, protectedResponse ? authorization : undefined);
+   }
+   return {
+     baseUrl,
+@@ -179,15 +209,19 @@
+     patch: <T>(path: string, body: unknown) => request<T>(path, { ...json(body), method: "PATCH" }),
+     delete: <T>(path: string) => request<T>(path, { method: "DELETE" }),
+     invalidateSession(): void { version++; },
++    invalidateAuthorization(): void { authorizationVersion++; },
+     /** A confirmed change revokes all server families. Invalidate this exact
+      * identity only after204; delayed success must never clear a newer login. */
+     async changePassword(body: PasswordChangeRequest): Promise<void> {
+       const expected = version;
++      const authorization = authorizationVersion;
+       const perform = () => {
++        assertCurrent(expected, authorization);
+         const gate = options.authGate?.("password") ?? direct;
+         return gate(() => authDeadline(async signal => {
+           const tokens = await readTokens(expected);
+           if (!tokens?.accessToken) throw new ApiError(401, "Entre novamente para continuar.");
++          assertCurrent(expected, authorization);
+           const request = options.protocol.password(body);
+           const headers = new Headers(request.init.headers);
+           headers.set("Authorization", `Bearer ${tokens.accessToken}`);
+@@ -195,6 +229,8 @@
+         }));
+       };
+       let response = await perform();
++      assertCurrent(expected);
++      if (response.status !== 204) assertCurrent(expected, authorization);
+       if (response.status === 401) {
+         await response.body?.cancel();
+         // Release the web cookie lock before renewing, then revalidate the
+@@ -207,10 +243,13 @@
+         const error = response.ok
+           ? new ApiError(response.status, "A API não confirmou a alteração da senha.", "INVALID_RESPONSE")
+           : await responseError(response);
+-        assertCurrent(expected);
++        assertCurrent(expected, authorization);
++        if (restrictSession(error, expected, authorization)) throw error;
+         if (response.status === 401) await loseSession(expected);
+         throw error;
+       }
++      // A confirmed204 already revoked the server families. Authorization hints
++      // cannot turn it into a retry; only a newer identity supersedes this result.
+       assertCurrent(expected);
+       try { await loseSession(expected); }
+       catch (error) {
+@@ -221,9 +260,14 @@
+     },
+     async restore(): Promise<C | null> {
+       const expected = version;
++      const authorization = authorizationVersion;
+       if (locallySignedOut) return null;
++      // Complete credential rotation even if authorization changes, but do not
++      // hand an old profile snapshot back to UI after a restriction callback.
+       await refreshSession(expected);
+-      return readTokens(expected);
++      const tokens = await readTokens(expected);
++      assertCurrent(expected, authorization);
++      return tokens;
+     },
+     async login(email: string, password: string, code?: string): Promise<S> {
+       const expected = ++version;
+--- a/packages/api-client/src/index.ts
++++ b/packages/api-client/src/index.ts
+@@ -1,8 +1,9 @@
+ import type { InvitationAcceptRequest, InvitationPreview, InvitationPreviewRequest, PasswordForgotRequest, Session, SessionTokens } from "@predioon/contracts/auth";
+ import type { ReservationAvailabilityQuery } from "@predioon/contracts";
+-import { createBearerClient, type CredentialStorage } from "#engine";
++import { createBearerClient, type CredentialStorage, type MfaRestriction } from "#engine";
+ import { ApiError } from "#errors";
+
++export type { MfaRestriction } from "#engine";
+ export { ApiError, type ApiErrorCode } from "#errors";
+ export type { PasswordChangeRequest, Session, SessionTokens, WebSession } from "@predioon/contracts/auth";
+ export { createWebApiClient, type WebApiClient, type WebApiClientOptions, type WebSessionCoordinator } from "#web-client";
+@@ -21,6 +22,7 @@
+   fetch: typeof globalThis.fetch;
+   storage: TokenStorage;
+   onAuthLost?: () => void;
++  onMfaRequired?: (restriction: MfaRestriction) => void;
+ };
+
+ /** Public recovery deliberately bypasses authenticated storage and session effects. */
+--- a/packages/api-client/src/web-client.ts
++++ b/packages/api-client/src/web-client.ts
+@@ -1,21 +1,23 @@
+ import type { WebSession } from "@predioon/contracts/auth";
+-import { createBearerClient, type AuthGate, type AuthOperation } from "#engine";
++import { createBearerClient, type AuthGate, type AuthOperation, type MfaRestriction } from "#engine";
+ import { ApiError } from "#errors";
+
+-/** Coordination stores identity epochs and logout intent only, never credentials. */
++/** Coordination stores identity epochs, restriction hints and logout intent; never credentials or proof. */
+ export type WebSessionCoordinator = {
+   assertCurrent(): void;
+   blocked(): boolean;
+   beginIdentityChange(): void;
+   blockSession(): void;
++  recheckSession(restriction: MfaRestriction): void;
+   gate(operation: AuthOperation): AuthGate;
+-  subscribe(listener: (available: boolean) => void): () => void;
++  subscribe(listener: (available: boolean, restriction?: MfaRestriction) => void): () => void;
+ };
+ export type WebApiClientOptions = {
+   baseUrl: string;
+   fetch: typeof globalThis.fetch;
+   coordinator: WebSessionCoordinator;
+   onAuthLost?: () => void;
++  onMfaRequired?: (restriction: MfaRestriction) => void;
+   onSessionAvailable?: () => void;
+   authTimeoutMs?: number;
+ };
+@@ -40,6 +42,12 @@
+     },
+     assertSession: () => coordinator.assertCurrent(),
+     authGate: operation => coordinator.gate(operation),
++    onMfaRequired: restriction => {
++      // Core invalidated authorization only; keep bootstrap and rotation alive.
++      // Publish authorization state, never a logout tombstone.
++      coordinator.recheckSession(restriction);
++      options.onMfaRequired?.(restriction);
++    },
+     onAuthLost: () => { session = null; try { coordinator.blockSession(); } finally { options.onAuthLost?.(); } },
+     protocol: {
+       beforeLogin: () => webRequest("logout"),
+@@ -51,7 +59,14 @@
+       ignoreLogoutFailure: false,
+     },
+   });
+-  const unsubscribe = coordinator.subscribe(available => {
++  const unsubscribe = coordinator.subscribe((available, restriction) => {
++    if (restriction) {
++      core.invalidateAuthorization();
++      options.onMfaRequired?.(restriction);
++      // Do not auto-restore: a refresh403 must not ping-pong between tabs.
++      // Consumers can recheck /me while preserving a visible recovery-code panel.
++      return;
++    }
+     invalidate();
+     options.onAuthLost?.();
+     if (available) options.onSessionAvailable?.();
+--- a/packages/ui/src/web-session-coordinator.ts
++++ b/packages/ui/src/web-session-coordinator.ts
+@@ -1,6 +1,6 @@
+-import { ApiError, type WebSessionCoordinator } from "@predioon/api-client";
++import { ApiError, type WebSessionCoordinator, type MfaRestriction } from "@predioon/api-client";
+
+-type State = { epoch: string; blocked: boolean };
++type State = { epoch: string; blocked: boolean; authorizationEpoch?: string; restriction?: MfaRestriction };
+ type LockProvider = { request<T>(name: string, callback: () => Promise<T>): Promise<T> };
+ type Environment = {
+   namespace: string;
+@@ -13,12 +13,14 @@
+ const changed = () => new ApiError(0, "A sessão mudou em outra aba. Tente novamente.", "SESSION_CHANGED");
+ const unsupported = () => new ApiError(0, "Este navegador precisa permitir armazenamento local e bloqueios entre abas para entrar com segurança. Use uma versão atual em HTTPS ou localhost.", "BROWSER_UNSUPPORTED");
+
+-/** The only persisted values are an opaque identity epoch and a logout tombstone.
++/** Persisted values separate identity epoch, authorization epoch and logout intent.
++ * Restriction hints change authorization only; they never replace family identity.
++ * A hint never proves MFA or grants access; the API remains authoritative.
+  * Intents are written synchronously; the last intent wins. Network cookie changes
+  * all hold the same Web Lock, including body consumption and identity checks. */
+ export function createWebSessionCoordinator(environment: Environment): WebSessionCoordinator & { dispose(): void } {
+   const key = `predioon.web-session.${environment.namespace}`;
+-  const listeners = new Set<(available: boolean) => void>();
++  const listeners = new Set<(available: boolean, restriction?: MfaRestriction) => void>();
+   let current: State | null = null;
+   let cleanedLegacy = false;
+   function supported() { if (!environment.locks) throw unsupported(); }
+@@ -34,16 +36,29 @@
+       if (!raw) return { epoch: "initial", blocked: false };
+       const parsed = JSON.parse(raw) as Partial<State>;
+       if (typeof parsed.epoch !== "string" || !parsed.epoch || typeof parsed.blocked !== "boolean") throw unsupported();
+-      return { epoch: parsed.epoch, blocked: parsed.blocked };
++      if (parsed.restriction !== undefined && parsed.restriction !== "enrollment-required"
++        && parsed.restriction !== "verification-required") throw unsupported();
++      if ((parsed.restriction === undefined) !== (parsed.authorizationEpoch === undefined)) throw unsupported();
++      if (parsed.authorizationEpoch !== undefined && (typeof parsed.authorizationEpoch !== "string" || !parsed.authorizationEpoch)) throw unsupported();
++      if (parsed.blocked && parsed.restriction !== undefined) throw unsupported();
++      return { epoch: parsed.epoch, blocked: parsed.blocked,
++        ...(parsed.restriction ? { restriction: parsed.restriction, authorizationEpoch: parsed.authorizationEpoch } : {}) };
+     } catch { throw unsupported(); }
+   }
+   function sync(): boolean {
+     const next = read();
+     const previous = current;
+     current = next;
+-    if (!previous || (next.epoch === previous.epoch && next.blocked === previous.blocked)) return false;
+-    for (const listener of listeners) listener(!next.blocked);
+-    return true;
++    if (!previous) return false;
++    const identityChanged = next.epoch !== previous.epoch || next.blocked !== previous.blocked;
++    if (identityChanged) {
++      // A different family/intent invalidates everything even if it has a hint.
++      for (const listener of listeners) listener(!next.blocked);
++    } else if (next.authorizationEpoch !== previous.authorizationEpoch || next.restriction !== previous.restriction) {
++      if (next.restriction) for (const listener of listeners) listener(!next.blocked, next.restriction);
++    }
++    // Authorization changes notify consumers without aborting bootstrap/auth gates.
++    return identityChanged;
+   }
+   function write(next: State) {
+     try { environment.storage.setItem(key, JSON.stringify(next)); }
+@@ -66,6 +81,13 @@
+     blocked() { assertCurrent(); return current!.blocked; },
+     beginIdentityChange: block,
+     blockSession: block,
++    recheckSession(restriction) {
++      // A delayed rejection cannot override a newer login/logout intent.
++      assertCurrent();
++      if (current!.blocked) throw changed();
++      if (restriction !== "enrollment-required" && restriction !== "verification-required") throw unsupported();
++      write({ epoch: current!.epoch, blocked: false, authorizationEpoch: environment.newId(), restriction });
++    },
+     gate(kind) {
+       assertCurrent();
+       const snapshot = current!;
+--- /dev/null
++++ b/packages/api-client/test/mfa-required.test.ts
+@@ -0,0 +1,32 @@
++import assert from 'node:assert/strict';
++import {it} from 'node:test';
++import {ApiError,createApiClient,createWebApiClient} from '../src/index.ts';
++import {createWebSessionCoordinator} from '../../ui/src/web-session-coordinator.ts';
++const deferred=<T>()=>{let resolve!:(value:T)=>void;const promise=new Promise<T>(r=>{resolve=r});return{promise,resolve}};
++const changed=(e:unknown)=>e instanceof ApiError&&e.code==='SESSION_CHANGED';
++const denied=(e:unknown)=>e instanceof ApiError&&e.status===403;
++const user={id:'u',name:'User',email:'u@example.test',role:'RESIDENT' as const,memberships:[],mfaRequirement:'not-required' as const};
++const session={accessToken:'a',refreshToken:'r',user};
++const mfa=(reason='MFA_VERIFICATION_REQUIRED',status=403)=>Response.json({error:'MFA',details:{reason}},{status});
++function native(fetcher:typeof fetch){let tokens:any={accessToken:'a',refreshToken:'r'},lost=0;const restrictions:string[]=[];const client=createApiClient({baseUrl:'http://fake.test',fetch:fetcher,storage:{async getTokens(){return tokens},async setTokens(value){tokens=value},async clearTokens(){tokens=null}},onAuthLost(){lost++},onMfaRequired(value){restrictions.push(value)}});return{client,restrictions,tokens:()=>tokens,lost:()=>lost};}
++for(const[reason,restriction]of [['MFA_ENROLLMENT_REQUIRED','enrollment-required'],['MFA_VERIFICATION_REQUIRED','verification-required']])it(`403 ${reason} invalidates once, preserves credentials, never retries write`,async()=>{const calls:string[]=[];const n=native(async url=>{calls.push(String(url));return mfa(reason)});await assert.rejects(n.client.post('/write',{x:1}),denied);assert.deepEqual(n.restrictions,[restriction]);assert.equal(calls.length,1);assert.deepEqual(n.tokens(),{accessToken:'a',refreshToken:'r'});assert.equal(n.lost(),0);});
++for(const[reason,status]of [['VERIFICATION_REQUIRED',403],['MFA_REQUIRED',403],['MFA_VERIFICATION_REQUIRED',400],['mfa_verification_required',403]]as const)it(`does not classify ${status}/${reason} as MFA restriction`,async()=>{const n=native(async()=>mfa(reason,status));await assert.rejects(n.client.get('/x'));assert.deepEqual(n.restrictions,[]);assert.ok(n.tokens());});
++it('rejects successful old response whose JSON finishes after MFA rejection',async()=>{const body=deferred<unknown>(),started=deferred<void>();const n=native(async url=>String(url).endsWith('/slow')?{ok:true,status:200,json:()=>{started.resolve();return body.promise}}as Response:mfa());const pending=assert.rejects(n.client.get('/slow'),changed);await started.promise;await assert.rejects(n.client.post('/write'),denied);body.resolve({private:'old'});await pending;assert.equal(n.restrictions.length,1);});
++it('concurrent MFA errors notify once and invalidate the other request',async()=>{const first=deferred<Response>(),second=deferred<Response>(),started=deferred<void>();let count=0;const n=native(async()=>{count++;if(count===2)started.resolve();return count===1?first.promise:second.promise});const a=assert.rejects(n.client.get('/a'),denied),b=assert.rejects(n.client.get('/b'),changed);await started.promise;first.resolve(mfa());await a;second.resolve(mfa());await b;assert.equal(n.restrictions.length,1);});
++it('old error JSON cannot restrict a newer explicit login',async()=>{const body=deferred<unknown>(),started=deferred<void>();const n=native(async url=>String(url).endsWith('/auth/login')?Response.json({...session,accessToken:'new'}):{ok:false,status:403,json:()=>{started.resolve();return body.promise}}as Response);const pending=assert.rejects(n.client.get('/old'),changed);await started.promise;await n.client.login('u@example.test','password');body.resolve({details:{reason:'MFA_VERIFICATION_REQUIRED'}});await pending;assert.equal(n.tokens()?.accessToken,'new');assert.deepEqual(n.restrictions,[]);});
++it('changePassword handles MFA without refresh/retry or clearing tokens',async()=>{const calls:string[]=[];const n=native(async url=>{calls.push(String(url));return mfa()});await assert.rejects(n.client.changePassword({currentPassword:'old',newPassword:'new'}),denied);assert.equal(calls.length,1);assert.equal(n.restrictions[0],'verification-required');assert.ok(n.tokens());assert.equal(n.lost(),0);});
++it('MFA403 from refresh preserves credentials and never replays original request',async()=>{const calls:string[]=[];const n=native(async url=>{calls.push(String(url));return String(url).endsWith('/auth/refresh')?mfa():Response.json({error:'expired'},{status:401})});await assert.rejects(n.client.post('/write'),denied);assert.equal(calls.length,2);assert.ok(n.tokens());assert.equal(n.lost(),0);assert.deepEqual(n.restrictions,['verification-required']);});
++it('login errors do not invoke operational MFA callback',async()=>{const n=native(async()=>mfa());await assert.rejects(n.client.login('u@example.test','password'),denied);assert.deepEqual(n.restrictions,[]);});
++function tabs(){let notifications=true;const values=new Map<string,string>(),listeners=new Map<number,()=>void>();let sequence=0,queue:Promise<unknown>=Promise.resolve();const coordinators=[0,1].map(id=>createWebSessionCoordinator({namespace:'test',storage:{getItem:k=>values.get(k)??null,setItem:(k,v)=>{values.set(k,v)},removeItem:k=>{values.delete(k)}},locks:{request(_name,operation){const p=queue.then(operation);queue=p.catch(()=>undefined);return p;}},newId:()=>String(++sequence),subscribe(listener){listeners.set(id,listener);return()=>{listeners.delete(id)}},publish(){if(notifications)for(const[other,listener]of listeners)if(other!==id)listener();}}));return{coordinators,values,silence(){notifications=false}};}
++it('coordinator recheck preserves identity epoch and publishes authorization without overriding login',()=>{const {coordinators:[a,b],values}=tabs();a.assertCurrent();b.assertCurrent();let available=false;b.subscribe(value=>{available=value});assert.equal(typeof a.recheckSession,'function');const originalEpoch=JSON.parse([...values.values()][0]??'{"epoch":"initial"}').epoch;a.recheckSession('verification-required');assert.equal(JSON.parse([...values.values()][0]!).epoch,originalEpoch);assert.ok(JSON.parse([...values.values()][0]!).authorizationEpoch);assert.equal(available,true);assert.equal(JSON.parse([...values.values()][0]!).blocked,false);b.beginIdentityChange();assert.throws(()=>a.recheckSession('verification-required'),changed);assert.equal(JSON.parse([...values.values()][0]!).blocked,true);a.dispose();b.dispose();});
++it('web restriction invalidates other tabs late bodies without logout and permits restore',async()=>{const {coordinators:[a,b],values}=tabs();const body=deferred<unknown>(),started=deferred<void>();let available=0,lost=0;const restrictions:string[]=[];const fetcher:typeof fetch=async url=>String(url).endsWith('/auth/web/refresh')?Response.json({accessToken:'web',user:{...user,mfaRequirement:'verification-required'}}):String(url).endsWith('/slow')?{ok:true,status:200,json:()=>{started.resolve();return body.promise}}as Response:mfa();const ca=createWebApiClient({baseUrl:'http://fake.test',fetch:fetcher,coordinator:a,onAuthLost(){lost++},onMfaRequired:r=>{restrictions.push(r)}}),cb=createWebApiClient({baseUrl:'http://fake.test',fetch:fetcher,coordinator:b,onAuthLost(){lost++},onMfaRequired:r=>{restrictions.push(r)},onSessionAvailable(){available++}});await ca.restore();await cb.restore();const pending=assert.rejects(cb.get('/slow'),changed);await started.promise;await assert.rejects(ca.post('/write'),denied);body.resolve({private:'old'});await pending;assert.equal(ca.accessToken(),'web');assert.equal(cb.accessToken(),'web');assert.equal(available,0);assert.equal(lost,0);assert.deepEqual(restrictions,['verification-required','verification-required']);assert.equal(JSON.parse([...values.values()][0]!).blocked,false);const restored=await cb.restore();assert.equal(restored?.user.mfaRequirement,'verification-required');ca.dispose();cb.dispose();a.dispose();b.dispose();});
++
++it('missed cross-tab restriction event preserves credentials when accessToken synchronizes',async()=>{const world=tabs(),[a,b]=world.coordinators;let lost=0;const restrictions:string[]=[];const fetcher:typeof fetch=async url=>String(url).endsWith('/auth/web/refresh')?Response.json({accessToken:'web',user}):mfa();const ca=createWebApiClient({baseUrl:'http://fake.test',fetch:fetcher,coordinator:a}),cb=createWebApiClient({baseUrl:'http://fake.test',fetch:fetcher,coordinator:b,onAuthLost(){lost++},onMfaRequired:r=>{restrictions.push(r)}});await ca.restore();await cb.restore();world.silence();await assert.rejects(ca.post('/write'),denied);assert.equal(cb.accessToken(),'web');assert.equal(lost,0);assert.deepEqual(restrictions,['verification-required']);ca.dispose();cb.dispose();a.dispose();b.dispose();});
++
++for(const loginAgain of [false,true])it(`in-flight confirmation recovery codes ${loginAgain?'discard after new login':'survive same-family MFA restriction'}`,async()=>{const body=deferred<unknown>(),started=deferred<void>();const codes=Array.from({length:10},(_,i)=>`TEST-${i}`);const n=native(async url=>String(url).endsWith('/auth/mfa/confirm')?{ok:true,status:200,json:()=>{started.resolve();return body.promise}}as Response:String(url).endsWith('/auth/login')?Response.json({...session,accessToken:'new'}):mfa());const pending=n.client.post<{recoveryCodes:string[]}>('/auth/mfa/confirm',{code:'123456'});const observed=pending.then(value=>({value,error:null}),error=>({value:null,error}));await started.promise;await assert.rejects(n.client.post('/write'),denied);if(loginAgain)await n.client.login('new@example.test','password');body.resolve({recoveryCodes:codes});const result=await observed;if(loginAgain){assert.ok(changed(result.error));assert.equal(n.tokens()?.accessToken,'new');}else{assert.equal(result.error,null);assert.deepEqual(result.value?.recoveryCodes,codes);assert.ok(n.tokens());}});
++it('other-tab MFA hint preserves confirmation JSON and ten recovery codes',async()=>{const {coordinators:[a,b]}=tabs(),body=deferred<unknown>(),started=deferred<void>();const codes=Array.from({length:10},(_,i)=>`TEST-${i}`);const fetcher:typeof fetch=async url=>String(url).endsWith('/auth/web/refresh')?Response.json({accessToken:'web',user}):String(url).endsWith('/auth/mfa/confirm')?{ok:true,status:200,json:()=>{started.resolve();return body.promise}}as Response:mfa();const ca=createWebApiClient({baseUrl:'http://fake.test',fetch:fetcher,coordinator:a}),cb=createWebApiClient({baseUrl:'http://fake.test',fetch:fetcher,coordinator:b});await ca.restore();await cb.restore();const pending=cb.post<{recoveryCodes:string[]}>('/auth/mfa/confirm',{code:'123456'});const observed=pending.then(value=>({value,error:null}),error=>({value:null,error}));await started.promise;await assert.rejects(ca.post('/write'),denied);body.resolve({recoveryCodes:codes});const result=await observed;assert.equal(result.error,null);assert.deepEqual(result.value?.recoveryCodes,codes);ca.dispose();cb.dispose();a.dispose();b.dispose();});
++it('native in-flight refresh saves rotated credentials while old domain response is discarded',async()=>{const body=deferred<unknown>(),started=deferred<void>();const calls:string[]=[];const n=native(async url=>{const p=new URL(String(url)).pathname;calls.push(p);if(p==='/auth/refresh')return{ok:true,status:200,json:()=>{started.resolve();return body.promise}}as Response;return p==='/private'?Response.json({error:'expired'},{status:401}):mfa();});const pending=assert.rejects(n.client.get('/private'),changed);await started.promise;await assert.rejects(n.client.post('/write'),denied);body.resolve({...session,accessToken:'rotated',refreshToken:'rotated-r'});await pending;assert.deepEqual(n.tokens(),{accessToken:'rotated',refreshToken:'rotated-r'});assert.deepEqual(calls,['/private','/auth/refresh','/write']);});
++it('web refresh retains rotation but discards stale restore profile after authorization hint',async()=>{const {coordinators:[a,b]}=tabs(),body=deferred<unknown>(),started=deferred<void>();let slow=false;const fetcher:typeof fetch=async url=>String(url).endsWith('/auth/web/refresh')?(slow?{ok:true,status:200,json:()=>{started.resolve();return body.promise}}as Response:Response.json({accessToken:'web',user})):mfa();const ca=createWebApiClient({baseUrl:'http://fake.test',fetch:fetcher,coordinator:a}),cb=createWebApiClient({baseUrl:'http://fake.test',fetch:fetcher,coordinator:b});await ca.restore();await cb.restore();slow=true;const pending=cb.restore();const observed=pending.then(value=>({value,error:null}),error=>({value:null,error}));await started.promise;await assert.rejects(ca.post('/write'),denied);body.resolve({accessToken:'rotated',user});const result=await observed;assert.ok(changed(result.error));assert.equal(result.value,null);assert.equal(cb.accessToken(),'rotated');ca.dispose();cb.dispose();a.dispose();b.dispose();});
++for(const[method,path]of [['GET','/auth/sessions'],['POST','/auth/mfa/disable'],['GET','/auth/mfa/confirm'],['GET','/auth/me?include=private']]as const)it(`does not exempt operational or lookalike ${method} ${path}`,async()=>{const body=deferred<unknown>(),started=deferred<void>();const n=native(async url=>String(url).endsWith('/deny')?mfa():{ok:true,status:200,json:()=>{started.resolve();return body.promise}}as Response);const pending=assert.rejects(method==='POST'?n.client.post(path):n.client.get(path),changed);await started.promise;await assert.rejects(n.client.post('/deny'),denied);body.resolve({private:'old'});await pending;});
++
++it('confirmed password204 clears same-identity credentials once despite concurrent MFA restriction',async()=>{const response=deferred<Response>(),started=deferred<void>();let tokens:any={accessToken:'a',refreshToken:'r'},clears=0,lost=0;const calls:string[]=[];const restrictions:string[]=[];const client=createApiClient({baseUrl:'http://fake.test',fetch:async url=>{const p=new URL(String(url)).pathname;calls.push(p);if(p==='/auth/password'){started.resolve();return response.promise;}return mfa();},storage:{async getTokens(){return tokens},async setTokens(value){tokens=value},async clearTokens(){clears++;tokens=null;}},onAuthLost(){lost++;},onMfaRequired(value){restrictions.push(value);}});const pending=client.changePassword({currentPassword:'old',newPassword:'new'});const observed=pending.then(()=>({error:null}),error=>({error}));await started.promise;await assert.rejects(client.post('/private-write'),denied);assert.deepEqual(restrictions,['verification-required']);response.resolve(new Response(null,{status:204}));const result=await observed;assert.equal(result.error,null);assert.equal(tokens,null);assert.equal(clears,1);assert.equal(lost,1);assert.deepEqual(calls,['/auth/password','/private-write']);});
