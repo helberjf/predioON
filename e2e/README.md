@@ -33,6 +33,15 @@ pnpm e2e:db up
 
 `pnpm test:e2e:focus` roda a regressão de retorno à janela nos três portais em Chromium, com respostas de API sintéticas e sem banco. A configuração sobe Vite nas portas 52961 a 52963 e grava as evidências em `.local/focus-results`. Os cenários conferem a preservação da página e dos rascunhos durante a verificação em segundo plano, além de mudanças confirmadas de funcionalidades e recuperação após erro.
 
+Para executar um portal por vez com menor carga, defina `E2E_FOCUS_PANEL` como `admin`, `building` ou `resident`. A seleção inicia somente o projeto e o servidor daquele portal, mantendo sua porta original (52961, 52962 ou 52963, respectivamente) e grava em `.local/focus-results-admin`, `.local/focus-results-building` ou `.local/focus-results-resident`. Um valor inválido, inclusive vazio, interrompe a configuração antes de iniciar servidores. Sem a variável, continuam os três projetos e servidores e a pasta original. Apenas `--project` não reduz os servidores globais.
+
+```powershell
+$env:E2E_FOCUS_PANEL = 'admin'
+try { pnpm.cmd test:e2e:focus } finally { Remove-Item Env:E2E_FOCUS_PANEL }
+```
+
+Repita separadamente com `building` e `resident`, conferindo o resultado antes de continuar. Cada execução mantém os cenários, as esperas, a captura de falhas e o worker originais; execute as três para cobrir todos os portais. Essa regressão dirigida não substitui a suíte com API e banco reais.
+
 A configuração sobe a API na porta 3100 e os portais nas 5273 a 5275, sempre do zero (`reuseExistingServer: false`). Se uma delas já estiver em uso (o Playwright avisa `is already used`), `$env:E2E_PORT_OFFSET=200` desloca as quatro portas e as pastas de resultado para rodar ao lado de outro projeto ou de outra execução; duas execuções simultâneas precisam de bancos separados. O serviço de ingestão não é necessário: as telas sem leitura mostram ausência de dados, nunca valores inventados.
 
 **Tags:** `@smoke` (abre todas as páginas), `@critical` (regras centrais do negócio), `@permissions` (o servidor nega o que a tela esconde), `@validation` (campos e limites), `@agent-seed` (ponto de partida dos agentes), `@ai-generated` (gerado por IA, aguardando revisão).
