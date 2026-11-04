@@ -53,6 +53,8 @@ jobs:
       DATABASE_URL_IDENTITY: postgres://predioon_identity:predioon_identity@localhost:5436/predioon
       DATABASE_URL_BROKER_AUTH: postgres://predioon_broker_auth:predioon_broker_auth@localhost:5436/predioon
       DATABASE_URL_NOTIFICATIONS: postgres://predioon_notifications:predioon_notifications@localhost:5436/predioon
+      DATABASE_URL_INGEST: postgres://predioon_ingest:predioon_ingest@localhost:5436/predioon
+      DATABASE_URL_ACCESS_SERVICE: postgres://predioon_access_service:predioon_access_service@localhost:5436/predioon
       ANDROID_DOMAIN_DISPOSABLE_DB: "1"
       ANDROID_RENDERER_DISPOSABLE_DB: "1"
     steps:
