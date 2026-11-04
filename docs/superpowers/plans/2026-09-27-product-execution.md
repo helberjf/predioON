@@ -469,3 +469,7 @@ O ponto corrente está na [continuidade](../../CONTINUIDADE.md), sem rascunhos d
 ### Tipos e builds de produção de 04/11
 
 [Fontea2c8ab1](../../evidencias/types-production-builds-2026-11-04.json):14 pacotes e tiposE2E aprovados; seis builds originais com NODE_ENV=production passaram em sequência, sem OOM/timeout,989 hashes de fonte conferidos. Doze snapshots pré/pós das dist preservados,84 artefatos revistos. Recusa por memória antes de iniciar ingestão preservada; uma única compilação real. Banco descartável próprio parado com pré/postchecks, sem reinício da máquina. Native somente tipos; produção, matriz atual de navegador, MFA e aparelhos continuam abertos.
+
+### Preparação nativa de 04/11
+
+`b259f80` corrige duas conexões ausentes em seis workflows Android e no gerador iOS autenticado. Parser original RED/GREEN dos sete ambientes, gerador em mocks e actionlint aprovados, com revisão independente. [Prova](../../evidencias/native-ci-runtime-env-2026-11-04.json). Não houve build nativo, conexãoDB ou aceite remoto; metadados pontuaisqueued/startup_failure com zero check runs não estabelecem causa. Fontes da API/consumidores permanecem idênticas ao baseline de tipos/builds; mudança restrita aos sete YAML.

@@ -1,0 +1,194 @@
+{
+  "recordedAt": "2026-11-04T13:56:01.312Z",
+  "baseCommit": "2d393af53e950979a03951fad21431ad62abc50b",
+  "scope": [
+    ".github/workflows/android-auth.yml",
+    ".github/workflows/android-domains.yml",
+    ".github/workflows/android-renderer-prefix.yml",
+    ".github/workflows/android-renderer.yml",
+    ".github/workflows/android-password.yml",
+    ".github/workflows/android-reservations.yml",
+    ".github/workflows/ios-auth.yml"
+  ],
+  "source": [
+    {
+      "file": ".github/workflows/android-auth.yml",
+      "beforeSha256": "d4ad4258d0b5ef2a3dde9e32678ab1e124e19cce641e31f660e9677b4fd73857",
+      "afterSha256": "b0480610ee3d5e98f91a945d8f46e9c1707248eec74a4432a6ff9b20475646b2"
+    },
+    {
+      "file": ".github/workflows/android-domains.yml",
+      "beforeSha256": "eb9b4ec9613664456153109f06e84137719bd081f562ae9454dcb25bc1f83f1a",
+      "afterSha256": "3989a35489ae7bfb9057c121c5be00671257bc7dc9f176c6e31cb529ba4ed15a"
+    },
+    {
+      "file": ".github/workflows/android-renderer-prefix.yml",
+      "beforeSha256": "a74d71dc66d871af8663da295a4c1ba64e40eaefcf38942b78544945d8fe3475",
+      "afterSha256": "ff52d0d65b25b50644b98a2911976c28b3e5bff54a201735597add995a7f4bce"
+    },
+    {
+      "file": ".github/workflows/android-renderer.yml",
+      "beforeSha256": "eeff5f10f423ff41c982111ed18b7eddfcfebda19092d11198f89a11df68cbdd",
+      "afterSha256": "f7d1e8bd90f31c27d81da1fc462bff088857d24e2641862cb7140eab14dc854b"
+    },
+    {
+      "file": ".github/workflows/android-password.yml",
+      "beforeSha256": "7c50d53443ff69e95ef80e8a60f932a6521cc3c58dbf5c293c939e6f6cacefbb",
+      "afterSha256": "fc8c17f3bc7f8831e2a8d3df94f1d447118a21fb1f23fa0585205279cdbcd805"
+    },
+    {
+      "file": ".github/workflows/android-reservations.yml",
+      "beforeSha256": "568dbe459b39b659891089714b80fcc4b2b25fb3a67d8f66604b19c6f021c45b",
+      "afterSha256": "8ee9d5d3855e67a02b13375cc20e3112c00f59c63dbe73e7f8b1688e35473deb"
+    },
+    {
+      "file": ".github/workflows/ios-auth.yml",
+      "beforeSha256": "d2b749b5c2aeee2e691b8cc20fa8265dbf5d893a7bd2c1c357abaf2e3566cb77",
+      "afterSha256": "6d974c6437910222ab59dedabccb1767ec8848789f74e47cff0a4c107940d823"
+    }
+  ],
+  "validation": {
+    "red": "Original runtimeRoleCredentials default all scope rejected all seven pre-change environments: DATABASE_URL_INGEST required; both INGEST and ACCESS_SERVICE absent.",
+    "green": "All seven environments accepted with six restricted roles plus owner.",
+    "ios": "Executed original generator block with mocked secrets/os/open; seven unique 24-byte credentials, all masked; no actual environment file or random credentials.",
+    "actionlint": {
+      "version": "1.7.12",
+      "flags": [
+        "-color"
+      ],
+      "files": 7,
+      "exitCode": 0
+    },
+    "gitDiffCheckExitCode": 0,
+    "harnessFailure": "Initial WindowsApps Python alias unavailable (9009); preserved red-attempt-2.log. Real cached Python used with -B. Not product RED."
+  },
+  "limits": {
+    "databaseConnected": false,
+    "nativeBuilds": false,
+    "remoteCI": false,
+    "existing173TestsRerun": false,
+    "productionCodeChanged": false
+  },
+  "artifacts": [
+    {
+      "file": "red-validation.json",
+      "bytes": 3463,
+      "sha256": "72f2a53525f604f8b9f59dc59c07a9ab9cb58db28c33cbf1ff54d84d17c29339"
+    },
+    {
+      "file": "green-validation.json",
+      "bytes": 2492,
+      "sha256": "819fb30f995efa7d689186d4ddc149c7edf8c7e32d6dd0b0488be8e79b1f8822"
+    },
+    {
+      "file": "red-attempt-2.log",
+      "bytes": 665,
+      "sha256": "977412709b04913dc1de405856f7b5dfef05001344e7f8f2a37aaf40e04fc466"
+    },
+    {
+      "file": "red-attempt-3.log",
+      "bytes": 3565,
+      "sha256": "2e2b79ed96b8d8f4dbe8e4ae6f32cba0d4d5b26e292144af2d050fed85d04121"
+    },
+    {
+      "file": "green-validation.log",
+      "bytes": 2573,
+      "sha256": "85f10a315a09c7d59bb4f26a42863b6bb87c4e597056b992e418c6ac00facafa"
+    },
+    {
+      "file": "actionlint.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "validate-workflows.mjs",
+      "bytes": 2649,
+      "sha256": "4d211429cb28ffb7880f9930de85241558bc9d5e7aed063ce938f88cd7c1f468"
+    },
+    {
+      "file": "extract-ios-generator.py",
+      "bytes": 1770,
+      "sha256": "9d69d8008fcab678802748e047eab357409eba2a92354289a657a20ca2480d63"
+    },
+    {
+      "file": "native-runtime-credentials.patch",
+      "bytes": 6337,
+      "sha256": "7ea9257f232297fbcf2d190a3625265a9618f79f5a46b90930813a75d15989c9"
+    }
+  ],
+  "kind": "native-ci-runtime-environment-configuration",
+  "publishedCommit": "b259f80b158aff08f255a83f9d8ae551289d5fcf",
+  "publishedCommitUrl": "https://github.com/helberjf/predioON/commit/b259f80b158aff08f255a83f9d8ae551289d5fcf",
+  "handoffSha256": "fed7653aff9d43b2b6162c1b7415f9810a0d0522b6ee44d1d51339836394c1c2",
+  "independentReadOnlyReview": {
+    "approved": true,
+    "artifactsVerified": 9,
+    "sourceFilesVerified": 7,
+    "reviewerExecutedTests": false
+  },
+  "generatorMockAudit": {
+    "calls": 7,
+    "tokenBytes": 24,
+    "allPasswordsMasked": true,
+    "realRandomnessInvoked": false,
+    "realEnvironmentFileWritten": false
+  },
+  "remoteSnapshot": {
+    "queriedOn": "2026-11-04",
+    "responseSha256": "a890ed750980d08614b49bfe993f58e0b1dedf3727b1aa5715287040b42a11e3",
+    "sourceCommit": "b259f80b158aff08f255a83f9d8ae551289d5fcf",
+    "suites": [
+      {
+        "id": 113382375845,
+        "status": "queued",
+        "conclusion": null,
+        "latestCheckRunsCount": 0
+      },
+      {
+        "id": 113382376619,
+        "status": "queued",
+        "conclusion": null,
+        "latestCheckRunsCount": 0
+      },
+      {
+        "id": 113382377287,
+        "status": "queued",
+        "conclusion": null,
+        "latestCheckRunsCount": 0
+      },
+      {
+        "id": 113382377881,
+        "status": "queued",
+        "conclusion": null,
+        "latestCheckRunsCount": 0
+      },
+      {
+        "id": 113382378541,
+        "status": "queued",
+        "conclusion": null,
+        "latestCheckRunsCount": 0
+      },
+      {
+        "id": 113382379815,
+        "status": "queued",
+        "conclusion": null,
+        "latestCheckRunsCount": 0
+      },
+      {
+        "id": 113382380487,
+        "status": "queued",
+        "conclusion": null,
+        "latestCheckRunsCount": 0
+      },
+      {
+        "id": 113382382795,
+        "status": "completed",
+        "conclusion": "startup_failure",
+        "latestCheckRunsCount": 0
+      }
+    ],
+    "causeEstablished": false,
+    "ciAccepted": false,
+    "note": "Point-in-time metadata: seven queued and one startup_failure, all zero check runs. This environment correction does not establish the cause of startup_failure or approve CI/native."
+  }
+}

@@ -55,6 +55,8 @@ Atualizado em **04/11/2026**, horário de São Paulo. Leia este arquivo primeiro
 
 **Corrigenda MFA e recuperação de drafts:** a obrigação planejada é conta ativa com flag legado **OU** autoridade021ADMIN vigente; pre/post-gates separados não fecham promoção transitória nem a lacuna entre assert eSELECT. [Análise e desenho ainda pendente](superpowers/plans/2026-11-04-platform-admin-mfa-policy-refinement.md). Um [segundo checkpoint](continuidade/2026-11-04-mfa-races-manifesto.json) preserva dois casos de concorrência, **não executados**, com cleanup revisado estaticamente. Agora são dois arquivos de draft/oito casos planejados fora do glob real81; não há implementação/migration068. O sexto controle antigo precisa da correção documentada de flag/catálogo; seus bytes históricos foram preservados.
 
+**Preparação nativa corrigida — `b259f80`:** seis workflows Android e o gerador iOS autenticado agora fornecem as duas conexões fictícias ausentes de INGEST/ACCESS ao provisionador completo. O parser original rejeitou os sete ambientes anteriores e aceitou os sete corrigidos; actionlint1.7.12 passou. O teste do gerador iOS usa mocks: sete chamadas de24bytes, valores fictícios distintos e todos mascarados, sem escrever arquivo de ambiente ou gerar segredo real. [Prova e revisão](evidencias/native-ci-runtime-env-2026-11-04.json). A consulta remota pontual mostrou sete suítes na fila e uma startup_failure, zero check runs; não é aceite de CI nem build Android/iOS.
+
 ## 1. Instruções permanentes do proprietário
 
 - Commits pequenos em Conventional Commits (`feat:`, `fix:`, `test:`, `docs:`), com push na `main` depois de cada incremento verificado.
