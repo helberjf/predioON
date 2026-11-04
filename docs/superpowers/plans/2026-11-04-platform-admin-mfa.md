@@ -98,6 +98,10 @@ Apps Morador/Operação: estado restrito não entra no fluxo operacional nem ini
 
 ## 8. Primeiros REDs mínimos, depois da revisão
 
+**Rascunho disponível:** [checkpoint de um arquivo novo](../../continuidade/2026-11-04-mfa-reds-manifesto.json), seis casos revisados estaticamente, ainda sem execução, RED observado ou implementação. O controle de catálogo usa a função021; não demonstra que o flag deixe de conferir privilégios no suporte legado010. Resolver essa fronteira antes de fechar a obrigação administrativa e ampliar os negativos conforme necessário.
+
+
+
 Começar por teste API/SQL em cópia isolada, sem alterar a main, com uma DB UUID do cluster owned e fixture oficial. O cluster está parado e host tem pouca memória: **não iniciar antes do guard de DB e da coordenação**. Não usar Playwright ou emulador ao mesmo tempo.
 
 Primeiro lote delimitado de comportamentos ausentes na fonte atual:

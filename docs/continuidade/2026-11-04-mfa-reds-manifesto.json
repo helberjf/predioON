@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-11-04",
+  "status": "UNEXECUTED_TEST_DRAFT_ONLY",
+  "baseCommit": "14e30084366578fe883c80aa0c3f9a8ddda854ed",
+  "baseCommitUrl": "https://github.com/helberjf/predioON/commit/14e30084366578fe883c80aa0c3f9a8ddda854ed",
+  "patch": "2026-11-04-mfa-reds.patch",
+  "patchSha256": "8eb339689ca555f64acf993ea20b6134109666f20e5ec54371a455be0caeb389",
+  "files": [
+    {
+      "path": "apps/api/test/platform-mfa-required.test.ts",
+      "sha256": "9c53880de31e2cb0057a47a4bf8e097758bd496fb2eb992a2bb6b58602dee599",
+      "lines": 201,
+      "state": "New draft, absent from the exact base commit"
+    }
+  ],
+  "plannedCases": 6,
+  "testsExecuted": false,
+  "redObserved": false,
+  "typecheckExecuted": false,
+  "runtimeOrMigrationImplemented": false,
+  "staticReviewApprovedForDraftPreservation": true,
+  "restoreCheck": {
+    "passed": true,
+    "scope": "Single new file only; target absence checked in exact Git base, patch applied with command-local core.autocrlf=false/core.eol=lf to an empty external directory and restored bytes compared.",
+    "fullProjectRestoration": false,
+    "testExecutionClaimed": false,
+    "restoredSha256": "9c53880de31e2cb0057a47a4bf8e097758bd496fb2eb992a2bb6b58602dee599"
+  },
+  "initialRestorationHarnessMismatch": {
+    "rawBytesMatched": false,
+    "lfNormalizedBytesMatched": true,
+    "firstAttemptPreserved": true,
+    "cause": "Global Windows autocrlf applied outside the base Git attributes; corrected only with command-local options, no global configuration or draft changed."
+  },
+  "limits": [
+    "The catalog-inactive control follows oracle021; it does not prove absence of privileged flag-based access through legacy support010. Resolve that policy boundary before implementation acceptance.",
+    "Execution requires the official UUID fixture, six restricted credentials plus owner for preparation/observation, canonical migrations and final disposal of the whole temporary database.",
+    "Deleting test users alone does not remove HMAC admission buckets.",
+    "No SSE, concurrency/promotion barrier, missing-key, generation/CAS or SQL068 ACL proof yet."
+  ],
+  "instructions": [
+    "Clone the current repository; if the file already exists or the feature has since been delivered, use that published version and do not reapply this draft.",
+    "To investigate this draft, use a separate copy at the exact base commit, then git apply --check before applying the patch.",
+    "Do not copy this future test into the main test glob as a delivered feature; obtain the directed RED, implement the reviewed behavior and validate GREEN before publishing executable feature tests."
+  ]
+}
