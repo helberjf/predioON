@@ -28,6 +28,8 @@ Atualizado em **04/11/2026**, horário de São Paulo. Leia este arquivo primeiro
 
 **Próxima implementação — MFA administrativa:** o [plano técnico revisado](superpowers/plans/2026-11-04-platform-admin-mfa.md) preserva decisões, arquivos, etapas, riscos de concorrência e testes a executar. Está **planejado, não implementado; nenhum RED desse recorte foi executado**. A proposta inclui sessão restrita, prova por família/geração do fator, autoridade por flag ou binding vigente, proteção HTTP/SSE e adaptação dos três portais/apps. O inventário de fixtures é estático, sem contagem de falhas. A migration068 é somente proposta: a fonte publicada continua em 001–067. Não confundir esse plano com a entrega da obrigatoriedade ou alterar a base existente para testá-lo.
 
+**Tentativa de navegador atual — fonte `c619844`:** Prepare passou em ambiente Linux isolado; Focus foi interrompido por parada coordenada do runner após forte pressão no limite de 1280 MiB. **Nenhum resultado de caso concluído foi reportado; não há PASS nem RED do produto.** A listagem de 15 Focus/7 Rules não é execução aprovada. Rules não foi iniciado. Foram preservados logs, cópias e a limitação do check final de fonte, que não pôde executar com o container parado. [Evidência e limites](evidencias/playwright-focus-resource-abort-2026-11-04.json). Próximo ajuste: permitir iniciar somente o portal selecionado nos testes de foco, preservando os critérios e identificando as execuções separadas.
+
 ## 1. Instruções permanentes do proprietário
 
 - Commits pequenos em Conventional Commits (`feat:`, `fix:`, `test:`, `docs:`), com push na `main` depois de cada incremento verificado.

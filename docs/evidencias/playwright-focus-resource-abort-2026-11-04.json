@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 1,
+  "recordedUtc": "2026-11-04T04:24:07.3185932Z",
+  "classification": "ABORTED_INFRA_RESOURCE_ROOT_STOP",
+  "baseCommit": "c61984480e9a466a86108c14ffe2c1ebc5fadf11",
+  "helperSha256": "bd3b0bdd9fb97aecd03bb3e6973af266bc4b8ea951428ac47af4b69e0d9568a2",
+  "prepare": {
+    "exitCode": 0,
+    "hostInitialMiB": 2521,
+    "vmInitialMiB": 6299,
+    "installReportedSeconds": 57.4,
+    "sourceAfterPrepare": "PASS"
+  },
+  "focus": {
+    "startedUtc": "2026-11-04T04:14:46.8782451Z",
+    "finishedUtc": "2026-11-04T04:22:42.0418970Z",
+    "childExitCode": 137,
+    "helperExitCode": 1,
+    "timedOut": false,
+    "listedCases": 15,
+    "completedCaseResultsReported": 0,
+    "countsVerified": false,
+    "passed": false,
+    "productRed": false,
+    "rootStoppedOwnedRunner": true
+  },
+  "rules": {
+    "executed": false,
+    "listedCases": 7
+  },
+  "memory": {
+    "hostGuardMiB": 2048,
+    "vmGuardMiB": 1536,
+    "runnerLimitMiB": 1280,
+    "duringPeakBytes": 1342185472,
+    "duringOom": 0,
+    "duringOomKill": 0,
+    "finalCgroupCountersAvailable": false,
+    "oomCauseEstablished": false
+  },
+  "collection": {
+    "freezeCopyExitCode": 0,
+    "evidenceCopyExitCode": 0,
+    "copiedLocalFileCount": 0,
+    "sourceFinalCheckExitCode": 1,
+    "sourceFinalCheckReason": "Container already stopped; check did not execute",
+    "sourceFinalIntegrityProven": false,
+    "containerRemoved": false,
+    "containerRestarted": false,
+    "databaseTouched": false
+  },
+  "artifacts": [
+    {
+      "artifact": "focus.log",
+      "sha256": "30f008459d509dd5c844fe8147eea5d85fa058898a370d038f20e2d762ee82ec",
+      "bytes": 312
+    },
+    {
+      "artifact": "focus-result.json",
+      "sha256": "baebd2443d2bfc8c059f8d8316b475340d83c7f2990bb05a97988069706cc889",
+      "bytes": 177
+    },
+    {
+      "artifact": "focus-cgroup-during.txt",
+      "sha256": "1debdb64673dd2705d12cb3feef269bae9f430a8ef8fe12243ba473fda243cfc",
+      "bytes": 1410
+    },
+    {
+      "artifact": "focus-end-state.json",
+      "sha256": "fc9791082c37ad058f3a7f4d9e039827704b68d50e7df5a4fa0ea6659a6f671b",
+      "bytes": 227
+    },
+    {
+      "artifact": "focus-diagnostic-files-during.json",
+      "sha256": "0f038346538db7744dc51cc02a2c8f9e24295c482adca5c8161dd6b6ca2d494a",
+      "bytes": 91
+    },
+    {
+      "artifact": "source-freeze.sha256",
+      "sha256": "a344e5cbf206766f47506901e0c8d4dae4ae3ec3036be0ee3f9a90d5bb6a6ecd",
+      "bytes": 133346
+    },
+    {
+      "artifact": "source-after-prepare-result.json",
+      "sha256": "7ba25b35560a502130cd56c91e6299e87e2037c3591625dfda1357635f08683f",
+      "bytes": 190
+    },
+    {
+      "artifact": "source-final-check-result.json",
+      "sha256": "e8aef8003d6e2cbd64593edcf62d86632c6af8e41e4c31928fbb0209856f52ec",
+      "bytes": 188
+    },
+    {
+      "artifact": "source-final-check.log",
+      "sha256": "e7a847491d7887ec47762ddb423688d3f19ed5bccf3b7044b2bbc295fda1821d",
+      "bytes": 118
+    },
+    {
+      "artifact": "copy-source-freeze-result.json",
+      "sha256": "930a37386010d044a13f7e8264c14c81f9aa17a709fdcfd6b112c930c50df6a5",
+      "bytes": 188
+    },
+    {
+      "artifact": "copy-evidence-result.json",
+      "sha256": "ad1a55e346c2bba634462c8d00ef99a6c29123c8d7624626f92cd91a7e172d33",
+      "bytes": 183
+    },
+    {
+      "artifact": "resource-samples.jsonl",
+      "sha256": "881b2069b905e30e3b23fe612f7934f089f3f50473cdd95848570fb58ee5594a",
+      "bytes": 860
+    },
+    {
+      "artifact": "owned-runner.json",
+      "sha256": "a75a76c85121668892a0fac6f4673066dc155ffb59ed4fba2207578a4ec4ae9d",
+      "bytes": 486
+    }
+  ],
+  "kind": "aborted-directed-playwright-infrastructure-attempt",
+  "handoffSha256": "433e47e85aa777f8480ff17de20d4f43aa2f6e023cf1aaaca2956be8872cdc1c",
+  "sourceCommitUrl": "https://github.com/helberjf/predioON/commit/c61984480e9a466a86108c14ffe2c1ebc5fadf11",
+  "limits": [
+    "15 Focus and 7 Rules are discovered case counts, not completed test results.",
+    "Exit137 coincides with the deliberate stop of the attested owned runner; OOM was not established as the cause.",
+    "The only available OOM counters are an earlier sample, not final counters.",
+    "The final source check could not execute after the container was stopped; no final integrity PASS is claimed.",
+    "Source after Prepare passed. No application bug, browser acceptance, full API, native or production acceptance is established."
+  ]
+}
