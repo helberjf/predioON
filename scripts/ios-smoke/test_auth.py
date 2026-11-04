@@ -40,18 +40,26 @@ def tree_bytes(root)
   end
 end
 
-def descendant_state(pid)
+def descendant_state(pid, original_popen2)
   return 'reaped' if Process.waitpid(pid, Process::WNOHANG)
   'running'
 rescue Errno::ECHILD
-  state, status = Open3.capture2('/bin/ps', '-o', 'stat=', '-p', pid.to_s)
+  state, status = nil, nil
+  original_popen2.call('/bin/ps', '-o', 'stat=', '-p', pid.to_s, err: File::NULL) do |input, stream, child|
+    input.close
+    state = stream.read(33) || ''
+    status = child.value
+  end
   return 'absent' if status.exitstatus == 1 && state.strip.empty?
   check(status.success? && state.bytesize <= 32 && state.strip.match?(/\A[A-Z][A-Za-z<>+ -]*\z/))
   state.strip.start_with?('Z') ? 'zombie' : 'running'
 end
 
-def fixture(script, original_popen2, mutation: nil, output_kind: 'valid', wait_seconds: 0, orphan_stdout: false)
+def fixture(script, original_popen2, mutation: nil, output_kind: 'valid', wait_seconds: 0, orphan_stdout: false, aliased_tmpdir: false)
   Dir.mktmpdir('strict-runner-fixture-') do |temporary|
+    original_temporary = temporary
+    temporary = File.realpath(temporary)
+    check(original_temporary != temporary) if aliased_tmpdir
     folder = File.join(temporary, 'private')
     platform = File.join(temporary, 'iPhoneSimulator.platform')
     agent = File.join(platform, 'Developer', 'Library', 'Xcode', 'Agents', 'XCTRunner.app')
@@ -173,8 +181,8 @@ def fixture(script, original_popen2, mutation: nil, output_kind: 'valid', wait_s
 end
 
 case scenario
-when 'valid'
-  fixture(script, original_popen2) do |folder, agent, destination, info, calls, success, _elapsed|
+when 'valid', 'valid-aliased-tmpdir'
+  fixture(script, original_popen2, aliased_tmpdir: scenario == 'valid-aliased-tmpdir') do |folder, agent, destination, info, calls, success, _elapsed|
     check(success && calls.length == 1 && File.directory?(destination))
     project = Xcodeproj::Project.open(File.join(folder, 'AuthJourney.xcodeproj'))
     target = project.targets.fetch(0)
@@ -244,14 +252,47 @@ when 'orphan-discovery-timeout'
       peer_reaped = !Process.waitpid(peer, Process::WNOHANG).nil?
       check(!peer_reaped)
       deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 1
-      state = descendant_state(descendant['pid'])
+      state = descendant_state(descendant['pid'], original_popen2)
       while state == 'running' && Process.clock_gettime(Process::CLOCK_MONOTONIC) < deadline
         sleep 0.01
-        state = descendant_state(descendant['pid'])
+        state = descendant_state(descendant['pid'], original_popen2)
       end
       puts 'Owned descendant running after deadline; leader reaped and independent peer alive' if state == 'running'
       check(%w[reaped absent zombie].include?(state))
       descendant['stopped'] = true
+    end
+  ensure
+    unless peer_reaped
+      Process.kill('KILL', -peer)
+      Process.waitpid(peer)
+    end
+  end
+when 'non-child-status'
+  peer = Process.spawn(RbConfig.ruby, '-e', 'sleep 100', out: File::NULL, err: File::NULL, pgroup: true)
+  peer_reaped = false
+  begin
+    probe = Process.spawn(RbConfig.ruby, '-e', 'exit 0', out: File::NULL, err: File::NULL, pgroup: true)
+    waited, probe_status = Process.wait2(probe)
+    check(waited == probe && probe_status.success?)
+    fixture(script, original_popen2) do |_folder, _agent, _destination, _info, calls, success, _elapsed|
+      check(success && calls.length == 1)
+      begin
+        Process.waitpid(Process.pid, Process::WNOHANG)
+        raise 'The fixture cannot be its own child'
+      rescue Errno::ECHILD
+        # Exercise the real non-child branch even on a Linux host with subreaping.
+      end
+      check(descendant_state(Process.pid, original_popen2) == 'running')
+      check(descendant_state(probe, original_popen2) == 'absent')
+      rejected = false
+      begin
+        Open3.popen2('/fixture/unexpected-discovery-command', err: File::NULL, pgroup: true) { raise 'Unexpected fixture command executed' }
+      rescue RuntimeError => failure
+        rejected = failure.message == 'Runner project fixture assertion failed'
+      end
+      check(rejected && calls.length == 2 && calls.last == ['/fixture/unexpected-discovery-command'])
+      peer_reaped = !Process.waitpid(peer, Process::WNOHANG).nil?
+      check(!peer_reaped)
     end
   ensure
     unless peer_reaped
@@ -285,14 +326,21 @@ class RunnerProjectGenerationTests(unittest.TestCase):
                 return
             cls.bootstrap = "require 'bundler/setup'; require 'xcodeproj'; load ARGV.shift"
 
-    def run_fixture(self, scenario):
+    def run_fixture(self, scenario, *, aliased_tmpdir=False):
         if self.unavailable:
             self.skipTest(self.unavailable)
         with tempfile.TemporaryDirectory() as temporary:
             fixture = Path(temporary) / "runner-fixture.rb"
             fixture.write_text(RUNNER_PROJECT_FIXTURE, encoding="utf-8")
+            environment = dict(self.environment)
+            if aliased_tmpdir:
+                actual = Path(temporary) / "actual-tmpdir"
+                actual.mkdir()
+                alias = Path(temporary) / "aliased-tmpdir"
+                alias.symlink_to(actual, target_is_directory=True)
+                environment["TMPDIR"] = str(alias)
             response = subprocess.run([self.ruby, "-e", self.bootstrap, str(fixture), str(BASE / "project.rb"), scenario],
-                                      env=self.environment, capture_output=True, text=True, timeout=45)
+                                      env=environment, capture_output=True, text=True, timeout=45)
         failure = "Real runner project fixture failed; captured output remains private"
         marker = "Owned descendant running after deadline; leader reaped and independent peer alive"
         if scenario == "orphan-discovery-timeout" and response.stdout == marker + "\n":
@@ -305,6 +353,12 @@ class RunnerProjectGenerationTests(unittest.TestCase):
 
     def test_generated_configs_bind_private_strict_origin_and_preserve_source(self):
         self.run_fixture("valid")
+
+    def test_generated_configs_use_canonical_private_origin_under_aliased_tmpdir(self):
+        self.run_fixture("valid-aliased-tmpdir", aliased_tmpdir=True)
+
+    def test_non_child_status_probe_keeps_discovery_mock_strict_and_independent_peer_alive(self):
+        self.run_fixture("non-child-status")
 
     def test_source_links_missing_resources_and_malformed_plists_fail_closed(self):
         self.run_fixture("invalid-source")
