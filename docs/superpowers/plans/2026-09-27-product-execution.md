@@ -465,3 +465,7 @@ O ponto corrente está na [continuidade](../../CONTINUIDADE.md), sem rascunhos d
 ### Baseline ingestão de 04/11
 
 [Ingestão geral](../../evidencias/ingest-full-baseline-2026-11-04.json):21 arquivos originais, uma invocação serial,220/220 casos/18 suítes/zero falhas/skips, fonte d43dc46 equivalente em código à14e. UUID67, seis roles/credenciais/settings/cleanup/fonte verificados. Aedes local, sem hardware; receiver original sem heap384 e picoRSS não medido. Wrapper11 não executado nem somado. Tipos/builds, MFA obrigatória e aceites de navegador real/nativos/produção ainda pendentes.
+
+### Tipos e builds de produção de 04/11
+
+[Fontea2c8ab1](../../evidencias/types-production-builds-2026-11-04.json):14 pacotes e tiposE2E aprovados; seis builds originais com NODE_ENV=production passaram em sequência, sem OOM/timeout,989 hashes de fonte conferidos. Doze snapshots pré/pós das dist preservados,84 artefatos revistos. Recusa por memória antes de iniciar ingestão preservada; uma única compilação real. Banco descartável próprio parado com pré/postchecks, sem reinício da máquina. Native somente tipos; produção, matriz atual de navegador, MFA e aparelhos continuam abertos.

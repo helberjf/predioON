@@ -1,0 +1,737 @@
+{
+  "schemaVersion": 3,
+  "status": "ALL_EIGHT_PHASES_PASS",
+  "recordedUtc": "2026-11-04T13:48:27.0236723Z",
+  "expectedHead": "a2c8ab11709b18e982c68203aa228eaea7c183d2",
+  "nonDocsBaseline": "14e30084366578fe883c80aa0c3f9a8ddda854ed",
+  "helperSha256": "ea49ac99d2084d1224331862e875e0d7edeb2d61113533493e616a59bae5e9a4",
+  "typecheckWorkspacePackages": 14,
+  "extraE2eTypecheck": true,
+  "nodeBuilds": 3,
+  "webProductionBuilds": 3,
+  "nativeBuilds": 0,
+  "phases": [
+    {
+      "phase": "Types",
+      "exitCode": 0,
+      "startedUtc": "2026-11-04T13:42:32.144Z",
+      "finishedUtc": "2026-11-04T13:43:25.806Z",
+      "durationMs": 53662.0,
+      "freeMiBAtStart": 2061.0,
+      "heapMiB": 640,
+      "nodeEnv": "test",
+      "sourceAfter": true,
+      "observedHeadAfter": "a2c8ab11709b18e982c68203aa228eaea7c183d2",
+      "oomTextObserved": false,
+      "timedOut": false,
+      "logSha256": "c9d039a06a5f896bafcf3295c153ba5da74eacb145f8b73f8a40f2dad255c4ee",
+      "copies": []
+    },
+    {
+      "phase": "E2eTypes",
+      "exitCode": 0,
+      "startedUtc": "2026-11-04T13:43:43.918Z",
+      "finishedUtc": "2026-11-04T13:43:49.316Z",
+      "durationMs": 5398.0,
+      "freeMiBAtStart": 1568.0,
+      "heapMiB": 640,
+      "nodeEnv": "test",
+      "sourceAfter": true,
+      "observedHeadAfter": "a2c8ab11709b18e982c68203aa228eaea7c183d2",
+      "oomTextObserved": false,
+      "timedOut": false,
+      "logSha256": "31408997e2fe48047159ba4ebffbb8be82d627665608f5740364f010d92b6811",
+      "copies": []
+    },
+    {
+      "phase": "BuildApi",
+      "exitCode": 0,
+      "startedUtc": "2026-11-04T13:44:12.835Z",
+      "finishedUtc": "2026-11-04T13:44:28.067Z",
+      "durationMs": 15232.0,
+      "freeMiBAtStart": 1721.0,
+      "heapMiB": 640,
+      "nodeEnv": "production",
+      "sourceAfter": true,
+      "observedHeadAfter": "a2c8ab11709b18e982c68203aa228eaea7c183d2",
+      "oomTextObserved": false,
+      "timedOut": false,
+      "logSha256": "ef4fcc97e52871577c2060224f357ee26460e4765e6fb50450cc329620c713a0",
+      "copies": [
+        {
+          "stage": "before",
+          "target": "apps/api/dist",
+          "files": 68,
+          "bytes": 262532.0,
+          "manifestSha256": "460b7c7b41334b6d1fc3e2d51657986de53747117d6081352a1583c7e282483e",
+          "copiedBytesVerified": true
+        },
+        {
+          "stage": "after",
+          "target": "apps/api/dist",
+          "files": 87,
+          "bytes": 401074.0,
+          "manifestSha256": "de411b6ce32bdd37bad5508d08a11b1984e7eedaabee2f6f2f14a3af190c0c8b",
+          "copiedBytesVerified": true
+        }
+      ]
+    },
+    {
+      "phase": "BuildIngest",
+      "exitCode": 0,
+      "startedUtc": "2026-11-04T13:45:35.145Z",
+      "finishedUtc": "2026-11-04T13:45:39.841Z",
+      "durationMs": 4696.0,
+      "freeMiBAtStart": 1703.0,
+      "heapMiB": 640,
+      "nodeEnv": "production",
+      "sourceAfter": true,
+      "observedHeadAfter": "a2c8ab11709b18e982c68203aa228eaea7c183d2",
+      "oomTextObserved": false,
+      "timedOut": false,
+      "logSha256": "e45d788558ff4cb6b9e72714156e568b80335cfde4c08f5832e70360b0b771c0",
+      "copies": [
+        {
+          "stage": "before",
+          "target": "services/ingest/dist",
+          "files": 20,
+          "bytes": 69505.0,
+          "manifestSha256": "47ae5bb3368a2f8b0cb11704c4228e4f9ab5d88d602526249498a9288381c574",
+          "copiedBytesVerified": true
+        },
+        {
+          "stage": "after",
+          "target": "services/ingest/dist",
+          "files": 26,
+          "bytes": 105250.0,
+          "manifestSha256": "b166377326253de2fe7ab893138f1785ebf790820209cd291dbb420ec8166dae",
+          "copiedBytesVerified": true
+        }
+      ]
+    },
+    {
+      "phase": "BuildNotifications",
+      "exitCode": 0,
+      "startedUtc": "2026-11-04T13:45:54.624Z",
+      "finishedUtc": "2026-11-04T13:45:58.626Z",
+      "durationMs": 4002.0,
+      "freeMiBAtStart": 2107.0,
+      "heapMiB": 640,
+      "nodeEnv": "production",
+      "sourceAfter": true,
+      "observedHeadAfter": "a2c8ab11709b18e982c68203aa228eaea7c183d2",
+      "oomTextObserved": false,
+      "timedOut": false,
+      "logSha256": "d040d72ed7bce9193cae2f3d322e0124fe4ab3c1a5b0b8452c7161227b88ccd3",
+      "copies": [
+        {
+          "stage": "before",
+          "target": "services/notifications/dist",
+          "files": 8,
+          "bytes": 16936.0,
+          "manifestSha256": "ef822aaeea4479978092d86c8755da5becd4127c7614eeca4b16ee87c09b081d",
+          "copiedBytesVerified": true
+        },
+        {
+          "stage": "after",
+          "target": "services/notifications/dist",
+          "files": 8,
+          "bytes": 16936.0,
+          "manifestSha256": "ef822aaeea4479978092d86c8755da5becd4127c7614eeca4b16ee87c09b081d",
+          "copiedBytesVerified": true
+        }
+      ]
+    },
+    {
+      "phase": "BuildAdmin",
+      "exitCode": 0,
+      "startedUtc": "2026-11-04T13:46:09.102Z",
+      "finishedUtc": "2026-11-04T13:46:21.804Z",
+      "durationMs": 12702.0,
+      "freeMiBAtStart": 2156.0,
+      "heapMiB": 640,
+      "nodeEnv": "production",
+      "sourceAfter": true,
+      "observedHeadAfter": "a2c8ab11709b18e982c68203aa228eaea7c183d2",
+      "oomTextObserved": false,
+      "timedOut": false,
+      "logSha256": "7627f7cb2412e17b00454be004d51d2b9eb04ef3e6a76967896f3d52f5d99dd2",
+      "copies": [
+        {
+          "stage": "before",
+          "target": "apps/admin-web/dist",
+          "files": 4,
+          "bytes": 2839511.0,
+          "manifestSha256": "9ba560d9f6c5957253061c16fd18bda699767e0912b1bfd8902cd59c420700e2",
+          "copiedBytesVerified": true
+        },
+        {
+          "stage": "after",
+          "target": "apps/admin-web/dist",
+          "files": 4,
+          "bytes": 2936700.0,
+          "manifestSha256": "f4db88d157fec071d789d4fad90e306cc3f1cf80086f367fe2ca7c97077739fc",
+          "copiedBytesVerified": true
+        }
+      ]
+    },
+    {
+      "phase": "BuildBuilding",
+      "exitCode": 0,
+      "startedUtc": "2026-11-04T13:46:45.523Z",
+      "finishedUtc": "2026-11-04T13:47:03.014Z",
+      "durationMs": 17491.0,
+      "freeMiBAtStart": 1842.0,
+      "heapMiB": 640,
+      "nodeEnv": "production",
+      "sourceAfter": true,
+      "observedHeadAfter": "a2c8ab11709b18e982c68203aa228eaea7c183d2",
+      "oomTextObserved": false,
+      "timedOut": false,
+      "logSha256": "f0671b26e182913b2d5f24dad73df219030e583479c2a8728c2d8e85f908ba12",
+      "copies": [
+        {
+          "stage": "before",
+          "target": "apps/building-web/dist",
+          "files": 4,
+          "bytes": 3281723.0,
+          "manifestSha256": "52c0579149459b487cca03255ef57d6d4a2a572bcd8922ede7000039102199d7",
+          "copiedBytesVerified": true
+        },
+        {
+          "stage": "after",
+          "target": "apps/building-web/dist",
+          "files": 4,
+          "bytes": 3489262.0,
+          "manifestSha256": "6f06367230bfb1110314e1f545e98fa0b646e748affcabcf418c7e0904b2d333",
+          "copiedBytesVerified": true
+        }
+      ]
+    },
+    {
+      "phase": "BuildResident",
+      "exitCode": 0,
+      "startedUtc": "2026-11-04T13:47:14.347Z",
+      "finishedUtc": "2026-11-04T13:47:26.164Z",
+      "durationMs": 11817.0,
+      "freeMiBAtStart": 1981.0,
+      "heapMiB": 640,
+      "nodeEnv": "production",
+      "sourceAfter": true,
+      "observedHeadAfter": "a2c8ab11709b18e982c68203aa228eaea7c183d2",
+      "oomTextObserved": false,
+      "timedOut": false,
+      "logSha256": "dde78a964e8694e2a503849b9dba6145552e7394a8209ab570a53a6040c423af",
+      "copies": [
+        {
+          "stage": "before",
+          "target": "apps/resident-web/dist",
+          "files": 4,
+          "bytes": 2817281.0,
+          "manifestSha256": "40a790643f1ed136ae1898c26f0041e1b9cdc3b26cff48846073790591ac1855",
+          "copiedBytesVerified": true
+        },
+        {
+          "stage": "after",
+          "target": "apps/resident-web/dist",
+          "files": 4,
+          "bytes": 2888385.0,
+          "manifestSha256": "59e9b91be79609be4767ad4c7d49d231485f74a882c1e7c0d2fa6fe47c8570c4",
+          "copiedBytesVerified": true
+        }
+      ]
+    }
+  ],
+  "environment": {
+    "parentHeapMiB": 256,
+    "phaseNodeHeapMiB": 640,
+    "hostGuardMiB": 1536,
+    "parallel": false,
+    "node": "24.19.0",
+    "pnpm": "10.17.1",
+    "typescript": "5.9.3",
+    "vite": "7.3.6",
+    "viteApiUrl": "http://127.0.0.1:3100",
+    "viteResidentUrl": "",
+    "resendApiKey": "",
+    "realDotenvRead": false,
+    "backendStarted": false
+  },
+  "preservedRefusal": "BuildIngest attempt1 refused before start because host below1536; subsequent independent measured1816; attempt2 explicitly authorized, only one actual build ran",
+  "warnings": [
+    "Original Vite/Rollup Zod PURE annotation warnings",
+    "Original Vite chunks above500KB warning"
+  ],
+  "limitations": [
+    "Native apps only typechecked; no Android/iOS compilation or device acceptance",
+    "TSC original builds may retain stale dist files; no manual clean or deployment claim",
+    "Typecheck coverage follows original tsconfigs; not every test file is included",
+    "Production build configuration does not replace full browser/API acceptance"
+  ],
+  "ownedDatabase": {
+    "stopped": true,
+    "stopExitCode": 0,
+    "removed": false,
+    "noOtherContainerOrDaemonWslComputerRestarted": true
+  },
+  "artifactPreservation": "All six build targets copied before and after with byte hashes verified; output directories are Git-ignored and not committed",
+  "artifacts": [
+    {
+      "artifact": "BuildAdmin-attempt-1.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "artifact": "BuildAdmin-start.json",
+      "bytes": 192,
+      "sha256": "78d495208564546912fddf04705e76ab49cb1eeb7ef2162525d4c3b673fe856d"
+    },
+    {
+      "artifact": "BuildApi-attempt-1.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "artifact": "BuildApi-start.json",
+      "bytes": 190,
+      "sha256": "9bebda916d1ea144fe4ec97bca5a7f183219ab15358e6363a5087e0a9b1daf2f"
+    },
+    {
+      "artifact": "BuildBuilding-attempt-1.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "artifact": "BuildBuilding-start.json",
+      "bytes": 195,
+      "sha256": "1c66e710dedeee7bce331f2cbe3f5a9bf6feeb634cc7dad11ccb4f894fbf96c6"
+    },
+    {
+      "artifact": "BuildIngest-attempt-1.log",
+      "bytes": 390,
+      "sha256": "55624bdaf77b5fb85228136784cae6139d0460fab4016db8028fc4a6cae223ea"
+    },
+    {
+      "artifact": "BuildIngest-attempt-2.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "artifact": "BuildIngest-refusal-1.json",
+      "bytes": 255,
+      "sha256": "0b09952ba5d76dfaafe0e62c12df2d3e774a9f1fcc4fd78d675631a92f22a0ea"
+    },
+    {
+      "artifact": "BuildIngest-start.json",
+      "bytes": 193,
+      "sha256": "b6418bd6fce07ccf677a6e5aa12cd9a5cf0efa63f638f112df169396841938f8"
+    },
+    {
+      "artifact": "BuildNotifications-attempt-1.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "artifact": "BuildNotifications-start.json",
+      "bytes": 199,
+      "sha256": "991b2db16fe2b8399c1ff9fe99f130a1d2b4c5d51adc9c551cc193c8aed25f24"
+    },
+    {
+      "artifact": "BuildResident-attempt-1.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "artifact": "BuildResident-start.json",
+      "bytes": 195,
+      "sha256": "1a3e72ab815f5b57610c41c68863d613bd6569f6ad09d5a941bcd3b67740ee92"
+    },
+    {
+      "artifact": "E2eTypes-attempt-1.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "artifact": "E2eTypes-start.json",
+      "bytes": 190,
+      "sha256": "eb6329f038274d151232e1fc255945cd5741112b3754dba3bef5c4f17fe0d546"
+    },
+    {
+      "artifact": "launch-phase.ps1",
+      "bytes": 1824,
+      "sha256": "14596a5867a0ff5baf773bed8b6942f0f2dcbca8b151a9fee4a1fc478b749657"
+    },
+    {
+      "artifact": "owned-db-stopped.json",
+      "bytes": 667,
+      "sha256": "c8d5ca7734981769f8dc8ab08bd6e9b3ca46a2cdf376c849a37c5cd76a262c74"
+    },
+    {
+      "artifact": "plan-handoff-v1.json",
+      "bytes": 1121,
+      "sha256": "701c63bc27ed01eafe84c2d4c05b3c73d28b69e3592109cb311992d5c77a7ac3"
+    },
+    {
+      "artifact": "plan-handoff-v2.json",
+      "bytes": 1278,
+      "sha256": "be9583bfda5868273d03266800c0cb6597843c42b4cf725d35e85241992dbd79"
+    },
+    {
+      "artifact": "plan-handoff-v3.json",
+      "bytes": 1582,
+      "sha256": "edc485d3f688c836b974f3d402887038c9aef6f7f1b9ddd421af4db5f0d06dbb"
+    },
+    {
+      "artifact": "PLAN.md",
+      "bytes": 4300,
+      "sha256": "b7ce790236b019dcbc09bd811577f92422f2b08133447825005c847bb28d2489"
+    },
+    {
+      "artifact": "run-phase-v1.mjs",
+      "bytes": 5889,
+      "sha256": "4c691e286ab9f4714675f8c0e56a3c532c24b688e90158bcb621b40fbd90f774"
+    },
+    {
+      "artifact": "run-phase-v2.mjs",
+      "bytes": 5910,
+      "sha256": "a9cafa1f8186090993615117c74230d6534c33bf3e5eb282181225e1623218a7"
+    },
+    {
+      "artifact": "run-phase.mjs",
+      "bytes": 7666,
+      "sha256": "ea49ac99d2084d1224331862e875e0d7edeb2d61113533493e616a59bae5e9a4"
+    },
+    {
+      "artifact": "stop-owned-attempt-1.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "artifact": "stop-owned-db.ps1",
+      "bytes": 3505,
+      "sha256": "2c07c74634b4da93f25167cae73310036aac9850c56b097751a443e468d47762"
+    },
+    {
+      "artifact": "Types-attempt-1.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "artifact": "Types-start.json",
+      "bytes": 187,
+      "sha256": "abfa4c9895427e70612750e45251a1cacae6cc8df8e3a3ad495013343658b357"
+    },
+    {
+      "artifact": "versions.json",
+      "bytes": 1155,
+      "sha256": "35a274bce05a6c63448e56aa2ba2d4063b7d0846a2242881b7e1b8eaa069cb54"
+    },
+    {
+      "artifact": "workspace-inventory.json",
+      "bytes": 3989,
+      "sha256": "f5ae717fdc8225b534745998c8dab58c88cf789a7c7eea06a6d3e1da700b82fa"
+    },
+    {
+      "artifact": "Types/command.log",
+      "bytes": 2439,
+      "sha256": "c9d039a06a5f896bafcf3295c153ba5da74eacb145f8b73f8a40f2dad255c4ee"
+    },
+    {
+      "artifact": "Types/outputs-after.json",
+      "bytes": 15067,
+      "sha256": "587b4b1199b9d4a521dc65acdfa9c51e5212de5a71eac24551aaaff192b34ade"
+    },
+    {
+      "artifact": "Types/outputs-before.json",
+      "bytes": 15067,
+      "sha256": "587b4b1199b9d4a521dc65acdfa9c51e5212de5a71eac24551aaaff192b34ade"
+    },
+    {
+      "artifact": "Types/result.json",
+      "bytes": 821,
+      "sha256": "395c027a3fec7293abfebb4d76af5209269d08bffa09bb0c1629dd5d35ffa1d1"
+    },
+    {
+      "artifact": "Types/source-before.json",
+      "bytes": 126005,
+      "sha256": "e2a3dee29a6f113399401bf47b54d380e2aaa1aab5881cccd866ea8fa2e608ad"
+    },
+    {
+      "artifact": "E2eTypes/command.log",
+      "bytes": 207,
+      "sha256": "31408997e2fe48047159ba4ebffbb8be82d627665608f5740364f010d92b6811"
+    },
+    {
+      "artifact": "E2eTypes/outputs-after.json",
+      "bytes": 15067,
+      "sha256": "587b4b1199b9d4a521dc65acdfa9c51e5212de5a71eac24551aaaff192b34ade"
+    },
+    {
+      "artifact": "E2eTypes/outputs-before.json",
+      "bytes": 15067,
+      "sha256": "587b4b1199b9d4a521dc65acdfa9c51e5212de5a71eac24551aaaff192b34ade"
+    },
+    {
+      "artifact": "E2eTypes/result.json",
+      "bytes": 785,
+      "sha256": "77c8e52a3e330ff2a01a20f6aa6e250654c6873dfd7fd32d9d18948e2715dc01"
+    },
+    {
+      "artifact": "E2eTypes/source-before.json",
+      "bytes": 126005,
+      "sha256": "e2a3dee29a6f113399401bf47b54d380e2aaa1aab5881cccd866ea8fa2e608ad"
+    },
+    {
+      "artifact": "BuildApi/artifacts-after-manifest.json",
+      "bytes": 10876,
+      "sha256": "de411b6ce32bdd37bad5508d08a11b1984e7eedaabee2f6f2f14a3af190c0c8b"
+    },
+    {
+      "artifact": "BuildApi/artifacts-before-manifest.json",
+      "bytes": 8537,
+      "sha256": "460b7c7b41334b6d1fc3e2d51657986de53747117d6081352a1583c7e282483e"
+    },
+    {
+      "artifact": "BuildApi/command.log",
+      "bytes": 168,
+      "sha256": "ef4fcc97e52871577c2060224f357ee26460e4765e6fb50450cc329620c713a0"
+    },
+    {
+      "artifact": "BuildApi/outputs-after.json",
+      "bytes": 17672,
+      "sha256": "9abcc6630d665791d3fbceaa99f82a7efc6ae0ed50a41b8e110d9c7280c2554a"
+    },
+    {
+      "artifact": "BuildApi/outputs-before.json",
+      "bytes": 15067,
+      "sha256": "587b4b1199b9d4a521dc65acdfa9c51e5212de5a71eac24551aaaff192b34ade"
+    },
+    {
+      "artifact": "BuildApi/result.json",
+      "bytes": 813,
+      "sha256": "15a89646f89fe112f728f6f3dfcc1adc943927fa4f01d2220f938ad1633e643f"
+    },
+    {
+      "artifact": "BuildApi/source-before.json",
+      "bytes": 126005,
+      "sha256": "e2a3dee29a6f113399401bf47b54d380e2aaa1aab5881cccd866ea8fa2e608ad"
+    },
+    {
+      "artifact": "BuildIngest/artifacts-after-manifest.json",
+      "bytes": 3109,
+      "sha256": "b166377326253de2fe7ab893138f1785ebf790820209cd291dbb420ec8166dae"
+    },
+    {
+      "artifact": "BuildIngest/artifacts-before-manifest.json",
+      "bytes": 2418,
+      "sha256": "47ae5bb3368a2f8b0cb11704c4228e4f9ab5d88d602526249498a9288381c574"
+    },
+    {
+      "artifact": "BuildIngest/command.log",
+      "bytes": 178,
+      "sha256": "e45d788558ff4cb6b9e72714156e568b80335cfde4c08f5832e70360b0b771c0"
+    },
+    {
+      "artifact": "BuildIngest/outputs-after.json",
+      "bytes": 18489,
+      "sha256": "b63df7167ed815a63c6ea4de623047846198dcb9f526dcabd0eba0f20581c950"
+    },
+    {
+      "artifact": "BuildIngest/outputs-before.json",
+      "bytes": 17672,
+      "sha256": "9abcc6630d665791d3fbceaa99f82a7efc6ae0ed50a41b8e110d9c7280c2554a"
+    },
+    {
+      "artifact": "BuildIngest/result.json",
+      "bytes": 820,
+      "sha256": "1050f9d7904e641cba86dfbf1b08d11075d6da256bd4c801255b73a7b2decd57"
+    },
+    {
+      "artifact": "BuildIngest/source-before.json",
+      "bytes": 126005,
+      "sha256": "e2a3dee29a6f113399401bf47b54d380e2aaa1aab5881cccd866ea8fa2e608ad"
+    },
+    {
+      "artifact": "BuildNotifications/artifacts-after-manifest.json",
+      "bytes": 979,
+      "sha256": "ef822aaeea4479978092d86c8755da5becd4127c7614eeca4b16ee87c09b081d"
+    },
+    {
+      "artifact": "BuildNotifications/artifacts-before-manifest.json",
+      "bytes": 979,
+      "sha256": "ef822aaeea4479978092d86c8755da5becd4127c7614eeca4b16ee87c09b081d"
+    },
+    {
+      "artifact": "BuildNotifications/command.log",
+      "bytes": 192,
+      "sha256": "d040d72ed7bce9193cae2f3d322e0124fe4ab3c1a5b0b8452c7161227b88ccd3"
+    },
+    {
+      "artifact": "BuildNotifications/outputs-after.json",
+      "bytes": 18489,
+      "sha256": "b63df7167ed815a63c6ea4de623047846198dcb9f526dcabd0eba0f20581c950"
+    },
+    {
+      "artifact": "BuildNotifications/outputs-before.json",
+      "bytes": 18489,
+      "sha256": "b63df7167ed815a63c6ea4de623047846198dcb9f526dcabd0eba0f20581c950"
+    },
+    {
+      "artifact": "BuildNotifications/result.json",
+      "bytes": 833,
+      "sha256": "ea9150a2153714e866b51ba84d8eb858adcfb355c4d286ae495df72c9b1bd4f4"
+    },
+    {
+      "artifact": "BuildNotifications/source-before.json",
+      "bytes": 126005,
+      "sha256": "e2a3dee29a6f113399401bf47b54d380e2aaa1aab5881cccd866ea8fa2e608ad"
+    },
+    {
+      "artifact": "BuildAdmin/artifacts-after-manifest.json",
+      "bytes": 583,
+      "sha256": "f4db88d157fec071d789d4fad90e306cc3f1cf80086f367fe2ca7c97077739fc"
+    },
+    {
+      "artifact": "BuildAdmin/artifacts-before-manifest.json",
+      "bytes": 583,
+      "sha256": "9ba560d9f6c5957253061c16fd18bda699767e0912b1bfd8902cd59c420700e2"
+    },
+    {
+      "artifact": "BuildAdmin/command.log",
+      "bytes": 2261,
+      "sha256": "7627f7cb2412e17b00454be004d51d2b9eb04ef3e6a76967896f3d52f5d99dd2"
+    },
+    {
+      "artifact": "BuildAdmin/outputs-after.json",
+      "bytes": 18489,
+      "sha256": "932fe6b7e1d16f0842435a267432ed03ade167468e1c20fca71e64fb1c187d17"
+    },
+    {
+      "artifact": "BuildAdmin/outputs-before.json",
+      "bytes": 18489,
+      "sha256": "b63df7167ed815a63c6ea4de623047846198dcb9f526dcabd0eba0f20581c950"
+    },
+    {
+      "artifact": "BuildAdmin/result.json",
+      "bytes": 822,
+      "sha256": "e3b9407d2ac67df27410f69b89bbc36e6ad0cf7c6207def51b75776d2c8c98a8"
+    },
+    {
+      "artifact": "BuildAdmin/source-before.json",
+      "bytes": 126005,
+      "sha256": "e2a3dee29a6f113399401bf47b54d380e2aaa1aab5881cccd866ea8fa2e608ad"
+    },
+    {
+      "artifact": "BuildBuilding/artifacts-after-manifest.json",
+      "bytes": 587,
+      "sha256": "6f06367230bfb1110314e1f545e98fa0b646e748affcabcf418c7e0904b2d333"
+    },
+    {
+      "artifact": "BuildBuilding/artifacts-before-manifest.json",
+      "bytes": 586,
+      "sha256": "52c0579149459b487cca03255ef57d6d4a2a572bcd8922ede7000039102199d7"
+    },
+    {
+      "artifact": "BuildBuilding/command.log",
+      "bytes": 2268,
+      "sha256": "f0671b26e182913b2d5f24dad73df219030e583479c2a8728c2d8e85f908ba12"
+    },
+    {
+      "artifact": "BuildBuilding/outputs-after.json",
+      "bytes": 18490,
+      "sha256": "b3d8c3c96b37afac4503c3cd2591afaf12f98607aa73b53bac1dd3dd0b6466eb"
+    },
+    {
+      "artifact": "BuildBuilding/outputs-before.json",
+      "bytes": 18489,
+      "sha256": "932fe6b7e1d16f0842435a267432ed03ade167468e1c20fca71e64fb1c187d17"
+    },
+    {
+      "artifact": "BuildBuilding/result.json",
+      "bytes": 828,
+      "sha256": "017d11a52e6996fcb67899b8adc7245464a9da04c5c077cc102dda8145a94334"
+    },
+    {
+      "artifact": "BuildBuilding/source-before.json",
+      "bytes": 126005,
+      "sha256": "e2a3dee29a6f113399401bf47b54d380e2aaa1aab5881cccd866ea8fa2e608ad"
+    },
+    {
+      "artifact": "BuildResident/artifacts-after-manifest.json",
+      "bytes": 586,
+      "sha256": "59e9b91be79609be4767ad4c7d49d231485f74a882c1e7c0d2fa6fe47c8570c4"
+    },
+    {
+      "artifact": "BuildResident/artifacts-before-manifest.json",
+      "bytes": 586,
+      "sha256": "40a790643f1ed136ae1898c26f0041e1b9cdc3b26cff48846073790591ac1855"
+    },
+    {
+      "artifact": "BuildResident/command.log",
+      "bytes": 2267,
+      "sha256": "dde78a964e8694e2a503849b9dba6145552e7394a8209ab570a53a6040c423af"
+    },
+    {
+      "artifact": "BuildResident/outputs-after.json",
+      "bytes": 18490,
+      "sha256": "fe0a55a04d9d1ddeaea3d4b0b4b9b46fe33baf7a73471c8257ca8dcab2c39ab1"
+    },
+    {
+      "artifact": "BuildResident/outputs-before.json",
+      "bytes": 18490,
+      "sha256": "b3d8c3c96b37afac4503c3cd2591afaf12f98607aa73b53bac1dd3dd0b6466eb"
+    },
+    {
+      "artifact": "BuildResident/result.json",
+      "bytes": 828,
+      "sha256": "b80c8cc1ee0fb02adacde8b624a9186cdfd4464926356d8bde345d37fbbda49f"
+    },
+    {
+      "artifact": "BuildResident/source-before.json",
+      "bytes": 126005,
+      "sha256": "e2a3dee29a6f113399401bf47b54d380e2aaa1aab5881cccd866ea8fa2e608ad"
+    },
+    {
+      "artifact": "final-postchecks.json",
+      "bytes": 295,
+      "sha256": "1128449c5c9963eceeb481ebfbc60be3f9dec829a694d6515609d7c046ba8220"
+    }
+  ],
+  "finalSourceFilesVerified": 989,
+  "kind": "workspace-types-and-six-production-builds",
+  "sourceCommitUrl": "https://github.com/helberjf/predioON/commit/a2c8ab11709b18e982c68203aa228eaea7c183d2",
+  "handoffSha256": "cf7bab3411eb0171589d802aa189d69cdee0156e105fd647e43b7d646e6285a2",
+  "finalSourcePostcheckRecordedUtc": "2026-11-04T13:49:06.3374756Z",
+  "chronologyNote": "Original handoff recordedUtc predates the final source postcheck; closure is finalSourcePostcheckRecordedUtc. Original handoff bytes and hash are preserved.",
+  "packagesTypechecked": [
+    "@predioon/admin-web",
+    "@predioon/api",
+    "@predioon/building-web",
+    "@predioon/operations-mobile",
+    "@predioon/resident-mobile",
+    "@predioon/resident-web",
+    "@predioon/api-client",
+    "@predioon/contracts",
+    "@predioon/db",
+    "@predioon/mobile",
+    "@predioon/shared",
+    "@predioon/ui",
+    "@predioon/ingest",
+    "@predioon/notifications"
+  ],
+  "independentReadOnlyReview": {
+    "approved": true,
+    "artifactsVerified": 84,
+    "buildOutputCopiesVerified": 12,
+    "reviewerExecutedBuilds": false
+  },
+  "acceptance": {
+    "sourceSnapshotVerified": true,
+    "types": true,
+    "productionBuildCommands": true,
+    "browserRuntime": false,
+    "nativeBuilds": false,
+    "deployment": false,
+    "productionReady": false
+  }
+}
