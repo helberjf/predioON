@@ -63,6 +63,8 @@ Atualizado em **04/11/2026**, horário de São Paulo. Leia este arquivo primeiro
 
 **CI: causa observada no navegador em 04/11.** O [resumo autenticado do run 41842973688](https://github.com/helberjf/predioON/actions/runs/41842973688) informa que o job não começou por falha em pagamentos recentes **ou** por limite de gastos insuficiente. O texto não distingue essas duas condições. [Registro da observação](evidencias/ci-account-blocker-2026-11-04.json). Nenhuma configuração ou cobrança foi alterada. A [investigação anterior pela API](evidencias/ci-startup-investigation-2026-11-04.json) fica histórica: os 15 workflows passaram no actionlint local, mas não havia mensagem de causa nos endpoints consultados. Esse bloqueio não aprova os testes e não demonstra defeito nos YAML. O proprietário precisa regularizar a condição da conta antes de retomar os runners; depois, conferir uma execução nova da fonte exata.
 
+**Integração MFA recuperável:** o [novo checkpoint cumulativo](continuidade/2026-11-04-mfa-integracao/README.md) preserva16 arquivos do backend candidato, incluindo contrato por sessão, bootstrap coerente, gate HTTP e emissão SSE após transação. Sete testes puros passaram; a checagem de tipos terminou em timeout sem resultado. SQL, nove casos com banco, consumidores integrados e aceite funcional continuam pendentes. A fonte da API publicada não recebeu esse patch.
+
 ## 1. Instruções permanentes do proprietário
 
 - Commits pequenos em Conventional Commits (`feat:`, `fix:`, `test:`, `docs:`), com push na `main` depois de cada incremento verificado.

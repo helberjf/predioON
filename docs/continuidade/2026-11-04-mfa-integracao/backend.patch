@@ -1,0 +1,736 @@
+--- a/apps/api/src/auth/mfa-factor.ts
++++ b/apps/api/src/auth/mfa-factor.ts
+@@ -35,9 +35,11 @@
+   return `${text.slice(0, 5)}-${text.slice(5)}`;
+ }
+
+-type Factor = { secret_ciphertext: Buffer; confirmed_at: Date | null; last_used_step: string | number };
++export type MfaProof = { generation: string };
++export type MfaTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
++type Factor = { generation: string; secret_ciphertext: Buffer; confirmed_at: Date | null; last_used_step: string | number };
+ export async function factorOf(userId: string): Promise<Factor | null> {
+-  const rows = await db.execute<Factor>(sql`select secret_ciphertext, confirmed_at, last_used_step from mfa_factors where user_id=${userId}`);
++  const rows = await db.execute<Factor>(sql`select generation, secret_ciphertext, confirmed_at, last_used_step from mfa_factors where user_id=${userId}`);
+   return rows[0] ?? null;
+ }
+
+@@ -50,16 +52,53 @@
+  * Accepts a current TOTP code once, or an unused recovery code once. Both are
+  * consumed by a conditional UPDATE, so two concurrent logins cannot share one.
+  */
+-export async function consumeMfaCode(userId: string, presented: string): Promise<boolean> {
++export async function consumeMfaCode(userId: string, presented: string): Promise<MfaProof | null> {
+   const factor = await factorOf(userId);
+-  if (!factor?.confirmed_at) return false;
++  if (!factor?.confirmed_at) return null;
+   const code = presented.trim();
+   const step = matchTotp(open(Buffer.from(factor.secret_ciphertext), userId), code, Date.now());
+   if (step !== null) {
+-    const used = await db.execute(sql`update mfa_factors set last_used_step=${step} where user_id=${userId} and confirmed_at is not null and last_used_step<${step} returning user_id`);
+-    return used.length === 1;
++    const used = await db.execute(sql`update mfa_factors set last_used_step=${step} where user_id=${userId}
++      and generation=${factor.generation} and confirmed_at is not null and last_used_step<${step} returning user_id`);
++    return used.length === 1 ? { generation: factor.generation } : null;
+   }
+-  if (!/^[A-Za-z2-7]{5}-?[A-Za-z2-7]{5}$/.test(code)) return false;
+-  const spent = await db.execute(sql`update mfa_recovery_codes set used_at=clock_timestamp() where user_id=${userId} and code_hash=${recoveryHash(code)} and used_at is null returning id`);
+-  return spent.length === 1;
++  if (!/^[A-Za-z2-7]{5}-?[A-Za-z2-7]{5}$/.test(code)) return null;
++  // Recovery rows belong to the factor through their cascading FK. Lock the
++  // observed generation until consumption commits; replacement cannot retarget it.
++  return db.transaction(async tx => {
++    const current = await lockCurrentFactor(tx, userId);
++    if (!current?.confirmed_at || current.generation !== factor.generation) return null;
++    const spent = await tx.execute(sql`update mfa_recovery_codes set used_at=clock_timestamp()
++      where user_id=${userId} and code_hash=${recoveryHash(code)} and used_at is null returning id`);
++    return spent.length === 1 ? { generation: factor.generation } : null;
++  });
+ }
++
++/** Writers acquire account -> family (when applicable) -> factor. Consumption
++ * holds only the factor and completes before callers acquire account locks. */
++export async function lockCurrentFactor(tx: MfaTransaction, userId: string): Promise<Factor | null> {
++  const rows = await tx.execute<Factor>(sql`select generation, secret_ciphertext, confirmed_at, last_used_step
++    from mfa_factors where user_id=${userId} for update`);
++  return rows[0] ?? null;
++}
++
++export async function lockMfaFamily(tx: MfaTransaction, userId: string, sessionId: string): Promise<void> {
++  const rows = await tx.execute(sql`select id from sessions where id=${sessionId} and user_id=${userId}
++    and revoked_at is null and expires_at>clock_timestamp() for update`);
++  if (rows.length !== 1) throw new HttpError(401, "Sessão revogada ou expirada");
++}
++
++/** No factor may appear/change between consumption and the account-locked write. */
++export async function recheckMfaProof(tx: MfaTransaction, userId: string, proof: MfaProof | null): Promise<void> {
++  const current = await lockCurrentFactor(tx, userId);
++  if (proof ? !current?.confirmed_at || current.generation !== proof.generation : Boolean(current?.confirmed_at)) {
++    throw new HttpError(401, "Código de verificação inválido. Confirme o fator atual.");
++  }
++}
++
++export async function persistMfaProof(tx: MfaTransaction, userId: string, sessionId: string, proof: MfaProof): Promise<void> {
++  const rows = await tx.execute(sql`update sessions set mfa_verified_at=clock_timestamp(),
++    mfa_factor_generation=${proof.generation} where id=${sessionId} and user_id=${userId}
++    and revoked_at is null and expires_at>clock_timestamp() returning id`);
++  if (rows.length !== 1) throw new HttpError(401, "Sessão revogada ou expirada");
++}
+--- /dev/null
++++ b/apps/api/src/auth/mfa-policy.ts
+@@ -0,0 +1,24 @@
++import type { MfaRequirement } from "@predioon/contracts/auth";
++import { HttpError, pgErrorCode } from "../http/errors.js";
++
++/** Bootstrap validity alone does not authorize a private operation. */
++export function assertOperationalMfa(identity: { mfaRequirement: MfaRequirement }): void {
++  switch (identity.mfaRequirement) {
++    case "not-required":
++    case "satisfied": return;
++    case "enrollment-required":
++      throw new HttpError(403, "Cadastre a verificação em duas etapas para continuar.", { reason: "MFA_ENROLLMENT_REQUIRED" });
++    case "verification-required":
++      throw new HttpError(403, "Confirme a verificação em duas etapas para continuar.", { reason: "MFA_VERIFICATION_REQUIRED" });
++    default:
++      throw new HttpError(503, "Estado de verificação indisponível. Tente novamente em instantes.");
++  }
++}
++
++/** Translate only the dedicated068 states, never an empty result or generic denial. */
++export function mfaDatabaseError(error: unknown): HttpError | undefined {
++  const code = pgErrorCode(error);
++  if (code === "PMF01") return new HttpError(403, "Cadastre a verificação em duas etapas para continuar.", { reason: "MFA_ENROLLMENT_REQUIRED" });
++  if (code === "PMF02") return new HttpError(403, "Confirme a verificação em duas etapas para continuar.", { reason: "MFA_VERIFICATION_REQUIRED" });
++  return undefined;
++}
+--- a/apps/api/src/auth/mfa.ts
++++ b/apps/api/src/auth/mfa.ts
+@@ -5,18 +5,32 @@
+ import { users } from "@predioon/db/runtime";
+ import { identityDb as db } from "@predioon/db/identity";
+ import { config } from "../config.js";
+-import { badRequest, conflict, unauthorized } from "../http/errors.js";
++import { badRequest, conflict, unauthorized, HttpError } from "../http/errors.js";
+ import { validateBody } from "../http/validate.js";
+ import { admitPasswordChange } from "./login-budget.js";
+-import { authenticate, currentAuth } from "./middleware.js";
+-import { consumeMfaCode, factorOf, newRecoveryCode, open, RECOVERY_CODES, recoveryHash, seal, secretKey } from "./mfa-factor.js";
++import { authenticateSession, requireOperationalSession, currentAuth } from "./middleware.js";
++import { consumeMfaCode, factorOf, newRecoveryCode, open, RECOVERY_CODES, recoveryHash, seal, secretKey, lockMfaFamily, lockCurrentFactor, persistMfaProof, type MfaTransaction } from "./mfa-factor.js";
+ import { verifyPassword } from "./passwords.js";
+ import { base32Encode, matchTotp, otpauthUri } from "./totp.js";
+
+-async function requirePassword(userId: string, password: string): Promise<{ email: string }> {
++async function requirePassword(userId: string, password: string): Promise<{ email: string; passwordHash: string | null }> {
+   const [account] = await db.select({ email: users.email, active: users.active, passwordHash: users.passwordHash }).from(users).where(eq(users.id, userId)).limit(1);
+   if (!await verifyPassword(password, account?.passwordHash ?? null) || !account?.active) throw badRequest("A senha atual está incorreta");
+-  return { email: account.email };
++  return { email: account.email, passwordHash: account.passwordHash };
++}
++
++async function lockAccount(tx: MfaTransaction, userId: string, expectedPasswordHash?: string | null): Promise<void> {
++  const [locked] = await tx.execute<{ active: boolean }>(sql`select identity_lock_account_active(${userId}) as active`);
++  if (!locked?.active) throw unauthorized("Usuário inativo ou inexistente");
++  if (expectedPasswordHash !== undefined) {
++    const [current] = await tx.select({ passwordHash: users.passwordHash }).from(users).where(eq(users.id, userId)).limit(1);
++    if (current?.passwordHash !== expectedPasswordHash) throw badRequest("A senha atual está incorreta");
++  }
++}
++
++async function denyRequiredMfaDisable(tx: Pick<MfaTransaction, "execute">, userId: string): Promise<void> {
++  const [state] = await tx.execute<{ required: boolean }>(sql`select public.identity_platform_mfa_required(${userId}) as required`);
++  if (!state || state.required) throw new HttpError(403, "A administração da plataforma exige verificação em duas etapas.", { reason: "MFA_REQUIRED" });
+ }
+
+ const password = z.string().min(1).refine(value => Buffer.byteLength(value, "utf8") <= 1024, "Senha excede 1024 bytes");
+@@ -26,7 +40,7 @@
+ const Disable = z.object({ currentPassword: password, code: code.optional() }).strict();
+
+ export const mfaRouter = Router();
+-mfaRouter.use(authenticate);
++mfaRouter.use(authenticateSession);
+
+ mfaRouter.get("/", async (req, res) => {
+   const userId = currentAuth(req).userId;
+@@ -40,10 +54,12 @@
+ mfaRouter.post("/enroll", validateBody(Enroll), admitPasswordChange, async (req, res) => {
+   const userId = currentAuth(req).userId;
+   secretKey();
+-  const { email } = await requirePassword(userId, (req.body as z.infer<typeof Enroll>).currentPassword);
++  const { email, passwordHash } = await requirePassword(userId, (req.body as z.infer<typeof Enroll>).currentPassword);
+   const secret = randomBytes(20);
+   // A pending enrolment is replaced; a confirmed factor is never overwritten.
+   const stored = await db.transaction(async tx => {
++    await lockAccount(tx, userId, passwordHash);
++    await lockMfaFamily(tx, userId, currentAuth(req).sessionId);
+     await tx.execute(sql`delete from mfa_factors where user_id=${userId} and confirmed_at is null`);
+     return tx.execute(sql`insert into mfa_factors(user_id,secret_ciphertext) values(${userId},${seal(secret, userId)}) on conflict (user_id) do nothing returning user_id`);
+   });
+@@ -60,10 +76,15 @@
+   if (step === null) throw badRequest("Código de verificação inválido. Confira o horário do aparelho e tente o código atual.");
+   const codes = Array.from({ length: RECOVERY_CODES }, newRecoveryCode);
+   const confirmed = await db.transaction(async tx => {
+-    const rows = await tx.execute(sql`update mfa_factors set confirmed_at=clock_timestamp(), last_used_step=${step} where user_id=${userId} and confirmed_at is null returning user_id`);
++    await lockAccount(tx, userId);
++    await lockMfaFamily(tx, userId, currentAuth(req).sessionId);
++    const rows = await tx.execute(sql`update mfa_factors set confirmed_at=clock_timestamp(), last_used_step=${step} where user_id=${userId} and generation=${factor.generation}
++      and secret_ciphertext=${factor.secret_ciphertext} and confirmed_at is null returning user_id`);
+     if (!rows.length) return false;
+     await tx.execute(sql`delete from mfa_recovery_codes where user_id=${userId}`);
+     for (const item of codes) await tx.execute(sql`insert into mfa_recovery_codes(user_id,code_hash) values(${userId},${recoveryHash(item)})`);
++    // Enrollment proves this factor in this family, not a fresh password (055).
++    await persistMfaProof(tx, userId, currentAuth(req).sessionId, { generation: factor.generation });
+     return true;
+   });
+   if (!confirmed) throw conflict("A verificação em duas etapas já está ativa nesta conta.");
+@@ -71,13 +92,27 @@
+ });
+
+ /** Turning the factor off needs both the password and a valid code. */
+-mfaRouter.post("/disable", validateBody(Disable), admitPasswordChange, async (req, res) => {
++mfaRouter.post("/disable", requireOperationalSession, validateBody(Disable), admitPasswordChange, async (req, res) => {
+   const userId = currentAuth(req).userId;
+   const input = req.body as z.infer<typeof Disable>;
+-  await requirePassword(userId, input.currentPassword);
++  const account = await requirePassword(userId, input.currentPassword);
++  await denyRequiredMfaDisable(db, userId);
+   const factor = await factorOf(userId);
+-  if (!factor) { res.status(204).end(); return; }
+-  if (factor.confirmed_at && !(input.code && await consumeMfaCode(userId, input.code))) throw unauthorized("Código de verificação inválido");
+-  await db.execute(sql`delete from mfa_factors where user_id=${userId}`);
++  const proof = factor?.confirmed_at && input.code ? await consumeMfaCode(userId, input.code) : null;
++  if (factor?.confirmed_at && !proof) throw unauthorized("Código de verificação inválido");
++  await db.transaction(async tx => {
++    await lockAccount(tx, userId, account.passwordHash);
++    await lockMfaFamily(tx, userId, currentAuth(req).sessionId);
++    // Current union of legacy flag and021 authority. Concurrent promotion at
++    // the operation snapshot remains a separate authorization-boundary task.
++    const current = await lockCurrentFactor(tx, userId);
++    await denyRequiredMfaDisable(tx, userId);
++    if (!current && !factor) return;
++    if (!current || !factor || current.generation !== factor.generation
++      || (current.confirmed_at && proof?.generation !== current.generation)) {
++      throw conflict("O fator foi alterado. Confirme o fator atual.");
++    }
++    await tx.execute(sql`delete from mfa_factors where user_id=${userId} and generation=${current.generation}`);
++  });
+   res.status(204).end();
+ });
+--- a/apps/api/src/auth/middleware.ts
++++ b/apps/api/src/auth/middleware.ts
+@@ -5,6 +5,7 @@
+ import { forbidden, unauthorized } from "../http/errors.js";
+ import { verifyAccessToken } from "./tokens.js";
+ import { resolveIdentity, type Identity } from "./service.js";
++import { assertOperationalMfa, mfaDatabaseError } from "./mfa-policy.js";
+
+ export type Auth = Identity & { sessionId: string };
+
+@@ -15,13 +16,30 @@
+   }
+ }
+
+-export const authenticate: RequestHandler = async (req, _res, next) => {
++async function authenticateIdentity(req: Request): Promise<Auth> {
+   const header = req.header("authorization");
+   const token = header?.startsWith("Bearer ") ? header.slice(7) : null;
+-  if (!token) return next(unauthorized("Token de acesso ausente"));
++  if (!token) throw unauthorized("Token de acesso ausente");
+   const claims = await verifyAccessToken(token);
+-  if (!claims) return next(unauthorized("Token de acesso inválido ou expirado"));
+-  req.auth = { ...(await resolveIdentity(claims)), sessionId: claims.sid };
++  if (!claims) throw unauthorized("Token de acesso inválido ou expirado");
++  return { ...(await resolveIdentity(claims)), sessionId: claims.sid };
++}
++
++/** Use only on explicitly declared self-service/bootstrap routes. */
++export const authenticateSession: RequestHandler = async (req, _res, next) => {
++  req.auth = await authenticateIdentity(req);
++  next();
++};
++
++export const requireOperationalSession: RequestHandler = (req, _res, next) => {
++  assertOperationalMfa(currentAuth(req));
++  next();
++};
++
++/** Every ordinary authenticated route requires operational MFA state by default. */
++export const authenticate: RequestHandler = async (req, _res, next) => {
++  req.auth = await authenticateIdentity(req);
++  assertOperationalMfa(req.auth);
+   next();
+ };
+
+@@ -75,8 +93,8 @@
+ /** Every authenticated query runs here, so PostgreSQL RLS sees who is asking. */
+ export function inTenantContext<T>(req: Request, fn: (tx: AppTransaction) => Promise<T>, options?: { featureWrite?: boolean }): Promise<T> {
+   const auth = currentAuth(req);
+-  return withUserContext({ userId: auth.userId, role: auth.role }, async tx => {
++  return withUserContext({ userId: auth.userId, role: auth.role, sessionId: auth.sessionId }, async tx => {
+     if (!options?.featureWrite) await lockFeatures(tx);
+     return fn(tx);
+-  });
++  }).catch((error: unknown) => { throw mfaDatabaseError(error) ?? error; });
+ }
+--- a/apps/api/src/auth/routes.ts
++++ b/apps/api/src/auth/routes.ts
+@@ -1,7 +1,8 @@
+ import { Router } from "express";
++import type { Session } from "@predioon/contracts/auth";
+ import { z } from "zod";
+ import { validateBody } from "../http/validate.js";
+-import { authenticate, currentAuth } from "./middleware.js";
++import { authenticate, authenticateSession, currentAuth } from "./middleware.js";
+ import { changePassword, listSessions, login, refreshSession, revokeAllSessions, revokeSession, revokeSessionById } from "./service.js";
+ import type { SessionTokens } from "./service.js";
+ import { webAuthRouter } from "./web-routes.js";
+@@ -24,7 +25,7 @@
+
+ const RefreshSchema = z.object({ refreshToken: z.string().min(10) });
+
+-function sessionResponse(session: SessionTokens) {
++function sessionResponse(session: SessionTokens): Session {
+   return {
+     accessToken: session.accessToken,
+     refreshToken: session.refreshToken,
+@@ -34,6 +35,7 @@
+       email: session.identity.email,
+       role: session.identity.role,
+       memberships: session.identity.memberships,
++      mfaRequirement: session.identity.mfaRequirement,
+     },
+   };
+ }
+@@ -73,7 +75,7 @@
+   res.json({ items: await listSessions(auth.userId, auth.sessionId) });
+ });
+
+-authRouter.delete("/sessions/:id", authenticate, async (req, res) => {
++authRouter.delete("/sessions/:id", authenticateSession, async (req, res) => {
+   const auth = currentAuth(req);
+   const id = z.string().uuid().safeParse(req.params.id);
+   if (!id.success) { res.status(404).end(); return; }
+@@ -81,12 +83,12 @@
+   res.status(204).end();
+ });
+
+-authRouter.post("/sessions/revoke-all", authenticate, async (req, res) => {
++authRouter.post("/sessions/revoke-all", authenticateSession, async (req, res) => {
+   await revokeAllSessions(currentAuth(req).userId);
+   res.status(204).end();
+ });
+
+-authRouter.get("/me", authenticate, (req, res) => {
++authRouter.get("/me", authenticateSession, (req, res) => {
+   const auth = currentAuth(req);
+   res.json({
+     id: auth.userId,
+@@ -94,5 +96,6 @@
+     email: auth.email,
+     role: auth.role,
+     memberships: auth.memberships,
++    mfaRequirement: auth.mfaRequirement,
+   });
+ });
+--- a/apps/api/src/auth/service.ts
++++ b/apps/api/src/auth/service.ts
+@@ -2,13 +2,14 @@
+ import { buildings, memberships, organizations, refreshTokens, sessions, users } from "@predioon/db/runtime";
+ import { identityDb as db } from "@predioon/db/identity";
+ import type { Role } from "@predioon/shared";
++import type { MfaRequirement } from "@predioon/contracts/auth";
+ import { HttpError, badRequest, notFound, unauthorized } from "../http/errors.js";
+ import { hashPassword, verifyPassword } from "./passwords.js";
+-import { consumeMfaCode, mfaEnabled, MFA_REQUIRED_MESSAGE } from "./mfa-factor.js";
++import { consumeMfaCode, mfaEnabled, MFA_REQUIRED_MESSAGE, recheckMfaProof, persistMfaProof, type MfaProof } from "./mfa-factor.js";
+ import { createRefreshToken, hashRefreshToken, refreshTokenExpiry, signAccessToken, type AccessTokenClaims } from "./tokens.js";
+
+ type ClientMeta = { userAgent?: string | null; ipAddress?: string | null };
+-export type Identity = { userId: string; name: string; email: string; role: Role; memberships: Array<{ buildingId: string; role: "BUILDING_ADMIN" | "RESIDENT" }> };
++export type Identity = { userId: string; name: string; email: string; role: Role; mfaRequirement: MfaRequirement; memberships: Array<{ buildingId: string; role: "BUILDING_ADMIN" | "RESIDENT" }> };
+ export type SessionTokens = { accessToken: string; refreshToken: string; identity: Identity; expiresAt: Date };
+ type IdentityTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+@@ -35,32 +36,43 @@
+ }
+
+ /** Read account, active tenants and time-bounded grants on every authenticated request. */
+-export async function buildIdentity(userId: string): Promise<Identity> {
+-  const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+-  if (!user?.active) throw unauthorized("Usuário inativo ou inexistente");
+-  const links = await db.select({ buildingId: memberships.buildingId, role: memberships.role })
+-    .from(memberships)
+-    .innerJoin(buildings, eq(memberships.buildingId, buildings.id))
+-    .innerJoin(organizations, eq(buildings.organizationId, organizations.id))
+-    .where(and(eq(memberships.userId, userId), eq(memberships.active, true),
+-      eq(buildings.active, true), eq(organizations.active, true),
+-      or(isNull(memberships.startsAt), lte(memberships.startsAt, sql`now()`)),
+-      or(isNull(memberships.endsAt), gt(memberships.endsAt, sql`now()`))));
++export async function buildIdentity(userId: string, sessionId: string): Promise<Identity> {
++  // Account, family, requirement and tenant links use the same statement
++  // snapshot. This bootstrap projection does not replace operation guards.
++  const [user] = await db.select({ id: users.id, name: users.name, email: users.email,
++    isPlatformAdmin: users.isPlatformAdmin,
++    mfaRequirement: sql<string>`public.identity_session_mfa_requirement(${userId}, ${sessionId}::uuid)`,
++    links: sql<Identity["memberships"]>`coalesce((
++      select jsonb_agg(jsonb_build_object('buildingId', m.building_id, 'role', m.role))
++      from public.memberships m
++      join public.buildings b on b.id = m.building_id
++      join public.organizations o on o.id = b.organization_id
++      where m.user_id = ${users.id} and m.active and b.active and o.active
++        and (m.starts_at is null or m.starts_at <= statement_timestamp())
++        and (m.ends_at is null or m.ends_at > statement_timestamp())
++    ), '[]'::jsonb)`,
++  }).from(users).innerJoin(sessions, eq(sessions.userId, users.id))
++    .where(and(eq(users.id, userId), eq(users.active, true), eq(sessions.id, sessionId),
++      isNull(sessions.revokedAt), gt(sessions.expiresAt, sql`statement_timestamp()`))).limit(1);
++  if (!user) throw unauthorized("Sessão revogada, expirada ou conta inativa");
++  const requirement = user.mfaRequirement;
++  if (requirement !== "not-required" && requirement !== "enrollment-required"
++    && requirement !== "verification-required" && requirement !== "satisfied") {
++    throw new HttpError(503, "Estado de verificação indisponível. Tente novamente em instantes.");
++  }
++  const restricted = requirement === "enrollment-required" || requirement === "verification-required";
++  const links = user.links;
+   return { userId: user.id, name: user.name, email: user.email,
+-    role: effectiveRole(user.isPlatformAdmin, links), memberships: links };
++    role: effectiveRole(user.isPlatformAdmin, links), mfaRequirement: requirement, memberships: restricted ? [] : links };
+ }
+
+ /** A valid signature alone never authenticates a revoked, expired or mismatched session. */
+ export async function resolveIdentity(claims: AccessTokenClaims): Promise<Identity> {
+-  const [session] = await db.select({ userId: sessions.userId }).from(sessions)
+-    .where(and(eq(sessions.id, claims.sid), eq(sessions.userId, claims.sub),
+-      isNull(sessions.revokedAt), gt(sessions.expiresAt, sql`now()`))).limit(1);
+-  if (!session) throw unauthorized("Sessão revogada ou expirada");
+-  return buildIdentity(session.userId);
++  return buildIdentity(claims.sub, claims.sid);
+ }
+
+ async function issueTokens(userId: string, sessionId: string, refreshToken: string, expiresAt: Date): Promise<SessionTokens> {
+-  const identity = await buildIdentity(userId);
++  const identity = await buildIdentity(userId, sessionId);
+   return { accessToken: await signAccessToken({ sub: userId, sid: sessionId }), refreshToken, identity, expiresAt };
+ }
+
+@@ -71,19 +83,22 @@
+   if (!user?.active || !ok) throw unauthorized("E-mail ou senha inválidos");
+   // The second factor is asked for only after the password is right, and a
+   // consumed code is spent even if the session is not created afterwards.
++  let proof: MfaProof | null = null;
+   if (await mfaEnabled(user.id)) {
+     if (!code) throw unauthorized(MFA_REQUIRED_MESSAGE);
+-    if (!await consumeMfaCode(user.id, code)) throw unauthorized("Código de verificação inválido");
++    proof = await consumeMfaCode(user.id, code);
++    if (!proof) throw unauthorized("Código de verificação inválido");
+   }
+-  await buildIdentity(user.id);
+   const expiresAt = refreshTokenExpiry();
+   const { token, tokenHash } = createRefreshToken();
+   const [session] = await db.transaction(async tx => {
+     const [locked] = await tx.execute<{ active: boolean }>(sql`select identity_lock_account_active(${user.id}) as active`);
+     const [current] = await tx.select({ passwordHash: users.passwordHash }).from(users).where(eq(users.id, user.id)).limit(1);
+     if (!locked?.active || current?.passwordHash !== user.passwordHash) throw unauthorized("E-mail ou senha inválidos");
++    await recheckMfaProof(tx, user.id, proof);
+     const created = await tx.insert(sessions).values({ userId: user.id, expiresAt,
+       userAgent: meta.userAgent ?? null, ipAddress: meta.ipAddress ?? null }).returning({ id: sessions.id });
++    if (proof) await persistMfaProof(tx, user.id, created[0]!.id, proof);
+     await tx.insert(refreshTokens).values({ userId: user.id, sessionId: created[0]!.id,
+       tokenHash, expiresAt, userAgent: meta.userAgent ?? null, ipAddress: meta.ipAddress ?? null });
+     return created;
+--- a/apps/api/src/auth/verification.ts
++++ b/apps/api/src/auth/verification.ts
+@@ -7,8 +7,8 @@
+ import { badRequest, HttpError, unauthorized } from "../http/errors.js";
+ import { validateBody } from "../http/validate.js";
+ import { admitPasswordChange } from "./login-budget.js";
+-import { authenticate, currentAuth } from "./middleware.js";
+-import { consumeMfaCode, mfaEnabled, MFA_REQUIRED_MESSAGE } from "./mfa-factor.js";
++import { authenticateSession, currentAuth } from "./middleware.js";
++import { consumeMfaCode, mfaEnabled, MFA_REQUIRED_MESSAGE, lockMfaFamily, recheckMfaProof, persistMfaProof, type MfaProof } from "./mfa-factor.js";
+ import { verifyPassword } from "./passwords.js";
+
+ /**
+@@ -32,21 +32,31 @@
+ const Verify = z.object({ currentPassword: password, code: z.string().trim().min(6).max(16).optional() }).strict();
+
+ export const verificationRouter = Router();
+-verificationRouter.use(authenticate);
++verificationRouter.use(authenticateSession);
+
+ verificationRouter.post("/", validateBody(Verify), admitPasswordChange, async (req, res) => {
+   const auth = currentAuth(req);
+   const input = req.body as z.infer<typeof Verify>;
+   const [account] = await db.select({ active: users.active, passwordHash: users.passwordHash }).from(users).where(eq(users.id, auth.userId)).limit(1);
+   if (!account?.active || !await verifyPassword(input.currentPassword, account.passwordHash ?? null)) throw badRequest("A senha atual está incorreta");
++  let proof: MfaProof | null = null;
+   if (await mfaEnabled(auth.userId)) {
+     if (!input.code) throw badRequest(MFA_REQUIRED_MESSAGE);
+-    if (!await consumeMfaCode(auth.userId, input.code)) throw badRequest("Código de verificação inválido");
++    proof = await consumeMfaCode(auth.userId, input.code);
++    if (!proof) throw badRequest("Código de verificação inválido");
+   }
+-  // Only this session becomes verified; another device keeps its own clock.
+-  const updated = await db.update(sessions).set({ verifiedAt: sql`clock_timestamp()` })
+-    .where(and(eq(sessions.id, auth.sessionId), eq(sessions.userId, auth.userId), isNull(sessions.revokedAt), gt(sessions.expiresAt, sql`now()`)))
+-    .returning({ id: sessions.id });
+-  if (!updated.length) throw unauthorized("Sessão revogada ou expirada");
++  await db.transaction(async tx => {
++    const [locked] = await tx.execute<{ active: boolean }>(sql`select identity_lock_account_active(${auth.userId}) as active`);
++    const [current] = await tx.select({ passwordHash: users.passwordHash }).from(users).where(eq(users.id, auth.userId)).limit(1);
++    if (!locked?.active || current?.passwordHash !== account.passwordHash) throw badRequest("A senha atual está incorreta");
++    await lockMfaFamily(tx, auth.userId, auth.sessionId);
++    await recheckMfaProof(tx, auth.userId, proof);
++    // 055 password recency and generation proof are distinct, atomic writes.
++    const updated = await tx.update(sessions).set({ verifiedAt: sql`clock_timestamp()` })
++      .where(and(eq(sessions.id, auth.sessionId), eq(sessions.userId, auth.userId), isNull(sessions.revokedAt), gt(sessions.expiresAt, sql`clock_timestamp()`)))
++      .returning({ id: sessions.id });
++    if (!updated.length) throw unauthorized("Sessão revogada ou expirada");
++    if (proof) await persistMfaProof(tx, auth.userId, auth.sessionId, proof);
++  });
+   res.status(204).end();
+ });
+--- a/apps/api/src/auth/web-routes.ts
++++ b/apps/api/src/auth/web-routes.ts
+@@ -43,7 +43,7 @@
+ function publicSession(session:SessionTokens): WebSession {
+   const {identity}=session;
+   return {accessToken:session.accessToken,user:{id:identity.userId,name:identity.name,email:identity.email,
+-    role:identity.role,memberships:identity.memberships}};
++    role:identity.role,memberships:identity.memberships,mfaRequirement:identity.mfaRequirement}};
+ }
+
+ webAuthRouter.use((req,_res,next)=>{
+--- a/apps/api/src/http/error-handler.ts
++++ b/apps/api/src/http/error-handler.ts
+@@ -1,5 +1,6 @@
+ import type { ErrorRequestHandler } from "express";
+ import { HttpError } from "./errors.js";
++import { mfaDatabaseError } from "../auth/mfa-policy.js";
+
+ export const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
+   // body-parser errors carry the submitted body, which may contain credentials.
+@@ -12,6 +13,7 @@
+     res.status(413).json({ error: "Corpo da requisição excede o limite permitido" });
+     return;
+   }
++  error = mfaDatabaseError(error) ?? error;
+   if (error instanceof HttpError) {
+     res.status(error.status).json({ error: error.message, details: error.details });
+     return;
+--- a/apps/api/src/modules/events/routes.ts
++++ b/apps/api/src/modules/events/routes.ts
+@@ -3,6 +3,7 @@
+ import { inTenantContext } from "../../auth/middleware.js";
+ import { verifyAccessToken } from "../../auth/tokens.js";
+ import { resolveIdentity } from "../../auth/service.js";
++import { assertOperationalMfa } from "../../auth/mfa-policy.js";
+ import { unauthorized } from "../../http/errors.js";
+ import { subscribe } from "./bus.js";
+ import { projectTelemetryEvent } from "./telemetry.js";
+@@ -25,6 +26,7 @@
+   if (!claims) throw unauthorized("Token inválido ou expirado");
+
+   req.auth = { ...(await resolveIdentity(claims)), sessionId: claims.sid };
++  assertOperationalMfa(req.auth);
+
+   res.writeHead(200, {
+     "Content-Type": "text/event-stream",
+@@ -42,39 +44,35 @@
+     delivery = delivery.then(async () => {
+       if (closed) return;
+       req.auth = { ...(await resolveIdentity(claims)), sessionId: claims.sid };
++      assertOperationalMfa(req.auth);
+       if (event.kind === "telemetry") {
+-        await inTenantContext(req, async tx => {
+-          const projected = await projectTelemetryEvent(tx, event);
+-          if (projected && !closed && !res.writableEnded) res.write(`event: telemetry\ndata: ${JSON.stringify(projected)}\n\n`);
+-        });
++        const projected = await inTenantContext(req, tx => projectTelemetryEvent(tx, event));
++        // No frame may leave before the transaction has successfully settled.
++        if (projected && !closed && !res.writableEnded) res.write(`event: telemetry\ndata: ${JSON.stringify(projected)}\n\n`);
+         return;
+       }
+       if (event.kind === "alert") {
+-        await inTenantContext(req, async tx => {
+-          const projected = await projectAlertEvent(tx, event);
+-          if (projected && !closed && !res.writableEnded) res.write(`event: alert\ndata: ${JSON.stringify(projected)}\n\n`);
+-        });
++        const projected = await inTenantContext(req, tx => projectAlertEvent(tx, event));
++        // No frame may leave before the transaction has successfully settled.
++        if (projected && !closed && !res.writableEnded) res.write(`event: alert\ndata: ${JSON.stringify(projected)}\n\n`);
+         return;
+       }
+       if (event.kind === "device-status") {
+-        await inTenantContext(req, async tx => {
+-          const projected = await projectDeviceStatusEvent(tx, event);
+-          if (projected && !closed && !res.writableEnded) res.write(`event: device-status\ndata: ${JSON.stringify(projected)}\n\n`);
+-        });
++        const projected = await inTenantContext(req, tx => projectDeviceStatusEvent(tx, event));
++        // No frame may leave before the transaction has successfully settled.
++        if (projected && !closed && !res.writableEnded) res.write(`event: device-status\ndata: ${JSON.stringify(projected)}\n\n`);
+         return;
+       }
+       if (event.kind === "gateway-status") {
+-        await inTenantContext(req, async tx => {
+-          const projected = await projectGatewayStatusEvent(tx, event);
+-          if (projected && !closed && !res.writableEnded) res.write(`event: gateway-status\ndata: ${JSON.stringify(projected)}\n\n`);
+-        });
++        const projected = await inTenantContext(req, tx => projectGatewayStatusEvent(tx, event));
++        // No frame may leave before the transaction has successfully settled.
++        if (projected && !closed && !res.writableEnded) res.write(`event: gateway-status\ndata: ${JSON.stringify(projected)}\n\n`);
+         return;
+       }
+       if (event.kind === "features-changed") {
+-        await inTenantContext(req, async tx => {
+-          const projected = await projectFeatureEvent(tx, event);
+-          if (projected && !closed && !res.writableEnded) res.write(`event: features-changed\ndata: ${JSON.stringify(projected)}\n\n`);
+-        });
++        const projected = await inTenantContext(req, tx => projectFeatureEvent(tx, event));
++        // No frame may leave before the transaction has successfully settled.
++        if (projected && !closed && !res.writableEnded) res.write(`event: features-changed\ndata: ${JSON.stringify(projected)}\n\n`);
+       }
+     }).catch(() => { res.end(); }).finally(() => { queued--; });
+   });
+@@ -83,6 +81,7 @@
+   const heartbeat = setInterval(() => {
+     void resolveIdentity(claims).then(identity => {
+       if (closed || res.writableEnded) return;
++      assertOperationalMfa(identity);
+       req.auth = { ...identity, sessionId: claims.sid };
+       res.write(`: ping\n\n`);
+     }).catch(() => res.end());
+--- a/apps/api/src/modules/organizations/routes.ts
++++ b/apps/api/src/modules/organizations/routes.ts
+@@ -4,6 +4,7 @@
+ import { organizations, type AppTransaction } from "@predioon/db/runtime";
+ import type { OrganizationView } from "@predioon/contracts";
+ import { currentAuth, inTenantContext } from "../../auth/middleware.js";
++import { mfaDatabaseError } from "../../auth/mfa-policy.js";
+ import { conflict, forbidden, HttpError, notFound, pgErrorCode } from "../../http/errors.js";
+ import { generateId } from "../../http/ids.js";
+ import { validateBody } from "../../http/validate.js";
+@@ -35,6 +36,8 @@
+ async function organizationOperation<T>(operation: () => Promise<T>): Promise<T> {
+   try { return await operation(); }
+   catch (error) {
++    const mfaError = mfaDatabaseError(error);
++    if (mfaError) throw mfaError;
+     if (error instanceof HttpError) throw error;
+     if (pgErrorCode(error) === "42501") throw forbidden("Sem a capacidade global necessária para organizações");
+     if (pgErrorCode(error) === "23505") throw conflict("Já existe uma organização com este slug");
+--- /dev/null
++++ b/apps/api/test/mfa-policy.test.ts
+@@ -0,0 +1,36 @@
++import assert from "node:assert/strict";
++import { test } from "node:test";
++import { assertOperationalMfa, mfaDatabaseError } from "../src/auth/mfa-policy.ts";
++import { HttpError } from "../src/http/errors.ts";
++
++for (const state of ["not-required", "satisfied"] as const) {
++  test(`${state} does not require another MFA ceremony`, () => {
++    assert.doesNotThrow(() => assertOperationalMfa({ mfaRequirement: state }));
++  });
++}
++for (const [state, reason] of [["enrollment-required", "MFA_ENROLLMENT_REQUIRED"], ["verification-required", "MFA_VERIFICATION_REQUIRED"]] as const) {
++  test(`${state} refuses with a precise403 without triggering401 or055 replay`, () => {
++    assert.throws(() => assertOperationalMfa({ mfaRequirement: state }), (error: unknown) =>
++      error instanceof HttpError && error.status === 403 && (error.details as { reason: string }).reason === reason);
++  });
++}
++test("missing or unknown requirement never defaults to an operational session", () => {
++  for (const state of [undefined, null, true, "", "verified", "SATISFIED"]) {
++    assert.throws(() => assertOperationalMfa({ mfaRequirement: state } as never), (error: unknown) => error instanceof HttpError && error.status === 503);
++  }
++});
++test("dedicated SQL denials survive driver wrappers without exposing database messages", () => {
++  for (const [code, reason] of [["PMF01", "MFA_ENROLLMENT_REQUIRED"], ["PMF02", "MFA_VERIFICATION_REQUIRED"]]) {
++    const error = mfaDatabaseError({ cause: { cause: { code, message: "PRIVATE SQL VALUE" } } });
++    assert.ok(error instanceof HttpError);
++    assert.equal(error.status, 403);
++    assert.deepEqual(error.details, { reason });
++    assert.ok(!JSON.stringify(error).includes("PRIVATE SQL VALUE"));
++  }
++});
++test("ordinary SQL failures and cyclic causes cannot be classified as MFA denials", () => {
++  const cycle: { cause?: unknown } = {}; cycle.cause = cycle;
++  for (const error of [null, undefined, {}, { code: "42501" }, { code: "23505" }, { code: "PMF03" }, cycle]) {
++    assert.equal(mfaDatabaseError(error), undefined);
++  }
++});
+--- a/packages/contracts/src/auth.ts
++++ b/packages/contracts/src/auth.ts
+@@ -6,12 +6,16 @@
+   role: "BUILDING_ADMIN" | "RESIDENT";
+ };
+
++/** Current server evaluation for this session family; never inferred from role or verified_at055. */
++export type MfaRequirement = "not-required" | "enrollment-required" | "verification-required" | "satisfied";
++
+ export type AuthUser = {
+   id: string;
+   name: string;
+   email: string;
+   role: AuthRole;
+   memberships: SessionMembership[];
++  mfaRequirement: MfaRequirement;
+ };
+
+ export type SessionTokens = { accessToken: string; refreshToken: string };
+--- a/packages/contracts/src/index.ts
++++ b/packages/contracts/src/index.ts
+@@ -2,7 +2,7 @@
+ // shared contains public schemas/helpers only; the boundary check enforces this.
+ export * from "@predioon/shared";
+ export type {
+-  ApiErrorResponse, AuthRole, AuthUser, LoginRequest, LogoutRequest,
++  ApiErrorResponse, AuthRole, AuthUser, MfaRequirement, LoginRequest, LogoutRequest,
+   MeResponse, PasswordChangeRequest, RefreshRequest, Session, SessionMembership, SessionTokens,
+ } from "./auth.js";
+ export type * from "./tenancy.js";
+--- a/packages/db/src/context.ts
++++ b/packages/db/src/context.ts
+@@ -16,6 +16,9 @@
+
+ export type UserContext = {
+   userId: string;
++  /** Human session family supplied by authenticated API context, never request body.
++   * Absent for legacy/service fixtures: explicitly clear the transaction GUC. */
++  sessionId?: string;
+   role: "PLATFORM_ADMIN" | "BUILDING_ADMIN" | "RESIDENT";
+ };
+
+@@ -34,7 +37,8 @@
+   return appDb.transaction(async (tx) => {
+     await tx.execute(
+       sql`select set_config('app.user_id', ${context.userId}, true),
+-                 set_config('app.role', ${context.role}, true)`,
++                 set_config('app.role', ${context.role}, true),
++                 set_config('app.session_id', ${context.sessionId ?? ''}, true)`,
+     );
+     return fn(tx);
+   });
+--- a/packages/db/src/schema.ts
++++ b/packages/db/src/schema.ts
+@@ -1,5 +1,7 @@
++import { sql } from "drizzle-orm";
+ import {
+   boolean,
++  check,
+   doublePrecision,
+   index,
+   integer,
+@@ -331,7 +333,13 @@
+   ipAddress: text("ip_address"),
+   /** Last proof of the password (and second factor); sign-in counts, token refresh does not (055). */
+   verifiedAt: timestamp("verified_at", { withTimezone: true }).notNull().defaultNow(),
+-}, (table) => [index("sessions_user_created_idx").on(table.userId, table.createdAt)]);
++  /**068 factor proof for this family only; password055/defaults never backfill it. */
++  mfaVerifiedAt: timestamp("mfa_verified_at", { withTimezone: true }),
++  mfaFactorGeneration: uuid("mfa_factor_generation"),
++}, (table) => [
++  index("sessions_user_created_idx").on(table.userId, table.createdAt),
++  check("sessions_mfa_proof_pair_ck", sql`(${table.mfaVerifiedAt} is null) = (${table.mfaFactorGeneration} is null)`),
++]);
+
+ /** Hashed opaque tokens; legacy rows have no sessionId and are rejected. */
+ export const refreshTokens = pgTable(

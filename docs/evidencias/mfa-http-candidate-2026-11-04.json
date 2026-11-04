@@ -1,0 +1,56 @@
+{
+  "recordedAt": "2026-11-04T16:12:25.302497+00:00",
+  "kind": "mfa-http-backend-candidate",
+  "baseCommit": "b259f80b158aff08f255a83f9d8ae551289d5fcf",
+  "sourceManifestSha256": "bf4ca28b27741e0b7555d6ab90024c19a65d96f75ae82d2e6cb65301b148de78",
+  "policyUnit": {
+    "pass": 7,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "durationMs": 504.014,
+    "heapMiB": 384,
+    "freeMiBBefore": 1922,
+    "httpSseOrDatabaseExecuted": false,
+    "logSha256": "7e1205886b943debe59a025a3e9809bffd965f66a401f38bc3386adfc3bb587c",
+    "preparationFailure": "First invocation could not resolve existing tsx from repository root; corrected working directory to apps/api. No policy case executed in that failed invocation."
+  },
+  "apiTypecheckAttempt": {
+    "startedAt": "2026-11-04T15:41:42.485Z",
+    "finishedAt": "2026-11-04T15:59:28.647Z",
+    "durationMs": 1066162,
+    "exitCode": null,
+    "signal": "SIGTERM",
+    "errorCode": "ETIMEDOUT",
+    "sourceVerified": true,
+    "isolatedVerified": true,
+    "overlayVerified": true,
+    "overlaysResolved": false,
+    "originalWorkspaceResolved": [],
+    "candidateSources": 15,
+    "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "database": false,
+    "runtime": false
+  },
+  "typecheckGuard": {
+    "recordedAt": "2026-11-04T15:41:42.477Z",
+    "freeMiB": 1755,
+    "minimumMiB": 1536,
+    "parentHeapMiB": 128,
+    "childHeapMiB": 640
+  },
+  "typecheckConfiguredTimeoutMs": 300000,
+  "typecheckLimit": "ETIMEDOUT/SIGTERM with empty output; observed elapsed1066162ms exceeded configured timeout. Delay cause not established. Not a compiler PASS or diagnosed code error. No retry or increased timeout.",
+  "rootObservedOwnNodeAfterAttempt": 0,
+  "staticBackendReviewApproved": true,
+  "reviewSha256": "647303183ef4fa0ed47727112e55bf939558315bb921a8ba050d298a498fa730",
+  "databaseCasesExecuted": 0,
+  "migrationApplied": false,
+  "mainApiDatabaseChanged": false,
+  "limits": [
+    "Operation-snapshot SQL/RLS guards remain incomplete;068 candidate only covers three policies.",
+    "Devices, global projections, empty-result envelopes, SSE projections and writes need SQL integration and real tests.",
+    "Factor disable promotion, expiry while waiting and proof readback after triggers remain pending.",
+    "No production, browser, native or full mandatory-MFA acceptance."
+  ]
+}

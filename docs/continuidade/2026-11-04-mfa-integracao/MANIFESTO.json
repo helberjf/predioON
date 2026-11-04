@@ -1,0 +1,135 @@
+{
+  "baseCommit": "b259f80b158aff08f255a83f9d8ae551289d5fcf",
+  "status": "PARTIAL_CANDIDATE_NOT_READY_FOR_ROLLOUT",
+  "files": [
+    {
+      "path": "apps/api/src/auth/mfa-factor.ts",
+      "beforeSha256": "f349ef155cab5bb4edb038edf8ade46c003e18b9166bda87f50e992b355d6532",
+      "afterSha256": "cafb6d5120cdcf851beee85d82bca8d71eee543ccea4c1f39930a33b895ff6ac",
+      "bytes": 6095,
+      "component": "backend"
+    },
+    {
+      "path": "apps/api/src/auth/mfa-policy.ts",
+      "beforeSha256": null,
+      "afterSha256": "cad520c2ca000d5123357f0f4fcc6f18caa220b22602e110d68c8c919ac7d934",
+      "bytes": 1351,
+      "component": "backend"
+    },
+    {
+      "path": "apps/api/src/auth/mfa.ts",
+      "beforeSha256": "8430c78d4946da6b22162c19cf7b63da3ae56217896d3983b6741e6ef38d1ab5",
+      "afterSha256": "3ffe785e821a708e7254abb21d88ac29b4e9ebbdc3398a85970295154962988b",
+      "bytes": 7703,
+      "component": "backend"
+    },
+    {
+      "path": "apps/api/src/auth/middleware.ts",
+      "beforeSha256": "b1f815b9fe32cea4908c44dd98c516fce22f4fe0a3f8390c6f37750ebc62749c",
+      "afterSha256": "328209f172194e5451c34d3e5c70f5a68c573bf1ccffaf7ada518bf59df6b0af",
+      "bytes": 4565,
+      "component": "backend"
+    },
+    {
+      "path": "apps/api/src/auth/routes.ts",
+      "beforeSha256": "6683bad50e31d0ea66ca6953993f11b4123c50afafb9f26c36b60126d7796aa8",
+      "afterSha256": "ed0b77c786bc1cec2c2c600b7c312d04dd9759f53ac7ac84cad575efea525550",
+      "bytes": 3874,
+      "component": "backend"
+    },
+    {
+      "path": "apps/api/src/auth/service.ts",
+      "beforeSha256": "ba0a3538eec7c5de93d1275bde5376f014d0957d7fb46681ab682653d5d422a6",
+      "afterSha256": "75468b9831dd46f1b6bf18248f282a3430b5fb7473c4467896bccb2fc0c4bd60",
+      "bytes": 16902,
+      "component": "backend"
+    },
+    {
+      "path": "apps/api/src/auth/verification.ts",
+      "beforeSha256": "f3b5b1784d574484e7b1cb9ffaaed3c0e955aea8e9c907303babbd7782f5f15c",
+      "afterSha256": "a8f96c45aa8cf055564803f0b116fa6ce87dd16be81ab974778c47fd2cda7608",
+      "bytes": 3851,
+      "component": "backend"
+    },
+    {
+      "path": "apps/api/src/auth/web-routes.ts",
+      "beforeSha256": "20155357d4e0e86aaaa83cd1cf1c47eb40adc55702a251bb25d948e24bb0f112",
+      "afterSha256": "921521f20476a4f590d8dc80c89eb733d82857d2e8c7039bf6fee1df0b8280d5",
+      "bytes": 4747,
+      "component": "backend"
+    },
+    {
+      "path": "apps/api/src/http/error-handler.ts",
+      "beforeSha256": "57a51f0bdabdc0664586501b73a3c4b3cd4947ae04a8264bd4c94e01bfae2d19",
+      "afterSha256": "ae47dc3faba3ff2c93c5abca592bf756cf91d7972cda1075e7649c8d1681ca4f",
+      "bytes": 1174,
+      "component": "backend"
+    },
+    {
+      "path": "apps/api/src/modules/events/routes.ts",
+      "beforeSha256": "4e5e0403fcb89e46b28b8a97a590886a46bc4cdf2e24bc188e0e0f895a6aadbf",
+      "afterSha256": "7d79f6233982db76e13f001761bcf36223da02a6198ea60d815aa075c8d81551",
+      "bytes": 4624,
+      "component": "backend"
+    },
+    {
+      "path": "apps/api/src/modules/organizations/routes.ts",
+      "beforeSha256": "fec826bd5a41aaf06713170518e4d31fc23677b887444785c4c3dfada1301f5c",
+      "afterSha256": "b5605696aa42678d280115d29d629e1bf556b48dedda6bd547813f631283e6a1",
+      "bytes": 5379,
+      "component": "backend"
+    },
+    {
+      "path": "apps/api/test/mfa-policy.test.ts",
+      "beforeSha256": null,
+      "afterSha256": "b53ef8defe4fe6b3012823feca473fd9270e7598b746ea56c07b894e4eb873f9",
+      "bytes": 2054,
+      "component": "backend"
+    },
+    {
+      "path": "packages/contracts/src/auth.ts",
+      "beforeSha256": "bcb597a99555903b9132c997d8ec70406a5dc1a5500b5641b458e6c3b4bb43b6",
+      "afterSha256": "5e186ceb93bd0f4691c6d75a92fad4ca13d62314f646c84637971e2afd5c10a1",
+      "bytes": 3074,
+      "component": "backend"
+    },
+    {
+      "path": "packages/contracts/src/index.ts",
+      "beforeSha256": "ffc55c3d6f11fce79ca7531f7301f4de45e0eff40df25b9661ad93756e839404",
+      "afterSha256": "312c351ad94c3c9a2692ce40f7ea55b223f1c71095f0f1f806a86e3dbdc8b115",
+      "bytes": 585,
+      "component": "backend"
+    },
+    {
+      "path": "packages/db/src/context.ts",
+      "beforeSha256": "f801c20ad303d060140fbc5414b636c82369f240d811e55b08f63e3689726437",
+      "afterSha256": "19f2708b65f2aa3ce4e0e7c6bb4e6c53cd8464c0ed5b725b186a4e9848cb82d1",
+      "bytes": 1829,
+      "component": "backend"
+    },
+    {
+      "path": "packages/db/src/schema.ts",
+      "beforeSha256": "597077b94397f3881099b95ef043499742a41020bfb4e883c294d7b1eea2a2a9",
+      "afterSha256": "698c9fac15d8a7c3574a6bb37b54474d836172df6906a5c7784e207b266cbc90",
+      "bytes": 23228,
+      "component": "backend"
+    }
+  ],
+  "patches": [
+    {
+      "file": "backend.patch",
+      "sha256": "0608b7544831f3a383c23d6d41cd8b2041bffb5d4461eae255d22afbd4f379af"
+    }
+  ],
+  "restoreCheck": {
+    "passed": true,
+    "files": 16,
+    "exactCandidateBytes": true,
+    "completeProjectRestored": false
+  },
+  "mainApiDatabaseChanged": false,
+  "migrationApplied": false,
+  "functionalDatabaseCasesExecuted": 0,
+  "policyPureUnitCasesPassed": 7,
+  "apiTypecheck": "TIMEOUT_WITHOUT_COMPILER_RESULT"
+}
