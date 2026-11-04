@@ -26,15 +26,26 @@ voltar. O armazenamento local e a alimentação de reserva precisam ser aprovado
 nas duas versões. O piloto contempla instalação em campo, com preparação e teste
 do mesmo conjunto antes da montagem definitiva.
 
+**Revisão econômica de água e vazamentos:** adotar como referência **Teracom TDI340**,
+dois **RISCO RK6F cabeados com fonte Mean Well HDR-15-12**, e **Renova UR equipado,
+ref. 5132250000068**, quando adequados ao local. A redução de materiais é
+**R$ 1.003,43** frente à lista anterior. O TDI340 documenta memória não volátil;
+os RISCO oferecem IP67 e detecção após pelo menos 10 s, sem equivalência automática
+ao Dwyer IP68. O hidrômetro DN20/Q3 4 m³/h depende do levantamento de vazões e
+documentação da variante. A [lista detalhada](COMPRAS_PILOTO.md) registra esses limites,
+os modelos alternativos e os links consultados; não há ensaio de durabilidade comparativa.
+
 | Cenário de materiais para as funções do piloto | Referência de planejamento | Condição |
 |---|---:|---|
-| **M100-HM-GL + IO8000 + contador + SD + sensores + fonte/nobreak + infraestrutura** | **R$ 10.747,44–11.937,44** | Primeiro candidato com 4G integrado; inclui referências ainda pendentes de cotação |
-| Mesmo escopo com M100-HM-ETH | R$ 10.066,41–11.256,41 | Economiza R$ 681,03, com a condição de conectividade descrita acima |
+| **M100-HM-GL + IO8000 + contador + SD + sensores + fontes/nobreak + infraestrutura** | **R$ 9.744,01–10.934,01** | Primeiro candidato com 4G integrado; inclui referências ainda pendentes de cotação |
+| Mesmo escopo com M100-HM-ETH | R$ 9.062,98–10.252,98 | Economiza R$ 681,03, com a condição de conectividade descrita acima |
 
-**Não são preços fechados do sistema instalado.** O contador a R$ 1.144,23 aparece
-esgotado, as duas sondas usam R$ 880 cada apenas como valor inicial sem cabo completo
-confirmado, e R$ 1.320–2.510 são provisões de infraestrutura. Tensão, corrente,
-diâmetro e instalação podem alterar os valores. A lista detalhada substitui as
+**Não são preços fechados do sistema instalado.** O TDI340 a R$ 1.080,91 consta no
+catálogo comercial, mas sua disponibilidade/preço exigem confirmação. A fonte de 12 V
+informa 45 dias úteis e os RISCO são por encomenda. As duas sondas usam R$ 880 cada
+apenas como valor inicial sem cabo completo confirmado, e R$ 1.320–2.510 são provisões
+de infraestrutura. Tensão, corrente, diâmetro e instalação podem alterar os valores.
+A lista detalhada substitui as
 estimativas anteriores de R$ 7,7–8,2 mil com modelos genéricos e preços históricos.
 
 O maior retorno do orçamento está em alimentação, sensores, proteção e recuperação
@@ -63,11 +74,11 @@ Contratos da plataforma: [SENSORES.md](SENSORES.md) e
 |---|---|---|
 | Nível da caixa | Transmissor submersível 4–20 mA, AI1 | Definir faixa pela altura útil, materiais, precisão e cabo. 0–5 mca é referência, não padrão universal |
 | Nível da cisterna | Segundo transmissor 4–20 mA, AI2 | Calibrar separadamente; volume depende da geometria do reservatório |
-| Consumo de água | Hidrômetro pulsado + DigiRail-4C em RS485 | Definir litros/pulso, vazão, diâmetro, tipo elétrico e retenção da contagem |
+| Consumo de água | Hidrômetro pulsado Renova como referência + TDI340 em RS485 | Definir litros/pulso, vazões, diâmetro, tipo elétrico, documentação metrológica e retenção; DN20 não atende automaticamente qualquer condomínio |
 | Energia e fases | Multimedidor Modbus | kWh, tensões e, se contratadas, correntes/frequência. Definir versão, ligação e transformadores de corrente necessários |
 | Estado da bomba | Contato auxiliar existente | Publicar `pump_running` conforme o contrato atual: estado do contato. Não afirmar vazão a partir dele |
 | Temperatura | Transmissor Modbus, XY-MD02 como referência histórica | Confirmar modelo, precisão, endereço, comunicação e adequação ao ambiente |
-| Vazamento de água e esgoto | Dois sensores com saída compatível | Selecionar sondas para o líquido e local; documentar comportamento diante de sujeira, corrosão e falha |
+| Vazamento de água e esgoto | Dois RISCO RK6F, 12 V, NF nos canais 2/3 do TDI340 | Candidatos para derramamento aquoso no piso: validar IP67, atraso de detecção, líquido, limpeza e falhas. Substituir se houver exigência incompatível |
 | Gás | Detector para o gás realmente presente, com relé | Calibração, vida útil e alarme local definidos. `gas_ppm` só se o aparelho medir e fornecer esse dado |
 | Incêndio | Sinal da central existente | O Prédio ON supervisiona seu sinal; central, detectores e alarmes locais continuam independentes |
 | Conferência do nível | Quatro boias independentes, alta e baixa em cada reservatório | Comparação com o nível analógico exige mapeamento e regra de divergência; não está pronta só por conectar as boias |
@@ -91,17 +102,24 @@ O conjunto oferece 10 entradas digitais e 2 analógicas. Uma alocação de proje
 | Entradas | Alocação |
 |---|---|
 | AI1 e AI2 | Caixa e cisterna: 2 de 2 utilizadas |
-| DI1 a DI5 | Bomba, água, esgoto, incêndio e gás |
-| DI6 a DI9 | Boias alta e baixa da caixa e da cisterna |
-| DI10 | Diagnóstico de alimentação |
-| Contador externo | Um canal de pulsos; até três canais restantes para estados de diagnóstico, conforme mapa e interface. Não utilizar leitura periódica de DI para contar pulsos |
+| Oito DI | Bomba, incêndio, gás, quatro boias e falta da rede elétrica |
+| Duas DI restantes, fisicamente no IO8000 | Presença de 12 V após a proteção de cada ramal RISCO no quadro; entrada de 9–36 V, conforme manual |
+| TDI340, canal 1 | Pulsos do hidrômetro. Não utilizar leitura periódica de estados pelo gateway para contar pulsos |
+| TDI340, canais 2 e 3 | Contatos secos NF dos RISCO de água e esgoto; entrada de no máximo 5,5 V, sem tensão externa |
+| TDI340, canal 4 | Reserva para contato seco/diagnóstico eletricamente compatível |
 | RS485 | Medidor de energia, temperatura, contador e expansões conforme topologia do fabricante |
 
-As dez DI principais ficam ocupadas, sem reserva nesse módulo. A numeração acima é
+As dez DI principais ficam ocupadas e sobra um canal no TDI340. A numeração acima é
 lógica, não endereço de registrador. Confirmar terminais, tensão,
 polaridade e mapa no equipamento real. Um contato seco simples não detecta automaticamente
 cabo rompido ou sensor travado; usar diagnóstico do fabricante ou supervisão adicional
 quando necessário. Ausência de leitura não pode virar "sem vazamento" ou "sem gás".
+
+O NF do RISCO abre com água ou rompimento do circuito de sinal; não identifica sozinho
+a causa. Sua especificação limita contato e alimentação a 16 V: **não ligar ao circuito
+de 24 V**. As DI de diagnóstico verificam os ramais de 12 V no quadro, sem comprovar
+alimentação no sensor. Testar falhas de campo e contratar supervisão adicional se
+necessária. Não afirmar imunidade a curto, cabo de alimentação rompido ou sensor travado.
 
 ## 3. Orçamento comparável e rastreável
 
@@ -114,17 +132,23 @@ a reserva de estoque, adequação da versão ao local ou proposta de instalaçã
 
 | Parcela | Valor em reais | Condição |
 |---|---:|---|
-| Anúncios de gateway GL, IO, SD, fonte, nobreak, sensores definidos, boias, hidrômetro e quadro | 6.523,21 | Modelos e condições na lista; exclui sondas e contador |
-| DigiRail-4C novo | 1.144,23 | Referência com produto esgotado; recotar |
+| Anúncios de gateway GL, IO, SD, fontes 24/12 V, nobreak, sensores definidos, boias, hidrômetro e quadro | 5.583,10 | Modelos e condições na lista; exclui sondas e contador |
+| Teracom TDI340 novo | 1.080,91 | Preço do catálogo; confirmar fornecimento e firmware |
 | Duas sondas Megga MGG-TNH-SUB | 1.760,00 | Cenário com valor inicial de 880 cada; faixa/cabo/materiais ainda a cotar |
 | Infraestrutura e interfaces de diagnóstico | 1.320–2.510 | Provisões detalhadas, não kit cotado |
-| **Total do cenário** | **10.747,44–11.937,44** | **Não é teto nem orçamento instalado** |
+| **Total do cenário** | **9.744,01–10.934,01** | **Não é teto nem orçamento instalado** |
 
-O orçamento real de materiais é **R$ 6.523,21 + contador recotado + duas sondas
+O orçamento real de materiais é **R$ 5.583,10 + TDI340 recotado + duas sondas
 completas cotadas + infraestrutura cotada + diferenças das versões necessárias**.
 O custo final inclui ainda frete, instalação, integração, comissionamento e adequações.
 Mais sensores ou percursos de cabo aumentam a conta; um ponto de gás não cobre por
 definição todos os ambientes do condomínio.
+
+A redução de referência se divide em **R$ 711,01** nos dois sensores de vazamento,
+já incluindo a fonte de 12 V, **R$ 63,32** no contador e **R$ 229,10** no hidrômetro.
+Conexões hidráulicas, instalação e manutenção podem mudar a economia final. Os demais
+itens conservaram as referências da revisão desta data; esta rodada priorizou água
+e vazamentos.
 
 ### 3.2 Continuidade, diagnóstico e alternativas
 
@@ -144,7 +168,9 @@ Meta inicial: **60 minutos medidos com a carga real**. Adequar o nobreak se não
 VA não informa autonomia. Não ligar motores ao nobreak do monitoramento.
 
 A fonte MDR-60-24 de 2,5 A depende do balanço de cargas, partida/transmissão celular
-e temperatura. O quadro deve acomodar os equipamentos e dissipar seu calor. Não se
+e temperatura. A HDR-15-12 de 12 V/1,25 A alimenta os dois RISCO e também fica após
+o nobreak, com ramais protegidos e diagnóstico de presença de tensão. Ela não substitui
+a fonte de 24 V. O quadro deve acomodar os equipamentos e dissipar seu calor. Não se
 presume que o nobreak ou a bateria caibam no quadro fechado.
 
 ### 3.3 Custo total em três anos
@@ -168,23 +194,28 @@ O quadro de preenchimento do custo instalado está na seção 4 da lista de comp
    hidrômetro com saída utilizável, contato auxiliar, central de incêndio, nobreak com
    capacidade disponível, fonte e infraestrutura. Não contabilizar economia antes de
    verificar disponibilidade, estado, interface e autonomia.
-2. **Cotar hidrômetro com totalizador Modbus nativo.** O conjunto pulsado + DigiRail-4C
-   tem referência de R$ 1.542,23 nesta base, com contador ainda a recotar. Um medidor
-   de dimensão equivalente, com total
-   acumulado persistente e interface incluída, reduz custo se sua proposta instalada
-   ficar abaixo da alternativa pulsada instalada. Não confundir RS485 com garantia de
-   protocolo Modbus nem eliminar o contador antes de aprovar a alternativa.
-3. **Avaliar NOVUS DigiRail IoT ETH na mesma rodada de cotação.** Há anúncio de
+2. **Reduzir água e vazamentos com interfaces documentadas.** Dois RISCO + fonte
+   custam R$ 743,25; usar somente onde IP67, atraso de pelo menos 10 s e manutenção
+   semanal atendam. O Renova UR equipado custa R$ 168,90, condicionado à vazão,
+   dimensões e documentação. O MR4 multijato de 190 mm custa mais R$ 25; o emissor
+   V4 de R$ 81 pode bastar se já houver Colibri pré-equipado compatível. Esses valores
+   não autorizam substituir o hidrômetro sem levantamento do local.
+3. **Comparar hidrômetro com totalizador Modbus nativo.** Renova + TDI340 somam
+   R$ 1.249,81, com fornecimento do contador a confirmar. Um medidor de dimensão
+   equivalente, com total persistente e interface incluída, pode reduzir peças.
+   Porém, o TDI340 também recebe os dois RISCO: incluir interfaces que reponham essa
+   função antes de calcular economia. Não confundir RS485 com garantia de Modbus.
+4. **Avaliar NOVUS DigiRail IoT ETH na mesma rodada de cotação.** Há anúncio de
    [R$ 2.600, ou R$ 2.470 à vista](https://www.nobrebrasil.com/automacao-industrial).
-   O modelo reúne contagem de pulsos e aquisição, podendo retirar o DigiRail-4C separado.
+   O modelo reúne contagem de pulsos e aquisição, podendo retirar o contador separado.
    Porém, suas 6 DI, 2 AI e 8 canais remotos não comprovam cobertura de todo o kit,
    agora com quatro boias.
    Dimensionar a expansão digital, todas as métricas e o histórico antes de calcular
    economia. Não recomendar um segundo gateway apenas para contornar limite sem comparar o custo.
-4. **Não comprar CLP nem saída analógica sem necessidade.** Manter o XP315 como
+5. **Não comprar CLP nem saída analógica sem necessidade.** Manter o XP315 como
    alternativa, sem pagar automaticamente pelo XP325. Não comprar contator novo para
    uma bomba que será apenas monitorada.
-5. **Padronizar após o piloto.** Uma configuração reproduzível, mapa de registros,
+6. **Padronizar após o piloto.** Uma configuração reproduzível, mapa de registros,
    firmware fixado, backup e instruções de troca reduzem custo operacional. Material
    usado sem procedência e sensores sem modelo definido não são referência para um kit robusto.
 
@@ -202,6 +233,8 @@ No NOVUS, energia acumulada, três tensões e temperatura usam cinco canais remo
 se cada grandeza ocupar um canal. Dez estados digitais mais um pulso excedem suas
 seis DI: faltariam cinco estados na expansão. Esse mapeamento simples exigiria dez
 canais remotos, acima dos oito disponíveis, mesmo sem as correntes opcionais.
+Essa conta ainda não inclui os dois diagnósticos de 12 V da proposta com RISCO;
+qualquer substituição deve refazer o mapa completo e conferir a tensão dos contatos.
 Empacotamento de bits ou outra arquitetura só contam como solução após validar mapa,
 módulo e interpretação dos dados. Não retirar medições silenciosamente.
 
@@ -234,8 +267,8 @@ deduplicação. Validar essas opções no firmware adquirido.
 | Autorização e assinatura MQTT | Se adotar `predio/{buildingId}/gateway/{gatewayId}/report`, atualizar contrato, autorização no broker/API, assinatura e roteamento da ingestão; o tópico proposto não é aceito hoje |
 | Normalização por dispositivo | Dividir relatório em amostras dos dispositivos cadastrados; validar vínculo de cada ponto ao gateway/prédio, escalas, unidades e 0/1 → booleano |
 | Identidade e relógio | Identificação estável por amostra/métrica, UTC e relógio válido após reinício sem internet; resolver colisões se houver mais de uma amostra no mesmo instante representado |
-| Qualidade e diagnóstico | Nunca converter timeout, falha Modbus, cabo rompido ou valor de erro em zero/normal; distinguir comunicação do gateway da saúde do sensor |
-| Consumo e reenvio | Preservar ordem por dispositivo/métrica ou implementar recomposição do consumo; provar totais após reconexão e virada do dia |
+| Qualidade e diagnóstico | Nunca converter timeout, falha Modbus, cabo rompido ou valor de erro em zero/normal; distinguir comunicação do gateway da saúde do sensor. RISCO aberto significa vazamento ou circuito aberto; falha identificada dos 12 V invalida o estado de seco |
+| Consumo e reenvio | Ler o uint32 do TDI340 em dois registros de 16 bits, aplicar litros/pulso e referência inicial do mostrador. Preservar ordem ou recompor consumo; tratar reinício e transbordamento separadamente, sem zerar o contador na coleta |
 | Boias e alimentação | Mapear sinais adicionais e implementar regras/painel necessários; métricas personalizadas aceitas não significam telas e regras prontas |
 | Recuperação operacional | Backup de configuração, credencial por gateway, troca de equipamento e de cartão documentadas |
 
@@ -249,6 +282,9 @@ Referências de implementação:
 O cálculo de consumo atual ignora amostras anteriores à última processada. Se uma leitura
 atual ultrapassar o histórico pendente, apenas gravar o histórico no banco não recompõe
 automaticamente os totais. Reenvio com horário original é necessário, mas não suficiente.
+Uma redução do acumulado é tratada como reinício; o código não recompõe sozinho o
+transbordamento do contador. O mapa Modbus e a conversão estão propostos na seção 5
+da lista de compras e precisam de implementação/ensaio com a unidade real.
 
 As regras de telemetria não disparam alertas para leituras com mais de cinco minutos.
 Definir essa diferença entre histórico e incidente atual na operação. O Last Will depende
@@ -268,11 +304,12 @@ que o intervalo de leitura precisam de captura de evento ou retenção no campo.
 | Rede interrompida | Ensaiar 1 h, 24 h e 72 h sem internet, com equipamento alimentado; recuperar as amostras esperadas na cadência contratada, com horários originais e sem efeitos duplicados |
 | Energia durante gravação | Interromper repetidamente, inclusive durante gravação/reenvio; medir a janela de perda, verificar integridade e retomada automática. Para o kit contratado, exigir ausência de perda enquanto o nobreak sustenta a carga |
 | Autonomia elétrica | Medir pelo menos 60 min com gateway, fontes, sensores e toda a rede local necessária; testar retorno após esgotar bateria |
-| Contagem de água | Aplicar quantidade conhecida de pulsos, reconectar e reiniciar; total conferido e escala correta. Documentar retenção e comportamento após perda completa de alimentação |
+| Contagem de água | Conferir variante, documentação metrológica, vazões, posição e emissor. Aplicar pulsos conhecidos e rebote, reconectar, reiniciar e cortar alimentação; conferir escala, retenção e total mecânico. O manual do TDI340 documenta memória, mas não quantifica a janela de perda dos últimos pulsos |
 | Consumo recuperado | Totais corretos após interrupção, reenvio fora de ordem, duplicação, virada de dia e reinício de contador; sem consumo fictício |
 | Falha de sensor/RS485 | Interromper um dispositivo/cabo e simular erro; não aparecer "normal" ou zero inventado; dispositivos saudáveis continuam sendo lidos |
 | Nível e boias | Conferir nível em pelo menos três pontos e demonstrar divergência entre boia e analógico sem afetar o comando local da bomba |
 | Alarmes e estados | Simular contatos de água, esgoto, gás, central e alimentação; medir tempo até painel/notificação e confirmar comportamento offline |
+| Vazamentos RISCO | Ensaiar molhado/seco, atraso de detecção, falta de 12 V, fusível aberto, ruptura e curto do circuito; registrar limitações e resolver as incompatíveis com o risco local. Confirmar limpeza e teste ao menos semanal conforme manual |
 | Conexão 4G, quando contratada | Cortar acesso à internet sem tirar cabo Ethernet; trocar automaticamente, reconectar e retornar ao link principal sem corromper contagem |
 | Capacidade e manutenção | Simular fila cheia, falha/ausência de SD, erro de relógio e substituição do gateway; falha identificável, nunca perda silenciosa apresentada como operação normal |
 | Piloto em campo | Operar por pelo menos 14 dias com todos os pontos; registrar perdas, reinícios, falsos alertas e intervenções |
@@ -318,6 +355,12 @@ equipamento efetivamente entregue:
 - [PUSR M100: modelo de JSON](https://www.pusr.com/download/USR-M100%20User-Manual_V1.0.1.pdf).
   Não presumir que todos os recursos desse manual existam em qualquer firmware HM.
 - [PUSR USR-IO: entradas e interfaces](https://www.pusr.com/uploads/20240611/566c67bb606301807c94c4f8bf37d32c.pdf).
+- [Teracom TDI340: manual R1.11, firmware V1.06+](https://www.teracomsystems.com/download/s0-pulse-counter-with-modbus-rtu-interface-tdi340-user-manual/): memória não volátil, entradas de baixa tensão e registros.
+- [RISCO Flood Detector](https://riscogroup.com/en/rscm_product/flood-detector/)
+  e [manual do fabricante 5IN1478 D, hospedado no suporte Golmar](https://d7rh5s3nxmpy4.cloudfront.net/CMP5021/files/5IN1478-D-Wired-Flood-Detector-Instructions-ML-WEB_%281%29.pdf).
+- [Renova: manual de instalação residencial](https://empresa.renovamedicao.com.br/wp-content/uploads/2024/04/Manual-de-instalacao-hidrometro-Residencial.pdf)
+  e [kit UR equipado selecionado](https://www.renovamedicao.com.br/hidrometroresidencial/hidrometro-unijato-4m-dn20x115mm-equipado-com-sensor-nova-portaria-inmetro).
+- [Mean Well HDR-15: fonte LPS de 12 V](https://www.meanwell.com/Upload/PDF/HDR-15/HDR-15-SPEC.PDF).
 - [PUSR M300: recursos anunciados](https://www.pusr.com/products/industrial-IoT-Gateway.html).
 - [NOVUS DigiRail-4C: manual de instalação](https://www.wolfautomation.com/content/novus-digirail-digitalcounterinput-instructionmanual.pdf)
   e [manual de comunicação do fabricante, hospedado por distribuidor](https://cdn02.duxcloud.com.br/exsense/products/43/files/manual-de-comunicacao-L5p7c0Kz.pdf).
@@ -328,11 +371,14 @@ equipamento efetivamente entregue:
   e [discussão do suporte sobre buffer Modbus e persistência](https://community.teltonika.lt/t/trb145-trb246-modbus-data-buffering-during-connectivity-loss-ram-database-capped-at-1-3-mb-moving-it-to-flash-via-uci-works-is-it-supported/21167).
   Relatos e orientações referem-se às versões discutidas; validar a versão escolhida.
 - [Lista de compras e fontes por equipamento](COMPRAS_PILOTO.md): preços, quantidades,
-  alternativas e leituras adicionais de manuais. O contador aparece esgotado; preços
-  iniciais de sonda, variantes e provisões não equivalem a propostas fechadas.
+  alternativas e leituras adicionais de manuais. Confirmar fornecimento do TDI340,
+  prazos dos sensores e da fonte adicional; preços iniciais de sonda, variantes e
+  provisões não equivalem a propostas fechadas.
 
 Esta revisão retira as notas ponderadas apresentadas como empate de robustez, a
 afirmação de funcionamento completo antes da integração e a referência de contador usado
-como base de produção. A lista detalhada acrescenta quatro boias, modelos identificados,
-4G integrado e condições de compra. Mantém o M100 como candidato econômico, com
-integração, alimentação de reserva e critérios de aprovação explícitos.
+como base de produção. A lista detalhada mantém quatro boias, modelos identificados,
+4G integrado e condições de compra. Esta rodada reduz água e vazamentos, incluindo
+fonte e interfaces necessárias, sem declarar equivalência de proteção ou durabilidade
+não demonstrada. Mantém o M100 como candidato econômico, com integração, alimentação
+de reserva e critérios de aprovação explícitos.
