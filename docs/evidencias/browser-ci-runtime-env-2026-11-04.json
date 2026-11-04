@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-11-04",
+  "kind": "browser-ci-preparation-correction",
+  "sourceCommit": "c61984480e9a466a86108c14ffe2c1ebc5fadf11",
+  "sourceCommitUrl": "https://github.com/helberjf/predioON/commit/c61984480e9a466a86108c14ffe2c1ebc5fadf11",
+  "sourcePath": ".github/workflows/browser.yml",
+  "sourceSha256": "84cb7b4d486c8e27527f399d438c4be19140f556f78c8b3398684d7bc159c996",
+  "delta": {
+    "addedLines": 2,
+    "removedLines": 0,
+    "addedVariables": [
+      "DATABASE_URL_INGEST",
+      "DATABASE_URL_ACCESS_SERVICE"
+    ],
+    "reason": "Default all-role provisioner validates six restricted logins plus owner before connecting; the browser job supplied only four restricted logins plus owner.",
+    "disposableTargetPreserved": true,
+    "productCodeChanged": false,
+    "testsChanged": false
+  },
+  "existingLocalTests": {
+    "files": [
+      "packages/db/test/runtime-provisioning.test.ts",
+      "packages/db/test/runtime-url-parameters.test.ts"
+    ],
+    "tests": 173,
+    "pass": 173,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "durationMs": 2402.0607,
+    "exitCode": 0,
+    "logSha256": "e6dd5d632e4280166630ffe9dad1be9c775245deddefb5be2ac311d98e4b1edc",
+    "resultSha256": "0629ee51346f9797ab93a1244c526e52e87bc228614964b8c23f5379b9328fa4",
+    "realDatabaseAccess": false
+  },
+  "actionlint": {
+    "version": "1.7.12",
+    "exitCode": 0,
+    "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "review": {
+    "staticIndependentReviewApproved": true,
+    "reviewerExecutedTests": false
+  },
+  "remoteObservation": {
+    "runId": 41768914053,
+    "runUrl": "https://github.com/helberjf/predioON/actions/runs/41768914053",
+    "sourceCommit": "c61984480e9a466a86108c14ffe2c1ebc5fadf11",
+    "createdUtc": "2026-11-04T03:43:59Z",
+    "conclusion": "startup_failure",
+    "checkSuiteId": 113184043533,
+    "checkRuns": 0,
+    "startupFailureCauseConfirmed": false
+  },
+  "resourceCheckpoint": {
+    "observedUtc": "2026-11-04T03:44:04.8135607Z",
+    "hostFreeMiBAfterStoppingOwnedIdleDatabase": 1822.0,
+    "fullBrowserHostGuardMiB": 4096,
+    "isolatedFocusHostGuardMiB": 2048,
+    "browserSuitesExecutedAtThisCheckpoint": false,
+    "onlyOwnedIdleDatabaseStopped": true,
+    "baseTables": 0,
+    "otherDatabases": 0,
+    "restrictedRoles": 6,
+    "computerDockerOrWslRestarted": false
+  },
+  "handoffSha256": "1be4ba21bf6eb16d74037403564ecc7356f9c8a9d1d3db67be6d1201d247fe2a",
+  "limits": [
+    "173 cases validate parsing and rejection rules locally; no real database provisioning is claimed by this execution.",
+    "The workflow preparation defect does not establish the cause of startup_failure.",
+    "No current full API, Playwright matrix, native, hardware or production acceptance."
+  ]
+}

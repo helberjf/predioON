@@ -20,6 +20,10 @@ Atualizado em **04/11/2026**, horário de São Paulo. Leia este arquivo primeiro
 
 **Checkpoint atual: zero rascunhos.** A fonte de ingestão já está publicada em `39c434f8d9206e8b3071c185f3dca7b16d79fe5e`. O [manifesto](continuidade/2026-11-03-manifesto.json) registra patch vazio e a conferência de cinco arquivos de teste extraídos por Git archive dessa base exata. Não aplicar patch vazio nem reaplicar 040/runtime. O antigo checkpoint de um arquivo/base `02c53e2` permanece histórico no commit `40438da`.
 
+**Preparo do Playwright — `c619844`:** o workflow de navegador passou a fornecer também as credenciais fictícias de ingestão e acesso, exigidas pelo provisionador completo. Mudança de duas linhas, revisão estática independente, actionlint exit 0 e **173/173 testes locais de validação**, sem banco real. O run remoto dessa fonte continua em `startup_failure`, com zero check runs; a causa não foi confirmada. A correção não equivale a CI aprovado. [Prova e limites](evidencias/browser-ci-runtime-env-2026-11-04.json).
+
+**Recursos medidos antes do navegador:** às 03:44 UTC de 04/11, após parar somente o cluster descartável ocioso desta QA, havia 1822 MiB livres. Isso não atendeu aos guards de 4096 MiB para a integral nem de 2048 MiB para focus/regras isoladas. Nessa medição, nenhuma suíte de navegador atual foi iniciada. Manter os guards e continuar verificações menores em série, sem fechar aplicações desconhecidas nem reiniciar computador, Docker ou WSL. O cluster foi deixado parado, sem OOM/restart, base vazia e seis roles preservadas.
+
 ## 1. Instruções permanentes do proprietário
 
 - Commits pequenos em Conventional Commits (`feat:`, `fix:`, `test:`, `docs:`), com push na `main` depois de cada incremento verificado.
