@@ -1,0 +1,282 @@
+{
+  "recordedAt": "2026-11-04T14:31:14.873864+00:00",
+  "status": "STARTUP_FAILURE_CAUSE_UNDETERMINED",
+  "runId": 41842973688,
+  "runUrl": "https://github.com/helberjf/predioON/actions/runs/41842973688",
+  "sourceCommit": "b259f80b158aff08f255a83f9d8ae551289d5fcf",
+  "observedLocalHead": "7ac1b8665491eaa7a4f0f7eb61ce05260fb84977",
+  "workflowDiffFromSourceEmpty": true,
+  "actionlint": {
+    "version": "1.7.12",
+    "command": [
+      "actionlint.exe",
+      "-color",
+      ".github/workflows/android-auth.yml",
+      ".github/workflows/android-avd.yml",
+      ".github/workflows/android-domains.yml",
+      ".github/workflows/android-password.yml",
+      ".github/workflows/android-renderer-prefix.yml",
+      ".github/workflows/android-renderer.yml",
+      ".github/workflows/android-reservations.yml",
+      ".github/workflows/android-smoke.yml",
+      ".github/workflows/browser.yml",
+      ".github/workflows/ci.yml",
+      ".github/workflows/ios-auth.yml",
+      ".github/workflows/ios.yml",
+      ".github/workflows/mobile.yml",
+      ".github/workflows/windows.yml",
+      ".github/workflows/workflow-validation.yml"
+    ],
+    "exitCode": 0,
+    "diagnostics": 0,
+    "disableFlags": [],
+    "shellcheckAndPyflakesFoundOnPath": false,
+    "limit": "Optional shellcheck/pyflakes executables absent; pass is actionlint syntax/expression/context analysis, not script execution."
+  },
+  "primaryFindings": [
+    "Run and attempt1 are completed/startup_failure at creation time; name empty/path BuildFailed.",
+    "Associated workflow378675402 has state deleted and path BuildFailed; this does not identify a bad source file.",
+    "Check suite113382382795 has zero latest check runs; check-runs endpoint returns total_count0. Existing jobs endpoint total_count0. No diagnostic annotation available through these endpoints.",
+    "Workflow inventory returns15 actual .github/workflows/*.yml entries, all active; inventory paths match local15.",
+    "Repository Actions permissions enabled=true/allowed_actions=all/sha_pinning_required=false; this alone does not prove quota/account/service readiness."
+  ],
+  "sourceReview": [
+    "All15 pass actionlint; no reusable workflow calls, workflow_call, workflow_run, or dispatch inputs referenced.",
+    "iOS2 are manual-only; no iOS run expected from push. Six edited Android files include their own paths under main push; ci/browser also accept main push; workflow-validation watches workflow changes.",
+    "No reproducible source syntax/expression/input error found. Runtime role URL fix remains an independent provisioning correction, not an established startup_failure fix."
+  ],
+  "unknowns": [
+    "No authoritative error text explains why GitHub failed before creating jobs.",
+    "Billing/quota, platform service state, account restriction or unsupported server-side validation are not established by the observed metadata. Do not choose a root cause from BuildFailed alone."
+  ],
+  "nextEvidence": "Inspect the authenticated run summary for an explicit startup error, or obtain GitHub support diagnostics using run41842973688/checksuite113382382795. No settings change, billing access, rerun or workflow dispatch was performed.",
+  "mutations": false,
+  "databaseOrNativeExecution": false,
+  "workflows": [
+    {
+      "file": ".github/workflows/android-auth.yml",
+      "sha256": "b0480610ee3d5e98f91a945d8f46e9c1707248eec74a4432a6ff9b20475646b2",
+      "push": true,
+      "pullRequest": false,
+      "manual": true,
+      "reusableCalls": false,
+      "workflowCall": false,
+      "workflowRun": false,
+      "eventInputsReferenced": false
+    },
+    {
+      "file": ".github/workflows/android-avd.yml",
+      "sha256": "3e75f7483b740ebb90e9d6456fde957397087eb012bdabd7c808416766e95ac0",
+      "push": true,
+      "pullRequest": false,
+      "manual": true,
+      "reusableCalls": false,
+      "workflowCall": false,
+      "workflowRun": false,
+      "eventInputsReferenced": false
+    },
+    {
+      "file": ".github/workflows/android-domains.yml",
+      "sha256": "3989a35489ae7bfb9057c121c5be00671257bc7dc9f176c6e31cb529ba4ed15a",
+      "push": true,
+      "pullRequest": false,
+      "manual": true,
+      "reusableCalls": false,
+      "workflowCall": false,
+      "workflowRun": false,
+      "eventInputsReferenced": false
+    },
+    {
+      "file": ".github/workflows/android-password.yml",
+      "sha256": "fc8c17f3bc7f8831e2a8d3df94f1d447118a21fb1f23fa0585205279cdbcd805",
+      "push": true,
+      "pullRequest": false,
+      "manual": true,
+      "reusableCalls": false,
+      "workflowCall": false,
+      "workflowRun": false,
+      "eventInputsReferenced": false
+    },
+    {
+      "file": ".github/workflows/android-renderer-prefix.yml",
+      "sha256": "ff52d0d65b25b50644b98a2911976c28b3e5bff54a201735597add995a7f4bce",
+      "push": true,
+      "pullRequest": false,
+      "manual": true,
+      "reusableCalls": false,
+      "workflowCall": false,
+      "workflowRun": false,
+      "eventInputsReferenced": false
+    },
+    {
+      "file": ".github/workflows/android-renderer.yml",
+      "sha256": "f7d1e8bd90f31c27d81da1fc462bff088857d24e2641862cb7140eab14dc854b",
+      "push": true,
+      "pullRequest": false,
+      "manual": true,
+      "reusableCalls": false,
+      "workflowCall": false,
+      "workflowRun": false,
+      "eventInputsReferenced": false
+    },
+    {
+      "file": ".github/workflows/android-reservations.yml",
+      "sha256": "8ee9d5d3855e67a02b13375cc20e3112c00f59c63dbe73e7f8b1688e35473deb",
+      "push": true,
+      "pullRequest": false,
+      "manual": true,
+      "reusableCalls": false,
+      "workflowCall": false,
+      "workflowRun": false,
+      "eventInputsReferenced": false
+    },
+    {
+      "file": ".github/workflows/android-smoke.yml",
+      "sha256": "20151df15786b046c8fd1d659f90199f76dfe2bd229908c2e540c0b4827879d2",
+      "push": true,
+      "pullRequest": false,
+      "manual": true,
+      "reusableCalls": false,
+      "workflowCall": false,
+      "workflowRun": false,
+      "eventInputsReferenced": false
+    },
+    {
+      "file": ".github/workflows/browser.yml",
+      "sha256": "84cb7b4d486c8e27527f399d438c4be19140f556f78c8b3398684d7bc159c996",
+      "push": true,
+      "pullRequest": true,
+      "manual": true,
+      "reusableCalls": false,
+      "workflowCall": false,
+      "workflowRun": false,
+      "eventInputsReferenced": false
+    },
+    {
+      "file": ".github/workflows/ci.yml",
+      "sha256": "13718e59a0a537ffcc756e8498ee2d4d62ae700deb2eb94d72baa6fd44084bc9",
+      "push": true,
+      "pullRequest": true,
+      "manual": true,
+      "reusableCalls": false,
+      "workflowCall": false,
+      "workflowRun": false,
+      "eventInputsReferenced": false
+    },
+    {
+      "file": ".github/workflows/ios-auth.yml",
+      "sha256": "6d974c6437910222ab59dedabccb1767ec8848789f74e47cff0a4c107940d823",
+      "push": false,
+      "pullRequest": false,
+      "manual": true,
+      "reusableCalls": false,
+      "workflowCall": false,
+      "workflowRun": false,
+      "eventInputsReferenced": false
+    },
+    {
+      "file": ".github/workflows/ios.yml",
+      "sha256": "6913f247281e714b95650fa01864e6df48b36d4e7430ee4f167ef50f74ec9177",
+      "push": false,
+      "pullRequest": false,
+      "manual": true,
+      "reusableCalls": false,
+      "workflowCall": false,
+      "workflowRun": false,
+      "eventInputsReferenced": false
+    },
+    {
+      "file": ".github/workflows/mobile.yml",
+      "sha256": "ef51dafe9cd568231dfdd32294f5fc0362501198ba463ebdd64f8960f56ff7ea",
+      "push": true,
+      "pullRequest": false,
+      "manual": true,
+      "reusableCalls": false,
+      "workflowCall": false,
+      "workflowRun": false,
+      "eventInputsReferenced": false
+    },
+    {
+      "file": ".github/workflows/windows.yml",
+      "sha256": "d27c1ca175ee2dea4cc19366d0c43bcee6f0a32f598f7a999898628cc5c10e95",
+      "push": true,
+      "pullRequest": true,
+      "manual": true,
+      "reusableCalls": false,
+      "workflowCall": false,
+      "workflowRun": false,
+      "eventInputsReferenced": false
+    },
+    {
+      "file": ".github/workflows/workflow-validation.yml",
+      "sha256": "098ab0906f6549601b09e0445a80a23a8b589446e98bf2efdfc70536db7a197b",
+      "push": true,
+      "pullRequest": true,
+      "manual": true,
+      "reusableCalls": false,
+      "workflowCall": false,
+      "workflowRun": false,
+      "eventInputsReferenced": false
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "all-workflows-actionlint-20261104.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "all-workflows-actionlint-20261104.json",
+      "bytes": 701,
+      "sha256": "db2708c08ea32a588c992111885577394a491065289541602b0a04f5c59b8771"
+    },
+    {
+      "file": "github-runs-fix.json",
+      "bytes": 11869,
+      "sha256": "627b00fa49e507759695eca862cf45026eac49b32be1af167c4d198626ff7cbc"
+    },
+    {
+      "file": "github-run-fix-jobs.json",
+      "bytes": 27,
+      "sha256": "b3dab5870ff3a8209160335de7c1077b89e461d875d9041ac9d8b8ed7c1666f6"
+    },
+    {
+      "file": "github-actions-permissions.json",
+      "bytes": 69,
+      "sha256": "0bffee97e4ad52676c0127aacb5b4b304a2675f5c524de641acf1326e0b0e857"
+    },
+    {
+      "file": "github-ci-diagnostic-run-attempt-meta.json",
+      "bytes": 13993,
+      "sha256": "04164ac62967250b6dad22b9bd3f4273c1198460a110bb83b743e1b984a4f914"
+    },
+    {
+      "file": "github-ci-diagnostic-suite-check-runs.json",
+      "bytes": 193,
+      "sha256": "08f23533044f023c776ef1c7972797df612c0ed70da09e4fcdf35f713cb30611"
+    },
+    {
+      "file": "github-ci-diagnostic-suite-meta.json",
+      "bytes": 9275,
+      "sha256": "a5762db701624afe98b9e90d81c42913d618b6abb3a0a2aa8201c051d20dbeac"
+    },
+    {
+      "file": "github-ci-diagnostic-workflow-inventory.json",
+      "bytes": 9899,
+      "sha256": "e23730006b45038298a199a88b2f81f78685fcd4ac9f62aa3f5da777e0888f17"
+    },
+    {
+      "file": "github-ci-diagnostic-workflow-meta.json",
+      "bytes": 631,
+      "sha256": "a07d15a2926f949277acbd0d1c338a005af999ce6205520db2e5c62c6158aea5"
+    }
+  ],
+  "kind": "github-startup-failure-readonly-investigation",
+  "handoffSha256": "4f190ede1fc4b1df30caf4ff1e6978fc60d8b682a42a73194c514fd953567feb",
+  "rootReview": {
+    "sourceHashesVerified": 15,
+    "artifactHashesVerified": 10,
+    "noCompilerOrBrowserRerun": true,
+    "ciAcceptance": false
+  }
+}
