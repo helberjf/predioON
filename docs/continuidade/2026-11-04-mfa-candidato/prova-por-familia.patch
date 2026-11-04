@@ -1,0 +1,253 @@
+--- a/apps/api/src/auth/mfa-factor.ts
++++ b/apps/api/src/auth/mfa-factor.ts
+@@ -35,9 +35,11 @@
+   return `${text.slice(0, 5)}-${text.slice(5)}`;
+ }
+
+-type Factor = { secret_ciphertext: Buffer; confirmed_at: Date | null; last_used_step: string | number };
++export type MfaProof = { generation: string };
++export type MfaTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
++type Factor = { generation: string; secret_ciphertext: Buffer; confirmed_at: Date | null; last_used_step: string | number };
+ export async function factorOf(userId: string): Promise<Factor | null> {
+-  const rows = await db.execute<Factor>(sql`select secret_ciphertext, confirmed_at, last_used_step from mfa_factors where user_id=${userId}`);
++  const rows = await db.execute<Factor>(sql`select generation, secret_ciphertext, confirmed_at, last_used_step from mfa_factors where user_id=${userId}`);
+   return rows[0] ?? null;
+ }
+
+@@ -50,16 +52,53 @@
+  * Accepts a current TOTP code once, or an unused recovery code once. Both are
+  * consumed by a conditional UPDATE, so two concurrent logins cannot share one.
+  */
+-export async function consumeMfaCode(userId: string, presented: string): Promise<boolean> {
++export async function consumeMfaCode(userId: string, presented: string): Promise<MfaProof | null> {
+   const factor = await factorOf(userId);
+-  if (!factor?.confirmed_at) return false;
++  if (!factor?.confirmed_at) return null;
+   const code = presented.trim();
+   const step = matchTotp(open(Buffer.from(factor.secret_ciphertext), userId), code, Date.now());
+   if (step !== null) {
+-    const used = await db.execute(sql`update mfa_factors set last_used_step=${step} where user_id=${userId} and confirmed_at is not null and last_used_step<${step} returning user_id`);
+-    return used.length === 1;
++    const used = await db.execute(sql`update mfa_factors set last_used_step=${step} where user_id=${userId}
++      and generation=${factor.generation} and confirmed_at is not null and last_used_step<${step} returning user_id`);
++    return used.length === 1 ? { generation: factor.generation } : null;
+   }
+-  if (!/^[A-Za-z2-7]{5}-?[A-Za-z2-7]{5}$/.test(code)) return false;
+-  const spent = await db.execute(sql`update mfa_recovery_codes set used_at=clock_timestamp() where user_id=${userId} and code_hash=${recoveryHash(code)} and used_at is null returning id`);
+-  return spent.length === 1;
++  if (!/^[A-Za-z2-7]{5}-?[A-Za-z2-7]{5}$/.test(code)) return null;
++  // Recovery rows belong to the factor through their cascading FK. Lock the
++  // observed generation until consumption commits; replacement cannot retarget it.
++  return db.transaction(async tx => {
++    const current = await lockCurrentFactor(tx, userId);
++    if (!current?.confirmed_at || current.generation !== factor.generation) return null;
++    const spent = await tx.execute(sql`update mfa_recovery_codes set used_at=clock_timestamp()
++      where user_id=${userId} and code_hash=${recoveryHash(code)} and used_at is null returning id`);
++    return spent.length === 1 ? { generation: factor.generation } : null;
++  });
+ }
++
++/** Writers acquire account -> family (when applicable) -> factor. Consumption
++ * holds only the factor and completes before callers acquire account locks. */
++export async function lockCurrentFactor(tx: MfaTransaction, userId: string): Promise<Factor | null> {
++  const rows = await tx.execute<Factor>(sql`select generation, secret_ciphertext, confirmed_at, last_used_step
++    from mfa_factors where user_id=${userId} for update`);
++  return rows[0] ?? null;
++}
++
++export async function lockMfaFamily(tx: MfaTransaction, userId: string, sessionId: string): Promise<void> {
++  const rows = await tx.execute(sql`select id from sessions where id=${sessionId} and user_id=${userId}
++    and revoked_at is null and expires_at>clock_timestamp() for update`);
++  if (rows.length !== 1) throw new HttpError(401, "Sessão revogada ou expirada");
++}
++
++/** No factor may appear/change between consumption and the account-locked write. */
++export async function recheckMfaProof(tx: MfaTransaction, userId: string, proof: MfaProof | null): Promise<void> {
++  const current = await lockCurrentFactor(tx, userId);
++  if (proof ? !current?.confirmed_at || current.generation !== proof.generation : Boolean(current?.confirmed_at)) {
++    throw new HttpError(401, "Código de verificação inválido. Confirme o fator atual.");
++  }
++}
++
++export async function persistMfaProof(tx: MfaTransaction, userId: string, sessionId: string, proof: MfaProof): Promise<void> {
++  const rows = await tx.execute(sql`update sessions set mfa_verified_at=clock_timestamp(),
++    mfa_factor_generation=${proof.generation} where id=${sessionId} and user_id=${userId}
++    and revoked_at is null and expires_at>clock_timestamp() returning id`);
++  if (rows.length !== 1) throw new HttpError(401, "Sessão revogada ou expirada");
++}
+--- a/apps/api/src/auth/mfa.ts
++++ b/apps/api/src/auth/mfa.ts
+@@ -5,18 +5,32 @@
+ import { users } from "@predioon/db/runtime";
+ import { identityDb as db } from "@predioon/db/identity";
+ import { config } from "../config.js";
+-import { badRequest, conflict, unauthorized } from "../http/errors.js";
++import { badRequest, conflict, unauthorized, HttpError } from "../http/errors.js";
+ import { validateBody } from "../http/validate.js";
+ import { admitPasswordChange } from "./login-budget.js";
+ import { authenticate, currentAuth } from "./middleware.js";
+-import { consumeMfaCode, factorOf, newRecoveryCode, open, RECOVERY_CODES, recoveryHash, seal, secretKey } from "./mfa-factor.js";
++import { consumeMfaCode, factorOf, newRecoveryCode, open, RECOVERY_CODES, recoveryHash, seal, secretKey, lockMfaFamily, lockCurrentFactor, persistMfaProof, type MfaTransaction } from "./mfa-factor.js";
+ import { verifyPassword } from "./passwords.js";
+ import { base32Encode, matchTotp, otpauthUri } from "./totp.js";
+
+-async function requirePassword(userId: string, password: string): Promise<{ email: string }> {
++async function requirePassword(userId: string, password: string): Promise<{ email: string; passwordHash: string | null }> {
+   const [account] = await db.select({ email: users.email, active: users.active, passwordHash: users.passwordHash }).from(users).where(eq(users.id, userId)).limit(1);
+   if (!await verifyPassword(password, account?.passwordHash ?? null) || !account?.active) throw badRequest("A senha atual está incorreta");
+-  return { email: account.email };
++  return { email: account.email, passwordHash: account.passwordHash };
++}
++
++async function lockAccount(tx: MfaTransaction, userId: string, expectedPasswordHash?: string | null): Promise<void> {
++  const [locked] = await tx.execute<{ active: boolean }>(sql`select identity_lock_account_active(${userId}) as active`);
++  if (!locked?.active) throw unauthorized("Usuário inativo ou inexistente");
++  if (expectedPasswordHash !== undefined) {
++    const [current] = await tx.select({ passwordHash: users.passwordHash }).from(users).where(eq(users.id, userId)).limit(1);
++    if (current?.passwordHash !== expectedPasswordHash) throw badRequest("A senha atual está incorreta");
++  }
++}
++
++async function denyRequiredMfaDisable(tx: Pick<MfaTransaction, "execute">, userId: string): Promise<void> {
++  const [state] = await tx.execute<{ required: boolean }>(sql`select public.identity_platform_mfa_required(${userId}) as required`);
++  if (!state || state.required) throw new HttpError(403, "A administração da plataforma exige verificação em duas etapas.", { reason: "MFA_REQUIRED" });
+ }
+
+ const password = z.string().min(1).refine(value => Buffer.byteLength(value, "utf8") <= 1024, "Senha excede 1024 bytes");
+@@ -40,10 +54,12 @@
+ mfaRouter.post("/enroll", validateBody(Enroll), admitPasswordChange, async (req, res) => {
+   const userId = currentAuth(req).userId;
+   secretKey();
+-  const { email } = await requirePassword(userId, (req.body as z.infer<typeof Enroll>).currentPassword);
++  const { email, passwordHash } = await requirePassword(userId, (req.body as z.infer<typeof Enroll>).currentPassword);
+   const secret = randomBytes(20);
+   // A pending enrolment is replaced; a confirmed factor is never overwritten.
+   const stored = await db.transaction(async tx => {
++    await lockAccount(tx, userId, passwordHash);
++    await lockMfaFamily(tx, userId, currentAuth(req).sessionId);
+     await tx.execute(sql`delete from mfa_factors where user_id=${userId} and confirmed_at is null`);
+     return tx.execute(sql`insert into mfa_factors(user_id,secret_ciphertext) values(${userId},${seal(secret, userId)}) on conflict (user_id) do nothing returning user_id`);
+   });
+@@ -60,10 +76,15 @@
+   if (step === null) throw badRequest("Código de verificação inválido. Confira o horário do aparelho e tente o código atual.");
+   const codes = Array.from({ length: RECOVERY_CODES }, newRecoveryCode);
+   const confirmed = await db.transaction(async tx => {
+-    const rows = await tx.execute(sql`update mfa_factors set confirmed_at=clock_timestamp(), last_used_step=${step} where user_id=${userId} and confirmed_at is null returning user_id`);
++    await lockAccount(tx, userId);
++    await lockMfaFamily(tx, userId, currentAuth(req).sessionId);
++    const rows = await tx.execute(sql`update mfa_factors set confirmed_at=clock_timestamp(), last_used_step=${step} where user_id=${userId} and generation=${factor.generation}
++      and secret_ciphertext=${factor.secret_ciphertext} and confirmed_at is null returning user_id`);
+     if (!rows.length) return false;
+     await tx.execute(sql`delete from mfa_recovery_codes where user_id=${userId}`);
+     for (const item of codes) await tx.execute(sql`insert into mfa_recovery_codes(user_id,code_hash) values(${userId},${recoveryHash(item)})`);
++    // Enrollment proves this factor in this family, not a fresh password (055).
++    await persistMfaProof(tx, userId, currentAuth(req).sessionId, { generation: factor.generation });
+     return true;
+   });
+   if (!confirmed) throw conflict("A verificação em duas etapas já está ativa nesta conta.");
+@@ -74,10 +95,24 @@
+ mfaRouter.post("/disable", validateBody(Disable), admitPasswordChange, async (req, res) => {
+   const userId = currentAuth(req).userId;
+   const input = req.body as z.infer<typeof Disable>;
+-  await requirePassword(userId, input.currentPassword);
++  const account = await requirePassword(userId, input.currentPassword);
++  await denyRequiredMfaDisable(db, userId);
+   const factor = await factorOf(userId);
+-  if (!factor) { res.status(204).end(); return; }
+-  if (factor.confirmed_at && !(input.code && await consumeMfaCode(userId, input.code))) throw unauthorized("Código de verificação inválido");
+-  await db.execute(sql`delete from mfa_factors where user_id=${userId}`);
++  const proof = factor?.confirmed_at && input.code ? await consumeMfaCode(userId, input.code) : null;
++  if (factor?.confirmed_at && !proof) throw unauthorized("Código de verificação inválido");
++  await db.transaction(async tx => {
++    await lockAccount(tx, userId, account.passwordHash);
++    await lockMfaFamily(tx, userId, currentAuth(req).sessionId);
++    // Current union of legacy flag and021 authority. Concurrent promotion at
++    // the operation snapshot remains a separate authorization-boundary task.
++    const current = await lockCurrentFactor(tx, userId);
++    await denyRequiredMfaDisable(tx, userId);
++    if (!current && !factor) return;
++    if (!current || !factor || current.generation !== factor.generation
++      || (current.confirmed_at && proof?.generation !== current.generation)) {
++      throw conflict("O fator foi alterado. Confirme o fator atual.");
++    }
++    await tx.execute(sql`delete from mfa_factors where user_id=${userId} and generation=${current.generation}`);
++  });
+   res.status(204).end();
+ });
+--- a/apps/api/src/auth/service.ts
++++ b/apps/api/src/auth/service.ts
+@@ -4,7 +4,7 @@
+ import type { Role } from "@predioon/shared";
+ import { HttpError, badRequest, notFound, unauthorized } from "../http/errors.js";
+ import { hashPassword, verifyPassword } from "./passwords.js";
+-import { consumeMfaCode, mfaEnabled, MFA_REQUIRED_MESSAGE } from "./mfa-factor.js";
++import { consumeMfaCode, mfaEnabled, MFA_REQUIRED_MESSAGE, recheckMfaProof, persistMfaProof, type MfaProof } from "./mfa-factor.js";
+ import { createRefreshToken, hashRefreshToken, refreshTokenExpiry, signAccessToken, type AccessTokenClaims } from "./tokens.js";
+
+ type ClientMeta = { userAgent?: string | null; ipAddress?: string | null };
+@@ -71,9 +71,11 @@
+   if (!user?.active || !ok) throw unauthorized("E-mail ou senha inválidos");
+   // The second factor is asked for only after the password is right, and a
+   // consumed code is spent even if the session is not created afterwards.
++  let proof: MfaProof | null = null;
+   if (await mfaEnabled(user.id)) {
+     if (!code) throw unauthorized(MFA_REQUIRED_MESSAGE);
+-    if (!await consumeMfaCode(user.id, code)) throw unauthorized("Código de verificação inválido");
++    proof = await consumeMfaCode(user.id, code);
++    if (!proof) throw unauthorized("Código de verificação inválido");
+   }
+   await buildIdentity(user.id);
+   const expiresAt = refreshTokenExpiry();
+@@ -82,8 +84,10 @@
+     const [locked] = await tx.execute<{ active: boolean }>(sql`select identity_lock_account_active(${user.id}) as active`);
+     const [current] = await tx.select({ passwordHash: users.passwordHash }).from(users).where(eq(users.id, user.id)).limit(1);
+     if (!locked?.active || current?.passwordHash !== user.passwordHash) throw unauthorized("E-mail ou senha inválidos");
++    await recheckMfaProof(tx, user.id, proof);
+     const created = await tx.insert(sessions).values({ userId: user.id, expiresAt,
+       userAgent: meta.userAgent ?? null, ipAddress: meta.ipAddress ?? null }).returning({ id: sessions.id });
++    if (proof) await persistMfaProof(tx, user.id, created[0]!.id, proof);
+     await tx.insert(refreshTokens).values({ userId: user.id, sessionId: created[0]!.id,
+       tokenHash, expiresAt, userAgent: meta.userAgent ?? null, ipAddress: meta.ipAddress ?? null });
+     return created;
+--- a/apps/api/src/auth/verification.ts
++++ b/apps/api/src/auth/verification.ts
+@@ -8,7 +8,7 @@
+ import { validateBody } from "../http/validate.js";
+ import { admitPasswordChange } from "./login-budget.js";
+ import { authenticate, currentAuth } from "./middleware.js";
+-import { consumeMfaCode, mfaEnabled, MFA_REQUIRED_MESSAGE } from "./mfa-factor.js";
++import { consumeMfaCode, mfaEnabled, MFA_REQUIRED_MESSAGE, lockMfaFamily, recheckMfaProof, persistMfaProof, type MfaProof } from "./mfa-factor.js";
+ import { verifyPassword } from "./passwords.js";
+
+ /**
+@@ -39,14 +39,24 @@
+   const input = req.body as z.infer<typeof Verify>;
+   const [account] = await db.select({ active: users.active, passwordHash: users.passwordHash }).from(users).where(eq(users.id, auth.userId)).limit(1);
+   if (!account?.active || !await verifyPassword(input.currentPassword, account.passwordHash ?? null)) throw badRequest("A senha atual está incorreta");
++  let proof: MfaProof | null = null;
+   if (await mfaEnabled(auth.userId)) {
+     if (!input.code) throw badRequest(MFA_REQUIRED_MESSAGE);
+-    if (!await consumeMfaCode(auth.userId, input.code)) throw badRequest("Código de verificação inválido");
++    proof = await consumeMfaCode(auth.userId, input.code);
++    if (!proof) throw badRequest("Código de verificação inválido");
+   }
+-  // Only this session becomes verified; another device keeps its own clock.
+-  const updated = await db.update(sessions).set({ verifiedAt: sql`clock_timestamp()` })
+-    .where(and(eq(sessions.id, auth.sessionId), eq(sessions.userId, auth.userId), isNull(sessions.revokedAt), gt(sessions.expiresAt, sql`now()`)))
+-    .returning({ id: sessions.id });
+-  if (!updated.length) throw unauthorized("Sessão revogada ou expirada");
++  await db.transaction(async tx => {
++    const [locked] = await tx.execute<{ active: boolean }>(sql`select identity_lock_account_active(${auth.userId}) as active`);
++    const [current] = await tx.select({ passwordHash: users.passwordHash }).from(users).where(eq(users.id, auth.userId)).limit(1);
++    if (!locked?.active || current?.passwordHash !== account.passwordHash) throw badRequest("A senha atual está incorreta");
++    await lockMfaFamily(tx, auth.userId, auth.sessionId);
++    await recheckMfaProof(tx, auth.userId, proof);
++    // 055 password recency and generation proof are distinct, atomic writes.
++    const updated = await tx.update(sessions).set({ verifiedAt: sql`clock_timestamp()` })
++      .where(and(eq(sessions.id, auth.sessionId), eq(sessions.userId, auth.userId), isNull(sessions.revokedAt), gt(sessions.expiresAt, sql`clock_timestamp()`)))
++      .returning({ id: sessions.id });
++    if (!updated.length) throw unauthorized("Sessão revogada ou expirada");
++    if (proof) await persistMfaProof(tx, auth.userId, auth.sessionId, proof);
++  });
+   res.status(204).end();
+ });

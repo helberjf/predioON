@@ -1,0 +1,153 @@
+-- DRAFT / NOT EXECUTED. FIRST SLICE ONLY: organizations and legacy support.
+-- Do not apply to an existing installation. Requires coordinated API changes.
+-- 068 was absent when inspected on 2026-11-04; number is NOT reserved.
+-- Run transactionally using the canonical runner, only after review and REDs.
+
+ALTER TABLE public.mfa_factors ADD COLUMN generation uuid NOT NULL DEFAULT gen_random_uuid();
+ALTER TABLE public.sessions ADD COLUMN mfa_verified_at timestamptz;
+ALTER TABLE public.sessions ADD COLUMN mfa_factor_generation uuid;
+ALTER TABLE public.sessions ADD CONSTRAINT sessions_mfa_proof_pair_ck
+  CHECK ((mfa_verified_at IS NULL) = (mfa_factor_generation IS NULL));
+-- No backfill from055. Pending enrollment is replaced by DELETE/INSERT as today;
+-- its new row gets a fresh generation. Do not grant arbitrary generation UPDATE.
+GRANT UPDATE(mfa_verified_at,mfa_factor_generation) ON public.sessions TO predioon_identity;
+
+CREATE FUNCTION public.identity_platform_mfa_required(target_user_id text)
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path=pg_catalog,public,pg_temp AS $$
+ SELECT EXISTS(SELECT 1 FROM public.users u WHERE u.id=target_user_id AND u.active
+   AND (u.is_platform_admin OR public.app_rbac_platform_role_at(
+     u.id,'PLATFORM_ADMIN',statement_timestamp())));
+$$;
+
+CREATE FUNCTION public.identity_session_mfa_requirement(target_user_id text,target_session_id uuid)
+RETURNS text LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path=pg_catalog,public,pg_temp AS $$
+ SELECT CASE
+ WHEN NOT public.identity_platform_mfa_required(target_user_id) THEN 'not-required'
+ WHEN NOT EXISTS(SELECT 1 FROM public.mfa_factors f
+   WHERE f.user_id=target_user_id AND f.confirmed_at IS NOT NULL) THEN 'enrollment-required'
+ WHEN EXISTS(SELECT 1 FROM public.sessions s JOIN public.mfa_factors f ON f.user_id=s.user_id
+   WHERE s.id=target_session_id AND s.user_id=target_user_id
+     AND s.revoked_at IS NULL AND s.expires_at>statement_timestamp()
+     AND f.confirmed_at IS NOT NULL AND s.mfa_verified_at IS NOT NULL
+     AND s.mfa_factor_generation=f.generation) THEN 'satisfied'
+ ELSE 'verification-required' END;
+$$;
+
+-- New narrow app entrypoint, deliberately distinct from identity-only helpers.
+-- Reads no client supplied actor argument; uses the HTTP transaction context.
+-- This is not protection against an arbitrary SQL actor allowed to forge GUCs.
+CREATE FUNCTION public.app_require_session_mfa()
+RETURNS boolean LANGUAGE plpgsql STABLE SECURITY DEFINER
+SET search_path=pg_catalog,public,pg_temp AS $$
+DECLARE actor text := nullif(current_setting('app.user_id',true),'');
+        sid_text text := nullif(current_setting('app.session_id',true),'');
+        sid uuid; requirement text;
+BEGIN
+  -- No SID bypass: administrative SQL contexts without one remain restricted.
+  -- Non-admin users keep optional MFA. Service roles do not use these policies.
+  IF NOT public.identity_platform_mfa_required(actor) THEN RETURN true; END IF;
+  IF sid_text IS NOT NULL THEN
+    BEGIN sid := sid_text::uuid;
+    EXCEPTION WHEN invalid_text_representation THEN sid := NULL;
+    END;
+  END IF;
+  requirement := public.identity_session_mfa_requirement(actor,sid);
+  IF requirement='enrollment-required' THEN
+    RAISE EXCEPTION 'MFA_ENROLLMENT_REQUIRED' USING ERRCODE='PMF01';
+  ELSIF requirement='verification-required' THEN
+    RAISE EXCEPTION 'MFA_VERIFICATION_REQUIRED' USING ERRCODE='PMF02';
+  END IF;
+  RETURN true;
+END;
+$$;
+
+-- Pin SECURITY DEFINER ownership to the existing controlled authorization owner.
+-- No new owner/login/password, no broad table grants to app.
+DO $$
+DECLARE controlled_owner name;
+BEGIN
+ SELECT r.rolname INTO STRICT controlled_owner FROM pg_proc p JOIN pg_roles r ON r.oid=p.proowner
+ WHERE p.oid='public.app_rbac_platform_role_at(text,text,timestamptz)'::regprocedure;
+ IF controlled_owner IN ('predioon_app','predioon_identity','predioon_broker_auth',
+   'predioon_notifications','predioon_ingest','predioon_access_service') THEN
+   RAISE EXCEPTION 'Authorization owner must not be a runtime role';
+ END IF;
+ EXECUTE format('ALTER FUNCTION public.identity_platform_mfa_required(text) OWNER TO %I',controlled_owner);
+ EXECUTE format('ALTER FUNCTION public.identity_session_mfa_requirement(text,uuid) OWNER TO %I',controlled_owner);
+ EXECUTE format('ALTER FUNCTION public.app_require_session_mfa() OWNER TO %I',controlled_owner);
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.identity_platform_mfa_required(text),
+ public.identity_session_mfa_requirement(text,uuid),public.app_require_session_mfa()
+ FROM PUBLIC,predioon_app,predioon_identity,predioon_broker_auth,
+ predioon_notifications,predioon_ingest,predioon_access_service;
+GRANT EXECUTE ON FUNCTION public.identity_platform_mfa_required(text),
+ public.identity_session_mfa_requirement(text,uuid) TO predioon_identity;
+GRANT EXECUTE ON FUNCTION public.app_require_session_mfa() TO predioon_app;
+
+-- Preserve every existing permissive capability policy. Restrictive policies
+-- combine with them using AND, so they cannot grant any new access.
+CREATE POLICY organizations_session_mfa ON public.organizations AS RESTRICTIVE
+ FOR ALL TO predioon_app USING(public.app_require_session_mfa())
+ WITH CHECK(public.app_require_session_mfa());
+CREATE POLICY support_hosts_session_mfa ON public.support_hosts AS RESTRICTIVE
+ FOR ALL TO predioon_app USING(public.app_require_session_mfa())
+ WITH CHECK(public.app_require_session_mfa());
+CREATE POLICY support_requests_session_mfa ON public.support_requests AS RESTRICTIVE
+ FOR ALL TO predioon_app USING(public.app_require_session_mfa())
+ WITH CHECK(public.app_require_session_mfa());
+
+-- A SELECT over an empty table need not evaluate row policies. This explicit
+-- invoker envelope observes MFA even with zero rows; STABLE keeps its internal
+-- reads on the calling SELECT snapshot. It retains app RLS and existing ACLs.
+CREATE FUNCTION public.app_list_mfa_organizations()
+RETURNS SETOF public.organizations LANGUAGE plpgsql STABLE SECURITY INVOKER
+SET search_path=pg_catalog,public,pg_temp AS $$
+BEGIN
+ PERFORM public.app_require_session_mfa();
+ IF NOT public.app_has_global_capability('organizations:read') THEN
+   RAISE EXCEPTION 'Organization capability required' USING ERRCODE='42501';
+ END IF;
+ RETURN QUERY SELECT o.* FROM public.organizations o ORDER BY o.name,o.id;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.app_list_mfa_organizations()
+ FROM PUBLIC,predioon_app,predioon_identity,predioon_broker_auth,
+ predioon_notifications,predioon_ingest,predioon_access_service;
+GRANT EXECUTE ON FUNCTION public.app_list_mfa_organizations() TO predioon_app;
+
+-- No edits to010/021/046/047/055. Not a complete rollout: see integration map.
+
+-- V2 static review: custom ALTER DEFAULT PRIVILEGES may have added other roles.
+-- Normalize ALL non-owner ACL entries before declaring the exact allowlist.
+DO $$
+DECLARE grant_row record;
+BEGIN
+ FOR grant_row IN
+   SELECT DISTINCT format('%I.%I(%s)',n.nspname,p.proname,
+     pg_get_function_identity_arguments(p.oid)) AS signature,
+     a.grantee,pg_get_userbyid(a.grantee) AS grantee_name
+   FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+   CROSS JOIN LATERAL aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a
+   WHERE p.oid IN (
+     'public.identity_platform_mfa_required(text)'::regprocedure,
+     'public.identity_session_mfa_requirement(text,uuid)'::regprocedure,
+     'public.app_require_session_mfa()'::regprocedure,
+     'public.app_list_mfa_organizations()'::regprocedure)
+     AND a.grantee<>p.proowner
+ LOOP
+   IF grant_row.grantee=0 THEN
+     EXECUTE format('REVOKE ALL ON FUNCTION %s FROM PUBLIC',grant_row.signature);
+   ELSE
+     EXECUTE format('REVOKE ALL ON FUNCTION %s FROM %I',grant_row.signature,grant_row.grantee_name);
+   END IF;
+ END LOOP;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION public.identity_platform_mfa_required(text),
+ public.identity_session_mfa_requirement(text,uuid) TO predioon_identity;
+GRANT EXECUTE ON FUNCTION public.app_require_session_mfa(),
+ public.app_list_mfa_organizations() TO predioon_app;

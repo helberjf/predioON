@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-11-04",
+  "status": "INCOMPLETE_UNEXECUTED_CANDIDATE_NOT_FOR_ROLLOUT",
+  "baseCommit": "b259f80b158aff08f255a83f9d8ae551289d5fcf",
+  "baseCommitUrl": "https://github.com/helberjf/predioON/commit/b259f80b158aff08f255a83f9d8ae551289d5fcf",
+  "files": [
+    {
+      "path": "apps/api/test/platform-mfa-required.test.ts",
+      "part": "tests",
+      "state": "new",
+      "sha256": "6e44b8fe9a729e043b09a44f1298dae547075aabc670aca210f64479326768f6",
+      "plannedCases": 6
+    },
+    {
+      "path": "apps/api/test/platform-mfa-authority-races.test.ts",
+      "part": "tests",
+      "state": "new",
+      "sha256": "7573e310beb175b24705a6fa9dacaeea616ec7647bfdf827394976a5fe331589",
+      "plannedCases": 3
+    },
+    {
+      "path": "apps/api/src/auth/mfa-factor.ts",
+      "part": "api",
+      "state": "modified",
+      "beforeSha256": "f349ef155cab5bb4edb038edf8ade46c003e18b9166bda87f50e992b355d6532",
+      "sha256": "cafb6d5120cdcf851beee85d82bca8d71eee543ccea4c1f39930a33b895ff6ac"
+    },
+    {
+      "path": "apps/api/src/auth/mfa.ts",
+      "part": "api",
+      "state": "modified",
+      "beforeSha256": "8430c78d4946da6b22162c19cf7b63da3ae56217896d3983b6741e6ef38d1ab5",
+      "sha256": "87e3dd393485dd5079785d9e36dff5c3236fdb7cd8e2abe2c03199ce0a1298c1"
+    },
+    {
+      "path": "apps/api/src/auth/service.ts",
+      "part": "api",
+      "state": "modified",
+      "beforeSha256": "ba0a3538eec7c5de93d1275bde5376f014d0957d7fb46681ab682653d5d422a6",
+      "sha256": "df12d9beec32a8961e04056c918b8226456a8e185ebdc22804bddfb26ddbd639"
+    },
+    {
+      "path": "apps/api/src/auth/verification.ts",
+      "part": "api",
+      "state": "modified",
+      "beforeSha256": "f3b5b1784d574484e7b1cb9ffaaed3c0e955aea8e9c907303babbd7782f5f15c",
+      "sha256": "5a7b7404c8f7358f4c878fb5ff09b2001572b94adc1ef4c7d2996eede967217c"
+    }
+  ],
+  "testFiles": 2,
+  "apiFiles": 4,
+  "plannedTestCases": 9,
+  "patches": [
+    {
+      "file": "testes-red.patch",
+      "sha256": "a88bd0afaa90813b272a42f4ee71b0211eebdfc520428524152630e8d7ff2a81",
+      "scope": "Two new test files only; use this alone for the baseline RED experiment."
+    },
+    {
+      "file": "prova-por-familia.patch",
+      "sha256": "76890554bc39e3622e83c518c9a41eb451a1e7c3f022608cac8af243bc837289",
+      "scope": "Four auth source candidates; requires candidate SQL and further integration, not for the SQL067 RED baseline.",
+      "originalAuthorPatchSha256": "45d31b54739591f449bfec1fdf7006cc20c75f5a7dfcf87acb1a5bf1ab28582c",
+      "serialization": "Six blank context lines use Git-accepted empty lines rather than a trailing context space; command-local LF restoration of all six sources verified again. No candidate source byte changed."
+    }
+  ],
+  "documents": [
+    {
+      "file": "068-plataforma-mfa.candidata.sql.txt",
+      "bytes": 8045,
+      "sha256": "9f14344a42a5e5a464c7c21b43d2f7940ab4f4fe1015ce930f476b83b84ffa30"
+    },
+    {
+      "file": "MAPA_INTEGRACAO.txt",
+      "bytes": 15749,
+      "sha256": "1d4dbb6d459c47bb40454cc80fd841fc1c9d491720654b277414f45d571cfb09"
+    },
+    {
+      "file": "REVISAO_API.md",
+      "bytes": 5447,
+      "sha256": "5dc1275c98125718d73318ae75e4dc5b0e22c4462a82ebbe57f11e45e8c6f196",
+      "sourceDocumentSha256BeforeLFSerialization": "ea6a1bde29e407702c65c5b7c186aa1280858bfaca254295b6fa1b93a78c4966"
+    }
+  ],
+  "testsExecuted": 0,
+  "redObserved": false,
+  "typecheckExecuted": false,
+  "migrationApplied": false,
+  "productionSourceModified": false,
+  "syntaxOnly": {
+    "fourApiFiles": "TypeScript parser PASS, no emission/typecheck",
+    "harness": "PowerShell parser0 errors and node --check0, no imports/DB"
+  },
+  "independentReadOnlyReview": {
+    "testFixtureApprovedForHarness": true,
+    "apiCandidateApprovedForPreservation": true,
+    "sqlSliceDesignReviewed": true,
+    "reviewerExecutedTests": false,
+    "rolloutApproved": false
+  },
+  "restoreCheck": {
+    "passed": true,
+    "sourceFiles": 6,
+    "scope": "Populate only four original files from exact Git base; check/apply both relative patches with command-local LF settings in an external directory; compare all six output hashes. No full project restoration or code execution.",
+    "publicPatchSerializationVerified": true
+  },
+  "knownGaps": [
+    "No required MFA DTO/operational gate/bootstrap allowlist/SSE/consumers/schema Drizzle integration. Password-only admin still operational in the candidate unless the complete future gates are implemented.",
+    "Candidate SQL only protects organizations and legacy support. The third devices race is outside that SQL slice; other domains and SECURITY DEFINER projections need explicit coverage.",
+    "Disable checks obligation and later deletes in separate statements; promotion between them remains unresolved.",
+    "Persisted-field readback after triggers and expiration while waiting for family locks require directed proofs; no reproduced failure or runtime-role attack claimed.",
+    "No typecheck, DB, RED, GREEN, native build or production acceptance of this candidate. SQL068 number is not reserved; recheck current main before implementation."
+  ],
+  "previousCheckpoints": "The old six-case and two-case draft checkpoints remain byte-identical historical designs. This candidate has the corrected six-case policy and three race cases; do not combine their counts.",
+  "harnessAttempt": "See ../../evidencias/mfa-memory-refusal-2026-11-04.json; guard refused before any Node/fixture/test execution."
+}

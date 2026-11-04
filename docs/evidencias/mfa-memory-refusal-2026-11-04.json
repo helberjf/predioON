@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-11-04",
+  "status": "NOT_STARTED_RESOURCE_GUARD",
+  "sourcePin": "b259f80b158aff08f255a83f9d8ae551289d5fcf",
+  "testsPlanned": 9,
+  "testsExecuted": 0,
+  "REDObserved": false,
+  "GREENObserved": false,
+  "guardMiB": 1536,
+  "attempt": {
+    "recordedUtc": "2026-11-04T14:06:27.2903553Z",
+    "status": "guard-refused-after-owned-container-readiness",
+    "launcherExitCode": 1,
+    "freeMiBAfterRefusal": 996.0,
+    "testProcessesStarted": false,
+    "fixtureStarted": false,
+    "testsExecuted": 0,
+    "retryPerformed": false,
+    "containerMetadata": "\"616a4aabf32a766875f3e0e2916d7c9d6926c7a853532ccd16996bb3a6696255\"|{\"Dead\":false,\"Error\":\"\",\"ExitCode\":0,\"FinishedAt\":\"2026-11-04T13:42:21.356564684Z\",\"OOMKilled\":false,\"Paused\":false,\"Pid\":673,\"Restarting\":false,\"Running\":true,\"StartedAt\":\"2026-11-04T14:05:54.303019599Z\",\"Status\":\"running\"}|402653184|1000000000|{\"5432/tcp\":[{\"HostIp\":\"127.0.0.1\",\"HostPort\":\"5468\"}]}|0",
+    "catalog": {
+      "systemIdentifier": "7704134518334730280",
+      "basePublicTables": 0,
+      "uuidDatabases": 0,
+      "otherClients": 0
+    },
+    "controllerStartExists": false,
+    "resultExists": false,
+    "sourceArchiveExists": false
+  },
+  "stopAfterRefusal": {
+    "recordedUtc": "2026-11-04T14:08:23.1377034Z",
+    "containerId": "616a4aabf32a766875f3e0e2916d7c9d6926c7a853532ccd16996bb3a6696255",
+    "catalogBeforeStop": {
+      "systemIdentifier": "7704134518334730280",
+      "basePublicTables": 0,
+      "uuidDatabases": 0,
+      "otherDatabases": 0,
+      "otherClients": 0,
+      "runtimeRoles": 6
+    },
+    "ownedNodePids": [],
+    "freeMiBBeforeStop": 786.0,
+    "freeMiBAfterStop": 752.0,
+    "running": false,
+    "oomKilled": false,
+    "restartCount": 0,
+    "stopTimeoutSeconds": 20,
+    "removed": false,
+    "retryPerformed": false,
+    "testsExecuted": 0
+  },
+  "sourceFilesVerified": 989,
+  "sourceHashMismatches": 0,
+  "rolesMutationStarted": false,
+  "rolesRestoreAttempted": false,
+  "retries": 0,
+  "harnessReviewedStatically": true,
+  "handoffSha256": "1d1b514399f4b374c6201a87e1cc2a110e48819b2e25bfc1723873f17e111634",
+  "stopEvidenceSha256": "65ace9d1380d6b59eb20cc2e947f292df7793b69be8fb3cb0b942292631b11ce",
+  "artifacts": [
+    {
+      "name": "attempt-1-guard-refusal.json",
+      "sha256": "78a1dadfa21e574419e9841c042242420557ba4b91cf4bd653665a40e62b1be4"
+    },
+    {
+      "name": "HARNESS-PLAN.txt",
+      "sha256": "b6b820f3aff39a2b5b5ea6506ffc92cc94d97d6382ee3ff92b0dca57b5ecbec3"
+    },
+    {
+      "name": "HARNESS-PLAN.v1.txt",
+      "sha256": "84c5292ed430f6d547b19b5402f5e0d1d69e2f50a41304486e669e5fa89db9c7"
+    },
+    {
+      "name": "launch-mfa-directed.ps1",
+      "sha256": "4e53813ffb78fb90ac2309fc1f9ee7c0ee4e7972491b19cfeac7e7f7e7e8ed2b"
+    },
+    {
+      "name": "launch-mfa-directed.v1.ps1",
+      "sha256": "9017586f279437faa305056eaca2e2ae57d640a9a879699b5d6c52e1a74ceb8d"
+    },
+    {
+      "name": "launcher-v1-to-v2.diff",
+      "sha256": "0e0ebc3814e6e2ce37380596ca1abf71c9e74edc03fee33854d2c46a464f51ca"
+    },
+    {
+      "name": "run-mfa-directed.mjs",
+      "sha256": "b73930df08e9469a667fd02613cd09930fa2e14987cc546af4fbf9904d879d18"
+    },
+    {
+      "name": "run-mfa-directed.v1.mjs",
+      "sha256": "eda74ae5ab77c50a03379ed8f4f98385d4c20cf8faa0216cfb0164f252f01092"
+    },
+    {
+      "name": "runner-v1-to-v2.diff",
+      "sha256": "e04d97a20d409b9809e95990d5eb45392c4187dabcfcdcfe8199dbd48e843c14"
+    },
+    {
+      "name": "source-pin-b259.manifest.json",
+      "sha256": "43ef2c31eeacb3b64dfe2dc5712330ef455e0150813cb0090cabd455950fa995"
+    }
+  ],
+  "limits": [
+    "Guard refused after owned database readiness, before Node/UUID/provision/test. This is not a product RED.",
+    "Owned cluster stopped after catalog attestation. No database or container removed; no computer/Docker/WSL restart.",
+    "RAM786MiB before stop and752MiB immediately after; no immediate release or continuous minimum claimed.",
+    "API four-file candidate and SQL068 stayed outside runtime and were not executed."
+  ]
+}

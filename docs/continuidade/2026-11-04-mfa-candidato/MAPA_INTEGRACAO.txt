@@ -1,0 +1,241 @@
+IMPLEMENTATION PROPOSAL / STATIC DRAFT / NOT EXECUTED — 2026-11-04
+
+This is an implementable first slice, not a complete administrative-MFA release.
+Candidate068 remains external. No installation, test, typecheck or runtime change.
+068 absent in filesystem and git tree when checked. Recheck before reserving it.
+Source API/runtime read matches14e/4eb; root may publish documentation separately.
+
+DECISION AND FIRST SLICE
+
+Obligation = active account AND (legacy administrative flag OR021 current global
+PLATFORM_ADMIN authority). This intentionally includes flag=true when role catalog
+is inactive, because010 support authorization still accepts that flag. No change
+to capability semantics: MFA never grants a capability. PLATFORM_SUPPORT alone
+does not trigger the obligation. verified_at055 is never read as MFA evidence.
+
+Candidate SQL contains persistence, three narrowly scoped helpers, three additive
+RESTRICTIVE policies and one read envelope. The first protected objects are:
+ public.organizations — preserve039 organizations_capability_read/insert/update;
+ public.support_hosts — preserve010 support_hosts_admin;
+ public.support_requests — preserve010 support_requests_admin.
+New policies are *_session_mfa, FOR ALL TO predioon_app, USING + WITH CHECK.
+They are ANDed with existing permissive policies; no permissions are broadened.
+SELECT/DELETE old rows use USING; INSERT new rows use WITH CHECK; UPDATE both.
+Without permissible rows, policies need not execute: use explicit envelopes below
+for the operation-level403 contract, including empty lists/no-match updates.
+
+WHY THIS CLOSES THE DATA-ACCESS GAP IN THIS SLICE
+
+1. authenticate resolves the session and obligation using identity pool.
+2. inTenantContext sets user_id, role AND session_id transaction-local.
+3. An early app guard gives prompt403 but is not the race defense.
+4. Every candidate protected table operation evaluates the new STABLE predicate
+   in the SAME statement snapshot as its RLS capability predicate and row access.
+   A binding committed after the assert but before SELECT is visible to BOTH
+   decisions. The restrictive predicate raises PMF01/PMF02, aborting the query.
+5. A later revocation cannot turn an already aborted statement into permitted data.
+   No row result is sent before the transaction completes successfully.
+6. For list organizations, app_list_mfa_organizations() is STABLE SECURITY INVOKER:
+   PERFORM MFA then capability then RETURN QUERY share the calling snapshot;
+   caller RLS remains enabled. This explicitly rejects even if the table is empty.
+
+The assurance is at the operation snapshot. Changes committed after that snapshot
+are observed next time, not globally linearizable. Lock-wait fresh-time semantics
+of021 must remain: do not replace the entire runtime with REPEATABLE READ.
+
+EXACT API/CONTEXT DELTA TO AUTHOR NEXT
+
+packages/db/src/context.ts:
+  Extend UserContext with sessionId?: string. withUserContext always sets
+  app.session_id to context.sessionId ?? '' using set_config(...,true), alongside
+  user_id/role. Reset it even when absent; pooled connections must not retain a
+  prior identity. Do not introduce a client header/body selector for sessionId.
+  Existing non-human callers can omit it. An administrative human context without
+  SID does NOT bypass MFA; the DB guard returns enrollment/verification refusal.
+
+apps/api/src/auth/middleware.ts:
+  inTenantContext passes currentAuth(req).sessionId into withUserContext. Existing
+  auth sessionId comes from verified JWT sid, not arbitrary input. Early guard
+  after feature locks: SELECT app_require_session_mfa(). Postcheck may remain as
+  additional freshness, never as substitute for statement-level policies.
+  Wrap withUserContext in catch mapping PMF01/PMF02 to typed HttpError BEFORE
+  returning to route-specific catch blocks (organizationOperation otherwise
+  converts unknown SQL errors into500). Preserve all other errors unchanged.
+  authenticate defaults operational; separate authenticateSession for explicit
+  bootstrap routes. currentAuth remains valid for either mode, but only narrowly
+  allowlisted routers can accept restricted sessions.
+
+apps/api/src/http/errors.ts (or small auth-specific mapper imported by middleware):
+  inspect pgErrorCode(error), including the existing bounded cause-chain traversal.
+  PMF01 -> HttpError(403, fixed Portuguese enrollment text,
+                    {reason:'MFA_ENROLLMENT_REQUIRED'}).
+  PMF02 -> HttpError(403, fixed Portuguese verification text,
+                    {reason:'MFA_VERIFICATION_REQUIRED'}).
+  Never log/echo SQL, error.message, DSN, ciphertext, parameters or causes.
+  These SQLSTATE values are proposed, not existing/public behavior.
+  Nonmatching errors rethrow unchanged for existing domain mappings.
+  Add same mapping to any direct app SQL path outside inTenantContext; current
+  source search found withUserContext used in API only through middleware.
+
+apps/api/src/modules/organizations/routes.ts:
+  Replace list's separate assert/read/postassert with SELECT * FROM
+  app_list_mfa_organizations(), map existing columns through view(). JSON and
+  ordering unchanged. Never execute the new envelope with identity/owner pool.
+  POST/PATCH retain RLS/locks/audit. To ensure explicit denial even for zero-row
+  mutations, execute each static mutation in a data-modifying CTE whose OUTER
+  SELECT ALWAYS returns one row including app_require_session_mfa() and aggregates
+  RETURNING rows. Statement failure rolls back its CTE writes. Process returned
+  guard/result only after success; not an added subsequent SELECT.
+  This SQL pattern is a concrete next edit, NOT authored/verified in the candidate.
+  Do not use SELECT guard FROM updated when updated may be empty: it skips guard.
+
+apps/api/src/modules/support/routes.ts:
+  Keep requireRole, active-flag authorize, building and REMOTE_SUPPORT feature
+  checks. Add statement envelopes to its config/requests reads and writes; use
+  one-row aggregate for empty config/requests. Example static read shape:
+    SELECT app_require_session_mfa() AS guard,
+           coalesce((SELECT jsonb_agg(x) FROM (...existing SELECT...) x),'[]'::jsonb)
+             AS items;
+  Guard is a REQUIRED result expression, not optional lateral join or WHERE on
+  potentially zero rows. Both expressions share the same statement snapshot.
+  Even if rows are computed first, an exception prevents any result emission.
+  New restrictive policies protect direct table accesses too. Support route's
+  outer JSON must not be sent while the operation's transaction is still pending.
+
+apps/api/src/modules/authorization/routes.ts, endpoint /v1/authorization/platform:
+  Its capabilities projection contains no protected domain-table row to trigger
+  these policies. Combine SELECT app_require_session_mfa() AS guard and the
+  existing capabilities projection in a single always-one-row statement, or a
+  STABLE invoker envelope. Middleware alone is insufficient for this projection.
+  This names the existing endpoint, not a future helper already implemented.
+
+AUTH/FAMILY INTEGRATION REQUIRED BEFORE APPLYING RESTRICTIVE POLICIES
+
+service.ts Identity + contracts AuthUser: add required mfaRequirement enum; call
+identity_session_mfa_requirement(userId,sessionId) on login/refresh/resolveIdentity.
+buildIdentity currently lacks SID: propagate it explicitly through issueTokens and
+resolveIdentity rather than computing an account-level satisfied flag. Restricted
+DTO has memberships=[] and minimal identity; /auth/me remains no-store.
+routes.ts/web-routes.ts serialize the same state. AuthenticateSession allowlist:
+me, mfa status/enroll/confirm, verify, logout and own-session revocations only.
+No blanket '/auth' bypass. Recovery047 keeps current public generic responses;
+reset never removes factor or creates proof. Password change remains operational.
+
+mfa-factor.ts: Factor includes generation. consume returns generation/null rather
+than boolean. TOTP UPDATE predicates include generation. Recovery consumption
+locks the observed factor in the same transaction, verifies confirmed generation
+and updates the matching code only. Preserve single-use and already-spent code
+behavior if subsequent family creation fails. No retrying a physical side effect.
+
+service.ts login: consume before family transaction as now; after account lock,
+recheck factor/generation and password hash before inserting proof into that new
+family. Factor enabled/replaced in between cannot produce a satisfied family.
+Password-only admin login creates restricted family with both proof columns NULL.
+Refresh preserves both proof columns and055 verified_at. Never copy recentAuth.
+
+mfa.ts confirm: account -> current family -> factor lock order, compare observed
+generation/ciphertext, persist confirm/recovery + proof for this family atomically.
+Keep ten codes returned exactly once; no proof for familyB. Confirmation does NOT
+change verified_at055. enroll DELETE/INSERT already gives fresh generation.
+disable: active union checked under account/factor locking before consuming/deleting;
+deny administrator before removing codes; keep optional non-admin behavior. This
+lock alone does NOT serialize role_bindings grants: same-operation authority check
+or coordinated granting boundary is still required for concurrent promotion during
+disable; do not claim account lock resolves that race. Add dedicated RED before
+authoring final write routine. Candidate SQL does not implement disable.
+
+verification.ts: password+factor consumptions update055 and this family's proof
+with factor generation rechecked. No-key environment fails setup/proof closed;
+MFA status and logout available. Existing recent verification budgets stay intact.
+
+ACL / WORKERS / BOOTSTRAP
+
+SD helpers owner pinned to owner of app_rbac_platform_role_at, never runtime roles;
+fixed search_path pg_catalog,public,pg_temp; table/function references qualified.
+PUBLIC and all six runtime roles explicitly revoked before narrow grants:
+  identity gets required(user) and requirement(user,sid), only states returned;
+  app gets app_require_session_mfa() boolean-or-error, no arbitrary actor args;
+  broker/notifications/ingest/access get NONE of the new functions.
+  list envelope SECURITY INVOKER, app-only EXECUTE, existing SELECT/RLS retained.
+No new SELECT on factors/recovery/bindings, no app UPDATE on sessions, no passwords.
+sessions already gives identity UPDATE; explicit proof-column grant documents intent.
+Generation INSERT uses existing identity INSERT; no generation UPDATE grant needed.
+
+Policies TO predioon_app do not apply to identity bootstrap or worker roles052.
+Never branch on 'SID absent => allow' for an administrative user. Non-admin callers
+remain not-required. Workers with their dedicated roles continue original service
+guards and permissions. A worker impersonating a human through app context is not
+an approved bypass; inventory any such caller before rollout. App GUCs are trusted
+only insofar as middleware supplies validated JWT context: arbitrary SQL actors
+with app credentials can already forge contexts. No stronger SQL threat claim.
+
+TABLE/OBJECT INVENTORY FOR EXPANSION AFTER FIRST SLICE
+
+Known schema001-067 tables outside the three policies include:
+  users,buildings,memberships; gateways,devices,device_metrics,ingest_events,
+  telemetry,alert_rules,alerts,audit_logs; notices,notice_schedules,occurrences,
+  occurrence_events,common_areas,reservations; monitoring_profiles,usage_cursors,
+  daily_usage; gates,gate_commands,parking_lots,financial_reports;
+  global_feature_settings,building_feature_settings,feature_runtime;
+  blocks,units,unit_memberships,teams,team_members,roles,permissions,
+  role_permissions,role_bindings,support_grants; invitations;
+  work_orders,work_order_events,assets,asset_device_links;
+  automation_rules,automation_versions,automation_runs;
+  resident_consumption_settings,telemetry_series,gate_totem_pairings,gate_totems,
+  demo_scenarios,building_events,building_event_responses.
+This is a source inventory, not a claim of app privileges on every listed table.
+Do NOT blanket loop over pg_tables or rewrite existing RLS. For each domain,
+enumerate final grants/policies and actual app operations, add restricted human
+policies/envelopes only to the approved finite list, preserving worker paths.
+
+Intentionally keep auth/service storage outside blanket domain policies:
+  sessions,refresh_tokens,mfa_factors,mfa_recovery_codes,password_resets,
+  auth_login_buckets; outbox_events,event_deliveries,delivery_witnesses,
+  delivery_witness_features,notification_attempts,ingest_rejections.
+Each has its own current role grants and must not be swept into app-only gates.
+
+SD functions can bypass app RLS. Concrete expansion audit targets include:
+  app_published_water_levels (017), app_telemetry_authorized_devices (021),
+  app_overview_platform_health/app_overview_building_scope (024),
+  app_audit_query_scope/app_audit_row_visible (036),
+  app_published_consumption (051),
+  app_reservation_own_units/app_reservation_availability,
+  app_building_person_name/app_building_event_totals (064).
+Add internal guards or narrow invoker envelopes sharing the data statement, not
+only policies on their owner-read tables. Controlled writes app_transition_alert,
+app_apply_feature_transition and reservation/event/automation routines must retain
+their own post-lock authority checks; their VOLATILE substatements require explicit
+MFA checks at the actual protected statements. This candidate changes NONE of them.
+
+Do not change app_rbac_platform_role_at to call MFA: requirement itself calls021,
+which would recurse and change pure role semantics. Do not grant identity generic
+RBAC helpers. Keeping010 app_support_admin unchanged is intentional: its capability
+semantics stay; the new restriction composes with its policies.
+
+SSE delivery currently writes inside inTenantContext callback. For later global
+rollout, move res.write after successful projection transaction, add gate before
+writeHead and on each delivery/heartbeat, and apply protected projection coverage.
+Policies limited to organizations/support do NOT protect telemetry SSE.
+
+INCREMENTAL REVIEW/RED/IMPLEMENTATION ORDER
+
+A. Preserve six original drafts9c/8eb and two-race V2620f unchanged; their existing
+   sixth catalog+flag expectation needs separately versioned correction, not rewrite
+   of checkpoint evidence. Add support-with-flag/catalog-off positive authority
+   fixture and required-MFA negative; support-only no-flag optional control.
+B. Add third race: pause AFTER assertGlobalCapability and BEFORE SELECT; promote;
+   require403, not marker. Add zero-row list and no-match update tests; PMF01/02
+   mapper tests at organizationOperation boundary, not only generic handler.
+C. SQL suite: new columns NULL for old families; generation changes on re-enroll;
+   union/catalog/windows; A/B proof mismatch; SQLSTATE; restrictive policy metadata;
+   helper owners/search_path/ACL; negative SELECT/UPDATE to app and other roles;
+   non-admin and dedicated-worker controls. Run only after root authorizes resources.
+D. Review candidate068 + context/error mapping + org envelope + three policies as
+   a coherent source delta in UUID fixture. No applying partial gate to deployed
+   old backend: old contexts have no SID and admins would correctly become blocked.
+E. Complete proof/allowlist/consumers + expand finite domain coverage; regression
+   suites and SSE before describing mandatory MFA as delivered. Until then label
+   checkpoint 'preparation / organizations+support slice', never global enforcement.
+
+No GREEN/RED result claimed. No changes to001-067, particularly046/047/055.
+No new runner, environment file, dependency, database or secret was created.
