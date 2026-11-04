@@ -24,6 +24,8 @@ Atualizado em **04/11/2026**, horário de São Paulo. Leia este arquivo primeiro
 
 **Recursos medidos antes do navegador:** às 03:44 UTC de 04/11, após parar somente o cluster descartável ocioso desta QA, havia 1822 MiB livres. Isso não atendeu aos guards de 4096 MiB para a integral nem de 2048 MiB para focus/regras isoladas. Nessa medição, nenhuma suíte de navegador atual foi iniciada. Manter os guards e continuar verificações menores em série, sem fechar aplicações desconhecidas nem reiniciar computador, Docker ou WSL. O cluster foi deixado parado, sem OOM/restart, base vazia e seis roles preservadas.
 
+**Consumidores compartilhados na fonte `c619844`:** passaram os globs originais completos de cada pacote, em processos seriais: cliente HTTP **118/118**, UI **130/130** e mobile compartilhado **236/236**; zero falhas, cancelamentos ou skips. Node 24.19, heap 384 MiB, uma execução por vez, sem banco, navegador, emulador ou build nativo. Fontes e lockfile preservados. [Resultados, hashes e limites](evidencias/shared-consumer-units-2026-11-04.json). Não substituem testes dos três portais, da API inteira nem Android/iOS nativos.
+
 ## 1. Instruções permanentes do proprietário
 
 - Commits pequenos em Conventional Commits (`feat:`, `fix:`, `test:`, `docs:`), com push na `main` depois de cada incremento verificado.

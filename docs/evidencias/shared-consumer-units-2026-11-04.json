@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-11-04",
+  "kind": "shared-consumer-unit-regression",
+  "sourceCommit": "c61984480e9a466a86108c14ffe2c1ebc5fadf11",
+  "sourceCommitUrl": "https://github.com/helberjf/predioON/commit/c61984480e9a466a86108c14ffe2c1ebc5fadf11",
+  "startedUtc": "2026-11-04T03:48:31.245Z",
+  "endedUtc": "2026-11-04T03:48:52.361Z",
+  "executions": [
+    {
+      "package": "api-client",
+      "startedUtc": "2026-11-04T03:48:31.246Z",
+      "endedUtc": "2026-11-04T03:48:37.645Z",
+      "originalScript": "node --experimental-strip-types --test test/*.test.ts",
+      "args": [
+        "--max-old-space-size=384",
+        "--experimental-strip-types",
+        "--test",
+        "--test-reporter=tap",
+        "--test-concurrency=1",
+        "test/*.test.ts"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "spawnError": false,
+      "counts": {
+        "tests": 118,
+        "suites": 0,
+        "pass": 118,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 6255.6724
+      },
+      "logSha256": "d40b33755746fecac76bcebc3f2871ec788623052dcb5b1c9fa8298a09ffa575"
+    },
+    {
+      "package": "ui",
+      "startedUtc": "2026-11-04T03:48:37.647Z",
+      "endedUtc": "2026-11-04T03:48:42.987Z",
+      "originalScript": "node --experimental-strip-types --test test/*.test.ts",
+      "args": [
+        "--max-old-space-size=384",
+        "--experimental-strip-types",
+        "--test",
+        "--test-reporter=tap",
+        "--test-concurrency=1",
+        "test/*.test.ts"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "spawnError": false,
+      "counts": {
+        "tests": 130,
+        "suites": 2,
+        "pass": 130,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 5199.7103
+      },
+      "logSha256": "a1a789a151f01fdefbf9b2c065f0b3c45423ee9b3076b551cd3a6720e703f252"
+    },
+    {
+      "package": "mobile",
+      "startedUtc": "2026-11-04T03:48:42.989Z",
+      "endedUtc": "2026-11-04T03:48:52.307Z",
+      "originalScript": "node --experimental-strip-types --test test/*.test.ts",
+      "args": [
+        "--max-old-space-size=384",
+        "--experimental-strip-types",
+        "--test",
+        "--test-reporter=tap",
+        "--test-concurrency=1",
+        "test/*.test.ts"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "spawnError": false,
+      "counts": {
+        "tests": 236,
+        "suites": 0,
+        "pass": 236,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 9196.4756
+      },
+      "logSha256": "40f4234dbb02dd4dbc52be32e63bfe64f818bbe42a3e8242e45eef2f6dbb213c"
+    }
+  ],
+  "environment": {
+    "node": "v24.19.0",
+    "heapMiB": 384,
+    "testConcurrency": 1,
+    "serialPackageProcesses": true,
+    "osEnvironmentAllowlist": true,
+    "realDatabase": false,
+    "browser": false,
+    "emulator": false,
+    "nativeBuild": false
+  },
+  "sourceVerification": {
+    "gitNormalizedDiffAgainstExactSourcePassed": true,
+    "checkoutByteHashesRecorded": true,
+    "sourceHashesAfterMatch": true,
+    "sourceFreezeSha256": "fdab466e7abb855c583ae5435c18d374b58c4af3f6d95c52020e9be9110dc6a2",
+    "handoffSha256": "c13e75db9d942e1fc195a04bc8bd87cb3df1081e21cce884eb0d91e4c37df12c"
+  },
+  "preparationRefusal": {
+    "testsStarted": false,
+    "productFailure": false,
+    "cause": "Initial launcher compared checkout newline bytes to Git blob bytes; two files were LF-equivalent. Only the launcher was corrected; source bytes were preserved.",
+    "evidenceSha256": "9f48db6a12b29dff01ed4ed5cbc592783c20f730efe1dbc76143a6f430d0daa2"
+  },
+  "productCodeChanged": false,
+  "testsChanged": false,
+  "assertionsRelaxed": false,
+  "limits": [
+    "Three separate original package test globs; not a full application or product regression.",
+    "Shared mobile unit tests do not constitute Android/iOS native builds, device journeys or camera acceptance.",
+    "No current Playwright matrix, full API, physical-equipment or production acceptance."
+  ]
+}
