@@ -26,6 +26,8 @@ Atualizado em **04/11/2026**, horário de São Paulo. Leia este arquivo primeiro
 
 **Consumidores compartilhados na fonte `c619844`:** passaram os globs originais completos de cada pacote, em processos seriais: cliente HTTP **118/118**, UI **130/130** e mobile compartilhado **236/236**; zero falhas, cancelamentos ou skips. Node 24.19, heap 384 MiB, uma execução por vez, sem banco, navegador, emulador ou build nativo. Fontes e lockfile preservados. [Resultados, hashes e limites](evidencias/shared-consumer-units-2026-11-04.json). Não substituem testes dos três portais, da API inteira nem Android/iOS nativos.
 
+**Próxima implementação — MFA administrativa:** o [plano técnico revisado](superpowers/plans/2026-11-04-platform-admin-mfa.md) preserva decisões, arquivos, etapas, riscos de concorrência e testes a executar. Está **planejado, não implementado; nenhum RED desse recorte foi executado**. A proposta inclui sessão restrita, prova por família/geração do fator, autoridade por flag ou binding vigente, proteção HTTP/SSE e adaptação dos três portais/apps. O inventário de fixtures é estático, sem contagem de falhas. A migration068 é somente proposta: a fonte publicada continua em 001–067. Não confundir esse plano com a entrega da obrigatoriedade ou alterar a base existente para testá-lo.
+
 ## 1. Instruções permanentes do proprietário
 
 - Commits pequenos em Conventional Commits (`feat:`, `fix:`, `test:`, `docs:`), com push na `main` depois de cada incremento verificado.
