@@ -6,23 +6,31 @@ import { setTimeout as delay } from "node:timers/promises";
 import { after, afterEach, before, beforeEach, describe, it, mock } from "node:test";
 import { fileURLToPath } from "node:url";
 import { PgDialect } from "drizzle-orm/pg-core";
-import { telemetryTopic } from "@predioon/shared";
+import { gatewayStatusTopic, telemetryTopic } from "@predioon/shared";
 import { adminSession, sqlClient as owner } from "./fixtures/observation-admin.js";
 
 describe("SQL038 source producers are atomic, durable and transport-free", { concurrency: false }, () => {
   let database: typeof import("@predioon/db/ingest");
   let pipeline: typeof import("../src/pipeline/telemetry.js");
+  let gatewayStatus: typeof import("../src/pipeline/gateway-status.js");
   let offline: typeof import("../src/offline-sweeper.js");
   let configuration: typeof import("../src/config.js");
   let building: string, device: string, gateway: string;
   let fetchCalls = 0;
-  async function packet(metric = "water_level_percent", value: number | boolean | string = 1, time = new Date(), event = randomUUID()) {
-    return Buffer.from(JSON.stringify({ schemaVersion: 1, eventId: event, buildingId: building, deviceId: device, metric, value, quality: "GOOD", timestamp: time.toISOString() }));
+  async function packet(metric = "water_level_percent", value: number | boolean | string = 1, time = new Date(), event = randomUUID(), sourceDevice = device) {
+    return Buffer.from(JSON.stringify({ schemaVersion: 1, eventId: event, buildingId: building, deviceId: sourceDevice, metric, value, quality: "GOOD", timestamp: time.toISOString() }));
   }
-  async function ingest(raw: Buffer) { await pipeline.handleTelemetry(telemetryTopic(building, device), raw); }
-  async function rule(severity = "HIGH", metric = "water_level_percent") {
-    await owner`insert into alert_rules(building_id,device_id,name,metric,operator,threshold,severity,alert_type,message_template)
-      values(${building},${device},${randomUUID()},${metric},'LT',20,${severity}::alert_severity,'FIXTURE_RULE','Reading {value}')`;
+  async function ingest(raw: Buffer, sourceDevice = device) { await pipeline.handleTelemetry(telemetryTopic(building, sourceDevice), raw); }
+  function offlinePacket(sourceBuilding = building, sourceGateway = gateway) {
+    return Buffer.from(JSON.stringify({ schemaVersion: 1, buildingId: sourceBuilding, gatewayId: sourceGateway, state: "OFFLINE", timestamp: new Date().toISOString() }));
+  }
+  async function offlineStatus(raw = offlinePacket(), topicBuilding = building, topicGateway = gateway) {
+    await gatewayStatus.handleGatewayStatus(gatewayStatusTopic(topicBuilding, topicGateway), raw);
+  }
+  async function rule(severity = "HIGH", metric = "water_level_percent", sourceDevice: string | null = device, cooldownSeconds = 300): Promise<string> {
+    const [created] = await owner`insert into alert_rules(building_id,device_id,name,metric,operator,threshold,severity,alert_type,message_template,cooldown_seconds)
+      values(${building},${sourceDevice},${randomUUID()},${metric},'LT',20,${severity}::alert_severity,'FIXTURE_RULE','Reading {value}',${cooldownSeconds}) returning id`;
+    return created!.id as string;
   }
   async function counts() {
     return (await owner`select
@@ -68,9 +76,10 @@ describe("SQL038 source producers are atomic, durable and transport-free", { con
   // The database may be shared with later suites: restore their exact flags.
   let priorSources: Array<{ kind: string; id: string; enabled: boolean }> = [];
   before(async () => {
-    priorSources = [...await owner`select 'gateways' as kind,id,enabled from gateways union all select 'devices',id,enabled from devices`];
+    priorSources = [...await owner<typeof priorSources>`select 'gateways' as kind,id,enabled from gateways union all select 'devices',id,enabled from devices`];
     database = await import("@predioon/db/ingest");
     pipeline = await import("../src/pipeline/telemetry.js");
+    gatewayStatus = await import("../src/pipeline/gateway-status.js");
     offline = await import("../src/offline-sweeper.js");
     configuration = await import("../src/config.js");
     configuration.config.ALERT_WEBHOOK_URL = "https://must-not-call.example.invalid";
@@ -141,6 +150,70 @@ describe("SQL038 source producers are atomic, durable and transport-free", { con
       assert.deepEqual(await counts(), { dedup: 0, readings: 0, alerts: 0, events: 0, deliveries: 0 });
     });
   });
+  it("persists an OFFLINE status message and outbox despite a fresh gateway heartbeat", async () => {
+    const [before] = await owner`select last_seen_at,last_seen_at > clock_timestamp()-make_interval(secs=>${configuration.config.GATEWAY_OFFLINE_TIMEOUT_SECONDS}) as fresh from gateways where id=${gateway}`;
+    assert.equal(before!.fresh, true);
+    await offline.sweepOffline();
+    assert.deepEqual(await counts(), { dedup: 0, readings: 0, alerts: 0, events: 0, deliveries: 0 });
+    assert.equal((await owner`select status from gateways where id=${gateway}`)[0]!.status, "ONLINE");
+
+    await offlineStatus();
+    const [after] = await owner`select status,last_seen_at from gateways where id=${gateway}`;
+    assert.equal(after!.status, "OFFLINE");
+    assert.deepEqual(after!.last_seen_at, before!.last_seen_at, "a Last Will must not invent a newer heartbeat");
+    assert.deepEqual(await counts(), { dedup: 0, readings: 0, alerts: 1, events: 1, deliveries: 1 });
+    const [incident] = await owner`select a.gateway_id,a.device_id,a.type,a.severity,a.status,e.alert_id=a.id as own_source,d.status as delivery_status
+      from alerts a join outbox_events e on e.alert_id=a.id join event_deliveries d on d.event_id=e.id where a.building_id=${building}`;
+    assert.deepEqual({ ...incident }, { gateway_id: gateway, device_id: null, type: "COMMUNICATION_LOST", severity: "HIGH", status: "OPEN", own_source: true, delivery_status: "pending" });
+    assert.equal(fetchCalls, 0);
+  });
+  it("keeps one unresolved incident for concurrent and repeated OFFLINE status messages", async () => {
+    const raw = offlinePacket();
+    await Promise.all([offlineStatus(raw), offlineStatus(raw), offlineStatus(raw)]);
+    const first = await owner`select a.id,e.id as event_id,d.id as delivery_id from alerts a join outbox_events e on e.alert_id=a.id
+      join event_deliveries d on d.event_id=e.id where a.building_id=${building}`;
+    assert.equal(first.length, 1);
+    await offlineStatus(raw);
+    assert.deepEqual(await owner`select a.id,e.id as event_id,d.id as delivery_id from alerts a join outbox_events e on e.alert_id=a.id
+      join event_deliveries d on d.event_id=e.id where a.building_id=${building}`, first);
+    assert.equal((await owner`select status from gateways where id=${gateway}`)[0]!.status, "OFFLINE");
+    assert.deepEqual(await counts(), { dedup: 0, readings: 0, alerts: 1, events: 1, deliveries: 1 });
+    assert.equal(fetchCalls, 0);
+  });
+  it("rolls back a fresh gateway OFFLINE message when outbox persistence fails", async () => {
+    const before = await owner`select status,last_seen_at,updated_at from gateways where id=${gateway}`;
+    await trigger("outbox_events", "insert", "raise exception 'fixture crash before commit';", async () => {
+      await assert.rejects(offlineStatus(), beforeCommitFailure);
+      assert.deepEqual(await owner`select status,last_seen_at,updated_at from gateways where id=${gateway}`, before);
+      assert.deepEqual(await counts(), { dedup: 0, readings: 0, alerts: 0, events: 0, deliveries: 0 });
+      assert.equal(fetchCalls, 0);
+    });
+  });
+  it("does not apply an OFFLINE message across condominium or topic identities", async () => {
+    const foreignBuilding = `${building}_foreign`, foreignGateway = `${gateway}_foreign`;
+    await owner`insert into buildings(id,organization_id,name,code) select ${foreignBuilding},organization_id,'Other fixture',${foreignBuilding} from buildings where id=${building}`;
+    await owner`insert into gateways(id,building_id,name,serial_number,status,last_seen_at)
+      values(${foreignGateway},${foreignBuilding},'Other gateway',${foreignGateway},'ONLINE',clock_timestamp())`;
+    const before = await owner`select id,building_id,status,last_seen_at,updated_at from gateways where id in (${gateway},${foreignGateway}) order by id`;
+    // A real foreign source makes both routing negatives non-vacuous.
+    await offlineStatus(offlinePacket(foreignBuilding, foreignGateway));
+    // Topic and body agree, but this existing gateway belongs to another building.
+    await offlineStatus(offlinePacket(building, foreignGateway), building, foreignGateway);
+    assert.deepEqual(await owner`select id,building_id,status,last_seen_at,updated_at from gateways where id in (${gateway},${foreignGateway}) order by id`, before);
+    assert.equal((await owner`select count(*)::int as count from alerts where building_id in (${building},${foreignBuilding})`)[0]!.count, 0);
+    assert.equal((await owner`select count(*)::int as count from outbox_events where building_id in (${building},${foreignBuilding})`)[0]!.count, 0);
+    assert.deepEqual(await counts(), { dedup: 0, readings: 0, alerts: 0, events: 0, deliveries: 0 });
+    assert.equal(fetchCalls, 0);
+  });
+  for (const disabled of ["flag", "status"] as const) it(`ignores OFFLINE messages for a gateway disabled by ${disabled}`, async () => {
+    if (disabled === "flag") await owner`update gateways set enabled=false where id=${gateway}`;
+    else await owner`update gateways set status='DISABLED' where id=${gateway}`;
+    const before = await owner`select status,last_seen_at,updated_at,enabled from gateways where id=${gateway}`;
+    await offlineStatus();
+    assert.deepEqual(await owner`select status,last_seen_at,updated_at,enabled from gateways where id=${gateway}`, before);
+    assert.deepEqual(await counts(), { dedup: 0, readings: 0, alerts: 0, events: 0, deliveries: 0 });
+    assert.equal(fetchCalls, 0);
+  });
   for (const table of ["devices", "gateways"] as const) it(`does not ACK telemetry after a ${table} heartbeat trigger silently skips ONLINE`, async () => {
     await rule();
     await trigger(table, "update", "return null;", async () => {
@@ -206,6 +279,54 @@ describe("SQL038 source producers are atomic, durable and transport-free", { con
   it("serializes rule cooldown for concurrent accepted readings", async () => {
     await rule(); await Promise.all([ingest(await packet()), ingest(await packet())]);
     assert.deepEqual(await counts(), { dedup: 2, readings: 2, alerts: 1, events: 1, deliveries: 1 });
+  });
+  it("keeps a shared rule cooldown independent for each device", async () => {
+    const secondDevice = `${device}_second`;
+    await owner`insert into devices(id,building_id,gateway_id,name,type,status,last_seen_at)
+      values(${secondDevice},${building},${gateway},'Second sensor','WATER_LEVEL_SENSOR','ONLINE',clock_timestamp())`;
+    // One rule UUID with device_id NULL; separate per-device rules would hide the regression.
+    const ruleId = await rule("HIGH", "water_level_percent", null, 60);
+    const first = await packet();
+    await ingest(first);
+    // Sequential delivery is intentional: the first alert must be committed before B is checked.
+    await ingest(await packet("water_level_percent", 2, new Date(), randomUUID(), secondDevice), secondDevice);
+    assert.deepEqual(await counts(), { dedup: 2, readings: 2, alerts: 2, events: 2, deliveries: 2 });
+    const perDevice = await owner`select device_id,count(*)::int as count from alerts where building_id=${building} and rule_id=${ruleId} group by device_id order by device_id`;
+    assert.deepEqual(perDevice.map(row => ({ ...row })), [device, secondDevice].sort().map(id => ({ device_id: id, count: 1 })));
+
+    // Distinct event IDs prove cooldown suppression rather than receipt deduplication.
+    await ingest(await packet());
+    await ingest(await packet("water_level_percent", 3, new Date(), randomUUID(), secondDevice), secondDevice);
+    await ingest(first);
+    assert.deepEqual(await counts(), { dedup: 4, readings: 4, alerts: 2, events: 2, deliveries: 2 });
+    assert.equal(fetchCalls, 0);
+  });
+  it("uses alert processing time for cooldown when fresh-enough readings describe the recent past", async () => {
+    const ruleId = await rule("HIGH", "water_level_percent", device, 60);
+    const observedAt = new Date(Date.now() - 120_000);
+    await ingest(await packet("water_level_percent", 1, observedAt));
+    const [first] = await owner`select id,triggered_at,created_at from alerts where building_id=${building} and rule_id=${ruleId}`;
+    assert.ok(first, "the two-minute-old reading is within the unchanged five-minute freshness window");
+    assert.equal(new Date(first!.triggered_at).toISOString(), observedAt.toISOString());
+    assert.ok(new Date(first!.created_at).getTime() - new Date(first!.triggered_at).getTime() > 60_000);
+    await ingest(await packet("water_level_percent", 2, new Date(Date.now() - 110_000)));
+    assert.deepEqual(await counts(), { dedup: 2, readings: 2, alerts: 1, events: 1, deliveries: 1 });
+    assert.equal((await owner`select id from alerts where building_id=${building} and rule_id=${ruleId}`)[0]!.id, first!.id);
+    assert.equal(fetchCalls, 0);
+  });
+  it("allows a new alert after processing cooldown expires even when the prior observation is recent", async () => {
+    const ruleId = await rule("HIGH", "water_level_percent", device, 60);
+    await ingest(await packet());
+    // Only this fixture's source timestamp is arranged; no clock mock, sleep or immutable outbox mutation.
+    await owner`update alerts set created_at=clock_timestamp()-interval '2 minutes' where building_id=${building} and rule_id=${ruleId}`;
+    const [prior] = await owner`select id,created_at < clock_timestamp()-interval '1 minute' as expired,
+      triggered_at > clock_timestamp()-interval '1 minute' as observation_recent from alerts where building_id=${building} and rule_id=${ruleId}`;
+    assert.equal(prior!.expired, true);
+    assert.equal(prior!.observation_recent, true);
+    await ingest(await packet("water_level_percent", 2));
+    assert.deepEqual(await counts(), { dedup: 2, readings: 2, alerts: 2, events: 2, deliveries: 2 });
+    assert.equal((await owner`select count(*)::int as count from alerts where building_id=${building} and rule_id=${ruleId} and id<>${prior!.id}`)[0]!.count, 1);
+    assert.equal(fetchCalls, 0);
   });
   it("commits device OFFLINE plus exactly one communication alert/outbox under concurrent sweeps", async () => {
     await owner`update devices set last_seen_at=clock_timestamp()-interval '1 hour' where id=${device}`;
