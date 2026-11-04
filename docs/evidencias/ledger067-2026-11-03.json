@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-11-03",
+  "sourceCommit": "1769cafada71bd74c023a28cc0bd7498236c7dd7",
+  "baselineCommit": "dba63dc9478dc738bb035f1d75a626764f7fcd75",
+  "status": "sql067-ledger-regressions-reproduced-and-complete-scoped-suites-passed",
+  "sourceFiles": [
+    {
+      "path": "packages/db/test/backup-restore.test.ts",
+      "sha256LF": "563314fc37a106ba5644f3a92d71e9470a02c3c30df68d7f9553397b14b1842a",
+      "bytesLF": 39500
+    },
+    {
+      "path": "packages/db/test/notification-delivery.test.ts",
+      "sha256LF": "a20b3b01d2c3d978522c7416af8c3cd5dd625e9a4afd6c138fecad3c76951b6e",
+      "bytesLF": 48475
+    }
+  ],
+  "change": {
+    "previousExpectedMigrations": 62,
+    "expectedMigrations": 67,
+    "onlyTwoExpectationsAndOneDiagnosticLabelChanged": true,
+    "publishedMigrationsChanged": false,
+    "productionCodeChanged": false,
+    "allOtherTestAssertionsPreserved": true
+  },
+  "tests": {
+    "redNotification": {
+      "tests": 1,
+      "suites": 1,
+      "pass": 0,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 6627.4112,
+      "logSha256": "3b5e60aae3aba600d5516ea3747428ec80e40acc293637835df161f7a3b440ad"
+    },
+    "redBackup": {
+      "tests": 2,
+      "suites": 0,
+      "pass": 0,
+      "fail": 2,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 12259.2156,
+      "logSha256": "87362d96954504ff2b94b58974a98e171bab91b6a83be30b305c747d62bd66a1"
+    },
+    "notification": {
+      "tests": 54,
+      "suites": 1,
+      "pass": 54,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 20695.3983,
+      "logSha256": "ff57ff2fd32372ff2331778a87afa4617b4a29cf5b20c3ce524985803650be0e"
+    },
+    "backup": {
+      "tests": 2,
+      "suites": 0,
+      "pass": 2,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 65229.5682,
+      "logSha256": "5d4804aa877da42079d3cb4559829d813a56774fb072c7f4197a24c6162c4132",
+      "publicTablesPerMode": 68,
+      "migrationsPerMode": 67,
+      "modes": [
+        "same-cluster",
+        "independent-physical-cluster"
+      ]
+    },
+    "dbTypecheck": {
+      "passed": true,
+      "logSha256": "060439de9fa1ad94ddf45c7bc26ad2fa9b0bf8a9c6a1136b1840f777d8691054"
+    },
+    "boundaries": {
+      "passed": true,
+      "logSha256": "926ac0e81288549017f73bbd28e1a4c3e8854ff667e10d456839536711c2a0b6"
+    }
+  },
+  "runtime": {
+    "node": "v24.19.0",
+    "pnpm": "10.17.1",
+    "image": "timescale/timescaledb:2.17.2-pg16",
+    "imageId": "sha256:4e459e217f00cbb09920c34d245501e63427e6767a495de57ce76823ff280f12",
+    "ports": [
+      5468,
+      5469
+    ],
+    "memoryLimitMiBPerCluster": 384,
+    "cpuLimitPerCluster": 1,
+    "nodeHeapLimitMiB": 256,
+    "clustersCreatedExclusivelyForThisRun": true
+  },
+  "postchecks": {
+    "recordedOn": "2026-11-03",
+    "independentPhysicalClustersVerified": true,
+    "temporaryDatabasesRemoved": true,
+    "baseDatabasesRemainEmpty": true,
+    "sourceRestrictedRoles": 6,
+    "targetRestrictedRolesAfterCleanup": 0,
+    "unsafeRuntimeRoleFlags": 0,
+    "containersOomKilled": false,
+    "memoryLimitMiBPerCluster": 384,
+    "computerRestarted": false,
+    "productionAccepted": false
+  },
+  "productionAccepted": false,
+  "nativeAppsAccepted": false,
+  "fullApiRegressionRun": false,
+  "browserRegressionRun": false,
+  "limits": [
+    "This validates complete notification and recovery suites only; it is not the complete DB/API/ingestion/browser/native matrix.",
+    "Tests execute real migrations, dump/restore, data checks, ACL/RLS and six restricted runtime roles; no published migration or runtime authorization was relaxed.",
+    "The API, browser, Vercel/Neon deployment and physical equipment were not tested by this increment."
+  ]
+}

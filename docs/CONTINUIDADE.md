@@ -1,10 +1,14 @@
 # Continuidade do Prédio ON
 
-Atualizado em **25/10/2026**, horário de São Paulo. Leia este arquivo primeiro ao retomar, em qualquer computador. O histórico anterior está em [continuidade/historico-ate-2026-10-17.md](continuidade/historico-ate-2026-10-17.md); a entrega de entrada pública, testes e VPS está em [VERIFICACAO_2026-10-24.md](VERIFICACAO_2026-10-24.md). A demonstração publicada está em [VERCEL_NEON.md](VERCEL_NEON.md).
+Atualizado em **03/11/2026**, horário de São Paulo. Leia este arquivo primeiro ao retomar, em qualquer computador. A [retomada de 03/11](RETOMADA_2026-11-03.md) registra a comparação com o GitHub, os rascunhos preservados e a ordem de validação. O histórico anterior está em [continuidade/historico-ate-2026-10-17.md](continuidade/historico-ate-2026-10-17.md); a entrega de entrada pública, testes e VPS está em [VERIFICACAO_2026-10-24.md](VERIFICACAO_2026-10-24.md).
 
-**Situação:** demonstração web publicada na Vercel com banco novo no Neon e os três logins verificados com Playwright. A implantação completa da VPS e o aceite de produção continuam pendentes. Base da rodada de 24/10: **main `c53117d6`**, migrations atuais **001–059** (a 059 é a abertura pelo QR do totem). Planos/assinaturas ficaram por último, por decisão do proprietário, e não foram feitos.
+**Base recebida nesta retomada:** a `main` do GitHub foi consultada e a cópia local avançou de `456df8f` para **`dba63dc9478dc738bb035f1d75a626764f7fcd75`**, de 30/10/2026. Foram incorporados **136 commits**, com **606 arquivos diferentes** entre as duas bases. A árvore atual contém migrations **001–067**. Esses números descrevem o código obtido; não são resultados de testes novos. A implantação completa da VPS e o aceite de produção continuam pendentes.
 
-**Demonstração de 25/10:** `predioon-admin.vercel.app`, `predioon-sindico.vercel.app`, `predioon-morador.vercel.app` e API `predioon-api.vercel.app`. Banco `predioon-demo-db`, Neon `bold-leaf-99201114`, São Paulo, somente dados fictícios. Usar explicitamente `db:infra --provider=neon-demo` e provisionamento `--api-only`; nunca reaplicar seed. O perfil conserva as proteções de runtime, tem checksums próprios e não executa o agendador Timescale nem os workers permanentes. [Evidência dos logins, refresh e logout](evidencias/vercel-neon-2026-10-25.json).
+**Primeiro incremento publicado:** `1769caf` corrige somente as expectativas de ledger dos testes, de **62 para 67**. O RED real falhou no caso dirigido de notificações e nos dois restores. Depois da correção, **notificações 54/54** e **restauração 2/2** passaram, com **68 tabelas, 67 migrations**, dados, ACL/RLS e seis roles conferidos; tipos DB e fronteiras passaram. [Fonte, hashes e resultados](evidencias/ledger067-2026-11-03.json). Essas execuções não aprovam a API, Playwright ou apps atuais. Próxima etapa: módulos recentes de reservas/eventos, alertas e integração PostgreSQL da ingestão; depois regressão atual dos consumidores.
+
+**Preservação e CI:** os 12 rascunhos antigos foram guardados em backup local manifestado e stash seletivo antes do avanço da `main`, sem reaplicação. SQL040 e seu teste ACL já são idênticos aos publicados. O [run de plataforma 41106369658](https://github.com/helberjf/predioON/actions/runs/41106369658), da fonte `dba63dc`, consta como `startup_failure` nos metadados consultados; não valida as suítes. Os cinco vídeos existem, mas foram gravados em **18/10**, antes das mudanças atuais. [Detalhes, limites e próximos passos](RETOMADA_2026-11-03.md).
+
+**Histórico da demonstração de 25/10:** `predioon-admin.vercel.app`, `predioon-sindico.vercel.app`, `predioon-morador.vercel.app` e API `predioon-api.vercel.app`. Os três logins foram verificados naquela rodada com Playwright; não foram revalidados nesta retomada. A rodada de 24/10 partia de `c53117d6`, com migrations 001–059. Banco `predioon-demo-db`, Neon `bold-leaf-99201114`, São Paulo, somente dados fictícios. Usar explicitamente `db:infra --provider=neon-demo` e provisionamento `--api-only`; nunca reaplicar seed. O perfil conserva as proteções de runtime, tem checksums próprios e não executa o agendador Timescale nem os workers permanentes. [Evidência histórica dos logins, refresh e logout](evidencias/vercel-neon-2026-10-25.json).
 
 ## 1. Instruções permanentes do proprietário
 
@@ -12,17 +16,17 @@ Atualizado em **25/10/2026**, horário de São Paulo. Leia este arquivo primeiro
 - Rodar os testes de banco, API, ingestão, clientes, Playwright e nativos apropriados. **Nunca** desativar proteções nem enfraquecer asserções para aprovar.
 - **Não reiniciar o computador.** Esta máquina tem 16 GB e pouca memória livre: carga excessiva já coincidiu com um reinício. Ver a seção 5.
 - Nunca rodar seed/reset numa instalação existente. A demonstração 037 fica intacta.
-- Nunca repetir automaticamente comandos de acesso físico; sem fallback para a conexão owner; não editar as migrations 001–051 já publicadas.
+- Nunca repetir automaticamente comandos de acesso físico; sem fallback para a conexão owner; não editar migrations já publicadas (a base atual contém 001–067). Correções de dados ou DDL exigem uma nova migration revisada.
 - Não contornar o bloqueio salvo da galeria 8765.
 - Sugestões vão para [MELHORIAS_E_EVOLUCOES.md](MELHORIAS_E_EVOLUCOES.md). Imagens conferidas entram nos commits, com origem e limites, via [IMAGENS_DOS_SISTEMAS.md](IMAGENS_DOS_SISTEMAS.md).
-- Ao terminar: abrir os três portais e os apps Morador/Operação e entregar cinco gravações separadas com dados fictícios. **Entregues em 18/10:** [docs/videos](videos/README.md).
+- Ao terminar: abrir os três portais e os apps Morador/Operação e entregar cinco gravações separadas com dados fictícios. **Gravações existentes de 18/10:** [docs/videos](videos/README.md); elas não demonstram as funcionalidades acrescentadas depois dessa data.
 
 ## 2. O que existe
 
 | Parte | O que faz | Referência |
 | --- | --- | --- |
 | Portal da administração | Carteira de condomínios e clientes, gateways e equipamentos, funcionalidades, usuários, acesso de suporte, auditoria, **saúde dos serviços** (058) | [FUNCIONALIDADES.md](FUNCIONALIDADES.md) |
-| Portal do síndico | Água, energia, sensores, alertas, ocorrências, avisos, áreas e reservas, portões e vagas (desligados por padrão), **totem do QR do portão** (adicional, 059), transparência, ordens de serviço, ativos, **automações por alerta e programadas** (045/057), unidades/equipes/permissões, convites, acesso de suporte | [GESTAO_TRANSPARENTE.md](GESTAO_TRANSPARENTE.md), [ORDENS_DE_SERVICO.md](ORDENS_DE_SERVICO.md), [ATIVOS.md](ATIVOS.md), [AUTOMACOES.md](AUTOMACOES.md) |
+| Portal do síndico | Água, energia, sensores, alertas e regras padrão (066), ocorrências, avisos, áreas e reservas com limites mensais e cancelamento pela gestão (064/067), eventos com presença (064), portões e vagas (desligados por padrão), **totem do QR do portão** (adicional, 059), transparência, ordens de serviço, ativos, **automações por alerta e programadas** (045/057), unidades/equipes/permissões, convites, acesso de suporte | [GESTAO_TRANSPARENTE.md](GESTAO_TRANSPARENTE.md), [ORDENS_DE_SERVICO.md](ORDENS_DE_SERVICO.md), [ATIVOS.md](ATIVOS.md), [AUTOMACOES.md](AUTOMACOES.md) |
 | Portal do morador | Avisos, ocorrências, reservas, transparência, acessos e vagas, consumo liberado pelo síndico, perfil e sessões, convite | [CONSUMO_E_ANALISE.md](CONSUMO_E_ANALISE.md) |
 | App Morador (React Native) | Avisos, solicitações, reservas, transparência, acessos com **leitura do QR do totem** (059), consumo, troca e recuperação de senha, MFA na entrada, **aceite de convite** | [packages/mobile/README.md](../packages/mobile/README.md) |
 | App Operação (React Native) | Resumo, alertas, sensores, ordens de serviço com distribuição | idem |
@@ -37,13 +41,17 @@ Atualizado em **25/10/2026**, horário de São Paulo. Leia este arquivo primeiro
 | Etapa | Estado |
 | --- | --- |
 | 1. Contratos e cliente HTTP | Concluída |
-| 2. Identidade e RBAC | Concluída: capacidades em todos os módulos (2B.3, 054), gestão web integrada (2B.4), convites, MFA, recuperação e confirmação recente (2C, 055). **Decisão do proprietário:** tornar a MFA obrigatória para a administração da plataforma (exige cadastro forçado no primeiro acesso). |
+| 2. Identidade e RBAC | Fundação e módulos implementados: capacidades (2B.3, 054), gestão web integrada (2B.4), convites, MFA, recuperação e confirmação recente (2C, 055). **Pendência da decisão já registrada do proprietário:** tornar a MFA obrigatória para a administração da plataforma, com cadastro forçado no primeiro acesso. A MFA opcional existente não cumpre essa exigência. |
 | 3. Processamento durável | Outbox e worker de notificações (038), ingestão sem owner (052), garantias de telemetria (048). A fila separada da inbox foi adiada conscientemente ([INBOX_DECISOES.md](INBOX_DECISOES.md)). |
 | 4. Domínios | Ativos (044), ordens de serviço (043), automações por alerta e programadas (045/057), suporte com concessão explícita (053). **Planos/assinaturas: não iniciado**, por decisão. |
-| 5. Apps | Funcionais e testados (224 testes); jornadas Android aprovadas em CI até o bloqueio da conta; percorridos no emulador em 18/10 (vídeos), sem avisos Fabric no logcat. Caminho iOS preparado em 18/10: EAS Build/Submit sem Expo SDK e `scripts/ios-mac/verify.sh` para um Mac emprestado. **Pendentes:** primeiro build iOS assinado, iOS autenticado e homologação em aparelhos. |
+| 5. Apps | Implementados, com testes e jornadas nas rodadas históricas abaixo; percorridos no emulador em 18/10 (vídeos), sem avisos Fabric naquele logcat. Esses resultados não aprovam as mudanças posteriores da base atual. Caminho iOS preparado: EAS Build/Submit sem Expo SDK e `scripts/ios-mac/verify.sh` para um Mac emprestado. **Pendentes:** regressão atual, build Android com câmera, primeiro build iOS assinado, iOS autenticado e homologação em aparelhos. |
 | 6. Implantação e operação | Artefatos prontos e ensaiados localmente (Compose, healthchecks, backup/restauração, retenção, saúde dos serviços). **Sem implantação real.** |
 
-## 4. Últimas releases (17/10)
+## 4. Histórico de releases e validações
+
+Os resultados desta seção pertencem às datas e fontes indicadas. Não constituem uma nova execução em `dba63dc`.
+
+**Releases de 17/10:**
 
 | Release | Commit | Resumo |
 | --- | --- | --- |
@@ -68,7 +76,9 @@ Atualizado em **25/10/2026**, horário de São Paulo. Leia este arquivo primeiro
 | `a2e1f50` | `scripts/ios-mac/verify.sh`: pré-requisitos, testes, simulador, iPhone por cabo (`--device`), TestFlight (`--testflight`) e relatório. Passa no shellcheck, **ainda não rodou num Mac** ([guia](../scripts/ios-mac/README.md)) |
 | `949fc2f` | Playwright por área em `e2e/specs/`, banco próprio (`pnpm e2e:db`), `@smoke` que abre todas as páginas dos portais, gravador (`pnpm e2e:record`), specs novas de funcionalidades e de água/segurança, agentes de teste para o Claude Code ([guia](../e2e/README.md)) |
 
-**Provas da última rodada (HEAD, clusters novos):** banco 301/303 (2 skips de backup, cobertos pelo teste próprio), api-client 118/118, UI 108/108, mobile 224/224, API 827/827, ingestão 204/204; SQL052 73/73; serviços restritos 114/114; restauração 2/2 três vezes; ingestão real com broker 12/12; Playwright Chromium completo 117/117. [Evidência](evidencias/releases-055-058-2026-10-17.json).
+**Provas históricas da rodada de 17/10, em clusters próprios:** banco 301/303 (2 skips de backup, cobertos pelo teste próprio), api-client 118/118, UI 108/108, mobile 224/224, API 827/827, ingestão 204/204; SQL052 73/73; serviços restritos 114/114; restauração 2/2 três vezes; ingestão real com broker 12/12; Playwright Chromium completo 117/117. [Evidência](evidencias/releases-055-058-2026-10-17.json).
+
+**Mudanças posteriores presentes na base de 30/10:** limites de reservas e eventos (064), responsável nominal de ordens de serviço (065), regras padrão de alertas (066), padrão mensal por apartamento (067), cancelamento de reserva pela gestão, correções de desconexão/cooldown por sensor e ajustes das apresentações web. A [auditoria de 28/10](CORRECOES_AUDITORIA_2026-10-28.md) registra tipos/build da ingestão e nove testes MQTT, sem integração PostgreSQL naquela rodada. Conferir os testes apropriados dessas mudanças antes de afirmar nova aprovação integral.
 
 ## 5. Como retomar e testar nesta máquina
 
@@ -89,7 +99,7 @@ pnpm e2e:db up        # banco descartável próprio em 127.0.0.1:5446
 pnpm test:e2e:chromium   # encerre o pnpm dev antes
 ```
 
-A sequência do job de plataforma, as flags das suítes SQL038/SQL052 e os clusters próprios de backup estão em `.github/workflows/ci.yml` e [BACKUP_E_RESTAURACAO.md](BACKUP_E_RESTAURACAO.md). Firefox não está instalado e o WebKit é bloqueado pelo AppControl nesta máquina. O CI do GitHub termina em `startup_failure` desde outubro por cobrança da conta; só o proprietário resolve.
+A sequência do job de plataforma, as flags das suítes SQL038/SQL052 e os clusters próprios de backup estão em `.github/workflows/ci.yml` e [BACKUP_E_RESTAURACAO.md](BACKUP_E_RESTAURACAO.md). A ausência do Firefox e o bloqueio do WebKit por AppControl são limitações registradas nas rodadas anteriores; conferir a disponibilidade atual antes de iniciar a matriz. O bloqueio de cobrança do GitHub foi registrado em outubro. Na consulta de 03/11, o run `41106369658` da base `dba63dc` está em `startup_failure`; esse metadado, sozinho, não estabelece a causa atual nem aprova testes.
 
 **Vídeos de demonstração:** `node scripts/record-portal-videos.mjs <pasta>` (portais, com servidores do Playwright via `pnpm exec playwright test -c playwright.videos.config.ts`) e `python scripts/record-app-video.py resident|operations <arquivo.mp4>` (emulador, salva também o logcat para conferir avisos Fabric).
 
@@ -99,16 +109,18 @@ A sequência do job de plataforma, as flags das suítes SQL038/SQL052 e os clust
 
 **Depende do proprietário:**
 
-- Liberar a cobrança do GitHub Actions (CI bloqueado).
+- Resolver o acesso a runners do GitHub Actions, incluindo a pendência de cobrança registrada anteriormente; o run atual terminou em `startup_failure`, sem aceite de CI.
 - Implantação real: VPS, domínio, TLS, chave do Resend e remetente, `MFA_ENCRYPTION_KEY`, segredos do Compose ([DEPLOY.md](DEPLOY.md)).
 - Hardware real (gateways, sensores, portões) e homologação em condomínio.
 - iOS: conta no Apple Developer Program e conta Expo para o primeiro build EAS assinado e o TestFlight; ou um Mac emprestado para rodar `scripts/ios-mac/verify.sh`.
-- Decidir: MFA obrigatória para a plataforma; prazo de retenção das leituras (sugestão de 24 meses).
+- Implementar e validar a MFA obrigatória da plataforma, conforme a decisão já registrada; decidir o prazo de retenção das leituras (sugestão histórica de 24 meses).
 - Planos/assinaturas (deixados por último).
 
 **Técnico, nesta máquina:**
 
+- Ledger 067 corrigido em `1769caf`: RED preservado; notificações 54/54 e restores 2/2 passaram, com dados, ACL/RLS, seis roles e cleanup conferidos. Manter esses ensaios na regressão; não restaurar os testes antigos de 040.
 - Rodar a suíte Playwright reorganizada por inteiro (`pnpm test:e2e:chromium`, depois Firefox), incluindo o `@smoke` e as specs novas, e registrar o resultado.
+- Revalidar as mudanças de 26–30/10, especialmente reservas/eventos e a integração PostgreSQL da ingestão; manter separados os resultados dirigidos e integrais.
 - Ensaio de carga com a ingestão real (MQTT mensagem a mensagem).
 - Teste intermitente conhecido: `password-recovery.test.ts` → "keeps two-step verification in place after a reset" falhou 1 vez na integral de 18/10 (a ativação da MFA não devolveu a chave) e passou 3/3 isolado; mesmo sintoma de limite de requisições compartilhado já visto antes. Investigar sem afrouxar o limite.
 - Avisos Fabric: não se repetiram em quatro execuções no emulador em 18/10; a causa dos registros de outubro no CI segue sem demonstração.
