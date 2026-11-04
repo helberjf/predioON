@@ -473,3 +473,7 @@ O ponto corrente está na [continuidade](../../CONTINUIDADE.md), sem rascunhos d
 ### Preparação nativa de 04/11
 
 `b259f80` corrige duas conexões ausentes em seis workflows Android e no gerador iOS autenticado. Parser original RED/GREEN dos sete ambientes, gerador em mocks e actionlint aprovados, com revisão independente. [Prova](../../evidencias/native-ci-runtime-env-2026-11-04.json). Não houve build nativo, conexãoDB ou aceite remoto; metadados pontuaisqueued/startup_failure com zero check runs não estabelecem causa. Fontes da API/consumidores permanecem idênticas ao baseline de tipos/builds; mudança restrita aos sete YAML.
+
+## 04/11: bloqueio de conta identificado no GitHub
+
+O [resumo do run 41842973688](https://github.com/helberjf/predioON/actions/runs/41842973688), fonte b259f80, informa que o job não iniciou por pagamentos recentes que falharam ou limite de gastos insuficiente. [Registro da leitura autenticada](../../evidencias/ci-account-blocker-2026-11-04.json). A causa entre essas duas alternativas não está discriminada; nenhuma cobrança/configuração foi alterada. O diagnóstico anterior pela API permanece histórico. CI, builds nativos e testes remotos seguem sem aceite atual.

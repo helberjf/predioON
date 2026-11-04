@@ -1,5 +1,7 @@
 # Melhorias e novas implementações — Prédio ON
 
+**Atualização de CI em 04/11:** o resumo autenticado do run 41842973688 confirmou bloqueio de conta por pagamento recente que falhou ou limite de gastos insuficiente. [Evidência e limites](evidencias/ci-account-blocker-2026-11-04.json). Regularizar a condição da conta e então validar uma execução nova; o motivo exato entre as duas alternativas não foi detalhado pelo GitHub. Nenhuma cobrança ou configuração foi alterada.
+
 Revisão: 04/11/2026. Documento vivo de priorização; não é uma declaração de conclusão nem substitui o [PRD](PRD.md), o [TDD](TDD.md) e o [plano de execução](superpowers/plans/2026-09-27-product-execution.md).
 
 **Situação atual — consolidação de 04/11, migrations 001–067:** 2B.3 e 2B.4 já estão implementadas, com o fechamento de contas/vínculos na 054; ingestão restrita na 052, ativos/ordens e automações, suporte e saúde dos serviços também estão presentes. Não reiniciar esses itens a partir das anotações históricas. MFA opcional e confirmação recente existem, mas **MFA obrigatória da administração da plataforma, com cadastro forçado no primeiro acesso, segue pendente conforme decisão do proprietário**.

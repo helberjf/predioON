@@ -1,0 +1,25 @@
+{
+  "kind": "github-actions-authenticated-ui-observation",
+  "recordedAt": "2026-11-04T15:25:07.993490+00:00",
+  "observedLocalHead": "b7274789cf1a46df97de4b1b36fda40559654ff3",
+  "runId": 41842973688,
+  "runUrl": "https://github.com/helberjf/predioON/actions/runs/41842973688",
+  "sourceCommit": "b259f80b158aff08f255a83f9d8ae551289d5fcf",
+  "method": "Read-only authenticated Edge browser summary via computer-use accessibility tree",
+  "displayedStatus": "Startup failure",
+  "annotationCount": 1,
+  "annotationText": "The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings.",
+  "conclusion": "GitHub explicitly reports an account billing or spending-limit blocker before jobs start.",
+  "limits": [
+    "The message does not distinguish failed payments from an insufficient spending limit.",
+    "No billing pages, amounts, payment methods or account settings were inspected or changed.",
+    "No workflow was dispatched or rerun; no tests or native builds executed in this run.",
+    "This finding applies to this exact run; it does not diagnose all historical startup failures.",
+    "The earlier API-only investigation is retained with its original observation time and uncertainty."
+  ],
+  "priorEvidence": "ci-startup-investigation-2026-11-04.json",
+  "settingsChanged": false,
+  "paymentAction": false,
+  "testExecution": false,
+  "reboot": false
+}
