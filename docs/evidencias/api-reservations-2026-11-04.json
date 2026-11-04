@@ -1,0 +1,174 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-11-04",
+  "kind": "directed-api-reservations-evidence",
+  "sourceCommit": "39c434f8d9206e8b3071c185f3dca7b16d79fe5e",
+  "sourceCommitUrl": "https://github.com/helberjf/predioON/commit/39c434f8d9206e8b3071c185f3dca7b16d79fe5e",
+  "startedUtc": "2026-11-04T03:22:19.733Z",
+  "endedUtc": "2026-11-04T03:25:12.945Z",
+  "sourceFiles": [
+    {
+      "path": "apps/api/test/reservation-limits-events.test.ts",
+      "sha256": "3fc2707414b5e505a0669e180b970789edbe7123cdcdd8e25c2387b2c5e1d4f1"
+    },
+    {
+      "path": "apps/api/test/common-areas-capabilities.test.ts",
+      "sha256": "e6da57bcaa20f5eecf21a1bcb1e9e35a0c5eac8836403bc0ada80997a36dff14"
+    },
+    {
+      "path": "apps/api/test/reservations-capabilities.test.ts",
+      "sha256": "a07d3e29d7f90bd5c419c85294b121d95e572fb1e5529ce35a8d1bb8ad9d4ebd"
+    },
+    {
+      "path": "apps/api/test/reservations-privacy.test.ts",
+      "sha256": "e69538d5a5d4fb49911453a72c331fc05624d213c22ba7f065f720c1189e0c61"
+    }
+  ],
+  "executions": [
+    {
+      "suite": "reservation-limits-events",
+      "counts": {
+        "tests": 8,
+        "suites": 1,
+        "pass": 8,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 29319.7433
+      },
+      "exitCode": 0,
+      "log": {
+        "id": "test-reservation-limits-events.log",
+        "sha256": "ab01ee98d6ca207e23975d1b09450aebdd883fc20a9fd48db065691ac701e21d"
+      }
+    },
+    {
+      "suite": "common-areas-capabilities",
+      "counts": {
+        "tests": 17,
+        "suites": 1,
+        "pass": 17,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 33872.3825
+      },
+      "exitCode": 0,
+      "log": {
+        "id": "test-common-areas-capabilities.log",
+        "sha256": "593b6f837f4f7bf8c94f6c654ddea9847134dca4ea4e2a9169f40044298ee420"
+      }
+    },
+    {
+      "suite": "reservations-capabilities",
+      "counts": {
+        "tests": 15,
+        "suites": 1,
+        "pass": 15,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 54949.2772
+      },
+      "exitCode": 0,
+      "log": {
+        "id": "test-reservations-capabilities.log",
+        "sha256": "d00c79330c950436630cb84f701243c268e888c7303e3aea38d37c735043a8f2"
+      }
+    },
+    {
+      "suite": "reservations-privacy",
+      "counts": {
+        "tests": 7,
+        "suites": 1,
+        "pass": 7,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 36884.5435
+      },
+      "exitCode": 0,
+      "log": {
+        "id": "test-reservations-privacy.log",
+        "sha256": "b23e513760e5ef0fe1260a1b870e2d9a8c62937366453851d86a8f2ace2e700d"
+      }
+    }
+  ],
+  "observedTotalCases": 47,
+  "totalMeaning": "Sum of four serial original test-file executions; not the full API suite",
+  "environment": {
+    "canonicalMigrations": 67,
+    "oneFreshUuidDatabase": true,
+    "bootstrapAndMigrationFixture": "packages/db/test/fixtures/runtime-services.ts",
+    "provisioner": "packages/db/src/provision-runtime-roles.ts",
+    "seed": "packages/db/src/seed.ts",
+    "seedPhysicalFeatures": "enabled only in the new disposable database",
+    "fictitiousSeed": true,
+    "sevenDatabaseUrlsSameDatabase": true,
+    "freshSixRolePasswords": true,
+    "nodeEnv": "test",
+    "RUN_ACCESS_DB_TESTS": "1",
+    "RUN_RBAC_DB_TESTS": "1",
+    "parentHeapMiB": 256,
+    "childHeapMiB": 384,
+    "workers": 1,
+    "minimumFreeMemoryGuardMiB": 1536,
+    "freeMiBAtStart": 2737,
+    "clusterMemoryLimitMiB": 384,
+    "clusterCpuLimit": 1,
+    "loopbackOnly": true,
+    "rootAttestedContainerAndSystemIdentifier": true,
+    "administrativeFixtureUsesOwner": true,
+    "apiRuntimeUsesRestrictedConnections": true,
+    "dotEnvAbsent": true
+  },
+  "postchecks": {
+    "sourceHashesAfterMatch": true,
+    "officialFixtureCleanupPassed": true,
+    "roleAttributesAndPrivateCredentialsRestoredByInMemoryEquality": true,
+    "roleSettingsRestored": true,
+    "restrictedRoles": 6,
+    "basePublicTables": 0,
+    "temporaryDatabases": 0,
+    "otherDatabases": 0,
+    "containerIdentityAndLimitsMatch": true,
+    "containerOomKilled": false,
+    "containerRestarted": false,
+    "computerRestarted": false
+  },
+  "artifacts": [
+    {
+      "id": "handoff-api-reservations-20261104.json",
+      "sha256": "b1aacbb7d6bf3577786e8fab27a31c4c844194b7fd921a8f72b13fc86129bf72"
+    },
+    {
+      "id": "api-reservations-result.json",
+      "sha256": "f8e5d1f5ccd2bad58384238cac94bba1efed4544522d958a84a61c8c98b7d9b8"
+    },
+    {
+      "id": "api-reservations-postchecks.json",
+      "sha256": "75b83bccc9ce2e830a54c29c21ffb080f489ffc31442e3ac1100544a3f345a72"
+    },
+    {
+      "id": "launch-api-reservations.ps1",
+      "sha256": "7d519db466c2d0993ce265c370f8b2a8c144bb53532a4c02f9f867b7ec016324"
+    },
+    {
+      "id": "run-api-reservations.mjs",
+      "sha256": "fad81cee899065c69a52c2583f07b5772786e9d754d98177b8c2ab78af8acbde"
+    }
+  ],
+  "productCodeChanged": false,
+  "testsChanged": false,
+  "assertionsRelaxed": false,
+  "privateCredentialsOrSnapshotsPublished": false,
+  "limits": [
+    "Directed HTTP/PostgreSQL evidence for four original reservation/common-area test files, not the entire API suite or exhaustive acceptance of releases 064–067.",
+    "No browser, native-camera, Apple-distribution, physical-equipment or production acceptance.",
+    "Source inventories and sanitized raw logs remain local evidence identified by hashes; this public summary contains no private paths or credentials."
+  ]
+}

@@ -1,0 +1,268 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-11-04",
+  "kind": "directed-ingestion-regression-evidence",
+  "sourceCommit": "39c434f8d9206e8b3071c185f3dca7b16d79fe5e",
+  "sourceCommitUrl": "https://github.com/helberjf/predioON/commit/39c434f8d9206e8b3071c185f3dca7b16d79fe5e",
+  "source": {
+    "path": "services/ingest/test/outbox-producers.integration.test.ts",
+    "sha256": "bf9c9893e114f61d72847ac2f380a48f2cdab6ec3f3ce97b2bec7fd83f9ef1c6",
+    "additionalCases": 9,
+    "productCodeChanged": false,
+    "sqlChanged": false,
+    "dependenciesChanged": false,
+    "wrapperChanged": false
+  },
+  "scope": [
+    "OFFLINE handler with recent heartbeat, repeated and concurrent messages, atomic outbox rollback",
+    "Existing foreign building/topic negatives and disabled gateway variants",
+    "One shared NULL-device rule with independent per-device cooldown",
+    "Processing time versus observation time for cooldown suppression and expiry"
+  ],
+  "green": {
+    "executedSourceSha256": "db55fbc38143f400b7df42ab63155b47d1976c2a3d43feaf2093be2df4ada2be",
+    "baselineCommit": "a99d92c4248c2dc5140004ebc710245c27b96df6",
+    "counts": {
+      "tests": 49,
+      "suites": 1,
+      "pass": 49,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 13916.5302
+    },
+    "exitCode": 0,
+    "logSha256": "b94514b38d505d4dd2b36927098cd768e6bfa81cddfc42a43cfc15c413eec728",
+    "resultSha256": "64a35564a5353ce00ea3f4ea3a0a9afc2329c6ab4bf2d1d9c1e2e25d24743a75",
+    "logId": "green-outbox-2.log"
+  },
+  "typeOnlyV2": {
+    "annotation": "owner<typeof priorSources>",
+    "esbuildVersion": "0.18.20",
+    "transpiledJavaScriptIdentical": true,
+    "transpiledSha256": "dd15ab153d1680c4487afb84d098ebeb0634ba6a0260a3f07b3598dd861df1d9",
+    "sourceV1Sha256": "db55fbc38143f400b7df42ab63155b47d1976c2a3d43feaf2093be2df4ada2be",
+    "sourceV2Sha256": "bf9c9893e114f61d72847ac2f380a48f2cdab6ec3f3ce97b2bec7fd83f9ef1c6",
+    "strictCheck": {
+      "command": "pnpm.cmd --filter @predioon/ingest exec tsc --noEmit --target ES2022 --module NodeNext --moduleResolution NodeNext --strict --skipLibCheck test/outbox-producers.integration.test.ts",
+      "nodeHeapMiB": 640,
+      "exitCode": 0,
+      "originalFailure": "TS2322 at priorSources assignment; offending statement is identical in HEAD baseline. Ad hoc test-file type check, not a product runtime failure.",
+      "originalLogSha256": "106c20e6489769daa2583e9faf7d353882a68c8f07f19786d08dc142e991ad5c",
+      "passLogSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "full49RerunClaimed": false
+  },
+  "mutationControls": [
+    {
+      "name": "lastwill",
+      "counts": {
+        "tests": 49,
+        "suites": 1,
+        "pass": 46,
+        "fail": 3,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 24746.542
+      },
+      "exitCode": 1,
+      "expectedFailure": true,
+      "logSha256": "d19f57a42b9d7e5b04c80d1fd45e1e77c4503e69bfa373266acb2b34ab3f7d0b",
+      "resultSha256": "6529bb097cb795bfac4d4f1787391b666ab1080350f24494f558d6caf1237df7",
+      "patchSha256": "8eb8a22836f7b56e60d76b44fcc36ec251626eb56ef5650123c2202251647fd7",
+      "sourceFreezeSha256": "3f8bda9cd7889893db5c36d59979158d1d0deac94a209dc4e04480b98b4bc041",
+      "mutation": {
+        "name": "lastwill",
+        "path": "services/ingest/src/offline-sweeper.ts",
+        "originalSha256": "d73f04652137e5503be904dc49a5b9d06b69fe0057136e91c6fafe094522461d",
+        "mutatedSha256": "a10b898db106dcfdf7696f7ab08b2f638b325c26704313de803a4b74473ac65f",
+        "replacementCount": 1,
+        "productionCheckoutChanged": false
+      },
+      "logId": "mutant-lastwill-outbox"
+    },
+    {
+      "name": "device",
+      "counts": {
+        "tests": 49,
+        "suites": 1,
+        "pass": 48,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 13173.4007
+      },
+      "exitCode": 1,
+      "expectedFailure": true,
+      "logSha256": "574559739c24adeba42755e546e18945f84fc511e892c8a694bfac65866f7383",
+      "resultSha256": "f28d64a4d078ef0fd71523f7e479d295b8f50c0c44e848ec1ecf3e8c9edc752e",
+      "patchSha256": "8ff559bb30bb3d602faf494e7de874ee24128bb9d7f965c842a8e8facada73ef",
+      "sourceFreezeSha256": "f7a520b432886c4276fe24fa0f04a857b3e20e8606d641cda555884b5e611798",
+      "mutation": {
+        "name": "device",
+        "path": "services/ingest/src/rules/evaluate.ts",
+        "originalSha256": "86086f13ef3da121c4ecf22bd54daec3a278641ee80d0d714ea97b9395a3173a",
+        "mutatedSha256": "8d2f9882e2beacb24ec55e02a3df424a333bde21aff78e904539ad6f1ab9875d",
+        "replacementCount": 1,
+        "productionCheckoutChanged": false
+      },
+      "logId": "mutant-device-outbox"
+    },
+    {
+      "name": "clock",
+      "counts": {
+        "tests": 49,
+        "suites": 1,
+        "pass": 47,
+        "fail": 2,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 12731.3116
+      },
+      "exitCode": 1,
+      "expectedFailure": true,
+      "logSha256": "5f306a84b10e66f1baaad5432e5bcf90038b9611292f8d3091b42a207e6c76a7",
+      "resultSha256": "ae1814eae3555a9b1bf1e75307ca87786e82e1ea186476397b3516ade9e7b0a9",
+      "patchSha256": "8b8227fa2f73415e2146a8752b199659ceead3da0c63d4865a43c96f39ec9d4c",
+      "sourceFreezeSha256": "cbc8714e9655f3029b4c7af07059a602e82873e8077a3da79e163d5596cabcde",
+      "mutation": {
+        "name": "clock",
+        "path": "services/ingest/src/rules/evaluate.ts",
+        "originalSha256": "86086f13ef3da121c4ecf22bd54daec3a278641ee80d0d714ea97b9395a3173a",
+        "mutatedSha256": "ece5b18d83889d1efc90c90949cc20c67d587bafcc31c5a6c4475cbb22fc02fd",
+        "replacementCount": 1,
+        "productionCheckoutChanged": false
+      },
+      "logId": "mutant-clock-outbox"
+    }
+  ],
+  "adjacentExecutions": [
+    {
+      "suite": "pipeline",
+      "counts": {
+        "tests": 8,
+        "suites": 4,
+        "pass": 8,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 4695.8775
+      },
+      "exitCode": 0,
+      "logSha256": "db52ade1a8cbc3d7676a9f1c475883c3d2184d4a4912b54eb2d62b705161d2f2",
+      "resultSha256": "76b3a2ed9f22a320dfb2579504248db7a51d3c3a95acda0d7884009e51f008cb",
+      "logId": "adjacent-pipeline-v2.log"
+    },
+    {
+      "suite": "receipt-policy",
+      "counts": {
+        "tests": 8,
+        "suites": 1,
+        "pass": 8,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 3930.0988
+      },
+      "exitCode": 0,
+      "logSha256": "dcff3935f62a0970a21ef8da9cf53c9bf1f6bdb8cf7c892eb8d0a2fd4a3e24e6",
+      "resultSha256": "bb5ef006c3eb2aa9fc0b9b0b4b72783aaf07e80d19098e41c6bbffed33e5f8f6",
+      "logId": "adjacent-receipt-policy-v2.log"
+    },
+    {
+      "suite": "mqtt-runtime.integration",
+      "counts": {
+        "tests": 2,
+        "suites": 1,
+        "pass": 2,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 21373.7383
+      },
+      "exitCode": 0,
+      "logSha256": "f5a28164c3b5f6eb41967f5b5abb4eddb50aa332b3210736d400cc6335afa15f",
+      "resultSha256": "cfa86b8a60eb9e1e3265daefd01c0fc43acd60aac73a90a699d0656f774371c5",
+      "logId": "adjacent-mqtt-runtime.integration-v2.log"
+    }
+  ],
+  "review": {
+    "mode": "read-only-code-and-artifact-association",
+    "sourceSha256": "bf9c9893e114f61d72847ac2f380a48f2cdab6ec3f3ce97b2bec7fd83f9ef1c6",
+    "staticSourceApproved": true,
+    "hasBlockingFinding": false,
+    "reviewerExecutedTests": false,
+    "reviewerExecutedDocker": false,
+    "providedJavaScriptEquivalenceProofAssociated": true
+  },
+  "artifacts": [
+    {
+      "id": "handoff-20261104.json",
+      "sha256": "ea48819a2a27c1d3a00aa7914c29b3a48d525dfa36c4584ba73cf12b37dab5fd"
+    },
+    {
+      "id": "handoff-20261104-v2.json",
+      "sha256": "22774862d43bb8915d8d0cd038ec5b0c4386e2da7e83a60a2ce13ef5357844c4"
+    },
+    {
+      "id": "type-only-v2-proof.json",
+      "sha256": "06770e27a5fecb28d233dc12a60294f8e9be97f5fc992dfd4731cead7e332a7c"
+    },
+    {
+      "id": "outbox-test-source1-a99d92c.zip",
+      "sha256": "d624b8a037f4bef4fc4d9284de6f746024b9b99eb66a9efc8b21c1f7dc6e6674"
+    },
+    {
+      "id": "outbox-test-source2-40438da.zip",
+      "sha256": "97eb57c532805760728bff7d3a39938b6ce8d255f13e71bbf6c552861f65f69d"
+    },
+    {
+      "id": "independent-review-v2.json",
+      "sha256": "389cf1dcf032cc35a7d62c3668b9fdb477c19afbba8db32ea9b773e6f485cbd8"
+    }
+  ],
+  "environment": {
+    "exclusiveDisposableCluster": true,
+    "loopbackOnly": true,
+    "postgresMajor": 16,
+    "timescaleVersion": "2.17.2",
+    "memoryLimitMiB": 384,
+    "cpuLimit": 1,
+    "canonicalMigrations": 67,
+    "testFixtureUsesOwner": true,
+    "runtimeHandlersUseTwoRestrictedConnections": true,
+    "projectDotEnvAbsent": true,
+    "privateRoleCredentialSnapshotsExported": false
+  },
+  "postchecks": {
+    "allPostchecksPassed": true,
+    "roleAttributesAndPrivateCredentialsRestoredByInMemoryEquality": true,
+    "roleSettingsRestored": true,
+    "restrictedRoles": 6,
+    "basePublicTables": 0,
+    "temporaryDatabases": 0,
+    "containerOomKilled": false,
+    "containerRestarted": false,
+    "computerRestarted": false
+  },
+  "historicalPreparationFailure": {
+    "sqlstate": "28P01",
+    "cause": "QA launcher treated variable interpolation as a literal; corrected only in launcher",
+    "productRed": false,
+    "originalEvidencePreserved": true
+  },
+  "limits": [
+    "GREEN49 and three mutation controls ran against V1. Published V2 adds only an erased SQL result generic; byte-identical transpiled JavaScript connects the evidence to V2.",
+    "TS2322 was an ad hoc strict test-file typecheck failure at a statement identical to baseline, not a product runtime failure.",
+    "The nine new cases call handlers against PostgreSQL; they do not demonstrate emission of Last Will by a real broker.",
+    "The MQTT runtime adjacent test is a separate execution. Adjacent and mutation results are not summed into an ingestion integral.",
+    "No current full API, Playwright, native-device, hardware or production acceptance is claimed."
+  ]
+}

@@ -1,12 +1,12 @@
 # Execução da arquitetura de produto — Prédio ON
 
-Base aprovada: [arquitetura](../specs/2026-09-27-arquitetura-produto-design.md). A execução iniciada em `codex/product-platform`, depois integrada à `main`, continua no branch `codex/continue-product-plan` com a main 051 reconciliada. Commits e pushes seguem por meta verificada, conforme autorização do proprietário. Esta lista registra progresso real, sem considerar código não verificado como entregue. O ponto de retomada atualizado, inclusive em outra máquina, está em [CONTINUIDADE.md](../../CONTINUIDADE.md).
+Base aprovada: [arquitetura](../specs/2026-09-27-arquitetura-produto-design.md). A execução iniciada em `codex/product-platform` e continuada em `codex/continue-product-plan` já está integrada à `main`. Atualização de 04/11/2026: fonte publicada `39c434f`, migrations 001–067. Commits e pushes seguem por meta verificada, conforme autorização do proprietário. Esta lista registra progresso real, sem considerar código não verificado como entregue. O ponto de retomada atualizado, inclusive em outra máquina, está em [CONTINUIDADE.md](../../CONTINUIDADE.md).
 
 ## Sequência e aceite
 
 - [x] 1. Contratos e cliente HTTP: separar DTOs e cliente portátil da UI, preservar consumidores web, testar renovação concorrente, troca de sessão, falhas de rede e fronteiras entre pacotes.
 - [ ] 2. Identidade e RBAC: políticas por capacidade/condomínio; sessões com rotação atômica/revogação; migrations e RLS; vínculos/equipes; adaptação de consumidores e testes negativos de autorização.
-- [ ] 3. Processamento durável: outbox de alertas038 e worker restrito publicados; garantias de telemetria048 no caminho transacional existente. A fila separada do [desenho de inbox](2026-10-03-durable-inbox.md) foi adiada conforme [decisões vigentes](../../INBOX_DECISOES.md). Faltam privilégios restritos de ingestão, medição de capacidade, consumidores restantes, comandos/scheduler, retenção e operação. Preservar deduplicação e a política física.
+- [ ] 3. Processamento durável: outbox de alertas038 e worker restrito publicados; garantias de telemetria048 no caminho transacional existente. A fila separada do [desenho de inbox](2026-10-03-durable-inbox.md) foi adiada conforme [decisões vigentes](../../INBOX_DECISOES.md). Ingestão/acesso restritos (052), capacidade/retenção (056), scheduler (057) e saúde (058) estão implementados; restam regressão atual, medição operacional e implantação. Preservar deduplicação e a política física.
 - [ ] 4. Domínios de produto: ativos e ordens de serviço, automações versionadas, planos/assinaturas e suporte com concessão explícita; API e gestão web integradas. Suporte com concessão explícita entregue na 053 (17/10): equipe, concessão/revogação com prazo e motivo, revisão pelo síndico; restam planos/assinaturas, por último.
 - [ ] 5. Aplicativos Morador/Operação: React Native sem Expo, armazenamento seguro, telas próprias por público, chamadas à API real e configurações nativas Android/iOS. Push saiu do escopo por decisão do proprietário em07/10; os canais existentes permanecem.
 - [ ] 6. Implantação e operação: Compose, migrations registradas, credenciais restritas, backup/restauração, observabilidade, verificação de builds, regressão e documentação das dependências externas.
@@ -56,8 +56,8 @@ Base aprovada: [arquitetura](../specs/2026-09-27-arquitetura-produto-design.md).
 ## Divisão da etapa de identidade
 
 - [x] 2A. Sessões e famílias de refresh: consumo atômico, detecção de reutilização, revogação imediata, listagem de sessões, JWT assimétrico e verificação de conta/vínculos atuais.
-- [ ] 2B. RBAC e tenancy: catálogo de capacidades, concessões por condomínio/recurso, unidades/equipes, políticas RLS e credenciais de runtime restritas.
-- [x] 2C. Fluxos de identidade: cookies web/CSRF, MFA e verificação adicional para ações privilegiadas, convites/recuperação, limites de tentativas e adaptação dos clientes. Cookies/CSRF e limites (035), convites (042), MFA opcional (046), recuperação (047) e confirmação recente nas ações privilegiadas (055, 17/10). Fica como decisão do proprietário tornar a MFA obrigatória para administradores da plataforma (exige cadastro forçado no primeiro acesso).
+- [x] 2B. RBAC e tenancy implementados até054: catálogo, concessões por condomínio/recurso, unidades/equipes, RLS e credenciais restritas052. Manter provas negativas e regressão atual; implementação não equivale a aceite de produção.
+- [x] 2C. Fluxos de identidade: cookies web/CSRF, MFA e verificação adicional para ações privilegiadas, convites/recuperação, limites de tentativas e adaptação dos clientes. Cookies/CSRF e limites (035), convites (042), MFA opcional (046), recuperação (047) e confirmação recente nas ações privilegiadas (055, 17/10). A decisão do proprietário de tornar a MFA obrigatória para administradores da plataforma ainda exige implementação e validação do cadastro forçado no primeiro acesso.
 
 ### Subentregas da etapa 2B
 
@@ -65,7 +65,7 @@ Base aprovada: [arquitetura](../specs/2026-09-27-arquitetura-produto-design.md).
 - [x] 2B.2. Credenciais da API: separar identidade e autorização do broker, retirar importação/conexão proprietária dos processos HTTP, manter verificações negativas de privilégios e fluxo de sessões.
 - [x] 2B.3. Migração dos módulos existentes: aplicar capacidades e RLS por domínio, incluindo seleção de condomínios, funcionalidades e eventos; manter testes de revogação, suporte e acesso a recursos próprios. Último recorte (contas e vínculos legados) na 054, em 17/10; o suporte remoto mantém o guard legado, conferido no banco.
 - [x] 2B.4. Gestão web integrada: cadastros de unidades/equipes/vínculos e seleção de escopo autorizada pelo servidor. Revisada em 17/10: escopo pela descoberta do servidor (019), cadastro e edição/desativação de blocos, unidades e equipes (040–041), pessoas por convite com ou sem unidade (042) e concessões de papel no painel compartilhado; contas e vínculos legados por capacidade (054).
-- [ ] 2B.5. Credenciais de ingestão e workers: conceder somente as operações de cada carga, junto da separação durável da etapa 3.
+- [x] 2B.5. Credenciais de ingestão/acesso e worker implementadas nas038/052, com operações restritas por carga e sem fallback owner. Manter regressão e homologação operacional da etapa3.
 
 A migração por domínio da etapa 2B.3 está detalhada em [sequência e critérios de aceite](2026-09-29-rbac-domain-migration.md).
 
@@ -443,3 +443,13 @@ Criação/atribuição pelas rotas 043/044 e capacidades atuais; diretórios de 
 ## 13/10: preparação das credenciais de ingestão/acesso
 
 O [desenho](../specs/2026-10-13-ingest-runtime-credentials-design.md) e o [plano](2026-10-13-ingest-runtime-credentials.md) foram publicados em a9c088a. Task 1 verificada: construtor de conexão sem dotenv e loaders existentes explícitos, com delta de quatro imports. Windows 22.21.1 e Linux 24.21.0 passaram 19/22 cada (3 casos PostgreSQL reais pulados), tipos DB/API/ingest/notificações, fronteiras e revisões SPEC/QUALITY 10/10. [Evidência](../../evidencias/runtime-environment-prepare-2026-10-13.json). Preparo publicado em **3ec09ef**, com SHA remoto confirmado; 2B.5 e etapa 3 seguem abertas. Retirar owner de observação e comandos exige a release conjunta restante; nenhuma migration 052/role nova foi aplicada. As decisões 048, push fora do escopo e planos/assinaturas por último permanecem.
+
+### Consolidação de 04/11/2026 — fonte publicada 39c434f
+
+O ponto corrente está na [continuidade](../../CONTINUIDADE.md), sem rascunhos de produto/testes: checkpoint vazio na base exata `39c434f8d9206e8b3071c185f3dca7b16d79fe5e`; não aplicar patch vazio nem reaplicar 040/runtime. O checkpoint de um arquivo/base 02c53 permanece histórico em 40438da. Os registros anteriores deste tracker descrevem suas próprias datas e não reabrem implementações já integradas.
+
+**Ingestão:** nove casos novos de handler/SQL, GREEN 49/49 na V1, controles isolados 46/3, 48/1, 47/2 e adjacentes originais 8/8, 8/8, 2/2. A V2 publicada altera apenas tipagem SQL; tipo estrito passou e JavaScript transpilado é idêntico. Revisão independente sem bloqueador. Não alegar emissão de Last Will por broker real nos nove casos nem somar execuções para uma integral. [Prova e hashes](../../evidencias/ingest-lastwill-cooldown-2026-11-04.json).
+
+**API dirigida:** quatro arquivos originais de reservas/áreas, processos seriais, 8/8, 17/17, 15/15, 7/7; 47 casos reais, sem falhas/skips/cancelamentos. Bootstrap, 67 migrations, provisionamento e seed somente em DB UUID nova; limpeza e seis roles/credenciais/settings restaurados, sem OOM/reinício. [Prova e hashes](../../evidencias/api-reservations-2026-11-04.json). Não é a API inteira nem aceite de todas as mudanças 064–067.
+
+2B.3/2B.4 já foram concluídas na fonte até 054; MFA obrigatória da plataforma ainda precisa ser implementada conforme decisão registrada. Prioridades: regressão geral API e consumidores, demais módulos recentes e Playwright atual; câmera/aparelhos Android, Mac/distribuição e jornada iOS autenticada, hardware e produção têm aceites próprios pendentes. Os cinco vídeos de 18/10 são históricos. CI observado: startup_failure e zero check runs, causa atual não confirmada. Inbox separada adiada, planos/assinaturas por último e push fora do escopo. Nenhum reboot executado.

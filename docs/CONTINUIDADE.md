@@ -1,10 +1,10 @@
 # Continuidade do Prédio ON
 
-Atualizado em **03/11/2026**, horário de São Paulo. Leia este arquivo primeiro ao retomar, em qualquer computador. A [retomada de 03/11](RETOMADA_2026-11-03.md) registra a comparação com o GitHub, os rascunhos preservados e a ordem de validação. O histórico anterior está em [continuidade/historico-ate-2026-10-17.md](continuidade/historico-ate-2026-10-17.md); a entrega de entrada pública, testes e VPS está em [VERIFICACAO_2026-10-24.md](VERIFICACAO_2026-10-24.md).
+Atualizado em **04/11/2026**, horário de São Paulo. Leia este arquivo primeiro ao retomar, em qualquer computador. A [retomada de 03/11](RETOMADA_2026-11-03.md) registra a comparação com o GitHub, os rascunhos preservados e a ordem de validação. O histórico anterior está em [continuidade/historico-ate-2026-10-17.md](continuidade/historico-ate-2026-10-17.md); a entrega de entrada pública, testes e VPS está em [VERIFICACAO_2026-10-24.md](VERIFICACAO_2026-10-24.md).
 
 **Base recebida nesta retomada:** a `main` do GitHub foi consultada e a cópia local avançou de `456df8f` para **`dba63dc9478dc738bb035f1d75a626764f7fcd75`**, de 30/10/2026. Foram incorporados **136 commits**, com **606 arquivos diferentes** entre as duas bases. A árvore atual contém migrations **001–067**. Esses números descrevem o código obtido; não são resultados de testes novos. A implantação completa da VPS e o aceite de produção continuam pendentes.
 
-**Primeiro incremento publicado:** `1769caf` corrige somente as expectativas de ledger dos testes, de **62 para 67**. O RED real falhou no caso dirigido de notificações e nos dois restores. Depois da correção, **notificações 54/54** e **restauração 2/2** passaram, com **68 tabelas, 67 migrations**, dados, ACL/RLS e seis roles conferidos; tipos DB e fronteiras passaram. [Fonte, hashes e resultados](evidencias/ledger067-2026-11-03.json). Essas execuções não aprovam a API, Playwright ou apps atuais. Próxima etapa: módulos recentes de reservas/eventos, alertas e integração PostgreSQL da ingestão; depois regressão atual dos consumidores.
+**Primeiro incremento publicado:** `1769caf` corrige somente as expectativas de ledger dos testes, de **62 para 67**. O RED real falhou no caso dirigido de notificações e nos dois restores. Depois da correção, **notificações 54/54** e **restauração 2/2** passaram, com **68 tabelas, 67 migrations**, dados, ACL/RLS e seis roles conferidos; tipos DB e fronteiras passaram. [Fonte, hashes e resultados](evidencias/ledger067-2026-11-03.json). Essas execuções não aprovam a API, Playwright ou apps atuais. Em 04/11 foram concluídas as provas dirigidas de ingestão e reservas descritas abaixo; a regressão geral atual e os aceites dos consumidores continuam pendentes.
 
 **Preservação e CI:** os 12 rascunhos antigos foram guardados em backup local manifestado e stash seletivo antes do avanço da `main`, sem reaplicação. SQL040 e seu teste ACL já são idênticos aos publicados. O [run de plataforma 41106369658](https://github.com/helberjf/predioON/actions/runs/41106369658), da fonte `dba63dc`, consta como `startup_failure` nos metadados consultados; não valida as suítes. Os cinco vídeos existem, mas foram gravados em **18/10**, antes das mudanças atuais. [Detalhes, limites e próximos passos](RETOMADA_2026-11-03.md).
 
@@ -12,7 +12,13 @@ Atualizado em **03/11/2026**, horário de São Paulo. Leia este arquivo primeiro
 
 
 
-**Fixtures iOS e checkpoint de 03/11:** `02c53e2` corrigiu dois defeitos de portabilidade apenas no teste host (alias de caminho e consulta real de status interceptada pelo mock). Dois REDs reais, dirigido 4/4, Linux **146/146**, Windows **122 aprovados e 24 skips**, revisão independente e dez fontes protegidas conferidas; gerador, runtime, guard ATS/TLS, Swift e workflows intactos. [Prova e limites](evidencias/ios-fixture-portability-2026-11-03.json). Não houve build Apple nesta rodada. O [checkpoint atual](continuidade/2026-11-03-manifesto.json) conserva **um rascunho de teste de ingestão**, base exata `02c53e2`, restauração aplicada e hash conferido; ainda sem execução bem-sucedida. Não reaplicar os checkpoints antigos de 040 ou de runtime já incorporados.
+**Fixtures iOS publicadas em 03/11:** `02c53e2` corrigiu dois defeitos de portabilidade apenas no teste host. Dois REDs reais, dirigido 4/4, Linux **146/146**, Windows **122 aprovados e 24 skips**, revisão independente e dez fontes protegidas conferidos; gerador, runtime, guard ATS/TLS, Swift e workflows intactos. [Prova e limites](evidencias/ios-fixture-portability-2026-11-03.json). Não houve build Apple nesta rodada.
+
+**Ingestão publicada em 04/11 — `39c434f`:** nove casos adicionais de handler/SQL para OFFLINE, atomicidade e cooldown. GREEN **49/49** na versão V1; três controles de regressão isolados produziram **46/3, 48/1 e 47/2** (aprovados/falhas esperadas). A V2 publicada acrescenta somente tipagem do resultado SQL: checagem estrita passou e o JavaScript transpilado é idêntico, sem alegar repetição dos 49 casos. Adjacentes separados: pipeline **8/8**, receipt-policy **8/8** e mqtt-runtime **2/2**. [Fonte, revisão, hashes e limites](evidencias/ingest-lastwill-cooldown-2026-11-04.json). Os nove novos casos não reproduzem a emissão de Last Will por broker real; não somar as execuções para anunciar uma integral.
+
+**API dirigida na fonte `39c434f`:** quatro arquivos originais passaram em processos seriais: limites/eventos **8/8**, capacidades de áreas **17/17**, capacidades de reservas **15/15** e privacidade **7/7**. São **47 casos observados**, sem falhas/skips/cancelamentos, em banco UUID novo com 67 migrations; não é a suíte API inteira. [Prova, hashes e limpeza](evidencias/api-reservations-2026-11-04.json). Nos ensaios, roles, credenciais privadas e configurações foram restauradas por igualdade em memória, com bancos temporários removidos; nenhum reinício ou OOM do container.
+
+**Checkpoint atual: zero rascunhos.** A fonte de ingestão já está publicada em `39c434f8d9206e8b3071c185f3dca7b16d79fe5e`. O [manifesto](continuidade/2026-11-03-manifesto.json) registra patch vazio e a conferência de cinco arquivos de teste extraídos por Git archive dessa base exata. Não aplicar patch vazio nem reaplicar 040/runtime. O antigo checkpoint de um arquivo/base `02c53e2` permanece histórico no commit `40438da`.
 
 ## 1. Instruções permanentes do proprietário
 
@@ -53,7 +59,7 @@ Atualizado em **03/11/2026**, horário de São Paulo. Leia este arquivo primeiro
 
 ## 4. Histórico de releases e validações
 
-Os resultados desta seção pertencem às datas e fontes indicadas. Não constituem uma nova execução em `dba63dc`.
+Os resultados desta seção pertencem às datas e fontes indicadas. Não constituem uma nova execução na fonte atual; as provas dirigidas de 04/11 estão resumidas acima.
 
 **Releases de 17/10:**
 
@@ -86,10 +92,10 @@ Os resultados desta seção pertencem às datas e fontes indicadas. Não constit
 
 ## 5. Como retomar e testar nesta máquina
 
-**Memória:** antes de qualquer etapa pesada, confira a memória livre. O VM do Docker (vmmemWSL) não tem limite e chega a ~5 GB; com outros programas abertos a memória livre já caiu a 0,3 GB. Regras práticas:
+**Memória:** antes de qualquer etapa pesada, confira a memória livre. Historicamente, o VM do Docker (vmmemWSL) chegou a ~5 GB e a memória livre caiu a 0,3 GB. Na QA dirigida de 04/11, foi usado um cluster exclusivo de 384 MiB/1 CPU, uma execução por vez; na API, parent Node 256 MiB, filhos 384 MiB e proteção mínima de 1536 MiB livres antes de iniciar. Não reduzir o guard nem reiniciar o computador para passar. Regras práticas:
 
-- regressões pesadas rodam **dentro do container runner com memória limitada** (`docker update --memory 2500m`), um cluster por vez;
-- desde 18/10 o WSL está limitado a 3 GB por `%USERPROFILE%\.wslconfig`, a pedido do proprietário (apagar o arquivo e rodar `wsl --shutdown` volta ao padrão). Mesmo assim, emulador e Docker juntos só cabem com navegador, VS Code e outros apps pesados fechados, inclusive da bandeja;
+- usar limites explícitos adequados ao ensaio, um cluster e uma suíte por vez; não combinar Docker, emulador e compilações pesadas. O runner limitado a 2500 MiB pertence ao procedimento histórico, não é um passo automático da retomada;
+- em 18/10 foi registrado um limite WSL de 3 GB em `%USERPROFILE%\.wslconfig`; isso é histórico, não uma confirmação do limite em vigor. Nesta retomada, o Docker informou cerca de 7,6 GiB disponíveis na VM. Conferir recursos efetivos antes de planejar a carga, sem reiniciar WSL/Docker ou alterar configurações do sistema nesta etapa;
 - se o Docker Desktop não subir com "The file cannot be accessed by the system", renomear `%LOCALAPPDATA%\Docker\run` **e** `%LOCALAPPDATA%\docker-secrets-engine` e iniciar uma única vez. Nunca usar "Reset to factory defaults".
 
 **Ambiente descartável e testes:**
@@ -103,7 +109,7 @@ pnpm e2e:db up        # banco descartável próprio em 127.0.0.1:5446
 pnpm test:e2e:chromium   # encerre o pnpm dev antes
 ```
 
-A sequência do job de plataforma, as flags das suítes SQL038/SQL052 e os clusters próprios de backup estão em `.github/workflows/ci.yml` e [BACKUP_E_RESTAURACAO.md](BACKUP_E_RESTAURACAO.md). A ausência do Firefox e o bloqueio do WebKit por AppControl são limitações registradas nas rodadas anteriores; conferir a disponibilidade atual antes de iniciar a matriz. O bloqueio de cobrança do GitHub foi registrado em outubro. Na consulta de 03/11, o run `41106369658` da base `dba63dc` está em `startup_failure`; esse metadado, sozinho, não estabelece a causa atual nem aprova testes.
+A sequência do job de plataforma, as flags das suítes SQL038/SQL052 e os clusters próprios de backup estão em `.github/workflows/ci.yml` e [BACKUP_E_RESTAURACAO.md](BACKUP_E_RESTAURACAO.md). A ausência do Firefox e o bloqueio do WebKit por AppControl são limitações registradas nas rodadas anteriores; conferir a disponibilidade atual antes de iniciar a matriz. O bloqueio de cobrança do GitHub foi registrado em outubro. Na consulta de 03/11, o run `41106369658` da base `dba63dc` está em `startup_failure`; as consultas também retornaram zero check runs. Esses metadados não estabelecem a causa atual nem aprovam testes.
 
 **Vídeos de demonstração:** `node scripts/record-portal-videos.mjs <pasta>` (portais, com servidores do Playwright via `pnpm exec playwright test -c playwright.videos.config.ts`) e `python scripts/record-app-video.py resident|operations <arquivo.mp4>` (emulador, salva também o logcat para conferir avisos Fabric).
 
@@ -124,7 +130,7 @@ A sequência do job de plataforma, as flags das suítes SQL038/SQL052 e os clust
 
 - Ledger 067 corrigido em `1769caf`: RED preservado; notificações 54/54 e restores 2/2 passaram, com dados, ACL/RLS, seis roles e cleanup conferidos. Manter esses ensaios na regressão; não restaurar os testes antigos de 040.
 - Rodar a suíte Playwright reorganizada por inteiro (`pnpm test:e2e:chromium`, depois Firefox), incluindo o `@smoke` e as specs novas, e registrar o resultado.
-- Revalidar as mudanças de 26–30/10, especialmente reservas/eventos e a integração PostgreSQL da ingestão; manter separados os resultados dirigidos e integrais.
+- Manter as provas dirigidas de 04/11 na regressão. Executar a API geral atual e os demais módulos recentes ainda não cobertos, incluindo responsável de ordens e regras padrão de alertas, antes de declarar aprovação ampla; não somar os 47 casos API nem os ensaios de ingestão como integrais.
 - Ensaio de carga com a ingestão real (MQTT mensagem a mensagem).
 - Teste intermitente conhecido: `password-recovery.test.ts` → "keeps two-step verification in place after a reset" falhou 1 vez na integral de 18/10 (a ativação da MFA não devolveu a chave) e passou 3/3 isolado; mesmo sintoma de limite de requisições compartilhado já visto antes. Investigar sem afrouxar o limite.
 - Avisos Fabric: não se repetiram em quatro execuções no emulador em 18/10; a causa dos registros de outubro no CI segue sem demonstração.

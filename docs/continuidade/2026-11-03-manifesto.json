@@ -1,18 +1,54 @@
 {
-  "baseCommit": "02c53e2296de06c3be1bd31a5ceb78ddfa581d2d",
-  "capturedOn": "2026-11-03",
-  "state": "Draft integration tests only: not approved or executed successfully. First QA preparation refused owner authentication; no product bug inferred.",
+  "baseCommit": "39c434f8d9206e8b3071c185f3dca7b16d79fe5e",
+  "capturedOn": "2026-11-04",
+  "state": "No product or test drafts remain. Ingestion regression source published in exact base commit. Documentation update only.",
   "patch": "2026-11-03-em-andamento.patch",
-  "sha256": "13109b223d976e5d78a547dd0ebffc2820270caf5d1e3aef92230b5dc52b2846",
-  "files": [
-    {
-      "path": "services/ingest/test/outbox-producers.integration.test.ts",
-      "sha256LF": "db55fbc38143f400b7df42ab63155b47d1976c2a3d43feaf2093be2df4ada2be"
-    }
-  ],
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "files": [],
   "restoreCheck": {
     "passed": true,
-    "filesVerified": 1,
-    "method": "git apply to archived exact base; compare normalized LF SHA-256"
-  }
+    "filesVerified": 0,
+    "patchApplied": false,
+    "method": "Empty checkpoint: do not run git apply. Restore source from exact published commit.",
+    "sourceArchiveCheck": {
+      "passed": true,
+      "filesVerified": 5,
+      "method": "git archive of five reviewed test sources from exact commit; extract and compare bytes with git blobs and clean checkout; no patch applied",
+      "archiveSha256": "8cd53418c23e9dd5cc65e26665c81c3fd71817c9771f25dcb9bf48eab60db15d",
+      "files": [
+        {
+          "path": "services/ingest/test/outbox-producers.integration.test.ts",
+          "sha256": "bf9c9893e114f61d72847ac2f380a48f2cdab6ec3f3ce97b2bec7fd83f9ef1c6"
+        },
+        {
+          "path": "apps/api/test/reservation-limits-events.test.ts",
+          "sha256": "3fc2707414b5e505a0669e180b970789edbe7123cdcdd8e25c2387b2c5e1d4f1"
+        },
+        {
+          "path": "apps/api/test/common-areas-capabilities.test.ts",
+          "sha256": "e6da57bcaa20f5eecf21a1bcb1e9e35a0c5eac8836403bc0ada80997a36dff14"
+        },
+        {
+          "path": "apps/api/test/reservations-capabilities.test.ts",
+          "sha256": "a07d3e29d7f90bd5c419c85294b121d95e572fb1e5529ce35a8d1bb8ad9d4ebd"
+        },
+        {
+          "path": "apps/api/test/reservations-privacy.test.ts",
+          "sha256": "e69538d5a5d4fb49911453a72c331fc05624d213c22ba7f065f720c1189e0c61"
+        }
+      ],
+      "cleanCheckoutBeforeDocumentation": true
+    }
+  },
+  "historicalCheckpoint": {
+    "preservedInCommit": "40438da68b03c8759418c49b8e28eb55fe293c54",
+    "baseCommit": "02c53e2296de06c3be1bd31a5ceb78ddfa581d2d",
+    "patchSha256": "13109b223d976e5d78a547dd0ebffc2820270caf5d1e3aef92230b5dc52b2846",
+    "files": 1,
+    "state": "Historical draft incorporated by published regression source; do not reapply to current main"
+  },
+  "instructions": [
+    "Clone the current repository; use the published source. The current patch is empty and must not be applied.",
+    "Do not reapply historical SQL040/runtime checkpoints. Retrieve an old checkpoint only from its historical commit and exact base in a separate copy for investigation."
+  ]
 }

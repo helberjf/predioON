@@ -1,6 +1,10 @@
 # Melhorias e novas implementações — Prédio ON
 
-Revisão: 05/10/2026. Documento vivo de priorização; não é uma declaração de conclusão nem substitui o [PRD](PRD.md), o [TDD](TDD.md) e o [plano de execução](superpowers/plans/2026-09-27-product-execution.md).
+Revisão: 04/11/2026. Documento vivo de priorização; não é uma declaração de conclusão nem substitui o [PRD](PRD.md), o [TDD](TDD.md) e o [plano de execução](superpowers/plans/2026-09-27-product-execution.md).
+
+**Situação atual, fonte `39c434f`, migrations 001–067:** 2B.3 e 2B.4 já estão implementadas, com o fechamento de contas/vínculos na 054; ingestão restrita na 052, ativos/ordens e automações, suporte e saúde dos serviços também estão presentes. Não reiniciar esses itens a partir das anotações históricas. MFA opcional e confirmação recente existem, mas **MFA obrigatória da administração da plataforma, com cadastro forçado no primeiro acesso, segue pendente conforme decisão do proprietário**.
+
+As provas dirigidas de 04/11 cobrem [ingestão](evidencias/ingest-lastwill-cooldown-2026-11-04.json) (49/49 V1 com equivalência de runtime da V2, três controles e adjacentes separados) e [API reservas](evidencias/api-reservations-2026-11-04.json) (8/17/15/7 casos em quatro processos). Não são integrais atuais. Prioridade: regressão geral API/consumidores e Playwright, demais módulos recentes, seguida de aceite nativo, hardware e produção. Inbox separada adiada, planos/assinaturas por último e push fora do escopo permanecem decisões vigentes. Os relatos de outubro abaixo são históricos; a tabela de prioridades foi reconciliada com o código atual.
 
 ## 1. Como usar este documento
 
@@ -12,7 +16,7 @@ Prioridades: **P0** bloqueia uma entrega confiável; **P1** completa a operaçã
 
 Estes itens já pertencem à evolução prevista. Não devem ser apresentados como ideias opcionais para encobrir trabalho pendente.
 
-Estado consolidado em [CONTINUIDADE.md](CONTINUIDADE.md). Cookies web/CSRF, coordenação entre abas e gestão das próprias sessões já foram implementados e testados. O executor de migrations com checksum/lock/no-op e a restauração real até038, inclusive em outro cluster físico, também estão entregues; implantação e recuperação do ambiente de produção continuam pendentes. Esses itens saíram da lista de implementações a iniciar e devem permanecer na regressão.
+Estado consolidado em [CONTINUIDADE.md](CONTINUIDADE.md). Cookies web/CSRF, coordenação entre abas e gestão das próprias sessões já foram implementados e testados. O executor de migrations com checksum/lock/no-op e a restauração real até067, inclusive em outro cluster físico, também estão entregues; implantação e recuperação do ambiente de produção continuam pendentes. Esses itens saíram da lista de implementações a iniciar e devem permanecer na regressão.
 
 Progresso038 em 03/10: outbox/worker de webhook, produtores atômicos, role própria e restauração em outro cluster foram publicados em **292e12e**. O [CI 586cc92](https://github.com/helberjf/predioON/actions/runs/37164944806) confirmou API **697/697**, cliente **64/64**, UI **89/89**, mobile **75/75**, ingestão **83/83** e banco **34 aprovados de 36 casos, 2 skips de backup**. Nos jobs próprios passaram SQL **54/54**, worker **36/36**, produtores **40/40** e backup **2/2**, sem skips; SQL/produtores dedicados não foram executados no job geral. A integral local de ingestão **123/123** é uma prova distinta. O [navegador 292e12e](https://github.com/helberjf/predioON/actions/runs/37164756602) passou **222/222**, três motores, sem falhas, instabilidade, skips ou retries. [Registro versionado](evidencias/notification038-ci.json) e [guia operacional](NOTIFICACOES_DURAVEIS.md). Não repetir038: permanecem inbox, privilégios da ingestão inteira, retenção/replay, idempotência do destinatário e rollout real.
 
@@ -66,18 +70,18 @@ Companion iOSf445 publicado/revisado:Linux121Python/12Node e Windows105+16skips/
 
 | Prioridade | Trabalho | Resultado esperado | Critério de aceite |
 |---|---|---|---|
-| P0 | Concluir autorização por capacidade nos domínios restantes | Acesso depende da concessão atual ao condomínio e ao recurso | HTTP e SQL negativos; revogação, expiração, equipe inativa e troca de condomínio sem vazamentos; nenhum privilégio global implícito sobre dados privados |
-| P0 | MFA e verificação adicional para ações privilegiadas | Proteção adicional da administração e de operações sensíveis | Cadastro, desafio, recuperação e revogação; limites de tentativas; proteção contra reutilização; testes sem segredos reais |
+| Implementado (2B.3/2B.4, até054); manter regressão | Autorização por capacidade e gestão web | Acesso depende da concessão atual ao condomínio e ao recurso | HTTP e SQL negativos; revogação, expiração, equipe inativa e troca de condomínio sem vazamentos; nenhum privilégio global implícito sobre dados privados |
+| P0 | Exigir MFA da administração da plataforma | Cadastro forçado no primeiro acesso; preservar MFA opcional046 e confirmação recente055 existentes | Cadastro, desafio, recuperação e revogação obrigatórios no escopo aprovado; limites e proteção contra reutilização, sem segredos reais |
 | Entregue (042, 047) | Convites e recuperação de senha | Entrada e recuperação sem distribuição manual de senhas | Tokens de uso único, expiração, revogação e respostas sem enumeração de contas; provedor de envio configurável |
 | Parcial (048); fila adiada, ver INBOX_DECISOES.md | Inbox e consumidores duráveis restantes | Trabalho obrigatório sobrevive à queda de processo; preservar outbox038 já entregue | Ensaios de interrupção antes/depois do commit, deduplicação, reserva com prazo e recuperação; filas não repetem comandos físicos indiscriminadamente |
-| P0 | Credenciais restritas para ingestão e demais workers | Separar as responsabilidades legadas ainda proprietárias; preservar a role de notificações038 | Matriz de privilégios e testes de operações negadas por processo; bootstrap/migrations continuam separados |
-| P1 | Ativos e ordens de serviço | Manutenção com responsável e histórico do equipamento | Criar, atribuir, executar, concluir e reabrir conforme permissão; histórico auditável; relação explícita com chamados |
-| P1 | Automações versionadas | Regras controladas, simuláveis e rastreáveis | Versão imutável, simulação antes de ativar, limites, histórico de execução e desligamento; sem execução de scripts arbitrários |
-| P1 | Planos e assinaturas | Condições comerciais separadas dos dados operacionais | Plano versionado, vigência, limites e eventos; cobrança por provedor continua sendo integração separada |
-| P1 | Push contextual nos dois aplicativos | Aviso útil direcionado à conta e ao condomínio corretos | Registro/revogação da instalação, preferências, deduplicação, link para recurso autorizado e ausência de conteúdo privado na tela bloqueada |
+| Implementado (038/052); manter regressão | Credenciais restritas de ingestão, acesso e notificações | Preservar a separação de responsabilidades e a ausência de fallback owner | Matriz de privilégios e testes de operações negadas por processo; bootstrap/migrations continuam separados |
+| Implementado (043/044/065); validar fonte atual | Ativos e ordens de serviço | Manutenção com responsável e histórico do equipamento | Criar, atribuir, executar, concluir e reabrir conforme permissão; histórico auditável; relação explícita com chamados |
+| Implementado (045/057); validar operação | Automações versionadas | Regras controladas, simuláveis e rastreáveis | Versão imutável, simulação antes de ativar, limites, histórico de execução e desligamento; sem execução de scripts arbitrários |
+| Por último, decisão vigente | Planos e assinaturas | Condições comerciais separadas dos dados operacionais | Plano versionado, vigência, limites e eventos; cobrança por provedor continua sendo integração separada |
+| Fora do escopo por decisão do proprietário | Push APNs/FCM | Preservar os canais já existentes | Não iniciar implementação sem nova decisão explícita |
 | P0 | Homologação nativa Android/iOS | Instalação e uso comprovados em aparelhos | Sessão segura, retomada do app, permissões do sistema, conectividade ruim, notificações e acessibilidade em aparelhos representativos |
 | P0 | Implantação, backup e restauração | Recuperação comprovada da plataforma | Banco restaurado em ambiente separado, integridade verificada, tempo medido e procedimento reproduzível |
-| P1 | Observabilidade por serviço | Falhas identificadas sem registrar conteúdo privado | Saúde, métricas de fila, latência, falhas por categoria e alertas operacionais com instruções de atendimento |
+| Implementado (058); validar operação | Observabilidade por serviço | Falhas identificadas sem registrar conteúdo privado | Saúde, métricas de fila, latência, falhas por categoria e alertas operacionais com instruções de atendimento |
 | P0 | Documentação final coerente | Instalação e operação reproduzíveis por outra pessoa | Comandos executados, variáveis descritas, matriz de permissões, fluxos por produto, limitações e evidências do commit final |
 
 ## 3. Sugestões novas para a experiência do morador
@@ -237,7 +241,7 @@ Identidade autenticada 37307304828 e os dois jobs de inicialização 37307304855
 ### 06/10: relógio do estacionamento e edição de cadastros
 
 - **Relógio do estacionamento — corrigido e verificado em12/10:** as projeções HTTP usam clock_timestamp do PostgreSQL na transação, após leituras/locks/escrita/auditoria; datas realmente futuras continuam UNKNOWN. Sete novos casos cobrem API60s atrás/à frente e espera real. Fonte atual integrada: dirigido54/54, API804/804 e ingestão129/129; catálogo/credenciais/ledger51 preservados. A fixture herdada de ativos também passa a restaurar o timestamp original do grant que removia temporariamente. [Evidência](evidencias/parking-database-clock-2026-10-12.json). O achado original foi a diferença de −30 a +34ms no Docker Desktop.
-- **Cadastros 2B.4:** edição, desativação e reativação de bloco/unidade/equipe entregues em branch local com a 041. O código de bloco/unidade continua reservado por registros inativos; avaliar liberar o código ou permitir renomear o inativo.
+- **Cadastros 2B.4:** edição, desativação e reativação de bloco/unidade/equipe já integradas à main; fechamento de capacidades de contas/vínculos na 054. O código de bloco/unidade continua reservado por registros inativos; avaliar liberar o código ou permitir renomear o inativo.
 - **Ordem das suítes de banco:** a restauração no mesmo cluster falhou quando rodada após a suíte SQL de notificações no mesmo cluster físico; investigar se a fixture depende de não haver outra entrega reivindicável.
 
 ### 06/10: convites e ordens de serviço
