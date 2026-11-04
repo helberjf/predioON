@@ -1,0 +1,18 @@
+{
+  "baseCommit": "02c53e2296de06c3be1bd31a5ceb78ddfa581d2d",
+  "capturedOn": "2026-11-03",
+  "state": "Draft integration tests only: not approved or executed successfully. First QA preparation refused owner authentication; no product bug inferred.",
+  "patch": "2026-11-03-em-andamento.patch",
+  "sha256": "13109b223d976e5d78a547dd0ebffc2820270caf5d1e3aef92230b5dc52b2846",
+  "files": [
+    {
+      "path": "services/ingest/test/outbox-producers.integration.test.ts",
+      "sha256LF": "db55fbc38143f400b7df42ab63155b47d1976c2a3d43feaf2093be2df4ada2be"
+    }
+  ],
+  "restoreCheck": {
+    "passed": true,
+    "filesVerified": 1,
+    "method": "git apply to archived exact base; compare normalized LF SHA-256"
+  }
+}

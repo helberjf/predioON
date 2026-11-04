@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-11-03",
+  "sourceCommit": "02c53e2296de06c3be1bd31a5ceb78ddfa581d2d",
+  "baselineCommit": "031e55e501e0116a4d5ca5738d3495cbba3ff611",
+  "status": "ios-host-fixture-portability-fixed-native-validation-pending",
+  "sourceFiles": [
+    {
+      "path": "scripts/ios-smoke/test_auth.py",
+      "sha256LF": "2c5871982378f400c9d91b90b044281b96d0f1015151348f678fb78f65bdc2c8",
+      "bytesLF": 100308
+    },
+    {
+      "path": "scripts/ios-smoke/README.md",
+      "sha256LF": "2da1e1fce97332bbe1f8ff66816d550b7d18d9b6b1143bed4114b48b4d628001",
+      "bytesLF": 59392
+    }
+  ],
+  "red": {
+    "alias": {
+      "rubyExitCode": 1,
+      "configuredMatchesCanonical": true,
+      "spellingDiffers": true
+    },
+    "status": {
+      "rubyExitCode": 1,
+      "realEchildObserved": true,
+      "psInterceptedByStrictDiscoveryMock": true
+    },
+    "logs": [
+      {
+        "file": "red-probes-closed.log",
+        "sha256": "54c6c5e9138ad6ddbea255d1efed4989c7731ea3b2cbeb4afdee1704d0653eaa"
+      },
+      {
+        "file": "red-echild-v2-closed.log",
+        "sha256": "73b8930cd02ea0836fb9e58c1bc8b8f4b4b4bceaf1d8b6a0959db935e678bc7f"
+      }
+    ],
+    "incompleteFirstObserverPreserved": true,
+    "rawStderrExported": false
+  },
+  "tests": {
+    "directed": {
+      "file": "green-directed.log",
+      "sha256": "88ff0ba1e495d52f84f517580bf16896dfeaf3f287602cceaea4ac16e3b9b253",
+      "tests": 4,
+      "passed": 4,
+      "skipped": 0,
+      "failed": 0,
+      "durationSeconds": 47.068
+    },
+    "linux": {
+      "file": "linux-integral.log",
+      "sha256": "3afed62f3443ba0fe7e0452512fcab58a8d41983e20986604a7fb309a2fd4e93",
+      "tests": 146,
+      "passed": 146,
+      "skipped": 0,
+      "failed": 0,
+      "durationSeconds": 101.243
+    },
+    "windows": {
+      "file": "windows-integral.log",
+      "sha256": "aa12becdc37a7306a0a124ba8b30253fe52fa62d1bc3fe90a078b1d3226202fe",
+      "tests": 146,
+      "passed": 122,
+      "skipped": 24,
+      "failed": 0,
+      "durationSeconds": 23.307
+    }
+  },
+  "runtime": {
+    "ruby": "3.3.12",
+    "xcodeproj": "1.25.1",
+    "pythonLinux": "3.12.3",
+    "image": "mcr.microsoft.com/playwright:v1.63.0-noble",
+    "memoryMiB": 256,
+    "cpus": 1,
+    "network": "none",
+    "sourceAndGems": "read-only",
+    "fixtures": "tmpfs",
+    "singleContainerAtATime": true
+  },
+  "behavior": {
+    "canonicalizationOnlyAtFixtureBoundary": true,
+    "statusProbeUsesCapturedOriginalPopen2OnlyForFixedPs": true,
+    "statusReadBytesMax": 33,
+    "statusAcceptedBytesMax": 32,
+    "generatorMockStillRejectsUnexpectedCommands": true,
+    "existingDiscoveryDeadlineSecondsUnchanged": 15,
+    "existingOuterFixtureTimeoutSecondsUnchanged": 45,
+    "existingOrphanAndPeerCriteriaUnchanged": true
+  },
+  "review": {
+    "sourceZipSha256": "228768689b39add19ed1c4d9a2fc89205b790439891eb56a89974e6f109ebadb",
+    "sourceFreezeSha256": "e9b6a7d0b71b7c5381e772b60c9b77ff55ae039a83075fd8c80e82092faad3a7",
+    "independentReviewSha256": "76a3655358389ce277e1bbb47d88f4332e8405677bb732935b07b2c7a4433f38",
+    "independentBlockingFinding": false,
+    "protectedFilesVerified": 10,
+    "otherIosSourceFilesVerified": 19,
+    "otherTestsExactTailAndAstUnchanged": true,
+    "generatorRuntimeSwiftWorkflowsAndMandatoryAtsGuardUnchanged": true,
+    "rootReviewedCompleteDiff": true,
+    "testsRerunByReviewers": false,
+    "postHostReadmeOnlyChange": {
+      "readmeOnly": true,
+      "testSourceUnchanged": true,
+      "hostLogsRetainedWithoutRerun": true,
+      "reason": "Distinguish prior locally signed simulator Releases from pending exact-SHA Apple build, distribution/TestFlight and authenticated journey."
+    }
+  },
+  "nativeBuildRun": false,
+  "nativeAuthenticatedAccepted": false,
+  "productionAccepted": false,
+  "computerRestarted": false,
+  "limits": [
+    "The two fixture failure mechanisms were reproduced on Linux with real Ruby/Xcodeproj and controlled synthetic resources; no new macOS run occurred.",
+    "Host146 and startup/native authentication are distinct validations. Exact-SHA Apple build, mandatory ATS guard, XCTest, Keychain, families and 14 POST still require their own acceptance.",
+    "Historic locally signed simulator Releases do not establish a distribution-signed build or TestFlight delivery."
+  ]
+}

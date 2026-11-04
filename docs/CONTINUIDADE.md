@@ -10,6 +10,10 @@ Atualizado em **03/11/2026**, horário de São Paulo. Leia este arquivo primeiro
 
 **Histórico da demonstração de 25/10:** `predioon-admin.vercel.app`, `predioon-sindico.vercel.app`, `predioon-morador.vercel.app` e API `predioon-api.vercel.app`. Os três logins foram verificados naquela rodada com Playwright; não foram revalidados nesta retomada. A rodada de 24/10 partia de `c53117d6`, com migrations 001–059. Banco `predioon-demo-db`, Neon `bold-leaf-99201114`, São Paulo, somente dados fictícios. Usar explicitamente `db:infra --provider=neon-demo` e provisionamento `--api-only`; nunca reaplicar seed. O perfil conserva as proteções de runtime, tem checksums próprios e não executa o agendador Timescale nem os workers permanentes. [Evidência histórica dos logins, refresh e logout](evidencias/vercel-neon-2026-10-25.json).
 
+
+
+**Fixtures iOS e checkpoint de 03/11:** `02c53e2` corrigiu dois defeitos de portabilidade apenas no teste host (alias de caminho e consulta real de status interceptada pelo mock). Dois REDs reais, dirigido 4/4, Linux **146/146**, Windows **122 aprovados e 24 skips**, revisão independente e dez fontes protegidas conferidas; gerador, runtime, guard ATS/TLS, Swift e workflows intactos. [Prova e limites](evidencias/ios-fixture-portability-2026-11-03.json). Não houve build Apple nesta rodada. O [checkpoint atual](continuidade/2026-11-03-manifesto.json) conserva **um rascunho de teste de ingestão**, base exata `02c53e2`, restauração aplicada e hash conferido; ainda sem execução bem-sucedida. Não reaplicar os checkpoints antigos de 040 ou de runtime já incorporados.
+
 ## 1. Instruções permanentes do proprietário
 
 - Commits pequenos em Conventional Commits (`feat:`, `fix:`, `test:`, `docs:`), com push na `main` depois de cada incremento verificado.
@@ -44,7 +48,7 @@ Atualizado em **03/11/2026**, horário de São Paulo. Leia este arquivo primeiro
 | 2. Identidade e RBAC | Fundação e módulos implementados: capacidades (2B.3, 054), gestão web integrada (2B.4), convites, MFA, recuperação e confirmação recente (2C, 055). **Pendência da decisão já registrada do proprietário:** tornar a MFA obrigatória para a administração da plataforma, com cadastro forçado no primeiro acesso. A MFA opcional existente não cumpre essa exigência. |
 | 3. Processamento durável | Outbox e worker de notificações (038), ingestão sem owner (052), garantias de telemetria (048). A fila separada da inbox foi adiada conscientemente ([INBOX_DECISOES.md](INBOX_DECISOES.md)). |
 | 4. Domínios | Ativos (044), ordens de serviço (043), automações por alerta e programadas (045/057), suporte com concessão explícita (053). **Planos/assinaturas: não iniciado**, por decisão. |
-| 5. Apps | Implementados, com testes e jornadas nas rodadas históricas abaixo; percorridos no emulador em 18/10 (vídeos), sem avisos Fabric naquele logcat. Esses resultados não aprovam as mudanças posteriores da base atual. Caminho iOS preparado: EAS Build/Submit sem Expo SDK e `scripts/ios-mac/verify.sh` para um Mac emprestado. **Pendentes:** regressão atual, build Android com câmera, primeiro build iOS assinado, iOS autenticado e homologação em aparelhos. |
+| 5. Apps | Implementados, com testes e jornadas nas rodadas históricas abaixo; percorridos no emulador em 18/10 (vídeos), sem avisos Fabric naquele logcat. Esses resultados não aprovam as mudanças posteriores da base atual. Caminho iOS preparado: EAS Build/Submit sem Expo SDK e `scripts/ios-mac/verify.sh` para um Mac emprestado. **Pendentes:** regressão atual, build Android com câmera, primeiro build iOS com assinatura de distribuição, iOS autenticado e homologação em aparelhos. |
 | 6. Implantação e operação | Artefatos prontos e ensaiados localmente (Compose, healthchecks, backup/restauração, retenção, saúde dos serviços). **Sem implantação real.** |
 
 ## 4. Histórico de releases e validações
@@ -112,7 +116,7 @@ A sequência do job de plataforma, as flags das suítes SQL038/SQL052 e os clust
 - Resolver o acesso a runners do GitHub Actions, incluindo a pendência de cobrança registrada anteriormente; o run atual terminou em `startup_failure`, sem aceite de CI.
 - Implantação real: VPS, domínio, TLS, chave do Resend e remetente, `MFA_ENCRYPTION_KEY`, segredos do Compose ([DEPLOY.md](DEPLOY.md)).
 - Hardware real (gateways, sensores, portões) e homologação em condomínio.
-- iOS: conta no Apple Developer Program e conta Expo para o primeiro build EAS assinado e o TestFlight; ou um Mac emprestado para rodar `scripts/ios-mac/verify.sh`.
+- iOS: conta no Apple Developer Program e conta Expo para o primeiro build EAS com assinatura de distribuição e o TestFlight; ou um Mac emprestado para rodar `scripts/ios-mac/verify.sh`.
 - Implementar e validar a MFA obrigatória da plataforma, conforme a decisão já registrada; decidir o prazo de retenção das leituras (sugestão histórica de 24 meses).
 - Planos/assinaturas (deixados por último).
 
