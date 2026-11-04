@@ -4,6 +4,8 @@ Estado: desenho, sem alteração de autenticação, migration ou testes no repos
 
 **PLANEJADO — NÃO IMPLEMENTADO — REDs NÃO EXECUTADOS.** A revisão/congelação abaixo é técnica e interna; não constitui pedido de nova autorização ao proprietário.
 
+**Corrigenda prioritária:** a [revisão de política e concorrência](2026-11-04-platform-admin-mfa-policy-refinement.md) substitui a autoridade somente021 pela união com o flag legado010 e identifica que pre/post-gates separados e helper identity-only não asseguram o snapshot da operação. A restrição de não tocar a fronteira SQL/RLS abaixo não é uma solução aprovada para essa lacuna. Resolver desenho/ACL e acrescentar caso de promoção entre assert eSELECT antes de implementar ou aceitar. Dois novos rascunhos foram preservados, sem execução.
+
 ## 1. Resultado esperado
 
 Quem possuir autoridade efetiva de administração da plataforma deve cadastrar MFA no primeiro acesso e provar o fator na sessão que pretende operar. Senha correta sem fator cadastrado cria somente uma sessão restrita de configuração. Essa sessão não lê domínios, faz ações administrativas nem recebe SSE. Confirmar o cadastro em uma sessão não libera outras sessões antigas.

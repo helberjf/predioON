@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-11-04",
+  "status": "UNEXECUTED_TEST_DRAFT_ONLY",
+  "baseCommit": "14e30084366578fe883c80aa0c3f9a8ddda854ed",
+  "baseCommitUrl": "https://github.com/helberjf/predioON/commit/14e30084366578fe883c80aa0c3f9a8ddda854ed",
+  "patch": "2026-11-04-mfa-races.patch",
+  "patchSha256": "4998697d6def7d1bb2215da29947a77ba7925b1f63afbd3603beaf0904b8fccb",
+  "files": [
+    {
+      "path": "apps/api/test/platform-mfa-authority-races.test.ts",
+      "sha256": "620fd3bc46e4dc94f628ebc8b94fae56b7aa3a305d6601c1832aa62f57ee7eb3",
+      "lines": 170,
+      "state": "New draft, absent from exact base and current API glob"
+    }
+  ],
+  "plannedCases": 2,
+  "testsExecuted": false,
+  "redObserved": false,
+  "typecheckExecuted": false,
+  "runtimeOrMigrationImplemented": false,
+  "staticReviewApprovedForDraftPreservation": true,
+  "technicalNoteSourceSha256": "70bf83cbf0a7f009ea6f9451e9f6b96797409d25b90ee84dd03f5afd7dddf049",
+  "restoreCheck": {
+    "passed": true,
+    "scope": "Single new file only; absence verified in exact Git base; relative patch checked/applied to empty external directory with command-local LF settings and bytes compared.",
+    "fullProjectRestoration": false,
+    "testExecutionClaimed": false,
+    "restoredSha256": "620fd3bc46e4dc94f628ebc8b94fae56b7aa3a305d6601c1832aa62f57ee7eb3"
+  },
+  "previousDraftsPreserved": {
+    "sixCasePatchSha256": "8eb339689ca555f64acf993ea20b6134109666f20e5ec54371a455be0caeb389",
+    "raceV1TestSha256": "7b2c054f2594faa960e7e7d2d9f296889b9951d4058092b4adf07945c8909969"
+  },
+  "limits": [
+    "Two planned scenarios promote before assertGlobalCapability; one revokes after SELECT. Neither promotes between assert and SELECT; add that directed case before claiming operation-snapshot coverage.",
+    "Expected403/details.reason MFA_ENROLLMENT_REQUIRED is a future contract, not observed. Returning200 with an RLS-filtered empty list does not satisfy it.",
+    "AbortController, barrier release and bounded own-server shutdown were reviewed statically; SQL cancellation and cleanup have not been executed or proved.",
+    "The previous six-case checkpoint remains byte-identical. Its flag-true/catalog-inactive expectation must be corrected per the policy note before feature acceptance."
+  ],
+  "instructions": [
+    "Read docs/superpowers/plans/2026-11-04-platform-admin-mfa-policy-refinement.md before using either draft checkpoint.",
+    "Use an isolated source copy at the exact base; do not apply if the file or feature is already published. Check and apply the relative patch only to review the candidate.",
+    "Run only after resource coordination using the official fresh UUID fixture and restricted runtime URLs; owner only for arrangement/observation. Dispose of the entire temporary database.",
+    "No executable feature test is added to main by this checkpoint. Obtain directed RED, implement reviewed behavior and validate GREEN before publishing feature code."
+  ]
+}

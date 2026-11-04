@@ -1,0 +1,173 @@
+--- /dev/null
++++ b/apps/api/test/platform-mfa-authority-races.test.ts
+@@ -0,0 +1,170 @@
++import assert from "node:assert/strict";
++import { randomUUID } from "node:crypto";
++import type { Server } from "node:http";
++import { after, before, describe, it } from "node:test";
++import express, { Router } from "express";
++import { sql } from "drizzle-orm";
++import { sqlClient } from "@predioon/db";
++import { closeAppDb } from "@predioon/db/runtime";
++import { authenticate, assertGlobalCapability, inTenantContext } from "../src/auth/middleware.js";
++import { hashPassword } from "../src/auth/passwords.js";
++import { authRouter } from "../src/auth/routes.js";
++import { errorHandler } from "../src/http/error-handler.js";
++// Register the existing shared identity/broker pool cleanup hooks.
++import "./helpers.js";
++
++// DRAFT NOT EXECUTED: only existing imports, routes, tables and middleware.
++// Test-only router exposes observable callback boundaries; never mount it in app.ts.
++// Run only in the official fresh UUID fixture, serially, with restricted API DSNs.
++function signal() {
++  let resolve!: () => void;
++  const promise = new Promise<void>(done => { resolve = done; });
++  return { promise, resolve };
++}
++async function bounded<T>(promise: Promise<T>, label: string): Promise<T> {
++  let timer: ReturnType<typeof setTimeout> | undefined;
++  try {
++    return await Promise.race([promise, new Promise<never>((_, reject) => {
++      timer = setTimeout(() => reject(new Error(`Fixture deadline: ${label}`)), 5000);
++    })]);
++  } finally { clearTimeout(timer); }
++}
++
++describe("MFA authority observed during a protected HTTP operation", { concurrency: false }, () => {
++  const password = "mfa-race-fictitious-password";
++  let passwordHash: string;
++  before(async () => { passwordHash = await hashPassword(password); });
++  after(async () => { await closeAppDb(); await sqlClient.end(); });
++
++  async function scenario(revokeBeforeReturn: boolean) {
++    const suffix = randomUUID(), user = `mfa-race-${suffix}`, org = `mfa-org-${suffix}`;
++    const binding = randomUUID(), marker = `fixture-private-${suffix}`;
++    const beforeCapability = signal(), continueCapability = signal();
++    const afterProtectedRead = signal(), continueReturn = signal();
++    const cancellation = new AbortController();
++    let server: Server | undefined, pending: Promise<Response> | undefined;
++    let failed = false;
++    let protectedRows = 0;
++    try {
++      await sqlClient`insert into users(id,name,email,password_hash)
++        values(${user},'Race fixture',${user + '@example.invalid'},${passwordHash})`;
++      await sqlClient`insert into organizations(id,name,slug) values(${org},${marker},${org})`;
++
++      const router = Router();
++      router.get("/probe", authenticate, async (req, res) => {
++        const result = await inTenantContext(req, async tx => {
++          // authenticate and any initial inTenantContext guard have already run.
++          beforeCapability.resolve();
++          await bounded(continueCapability.promise, "release before capability");
++          await assertGlobalCapability(tx, "organizations:read");
++          const rows = await tx.execute(sql`select name from organizations where id=${org}`);
++          protectedRows = rows.length;
++          if (revokeBeforeReturn) {
++            afterProtectedRead.resolve();
++            await bounded(continueReturn.promise, "release before callback return");
++          }
++          return { items: rows };
++        });
++        res.json(result);
++      });
++      const application = express();
++      application.use(express.json());
++      application.use("/auth", authRouter);
++      application.use(router);
++      application.use(errorHandler);
++      server = await new Promise<Server>(resolve => {
++        const instance = application.listen(0, "127.0.0.1", () => resolve(instance));
++      });
++      const address = server.address();
++      assert.ok(address && typeof address !== "string");
++      const url = `http://127.0.0.1:${address.port}`;
++      const login = await bounded(fetch(`${url}/auth/login`, {
++        method: "POST", headers: { "Content-Type": "application/json" },
++        body: JSON.stringify({ email: user + "@example.invalid", password }),
++        signal: cancellation.signal,
++      }), "password login");
++      assert.equal(login.status, 200);
++      const session = await bounded(login.json(), "login response body") as { accessToken: string };
++      assert.ok(session.accessToken);
++      assert.equal((await sqlClient`select 1 from mfa_factors where user_id=${user}`).length, 0);
++      pending = fetch(`${url}/probe`, {
++        headers: { Authorization: `Bearer ${session.accessToken}` }, signal: cancellation.signal,
++      });
++      // Attach rejection observation immediately, including failures before a
++      // later barrier race or cleanup starts awaiting this request.
++      void pending.catch(() => undefined);
++      // Observe early completion as well as the boundary, so a failed fixture
++      // cannot silently manufacture an apparent security RED by timing out.
++      const first = await bounded(Promise.race([
++        beforeCapability.promise.then(() => "boundary" as const),
++        pending.then(() => "response" as const),
++      ]), "reach authenticated callback");
++      assert.equal(first, "boundary", "ordinary session must reach the controlled callback");
++      await sqlClient.begin(async owner => {
++        await owner`set local lock_timeout='2s'`;
++        await owner`set local statement_timeout='3s'`;
++        await owner`insert into role_bindings(id,user_id,role_key) values(${binding},${user},'PLATFORM_ADMIN')`;
++      });
++      continueCapability.resolve();
++
++      if (revokeBeforeReturn) {
++        const second = await bounded(Promise.race([
++          afterProtectedRead.promise.then(() => "boundary" as const),
++          pending.then(() => "response" as const),
++        ]), "reach read or reject at capability");
++        // A future atomic guard may correctly reject before the read. In that
++        // case the response is asserted below; do not insist on executing it.
++        await sqlClient.begin(async owner => {
++          await owner`set local lock_timeout='2s'`;
++          await owner`set local statement_timeout='3s'`;
++          await owner`update role_bindings set active=false where id=${binding}`;
++        });
++        if (second === "boundary") assert.equal(protectedRows, 1, "real RLS-protected fixture row was read");
++        continueReturn.resolve();
++      }
++      const response = await bounded(pending, "protected HTTP result");
++      const body = await bounded(response.text(), "protected response body");
++      assert.equal(body.includes(marker), false, "the protected row must never reach the HTTP caller");
++      assert.equal(response.status, 403, "authority acquired after authenticate still requires MFA proof");
++      const error = JSON.parse(body) as { details?: { reason?: string } };
++      assert.equal(error.details?.reason, "MFA_ENROLLMENT_REQUIRED");
++    } catch (error) {
++      failed = true;
++      throw error;
++    } finally {
++      beforeCapability.resolve();
++      continueCapability.resolve();
++      afterProtectedRead.resolve();
++      continueReturn.resolve();
++      cancellation.abort();
++      const drain = pending
++        ? pending.then(response => response.bodyUsed ? undefined : response.body?.cancel(), () => undefined)
++        : Promise.resolve();
++      const closing = server ? new Promise<void>((resolve, reject) => {
++        server!.close(error => error ? reject(error) : resolve());
++        // Only this scenario's own listener/connections; no production timeout changes.
++        server!.closeAllConnections();
++      }) : Promise.resolve();
++      const outcomes = await Promise.allSettled([
++        bounded(drain, "cancelled HTTP request settlement"),
++        bounded(closing, "owned HTTP server close"),
++      ]);
++      // Bound fixture SQL too; a failed HTTP cleanup must not skip data cleanup.
++      const dataOutcomes = await Promise.allSettled([bounded(sqlClient.begin(async owner => {
++        await owner`set local lock_timeout='2s'`;
++        await owner`set local statement_timeout='3s'`;
++        await owner`delete from users where id=${user}`;
++        await owner`delete from organizations where id=${org}`;
++      }), "fixture data cleanup")]);
++      const cleanupFailure = [...outcomes, ...dataOutcomes].find(outcome => outcome.status === "rejected");
++      if (!failed && cleanupFailure?.status === "rejected") throw cleanupFailure.reason;
++    }
++  }
++
++  it("promotion after authenticate but before capability query cannot unlock data without MFA", async () => {
++    await scenario(false);
++  });
++  it("promotion before capability and revocation after the read cannot evade a final gate", async () => {
++    await scenario(true);
++  });
++});
