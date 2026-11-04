@@ -3,7 +3,10 @@
 Revisão de **04/11/2026**. Escopo confirmado: **somente monitoramento**, incluindo caixa
 d'água, cisterna, consumo de água e energia, fases, estado da bomba, temperatura,
 vazamentos de água/esgoto, gás e sinal da central de incêndio. Portões e vagas não fazem
-parte desta compra.
+parte desta compra. O piloto será instalado em um condomínio. Tensão, dimensões,
+tubulação, gás e demais dados do local permanecem **para preencher** na
+[lista de compras do piloto](COMPRAS_PILOTO.md), que reúne modelos, quantidades,
+preços, links, condições e alternativas desta revisão.
 
 **Situação:** seleção técnica e orçamento preliminar; nenhum conjunto foi homologado
 fisicamente por este estudo. Documentação de fabricante, preço anunciado e teste de
@@ -11,38 +14,38 @@ software não substituem o teste com o equipamento e o firmware que serão insta
 
 ## 1. Decisão recomendada
 
-**Começar com um único piloto PUSR USR-M100-HM-ETH + USR-IO8000, com armazenamento
-local, contador de água, proteção elétrica e nobreak. Padronizar esse kit somente se
-ele passar pelos testes da seção 7 e continuar sendo o menor custo total.**
+**Validar um piloto PUSR USR-M100-HM-GL + USR-IO8000, com cartão, contador de água,
+fonte de procedência, proteção elétrica e nobreak.** O 4G integrado é a primeira
+opção para reduzir interrupções dos alertas remotos sem o custo de um roteador
+separado. Sua troca de conexão precisa funcionar também quando a internet cai e
+o cabo Ethernet continua conectado.
 
-A proposta econômica continua sendo um gateway, porque o escopo é adquirir dados e
-notificar, sem comandar bombas. O investimento prioritário deve fechar a continuidade
-de alimentação, a qualidade dos sensores e a recuperação de dados. Comprar um CLP mais
-caro, isoladamente, não resolve esses requisitos.
+A versão **HM-ETH** continua sendo a opção de menor gasto quando há conexão
+alternativa existente ou é aceitável receber os dados somente após a internet
+voltar. O armazenamento local e a alimentação de reserva precisam ser aprovados
+nas duas versões. O piloto contempla instalação em campo, com preparação e teste
+do mesmo conjunto antes da montagem definitiva.
 
-| Configuração de monitoramento completo | Base preliminar de hardware por instalação | Uso recomendado |
+| Cenário de materiais para as funções do piloto | Referência de planejamento | Condição |
 |---|---:|---|
-| **M100-HM-ETH + IO8000 + DigiRail-4C novo + SD + nobreak e complementos** | **R$ 7.652–8.168** | Menor custo de partida entre os kits completos calculados; internet existente, com histórico recuperável após a queda |
-| Mesmo kit + roteador 4G RUT200 com troca automática de conexão | R$ 9.847–10.363 | Quando os alertas remotos precisam continuar durante falha da internet principal |
-| M300-GL + IO8000 + DigiRail-4C novo + nobreak e complementos | R$ 9.059–9.575 | Comparar com o kit anterior se o 4G integrado, o armazenamento e a recuperação forem aprovados |
-| Altus XP315 + armazenamento compatível + nobreak e complementos | R$ 10.667–11.183 | Alternativa industrial quando ambiente, manutenção ou custo de integração justificarem o adicional |
+| **M100-HM-GL + IO8000 + contador + SD + sensores + fonte/nobreak + infraestrutura** | **R$ 10.747,44–11.937,44** | Primeiro candidato com 4G integrado; inclui referências ainda pendentes de cotação |
+| Mesmo escopo com M100-HM-ETH | R$ 10.066,41–11.256,41 | Economiza R$ 681,03, com a condição de conectividade descrita acima |
 
-**Esses valores não são orçamento instalado nem teto de compra.** Misturam referências
-históricas, anúncios consultados nesta revisão e provisões identificadas na seção 3.
-Não incluem frete, instalação, desenvolvimento, mensalidades, adequação de sensores
-ao local nem aumento de autonomia. O kit M300 usa preço histórico ainda sujeito a cotação.
+**Não são preços fechados do sistema instalado.** O contador a R$ 1.144,23 aparece
+esgotado, as duas sondas usam R$ 880 cada apenas como valor inicial sem cabo completo
+confirmado, e R$ 1.320–2.510 são provisões de infraestrutura. Tensão, corrente,
+diâmetro e instalação podem alterar os valores. A lista detalhada substitui as
+estimativas anteriores de R$ 7,7–8,2 mil com modelos genéricos e preços históricos.
 
-Sem conexão alternativa, o kit econômico deverá preservar medições enquanto tiver
-alimentação, após validar seu armazenamento, mas não envia alertas remotos durante a
-indisponibilidade da internet. A plataforma
-atual também não transforma automaticamente todo evento antigo em alerta ao reconectar.
-Se notificação durante a queda do link for requisito, **incluir o 4G no orçamento desde
-o início**. Nenhuma opção promete disponibilidade absoluta.
+O maior retorno do orçamento está em alimentação, sensores, proteção e recuperação
+dos dados. Um CLP mais caro não resolve sozinho esses requisitos. **Altus XP315**
+permanece candidato industrial quando ambiente, manutenção ou integração justificarem
+o adicional; não há ensaio comparativo para declarar qual conjunto tem menor taxa
+de falhas. A compra em escala depende dos testes da seção 7.
 
-A preferência por Altus quando a prioridade é robustez industrial permanece válida,
-mas **não é a escolha padrão para a nova prioridade de menor gasto com requisitos
-atendidos**. Não há ensaio comparativo que permita declarar empate de confiabilidade
-entre marcas ou atribuir probabilidade de falha a partir de notas comerciais.
+Sem conexão alternativa, não há alerta remoto durante a queda da internet. A
+plataforma atual também não converte automaticamente todos os eventos antigos em
+alertas após a reconexão. Essa diferença precisa constar da entrega operacional.
 
 ## 2. O que o kit entrega e como dimensionar
 
@@ -67,7 +70,7 @@ Contratos da plataforma: [SENSORES.md](SENSORES.md) e
 | Vazamento de água e esgoto | Dois sensores com saída compatível | Selecionar sondas para o líquido e local; documentar comportamento diante de sujeira, corrosão e falha |
 | Gás | Detector para o gás realmente presente, com relé | Calibração, vida útil e alarme local definidos. `gas_ppm` só se o aparelho medir e fornecer esse dado |
 | Incêndio | Sinal da central existente | O Prédio ON supervisiona seu sinal; central, detectores e alarmes locais continuam independentes |
-| Conferência do nível | Duas boias independentes | Comparação com o nível analógico exige mapeamento e regra de divergência; não está pronta só por conectar as boias |
+| Conferência do nível | Quatro boias independentes, alta e baixa em cada reservatório | Comparação com o nível analógico exige mapeamento e regra de divergência; não está pronta só por conectar as boias |
 | Falta de alimentação da instalação | Contato de diagnóstico compatível, independente do gateway alimentado pelo nobreak | Diferenciar falta de rede de perda de comunicação do medidor; interface e regra a implementar/validar |
 | Falha de comunicação e histórico | MQTT, armazenamento local e supervisão na plataforma | Separar gateway conectado, sensor respondendo e leitura atual válida |
 
@@ -88,124 +91,76 @@ O conjunto oferece 10 entradas digitais e 2 analógicas. Uma alocação de proje
 | Entradas | Alocação |
 |---|---|
 | AI1 e AI2 | Caixa e cisterna: 2 de 2 utilizadas |
-| DI1 a DI7 | Bomba, água, esgoto, incêndio, boia alta, boia baixa e gás |
-| DI8 | Diagnóstico de alimentação |
-| DI9 e DI10 | Reserva para sinais de falha da central/detector, se disponíveis |
-| Contador externo | Um canal de pulsos; não utilizar leitura periódica de DI para contar pulsos |
+| DI1 a DI5 | Bomba, água, esgoto, incêndio e gás |
+| DI6 a DI9 | Boias alta e baixa da caixa e da cisterna |
+| DI10 | Diagnóstico de alimentação |
+| Contador externo | Um canal de pulsos; até três canais restantes para estados de diagnóstico, conforme mapa e interface. Não utilizar leitura periódica de DI para contar pulsos |
 | RS485 | Medidor de energia, temperatura, contador e expansões conforme topologia do fabricante |
 
-A numeração acima é lógica, não endereço de registrador. Confirmar terminais, tensão,
+As dez DI principais ficam ocupadas, sem reserva nesse módulo. A numeração acima é
+lógica, não endereço de registrador. Confirmar terminais, tensão,
 polaridade e mapa no equipamento real. Um contato seco simples não detecta automaticamente
 cabo rompido ou sensor travado; usar diagnóstico do fabricante ou supervisão adicional
 quando necessário. Ausência de leitura não pode virar "sem vazamento" ou "sem gás".
 
 ## 3. Orçamento comparável e rastreável
 
-Valores em reais. Classificação:
+A [lista de compras](COMPRAS_PILOTO.md) é a referência comercial desta revisão.
+Ela distingue **A — anúncio consultado**, **R — referência sem oferta disponível**,
+**C — cotação pendente** e **P — provisão estimada**. Preços anunciados não equivalem
+a reserva de estoque, adequação da versão ao local ou proposta de instalação.
 
-- **H — histórico:** referência da revisão de 25/10/2026, não reconfirmada como oferta
-  disponível em 04/11. Deve ser recotada com modelo e garantia definidos.
-- **A — anúncio consultado em 04/11/2026:** referência pública, sem reserva de estoque,
-  validação de frete ou proposta comercial. Não é garantia do menor preço.
-- **P — provisão de projeto:** verba para planejamento, não cotação nem comprovação de
-  que todo o material necessário caberá nela.
+### 3.1 Composição do cenário com 4G
 
-### 3.1 Sensores e infraestrutura comuns aos kits
-
-| Item | Quantidade/escopo | Total | Origem |
-|---|---|---:|---|
-| Sensores de nível 4–20 mA | 2 | 1.184 | H |
-| Medidor de energia trifásico | 1, versão ainda a dimensionar | 600 | H |
-| Temperatura Modbus | 1 | 119 | H |
-| Contato auxiliar da bomba | 1; descontar se já houver contato disponível | 29 | H |
-| Sensores de vazamento | 2 | 272 | H |
-| Boias de conferência | 2 | 63 | H |
-| Hidrômetro pulsado | 1, dimensão ainda a confirmar | 306–488 | H |
-| Detector de gás com relé | 1; adequação e modelo pendentes | 266–300 | H |
-| Fonte Mean Well MDR-60-24, 24 V/2,5 A | 1 | 175 | H |
-| Proteção contra surtos na alimentação | Verba histórica; quantidade e tensão conforme projeto | 90 | H |
-| Disjuntor da automação | 1 | 33 | H |
-| Quadro IP65 400×300×200 | 1, verificar espaço e dissipação | 195 | H |
-| Trilho, bornes, canaleta, prensa-cabos e fios | Conjunto | 300 | H |
-| Cabo de instrumentação blindado | Referência de 60 m | 334 | H |
-| Ethernet e acessórios | Conjunto básico | 30 | H |
-| **Subtotal comum** | Inclui cisterna, consumo de água e gás | **3.996–4.212** | |
-
-O sinal da central de incêndio pressupõe interface já disponível; um módulo de interface
-novo deve ser cotado. Proteções e comando da bomba existentes permanecem no local:
-**medir fases não substitui proteção elétrica da bomba**.
-
-### 3.2 Aquisição e armazenamento
-
-| Alternativa | Composição | Total | Origem |
-|---|---|---:|---|
-| **M100-HM** | M100-HM-ETH 1.190 + IO8000 349 + microSD High Endurance 192 + DigiRail-4C novo 1.144,23 | **2.875,23** | H + A |
-| M300 | M300-GL 2.789 + IO8000 349 + DigiRail-4C novo 1.144,23 | 4.282,23 | H + A |
-| Altus | XP315 5.690 + provisão de armazenamento compatível 200 | 5.890 | A + P |
-
-O [DigiRail-4C novo](https://www.equipabr.com/digirail-4c-rs485-novus/p) substitui a
-referência de usado de R$ 750. O [XP315 anunciado](https://melhorindustria.com.br/clp-1-eth-1-rs-485-1-can-16-ed-16-sd-5-ea-v/i-e-2-ea-rtd-66.016.101-9)
-é usado na comparação atual; o XP325 só se justifica se preço/disponibilidade ou funções
-adicionais forem vantajosos. O Altus usa contagem nativa, sem somar IO8000, SD do M100
-ou DigiRail-4C. Seu armazenamento e programa devem ser dimensionados e validados.
-
-### 3.3 Continuidade e diagnóstico
-
-| Item | Valor | Origem e condição |
+| Parcela | Valor em reais | Condição |
 |---|---:|---|
-| Nobreak: referência Intelbras ATTIV 600 VA 220 V | 480,88 | A — [loja oficial](https://loja.intelbras.com.br/nobreak-attiv-600va-220v/p); selecionar tensão e forma de onda compatíveis com todas as fontes |
-| Complementos de proteção e diagnóstico | 300–600 | P — avaliar proteção de sinal/RS485, fusíveis, interface de falta de alimentação e terminais extras; orçamento final depende do levantamento |
-| **Subtotal** | **780,88–1.080,88** | Autonomia ainda não comprovada |
+| Anúncios de gateway GL, IO, SD, fonte, nobreak, sensores definidos, boias, hidrômetro e quadro | 6.523,21 | Modelos e condições na lista; exclui sondas e contador |
+| DigiRail-4C novo | 1.144,23 | Referência com produto esgotado; recotar |
+| Duas sondas Megga MGG-TNH-SUB | 1.760,00 | Cenário com valor inicial de 880 cada; faixa/cabo/materiais ainda a cotar |
+| Infraestrutura e interfaces de diagnóstico | 1.320–2.510 | Provisões detalhadas, não kit cotado |
+| **Total do cenário** | **10.747,44–11.937,44** | **Não é teto nem orçamento instalado** |
+
+O orçamento real de materiais é **R$ 6.523,21 + contador recotado + duas sondas
+completas cotadas + infraestrutura cotada + diferenças das versões necessárias**.
+O custo final inclui ainda frete, instalação, integração, comissionamento e adequações.
+Mais sensores ou percursos de cabo aumentam a conta; um ponto de gás não cobre por
+definição todos os ambientes do condomínio.
+
+### 3.2 Continuidade, diagnóstico e alternativas
+
+O HM-GL anunciado a R$ 1.845,45 custa R$ 681,03 a mais que o HM-ETH a R$ 1.164,42.
+É a alternativa celular a verificar antes de somar um roteador 4G separado. Comparar
+bandas, unidade comercial, documentação aplicável e teste de troca de conexão.
+
+O sinal da central pressupõe interface compatível disponível: um módulo adicional
+deve ser cotado. O contato auxiliar da bomba também depende do contator instalado.
+**Medir fases não substitui proteção elétrica da bomba.** O contato DC OK da fonte,
+quando alimentada por nobreak, não identifica sozinho a falta da rede; foi prevista
+uma interface separada de diagnóstico.
 
 Alimentar pelo nobreak o gateway, módulos, contador, sensores que dependem da fonte,
-roteador, ONT/modem e switches necessários ao trajeto. Meta inicial de projeto:
-**pelo menos 60 minutos medidos com a carga real**; se o modelo de referência não atender,
-substituir ou ampliar e recalcular. VA é capacidade de carga, não autonomia.
+e toda a rede necessária ao trajeto, incluindo ONT/modem e switch quando utilizados.
+Meta inicial: **60 minutos medidos com a carga real**. Adequar o nobreak se não atender;
+VA não informa autonomia. Não ligar motores ao nobreak do monitoramento.
 
-Usar ambiente adequado à bateria; não presumir que nobreak e bateria cabem no quadro
-fechado ou toleram seu aquecimento. A fonte de 2,5 A só permanece se o balanço de cargas,
-partidas e margem definidos pelo instalador permitir. Não ligar motores ao nobreak do kit.
+A fonte MDR-60-24 de 2,5 A depende do balanço de cargas, partida/transmissão celular
+e temperatura. O quadro deve acomodar os equipamentos e dissipar seu calor. Não se
+presume que o nobreak ou a bateria caibam no quadro fechado.
 
-### 3.4 Totais e diferenças
+### 3.3 Custo total em três anos
 
-A soma do kit M100 é: subtotal comum + aquisição/armazenamento + continuidade =
-**R$ 7.652,11–8.168,11**. Para planejamento, aproximadamente **R$ 7,7–8,2 mil em hardware**,
-antes das adequações do local e demais despesas.
+Para cada proposta tecnicamente aprovada, preencher:
 
-O adicional de hardware do M300 é **R$ 1.407** sobre o M100. O do XP315, incluindo a
-provisão de armazenamento e retirando o contador externo, é **R$ 3.014,77**. Comparar
-também o custo de programação, manutenção e deslocamentos, não só essa diferença.
-
-Conexão alternativa: referência de **R$ 2.194,81** para
-[RUT200](https://www.rsautomacao.com/rut200-roteador-4gwi-fi-teltonika), anúncio com
-estoque indicado na consulta, sem usar desconto Pix na soma. O kit M100 com esse
-roteador soma **R$ 9.846,92–10.362,92**, mais SIM/plano de dados e eventuais antena/montagem.
-O fabricante documenta
-[troca automática de conexão](https://www.teltonika-networks.com/products/routers/rut200).
-Testar queda com cabo ainda conectado, pois link Ethernet ativo não prova internet funcionando.
-
-**Se o 4G for necessário, recotar M100 + roteador e M300-GL com o mesmo escopo.**
-Nesta base, o M300 fica abaixo do conjunto separado, mas seu preço é histórico e não
-comprova uma economia disponível para compra. Ele pode reunir funções e reduzir
-equipamentos, desde que variante celular, firmware, troca de link, persistência e
-integração passem na bancada. Não assumir equivalência entre variantes M100, M100-HM e M300.
-
-### 3.5 Custo total em três anos
-
-Para cada proposta aprovada tecnicamente, preencher:
-
-> Custo total = hardware adequado ao local + frete + montagem/instalação/comissionamento
+> Custo total = materiais adequados ao local + frete + montagem/instalação/comissionamento
 > + desenvolvimento e homologação rateados pelo número de instalações
 > + 36 × custos mensais atribuíveis + manutenção e reposições previstas + visitas técnicas.
 
-Custos mensais incluem conexão móvel, hospedagem/backup da plataforma e serviços pagos
-de notificação/gestão remota quando utilizados. Software compartilhado não deve ser
-cobrado integralmente em cada condomínio nem tratado como gratuito no primeiro piloto.
-Não estimar quantidade de falhas sem dados; comparar cenários de visitas e horas de suporte.
+Mensalidades incluem conexão móvel, hospedagem/backup e serviços de notificação/gestão
+utilizados. Software compartilhado não deve ser cobrado integralmente em cada prédio
+nem tratado como gratuito no piloto. Não estimar taxas de falha sem dados.
 
-**Regra de decisão:** escolher o menor custo total entre os conjuntos que atendam aos
-requisitos. Uma opção mais cara pode compensar se reduzir comprovadamente integração,
-suporte ou visitas em valor maior que o adicional.
+**Escolher o menor custo total entre os conjuntos que cumpram os requisitos.**
+O quadro de preenchimento do custo instalado está na seção 4 da lista de compras.
 
 ## 4. Onde reduzir custo sem retirar funções
 
@@ -214,14 +169,16 @@ suporte ou visitas em valor maior que o adicional.
    capacidade disponível, fonte e infraestrutura. Não contabilizar economia antes de
    verificar disponibilidade, estado, interface e autonomia.
 2. **Cotar hidrômetro com totalizador Modbus nativo.** O conjunto pulsado + DigiRail-4C
-   custa R$ 1.450,23–1.632,23 nesta base. Um medidor de dimensão equivalente, com total
+   tem referência de R$ 1.542,23 nesta base, com contador ainda a recotar. Um medidor
+   de dimensão equivalente, com total
    acumulado persistente e interface incluída, reduz custo se sua proposta instalada
    ficar abaixo da alternativa pulsada instalada. Não confundir RS485 com garantia de
    protocolo Modbus nem eliminar o contador antes de aprovar a alternativa.
 3. **Avaliar NOVUS DigiRail IoT ETH na mesma rodada de cotação.** Há anúncio de
    [R$ 2.600, ou R$ 2.470 à vista](https://www.nobrebrasil.com/automacao-industrial).
    O modelo reúne contagem de pulsos e aquisição, podendo retirar o DigiRail-4C separado.
-   Porém, suas 6 DI, 2 AI e 8 canais remotos não comprovam cobertura de todo o kit.
+   Porém, suas 6 DI, 2 AI e 8 canais remotos não comprovam cobertura de todo o kit,
+   agora com quatro boias.
    Dimensionar a expansão digital, todas as métricas e o histórico antes de calcular
    economia. Não recomendar um segundo gateway apenas para contornar limite sem comparar o custo.
 4. **Não comprar CLP nem saída analógica sem necessidade.** Manter o XP315 como
@@ -235,21 +192,23 @@ suporte ou visitas em valor maior que o adicional.
 
 | Alternativa | Evidência disponível | Pendência decisiva | Papel na decisão |
 |---|---|---|---|
-| M100-HM + IO8000 | Manual documenta MQTT/TLS e cache em SD; expansão digital documentada | JSON real, persistência após corte durante gravação, horário original e reenvio ordenado | Primeiro candidato econômico |
+| M100-HM-GL + IO8000 | Manual documenta MQTT/TLS, cache em SD e prioridade de rede; expansão digital documentada | JSON real, persistência, horário original, reenvio ordenado e troca de conexão | Primeiro candidato econômico com continuidade de comunicação |
 | M300-GL + IO8000 | Fabricante anuncia Node-RED, armazenamento e conectividade celular | Demonstrar durabilidade da fila, TLS, variante celular e retomada; mais recursos não significam menos falhas | Candidato quando integração/4G justificarem |
 | NOVUS DigiRail IoT ETH | Manual documenta pulsos, MQTT, canais remotos e capacidade do buffer | Cobertura de entradas/métricas e autonomia do histórico na configuração completa | Concorrente a cotar, não substituto já aprovado |
 | Teltonika TRB246 + módulos | Boa documentação de conectividade e envio de dados | Suporte discutiu banco Modbus em RAM; confirmar retenção após falta de energia na versão escolhida | Alternativa de comunicação, sem presumir fila persistente |
 | Altus XP315 | Recursos industriais, entradas, contagem e MQTT/TLS documentados | Programa, fila persistente, sincronização e recuperação ainda precisam ser entregues | Alternativa industrial, com custo maior |
 
-No NOVUS, energia acumulada + três tensões + três correntes + temperatura já ocupam
-oito canais remotos se cada grandeza usar um canal. Ainda faltaria mapear expansão de
-entradas. Não retirar silenciosamente medições para fazer a alternativa parecer equivalente.
-As correntes são opcionais no contrato atual: um perfil explicitamente sem elas libera
-canais para expansão e merece cotação. A entrada usada para pulsos também deve entrar
-na conta das seis DI; confirmar o mapa completo antes de aprovar essa redução de custo.
-O manual também limita o buffer conforme canais habilitados; a autonomia deve ser
-calculada pela configuração completa, incluindo eventos. Entradas/interfaces não isoladas
-exigem atenção ao projeto, independentemente de a marca ser nacional.
+No NOVUS, energia acumulada, três tensões e temperatura usam cinco canais remotos
+se cada grandeza ocupar um canal. Dez estados digitais mais um pulso excedem suas
+seis DI: faltariam cinco estados na expansão. Esse mapeamento simples exigiria dez
+canais remotos, acima dos oito disponíveis, mesmo sem as correntes opcionais.
+Empacotamento de bits ou outra arquitetura só contam como solução após validar mapa,
+módulo e interpretação dos dados. Não retirar medições silenciosamente.
+
+O manual informa 1.824 registros com seis DI e duas AI; a um minuto, são 30,4 h,
+sem somar canais remotos/eventos. Não comprova 72 h de histórico para este piloto.
+As interfaces não isoladas e a cadência alternativa de registro também precisam
+entrar na avaliação. A [lista de compras](COMPRAS_PILOTO.md) detalha as condições.
 
 As opções WEG PLC410, Siemens S7-1200, Unitronics, Haiwell e Schneider M200 permanecem
 fora da primeira compra por não haver, nesta revisão, proposta completa comparável
@@ -334,10 +293,10 @@ complementam essa evidência, mas não comprovam robustez elétrica ou durabilid
    Fixar se é aceitável perder notificações remotas temporariamente por queda de link.
 2. Recotar o kit M100 e as alternativas aplicáveis com **mesmo escopo**, incluindo peças
    novas, garantia, substituição, integração e comissionamento. Verificar variante/firmware.
-3. Comprar ou obter para avaliação **um conjunto**, concluir o adaptador e executar a bancada.
-   A bancada mínima M100 + IO8000 + SD + fonte soma R$ 1.906 nas referências históricas;
-   com contador novo e nobreak, R$ 3.531,11, ainda sem todos os sensores e acessórios.
-4. Reaproveitar esse conjunto no primeiro condomínio somente depois da aprovação.
+3. Comprar ou obter para avaliação **um conjunto para a instalação completa do piloto**,
+   seguindo a lista detalhada. Concluir o adaptador e testar o mesmo conjunto antes
+   da montagem definitiva; não é necessário comprar uma segunda bancada.
+4. Instalar no condomínio depois de aprovar as funções e condições de montagem.
    Evitar comprar simultaneamente vários modelos sem uma pergunta técnica a resolver.
 5. Se reprovar, identificar a causa: integração, sensor, energia, armazenamento ou rede.
    Corrigir o elo responsável; migrar para M300/Altus apenas quando isso resolver a causa
@@ -368,11 +327,12 @@ equipamento efetivamente entregue:
 - [Teltonika TRB246: envio de dados](https://wiki.teltonika-networks.com/view/TRB246_Data_to_Server)
   e [discussão do suporte sobre buffer Modbus e persistência](https://community.teltonika.lt/t/trb145-trb246-modbus-data-buffering-during-connectivity-loss-ram-database-capped-at-1-3-mb-moving-it-to-flash-via-uci-works-is-it-supported/21167).
   Relatos e orientações referem-se às versões discutidas; validar a versão escolhida.
-- Preços novos: anúncios de DigiRail-4C, XP315, ATTIV 600, RUT200 e DigiRail IoT
-  vinculados nas seções 3 e 4. Os demais valores vêm da revisão anterior, sem confirmação
-  comercial nesta data.
+- [Lista de compras e fontes por equipamento](COMPRAS_PILOTO.md): preços, quantidades,
+  alternativas e leituras adicionais de manuais. O contador aparece esgotado; preços
+  iniciais de sonda, variantes e provisões não equivalem a propostas fechadas.
 
 Esta revisão retira as notas ponderadas apresentadas como empate de robustez, a
 afirmação de funcionamento completo antes da integração e a referência de contador usado
-como base de produção. Mantém o M100 como candidato econômico, acrescentando escopo
-completo de monitoramento, alimentação de reserva, custos comparáveis e critérios de aprovação.
+como base de produção. A lista detalhada acrescenta quatro boias, modelos identificados,
+4G integrado e condições de compra. Mantém o M100 como candidato econômico, com
+integração, alimentação de reserva e critérios de aprovação explícitos.
