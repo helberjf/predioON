@@ -1,7 +1,8 @@
 # Integração hardware → software — Prédio ON
 
 Contrato vigente da caixa d'água e entrega local: [ENTREGA_HELBER.md](ENTREGA_HELBER.md).
-Escolha e custo dos equipamentos: [ESTUDO_HARDWARE.md](ESTUDO_HARDWARE.md).
+Escolha e custo dos equipamentos: [ESTUDO_HARDWARE.md](ESTUDO_HARDWARE.md). O estudo
+de compra cobre somente monitoramento; integração e homologação física dos kits continuam pendentes.
 
 ## 1. Escopo
 
@@ -22,7 +23,7 @@ Sensores → RS485/Modbus RTU ou entrada digital → Gateway → MQTTS → EMQX
 | Nível/volume da caixa d'água | RS485 Modbus | Ultrassônico ou transmissor de pressão |
 | Tensão por fase e falta de fase | RS485 Modbus | Multimedidor; a proteção continua sendo relé físico |
 | Vazamento | Entrada digital | Cabo sensor ou sonda de eletrodos |
-| Estado da bomba | Entrada digital + TC | Contato auxiliar diz "comandada", corrente diz "bombeando" |
+| Estado da bomba | Contato auxiliar; corrente opcional | Contato informa estado do contator, corrente ajuda a diagnosticar carga; confirmar entrega de água exige medição de vazão/pressão |
 | Temperatura de sala técnica | RS485 Modbus | SHT20 ou equivalente |
 | Fumaça / incêndio | Entrada digital | ⚠️ Ver seção 7 |
 | Gás | Entrada digital / medidor compatível | Detecção e ppm quando disponíveis |
@@ -51,8 +52,10 @@ predio/{buildingId}/device/{deviceId}/telemetry
 predio/{buildingId}/gateway/{gatewayId}/status
 ```
 
-O tópico de status deve ser publicado **retido** na conexão e registrado como **last will**,
-para que o broker anuncie a queda do gateway sem esperar o timeout.
+Publicar status ONLINE **retido** na conexão e configurar OFFLINE retido como **Last Will**.
+O broker anuncia a queda quando detecta a desconexão, inclusive pelo timeout de keepalive;
+isso não é instantâneo nem identifica sozinho falta de energia. A supervisão de ausência
+de telemetria na plataforma complementa esse mecanismo.
 
 ## 5. Payloads
 
