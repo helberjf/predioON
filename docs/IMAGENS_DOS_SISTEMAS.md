@@ -1,8 +1,16 @@
 # Imagens reais dos aplicativos e portais
 
-Publicadas em **03/10/2026**, atualizadas em **05/10/2026**. Estas capturas foram conferidas em execuções reais e usam dados fictícios. Cada imagem mantém a origem comprovada, inclusive commit nulo quando o runtime não foi atestado; a data de publicação não altera a versão demonstrada. O plano completo e os cinco vídeos finais continuam pendentes, conforme [CONTINUIDADE.md](CONTINUIDADE.md).
+Índice atualizado em **04/11/2026**. A galeria histórica foi publicada em **03/10/2026** e atualizada em **05/10/2026**. Estas capturas foram conferidas em execuções reais e usam dados fictícios. Cada imagem mantém a origem comprovada, inclusive commit nulo quando o runtime não foi atestado; a data de publicação não altera a versão demonstrada. Os cinco vídeos de 18/10 são históricos; o plano completo e demonstrações finais da versão atual continuam pendentes, conforme [CONTINUIDADE.md](CONTINUIDADE.md).
 
-As **38 imagens —9Android,20web e9iOS—** e a [galeriaHTML](IMAGENS_DOS_SISTEMAS.html) acompanham o clone. Todas as iOS mostram somente entrada; as duas novas de cf9b927 foram conferidas no startup aprovado dos dois produtos. Authcf9 parou no guardATS; Keychain/14POST/produção continuam pendentes. Duas novas JPEGs comerciais mostram QA manual em banco próprio039, com fonte ainda não publicada anterior ao ajuste finalShell; hashes e limites na [prova manual](evidencias/web-organizations039-manual.json). O [manifesto](imagens/2026-10-03/manifesto.json) registra dimensões, SHA e origem. Referências estáticas conferidas; acesso8765 continua bloqueado, sem bypass nem novo aceite de controles da galeria.
+A [galeriaHTML histórica](IMAGENS_DOS_SISTEMAS.html) reúne **38 imagens —9Android,20web e9iOS—**; as capturas posteriores são registradas nas seções próprias deste índice. Todas acompanham o clone. Todas as iOS mostram somente entrada; as duas novas de cf9b927 foram conferidas no startup aprovado dos dois produtos. Authcf9 parou no guardATS; Keychain/14POST/produção continuam pendentes. Duas novas JPEGs comerciais mostram QA manual em banco próprio039, com fonte ainda não publicada anterior ao ajuste finalShell; hashes e limites na [prova manual](evidencias/web-organizations039-manual.json). O [manifesto](imagens/2026-10-03/manifesto.json) registra dimensões, SHA e origem. Referências estáticas conferidas; acesso8765 continua bloqueado, sem bypass nem novo aceite de controles da galeria.
+
+## Web — regras salvas em 04/11/2026
+
+Capturas reais do Chromium, fonte14e3008, com respostas API sintéticas e sete casos de regras salvas aprovados. [Origem, dimensões e hashes](imagens/2026-11-04/README.md). A imagem móvel é o web responsivo; não é Android/iOS nativo nem aceite de produção. A galeria HTML histórica continua preservada.
+
+![Regras salvas — desktop](imagens/2026-11-04/regras-salvas-desktop.png)
+
+![Regras salvas — web responsivo](imagens/2026-11-04/regras-salvas-mobile.png)
 
 ## Web — entrada pública de 24/10/2026
 

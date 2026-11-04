@@ -1,0 +1,181 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-11-04",
+  "kind": "four-separate-directed-chromium-executions",
+  "sourceCommit": "14e30084366578fe883c80aa0c3f9a8ddda854ed",
+  "sourceCommitUrl": "https://github.com/helberjf/predioON/commit/14e30084366578fe883c80aa0c3f9a8ddda854ed",
+  "source": "Full Git archive of published commit; original V2 source verified before overlay; no dependency reinstall",
+  "originalSpecs": [
+    {
+      "path": "e2e/browser/focus.spec.ts",
+      "sha256": "ae0e8456c71b68d5baf327537c9e7e35918866f89d4401981599bd9a7dc22813",
+      "unchangedFromC619844": true
+    },
+    {
+      "path": "e2e/isolated/saved-rules.spec.ts",
+      "sha256": "158b02f1df21271d6b150d6cb74e979d2656af05032a49b41af37f63683104ed",
+      "unchangedFromC619844": true
+    }
+  ],
+  "executions": [
+    {
+      "phase": "admin",
+      "exitCode": 0,
+      "passed": 4,
+      "skipped": 1,
+      "reportedSeconds": 19.7,
+      "startedUtc": "2026-11-04T04:35:33.0201201Z",
+      "finishedUtc": "2026-11-04T04:35:56.8500684Z",
+      "logSha256": "f8ad5343a41c1ba5acfeaf4c2c151b335062c5834098c9f9dc2241979f8fdefc",
+      "sourceAfter": "PASS",
+      "oomEvents": 0
+    },
+    {
+      "phase": "building",
+      "exitCode": 0,
+      "passed": 4,
+      "skipped": 1,
+      "reportedSeconds": 28.1,
+      "startedUtc": "2026-11-04T04:36:09.7826554Z",
+      "finishedUtc": "2026-11-04T04:36:41.7496554Z",
+      "logSha256": "5f42e953558c99a4443a0ea4af9c07675d4963b7d3e9c0fe7262887f06178f48",
+      "sourceAfter": "PASS",
+      "oomEvents": 0
+    },
+    {
+      "phase": "resident",
+      "exitCode": 0,
+      "passed": 5,
+      "skipped": 0,
+      "reportedSeconds": 25.5,
+      "startedUtc": "2026-11-04T04:36:52.7756806Z",
+      "finishedUtc": "2026-11-04T04:37:22.0281743Z",
+      "logSha256": "7e2814c9ad3e6608fe170e3d2795c9bda74997758a3678b1b328b0759e344470",
+      "sourceAfter": "PASS",
+      "oomEvents": 0
+    },
+    {
+      "phase": "rules",
+      "exitCode": 0,
+      "passed": 7,
+      "skipped": 0,
+      "reportedSeconds": 42.5,
+      "startedUtc": "2026-11-04T04:39:05.7371601Z",
+      "finishedUtc": "2026-11-04T04:39:52.1082193Z",
+      "logSha256": "360333d5762ef579e8e5e3ae104c68d2cf4e6a8d2a06a3666dddf1c82d0dbbb7",
+      "sourceAfter": "PASS",
+      "oomEvents": 0
+    }
+  ],
+  "scope": {
+    "focus": "Three separate Chromium executions with one portal/server each",
+    "rules": "Original Chromium saved-rules configuration",
+    "realApi": false,
+    "database": false,
+    "fullBrowserMatrix": false,
+    "productionAcceptance": false
+  },
+  "resource": {
+    "hostGuardMiB": 2048,
+    "vmGuardMiB": 1536,
+    "runnerMemoryMiB": 1280,
+    "cpu": 1,
+    "pidsLimit": 512,
+    "shmMiB": 256,
+    "finalOom": 0,
+    "finalOomKill": 0,
+    "finalOomGroupKill": 0,
+    "finalMaxEvents": 1972,
+    "cumulativePeakBytes": 1342177280,
+    "capsUnchanged": true
+  },
+  "guardsByPhase": [
+    {
+      "recordedUtc": "2026-11-04T04:35:32.7628704Z",
+      "phase": "admin",
+      "hostFreeMiB": 2861.0,
+      "vmAvailableMiB": 6145
+    },
+    {
+      "recordedUtc": "2026-11-04T04:36:09.5154126Z",
+      "phase": "building",
+      "hostFreeMiB": 2228.0,
+      "vmAvailableMiB": 5863
+    },
+    {
+      "recordedUtc": "2026-11-04T04:36:52.5010625Z",
+      "phase": "resident",
+      "hostFreeMiB": 2104.0,
+      "vmAvailableMiB": 5743
+    },
+    {
+      "recordedUtc": "2026-11-04T04:39:05.4513642Z",
+      "phase": "rules",
+      "hostFreeMiB": 2248.0,
+      "vmAvailableMiB": 5913
+    }
+  ],
+  "collection": {
+    "afterRulesCollectorExitCode": 0,
+    "finalSourceCheck": "PASS",
+    "bothFreezesCopied": true,
+    "localEvidenceCopied": true,
+    "originalV2FreezePreserved": true,
+    "runnerStoppedOwnedOnly": true,
+    "runnerRemoved": false,
+    "stopExitCode": 143,
+    "stopMeaning": "Expected SIGTERM to idle PID1 after all tests and collection completed",
+    "dockerDaemonRestarted": false,
+    "computerRestarted": false
+  },
+  "warnings": [
+    "Zod PURE annotation warnings from Rollup preserved",
+    "Build chunk size warning above500KB preserved; not a test failure"
+  ],
+  "earlierOutcomesPreserved": [
+    "V2 root-aborted under resource pressure; no completed cases reported; not product RED or PASS",
+    "V3 Resume attempt1 refused untracked scratch before start",
+    "Rules attempt1 refused host1963<2048 before test process; attempt2 passed fresh guards",
+    "Collect1 before Rules preserved unchanged"
+  ],
+  "handoffSha256": "faefcd8f59fe1592eba86b3d76ef63187d2eb1289295d9570b65e565cc55c7c7",
+  "archiveSha256": "70700080e986cc742e1f1d4a6cbae6d94339c8285583f84d9fe4b4cbacdd73af",
+  "sourceFreezeV3Sha256": "0cbcdd5a77f6e3f2de494a4b7b7d471be48bac9c1a170002a1950e79599d7e05",
+  "independentReadOnlyReview": {
+    "approved": true,
+    "artifactHashesAndSizesVerified": 84,
+    "reviewerExecutedTests": false
+  },
+  "screenshots": [
+    {
+      "path": "docs/imagens/2026-11-04/regras-salvas-desktop.png",
+      "sha256": "7e69010f9fa43d7c9c77dd9bb75a0d6fc1fbc5bb1cc8a8bfb6b9326e3a4ddece",
+      "bytes": 126976,
+      "width": 1440,
+      "height": 1050,
+      "sourceCommit": "14e30084366578fe883c80aa0c3f9a8ddda854ed",
+      "engine": "Chromium",
+      "data": "Synthetic API fixtures; not native Android/iOS",
+      "bytesUnedited": true
+    },
+    {
+      "path": "docs/imagens/2026-11-04/regras-salvas-mobile.png",
+      "sha256": "324c9c8e86fafd75d70d9dbbe9e6d3bfbfcc0c8f51cd6b53ff7816a7e65c952f",
+      "bytes": 78025,
+      "width": 390,
+      "height": 1249,
+      "sourceCommit": "14e30084366578fe883c80aa0c3f9a8ddda854ed",
+      "engine": "Chromium",
+      "data": "Synthetic API fixtures; not native Android/iOS",
+      "bytesUnedited": true
+    }
+  ],
+  "screenshotsVisuallyInspected": true,
+  "limits": [
+    "Admin/building skips are the original resident-only case, preserved unchanged.",
+    "Four executions against synthetic API responses; not the full three-engine real-API/PostgreSQL matrix.",
+    "The mobile PNG is the responsive web page, not an Android/iOS native application.",
+    "Reclaim pressure reached the configured memory ceiling; zero OOM events does not imply spare memory.",
+    "No native-device, hardware, deployment or production acceptance."
+  ]
+}
