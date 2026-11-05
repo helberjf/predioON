@@ -1,15 +1,21 @@
-# MFA: próximo recorte do fluxo de telemetria
+# MFA: proteção do fluxo de telemetria
 
-Estado em 05/11/2026: **desenho revisado, ainda não implementado ou executado**.
+Estado em 05/11/2026: **implementado e validado no checkpoint candidato**.
+Telemetria 9/9; regressões separadas de funcionalidades 7/7, desativação 5/5 e SQL
+11/11, com tipos dirigidos e limpeza aprovados. O comparador anterior teve três
+aprovações, uma falha de fechamento SSE e cinco falhas pelo contrato SQL ausente.
+[Prova e limites](../../evidencias/mfa-telemetry-events-2026-11-05.json).
+Os 13 testes originais ainda não foram repetidos/adaptados nesta prova.
 Parte do [checkpoint composto de MFA](../../continuidade/2026-11-05-mfa-integracao/README.md),
 com a correção de desativação e eventos de funcionalidades. Não altera SQL 001–067
 nem representa aceite de produção. [Prova da composição de partida](../../evidencias/mfa-feature-events-2026-11-05.json).
 
 ## Problema e contrato a preservar
 
-O projector `apps/api/src/modules/events/telemetry.ts` consulta capacidades e
-estados das funcionalidades em instruções distintas. O gate HTTP anterior não
-protege essas instruções de uma promoção administrativa intermediária.
+Na composição anterior, o projector `apps/api/src/modules/events/telemetry.ts`
+consultava capacidades e estados das funcionalidades em instruções distintas.
+O gate HTTP anterior não protegia essas instruções de uma promoção
+administrativa intermediária.
 
 Atualmente os valores do evento vêm de NOTIFY: o projector não relê uma amostra
 persistida. Leitores de dados brutos recebem o evento validado; leitores de dados
@@ -22,7 +28,7 @@ persistida, escolher uma linha arbitrária ou usar a última amostra mudaria o
 contrato. Autenticidade do valor persistido exige um recorte separado de protocolo,
 com identificador de evento/amostra e evolução compatível da ingestão.
 
-## Implementação proposta
+## Implementação no candidato
 
 1. Acrescentar somente à SQL candidata 068 um envelope escalar, por exemplo
    `app_mfa_telemetry_event_context(text,text) RETURNS jsonb`, STABLE, INVOKER e
@@ -43,7 +49,7 @@ com identificador de evento/amostra e evolução compatível da ingestão.
    unidade `%`, qualidade padrão `UNCERTAIN`, horário ISO e o DTO atual. Manter a
    comparação estrita com `resumedAt`; não converter horários arbitrários em SQL.
 
-## Verificação necessária
+## Critérios e cobertura
 
 - Criar teste dirigido separado, com fontes anterior/corrigida e hashes preservados.
 - Em SSE real, confirmar um frame positivo exato para leitor local comum. Na mesma
@@ -53,8 +59,8 @@ com identificador de evento/amostra e evolução compatível da ingestão.
   esse projector já protegido pode fechar a conexão depois de um vazamento anterior.
 - Cobrir PMF01/PMF02, sessão ausente/estrangeira, leitura bruta/publicada, escopo,
   funcionalidades pausadas/retomadas, DTO e ACL dos seis serviços, sem skips novos.
-- Reexecutar os testes originais aplicáveis, adaptando autenticação de fixtures
-  explicitamente quando necessário; repetir os recortes MFA já integrados.
+- **Pendente:** reexecutar os testes originais aplicáveis, adaptando autenticação de fixtures
+  explicitamente quando necessário. Os recortes MFA já integrados passaram novamente em processos separados.
 - Manter barreiras e cleanup limitados, banco UUID próprio e provas separadas.
 
 ## Fora deste recorte

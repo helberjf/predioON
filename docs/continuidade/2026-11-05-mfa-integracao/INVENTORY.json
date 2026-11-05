@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "status": "CANONICAL_MERGED_P0_FEATURE_SSE_VALIDATED_RESTORED_CANDIDATE",
+  "status": "CANONICAL_MERGED_TELEMETRY_VALIDATED_RESTORED_CANDIDATE",
   "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
   "plannedBase": "Approved published source base53c4c70; current documentation may be newer.",
   "sourceBaseline": "2676a74216b012dcab6fa2fb9735dc1b6ef8e9d8",
@@ -295,10 +295,10 @@
       "path": "infrastructure/068-platform-mfa-required.sql",
       "payload": "payload/runtime/infrastructure/068-platform-mfa-required.sql.txt",
       "beforeSha256": null,
-      "afterSha256": "b653775cebe33ec0cd58619b3094e874bc310222a9333c68e8c0d08db57ad794",
-      "component": "sql-v3-feature-events",
+      "afterSha256": "4fdb1498adaf3c6a884e972ce1f4a0a4a1025640a4e705aa53d52e98bf42d2a6",
+      "component": "sql-v3-telemetry-events",
       "kind": "migration-candidate",
-      "bytes": 23904,
+      "bytes": 26197,
       "beforeGitSha256": null,
       "beforeGitObject": null
     },
@@ -598,10 +598,32 @@
       "bytes": 16939,
       "component": "sse-feature-events-test",
       "kind": "database-test"
+    },
+    {
+      "path": "apps/api/src/modules/events/telemetry.ts",
+      "payload": "payload/runtime/apps/api/src/modules/events/telemetry.ts.txt",
+      "beforeSha256": "a99f13d549be3165c87f6e5df24716bebdb477dfbee06e9de2aba5d2037b52c4",
+      "beforeGitSha256": "a99f13d549be3165c87f6e5df24716bebdb477dfbee06e9de2aba5d2037b52c4",
+      "beforeGitObject": "853f74ca573d492d89489fea5b4b03a1208e637d",
+      "afterSha256": "dc6eaab201d0e1b15cdab1c4cb95dd77b381af98954c0606e922b57d45142264",
+      "bytes": 2641,
+      "component": "sse-telemetry-events",
+      "kind": "runtime"
+    },
+    {
+      "path": "apps/api/test/platform-mfa-telemetry-events.test.ts",
+      "payload": "payload/runtime/apps/api/test/platform-mfa-telemetry-events.test.ts.txt",
+      "beforeSha256": null,
+      "beforeGitSha256": null,
+      "beforeGitObject": null,
+      "afterSha256": "b0fa6de7d768a2ac3f0c7e2483063c69e13bdc51eeecbb96fef630e149a3fc3b",
+      "bytes": 24007,
+      "component": "sse-telemetry-events-test",
+      "kind": "database-test"
     }
   ],
   "pending": [
-    "Complete remaining SQL/SD/SSE/projectors, no-match mutations, heartbeat, locks/triggers and relevant original regressions; P0 disable and feature-invalidation coverage is finite.",
+    "Complete remaining alert/equipment projectors, other SQL/SD/SSE/no-match mutations, heartbeat, locks/triggers and original regressions; telemetry/P0/feature slices are finite.",
     "Renderer staging recipe remains authored and not executed; do not transfer its earlier separate harness PASS."
   ],
   "excluded": [
@@ -629,5 +651,12 @@
     "sourceManifestSha256": "dfffa47b8a4e86ce33a17ab20f6c3c9b44afb2cdc41203323e26b6fb38fe49cf",
     "scope": "P0 disable + feature invalidation + historical SQL11; not global rollout",
     "restorationEvidence": "../../evidencias/mfa-merged-restore-2026-11-05.json"
+  },
+  "telemetryValidation": {
+    "evidence": "../../evidencias/mfa-telemetry-events-2026-11-05.json",
+    "evidenceSha256": "1fa1b58daa7dee7baf586ec25497fcb9f6e6d7805aaa4606f9bd5f19e299de2d",
+    "sourceManifestSha256": "ab71c2b79b4ca8c452d5583dee3fe34fbdfa9469287f19d8a347e9600d5fcaa7",
+    "scope": "Telemetry + retained P0/feature/SQL11 directed regressions; not global rollout",
+    "restorationEvidence": "../../evidencias/mfa-telemetry-restore-2026-11-05.json"
   }
 }

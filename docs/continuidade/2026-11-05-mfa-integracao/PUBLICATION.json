@@ -1,5 +1,5 @@
 {
-  "status": "CANDIDATE_MERGED_P0_FEATURE_SSE_VALIDATED_CANONICAL_RESTORE_PASSED",
+  "status": "CANDIDATE_MERGED_TELEMETRY_VALIDATED_CANONICAL_RESTORE_PASSED",
   "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
   "metadata": [
     {
@@ -8,7 +8,7 @@
     },
     {
       "path": "INVENTORY.json",
-      "sha256": "c822435cb04da6c87e546ea9e0a3d3c90eec2a80c38d3cd9ab1c4e075de89c3f"
+      "sha256": "1b27236f0710940ea4577be2cf77cf5916817a00fee90a878d8eeb69ec456918"
     },
     {
       "path": "git-blobs.mjs",
@@ -24,7 +24,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "7c2158de484a1c7d5b9fb8884deec723811ca2f2cbcdf24c7b309cbd8a5b6c65"
+      "sha256": "f785ef7c723cce5ba76b63c0915acac8ea04b4d16f5455a9baa16eebff4a1d8a"
     },
     {
       "path": "qaSupport/renderer/package.json",
@@ -47,9 +47,9 @@
       "sha256": "cab9d8393b345aa0d90ea6f7662cd38100b9433f9c16a7e7eed035b18da4e876"
     }
   ],
-  "inventoryPayloads": 54,
+  "inventoryPayloads": 56,
   "alreadyPublishedQueryPayloads": 2,
-  "pendingRuntimeAndTestFiles": 50,
+  "pendingRuntimeAndTestFiles": 52,
   "explicitRendererTestFiles": 2,
   "rendererSupportFiles": 5,
   "canonicalSourceFiles": 994,
@@ -64,49 +64,39 @@
     "evidence": "../../evidencias/mfa-canonical-restore-2026-11-05.json"
   },
   "currentPayloadSet": {
-    "sourceManifestSha256": "dfffa47b8a4e86ce33a17ab20f6c3c9b44afb2cdc41203323e26b6fb38fe49cf",
-    "evidence": "../../evidencias/mfa-feature-events-2026-11-05.json",
-    "evidenceSha256": "d494fa629cef25ad2ee3dc4f8091c877e033657b36417c13e8c929b9de176776",
+    "sourceManifestSha256": "ab71c2b79b4ca8c452d5583dee3fe34fbdfa9469287f19d8a347e9600d5fcaa7",
+    "evidence": "../../evidencias/mfa-telemetry-events-2026-11-05.json",
+    "evidenceSha256": "1fa1b58daa7dee7baf586ec25497fcb9f6e6d7805aaa4606f9bd5f19e299de2d",
     "composition": [
       {
         "path": "infrastructure/068-platform-mfa-required.sql",
-        "sha256": "b653775cebe33ec0cd58619b3094e874bc310222a9333c68e8c0d08db57ad794",
-        "bytes": 23904
+        "sha256": "4fdb1498adaf3c6a884e972ce1f4a0a4a1025640a4e705aa53d52e98bf42d2a6",
+        "bytes": 26197
       },
       {
-        "path": "apps/api/src/auth/mfa.ts",
-        "sha256": "7e8eabbf250ed010daa5c496b5ca2ae14a7d4a08333484b9f6e1a7816977babd",
-        "bytes": 8587
+        "path": "apps/api/src/modules/events/telemetry.ts",
+        "sha256": "dc6eaab201d0e1b15cdab1c4cb95dd77b381af98954c0606e922b57d45142264",
+        "bytes": 2641
       },
       {
-        "path": "apps/api/src/modules/events/features.ts",
-        "sha256": "aae3618096414d30613976db4cf53ef14ac41b42f5b2d91137cf9334ed8d0460",
-        "bytes": 660
-      },
-      {
-        "path": "apps/api/test/platform-mfa-disable-snapshot.test.ts",
-        "sha256": "3306d7a8e703c996ba62f51814017e5b5576021e1251511aa3af5e706ca8d19e",
-        "bytes": 14968
-      },
-      {
-        "path": "apps/api/test/platform-mfa-feature-events.test.ts",
-        "sha256": "8cf0331de1417ba7c606e9cb94b2158f2f1db6e0691e8d59a239796f286a1d98",
-        "bytes": 16939
+        "path": "apps/api/test/platform-mfa-telemetry-events.test.ts",
+        "sha256": "b0fa6de7d768a2ac3f0c7e2483063c69e13bdc51eeecbb96fef630e149a3fc3b",
+        "bytes": 24007
       }
     ],
     "previousSql11V5TestSha256": "2c8a7bc400bd7b8055922f11a06239026db9dce7e9c4195cba696c67c5cd6710",
-    "validatedMergedScope": "P0 disable + feature invalidation + SQL11; no global enforcement",
+    "validatedMergedScope": "Telemetry + retained P0/feature/SQL11 directed regressions; no global enforcement",
     "assemblyAndRestoreExecutedForThisUpdatedSet": true,
-    "restorationEvidence": "../../evidencias/mfa-merged-restore-2026-11-05.json",
-    "restoredComposedFiles": 1013,
+    "restorationEvidence": "../../evidencias/mfa-telemetry-restore-2026-11-05.json",
+    "restoredComposedFiles": 1014,
     "matchesTestedComposition": true,
-    "manifestSha256": "30fc55d14fc710a37ecbe301ac774bee9b2751e64b6b102442c83ff092f5ecd2",
-    "receiptSha256": "c4a9f26035edf8294b728eae579a5f93e637536a403742c6ed17eb0749acf485"
+    "manifestSha256": "ff935e31794f0a36db032c9f0da565cad5748606f652626c83b24b8b650e2fe5",
+    "receiptSha256": "0269a9433d5072c475d96f1275c2fab485a5155f420233979e5ff2d99ac451bf"
   },
   "rendererStagingRecipeExecuted": false,
   "p0DisablePatchIncluded": true,
   "publishedApiDatabaseChanged": false,
-  "staticPeerReview": "Finite P0 and feature-SSE composition reviewed and tested; canonical assembly/restore matched all1013 tested source files and five supports. Renderer staging recipe and global rollout remain unaccepted.",
+  "staticPeerReview": "Telemetry and retained P0/feature/SQL11 directed tests passed; canonical assembly/restore matched all1014 tested source files and five supports. Original telemetry13, renderer staging and global rollout remain unaccepted by this proof.",
   "historicalGuardRefusal": {
     "minimumMiB": 1536,
     "at": "2026-11-05T03:53:51.9727239Z",
@@ -145,6 +135,14 @@
     {
       "path": "../../evidencias/mfa-merged-restore-2026-11-05.json",
       "sha256": "1654c8c36d87a003bbd28a2536d13fbe70c4daf4f9f2447c3db10b0247ca275f"
+    },
+    {
+      "path": "../../evidencias/mfa-telemetry-events-2026-11-05.json",
+      "sha256": "1fa1b58daa7dee7baf586ec25497fcb9f6e6d7805aaa4606f9bd5f19e299de2d"
+    },
+    {
+      "path": "../../evidencias/mfa-telemetry-restore-2026-11-05.json",
+      "sha256": "ee3cd170760aa431541b734e1b99c34864f8a3d0afe6304be75072c41f2dfcff"
     }
   ],
   "computerRestarted": false,
@@ -161,5 +159,45 @@
     "restorationEvidence": "../../evidencias/mfa-canonical-restore-2026-11-05.json",
     "manifestSha256": "59038d25e84e11d674028a4c0fab960a0812103d05045e564a88674412ecc68f",
     "receiptSha256": "2c89a5b69badbb500b6ad53291d13d4a697931cff2d5958a183b1b1da2746c9c"
+  },
+  "previousMergedP0FeaturePayloadSet": {
+    "sourceManifestSha256": "dfffa47b8a4e86ce33a17ab20f6c3c9b44afb2cdc41203323e26b6fb38fe49cf",
+    "evidence": "../../evidencias/mfa-feature-events-2026-11-05.json",
+    "evidenceSha256": "d494fa629cef25ad2ee3dc4f8091c877e033657b36417c13e8c929b9de176776",
+    "composition": [
+      {
+        "path": "infrastructure/068-platform-mfa-required.sql",
+        "sha256": "b653775cebe33ec0cd58619b3094e874bc310222a9333c68e8c0d08db57ad794",
+        "bytes": 23904
+      },
+      {
+        "path": "apps/api/src/auth/mfa.ts",
+        "sha256": "7e8eabbf250ed010daa5c496b5ca2ae14a7d4a08333484b9f6e1a7816977babd",
+        "bytes": 8587
+      },
+      {
+        "path": "apps/api/src/modules/events/features.ts",
+        "sha256": "aae3618096414d30613976db4cf53ef14ac41b42f5b2d91137cf9334ed8d0460",
+        "bytes": 660
+      },
+      {
+        "path": "apps/api/test/platform-mfa-disable-snapshot.test.ts",
+        "sha256": "3306d7a8e703c996ba62f51814017e5b5576021e1251511aa3af5e706ca8d19e",
+        "bytes": 14968
+      },
+      {
+        "path": "apps/api/test/platform-mfa-feature-events.test.ts",
+        "sha256": "8cf0331de1417ba7c606e9cb94b2158f2f1db6e0691e8d59a239796f286a1d98",
+        "bytes": 16939
+      }
+    ],
+    "previousSql11V5TestSha256": "2c8a7bc400bd7b8055922f11a06239026db9dce7e9c4195cba696c67c5cd6710",
+    "validatedMergedScope": "P0 disable + feature invalidation + SQL11; no global enforcement",
+    "assemblyAndRestoreExecutedForThisUpdatedSet": true,
+    "restorationEvidence": "../../evidencias/mfa-merged-restore-2026-11-05.json",
+    "restoredComposedFiles": 1013,
+    "matchesTestedComposition": true,
+    "manifestSha256": "30fc55d14fc710a37ecbe301ac774bee9b2751e64b6b102442c83ff092f5ecd2",
+    "receiptSha256": "c4a9f26035edf8294b728eae579a5f93e637536a403742c6ed17eb0749acf485"
   }
 }

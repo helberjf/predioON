@@ -1,0 +1,280 @@
+{
+  "version": 1,
+  "status": "OBSERVED_DIRECTED_RED_GREEN_AND_SEPARATE_REGRESSIONS_CANDIDATE_ONLY",
+  "scope": "Finite telemetry context/SSE projection; not global MFA, persisted-event authenticity, production or native acceptance",
+  "sources": {
+    "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+    "baselinePreparedSha256": "246e89f29ab2c3012386ad4fbc9d27840b21f777275a3ddeb41a70e8ed10dafe",
+    "fixedPreparedSha256": "ab71c2b79b4ca8c452d5583dee3fe34fbdfa9469287f19d8a347e9600d5fcaa7",
+    "baseFiles": 994,
+    "composedFiles": 1014,
+    "baselineCandidateFiles": 53,
+    "fixedCandidateFiles": 54,
+    "sqlSha256": "4fdb1498adaf3c6a884e972ce1f4a0a4a1025640a4e705aa53d52e98bf42d2a6",
+    "projectorSha256": "dc6eaab201d0e1b15cdab1c4cb95dd77b381af98954c0606e922b57d45142264",
+    "testSha256": "b0fa6de7d768a2ac3f0c7e2483063c69e13bdc51eeecbb96fef630e149a3fc3b",
+    "productManifestSha256": "8264e2d6727cde413680af3453075136197547d61e4c57c97f1afb262cab4ec7",
+    "testManifestSha256": "b5a61969613863a5f0032847cdc13d1da35e37048b3ddca10637a76c2b8e000f",
+    "sourcePinManifestSha256": "3229f7e5df9c2b75f7efd40fe0e793fd3a7de74ae3e57d641a7775531b47cba3"
+  },
+  "phases": {
+    "types": [
+      {
+        "variant": "baseline",
+        "phase": "resolve",
+        "exitCode": 0,
+        "passed": true,
+        "durationMs": 1875,
+        "preparedSha256": "246e89f29ab2c3012386ad4fbc9d27840b21f777275a3ddeb41a70e8ed10dafe",
+        "configSha256": "a4cd78852091f632de717e2674dc87c8aa7fc6186d0037c699664b595c93ee10",
+        "resultSha256": "fa902d6cf419f61fd4db996477dd170b70bb3b1cea4bbc213350e28ec415df45",
+        "commandSha256": "7a2a3b5d1996af532bb2d6a954b7926a1d255110881d57a0422bbea3995eb539",
+        "stdoutSha256": "4bc1fcbbe96effa42ca30c0bf39edcf87ecf7ac0050ee23e12fd8990a2480055",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "sourceBeforeAfterPass": true
+      },
+      {
+        "variant": "baseline",
+        "phase": "types",
+        "exitCode": 0,
+        "passed": true,
+        "durationMs": 9385,
+        "preparedSha256": "246e89f29ab2c3012386ad4fbc9d27840b21f777275a3ddeb41a70e8ed10dafe",
+        "configSha256": "a4cd78852091f632de717e2674dc87c8aa7fc6186d0037c699664b595c93ee10",
+        "resultSha256": "fc7271ea9753a52b8bca6f891a5f6a335728af47d512c3cf9120cbc0df6a07b7",
+        "commandSha256": "a865c4d314ef233c5084a36a7d9787e472a3111f3d4a18544e69c3ffc9cf5c4d",
+        "stdoutSha256": "8e10c3353b4f3d4514f730abc5fefba4103d5599ab57cb1577cd7ff95b0685fc",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "sourceBeforeAfterPass": true
+      },
+      {
+        "variant": "fixed",
+        "phase": "resolve",
+        "exitCode": 0,
+        "passed": true,
+        "durationMs": 1366,
+        "preparedSha256": "ab71c2b79b4ca8c452d5583dee3fe34fbdfa9469287f19d8a347e9600d5fcaa7",
+        "configSha256": "a4cd78852091f632de717e2674dc87c8aa7fc6186d0037c699664b595c93ee10",
+        "resultSha256": "74d8252c720b1c28ad06066db4e91933e5d7ebd0a8abadb30fa9a2598b733c99",
+        "commandSha256": "a4812a2779d703bbb1b9656422345c103d2a1e9d95175505cf46bf6bb5dd0e56",
+        "stdoutSha256": "dfef69fe07e7ebd9badbadeb800e485fb54f20505a00ca0dcfeb2c053da6497a",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "sourceBeforeAfterPass": true
+      },
+      {
+        "variant": "fixed",
+        "phase": "types",
+        "exitCode": 0,
+        "passed": true,
+        "durationMs": 10377,
+        "preparedSha256": "ab71c2b79b4ca8c452d5583dee3fe34fbdfa9469287f19d8a347e9600d5fcaa7",
+        "configSha256": "a4cd78852091f632de717e2674dc87c8aa7fc6186d0037c699664b595c93ee10",
+        "resultSha256": "0f9595bc54d42af41640490aeb65a0bf75abe5c649fe79776575d1fb4db22b88",
+        "commandSha256": "159f095dc261591bdd44c5b4e8ef6ed92af522f86b5ddd63219aea00787f029a",
+        "stdoutSha256": "5f01748a6bebf5624b8010c4c9cfad1ec9f2de66e68dfb59337bdc46490371c9",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "sourceBeforeAfterPass": true
+      }
+    ],
+    "baseline": {
+      "executed": true,
+      "preparedSha256": "246e89f29ab2c3012386ad4fbc9d27840b21f777275a3ddeb41a70e8ed10dafe",
+      "observedHeadBefore": "c7082c5c14e54c48266a3439643fc8d3ae447c64",
+      "observedHeadAfter": "c7082c5c14e54c48266a3439643fc8d3ae447c64",
+      "resultSha256": "574b74d146c28249ae0198e3f6824598cd562b3bebfa80560bcc2403c44e3a71",
+      "postchecksSha256": "c0ebdf8c7d656bd13187476978b450ecb469e90a0a9245fcc4451063d89db5fb",
+      "tests": [
+        {
+          "name": "platform-mfa-telemetry-events",
+          "exitCode": 1,
+          "tap": {
+            "tests": 9.0,
+            "suites": 1.0,
+            "pass": 3.0,
+            "fail": 6.0,
+            "cancelled": 0.0,
+            "skipped": 0.0,
+            "todo": 0.0,
+            "duration_ms": 5051.0031
+          },
+          "childDurationMs": 5245.629799999999,
+          "logSha256": "cc64ace4a6be1556c3ddd0baf826f1f20164e925f2c552f433304987c2639401",
+          "timedOut": false,
+          "drainTimedOut": false,
+          "treeKillFailed": false
+        }
+      ],
+      "cleanupPass": true,
+      "sourceBeforeAfterPass": true,
+      "cleanup": {
+        "roles": 6,
+        "rolesRestoredIncludingPrivateCredentials": true,
+        "settingsRestored": true,
+        "containerAttestationMatches": true,
+        "basePublicTables": 0,
+        "temporaryDatabases": 0,
+        "otherDatabases": 0,
+        "otherClients": 0
+      }
+    },
+    "fixedTelemetry": {
+      "executed": true,
+      "preparedSha256": "ab71c2b79b4ca8c452d5583dee3fe34fbdfa9469287f19d8a347e9600d5fcaa7",
+      "observedHeadBefore": "c7082c5c14e54c48266a3439643fc8d3ae447c64",
+      "observedHeadAfter": "c7082c5c14e54c48266a3439643fc8d3ae447c64",
+      "resultSha256": "0c7c14fe6c09498fe13910d04366d9fd4a911c4c51dae8015d07dc2a95968b08",
+      "postchecksSha256": "c9e8d53d8db8ef07c771039b40adbd561670abe3ee48fb04b370781853bf4795",
+      "tests": [
+        {
+          "name": "platform-mfa-telemetry-events",
+          "exitCode": 0,
+          "tap": {
+            "tests": 9.0,
+            "suites": 1.0,
+            "pass": 9.0,
+            "fail": 0.0,
+            "cancelled": 0.0,
+            "skipped": 0.0,
+            "todo": 0.0,
+            "duration_ms": 5978.4396
+          },
+          "childDurationMs": 6174.607,
+          "logSha256": "c64bd81303021ea22a6d8e69c14ba5ff3de5ad4099de98f98c7ffd26861bb28b",
+          "timedOut": false,
+          "drainTimedOut": false,
+          "treeKillFailed": false
+        }
+      ],
+      "cleanupPass": true,
+      "sourceBeforeAfterPass": true,
+      "cleanup": {
+        "roles": 6,
+        "rolesRestoredIncludingPrivateCredentials": true,
+        "settingsRestored": true,
+        "containerAttestationMatches": true,
+        "basePublicTables": 0,
+        "temporaryDatabases": 0,
+        "otherDatabases": 0,
+        "otherClients": 0
+      }
+    },
+    "retainedRegressions": {
+      "executed": true,
+      "preparedSha256": "ab71c2b79b4ca8c452d5583dee3fe34fbdfa9469287f19d8a347e9600d5fcaa7",
+      "observedHeadBefore": "c7082c5c14e54c48266a3439643fc8d3ae447c64",
+      "observedHeadAfter": "c7082c5c14e54c48266a3439643fc8d3ae447c64",
+      "resultSha256": "71387fdd34b23c49d415c0fcd04050e7d5560ed623f08c67a69092b82ee2f471",
+      "postchecksSha256": "e86a8cbcb9b4b4484a653680d74018f638bfeeb1d7eedcfe625544e9bf3555a5",
+      "tests": [
+        {
+          "name": "platform-mfa-feature-events",
+          "exitCode": 0,
+          "tap": {
+            "tests": 7.0,
+            "suites": 1.0,
+            "pass": 7.0,
+            "fail": 0.0,
+            "cancelled": 0.0,
+            "skipped": 0.0,
+            "todo": 0.0,
+            "duration_ms": 4241.2555
+          },
+          "childDurationMs": 4927.7786000000015,
+          "logSha256": "5f1178e03828db8b9560146ef313b98297b85eab32876e73a0a7680e5e1c3388",
+          "timedOut": false,
+          "drainTimedOut": false,
+          "treeKillFailed": false
+        },
+        {
+          "name": "platform-mfa-disable-snapshot",
+          "exitCode": 0,
+          "tap": {
+            "tests": 5.0,
+            "suites": 1.0,
+            "pass": 5.0,
+            "fail": 0.0,
+            "cancelled": 0.0,
+            "skipped": 0.0,
+            "todo": 0.0,
+            "duration_ms": 5083.6446
+          },
+          "childDurationMs": 5275.4985000000015,
+          "logSha256": "679eeafdc9e739d9473e7f3e27df28f09204d1eaeba6a0dd002ca38402d0dc1c",
+          "timedOut": false,
+          "drainTimedOut": false,
+          "treeKillFailed": false
+        },
+        {
+          "name": "platform-mfa-sql-envelopes",
+          "exitCode": 0,
+          "tap": {
+            "tests": 11.0,
+            "suites": 1.0,
+            "pass": 11.0,
+            "fail": 0.0,
+            "cancelled": 0.0,
+            "skipped": 0.0,
+            "todo": 0.0,
+            "duration_ms": 5163.4238
+          },
+          "childDurationMs": 5365.467200000003,
+          "logSha256": "15c6cc60a7f715080a3813e9451b49e862faa70899d8448beab73be2dd8b70f1",
+          "timedOut": false,
+          "drainTimedOut": false,
+          "treeKillFailed": false
+        }
+      ],
+      "cleanupPass": true,
+      "sourceBeforeAfterPass": true,
+      "cleanup": {
+        "roles": 6,
+        "rolesRestoredIncludingPrivateCredentials": true,
+        "settingsRestored": true,
+        "containerAttestationMatches": true,
+        "basePublicTables": 0,
+        "temporaryDatabases": 0,
+        "otherDatabases": 0,
+        "otherClients": 0
+      }
+    }
+  },
+  "baselineClassification": {
+    "behavioralSseFailure": 1,
+    "missingSqlContractFailures": 5,
+    "unchangedProjectorControlsPass": 3,
+    "assertionLine": 226,
+    "expectedDone": true,
+    "actualDone": false,
+    "postPromotionChunkDecoded": false,
+    "positiveFrame": "Before promotion the same connection delivered the exact expected raw telemetry frame",
+    "missingFunction": "ACL case explicitly reports42883; other missing-helper failures are wrapped by Drizzle/assertions. They are not five independent security leaks."
+  },
+  "gates": {
+    "typesExitCode": 0,
+    "telemetryTestsPassed": 9,
+    "featureEventsTestsPassed": 7,
+    "sql11TestsPassed": 11,
+    "p0TestsPassed": 5,
+    "failures": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "cleanupPass": true,
+    "sourceBeforeAfterPass": true
+  },
+  "gatesScope": "Only fixed composition; baseline classified separately. Telemetry9, feature7, P05 and SQL11 are separate test processes/suites, never a single combined suite.",
+  "regressionExecution": "Three original selected processes ran serially in a new official UUID fixture using the exact fixed prepared source; separate from the directed telemetry fixtures.",
+  "limits": [
+    "Only the raw telemetry promotion case uses a real SSE connection; publication/scope/feature/satisfied controls call SQL/projector.",
+    "The baseline after-promotion read returned a non-EOF chunk; its payload was not decoded.",
+    "Synthetic owner factor/session proof does not establish TOTP or recovery ceremony.",
+    "NOTIFY values intentionally have no persisted sample or unique sample ID; persisted-event authenticity remains outside scope.",
+    "One statement is verified by source review, not a runtime query-count assertion.",
+    "Existing13 telemetry SSE tests were not rerun or adapted in this evidence.",
+    "No new team/support/gate/parking coverage, API integral run, browser/native, global rollout or production PASS.",
+    "Statement-snapshot proof does not cover promotions committing after its snapshot or other projectors/mutations."
+  ],
+  "reviewerExecutedNodeOrDatabase": false,
+  "credentialsPublished": false,
+  "historicalDirectedPeerSha256": "5f6b6c247b3068c091e330b61c3aa28d7914f5bd692375600991987c7f7a2604"
+}

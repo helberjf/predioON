@@ -1,0 +1,56 @@
+import { sql } from "drizzle-orm";
+import type { AppTransaction } from "@predioon/db/runtime";
+import { resolveFeatures, type FeatureKey, type FeatureSetting, type FeatureStates, type RealtimeEvent } from "@predioon/shared";
+import { observationIsCurrent } from "../../auth/features.js";
+import { telemetryFeatureKeys, type TelemetryDevice } from "../telemetry/authorization.js";
+
+export type TelemetryEvent = Extract<RealtimeEvent, { kind: "telemetry" }>;
+
+type TelemetryEventContext = {
+  raw: TelemetryDevice | null;
+  published: TelemetryDevice | null;
+  global: FeatureSetting[];
+  local: FeatureSetting[];
+  runtime: { key: FeatureKey; resumedAt: string | null }[];
+};
+
+/** Pure counterpart of readFeatures, using only this projection's SQL snapshot. */
+function contextFeatureStates(context: TelemetryEventContext): FeatureStates {
+  const states = resolveFeatures(context.global, context.local);
+  for (const row of context.runtime) {
+    if (states[row.key]) states[row.key].resumedAt = row.resumedAt ? new Date(row.resumedAt).toISOString() : null;
+  }
+  return states;
+}
+
+/** One statement captures MFA, exact device authority and all feature-state inputs. */
+export async function projectTelemetryEvent(tx: AppTransaction, event: TelemetryEvent): Promise<TelemetryEvent | null> {
+  const [row] = await tx.execute<{ context: TelemetryEventContext }>(sql`select public.app_mfa_telemetry_event_context(${event.buildingId},${event.deviceId}) as context`);
+  const context = row?.context;
+  if (!context) return null;
+  const matches = (device: TelemetryDevice) => device.building_id === event.buildingId && device.device_id === event.deviceId;
+  const raw = context.raw;
+  if (raw && matches(raw)) {
+    const features = contextFeatureStates(context);
+    return observationIsCurrent(features, telemetryFeatureKeys(raw, event.metric), event.time) ? event : null;
+  }
+
+  if (event.metric !== "water_level_percent") return null;
+  const published = context.published;
+  if (!published || !matches(published)) return null;
+  if (typeof event.value !== "number" || !Number.isFinite(event.value) || event.value < 0 || event.value > 100) return null;
+  const timestamp = Date.parse(event.time);
+  if (!Number.isFinite(timestamp)) return null;
+  const features = contextFeatureStates(context);
+  if (!observationIsCurrent(features, ["WATER_TANK"], event.time)) return null;
+  return {
+    kind: "telemetry",
+    buildingId: event.buildingId,
+    deviceId: event.deviceId,
+    metric: "water_level_percent",
+    value: event.value,
+    unit: "%",
+    quality: event.quality ?? "UNCERTAIN",
+    time: new Date(timestamp).toISOString(),
+  };
+}
