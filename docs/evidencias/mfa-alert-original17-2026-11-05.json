@@ -1,0 +1,280 @@
+{
+  "version": 1,
+  "status": "OBSERVED_AND_REVIEWED",
+  "date": "2026-11-05",
+  "scope": "Regressão original17 de alertas com adaptação exclusiva de fixture MFA; produto idêntico.",
+  "sources": {
+    "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+    "composedFiles": 1015,
+    "onlyChangedPath": "apps/api/test/alert-events-capabilities.test.ts",
+    "testBeforeSha256": "5c078648f806e13e94978012e43296f1b46ad1078d6a8ea6f575bc7f4ff9bfff",
+    "priorPreparedSha256": "77b1c35133b45fff3143ae79d0d095ba0bf6270e0795ace7aef22f52f70d54a8",
+    "harnessHandoffSha256": "75ddc3e16ce9cdeaa59ad746c689ae0990c9494805b0e7b54a3bf64f24888bf6",
+    "sourceFiles": 994,
+    "typeConfigSha256": "f52341efb669ff7e07214bee3ad8cdf04977b1d24565d1570884318377c65015",
+    "fixedPreparedSha256": "52b2c494b9527a3b4c0e1bb3c326397a3048261710a8aa5163863708b1551828",
+    "testAfterSha256": "7f240d2d135c16ce65c6de633a7ddad56f4f6f6ea3f3c12808b53dc5bcdba6dc",
+    "sourcePinSha256": "3229f7e5df9c2b75f7efd40fe0e793fd3a7de74ae3e57d641a7775531b47cba3",
+    "baselinePreparedSha256": "69498586fc037a98f319912f7a4de4cc84613acb65c613228d5dff6437d4d6c2",
+    "productSourceUnchanged": true,
+    "overlayManifestSha256": "4d4602719bae7a78bf77676cd04d0146f8d3115fab0b2076b238d39a8a2325bf"
+  },
+  "gates": {
+    "cleanupPass": true,
+    "sourceBeforeAfterPass": true,
+    "typesExitCode": 0,
+    "originalAlertTestsPassed": 17,
+    "skipped": 0,
+    "failures": 0,
+    "cancelled": 0,
+    "productSourceUnchanged": true,
+    "todo": 0
+  },
+  "gatesScope": "Fixed17 e suas verificações somente; baseline16PASS/1FAIL separado, sem agregar rodadas anteriores.",
+  "types": [
+    {
+      "commandSha256": "fa871b6d66237056f7e975274a68543326646ef8bbc4e9f1a510adc115f4f14f",
+      "preparedSha256": "69498586fc037a98f319912f7a4de4cc84613acb65c613228d5dff6437d4d6c2",
+      "resolved": {
+        "requiredSourcesListed": true,
+        "allTestsListed": true,
+        "originalWorkspacePaths": []
+      },
+      "variant": "baseline",
+      "before": {
+        "source": true,
+        "candidate": true,
+        "config": true,
+        "prepared": true,
+        "junctions": true
+      },
+      "phase": "resolve",
+      "exitCode": 0,
+      "after": {
+        "source": true,
+        "candidate": true,
+        "config": true,
+        "prepared": true,
+        "junctions": true
+      },
+      "resultSha256": "43e19a132bd4eb9b21a3931e38a55acb3c4eb7df212dfc0e660eb422e53522d8",
+      "passed": true,
+      "durationMs": 1734,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutSha256": "5802d22189f339f6082e2708b5f16b1581afd9f90a992aebaa1dc940cfa4dfc2"
+    },
+    {
+      "commandSha256": "807554a5d3e0a7509f03923cfaf104aad474f1cc30b29d2230fd29a22a101270",
+      "preparedSha256": "69498586fc037a98f319912f7a4de4cc84613acb65c613228d5dff6437d4d6c2",
+      "resolved": null,
+      "variant": "baseline",
+      "before": {
+        "source": true,
+        "candidate": true,
+        "config": true,
+        "prepared": true,
+        "junctions": true
+      },
+      "phase": "types",
+      "exitCode": 0,
+      "after": {
+        "source": true,
+        "candidate": true,
+        "config": true,
+        "prepared": true,
+        "junctions": true
+      },
+      "resultSha256": "86a0376d9ebd42a4ede40cd8cba60755c70d5c24342a948949b0074a1de1ca1e",
+      "passed": true,
+      "durationMs": 9200,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutSha256": "983871f5328bf4325ce34a9a6cdc8b6f6e966f48e7e705c43dff936b17b4078f"
+    },
+    {
+      "commandSha256": "3333767a9c41ea11740bfb8796f20acbc2ca3905858d2e55ea9ba40f7ea1f72b",
+      "preparedSha256": "52b2c494b9527a3b4c0e1bb3c326397a3048261710a8aa5163863708b1551828",
+      "resolved": {
+        "requiredSourcesListed": true,
+        "allTestsListed": true,
+        "originalWorkspacePaths": []
+      },
+      "variant": "fixed",
+      "before": {
+        "source": true,
+        "candidate": true,
+        "config": true,
+        "prepared": true,
+        "junctions": true
+      },
+      "phase": "resolve",
+      "exitCode": 0,
+      "after": {
+        "source": true,
+        "candidate": true,
+        "config": true,
+        "prepared": true,
+        "junctions": true
+      },
+      "resultSha256": "b747b39b005695e2451db14dfb1873964bc829786b728da3b7165258221d5ef0",
+      "passed": true,
+      "durationMs": 1608,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutSha256": "75f38641745f9e76b6f605dd3974d6874afd14b45dcd7a76b6bc4add24e83360"
+    },
+    {
+      "commandSha256": "7ccad578a026366aaa55b5f44403e099be95d564da5a3946920ad1e866f6ce49",
+      "preparedSha256": "52b2c494b9527a3b4c0e1bb3c326397a3048261710a8aa5163863708b1551828",
+      "resolved": null,
+      "variant": "fixed",
+      "before": {
+        "source": true,
+        "candidate": true,
+        "config": true,
+        "prepared": true,
+        "junctions": true
+      },
+      "phase": "types",
+      "exitCode": 0,
+      "after": {
+        "source": true,
+        "candidate": true,
+        "config": true,
+        "prepared": true,
+        "junctions": true
+      },
+      "resultSha256": "7954c12f5523f37994a939e878926c07637524f3ec13688784ee7386205e689d",
+      "passed": true,
+      "durationMs": 9190,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutSha256": "e64d3e31912ff1979e7ed737effcb61155884b7559bddfd71dde70fa770b760c"
+    }
+  ],
+  "runs": {
+    "baseline": {
+      "process": {
+        "label": "alert-events-capabilities",
+        "pid": 43200,
+        "exitCode": 1,
+        "signal": null,
+        "spawnError": false,
+        "timedOut": false,
+        "overflow": false,
+        "treeKillFailed": false,
+        "exitObserved": true,
+        "drainTimedOut": false,
+        "maxHeartbeatGapMs": 5018.388500000001,
+        "elapsedMs": 29152.561400000002,
+        "logSha256": "84c7486820d3e347977afd6fda6d20f14e7a44dabee75353de5478e98cc4ef97"
+      },
+      "postchecks": {
+        "exitCode": 0,
+        "systemIdentifierMatches": true,
+        "basePublicTables": 0,
+        "temporaryDatabases": 0,
+        "otherDatabases": 0,
+        "rolesRestoredIncludingPrivateCredentials": true,
+        "settingsRestored": true,
+        "roles": 6,
+        "otherClients": 0,
+        "containerAttestationMatches": true,
+        "freeMiBAtStart": 2784.0,
+        "computerRestarted": false,
+        "credentialsPublished": false
+      },
+      "eventsSha256": "deb08c5ecd265a0ec1d3bc44531f25a66934ac726af7725fdff914c08c5db18a",
+      "tap": {
+        "duration_ms": 28975.0413,
+        "tests": 17.0,
+        "todo": 0.0,
+        "pass": 16.0,
+        "fail": 1.0,
+        "skipped": 0.0,
+        "cancelled": 0.0,
+        "suites": 1.0
+      },
+      "postchecksSha256": "97f6e42303d50977362531bf2ddfcb51063dcdf6d42544c829a7fd1f4b835a9c",
+      "endedUtc": "2026-11-05T06:42:37.189Z",
+      "startedUtc": "2026-11-05T06:41:57.752Z",
+      "sourceHashesAfterMatch": true,
+      "preparedSha256": "69498586fc037a98f319912f7a4de4cc84613acb65c613228d5dff6437d4d6c2",
+      "resultSha256": "7d9cd515111899158fa5fe7ce15a33b4c46e9573319e57a8cf5fbc959e97c7ce",
+      "testSources": [
+        {
+          "name": "alert-events-capabilities.test.ts",
+          "cases": 17,
+          "sha256": "5c078648f806e13e94978012e43296f1b46ad1078d6a8ea6f575bc7f4ff9bfff"
+        }
+      ],
+      "fixtureCleanupPassed": true
+    },
+    "fixed": {
+      "process": {
+        "label": "alert-events-capabilities",
+        "pid": 35980,
+        "exitCode": 0,
+        "signal": null,
+        "spawnError": false,
+        "timedOut": false,
+        "overflow": false,
+        "treeKillFailed": false,
+        "exitObserved": true,
+        "drainTimedOut": false,
+        "maxHeartbeatGapMs": 5021.510799999998,
+        "elapsedMs": 25519.186500000003,
+        "logSha256": "f5323fe31d61880cd123d0b45054377561e09e73d1fe1731a1532a408a32b090"
+      },
+      "postchecks": {
+        "exitCode": 0,
+        "systemIdentifierMatches": true,
+        "basePublicTables": 0,
+        "temporaryDatabases": 0,
+        "otherDatabases": 0,
+        "rolesRestoredIncludingPrivateCredentials": true,
+        "settingsRestored": true,
+        "roles": 6,
+        "otherClients": 0,
+        "containerAttestationMatches": true,
+        "freeMiBAtStart": 2560.0,
+        "computerRestarted": false,
+        "credentialsPublished": false
+      },
+      "eventsSha256": "2fb5701aed56a1f4256d4f67fddf5300cbc98bbd2d159a8ff265844e3f05669a",
+      "tap": {
+        "duration_ms": 25344.3053,
+        "tests": 17.0,
+        "todo": 0.0,
+        "pass": 17.0,
+        "fail": 0.0,
+        "skipped": 0.0,
+        "cancelled": 0.0,
+        "suites": 1.0
+      },
+      "postchecksSha256": "f152a17b5221d9ca7cae7e22ac485ecfd581e652b71d5b66be7ad7a228725eae",
+      "endedUtc": "2026-11-05T06:43:50.354Z",
+      "startedUtc": "2026-11-05T06:43:14.844Z",
+      "sourceHashesAfterMatch": true,
+      "preparedSha256": "52b2c494b9527a3b4c0e1bb3c326397a3048261710a8aa5163863708b1551828",
+      "resultSha256": "0015dc252db9bd1370b897d5e4ba8649013e6b9a2d440cfcb03cdbd2ec507562",
+      "testSources": [
+        {
+          "name": "alert-events-capabilities.test.ts",
+          "cases": 17,
+          "sha256": "7f240d2d135c16ce65c6de633a7ddad56f4f6f6ea3f3c12808b53dc5bcdba6dc"
+        }
+      ],
+      "fixtureCleanupPassed": true
+    }
+  },
+  "classification": {
+    "baseline": "Caso6 recebeu HTTP403 MFA_ENROLLMENT_REQUIRED contra200 esperado. Fixture administrativa não completava MFA; gate correto, não vulnerabilidade nem RED de produto.",
+    "fixed": "Somente f.platform e f.flag no caso6 concluem HTTPenroll/TOTPconfirm10codes/me satisfied no mesmo bearer/sid. Os17 casos passam no mesmo produto; os16 outros corpos, assertivas e prazos originais permanecem intactos."
+  },
+  "limits": [
+    "Os54 testes da rodada anterior são históricos em fonte77b1 e NÃO foram reexecutados nesta rodada.",
+    "Não foi feita nova alteração SQL/API, desativação de política, skip, filtro de caso ou extensão de deadline.",
+    "f.admin permanece BUILDING_ADMIN local, suporte semflag permanece fora da obrigação.",
+    "Helper HTTP depende do deadline externo; streams preservam limite20s.",
+    "Esta prova cobre fixture isolada e não rollout, navegador, aparelhos ou produção."
+  ],
+  "credentialsPublished": false
+}

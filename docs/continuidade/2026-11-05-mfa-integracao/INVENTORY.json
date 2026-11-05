@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "status": "CANONICAL_ALERT_VALIDATED_RESTORED_CANDIDATE",
+  "status": "CANONICAL_ALERT_ORIGINAL17_FIXTURE_VALIDATED_RESTORED_CANDIDATE",
   "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
   "plannedBase": "Approved published source base53c4c70; current documentation may be newer.",
   "sourceBaseline": "2676a74216b012dcab6fa2fb9735dc1b6ef8e9d8",
@@ -653,11 +653,21 @@
       "bytes": 27993,
       "component": "sse-alert-events-test",
       "kind": "database-test"
+    },
+    {
+      "path": "apps/api/test/alert-events-capabilities.test.ts",
+      "payload": "payload/runtime/apps/api/test/alert-events-capabilities.test.ts.txt",
+      "beforeSha256": "5c078648f806e13e94978012e43296f1b46ad1078d6a8ea6f575bc7f4ff9bfff",
+      "beforeGitSha256": "5c078648f806e13e94978012e43296f1b46ad1078d6a8ea6f575bc7f4ff9bfff",
+      "beforeGitObject": "75e57f7b69161c52421fd4e59ce0b559489caa0b",
+      "afterSha256": "7f240d2d135c16ce65c6de633a7ddad56f4f6f6ea3f3c12808b53dc5bcdba6dc",
+      "bytes": 22907,
+      "component": "alert-original17-mfa-fixture",
+      "kind": "database-test"
     }
   ],
   "pending": [
-    "Run/adapt the separate original17 alert suite explicitly; its external fixture overlay is NOT included in this composition or its nine directed cases.",
-    "Complete equipment projectors, remaining SQL/SD/SSE/no-match mutations, heartbeat, locks/triggers and original/integrated regressions; bounded alert coverage is not global enforcement.",
+    "Complete equipment projectors, heartbeat coordination, other SQL/SD/SSE/no-match mutations, locks/triggers and integrated regressions; original alert17 is a new fixture-scoped run, not a rerun of historical54.",
     "Renderer staging recipe remains authored and not executed; do not transfer its earlier separate harness PASS."
   ],
   "excluded": [
@@ -706,5 +716,12 @@
     "sourceManifestSha256": "77b1c35133b45fff3143ae79d0d095ba0bf6270e0795ace7aef22f52f70d54a8",
     "scope": "Alert9 plus separate telemetry9/feature7/P05/SQL11/originalTelemetry13 regression; originalAlert17 not included",
     "restorationEvidence": "../../evidencias/mfa-alert-restore-2026-11-05.json"
+  },
+  "alertOriginal17Validation": {
+    "evidence": "../../evidencias/mfa-alert-original17-2026-11-05.json",
+    "evidenceSha256": "87956187287bab4b2b7e958a32565f0eff7eb4df8458cb25a7ecc2ed25e28c1f",
+    "sourceManifestSha256": "52b2c494b9527a3b4c0e1bb3c326397a3048261710a8aa5163863708b1551828",
+    "scope": "Original alert17 with explicit MFA fixture adaptation; product unchanged; historical54 not rerun",
+    "restorationEvidence": "../../evidencias/mfa-alert-original17-restore-2026-11-05.json"
   }
 }

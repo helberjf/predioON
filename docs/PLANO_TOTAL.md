@@ -130,3 +130,16 @@ A sequência revisada está na [arquitetura de produto](superpowers/specs/2026-0
 
 ### Fase 4 — análise histórica implementada e validada localmente
 Detecção estatística de desvios de consumo e bomba implementada. A validação integrada desses módulos, concluída em 23/09/2026, ficou no histórico do git (`git show 6ee13e4:docs/REVISAO_FUNCIONALIDADES.md`); as verificações atuais estão em [REVISAO_FUNCIONALIDADES.md](REVISAO_FUNCIONALIDADES.md). Instalação e comissionamento dos equipamentos físicos continuam necessários; manutenção preditiva permanece futura.
+
+
+## Entregas finais confirmadas em 05/11/2026
+
+**Escopo de encerramento confirmado pelo proprietário em 05/11:** concluir Android, iOS, webapps e APIs com seus fluxos; validar a matriz completa com Playwright e usar codegen para registrar/verificar jornadas; entregar scripts para abrir os sistemas e instruções de uso; preparar um documento para explicar todos os sistemas em entrevistas e apresentações. Esses materiais finais devem refletir o sistema efetivamente validado. Imagens versionadas, vídeos atualizados e documentação completa continuam no plano. **Não reiniciar o computador nesta sessão.**
+
+- [ ] Concluir as funções e jornadas atuais dos apps Android/iOS, portais web e APIs, com provas nas fontes finais.
+- [ ] Fechar a matriz Playwright com backend real, registrar/verificar os fluxos com codegen e revisar navegador, acessibilidade e erros de console/rede.
+- [ ] Validar scripts para abrir os sistemas e documentar pré-requisitos, portas, comandos, encerramento e solução de problemas.
+- [ ] Entregar o roteiro para entrevistas/apresentações: públicos, jornadas, arquitetura, integrações, testes, decisões e limites reais.
+- [ ] Atualizar capturas, vídeos e documentação final sem confundir evidências históricas com homologação atual.
+
+Consultar o estado corrente e a sequência de retomada em [CONTINUIDADE.md](CONTINUIDADE.md).

@@ -3,7 +3,8 @@
 Estado em 05/11/2026: **implementado e validado no checkpoint candidato**.
 Nove casos dirigidos e cinco regressões separadas (9/7/5/11/13) passaram, com
 tipos e limpeza aprovados. [Prova e limites](../../evidencias/mfa-alert-events-2026-11-05.json).
-Os 17 testes originais de alertas ainda precisam de execução. Parte do [checkpoint composto de MFA](../../continuidade/2026-11-05-mfa-integracao/README.md),
+Os 17 testes originais passaram depois, com preparação MFA explícita dos dois
+administradores globais, em [prova separada](../../evidencias/mfa-alert-original17-2026-11-05.json). Parte do [checkpoint composto de MFA](../../continuidade/2026-11-05-mfa-integracao/README.md),
 que já preserva desativação, eventos de funcionalidades e telemetria candidatos.
 A [prova dirigida da telemetria](../../evidencias/mfa-telemetry-events-2026-11-05.json)
 não aprova o projector de alertas nem representa implantação da política.
@@ -73,9 +74,9 @@ ou todos os domínios.
   com alerts:read independente de leitura de dispositivos/telemetria.
 - Cobrir pausa/retomada, igualdade com resumedAt, classificação e precedência de
   métricas, e ACL/owner/search_path/STABLE/INVOKER dos seis papéis efetivos.
-- **Pendente:** reexecutar os 17 testes originais de `alert-events-capabilities.test.ts` e os
-  recortes MFA aplicáveis. Adaptar autenticação de fixtures legitimamente, sem
-  retirar assertivas administrativas, desativar a política ou criar skips.
+- Os 17 testes originais de `alert-events-capabilities.test.ts` passaram com
+  preparação MFA explícita do caso 6, sem retirar assertivas, desativar a política
+  ou criar skips. Os recortes MFA conservam suas execuções anteriores.
 - Conservar barreiras, prazos e cleanup limitados; distinguir erro de preparo,
   contrato SQL ausente, negativa de recurso e falha comportamental demonstrada.
 
