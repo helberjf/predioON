@@ -1,0 +1,83 @@
+{
+  "status": "STATIC_REVIEW_MAP_NOT_RUNTIME_ACCEPTANCE",
+  "sourcePreparedSha256": "7b53ab4e47a4bf7f2fc480d2ce2f9f6a013c206da10367a895bab35c2894dbfb",
+  "authoredManifestSha256": "e186eb8a2816c1d0a3f4b9b60e46ca9da19840a5530472eb56480cff8a48f439",
+  "sourceHashesVerified": 196,
+  "routes": 174,
+  "modules": 33,
+  "groups": 7,
+  "dataFilesUnchanged": 13,
+  "readmeEditorialChange": "Clarify that original25 previous fixture exists; only the MFA adaptation is separate. Add table separator newline.",
+  "files": [
+    {
+      "path": "closure-groups.json",
+      "sha256": "546b9d7a554ff302aa224fe3a3ee0af941394385efb2534a5376592353e51dd3",
+      "bytes": 2946
+    },
+    {
+      "path": "generation-summary.json",
+      "sha256": "2d50417e607d005baa59550bd12d3b3b8ec7a25434d76a0e4873cf389fef2e2d",
+      "bytes": 1066
+    },
+    {
+      "path": "module-matrix.json",
+      "sha256": "90b271fd11f136d440da9e5c0b75d558e563315fa6b53e593200bc0c9312a655",
+      "bytes": 28130
+    },
+    {
+      "path": "module-matrix.csv",
+      "sha256": "a79dc0f1d4cfedf433a0d303673283aca3f209c51b22a995ddfe9fd3793e1aaa",
+      "bytes": 9806
+    },
+    {
+      "path": "reviewed-boundaries.json",
+      "sha256": "548d22c3655b4afe270719078662986a5000ce62008870847667965fa2fba159",
+      "bytes": 3222
+    },
+    {
+      "path": "router-mounts.json",
+      "sha256": "a4a2257fdad846ab5eb9f984bebb34f91a622d22c7c20b338911e62e7e894f63",
+      "bytes": 4757
+    },
+    {
+      "path": "routes.json",
+      "sha256": "07c4249e647e435313786eeadde371a9a9ef18345d80b1792fafa537f06d6795",
+      "bytes": 189563
+    },
+    {
+      "path": "sql-helper-callsites.json",
+      "sha256": "ecd79efdf51e9e9a3998f59639ce54e42dde394fac18963d05d9fa7dc8068701",
+      "bytes": 65665
+    },
+    {
+      "path": "security-definer-callsites.json",
+      "sha256": "698d6942798129e6326f65d8f52f255292798a9690decee710b645fed70f8ef4",
+      "bytes": 60797
+    },
+    {
+      "path": "sql-function-definitions.json",
+      "sha256": "4745cd3050eb3267645f0e862ab9436edc0df496e3f82bbd835e0c6826918169",
+      "bytes": 92478
+    },
+    {
+      "path": "table-access-signals.json",
+      "sha256": "782c3f451965316e534b932bac96e82a10bfe1685daf1c462aa5d5026f4c61c0",
+      "bytes": 183347
+    },
+    {
+      "path": "file-signals.json",
+      "sha256": "ae8e78a04856e1f0ba67de70cf4c3fad59347aba13d3bde6f366d78521b34382",
+      "bytes": 55304
+    },
+    {
+      "path": "source-hashes.json",
+      "sha256": "9f9767a9aa3e271a17a8161cde3f704920fa1d9b104ee1c545f7456226d068d9",
+      "bytes": 29899
+    },
+    {
+      "path": "README.md",
+      "sha256": "8782defc763ccf3778e325e0f3b69abcdcd05c0cc93538484239a83a4e8157a4",
+      "bytes": 7374
+    }
+  ]
+}

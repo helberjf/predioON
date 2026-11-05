@@ -1,0 +1,38 @@
+{
+  "tableAccessSignals": 497,
+  "routeClasses": [
+    {
+      "count": 17,
+      "classification": "bootstrap"
+    },
+    {
+      "count": 149,
+      "classification": "human"
+    },
+    {
+      "count": 1,
+      "classification": "human-stream"
+    },
+    {
+      "count": 3,
+      "classification": "public"
+    },
+    {
+      "count": 4,
+      "classification": "service"
+    }
+  ],
+  "helperCallsites": 174,
+  "routes": 174,
+  "preparedSha256": "7b53ab4e47a4bf7f2fc480d2ce2f9f6a013c206da10367a895bab35c2894dbfb",
+  "modules": 33,
+  "sqlFunctionDefinitions": 256,
+  "runtimeExecuted": false,
+  "limitations": [
+    "Lexical scanner, not exhaustive runtime graph; dynamic methods/routes/SQL may be absent.",
+    "SQL catalog parsing handles dollar-quoted CREATE FUNCTION only, latest name approximation ignores overload ambiguity.",
+    "Table signals include aliases/CTEs/comments; no permission or bypass conclusion.",
+    "File associations are not route-specific dataflow proof; pool/default closure requires manual review."
+  ],
+  "beforeAfterEqual": true
+}

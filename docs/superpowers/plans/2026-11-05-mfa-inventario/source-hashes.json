@@ -1,0 +1,792 @@
+{
+  "sqlFiles": 68,
+  "files": [
+    {
+      "path": "apps/api/src/app.ts",
+      "sha256": "6636a116ab3757469b8306c641a5dc314d818ba68dc80796951866a4252e321b"
+    },
+    {
+      "path": "apps/api/src/config.ts",
+      "sha256": "f466d33fe3eea33fe66a5930e363b4b753ad8684ab62c2f4d773ebf67d80b7b7"
+    },
+    {
+      "path": "apps/api/src/database.ts",
+      "sha256": "e98c95a6396eb4da21f628e8a365d568936c4512304f41b8af6e6558e4ed538b"
+    },
+    {
+      "path": "apps/api/src/env.ts",
+      "sha256": "1a869f9f3c2e210f357ee4343a9aeee1dc6369135b146b35fb345eb86062cfd6"
+    },
+    {
+      "path": "apps/api/src/server.ts",
+      "sha256": "db10714bd598bf41565103d5d0c6b9548e3eeb222ea658584b13132b30559e87"
+    },
+    {
+      "path": "apps/api/src/auth/features.ts",
+      "sha256": "7d68833856222b979804b028621c9a5fc11144f2bc029c86ae26236138d245dc"
+    },
+    {
+      "path": "apps/api/src/auth/governance.ts",
+      "sha256": "2a48355d2fe1c4ca03b5b5919aa8bc8887126bcd24eb66d9f7baeb84a815a389"
+    },
+    {
+      "path": "apps/api/src/auth/invitations.ts",
+      "sha256": "422d5833ce85d53b91b476bb6ed0377196f34733642b8e91cb6b7fa112c44d56"
+    },
+    {
+      "path": "apps/api/src/auth/login-budget-keys.ts",
+      "sha256": "a9afec9029c7b016db7c2c861cee9a19f6b123b6211690c4ba331aa2302b1dbb"
+    },
+    {
+      "path": "apps/api/src/auth/login-budget-secret.ts",
+      "sha256": "451170b120ae2d791ab6147a4ee33b45686dec24fc02c184c2fcec58046fcff0"
+    },
+    {
+      "path": "apps/api/src/auth/login-budget.ts",
+      "sha256": "0ddd96389418fbb8d74360b04a36f9682dfa59b62462696a6e6766c492ab7e8a"
+    },
+    {
+      "path": "apps/api/src/auth/login-schema.ts",
+      "sha256": "12ab5b81b5070b631e67d0592e63d2fc74b7d643d70be25209d11bfaf68114ed"
+    },
+    {
+      "path": "apps/api/src/auth/mfa-factor.ts",
+      "sha256": "cafb6d5120cdcf851beee85d82bca8d71eee543ccea4c1f39930a33b895ff6ac"
+    },
+    {
+      "path": "apps/api/src/auth/mfa-policy.ts",
+      "sha256": "cad520c2ca000d5123357f0f4fcc6f18caa220b22602e110d68c8c919ac7d934"
+    },
+    {
+      "path": "apps/api/src/auth/mfa-query.ts",
+      "sha256": "c183ed7864ea5b86cdebd863cefe23cd52744a8c9a474752640295afea06cb48"
+    },
+    {
+      "path": "apps/api/src/auth/mfa.ts",
+      "sha256": "7e8eabbf250ed010daa5c496b5ca2ae14a7d4a08333484b9f6e1a7816977babd"
+    },
+    {
+      "path": "apps/api/src/auth/middleware.ts",
+      "sha256": "328209f172194e5451c34d3e5c70f5a68c573bf1ccffaf7ada518bf59df6b0af"
+    },
+    {
+      "path": "apps/api/src/auth/opaque-token.ts",
+      "sha256": "556e931bb7b2d15386aebcd9b7a1a3c6643e0ed62ad1a1f03379028968a83e49"
+    },
+    {
+      "path": "apps/api/src/auth/password-change-schema.ts",
+      "sha256": "43b5f73ea91c12332798e85a8fefcf3acbf2214e701dbf282a64694af59ccc46"
+    },
+    {
+      "path": "apps/api/src/auth/passwords.ts",
+      "sha256": "1c44be6f23eb0e4f20c3940f52a6dca246489dc1f3b771efc0686f8d73fd6c9d"
+    },
+    {
+      "path": "apps/api/src/auth/recovery.ts",
+      "sha256": "3de6ea47c99097364d5d8fbb26484f23bdf5fe758ab189cf1be1463e8cefd2c5"
+    },
+    {
+      "path": "apps/api/src/auth/routes.ts",
+      "sha256": "ed0b77c786bc1cec2c2c600b7c312d04dd9759f53ac7ac84cad575efea525550"
+    },
+    {
+      "path": "apps/api/src/auth/service.ts",
+      "sha256": "75468b9831dd46f1b6bf18248f282a3430b5fb7473c4467896bccb2fc0c4bd60"
+    },
+    {
+      "path": "apps/api/src/auth/tokens.ts",
+      "sha256": "44de367244c2225b7b7d80207ee1322bf317be45776685ad81b4c29edb425213"
+    },
+    {
+      "path": "apps/api/src/auth/totp.ts",
+      "sha256": "7e63903facf0699afbfb2fcd8c994745f7713d39a1add470bb865b8a0f3b712e"
+    },
+    {
+      "path": "apps/api/src/auth/verification.ts",
+      "sha256": "a8f96c45aa8cf055564803f0b116fa6ce87dd16be81ab974778c47fd2cda7608"
+    },
+    {
+      "path": "apps/api/src/auth/web-routes.ts",
+      "sha256": "921521f20476a4f590d8dc80c89eb733d82857d2e8c7039bf6fee1df0b8280d5"
+    },
+    {
+      "path": "apps/api/src/http/error-handler.ts",
+      "sha256": "ae47dc3faba3ff2c93c5abca592bf756cf91d7972cda1075e7649c8d1681ca4f"
+    },
+    {
+      "path": "apps/api/src/http/errors.ts",
+      "sha256": "079c1ece1843b0b05f5432fb4f824bc4d5bb45fa2ab6bf069858788d587fc998"
+    },
+    {
+      "path": "apps/api/src/http/ids.ts",
+      "sha256": "e824d66b5edc536b24f39bbf2cc059e6615ed6d1a3e1666f18b13eec27c52f72"
+    },
+    {
+      "path": "apps/api/src/http/pagination.ts",
+      "sha256": "80d274946d02166a82bef1ada5c6ce40d78196994215319ce2de5f92854e5869"
+    },
+    {
+      "path": "apps/api/src/http/params.ts",
+      "sha256": "63bd1905613ca2b44e7f6f989abb8b521b9ab7d5f24b316b44e2d6fa275692f7"
+    },
+    {
+      "path": "apps/api/src/http/serverless.ts",
+      "sha256": "dbd05d5fcc636a7d5c430428967c5351cdbd52ce84c5071c3cf3af6c5285324d"
+    },
+    {
+      "path": "apps/api/src/http/sql-time.ts",
+      "sha256": "6d8594402e78b27ec96cce7b0575d6b8f11db46cc72789a0746ea9f9c42c0e64"
+    },
+    {
+      "path": "apps/api/src/http/trusted-proxies.ts",
+      "sha256": "44dbcf6839e0ecb0c9134050a247e7e2e622dc94886a1283dc96e694ed007d16"
+    },
+    {
+      "path": "apps/api/src/http/validate.ts",
+      "sha256": "420407eba9cefcb80bea8a121771d7e1a533ed040879818c124da5246f05f9bc"
+    },
+    {
+      "path": "apps/api/src/mail/mailer.ts",
+      "sha256": "0b965df2816ac56d53f2ec23d83e579f7ce5b62e3eb3e2ee32789c0618c22ded"
+    },
+    {
+      "path": "apps/api/src/modules/health.ts",
+      "sha256": "7f8dd6b59df8991edc248aa4b883a474599fd94d8677c401b3876fd31efdce6c"
+    },
+    {
+      "path": "apps/api/src/modules/access/authorization.ts",
+      "sha256": "540ab067591bc1c54d753b6a9f9fe0ce29141c53e3e8722ee60eb5f04e497fd8"
+    },
+    {
+      "path": "apps/api/src/modules/access/qr-code.ts",
+      "sha256": "f48bd8760bd582950610f7ddc663742af62f6695e5b0f6235deda70da3caba3c"
+    },
+    {
+      "path": "apps/api/src/modules/access/routes.ts",
+      "sha256": "4551df4e78fa971dcf7366e1fa947fbabe35fc04485bd723b9550d6d0029d746"
+    },
+    {
+      "path": "apps/api/src/modules/access/totem-pairing.ts",
+      "sha256": "c451a37f0ecfd52c0363cf6929c3003e23ac5c8894e340d6be214a2bd24747b8"
+    },
+    {
+      "path": "apps/api/src/modules/access/totem-routes.ts",
+      "sha256": "904225f22d8420f78d73562f5f3bbe1d729c69a6b2cc105d06f67f1bae523cd8"
+    },
+    {
+      "path": "apps/api/src/modules/alert-rules/authorization.ts",
+      "sha256": "e4874d0d6b6d8a4a6b146c57f717f8962ba1c5d0b08471d3535e8fb71ebc5c50"
+    },
+    {
+      "path": "apps/api/src/modules/alert-rules/routes.ts",
+      "sha256": "ff319b40d36df9ab522335453fb4a93b0b58ad2d3ce6b2f15d53f17a77eea262"
+    },
+    {
+      "path": "apps/api/src/modules/alerts/authorization.ts",
+      "sha256": "1bbd509f5e50a4527e1b3b2fcc7c88cce9f8ac6507f2767b9573019894992430"
+    },
+    {
+      "path": "apps/api/src/modules/alerts/routes.ts",
+      "sha256": "72109d323438b9c4ee7b302e713ea65f9c0d4780a8bcd474c9a7b852c623bc88"
+    },
+    {
+      "path": "apps/api/src/modules/assets/routes.ts",
+      "sha256": "4c1b988eba4e45d81d259017b719898e9bf8fbb39ddcfd36e77b74e6e399a83a"
+    },
+    {
+      "path": "apps/api/src/modules/audit/repo.ts",
+      "sha256": "39b608bf2b90dff5d515a270540e94b3373ca35bbd826201184396c7d4c7a079"
+    },
+    {
+      "path": "apps/api/src/modules/audit/routes.ts",
+      "sha256": "e91b3245c98dc3e5a05f51ce222bf56024b2a340d7a9a8239dbde357a0a18c3e"
+    },
+    {
+      "path": "apps/api/src/modules/authorization/routes.ts",
+      "sha256": "5743b22446aa71d84d08574dfa2aab5b62384adb5bf129b89a0619c517bafa0f"
+    },
+    {
+      "path": "apps/api/src/modules/automations/routes.ts",
+      "sha256": "3841b78cfe0324277cf6825b45fbe026df98972210ffee62694613d7439366f1"
+    },
+    {
+      "path": "apps/api/src/modules/building-events/routes.ts",
+      "sha256": "466e56bf5ab2f68cae17bd024dfe8d4224fa079322eb9e1afbe6f9718fb104fe"
+    },
+    {
+      "path": "apps/api/src/modules/buildings/routes.ts",
+      "sha256": "50fbc74a34023b7834ead2c6e04846b57169738d051f5093c629f44598f1bf60"
+    },
+    {
+      "path": "apps/api/src/modules/common-areas/authorization.ts",
+      "sha256": "dbb63c678042a371d65a7a75f373db438b415ba6b38b55baddd69a63fde4957e"
+    },
+    {
+      "path": "apps/api/src/modules/common-areas/routes.ts",
+      "sha256": "851bae601daa50053fd30824edd5add50d6ac599785f8b30039fec1b8908f719"
+    },
+    {
+      "path": "apps/api/src/modules/demo/routes.ts",
+      "sha256": "087b3dde0ef707552c55f939af059c4d2c8c237795fed539c506ea5938c4e6af"
+    },
+    {
+      "path": "apps/api/src/modules/devices/routes.ts",
+      "sha256": "3039714cd169d72c35ee98310a805c2326822c280e5ba973fcb67ae29459ab02"
+    },
+    {
+      "path": "apps/api/src/modules/equipment/authorization.ts",
+      "sha256": "18292c8532cede8c60ad6c0f2b93b46aa6ea884eea341b98203b12d4f2b25ec4"
+    },
+    {
+      "path": "apps/api/src/modules/events/alerts.ts",
+      "sha256": "0e61f7e803c0eebc6ccf9708e80fc4706f6d1a1962bf29179c6995872809bad5"
+    },
+    {
+      "path": "apps/api/src/modules/events/bus.ts",
+      "sha256": "08d6186816eca19cfe0731c3aebe3891c99ec8b2c5b5812b6b20fb20f8d7b5ff"
+    },
+    {
+      "path": "apps/api/src/modules/events/equipment.ts",
+      "sha256": "34a7275d9fdcaac7ce787e8451c51a43c1c65f26acf4015da077c853e8730d5d"
+    },
+    {
+      "path": "apps/api/src/modules/events/features.ts",
+      "sha256": "aae3618096414d30613976db4cf53ef14ac41b42f5b2d91137cf9334ed8d0460"
+    },
+    {
+      "path": "apps/api/src/modules/events/routes.ts",
+      "sha256": "7d79f6233982db76e13f001761bcf36223da02a6198ea60d815aa075c8d81551"
+    },
+    {
+      "path": "apps/api/src/modules/events/telemetry.ts",
+      "sha256": "dc6eaab201d0e1b15cdab1c4cb95dd77b381af98954c0606e922b57d45142264"
+    },
+    {
+      "path": "apps/api/src/modules/features/routes.ts",
+      "sha256": "0b4f43f3eb22987897ee892125dbd02f62d31bf723ada5368b8b652a44f6f086"
+    },
+    {
+      "path": "apps/api/src/modules/finance/authorization.ts",
+      "sha256": "7a5892efad45228d0a60f69feac8a87b6446cde7a3775d23a6380478a01294e8"
+    },
+    {
+      "path": "apps/api/src/modules/finance/routes.ts",
+      "sha256": "6699e2357829eb53d20e8592b0aa83b6d5c7aca4f55a3db68821d3ac3c0166e0"
+    },
+    {
+      "path": "apps/api/src/modules/gateways/routes.ts",
+      "sha256": "6b6ee3dc94954626dce3f4bd452ea726103d3b306610267b7a9507ec02dbeab1"
+    },
+    {
+      "path": "apps/api/src/modules/monitoring/authorization.ts",
+      "sha256": "1f9705a8466a65633c4fd7d1ec45a9d0fffa9bfbd7052c9a518d2cd7709bcef6"
+    },
+    {
+      "path": "apps/api/src/modules/monitoring/routes.ts",
+      "sha256": "85a083c0ca7eea6c564607355fb35c00d7e6c269748c89a8f384134a286ee6a6"
+    },
+    {
+      "path": "apps/api/src/modules/mqtt/routes.ts",
+      "sha256": "75ebda64288ed072c3b482030496c377db8b276647cc9b4d2f37105060cbe8bc"
+    },
+    {
+      "path": "apps/api/src/modules/notices/authorization.ts",
+      "sha256": "1deda6eef1eacf8803a393ecfee8d5fed80aaf0cd93318147d23ccc6850d0a25"
+    },
+    {
+      "path": "apps/api/src/modules/notices/routes.ts",
+      "sha256": "79c09efa81e86cc6c59d76d60dcb5a77d7d6318cb18218bb6ceef66f05840c6c"
+    },
+    {
+      "path": "apps/api/src/modules/occurrences/authorization.ts",
+      "sha256": "733dd94f1f4a4efc61e98de669fc4d22fd858e971707559e084d29628468952e"
+    },
+    {
+      "path": "apps/api/src/modules/occurrences/routes.ts",
+      "sha256": "1d21c099992fbd17d56024d1fa238ea78f6f664f3994e0ec175b7adabce6b943"
+    },
+    {
+      "path": "apps/api/src/modules/organizations/routes.ts",
+      "sha256": "40c56393491eb4bb1533b271d68919e5022a1d940013cafda0a6046ca20f7075"
+    },
+    {
+      "path": "apps/api/src/modules/overview/authorization.ts",
+      "sha256": "c6e70aef9bd7c83ff12ecf9b2d99daf51bd8442d6d7e165d064d0a9b46194df8"
+    },
+    {
+      "path": "apps/api/src/modules/overview/routes.ts",
+      "sha256": "23bffed6b8315408cc82dcf5bcb9bccc94f9b6717bd90af4fc40b57432b2c581"
+    },
+    {
+      "path": "apps/api/src/modules/parking/authorization.ts",
+      "sha256": "5ca6c6ef1625d894e11633bd751c1230f3a0f5a256e47f315010c7c6ea0ef65a"
+    },
+    {
+      "path": "apps/api/src/modules/parking/routes.ts",
+      "sha256": "27f519c9695116b356903dc37ea676be04abce69d11471a3965c03f04422b04c"
+    },
+    {
+      "path": "apps/api/src/modules/reservations/routes.ts",
+      "sha256": "b213ecad4bbe12fada43261e34cdd31424f1a3cfc315cb69d64bbd5efe2b6390"
+    },
+    {
+      "path": "apps/api/src/modules/support/routes.ts",
+      "sha256": "7f882d3750a4de4d1c74abbb0dbdf0e6afb3f944d1bdf4b3fbc4aaed554d87d1"
+    },
+    {
+      "path": "apps/api/src/modules/support-access/routes.ts",
+      "sha256": "ceaf7ba04db07af02b6adae5d5d7ce460e06e795ffbbf23f070ced15eeed71e8"
+    },
+    {
+      "path": "apps/api/src/modules/telemetry/authorization.ts",
+      "sha256": "7c1d8fcabc3e1cae8f482dbb98651c6ec61eec81f39e014ef439b1071b00c7d4"
+    },
+    {
+      "path": "apps/api/src/modules/telemetry/routes.ts",
+      "sha256": "e88fded76a7ab689e5f3cd465594b29b717de4b219d96a2a74e605badbcf6cfb"
+    },
+    {
+      "path": "apps/api/src/modules/tenancy/routes.ts",
+      "sha256": "2d2fcd5eace979677565cdf1f084128ea4a735f74d2bb8824249b29922c69e60"
+    },
+    {
+      "path": "apps/api/src/modules/users/routes.ts",
+      "sha256": "8f5a6868b6e9487410148a7a027d39fe2b91644f10aa7a999a5933eb19387d70"
+    },
+    {
+      "path": "apps/api/src/modules/work-orders/routes.ts",
+      "sha256": "e60f3430c78c3b3286112dee642036a23da6df0d9726437cad6c27ffa5d3fcfa"
+    },
+    {
+      "path": "packages/db/src/access-service-operations.ts",
+      "sha256": "2916eeafb523f8f895785742eae61efdb176a20e97524ab7637508dea3d12dc2"
+    },
+    {
+      "path": "packages/db/src/access-service.ts",
+      "sha256": "396f72b2a2b371242920a2c17c703d09686b0c90ccbcc31e7d0c2e496ccf46b0"
+    },
+    {
+      "path": "packages/db/src/apply-infrastructure.ts",
+      "sha256": "2b8f124b6c6411f1dda13114908ab196319b42e55e27da9f9c57509dc84abba5"
+    },
+    {
+      "path": "packages/db/src/baseline-schema.ts",
+      "sha256": "959b0f5c51fa77859491f48419791a57e67b37950271e3a85ccae6ed9ab8b4da"
+    },
+    {
+      "path": "packages/db/src/bootstrap.ts",
+      "sha256": "ba09d4a7f2533162ea8d9d0639d252767342d669bfc4448732b6a68fac943a29"
+    },
+    {
+      "path": "packages/db/src/broker-auth.ts",
+      "sha256": "8826d4f6e997c3410bb4d6a2ebf57009a859e366353874c0b41aeee6fb07e3c8"
+    },
+    {
+      "path": "packages/db/src/context.ts",
+      "sha256": "19f2708b65f2aa3ce4e0e7c6bb4e6c53cd8464c0ed5b725b186a4e9848cb82d1"
+    },
+    {
+      "path": "packages/db/src/env.ts",
+      "sha256": "1a869f9f3c2e210f357ee4343a9aeee1dc6369135b146b35fb345eb86062cfd6"
+    },
+    {
+      "path": "packages/db/src/features.ts",
+      "sha256": "4586db28cd178dc8fc6cd7d52867dc7bb06f9679ca520a1fd55a89ec69c4e92b"
+    },
+    {
+      "path": "packages/db/src/identity.ts",
+      "sha256": "b36bde0c958f3b3e1399d84f573b94e4cbd645e9cb3b6359cd099f40d4965b00"
+    },
+    {
+      "path": "packages/db/src/index.ts",
+      "sha256": "7dc53adf479bbd38c76c779f174e8580eda54b5ecd9bc3739ef154eb6c883c59"
+    },
+    {
+      "path": "packages/db/src/infrastructure-migrations.ts",
+      "sha256": "2c23953ce740c75823a7716f159aa80119e06dfcb8fd07840353fe5543303f4c"
+    },
+    {
+      "path": "packages/db/src/ingest-operations.ts",
+      "sha256": "a73d3732935c0b9fe5fefc01f552d44d717a6b61b75a8b95bd42792bb63c0a20"
+    },
+    {
+      "path": "packages/db/src/ingest-projections.ts",
+      "sha256": "20b2995e3905477a6d1dd18a4959db8f6e3ba1fa84f86569866b3a339497c0b7"
+    },
+    {
+      "path": "packages/db/src/ingest.ts",
+      "sha256": "0e369c7394882c441d34435851580d754a4c1fe1050e21dfe725065f873a7e1b"
+    },
+    {
+      "path": "packages/db/src/migration-runner.ts",
+      "sha256": "aca2a4aadead45c42cd92231597ca3f9b5dcf8b8489a7b9080c17cb1d8bfd94d"
+    },
+    {
+      "path": "packages/db/src/neon-migrations.ts",
+      "sha256": "b5243f8af7428f1268b79b2dd460725e86ff5f2c262e808721732e9ba3b1d044"
+    },
+    {
+      "path": "packages/db/src/notifications.ts",
+      "sha256": "c2af5bf454e21ce2e581bca8688f34beefc399112c5da49918b0e4e6ec6cdfcc"
+    },
+    {
+      "path": "packages/db/src/provision-runtime-roles.ts",
+      "sha256": "3c79eff588c08ecbe1ffb6e8eaa50bf234f8d50f6e26db95d1c0f692fddd247c"
+    },
+    {
+      "path": "packages/db/src/runtime-connection.ts",
+      "sha256": "4869e7081e26d622c5530ec4a24a221dd5c7639dbb26346f3733fb6afe72d7b7"
+    },
+    {
+      "path": "packages/db/src/runtime-role-credentials.ts",
+      "sha256": "fe223c1bfca1f36b2e8bfaa1df761d458eca8b604bc2e84812600c34f52fa8f3"
+    },
+    {
+      "path": "packages/db/src/runtime.ts",
+      "sha256": "ef4ccdc6af46aa125dbbfec651aa745777387b01e89e0f5fc445213ab1f3a909"
+    },
+    {
+      "path": "packages/db/src/schema-access.ts",
+      "sha256": "facd71b435ffdedc34a616653b605272f8fd555b6e6954a889d977ed30eb6fb3"
+    },
+    {
+      "path": "packages/db/src/schema-features.ts",
+      "sha256": "3c70c8b07b023764fd2aed32588fbbffcb1cafdaf874acc4718a8ac439a6f19c"
+    },
+    {
+      "path": "packages/db/src/schema-finance.ts",
+      "sha256": "376f896e3413239d52f3b8e8370444797a23539744e39c0974d18c33200f7dc1"
+    },
+    {
+      "path": "packages/db/src/schema-monitoring.ts",
+      "sha256": "95f77219c80dc9f5d1b574ce33847f4c80d342ed2e7248ec9cc6c085a08b487d"
+    },
+    {
+      "path": "packages/db/src/schema-notice-schedules.ts",
+      "sha256": "24ceeb3fc4779a63ac5d7092e5297af2eae7100012e874e9c8d9c99e9d2ca6bf"
+    },
+    {
+      "path": "packages/db/src/schema-parking.ts",
+      "sha256": "191a21de60e23475618fc34d90d99f6baac9b82af766f75abb5a38dad5cabdf4"
+    },
+    {
+      "path": "packages/db/src/schema-rbac.ts",
+      "sha256": "e2e193d745cb17ddf844785f7a42e18a6c4aef6b29b4ed2b4ca0e74435663726"
+    },
+    {
+      "path": "packages/db/src/schema-support.ts",
+      "sha256": "ecbe7c8d9a2c36dc75e0974c3fe1dbe694bab433884ac5459d169e0ba326568c"
+    },
+    {
+      "path": "packages/db/src/schema.ts",
+      "sha256": "698c9fac15d8a7c3574a6bb37b54474d836172df6906a5c7784e207b266cbc90"
+    },
+    {
+      "path": "packages/db/src/seed-features.ts",
+      "sha256": "6aff6143b5eb0ad7dc59f840a66ec1c47b2f57628551b634a50d9182eb21046d"
+    },
+    {
+      "path": "packages/db/src/seed-sensors.ts",
+      "sha256": "07074e29a650fdd572a0bb2b0521af60066fdefa39d84a3d5e1fbfbc2272552c"
+    },
+    {
+      "path": "packages/db/src/seed.ts",
+      "sha256": "ad6dafce38a9d5607081a708e44cdb03f3063761aa552c26c2e50fad90856eb1"
+    },
+    {
+      "path": "packages/db/src/telemetry-capacity.ts",
+      "sha256": "4c5059d162492b2a56dd529e29308058470c70ccbb9a59b8b1271b6ea56feb0e"
+    },
+    {
+      "path": "packages/db/src/telemetry-retention-policy.ts",
+      "sha256": "65834cb597efc0b7a29b1ab62a45bbc0ca2bd6c82fcb26372fa99b1da66b2002"
+    },
+    {
+      "path": "packages/db/src/telemetry-retention.ts",
+      "sha256": "ca2055e19a0261dc0014ce550451480996f3a06cdf9d30329766ffb1a5e55a64"
+    },
+    {
+      "path": "packages/db/src/transaction.ts",
+      "sha256": "9793a97c303921467df71be281fa9cac79af69fe63ba509a91c1ba42a6593f66"
+    },
+    {
+      "path": "packages/db/src/wait-db.ts",
+      "sha256": "497339fa6b3b78173e43a55a0cb51e97eb9aca032b970e4354c0afe80e83b4c6"
+    },
+    {
+      "path": "infrastructure/001-timescale-rls.sql",
+      "sha256": "7a2f938aff77d177c61abcc4f20908e0062d1766ce6f069780a681c6400fe749"
+    },
+    {
+      "path": "infrastructure/002-app-role.sql",
+      "sha256": "a51ad8b42db58e49fd89df157f1edb506e82a4bdf825bbc815cd5fbd128d292a"
+    },
+    {
+      "path": "infrastructure/003-reservations.sql",
+      "sha256": "da436ee0806d93e178afc0d024b83301b76fcfd577870af6e9fba5a0c2b43f30"
+    },
+    {
+      "path": "infrastructure/004-occurrences.sql",
+      "sha256": "f68114cacced1f6b2de636089649d550a3898d308ea13a6d1aa1501880b9dd4b"
+    },
+    {
+      "path": "infrastructure/005-audit-insert.sql",
+      "sha256": "2e39116adccec5ebb41fb2e97d364c115ca2bc0fc48fd9ff871c43253596a5be"
+    },
+    {
+      "path": "infrastructure/006-telemetry-read-policy.sql",
+      "sha256": "683f8d0ca09406919caf61bde08d9f58d54a80745d1adedfcd8624b23b00f70e"
+    },
+    {
+      "path": "infrastructure/007-monitoring.sql",
+      "sha256": "4045cb8f488881d00905de7b00452c901cf4d45b906e1db28993486d5b2adf2e"
+    },
+    {
+      "path": "infrastructure/008-access.sql",
+      "sha256": "8b090b83dd66ca3f5ef0d839ee23f96ae1321769823f0ae8c47bba710b320dab"
+    },
+    {
+      "path": "infrastructure/009-parking-notices.sql",
+      "sha256": "21223f031f26c784d97fe69b4c261aab301e40a33e4a5bd5026ba2cdb6f79bd6"
+    },
+    {
+      "path": "infrastructure/010-support.sql",
+      "sha256": "b565e6200a03a1d53109f2b5ce66ee25dba45795a470abbd1525f76a9a38e200"
+    },
+    {
+      "path": "infrastructure/011-governance.sql",
+      "sha256": "c856b13c5baa181c92dd50351b80e9f8aeb4bd420bc91f3a5ef6fb6894159a3f"
+    },
+    {
+      "path": "infrastructure/012-features.sql",
+      "sha256": "1779dffc988d9f8f34d878da56a91a13046bd127565002d3dbef01774f166e8e"
+    },
+    {
+      "path": "infrastructure/013-sessions.sql",
+      "sha256": "e08e37207ae8c3650426636d4c1d14e6febaa4c1160d82d6ca65afa48b41eb48"
+    },
+    {
+      "path": "infrastructure/014-rbac-tenancy.sql",
+      "sha256": "31dc59f66f0b5cb7d62be06708a8f94a47ffd89281e8c7104e76d1acabd6e88b"
+    },
+    {
+      "path": "infrastructure/015-api-runtime-roles.sql",
+      "sha256": "6d186c496b4835d3950694d6a2a9733612c0b4be345c88cb02ef04986790e1e2"
+    },
+    {
+      "path": "infrastructure/016-building-feature-capabilities.sql",
+      "sha256": "e508ccfa806e03704751d77be88d98c4a35f48d72c0e932a9af60451e09dada4"
+    },
+    {
+      "path": "infrastructure/017-telemetry-capabilities.sql",
+      "sha256": "6a8867e790a08a1f6fa7fadfc09cc7bc952fbeed5ee9320d8a525c9fb4e19718"
+    },
+    {
+      "path": "infrastructure/018-alert-capabilities.sql",
+      "sha256": "8073437d6c9f60c630be2f1286a535c5e2733119c71bbbde9eaf6a7812eea0b8"
+    },
+    {
+      "path": "infrastructure/019-building-discovery-resource-validation.sql",
+      "sha256": "04749c7a36d2ea68e3f43a1303d85992ab8b3833621e273a0d934e928e6fff3c"
+    },
+    {
+      "path": "infrastructure/020-equipment-capabilities.sql",
+      "sha256": "67dbf80715359102676a3d68a385e1cac5958995e931eaabb7ad476910fdcad1"
+    },
+    {
+      "path": "infrastructure/021-authorization-time-windows.sql",
+      "sha256": "28a210101540a71d6c5136e5bd8aa45fcd0288b76aaff7f9e0b37bf00914d2de"
+    },
+    {
+      "path": "infrastructure/022-equipment-events-capabilities.sql",
+      "sha256": "82fd7acf4bf19f0d0d47abea26d52fa11f51a8678de5c68c0a20f179d1679be6"
+    },
+    {
+      "path": "infrastructure/023-monitoring-capabilities.sql",
+      "sha256": "1971da3507b74d27e227528bdfed5b411a4ce146a33dc69829d4f9b07bde4e3c"
+    },
+    {
+      "path": "infrastructure/024-overview-capabilities.sql",
+      "sha256": "1a9a560d4e39b8f16a1ff9a19ec0dbabfdb20e6fbac65c03e37931ebd45a6ff0"
+    },
+    {
+      "path": "infrastructure/025-tenancy-directory.sql",
+      "sha256": "480a985acb7dec75e59a3cb9756608c48d6da0c93efe6d83b7a82ad55d411fe1"
+    },
+    {
+      "path": "infrastructure/026-notices-capabilities.sql",
+      "sha256": "69f52a24a81b45a69c6c5334c004d07527595d521157e1aacdf851b85175122b"
+    },
+    {
+      "path": "infrastructure/027-occurrences-capabilities.sql",
+      "sha256": "29f9edc29608ad6796752725295c32d34e73d78ebe30cbb84ff13c6be1dd205a"
+    },
+    {
+      "path": "infrastructure/028-common-areas-capabilities.sql",
+      "sha256": "aa4e4704758a31a1f76ff0f7ca27e09725c9d7dab1b96e9ca71d8c283a9256c1"
+    },
+    {
+      "path": "infrastructure/029-reservations-capabilities.sql",
+      "sha256": "cb42f0a71d696047a0e9c6c4e1834503957a491a025fea3f91180c992b554da9"
+    },
+    {
+      "path": "infrastructure/030-finance-capabilities.sql",
+      "sha256": "d85ccd2b60e304bef95e7f3e7c08aa25811ef8486a013d553f8260889766d5a4"
+    },
+    {
+      "path": "infrastructure/031-overview-occurrences.sql",
+      "sha256": "ea4c1deafda0fcd64bf04b709f202eb5f099f1f7f6c4c5b306a2d3246d2a977b"
+    },
+    {
+      "path": "infrastructure/032-alert-rules-capabilities.sql",
+      "sha256": "eecfa9808b5c00930e7035e80cf479d5e1bad48600705e1478279cdb300c39c4"
+    },
+    {
+      "path": "infrastructure/033-parking-capabilities.sql",
+      "sha256": "c42dbd4df1d8166220f3050d3d284b45fc6383d304cc76eb7b6de87936bffdd2"
+    },
+    {
+      "path": "infrastructure/034-access-capabilities.sql",
+      "sha256": "eda13e5ca2479a1c0f41bb2473862134a527e4dc381776ba39e6d0ac0e2d0527"
+    },
+    {
+      "path": "infrastructure/035-login-throttling.sql",
+      "sha256": "9462b53bf8037e6f6a289d7706d7cb7bb446b78286789aa7d63ba5195096e0ce"
+    },
+    {
+      "path": "infrastructure/036-audit-capabilities.sql",
+      "sha256": "085e57f736c32ced3b778fbb1df4b62bcfff5056bb9a2bf67a16bf542264118d"
+    },
+    {
+      "path": "infrastructure/037-password-change.sql",
+      "sha256": "a6f4f211b8af51db1157780ea2405a2db1e44be5ea9b5dda6119bdd398ac7ff0"
+    },
+    {
+      "path": "infrastructure/038-durable-alert-delivery.sql",
+      "sha256": "65c1b502621ceebc82021c9c94648de55e9ff9c63907237dd81866ce44f8c3c7"
+    },
+    {
+      "path": "infrastructure/039-organizations-capabilities.sql",
+      "sha256": "4aacbd0c1a8197b2593892737a54055fd11dc3c828c0b9fc07f65f841080b319"
+    },
+    {
+      "path": "infrastructure/040-users-runtime-acl.sql",
+      "sha256": "96c46748f57a3bd3a8b5e92f24c37d2c79d89fe3c916fb23be50e958168e7e8a"
+    },
+    {
+      "path": "infrastructure/041-tenancy-edit-audit.sql",
+      "sha256": "a6933d7111f8a7f4aab3883305b81971815af1884a785ec613b1ebe88328085a"
+    },
+    {
+      "path": "infrastructure/042-resident-invitations.sql",
+      "sha256": "b66d49c15a0718c7c4c1a6c6fca9c251351ae95951ff008c1d3540af9a4913ce"
+    },
+    {
+      "path": "infrastructure/043-work-orders.sql",
+      "sha256": "9eeb037284a96df04e7e104e84495b1026067fc4babd9cea4b6c7a84157c8448"
+    },
+    {
+      "path": "infrastructure/044-assets.sql",
+      "sha256": "f8b7954fcef4b5b1b54ee5303a1e4319f328b9feeddf2b413a4354ed393588f3"
+    },
+    {
+      "path": "infrastructure/045-automations.sql",
+      "sha256": "81296100899f768311900edef8d7c146a945624123ed1900bc21b191204a7421"
+    },
+    {
+      "path": "infrastructure/046-mfa.sql",
+      "sha256": "a3b007e7a8dbd0b9f4b86c5153a753f6436b8d8006eaf57d88cc9b54a1b1f6a3"
+    },
+    {
+      "path": "infrastructure/047-password-recovery.sql",
+      "sha256": "dcffc67d03c1d5732f7f33f87e54f632c0e3d05436055dff2a1120d2a962c4df"
+    },
+    {
+      "path": "infrastructure/048-telemetry-receipt-scope.sql",
+      "sha256": "34a690eb851c8fa66e53d4a49893c7e8c70b01a6c163992fe2c450f1e391503a"
+    },
+    {
+      "path": "infrastructure/049-physical-features-opt-in.sql",
+      "sha256": "358905e96cd489313020de9d14dcd8485199416baffa567045959748e7299376"
+    },
+    {
+      "path": "infrastructure/050-physical-features-off-existing.sql",
+      "sha256": "e1e776d3a6ba80ddfcf45012aa37b3a92c3edfa1aa66ebeceaa48f7d95fd5a35"
+    },
+    {
+      "path": "infrastructure/051-resident-consumption-opt-in.sql",
+      "sha256": "65caae849c82a4eb542086c6e49ffec4ba2116985ec685abe0659400bef6a4f8"
+    },
+    {
+      "path": "infrastructure/052-ingest-runtime-roles.sql",
+      "sha256": "95d5c8fd9a1f1268ad8c97e02ba92919d311d707deeaa3179ee9526d68683ed4"
+    },
+    {
+      "path": "infrastructure/053-support-grants-management.sql",
+      "sha256": "f4e3ea34810e675d6ba5ae0f858faaf4de7a19daddb1b33bacb7123b49d1aea6"
+    },
+    {
+      "path": "infrastructure/054-users-memberships-capabilities.sql",
+      "sha256": "c854377a042a7116294f14c3b385a585d7d2b4fb7185710f7bd32e089ace4484"
+    },
+    {
+      "path": "infrastructure/055-session-recent-verification.sql",
+      "sha256": "0269bb7a722a6851c572291e402acebad746fc213acaeae243ed7ee4fad96e42"
+    },
+    {
+      "path": "infrastructure/056-telemetry-series-catalog.sql",
+      "sha256": "3ce493e83f2870d382703942b962bf474e4e69a785aa98e2f1cfecef434bc192"
+    },
+    {
+      "path": "infrastructure/057-automation-schedules.sql",
+      "sha256": "08d88f99f48ac0608144c9322f4510188207a62921b1751ebd0ba2016db09cf6"
+    },
+    {
+      "path": "infrastructure/058-platform-service-health.sql",
+      "sha256": "2db5d1bd3837955f218bd32161db8426b14ea272754af3ab96ed2c5dd388ec92"
+    },
+    {
+      "path": "infrastructure/059-access-qr-totem.sql",
+      "sha256": "b50819446e7819073ba0858fff23913f76ecdb6f073c14be30bbd18fadf16fba"
+    },
+    {
+      "path": "infrastructure/060-team-member-eligibility.sql",
+      "sha256": "db7494a1858e5cc96e7c28c856bf894c91f29d544edbca327df62a35e6e1ebbb"
+    },
+    {
+      "path": "infrastructure/061-totem-pairing-clock.sql",
+      "sha256": "2d6491e0ddbd651f9558e15f50f73b5cb3728c93a30f0322c710fb90c2e7e9af"
+    },
+    {
+      "path": "infrastructure/062-demo-field-scenarios.sql",
+      "sha256": "f55045c56d7f6136520d93320256e9cd04dc01da00ba1b59f2c1e8f83a90867c"
+    },
+    {
+      "path": "infrastructure/063-service-guard-admin-memberships.sql",
+      "sha256": "976b7564ec540f91c4ce12bf368d13376f8357b44db78d54d58a8e4deeef059d"
+    },
+    {
+      "path": "infrastructure/064-reservation-limits-events.sql",
+      "sha256": "8961756b011a4ba0416cb24cbf89e62210c334780e82b6a35210b84ca28b2a73"
+    },
+    {
+      "path": "infrastructure/065-work-order-named-assignee.sql",
+      "sha256": "05c352cc27cc2948cf9750d302f68c315b71bc42269dd6f2f794a0ff46ced363"
+    },
+    {
+      "path": "infrastructure/066-default-alert-rules.sql",
+      "sha256": "42db3aa0d106b4a7fd4386d67e84bbe0be912193a741517bb30b6364e90d0909"
+    },
+    {
+      "path": "infrastructure/067-reservation-default-unit-limit.sql",
+      "sha256": "13dfb04045d18500fdd841ee34cb1a7f710f7a207797e555ba0d10f8b2d265ac"
+    },
+    {
+      "path": "infrastructure/068-platform-mfa-required.sql",
+      "sha256": "7838dcbc01d9bdf741f293e1afe1645dd0daff546760197c991e2b2ddb7f61bb"
+    }
+  ],
+  "beforeAfterEqual": true,
+  "preparedSha256": "7b53ab4e47a4bf7f2fc480d2ce2f9f6a013c206da10367a895bab35c2894dbfb",
+  "sourceCount": 128
+}

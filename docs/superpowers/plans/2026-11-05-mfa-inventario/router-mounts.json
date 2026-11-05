@@ -1,0 +1,230 @@
+[
+  {
+    "child": "healthRouter",
+    "parent": "app",
+    "prefix": "/health",
+    "file": "apps/api/src/app.ts"
+  },
+  {
+    "child": "authRouter",
+    "parent": "app",
+    "prefix": "/auth",
+    "file": "apps/api/src/app.ts"
+  },
+  {
+    "child": "mqttRouter",
+    "parent": "app",
+    "prefix": "/internal/mqtt",
+    "file": "apps/api/src/app.ts"
+  },
+  {
+    "child": "totemRouter",
+    "parent": "app",
+    "prefix": "/totem",
+    "file": "apps/api/src/app.ts"
+  },
+  {
+    "child": "eventsRouter",
+    "parent": "app",
+    "prefix": "/events",
+    "file": "apps/api/src/app.ts"
+  },
+  {
+    "child": "tenancyRouter",
+    "parent": "app",
+    "prefix": "/v1/tenancy",
+    "file": "apps/api/src/app.ts"
+  },
+  {
+    "child": "authorizationRouter",
+    "parent": "app",
+    "prefix": "/v1/authorization",
+    "file": "apps/api/src/app.ts"
+  },
+  {
+    "child": "workOrdersRouter",
+    "parent": "app",
+    "prefix": "/v1/work-orders",
+    "file": "apps/api/src/app.ts"
+  },
+  {
+    "child": "assetsRouter",
+    "parent": "app",
+    "prefix": "/v1/assets",
+    "file": "apps/api/src/app.ts"
+  },
+  {
+    "child": "automationsRouter",
+    "parent": "app",
+    "prefix": "/v1/automations",
+    "file": "apps/api/src/app.ts"
+  },
+  {
+    "child": "buildingEventsRouter",
+    "parent": "app",
+    "prefix": "/v1/building-events",
+    "file": "apps/api/src/app.ts"
+  },
+  {
+    "child": "demoRouter",
+    "parent": "app",
+    "prefix": "/v1/demo",
+    "file": "apps/api/src/app.ts"
+  },
+  {
+    "child": "supportAccessRouter",
+    "parent": "app",
+    "prefix": "/v1/support-access",
+    "file": "apps/api/src/app.ts"
+  },
+  {
+    "child": "featuresRouter",
+    "parent": "app",
+    "prefix": "/features",
+    "file": "apps/api/src/app.ts"
+  },
+  {
+    "child": "organizationsRouter",
+    "parent": "app",
+    "prefix": "/organizations",
+    "file": "apps/api/src/app.ts"
+  },
+  {
+    "child": "buildingsRouter",
+    "parent": "app",
+    "prefix": "/buildings",
+    "file": "apps/api/src/app.ts"
+  },
+  {
+    "child": "usersRouter",
+    "parent": "app",
+    "prefix": "/users",
+    "file": "apps/api/src/app.ts"
+  },
+  {
+    "child": "gatewaysRouter",
+    "parent": "app",
+    "prefix": "/gateways",
+    "file": "apps/api/src/app.ts"
+  },
+  {
+    "child": "devicesRouter",
+    "parent": "app",
+    "prefix": "/devices",
+    "file": "apps/api/src/app.ts"
+  },
+  {
+    "child": "alertRulesRouter",
+    "parent": "app",
+    "prefix": "/alert-rules",
+    "file": "apps/api/src/app.ts"
+  },
+  {
+    "child": "alertsRouter",
+    "parent": "app",
+    "prefix": "/alerts",
+    "file": "apps/api/src/app.ts"
+  },
+  {
+    "child": "telemetryRouter",
+    "parent": "app",
+    "prefix": "/telemetry",
+    "file": "apps/api/src/app.ts"
+  },
+  {
+    "child": "overviewRouter",
+    "parent": "app",
+    "prefix": "/overview",
+    "file": "apps/api/src/app.ts"
+  },
+  {
+    "child": "auditRouter",
+    "parent": "app",
+    "prefix": "/audit",
+    "file": "apps/api/src/app.ts"
+  },
+  {
+    "child": "noticesRouter",
+    "parent": "app",
+    "prefix": "/notices",
+    "file": "apps/api/src/app.ts"
+  },
+  {
+    "child": "occurrencesRouter",
+    "parent": "app",
+    "prefix": "/occurrences",
+    "file": "apps/api/src/app.ts"
+  },
+  {
+    "child": "commonAreasRouter",
+    "parent": "app",
+    "prefix": "/common-areas",
+    "file": "apps/api/src/app.ts"
+  },
+  {
+    "child": "reservationsRouter",
+    "parent": "app",
+    "prefix": "/reservations",
+    "file": "apps/api/src/app.ts"
+  },
+  {
+    "child": "monitoringRouter",
+    "parent": "app",
+    "prefix": "/monitoring",
+    "file": "apps/api/src/app.ts"
+  },
+  {
+    "child": "accessRouter",
+    "parent": "app",
+    "prefix": "/access",
+    "file": "apps/api/src/app.ts"
+  },
+  {
+    "child": "parkingRouter",
+    "parent": "app",
+    "prefix": "/parking",
+    "file": "apps/api/src/app.ts"
+  },
+  {
+    "child": "supportRouter",
+    "parent": "app",
+    "prefix": "/support",
+    "file": "apps/api/src/app.ts"
+  },
+  {
+    "child": "financeRouter",
+    "parent": "app",
+    "prefix": "/finance",
+    "file": "apps/api/src/app.ts"
+  },
+  {
+    "child": "webAuthRouter",
+    "parent": "authRouter",
+    "prefix": "/web",
+    "file": "apps/api/src/auth/routes.ts"
+  },
+  {
+    "child": "invitationAuthRouter",
+    "parent": "authRouter",
+    "prefix": "/invitations",
+    "file": "apps/api/src/auth/routes.ts"
+  },
+  {
+    "child": "mfaRouter",
+    "parent": "authRouter",
+    "prefix": "/mfa",
+    "file": "apps/api/src/auth/routes.ts"
+  },
+  {
+    "child": "verificationRouter",
+    "parent": "authRouter",
+    "prefix": "/verify",
+    "file": "apps/api/src/auth/routes.ts"
+  },
+  {
+    "child": "recoveryRouter",
+    "parent": "authRouter",
+    "prefix": "/password",
+    "file": "apps/api/src/auth/routes.ts"
+  }
+]

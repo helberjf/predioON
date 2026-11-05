@@ -1,0 +1,71 @@
+{
+  "status": "STATIC_REVIEW_NOT_CLOSURE_PROOF",
+  "preparedSha256": "7b53ab4e47a4bf7f2fc480d2ce2f9f6a013c206da10367a895bab35c2894dbfb",
+  "entryReview": "app.ts mount order and auth exact routes reviewed; all human domain mounts follow authenticate; events self-authenticates; broker/totem use independent credentials.",
+  "sixRestrictiveTables": [
+    "organizations",
+    "support_hosts",
+    "support_requests",
+    "devices",
+    "gateways",
+    "device_metrics"
+  ],
+  "rowPolicyLimit": "USING/WITHCHECK can filter zero rows without evaluating guard. Does not guard SD owner reads, nonmatching writes, other tables or arbitrary GUC forging.",
+  "reviewedEnvelopes": [
+    {
+      "functions": [
+        "app_list_mfa_organizations"
+      ],
+      "scope": "Guard-first list envelope + organizations RLS; not all organization mutations.",
+      "entry": "GET /organizations/"
+    },
+    {
+      "functions": [
+        "app_list_mfa_devices",
+        "app_list_mfa_gateways"
+      ],
+      "scope": "Guard-first list; devices/gateways/device_metrics RLS separate. Empty/detail/write paths must be classified individually.",
+      "entry": "GET /devices/ and GET /gateways/"
+    },
+    {
+      "functions": [
+        "app_mfa_platform_authorization",
+        "app_mfa_scope_authorization"
+      ],
+      "scope": "Two guarded authorization JSON projections.",
+      "entry": "/v1/authorization"
+    },
+    {
+      "functions": [
+        "app_overview_platform_health",
+        "app_platform_service_health"
+      ],
+      "scope": "Guard-first guarded platform projections; building overview still separate.",
+      "entry": "Platform overview/service health"
+    },
+    {
+      "functions": [
+        "app_mfa_feature_event_allowed",
+        "app_mfa_telemetry_event_context",
+        "app_mfa_alert_event_context",
+        "app_mfa_device_event_context",
+        "app_mfa_device_event_allowed"
+      ],
+      "scope": "Specific projectors only. Device uses two intentional snapshots/final authority; gateway remains direct RLS select; heartbeat scheduling separate.",
+      "entry": "SSE features/telemetry/alerts/device-status"
+    }
+  ],
+  "identityExceptions": [
+    "Authentication/login/refresh/logout/recovery/invitation endpoints remain credential-gated bootstrap.",
+    "GET me, MFA status/enroll/confirm, verify and session revocation intentionally allow restricted authenticated sessions.",
+    "Password change, session listing and MFA disable retain operational gate; confirm proof is not055verified_at.",
+    "MFA disable final authority/delete CTE already in candidate; broader identity workflows need their own transaction review."
+  ],
+  "nonGuardFacts": [
+    "mfaQueryProjection is a decoder/DTO adapter, NOT a guard.",
+    "assertCapability/assertGlobalCapability and feature checks before another SELECT/UPDATE are not one operation/snapshot.",
+    "inTenantContext sets user/role/SID and locks features; it does not automatically call MFA guard in each statement.",
+    "SECURITY DEFINER catalog/callsites require caller+owner/RLS/ACL review; missing inline guard alone is not a demonstrated bypass.",
+    "Default metadata-only/public/service routes must not be made human-MFA-dependent."
+  ]
+}

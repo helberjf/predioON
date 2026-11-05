@@ -1,0 +1,84 @@
+[
+  {
+    "modules": [
+      "organizations",
+      "buildings",
+      "users",
+      "tenancy",
+      "authorization",
+      "support",
+      "support-access"
+    ],
+    "focus": "SD discovery helpers and identity pool calls, users/buildings/role_bindings/support_grants; partial envelopes/RLS remain explicit.",
+    "action": "Close administrative discovery/people/grants and no-match mutations; preserve union flag010/authority021 without broadening support authority.",
+    "id": "A"
+  },
+  {
+    "modules": [
+      "devices",
+      "gateways",
+      "alert-rules",
+      "features",
+      "demo"
+    ],
+    "focus": "device_metrics RLS, alert_rules and feature settings, app_apply_feature_transition/app_demo_scenario_set VOLATILE semantics.",
+    "action": "Finish equipment configuration and feature transitions with guarded exact-scope mutations/envelopes, including empty/absent IDs.",
+    "id": "B"
+  },
+  {
+    "modules": [
+      "telemetry",
+      "alerts",
+      "overview",
+      "monitoring",
+      "audit",
+      "finance"
+    ],
+    "focus": "app_telemetry_authorized_devices, app_published_water_levels, app_alert_authorized_contexts, app_audit_query_scope, monitoring and finance helpers.",
+    "action": "Close human HTTP private projections separately from already-guarded SSE projectors; keep DTO/capabilities and bounded SQL.",
+    "id": "C"
+  },
+  {
+    "modules": [
+      "notices",
+      "occurrences",
+      "common-areas",
+      "reservations",
+      "work-orders",
+      "assets",
+      "building-events",
+      "automations"
+    ],
+    "focus": "app_cancel_own_reservation/app_automation_simulate and domain SD helpers; tables not in the six MFA policies.",
+    "action": "One coherent tenant-domain batch: guarded reads/mutations and zero-match decisions, preserve assignee/resident scopes and conflict semantics.",
+    "id": "D"
+  },
+  {
+    "modules": [
+      "access",
+      "parking"
+    ],
+    "focus": "Access service/identity SQL entrypoints, QR/command/revision checks, parking counters; no blanket worker SID requirement.",
+    "action": "Separate physical action boundary: authorize+mutate coherent operation; never replay commands. Preserve device/totem service entrypoints.",
+    "id": "E"
+  },
+  {
+    "modules": [
+      "events"
+    ],
+    "focus": "Gateway direct RLS read vs empty guard; heartbeat identity check/timer ordering, not private payload atomicity.",
+    "action": "Finish gateway event scalar guard and heartbeat serialization separately; preserve existing limits and no post-close writes.",
+    "id": "F"
+  },
+  {
+    "modules": [
+      "auth",
+      "health.ts",
+      "mqtt",
+      "api-infrastructure"
+    ],
+    "focus": "Explicit allowlist and service roles; no generic bootstrap guard transplant.",
+    "action": "Exception audit only: classify bootstrap/session/identity/service boundaries and preserve055/credential flows; do not globally deny enrollment.",
+    "id": "G"
+  }
+]

@@ -1,0 +1,1047 @@
+[
+  {
+    "reviewStatus": "ENTRY_MOUNT_REVIEWED; SQL closure requires statement/caller review",
+    "files": [
+      "apps/api/src/modules/access/routes.ts",
+      "apps/api/src/modules/access/totem-routes.ts"
+    ],
+    "sqlHelpers": [
+      "app_access_can_read_scope",
+      "app_access_hardware_state",
+      "app_access_has_capability",
+      "app_access_lock_target",
+      "app_access_request_permitted",
+      "app_gate_qr_renew",
+      "app_gate_totem_pairing_create",
+      "app_gate_totem_revoke",
+      "app_has_capability",
+      "app_request_access",
+      "app_request_access_by_qr",
+      "identity_totem_display",
+      "identity_totem_pair"
+    ],
+    "classifications": [
+      "human",
+      "service"
+    ],
+    "routes": 12,
+    "tableTokens": [
+      "app_access_hardware_state",
+      "app_request_access",
+      "app_request_access_by_qr",
+      "code",
+      "database",
+      "devices",
+      "GATE_QR_SECRET",
+      "gate_totems",
+      "gateCommands",
+      "gateQrMac",
+      "gates",
+      "gateways",
+      "hkdfSync",
+      "identity_totem_display",
+      "qr"
+    ],
+    "module": "access",
+    "group": "E",
+    "nextAction": "Separate physical action boundary: authorize+mutate coherent operation; never replay commands. Preserve device/totem service entrypoints.",
+    "actualTableSignals": [
+      "gate_totems",
+      "gate_commands",
+      "gates",
+      "gateways",
+      "devices"
+    ],
+    "mfaRlsTablesTouched": [
+      "gateways",
+      "devices"
+    ]
+  },
+  {
+    "reviewStatus": "ENTRY_MOUNT_REVIEWED; SQL closure requires statement/caller review",
+    "files": [
+      "apps/api/src/modules/alert-rules/routes.ts"
+    ],
+    "sqlHelpers": [
+      "app_alert_rule_can_read_scope",
+      "app_alert_rule_context",
+      "app_alert_rule_has_capability",
+      "app_alert_rule_lock_target",
+      "app_alert_rule_target_context",
+      "app_alert_rule_target_has_capability"
+    ],
+    "classifications": [
+      "human"
+    ],
+    "routes": 4,
+    "tableTokens": [
+      "alert_rules",
+      "alertRules",
+      "app_alert_rule_context",
+      "app_alert_rule_target_context"
+    ],
+    "module": "alert-rules",
+    "group": "B",
+    "nextAction": "Finish equipment configuration and feature transitions with guarded exact-scope mutations/envelopes, including empty/absent IDs.",
+    "actualTableSignals": [
+      "alert_rules"
+    ],
+    "mfaRlsTablesTouched": []
+  },
+  {
+    "reviewStatus": "ENTRY_MOUNT_REVIEWED; SQL closure requires statement/caller review",
+    "files": [
+      "apps/api/src/modules/alerts/routes.ts"
+    ],
+    "sqlHelpers": [
+      "app_alert_authorized_contexts",
+      "app_alert_can_read_feature_state",
+      "app_alert_has_capability",
+      "app_transition_alert"
+    ],
+    "classifications": [
+      "human"
+    ],
+    "routes": 3,
+    "tableTokens": [
+      "alerts",
+      "app_alert_authorized_contexts"
+    ],
+    "module": "alerts",
+    "group": "C",
+    "nextAction": "Close human HTTP private projections separately from already-guarded SSE projectors; keep DTO/capabilities and bounded SQL.",
+    "actualTableSignals": [
+      "alerts"
+    ],
+    "mfaRlsTablesTouched": []
+  },
+  {
+    "reviewStatus": "ENTRY_MOUNT_REVIEWED; SQL closure requires statement/caller review",
+    "files": [
+      "apps/api/src/app.ts"
+    ],
+    "sqlHelpers": [],
+    "classifications": [
+      "public"
+    ],
+    "routes": 1,
+    "tableTokens": [
+      "env",
+      "one"
+    ],
+    "module": "api-infrastructure",
+    "group": "G",
+    "nextAction": "Exception audit only: classify bootstrap/session/identity/service boundaries and preserve055/credential flows; do not globally deny enrollment.",
+    "actualTableSignals": [],
+    "mfaRlsTablesTouched": []
+  },
+  {
+    "reviewStatus": "ENTRY_MOUNT_REVIEWED; SQL closure requires statement/caller review",
+    "files": [
+      "apps/api/src/modules/assets/routes.ts"
+    ],
+    "sqlHelpers": [
+      "app_has_capability"
+    ],
+    "classifications": [
+      "human"
+    ],
+    "routes": 5,
+    "tableTokens": [
+      "asset_device_links",
+      "assets",
+      "devices",
+      "work_orders"
+    ],
+    "module": "assets",
+    "group": "D",
+    "nextAction": "One coherent tenant-domain batch: guarded reads/mutations and zero-match decisions, preserve assignee/resident scopes and conflict semantics.",
+    "actualTableSignals": [
+      "assets",
+      "asset_device_links",
+      "devices",
+      "work_orders"
+    ],
+    "mfaRlsTablesTouched": [
+      "devices"
+    ]
+  },
+  {
+    "reviewStatus": "ENTRY_MOUNT_REVIEWED; SQL closure requires statement/caller review",
+    "files": [
+      "apps/api/src/modules/audit/routes.ts"
+    ],
+    "sqlHelpers": [
+      "app_audit_query_scope"
+    ],
+    "classifications": [
+      "human"
+    ],
+    "routes": 1,
+    "tableTokens": [
+      "app_audit_query_scope",
+      "audit_logs",
+      "auditLogs",
+      "live",
+      "the"
+    ],
+    "module": "audit",
+    "group": "C",
+    "nextAction": "Close human HTTP private projections separately from already-guarded SSE projectors; keep DTO/capabilities and bounded SQL.",
+    "actualTableSignals": [
+      "audit_logs"
+    ],
+    "mfaRlsTablesTouched": []
+  },
+  {
+    "reviewStatus": "ENTRY_MOUNT_REVIEWED; SQL closure requires statement/caller review",
+    "files": [
+      "apps/api/src/auth/invitations.ts",
+      "apps/api/src/auth/mfa.ts",
+      "apps/api/src/auth/recovery.ts",
+      "apps/api/src/auth/routes.ts",
+      "apps/api/src/auth/verification.ts",
+      "apps/api/src/auth/web-routes.ts"
+    ],
+    "sqlHelpers": [
+      "app_can_discover_building",
+      "app_governance_access",
+      "app_has_capability",
+      "app_has_global_capability",
+      "identity_accept_invitation",
+      "identity_invitation_preview",
+      "identity_issue_password_reset",
+      "identity_lock_account_active",
+      "identity_platform_mfa_required",
+      "identity_replace_password",
+      "identity_reset_password",
+      "identity_session_mfa_requirement",
+      "identity_take_login_budget"
+    ],
+    "classifications": [
+      "bootstrap",
+      "human"
+    ],
+    "routes": 21,
+    "tableTokens": [
+      "active",
+      "alertRules",
+      "authority",
+      "buildings",
+      "bytes",
+      "code",
+      "counter",
+      "currentPassword",
+      "deleted",
+      "devices",
+      "email",
+      "factor",
+      "gates",
+      "hkdfSync",
+      "identity_invitation_preview",
+      "is",
+      "memberships",
+      "mfa_factors",
+      "mfa_recovery_codes",
+      "networkIdentity",
+      "newPassword",
+      "organizations",
+      "origin",
+      "parkingLots",
+      "presented",
+      "random",
+      "refreshTokens",
+      "sealed",
+      "secret",
+      "sessions",
+      "the",
+      "token",
+      "totpCode",
+      "userId",
+      "users"
+    ],
+    "module": "auth",
+    "group": "G",
+    "nextAction": "Exception audit only: classify bootstrap/session/identity/service boundaries and preserve055/credential flows; do not globally deny enrollment.",
+    "actualTableSignals": [
+      "alert_rules",
+      "devices",
+      "parking_lots",
+      "gates",
+      "users",
+      "mfa_factors",
+      "mfa_recovery_codes",
+      "sessions",
+      "memberships",
+      "buildings",
+      "organizations",
+      "refresh_tokens"
+    ],
+    "mfaRlsTablesTouched": [
+      "devices",
+      "organizations"
+    ]
+  },
+  {
+    "reviewStatus": "ENTRY_MOUNT_REVIEWED; SQL closure requires statement/caller review",
+    "files": [
+      "apps/api/src/modules/authorization/routes.ts"
+    ],
+    "sqlHelpers": [
+      "app_mfa_platform_authorization",
+      "app_mfa_scope_authorization"
+    ],
+    "classifications": [
+      "human"
+    ],
+    "routes": 2,
+    "tableTokens": [],
+    "module": "authorization",
+    "group": "A",
+    "nextAction": "Close administrative discovery/people/grants and no-match mutations; preserve union flag010/authority021 without broadening support authority.",
+    "actualTableSignals": [],
+    "mfaRlsTablesTouched": []
+  },
+  {
+    "reviewStatus": "ENTRY_MOUNT_REVIEWED; SQL closure requires statement/caller review",
+    "files": [
+      "apps/api/src/modules/automations/routes.ts"
+    ],
+    "sqlHelpers": [
+      "app_automation_simulate",
+      "app_has_capability"
+    ],
+    "classifications": [
+      "human"
+    ],
+    "routes": 7,
+    "tableTokens": [
+      "app_automation_simulate",
+      "automation_rules",
+      "automation_runs",
+      "automation_versions",
+      "base",
+      "clock_timestamp"
+    ],
+    "module": "automations",
+    "group": "D",
+    "nextAction": "One coherent tenant-domain batch: guarded reads/mutations and zero-match decisions, preserve assignee/resident scopes and conflict semantics.",
+    "actualTableSignals": [
+      "automation_versions",
+      "automation_runs",
+      "automation_rules"
+    ],
+    "mfaRlsTablesTouched": []
+  },
+  {
+    "reviewStatus": "ENTRY_MOUNT_REVIEWED; SQL closure requires statement/caller review",
+    "files": [
+      "apps/api/src/modules/building-events/routes.ts"
+    ],
+    "sqlHelpers": [
+      "app_building_event_totals",
+      "app_building_person_name",
+      "app_has_capability"
+    ],
+    "classifications": [
+      "human"
+    ],
+    "routes": 6,
+    "tableTokens": [
+      "app_building_event_totals",
+      "building_event_responses",
+      "building_events",
+      "common_areas",
+      "set"
+    ],
+    "module": "building-events",
+    "group": "D",
+    "nextAction": "One coherent tenant-domain batch: guarded reads/mutations and zero-match decisions, preserve assignee/resident scopes and conflict semantics.",
+    "actualTableSignals": [
+      "building_events",
+      "common_areas",
+      "building_event_responses"
+    ],
+    "mfaRlsTablesTouched": []
+  },
+  {
+    "reviewStatus": "ENTRY_MOUNT_REVIEWED; SQL closure requires statement/caller review",
+    "files": [
+      "apps/api/src/modules/buildings/routes.ts"
+    ],
+    "sqlHelpers": [
+      "app_has_global_capability"
+    ],
+    "classifications": [
+      "human"
+    ],
+    "routes": 4,
+    "tableTokens": [
+      "bindings",
+      "buildings",
+      "subsequently"
+    ],
+    "module": "buildings",
+    "group": "A",
+    "nextAction": "Close administrative discovery/people/grants and no-match mutations; preserve union flag010/authority021 without broadening support authority.",
+    "actualTableSignals": [
+      "buildings"
+    ],
+    "mfaRlsTablesTouched": []
+  },
+  {
+    "reviewStatus": "ENTRY_MOUNT_REVIEWED; SQL closure requires statement/caller review",
+    "files": [
+      "apps/api/src/modules/common-areas/routes.ts"
+    ],
+    "sqlHelpers": [
+      "app_common_area_can_read_scope",
+      "app_common_area_has_capability",
+      "app_has_capability"
+    ],
+    "classifications": [
+      "human"
+    ],
+    "routes": 3,
+    "tableTokens": [
+      "commonAreas"
+    ],
+    "module": "common-areas",
+    "group": "D",
+    "nextAction": "One coherent tenant-domain batch: guarded reads/mutations and zero-match decisions, preserve assignee/resident scopes and conflict semantics.",
+    "actualTableSignals": [
+      "common_areas"
+    ],
+    "mfaRlsTablesTouched": []
+  },
+  {
+    "reviewStatus": "ENTRY_MOUNT_REVIEWED; SQL closure requires statement/caller review",
+    "files": [
+      "apps/api/src/modules/demo/routes.ts"
+    ],
+    "sqlHelpers": [
+      "app_demo_scenario_set"
+    ],
+    "classifications": [
+      "human"
+    ],
+    "routes": 3,
+    "tableTokens": [
+      "demo_scenarios"
+    ],
+    "module": "demo",
+    "group": "B",
+    "nextAction": "Finish equipment configuration and feature transitions with guarded exact-scope mutations/envelopes, including empty/absent IDs.",
+    "actualTableSignals": [
+      "demo_scenarios"
+    ],
+    "mfaRlsTablesTouched": []
+  },
+  {
+    "reviewStatus": "ENTRY_MOUNT_REVIEWED; SQL closure requires statement/caller review",
+    "files": [
+      "apps/api/src/modules/devices/routes.ts"
+    ],
+    "sqlHelpers": [
+      "app_list_mfa_devices"
+    ],
+    "classifications": [
+      "human"
+    ],
+    "routes": 5,
+    "tableTokens": [
+      "deviceMetrics",
+      "devices"
+    ],
+    "module": "devices",
+    "group": "B",
+    "nextAction": "Finish equipment configuration and feature transitions with guarded exact-scope mutations/envelopes, including empty/absent IDs.",
+    "actualTableSignals": [
+      "devices",
+      "device_metrics"
+    ],
+    "mfaRlsTablesTouched": [
+      "devices",
+      "device_metrics"
+    ]
+  },
+  {
+    "reviewStatus": "ENTRY_MOUNT_REVIEWED; SQL closure requires statement/caller review",
+    "files": [
+      "apps/api/src/modules/events/routes.ts"
+    ],
+    "sqlHelpers": [
+      "app_mfa_alert_event_context",
+      "app_mfa_device_event_allowed",
+      "app_mfa_device_event_context",
+      "app_mfa_feature_event_allowed",
+      "app_mfa_telemetry_event_context"
+    ],
+    "classifications": [
+      "human-stream"
+    ],
+    "routes": 1,
+    "tableTokens": [
+      "closing",
+      "gateways",
+      "listener"
+    ],
+    "module": "events",
+    "group": "F",
+    "nextAction": "Finish gateway event scalar guard and heartbeat serialization separately; preserve existing limits and no post-close writes.",
+    "actualTableSignals": [
+      "gateways"
+    ],
+    "mfaRlsTablesTouched": [
+      "gateways"
+    ]
+  },
+  {
+    "reviewStatus": "ENTRY_MOUNT_REVIEWED; SQL closure requires statement/caller review",
+    "files": [
+      "apps/api/src/modules/features/routes.ts"
+    ],
+    "sqlHelpers": [
+      "app_apply_feature_transition"
+    ],
+    "classifications": [
+      "human"
+    ],
+    "routes": 5,
+    "tableTokens": [
+      "buildingFeatureSettings",
+      "buildings",
+      "globalFeatureSettings"
+    ],
+    "module": "features",
+    "group": "B",
+    "nextAction": "Finish equipment configuration and feature transitions with guarded exact-scope mutations/envelopes, including empty/absent IDs.",
+    "actualTableSignals": [
+      "buildings",
+      "global_feature_settings",
+      "building_feature_settings"
+    ],
+    "mfaRlsTablesTouched": []
+  },
+  {
+    "reviewStatus": "ENTRY_MOUNT_REVIEWED; SQL closure requires statement/caller review",
+    "files": [
+      "apps/api/src/modules/finance/routes.ts"
+    ],
+    "sqlHelpers": [
+      "app_finance_can_publish_revision",
+      "app_finance_can_read_scope",
+      "app_finance_has_capability",
+      "app_has_capability"
+    ],
+    "classifications": [
+      "human"
+    ],
+    "routes": 4,
+    "tableTokens": [
+      "financialReports",
+      "RLS"
+    ],
+    "module": "finance",
+    "group": "C",
+    "nextAction": "Close human HTTP private projections separately from already-guarded SSE projectors; keep DTO/capabilities and bounded SQL.",
+    "actualTableSignals": [
+      "financial_reports"
+    ],
+    "mfaRlsTablesTouched": []
+  },
+  {
+    "reviewStatus": "ENTRY_MOUNT_REVIEWED; SQL closure requires statement/caller review",
+    "files": [
+      "apps/api/src/modules/gateways/routes.ts"
+    ],
+    "sqlHelpers": [
+      "app_list_mfa_gateways"
+    ],
+    "classifications": [
+      "human"
+    ],
+    "routes": 4,
+    "tableTokens": [
+      "gateways"
+    ],
+    "module": "gateways",
+    "group": "B",
+    "nextAction": "Finish equipment configuration and feature transitions with guarded exact-scope mutations/envelopes, including empty/absent IDs.",
+    "actualTableSignals": [
+      "gateways"
+    ],
+    "mfaRlsTablesTouched": [
+      "gateways"
+    ]
+  },
+  {
+    "reviewStatus": "ENTRY_MOUNT_REVIEWED; SQL closure requires statement/caller review",
+    "files": [
+      "apps/api/src/modules/health.ts"
+    ],
+    "sqlHelpers": [],
+    "classifications": [
+      "public"
+    ],
+    "routes": 2,
+    "tableTokens": [],
+    "module": "health.ts",
+    "group": "G",
+    "nextAction": "Exception audit only: classify bootstrap/session/identity/service boundaries and preserve055/credential flows; do not globally deny enrollment.",
+    "actualTableSignals": [],
+    "mfaRlsTablesTouched": []
+  },
+  {
+    "reviewStatus": "ENTRY_MOUNT_REVIEWED; SQL closure requires statement/caller review",
+    "files": [
+      "apps/api/src/modules/monitoring/routes.ts"
+    ],
+    "sqlHelpers": [
+      "app_has_capability",
+      "app_monitoring_active_device",
+      "app_monitoring_authorized_profiles",
+      "app_monitoring_can_read_scope",
+      "app_monitoring_device_has_capability",
+      "app_monitoring_scope_context",
+      "app_published_consumption",
+      "app_resident_consumption_released",
+      "app_set_resident_consumption"
+    ],
+    "classifications": [
+      "human"
+    ],
+    "routes": 6,
+    "tableTokens": [
+      "app_monitoring_authorized_profiles",
+      "app_monitoring_scope_context",
+      "app_published_consumption",
+      "buildings",
+      "dailyUsage",
+      "monitoringProfiles",
+      "usageCursors"
+    ],
+    "module": "monitoring",
+    "group": "C",
+    "nextAction": "Close human HTTP private projections separately from already-guarded SSE projectors; keep DTO/capabilities and bounded SQL.",
+    "actualTableSignals": [
+      "buildings",
+      "monitoring_profiles",
+      "daily_usage",
+      "usage_cursors"
+    ],
+    "mfaRlsTablesTouched": []
+  },
+  {
+    "reviewStatus": "ENTRY_MOUNT_REVIEWED; SQL closure requires statement/caller review",
+    "files": [
+      "apps/api/src/modules/mqtt/routes.ts"
+    ],
+    "sqlHelpers": [],
+    "classifications": [
+      "service"
+    ],
+    "routes": 2,
+    "tableTokens": [
+      "a",
+      "b",
+      "buildings",
+      "devices",
+      "gates",
+      "gateways"
+    ],
+    "module": "mqtt",
+    "group": "G",
+    "nextAction": "Exception audit only: classify bootstrap/session/identity/service boundaries and preserve055/credential flows; do not globally deny enrollment.",
+    "actualTableSignals": [
+      "gates",
+      "gateways",
+      "devices",
+      "buildings"
+    ],
+    "mfaRlsTablesTouched": [
+      "gateways",
+      "devices"
+    ]
+  },
+  {
+    "reviewStatus": "ENTRY_MOUNT_REVIEWED; SQL closure requires statement/caller review",
+    "files": [
+      "apps/api/src/modules/notices/routes.ts"
+    ],
+    "sqlHelpers": [
+      "app_has_capability",
+      "app_notice_can_read",
+      "app_notice_can_read_scope",
+      "app_notice_has_capability"
+    ],
+    "classifications": [
+      "human"
+    ],
+    "routes": 4,
+    "tableTokens": [
+      "logging",
+      "notices",
+      "noticeSchedules"
+    ],
+    "module": "notices",
+    "group": "D",
+    "nextAction": "One coherent tenant-domain batch: guarded reads/mutations and zero-match decisions, preserve assignee/resident scopes and conflict semantics.",
+    "actualTableSignals": [
+      "notices",
+      "notice_schedules"
+    ],
+    "mfaRlsTablesTouched": []
+  },
+  {
+    "reviewStatus": "ENTRY_MOUNT_REVIEWED; SQL closure requires statement/caller review",
+    "files": [
+      "apps/api/src/modules/occurrences/routes.ts"
+    ],
+    "sqlHelpers": [
+      "app_has_capability",
+      "app_occurrence_assignee_active",
+      "app_occurrence_can_manage_group",
+      "app_occurrence_can_read_scope",
+      "app_occurrence_cancel_own",
+      "app_occurrence_has_capability",
+      "app_occurrence_touch_own"
+    ],
+    "classifications": [
+      "human"
+    ],
+    "routes": 7,
+    "tableTokens": [
+      "occurrenceEvents",
+      "occurrences"
+    ],
+    "module": "occurrences",
+    "group": "D",
+    "nextAction": "One coherent tenant-domain batch: guarded reads/mutations and zero-match decisions, preserve assignee/resident scopes and conflict semantics.",
+    "actualTableSignals": [
+      "occurrences",
+      "occurrence_events"
+    ],
+    "mfaRlsTablesTouched": []
+  },
+  {
+    "reviewStatus": "ENTRY_MOUNT_REVIEWED; SQL closure requires statement/caller review",
+    "files": [
+      "apps/api/src/modules/organizations/routes.ts"
+    ],
+    "sqlHelpers": [
+      "app_has_global_capability",
+      "app_list_mfa_organizations"
+    ],
+    "classifications": [
+      "human"
+    ],
+    "routes": 3,
+    "tableTokens": [
+      "organizations",
+      "permits"
+    ],
+    "module": "organizations",
+    "group": "A",
+    "nextAction": "Close administrative discovery/people/grants and no-match mutations; preserve union flag010/authority021 without broadening support authority.",
+    "actualTableSignals": [
+      "organizations"
+    ],
+    "mfaRlsTablesTouched": [
+      "organizations"
+    ]
+  },
+  {
+    "reviewStatus": "ENTRY_MOUNT_REVIEWED; SQL closure requires statement/caller review",
+    "files": [
+      "apps/api/src/modules/overview/routes.ts"
+    ],
+    "sqlHelpers": [
+      "app_alert_authorized_contexts",
+      "app_has_global_capability",
+      "app_occurrence_can_read_scope",
+      "app_overview_building_scope",
+      "app_overview_occurrences",
+      "app_overview_platform_health",
+      "app_platform_service_health"
+    ],
+    "classifications": [
+      "human"
+    ],
+    "routes": 3,
+    "tableTokens": [
+      "alerts",
+      "app_alert_authorized_contexts",
+      "app_overview_building_scope",
+      "app_overview_occurrences",
+      "devices",
+      "gateways"
+    ],
+    "module": "overview",
+    "group": "C",
+    "nextAction": "Close human HTTP private projections separately from already-guarded SSE projectors; keep DTO/capabilities and bounded SQL.",
+    "actualTableSignals": [
+      "devices",
+      "gateways",
+      "alerts"
+    ],
+    "mfaRlsTablesTouched": [
+      "devices",
+      "gateways"
+    ]
+  },
+  {
+    "reviewStatus": "ENTRY_MOUNT_REVIEWED; SQL closure requires statement/caller review",
+    "files": [
+      "apps/api/src/modules/parking/routes.ts"
+    ],
+    "sqlHelpers": [
+      "app_parking_can_read_scope",
+      "app_parking_has_capability",
+      "app_parking_lock_target",
+      "app_parking_sensor_configurable",
+      "app_parking_target_has_capability"
+    ],
+    "classifications": [
+      "human"
+    ],
+    "routes": 4,
+    "tableTokens": [
+      "parking_lots",
+      "parkingLots"
+    ],
+    "module": "parking",
+    "group": "E",
+    "nextAction": "Separate physical action boundary: authorize+mutate coherent operation; never replay commands. Preserve device/totem service entrypoints.",
+    "actualTableSignals": [
+      "parking_lots"
+    ],
+    "mfaRlsTablesTouched": []
+  },
+  {
+    "reviewStatus": "ENTRY_MOUNT_REVIEWED; SQL closure requires statement/caller review",
+    "files": [
+      "apps/api/src/modules/reservations/routes.ts"
+    ],
+    "sqlHelpers": [
+      "app_building_person_name",
+      "app_cancel_own_reservation",
+      "app_common_area_has_capability",
+      "app_reservation_area_capability",
+      "app_reservation_availability",
+      "app_reservation_can_create",
+      "app_reservation_can_read_calendar",
+      "app_reservation_can_read_feature_state",
+      "app_reservation_can_read_scope",
+      "app_reservation_has_capability",
+      "app_reservation_own_units"
+    ],
+    "classifications": [
+      "human"
+    ],
+    "routes": 7,
+    "tableTokens": [
+      "app_reservation_availability",
+      "app_reservation_own_units",
+      "building_events",
+      "commonAreas",
+      "reservations",
+      "the"
+    ],
+    "module": "reservations",
+    "group": "D",
+    "nextAction": "One coherent tenant-domain batch: guarded reads/mutations and zero-match decisions, preserve assignee/resident scopes and conflict semantics.",
+    "actualTableSignals": [
+      "reservations",
+      "building_events",
+      "common_areas"
+    ],
+    "mfaRlsTablesTouched": []
+  },
+  {
+    "reviewStatus": "ENTRY_MOUNT_REVIEWED; SQL closure requires statement/caller review",
+    "files": [
+      "apps/api/src/modules/support/routes.ts"
+    ],
+    "sqlHelpers": [],
+    "classifications": [
+      "human"
+    ],
+    "routes": 4,
+    "tableTokens": [
+      "buildings",
+      "supportHosts",
+      "supportRequests",
+      "users"
+    ],
+    "module": "support",
+    "group": "A",
+    "nextAction": "Close administrative discovery/people/grants and no-match mutations; preserve union flag010/authority021 without broadening support authority.",
+    "actualTableSignals": [
+      "users",
+      "buildings",
+      "support_hosts",
+      "support_requests"
+    ],
+    "mfaRlsTablesTouched": [
+      "support_hosts",
+      "support_requests"
+    ]
+  },
+  {
+    "reviewStatus": "ENTRY_MOUNT_REVIEWED; SQL closure requires statement/caller review",
+    "files": [
+      "apps/api/src/modules/support-access/routes.ts"
+    ],
+    "sqlHelpers": [
+      "app_has_global_capability"
+    ],
+    "classifications": [
+      "human"
+    ],
+    "routes": 7,
+    "tableTokens": [
+      "buildings",
+      "in",
+      "of",
+      "role_bindings",
+      "roleBindings",
+      "staff",
+      "support_grants",
+      "users"
+    ],
+    "module": "support-access",
+    "group": "A",
+    "nextAction": "Close administrative discovery/people/grants and no-match mutations; preserve union flag010/authority021 without broadening support authority.",
+    "actualTableSignals": [
+      "users",
+      "support_grants",
+      "role_bindings",
+      "buildings"
+    ],
+    "mfaRlsTablesTouched": []
+  },
+  {
+    "reviewStatus": "ENTRY_MOUNT_REVIEWED; SQL closure requires statement/caller review",
+    "files": [
+      "apps/api/src/modules/telemetry/routes.ts"
+    ],
+    "sqlHelpers": [
+      "app_has_capability",
+      "app_published_water_levels",
+      "app_telemetry_authorized_devices"
+    ],
+    "classifications": [
+      "human"
+    ],
+    "routes": 2,
+    "tableTokens": [
+      "app_published_water_levels",
+      "app_telemetry_authorized_devices",
+      "LATERAL",
+      "telemetry",
+      "telemetry_series",
+      "the"
+    ],
+    "module": "telemetry",
+    "group": "C",
+    "nextAction": "Close human HTTP private projections separately from already-guarded SSE projectors; keep DTO/capabilities and bounded SQL.",
+    "actualTableSignals": [
+      "telemetry_series",
+      "telemetry"
+    ],
+    "mfaRlsTablesTouched": []
+  },
+  {
+    "reviewStatus": "ENTRY_MOUNT_REVIEWED; SQL closure requires statement/caller review",
+    "files": [
+      "apps/api/src/modules/tenancy/routes.ts"
+    ],
+    "sqlHelpers": [
+      "app_tenancy_is_resident",
+      "app_tenancy_people"
+    ],
+    "classifications": [
+      "human"
+    ],
+    "routes": 22,
+    "tableTokens": [
+      "app_tenancy_people",
+      "blocks",
+      "invitations",
+      "is",
+      "roleBindings",
+      "table",
+      "teamMembers",
+      "teams",
+      "unitMemberships",
+      "units"
+    ],
+    "module": "tenancy",
+    "group": "A",
+    "nextAction": "Close administrative discovery/people/grants and no-match mutations; preserve union flag010/authority021 without broadening support authority.",
+    "actualTableSignals": [
+      "blocks",
+      "units",
+      "teams",
+      "unit_memberships",
+      "team_members",
+      "role_bindings",
+      "invitations"
+    ],
+    "mfaRlsTablesTouched": []
+  },
+  {
+    "reviewStatus": "ENTRY_MOUNT_REVIEWED; SQL closure requires statement/caller review",
+    "files": [
+      "apps/api/src/modules/users/routes.ts"
+    ],
+    "sqlHelpers": [
+      "app_has_global_capability"
+    ],
+    "classifications": [
+      "human"
+    ],
+    "routes": 4,
+    "tableTokens": [
+      "memberships",
+      "users"
+    ],
+    "module": "users",
+    "group": "A",
+    "nextAction": "Close administrative discovery/people/grants and no-match mutations; preserve union flag010/authority021 without broadening support authority.",
+    "actualTableSignals": [
+      "users",
+      "memberships"
+    ],
+    "mfaRlsTablesTouched": []
+  },
+  {
+    "reviewStatus": "ENTRY_MOUNT_REVIEWED; SQL closure requires statement/caller review",
+    "files": [
+      "apps/api/src/modules/work-orders/routes.ts"
+    ],
+    "sqlHelpers": [
+      "app_has_capability",
+      "app_work_order_assigned"
+    ],
+    "classifications": [
+      "human"
+    ],
+    "routes": 6,
+    "tableTokens": [
+      "assets",
+      "work_order_events",
+      "work_orders"
+    ],
+    "module": "work-orders",
+    "group": "D",
+    "nextAction": "One coherent tenant-domain batch: guarded reads/mutations and zero-match decisions, preserve assignee/resident scopes and conflict semantics.",
+    "actualTableSignals": [
+      "assets",
+      "work_orders",
+      "work_order_events"
+    ],
+    "mfaRlsTablesTouched": []
+  }
+]

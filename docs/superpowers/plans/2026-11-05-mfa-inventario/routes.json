@@ -1,0 +1,6008 @@
+[
+  {
+    "classificationConfidence": "REVIEWED_HANDLER",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "api-infrastructure",
+    "entryGate": "Public metadata/readiness",
+    "classification": "public",
+    "line": 49,
+    "router": "app",
+    "method": "GET",
+    "file": "apps/api/src/app.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "api-infrastructure",
+      "tenantContext": false,
+      "tableTokens": [],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [],
+      "file": "apps/api/src/app.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "access",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 253,
+    "router": "accessRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/access/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "access",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_access_hardware_state",
+        "app_request_access",
+        "app_request_access_by_qr",
+        "database",
+        "devices",
+        "gate_totems",
+        "gateCommands",
+        "gates",
+        "gateways"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_access_hardware_state",
+        "app_gate_qr_renew",
+        "app_gate_totem_pairing_create",
+        "app_gate_totem_revoke",
+        "app_has_capability",
+        "app_request_access",
+        "app_request_access_by_qr"
+      ],
+      "file": "apps/api/src/modules/access/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/access/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "access",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 323,
+    "router": "accessRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/access/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "access",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_access_hardware_state",
+        "app_request_access",
+        "app_request_access_by_qr",
+        "database",
+        "devices",
+        "gate_totems",
+        "gateCommands",
+        "gates",
+        "gateways"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_access_hardware_state",
+        "app_gate_qr_renew",
+        "app_gate_totem_pairing_create",
+        "app_gate_totem_revoke",
+        "app_has_capability",
+        "app_request_access",
+        "app_request_access_by_qr"
+      ],
+      "file": "apps/api/src/modules/access/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/access/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "access",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 374,
+    "router": "accessRouter",
+    "method": "PATCH",
+    "file": "apps/api/src/modules/access/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "access",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_access_hardware_state",
+        "app_request_access",
+        "app_request_access_by_qr",
+        "database",
+        "devices",
+        "gate_totems",
+        "gateCommands",
+        "gates",
+        "gateways"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_access_hardware_state",
+        "app_gate_qr_renew",
+        "app_gate_totem_pairing_create",
+        "app_gate_totem_revoke",
+        "app_has_capability",
+        "app_request_access",
+        "app_request_access_by_qr"
+      ],
+      "file": "apps/api/src/modules/access/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/access/:gateId"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "access",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 570,
+    "router": "accessRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/access/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "access",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_access_hardware_state",
+        "app_request_access",
+        "app_request_access_by_qr",
+        "database",
+        "devices",
+        "gate_totems",
+        "gateCommands",
+        "gates",
+        "gateways"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_access_hardware_state",
+        "app_gate_qr_renew",
+        "app_gate_totem_pairing_create",
+        "app_gate_totem_revoke",
+        "app_has_capability",
+        "app_request_access",
+        "app_request_access_by_qr"
+      ],
+      "file": "apps/api/src/modules/access/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/access/:gateId/open"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "access",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 517,
+    "router": "accessRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/access/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "access",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_access_hardware_state",
+        "app_request_access",
+        "app_request_access_by_qr",
+        "database",
+        "devices",
+        "gate_totems",
+        "gateCommands",
+        "gates",
+        "gateways"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_access_hardware_state",
+        "app_gate_qr_renew",
+        "app_gate_totem_pairing_create",
+        "app_gate_totem_revoke",
+        "app_has_capability",
+        "app_request_access",
+        "app_request_access_by_qr"
+      ],
+      "file": "apps/api/src/modules/access/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/access/:gateId/qr/renew"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "access",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 552,
+    "router": "accessRouter",
+    "method": "DELETE",
+    "file": "apps/api/src/modules/access/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "access",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_access_hardware_state",
+        "app_request_access",
+        "app_request_access_by_qr",
+        "database",
+        "devices",
+        "gate_totems",
+        "gateCommands",
+        "gates",
+        "gateways"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_access_hardware_state",
+        "app_gate_qr_renew",
+        "app_gate_totem_pairing_create",
+        "app_gate_totem_revoke",
+        "app_has_capability",
+        "app_request_access",
+        "app_request_access_by_qr"
+      ],
+      "file": "apps/api/src/modules/access/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/access/:gateId/totems/:totemId"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "access",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 530,
+    "router": "accessRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/access/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "access",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_access_hardware_state",
+        "app_request_access",
+        "app_request_access_by_qr",
+        "database",
+        "devices",
+        "gate_totems",
+        "gateCommands",
+        "gates",
+        "gateways"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_access_hardware_state",
+        "app_gate_qr_renew",
+        "app_gate_totem_pairing_create",
+        "app_gate_totem_revoke",
+        "app_has_capability",
+        "app_request_access",
+        "app_request_access_by_qr"
+      ],
+      "file": "apps/api/src/modules/access/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/access/:gateId/totems/pairing"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "access",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 301,
+    "router": "accessRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/access/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "access",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_access_hardware_state",
+        "app_request_access",
+        "app_request_access_by_qr",
+        "database",
+        "devices",
+        "gate_totems",
+        "gateCommands",
+        "gates",
+        "gateways"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_access_hardware_state",
+        "app_gate_qr_renew",
+        "app_gate_totem_pairing_create",
+        "app_gate_totem_revoke",
+        "app_has_capability",
+        "app_request_access",
+        "app_request_access_by_qr"
+      ],
+      "file": "apps/api/src/modules/access/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/access/commands/:commandId"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "access",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 469,
+    "router": "accessRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/access/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "access",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_access_hardware_state",
+        "app_request_access",
+        "app_request_access_by_qr",
+        "database",
+        "devices",
+        "gate_totems",
+        "gateCommands",
+        "gates",
+        "gateways"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_access_hardware_state",
+        "app_gate_qr_renew",
+        "app_gate_totem_pairing_create",
+        "app_gate_totem_revoke",
+        "app_has_capability",
+        "app_request_access",
+        "app_request_access_by_qr"
+      ],
+      "file": "apps/api/src/modules/access/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/access/qr/open"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "access",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 443,
+    "router": "accessRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/access/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "access",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_access_hardware_state",
+        "app_request_access",
+        "app_request_access_by_qr",
+        "database",
+        "devices",
+        "gate_totems",
+        "gateCommands",
+        "gates",
+        "gateways"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_access_hardware_state",
+        "app_gate_qr_renew",
+        "app_gate_totem_pairing_create",
+        "app_gate_totem_revoke",
+        "app_has_capability",
+        "app_request_access",
+        "app_request_access_by_qr"
+      ],
+      "file": "apps/api/src/modules/access/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/access/qr/resolve"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "alert-rules",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 45,
+    "router": "alertRulesRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/alert-rules/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "alert-rules",
+      "tenantContext": true,
+      "tableTokens": [
+        "alert_rules",
+        "alertRules"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [],
+      "file": "apps/api/src/modules/alert-rules/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/alert-rules/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "alert-rules",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 63,
+    "router": "alertRulesRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/alert-rules/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "alert-rules",
+      "tenantContext": true,
+      "tableTokens": [
+        "alert_rules",
+        "alertRules"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [],
+      "file": "apps/api/src/modules/alert-rules/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/alert-rules/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "alert-rules",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 93,
+    "router": "alertRulesRouter",
+    "method": "DELETE",
+    "file": "apps/api/src/modules/alert-rules/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "alert-rules",
+      "tenantContext": true,
+      "tableTokens": [
+        "alert_rules",
+        "alertRules"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [],
+      "file": "apps/api/src/modules/alert-rules/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/alert-rules/:ruleId"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "alert-rules",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 80,
+    "router": "alertRulesRouter",
+    "method": "PATCH",
+    "file": "apps/api/src/modules/alert-rules/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "alert-rules",
+      "tenantContext": true,
+      "tableTokens": [
+        "alert_rules",
+        "alertRules"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [],
+      "file": "apps/api/src/modules/alert-rules/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/alert-rules/:ruleId"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "alerts",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 19,
+    "router": "alertsRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/alerts/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "alerts",
+      "tenantContext": true,
+      "tableTokens": [
+        "alerts"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_alert_can_read_feature_state",
+        "app_alert_has_capability",
+        "app_transition_alert"
+      ],
+      "file": "apps/api/src/modules/alerts/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/alerts/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "alerts",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 76,
+    "router": "alertsRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/alerts/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "alerts",
+      "tenantContext": true,
+      "tableTokens": [
+        "alerts"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_alert_can_read_feature_state",
+        "app_alert_has_capability",
+        "app_transition_alert"
+      ],
+      "file": "apps/api/src/modules/alerts/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/alerts/:alertId/acknowledge"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "alerts",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 78,
+    "router": "alertsRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/alerts/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "alerts",
+      "tenantContext": true,
+      "tableTokens": [
+        "alerts"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_alert_can_read_feature_state",
+        "app_alert_has_capability",
+        "app_transition_alert"
+      ],
+      "file": "apps/api/src/modules/alerts/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/alerts/:alertId/resolve"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "audit",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 11,
+    "router": "auditRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/audit/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "audit",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_audit_query_scope",
+        "audit_logs",
+        "live"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_audit_query_scope"
+      ],
+      "file": "apps/api/src/modules/audit/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/audit/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_EXACT_AUTH_ROUTE",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "auth",
+    "entryGate": "Credential/cookie/token authentication or recovery, not domain authorization",
+    "classification": "bootstrap",
+    "line": 58,
+    "router": "invitationAuthRouter",
+    "method": "POST",
+    "file": "apps/api/src/auth/invitations.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "auth",
+      "tenantContext": false,
+      "tableTokens": [
+        "identity_invitation_preview",
+        "users"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "identity_accept_invitation",
+        "identity_invitation_preview"
+      ],
+      "file": "apps/api/src/auth/invitations.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": true
+    },
+    "path": "/auth/invitations/accept"
+  },
+  {
+    "classificationConfidence": "REVIEWED_EXACT_AUTH_ROUTE",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "auth",
+    "entryGate": "Credential/cookie/token authentication or recovery, not domain authorization",
+    "classification": "bootstrap",
+    "line": 52,
+    "router": "invitationAuthRouter",
+    "method": "POST",
+    "file": "apps/api/src/auth/invitations.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "auth",
+      "tenantContext": false,
+      "tableTokens": [
+        "identity_invitation_preview",
+        "users"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "identity_accept_invitation",
+        "identity_invitation_preview"
+      ],
+      "file": "apps/api/src/auth/invitations.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": true
+    },
+    "path": "/auth/invitations/preview"
+  },
+  {
+    "classificationConfidence": "REVIEWED_EXACT_AUTH_ROUTE",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "auth",
+    "entryGate": "Credential/cookie/token authentication or recovery, not domain authorization",
+    "classification": "bootstrap",
+    "line": 42,
+    "router": "authRouter",
+    "method": "POST",
+    "file": "apps/api/src/auth/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "auth",
+      "tenantContext": false,
+      "tableTokens": [],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [],
+      "file": "apps/api/src/auth/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/auth/login"
+  },
+  {
+    "classificationConfidence": "REVIEWED_EXACT_AUTH_ROUTE",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "auth",
+    "entryGate": "Credential/cookie/token authentication or recovery, not domain authorization",
+    "classification": "bootstrap",
+    "line": 66,
+    "router": "authRouter",
+    "method": "POST",
+    "file": "apps/api/src/auth/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "auth",
+      "tenantContext": false,
+      "tableTokens": [],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [],
+      "file": "apps/api/src/auth/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/auth/logout"
+  },
+  {
+    "classificationConfidence": "REVIEWED_EXACT_AUTH_ROUTE",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "auth",
+    "entryGate": "authenticateSession; restricted session intentionally allowed",
+    "classification": "bootstrap",
+    "line": 90,
+    "router": "authRouter",
+    "method": "GET",
+    "file": "apps/api/src/auth/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "auth",
+      "tenantContext": false,
+      "tableTokens": [],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [],
+      "file": "apps/api/src/auth/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/auth/me"
+  },
+  {
+    "classificationConfidence": "REVIEWED_EXACT_AUTH_ROUTE",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "auth",
+    "entryGate": "authenticateSession; restricted session intentionally allowed",
+    "classification": "bootstrap",
+    "line": 44,
+    "router": "mfaRouter",
+    "method": "GET",
+    "file": "apps/api/src/auth/mfa.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "auth",
+      "tenantContext": false,
+      "tableTokens": [
+        "authority",
+        "deleted",
+        "factor",
+        "mfa_factors",
+        "mfa_recovery_codes",
+        "users"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "identity_lock_account_active",
+        "identity_platform_mfa_required"
+      ],
+      "file": "apps/api/src/auth/mfa.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": true
+    },
+    "path": "/auth/mfa/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_EXACT_AUTH_ROUTE",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "auth",
+    "entryGate": "authenticateSession; restricted session intentionally allowed",
+    "classification": "bootstrap",
+    "line": 69,
+    "router": "mfaRouter",
+    "method": "POST",
+    "file": "apps/api/src/auth/mfa.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "auth",
+      "tenantContext": false,
+      "tableTokens": [
+        "authority",
+        "deleted",
+        "factor",
+        "mfa_factors",
+        "mfa_recovery_codes",
+        "users"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "identity_lock_account_active",
+        "identity_platform_mfa_required"
+      ],
+      "file": "apps/api/src/auth/mfa.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": true
+    },
+    "path": "/auth/mfa/confirm"
+  },
+  {
+    "classificationConfidence": "REVIEWED_EXACT_AUTH_ROUTE",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "auth",
+    "entryGate": "Route-local authenticate/requireOperationalSession",
+    "classification": "human",
+    "line": 95,
+    "router": "mfaRouter",
+    "method": "POST",
+    "file": "apps/api/src/auth/mfa.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "auth",
+      "tenantContext": false,
+      "tableTokens": [
+        "authority",
+        "deleted",
+        "factor",
+        "mfa_factors",
+        "mfa_recovery_codes",
+        "users"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "identity_lock_account_active",
+        "identity_platform_mfa_required"
+      ],
+      "file": "apps/api/src/auth/mfa.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": true
+    },
+    "path": "/auth/mfa/disable"
+  },
+  {
+    "classificationConfidence": "REVIEWED_EXACT_AUTH_ROUTE",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "auth",
+    "entryGate": "authenticateSession; restricted session intentionally allowed",
+    "classification": "bootstrap",
+    "line": 54,
+    "router": "mfaRouter",
+    "method": "POST",
+    "file": "apps/api/src/auth/mfa.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "auth",
+      "tenantContext": false,
+      "tableTokens": [
+        "authority",
+        "deleted",
+        "factor",
+        "mfa_factors",
+        "mfa_recovery_codes",
+        "users"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "identity_lock_account_active",
+        "identity_platform_mfa_required"
+      ],
+      "file": "apps/api/src/auth/mfa.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": true
+    },
+    "path": "/auth/mfa/enroll"
+  },
+  {
+    "classificationConfidence": "REVIEWED_EXACT_AUTH_ROUTE",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "auth",
+    "entryGate": "Route-local authenticate/requireOperationalSession",
+    "classification": "human",
+    "line": 51,
+    "router": "authRouter",
+    "method": "POST",
+    "file": "apps/api/src/auth/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "auth",
+      "tenantContext": false,
+      "tableTokens": [],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [],
+      "file": "apps/api/src/auth/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/auth/password"
+  },
+  {
+    "classificationConfidence": "REVIEWED_EXACT_AUTH_ROUTE",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "auth",
+    "entryGate": "Credential/cookie/token authentication or recovery, not domain authorization",
+    "classification": "bootstrap",
+    "line": 48,
+    "router": "recoveryRouter",
+    "method": "POST",
+    "file": "apps/api/src/auth/recovery.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "auth",
+      "tenantContext": false,
+      "tableTokens": [
+        "secret",
+        "token",
+        "users"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "identity_issue_password_reset",
+        "identity_reset_password"
+      ],
+      "file": "apps/api/src/auth/recovery.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": true
+    },
+    "path": "/auth/password/forgot"
+  },
+  {
+    "classificationConfidence": "REVIEWED_EXACT_AUTH_ROUTE",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "auth",
+    "entryGate": "Credential/cookie/token authentication or recovery, not domain authorization",
+    "classification": "bootstrap",
+    "line": 73,
+    "router": "recoveryRouter",
+    "method": "POST",
+    "file": "apps/api/src/auth/recovery.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "auth",
+      "tenantContext": false,
+      "tableTokens": [
+        "secret",
+        "token",
+        "users"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "identity_issue_password_reset",
+        "identity_reset_password"
+      ],
+      "file": "apps/api/src/auth/recovery.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": true
+    },
+    "path": "/auth/password/reset"
+  },
+  {
+    "classificationConfidence": "REVIEWED_EXACT_AUTH_ROUTE",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "auth",
+    "entryGate": "Credential/cookie/token authentication or recovery, not domain authorization",
+    "classification": "bootstrap",
+    "line": 57,
+    "router": "authRouter",
+    "method": "POST",
+    "file": "apps/api/src/auth/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "auth",
+      "tenantContext": false,
+      "tableTokens": [],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [],
+      "file": "apps/api/src/auth/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/auth/refresh"
+  },
+  {
+    "classificationConfidence": "REVIEWED_EXACT_AUTH_ROUTE",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "auth",
+    "entryGate": "Route-local authenticate/requireOperationalSession",
+    "classification": "human",
+    "line": 72,
+    "router": "authRouter",
+    "method": "GET",
+    "file": "apps/api/src/auth/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "auth",
+      "tenantContext": false,
+      "tableTokens": [],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [],
+      "file": "apps/api/src/auth/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/auth/sessions"
+  },
+  {
+    "classificationConfidence": "REVIEWED_EXACT_AUTH_ROUTE",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "auth",
+    "entryGate": "authenticateSession; restricted session intentionally allowed",
+    "classification": "bootstrap",
+    "line": 77,
+    "router": "authRouter",
+    "method": "DELETE",
+    "file": "apps/api/src/auth/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "auth",
+      "tenantContext": false,
+      "tableTokens": [],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [],
+      "file": "apps/api/src/auth/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/auth/sessions/:id"
+  },
+  {
+    "classificationConfidence": "REVIEWED_EXACT_AUTH_ROUTE",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "auth",
+    "entryGate": "authenticateSession; restricted session intentionally allowed",
+    "classification": "bootstrap",
+    "line": 85,
+    "router": "authRouter",
+    "method": "POST",
+    "file": "apps/api/src/auth/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "auth",
+      "tenantContext": false,
+      "tableTokens": [],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [],
+      "file": "apps/api/src/auth/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/auth/sessions/revoke-all"
+  },
+  {
+    "classificationConfidence": "REVIEWED_EXACT_AUTH_ROUTE",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "auth",
+    "entryGate": "authenticateSession; restricted session intentionally allowed",
+    "classification": "bootstrap",
+    "line": 36,
+    "router": "verificationRouter",
+    "method": "POST",
+    "file": "apps/api/src/auth/verification.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "auth",
+      "tenantContext": false,
+      "tableTokens": [
+        "sessions",
+        "users"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "identity_lock_account_active"
+      ],
+      "file": "apps/api/src/auth/verification.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": true
+    },
+    "path": "/auth/verify/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_EXACT_AUTH_ROUTE",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "auth",
+    "entryGate": "Credential/cookie/token authentication or recovery, not domain authorization",
+    "classification": "bootstrap",
+    "line": 54,
+    "router": "webAuthRouter",
+    "method": "POST",
+    "file": "apps/api/src/auth/web-routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "auth",
+      "tenantContext": false,
+      "tableTokens": [
+        "origin"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [],
+      "file": "apps/api/src/auth/web-routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/auth/web/login"
+  },
+  {
+    "classificationConfidence": "REVIEWED_EXACT_AUTH_ROUTE",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "auth",
+    "entryGate": "Credential/cookie/token authentication or recovery, not domain authorization",
+    "classification": "bootstrap",
+    "line": 86,
+    "router": "webAuthRouter",
+    "method": "POST",
+    "file": "apps/api/src/auth/web-routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "auth",
+      "tenantContext": false,
+      "tableTokens": [
+        "origin"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [],
+      "file": "apps/api/src/auth/web-routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/auth/web/logout"
+  },
+  {
+    "classificationConfidence": "REVIEWED_EXACT_AUTH_ROUTE",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "auth",
+    "entryGate": "Route-local authenticate/requireOperationalSession",
+    "classification": "human",
+    "line": 62,
+    "router": "webAuthRouter",
+    "method": "POST",
+    "file": "apps/api/src/auth/web-routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "auth",
+      "tenantContext": false,
+      "tableTokens": [
+        "origin"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [],
+      "file": "apps/api/src/auth/web-routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/auth/web/password"
+  },
+  {
+    "classificationConfidence": "REVIEWED_EXACT_AUTH_ROUTE",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "auth",
+    "entryGate": "Credential/cookie/token authentication or recovery, not domain authorization",
+    "classification": "bootstrap",
+    "line": 69,
+    "router": "webAuthRouter",
+    "method": "POST",
+    "file": "apps/api/src/auth/web-routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "auth",
+      "tenantContext": false,
+      "tableTokens": [
+        "origin"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [],
+      "file": "apps/api/src/auth/web-routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/auth/web/refresh"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "buildings",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 19,
+    "router": "buildingsRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/buildings/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "buildings",
+      "tenantContext": true,
+      "tableTokens": [
+        "bindings",
+        "buildings",
+        "subsequently"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_global_capability"
+      ],
+      "file": "apps/api/src/modules/buildings/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/buildings/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "buildings",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 34,
+    "router": "buildingsRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/buildings/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "buildings",
+      "tenantContext": true,
+      "tableTokens": [
+        "bindings",
+        "buildings",
+        "subsequently"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_global_capability"
+      ],
+      "file": "apps/api/src/modules/buildings/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/buildings/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "buildings",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 23,
+    "router": "buildingsRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/buildings/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "buildings",
+      "tenantContext": true,
+      "tableTokens": [
+        "bindings",
+        "buildings",
+        "subsequently"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_global_capability"
+      ],
+      "file": "apps/api/src/modules/buildings/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/buildings/:buildingId"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "buildings",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 57,
+    "router": "buildingsRouter",
+    "method": "PATCH",
+    "file": "apps/api/src/modules/buildings/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "buildings",
+      "tenantContext": true,
+      "tableTokens": [
+        "bindings",
+        "buildings",
+        "subsequently"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_global_capability"
+      ],
+      "file": "apps/api/src/modules/buildings/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/buildings/:buildingId"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "common-areas",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 56,
+    "router": "commonAreasRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/common-areas/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "common-areas",
+      "tenantContext": true,
+      "tableTokens": [
+        "commonAreas"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [],
+      "file": "apps/api/src/modules/common-areas/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/common-areas/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "common-areas",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 70,
+    "router": "commonAreasRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/common-areas/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "common-areas",
+      "tenantContext": true,
+      "tableTokens": [
+        "commonAreas"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [],
+      "file": "apps/api/src/modules/common-areas/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/common-areas/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "common-areas",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 96,
+    "router": "commonAreasRouter",
+    "method": "PATCH",
+    "file": "apps/api/src/modules/common-areas/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "common-areas",
+      "tenantContext": true,
+      "tableTokens": [
+        "commonAreas"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [],
+      "file": "apps/api/src/modules/common-areas/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/common-areas/:areaId"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "devices",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 38,
+    "router": "devicesRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/devices/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "devices",
+      "tenantContext": true,
+      "tableTokens": [
+        "deviceMetrics",
+        "devices"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_list_mfa_devices"
+      ],
+      "file": "apps/api/src/modules/devices/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/devices/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "devices",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 66,
+    "router": "devicesRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/devices/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "devices",
+      "tenantContext": true,
+      "tableTokens": [
+        "deviceMetrics",
+        "devices"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_list_mfa_devices"
+      ],
+      "file": "apps/api/src/modules/devices/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/devices/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "devices",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 93,
+    "router": "devicesRouter",
+    "method": "PATCH",
+    "file": "apps/api/src/modules/devices/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "devices",
+      "tenantContext": true,
+      "tableTokens": [
+        "deviceMetrics",
+        "devices"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_list_mfa_devices"
+      ],
+      "file": "apps/api/src/modules/devices/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/devices/:deviceId"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "devices",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 57,
+    "router": "devicesRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/devices/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "devices",
+      "tenantContext": true,
+      "tableTokens": [
+        "deviceMetrics",
+        "devices"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_list_mfa_devices"
+      ],
+      "file": "apps/api/src/modules/devices/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/devices/:deviceId/metrics"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "devices",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 128,
+    "router": "devicesRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/devices/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "devices",
+      "tenantContext": true,
+      "tableTokens": [
+        "deviceMetrics",
+        "devices"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_list_mfa_devices"
+      ],
+      "file": "apps/api/src/modules/devices/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/devices/:deviceId/metrics"
+  },
+  {
+    "classificationConfidence": "REVIEWED_ROUTE",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "events",
+    "entryGate": "Self authentication/operational MFA per event; SQL projectors reviewed separately",
+    "classification": "human-stream",
+    "line": 20,
+    "router": "eventsRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/events/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "events",
+      "tenantContext": true,
+      "tableTokens": [
+        "closing"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [],
+      "file": "apps/api/src/modules/events/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/events/stream"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "features",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 39,
+    "router": "featuresRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/features/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "features",
+      "tenantContext": true,
+      "tableTokens": [
+        "buildingFeatureSettings",
+        "buildings",
+        "globalFeatureSettings"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_apply_feature_transition"
+      ],
+      "file": "apps/api/src/modules/features/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/features/buildings/:buildingId"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "features",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 87,
+    "router": "featuresRouter",
+    "method": "PUT",
+    "file": "apps/api/src/modules/features/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "features",
+      "tenantContext": true,
+      "tableTokens": [
+        "buildingFeatureSettings",
+        "buildings",
+        "globalFeatureSettings"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_apply_feature_transition"
+      ],
+      "file": "apps/api/src/modules/features/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/features/buildings/:buildingId/:key"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "features",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 31,
+    "router": "featuresRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/features/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "features",
+      "tenantContext": true,
+      "tableTokens": [
+        "buildingFeatureSettings",
+        "buildings",
+        "globalFeatureSettings"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_apply_feature_transition"
+      ],
+      "file": "apps/api/src/modules/features/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/features/catalog"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "features",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 36,
+    "router": "featuresRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/features/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "features",
+      "tenantContext": true,
+      "tableTokens": [
+        "buildingFeatureSettings",
+        "buildings",
+        "globalFeatureSettings"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_apply_feature_transition"
+      ],
+      "file": "apps/api/src/modules/features/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/features/global"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "features",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 85,
+    "router": "featuresRouter",
+    "method": "PUT",
+    "file": "apps/api/src/modules/features/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "features",
+      "tenantContext": true,
+      "tableTokens": [
+        "buildingFeatureSettings",
+        "buildings",
+        "globalFeatureSettings"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_apply_feature_transition"
+      ],
+      "file": "apps/api/src/modules/features/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/features/global/:key"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "finance",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 56,
+    "router": "financeRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/finance/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "finance",
+      "tenantContext": true,
+      "tableTokens": [
+        "financialReports",
+        "RLS"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_finance_can_publish_revision"
+      ],
+      "file": "apps/api/src/modules/finance/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/finance/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "finance",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 70,
+    "router": "financeRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/finance/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "finance",
+      "tenantContext": true,
+      "tableTokens": [
+        "financialReports",
+        "RLS"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_finance_can_publish_revision"
+      ],
+      "file": "apps/api/src/modules/finance/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/finance/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "finance",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 87,
+    "router": "financeRouter",
+    "method": "PUT",
+    "file": "apps/api/src/modules/finance/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "finance",
+      "tenantContext": true,
+      "tableTokens": [
+        "financialReports",
+        "RLS"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_finance_can_publish_revision"
+      ],
+      "file": "apps/api/src/modules/finance/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/finance/:id"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "finance",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 101,
+    "router": "financeRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/finance/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "finance",
+      "tenantContext": true,
+      "tableTokens": [
+        "financialReports",
+        "RLS"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_finance_can_publish_revision"
+      ],
+      "file": "apps/api/src/modules/finance/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/finance/:id/publish"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "gateways",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 38,
+    "router": "gatewaysRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/gateways/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "gateways",
+      "tenantContext": true,
+      "tableTokens": [
+        "gateways"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_list_mfa_gateways"
+      ],
+      "file": "apps/api/src/modules/gateways/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/gateways/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "gateways",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 44,
+    "router": "gatewaysRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/gateways/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "gateways",
+      "tenantContext": true,
+      "tableTokens": [
+        "gateways"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_list_mfa_gateways"
+      ],
+      "file": "apps/api/src/modules/gateways/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/gateways/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "gateways",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 70,
+    "router": "gatewaysRouter",
+    "method": "PATCH",
+    "file": "apps/api/src/modules/gateways/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "gateways",
+      "tenantContext": true,
+      "tableTokens": [
+        "gateways"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_list_mfa_gateways"
+      ],
+      "file": "apps/api/src/modules/gateways/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/gateways/:gatewayId"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "gateways",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 110,
+    "router": "gatewaysRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/gateways/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "gateways",
+      "tenantContext": true,
+      "tableTokens": [
+        "gateways"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_list_mfa_gateways"
+      ],
+      "file": "apps/api/src/modules/gateways/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/gateways/:gatewayId/credentials"
+  },
+  {
+    "classificationConfidence": "REVIEWED_HANDLER",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "health.ts",
+    "entryGate": "Public metadata/readiness",
+    "classification": "public",
+    "line": 5,
+    "router": "healthRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/health.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "health.ts",
+      "tenantContext": false,
+      "tableTokens": [],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [],
+      "file": "apps/api/src/modules/health.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/health/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_HANDLER",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "health.ts",
+    "entryGate": "Public metadata/readiness",
+    "classification": "public",
+    "line": 11,
+    "router": "healthRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/health.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "health.ts",
+      "tenantContext": false,
+      "tableTokens": [],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [],
+      "file": "apps/api/src/modules/health.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/health/ready"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT_AND_AUTH_MODEL",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "mqtt",
+    "entryGate": "Independent device/service credential; no human SID",
+    "classification": "service",
+    "line": 50,
+    "router": "mqttRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/mqtt/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "mqtt",
+      "tenantContext": false,
+      "tableTokens": [
+        "a",
+        "b",
+        "buildings",
+        "devices",
+        "gates",
+        "gateways"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [],
+      "file": "apps/api/src/modules/mqtt/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": true,
+      "identityPool": false
+    },
+    "path": "/internal/mqtt/authn"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT_AND_AUTH_MODEL",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "mqtt",
+    "entryGate": "Independent device/service credential; no human SID",
+    "classification": "service",
+    "line": 67,
+    "router": "mqttRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/mqtt/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "mqtt",
+      "tenantContext": false,
+      "tableTokens": [
+        "a",
+        "b",
+        "buildings",
+        "devices",
+        "gates",
+        "gateways"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [],
+      "file": "apps/api/src/modules/mqtt/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": true,
+      "identityPool": false
+    },
+    "path": "/internal/mqtt/authz"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "monitoring",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 72,
+    "router": "monitoringRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/monitoring/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "monitoring",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_published_consumption",
+        "buildings",
+        "dailyUsage",
+        "monitoringProfiles",
+        "usageCursors"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_capability",
+        "app_published_consumption",
+        "app_resident_consumption_released",
+        "app_set_resident_consumption"
+      ],
+      "file": "apps/api/src/modules/monitoring/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/monitoring/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "monitoring",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 126,
+    "router": "monitoringRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/monitoring/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "monitoring",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_published_consumption",
+        "buildings",
+        "dailyUsage",
+        "monitoringProfiles",
+        "usageCursors"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_capability",
+        "app_published_consumption",
+        "app_resident_consumption_released",
+        "app_set_resident_consumption"
+      ],
+      "file": "apps/api/src/modules/monitoring/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/monitoring/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "monitoring",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 148,
+    "router": "monitoringRouter",
+    "method": "PATCH",
+    "file": "apps/api/src/modules/monitoring/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "monitoring",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_published_consumption",
+        "buildings",
+        "dailyUsage",
+        "monitoringProfiles",
+        "usageCursors"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_capability",
+        "app_published_consumption",
+        "app_resident_consumption_released",
+        "app_set_resident_consumption"
+      ],
+      "file": "apps/api/src/modules/monitoring/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/monitoring/:profileId"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "monitoring",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 27,
+    "router": "monitoringRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/monitoring/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "monitoring",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_published_consumption",
+        "buildings",
+        "dailyUsage",
+        "monitoringProfiles",
+        "usageCursors"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_capability",
+        "app_published_consumption",
+        "app_resident_consumption_released",
+        "app_set_resident_consumption"
+      ],
+      "file": "apps/api/src/modules/monitoring/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/monitoring/published"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "monitoring",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 50,
+    "router": "monitoringRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/monitoring/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "monitoring",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_published_consumption",
+        "buildings",
+        "dailyUsage",
+        "monitoringProfiles",
+        "usageCursors"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_capability",
+        "app_published_consumption",
+        "app_resident_consumption_released",
+        "app_set_resident_consumption"
+      ],
+      "file": "apps/api/src/modules/monitoring/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/monitoring/resident-access"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "monitoring",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 59,
+    "router": "monitoringRouter",
+    "method": "PUT",
+    "file": "apps/api/src/modules/monitoring/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "monitoring",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_published_consumption",
+        "buildings",
+        "dailyUsage",
+        "monitoringProfiles",
+        "usageCursors"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_capability",
+        "app_published_consumption",
+        "app_resident_consumption_released",
+        "app_set_resident_consumption"
+      ],
+      "file": "apps/api/src/modules/monitoring/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/monitoring/resident-access"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "notices",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 66,
+    "router": "noticesRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/notices/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "notices",
+      "tenantContext": true,
+      "tableTokens": [
+        "logging",
+        "notices",
+        "noticeSchedules"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_notice_has_capability"
+      ],
+      "file": "apps/api/src/modules/notices/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/notices/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "notices",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 86,
+    "router": "noticesRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/notices/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "notices",
+      "tenantContext": true,
+      "tableTokens": [
+        "logging",
+        "notices",
+        "noticeSchedules"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_notice_has_capability"
+      ],
+      "file": "apps/api/src/modules/notices/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/notices/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "notices",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 132,
+    "router": "noticesRouter",
+    "method": "DELETE",
+    "file": "apps/api/src/modules/notices/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "notices",
+      "tenantContext": true,
+      "tableTokens": [
+        "logging",
+        "notices",
+        "noticeSchedules"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_notice_has_capability"
+      ],
+      "file": "apps/api/src/modules/notices/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/notices/:noticeId"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "notices",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 109,
+    "router": "noticesRouter",
+    "method": "PATCH",
+    "file": "apps/api/src/modules/notices/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "notices",
+      "tenantContext": true,
+      "tableTokens": [
+        "logging",
+        "notices",
+        "noticeSchedules"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_notice_has_capability"
+      ],
+      "file": "apps/api/src/modules/notices/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/notices/:noticeId"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "occurrences",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 71,
+    "router": "occurrencesRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/occurrences/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "occurrences",
+      "tenantContext": true,
+      "tableTokens": [
+        "occurrenceEvents",
+        "occurrences"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_capability",
+        "app_occurrence_assignee_active",
+        "app_occurrence_can_read_scope",
+        "app_occurrence_cancel_own",
+        "app_occurrence_has_capability",
+        "app_occurrence_touch_own"
+      ],
+      "file": "apps/api/src/modules/occurrences/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/occurrences/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "occurrences",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 123,
+    "router": "occurrencesRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/occurrences/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "occurrences",
+      "tenantContext": true,
+      "tableTokens": [
+        "occurrenceEvents",
+        "occurrences"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_capability",
+        "app_occurrence_assignee_active",
+        "app_occurrence_can_read_scope",
+        "app_occurrence_cancel_own",
+        "app_occurrence_has_capability",
+        "app_occurrence_touch_own"
+      ],
+      "file": "apps/api/src/modules/occurrences/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/occurrences/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "occurrences",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 115,
+    "router": "occurrencesRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/occurrences/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "occurrences",
+      "tenantContext": true,
+      "tableTokens": [
+        "occurrenceEvents",
+        "occurrences"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_capability",
+        "app_occurrence_assignee_active",
+        "app_occurrence_can_read_scope",
+        "app_occurrence_cancel_own",
+        "app_occurrence_has_capability",
+        "app_occurrence_touch_own"
+      ],
+      "file": "apps/api/src/modules/occurrences/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/occurrences/:occurrenceId"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "occurrences",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 136,
+    "router": "occurrencesRouter",
+    "method": "PATCH",
+    "file": "apps/api/src/modules/occurrences/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "occurrences",
+      "tenantContext": true,
+      "tableTokens": [
+        "occurrenceEvents",
+        "occurrences"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_capability",
+        "app_occurrence_assignee_active",
+        "app_occurrence_can_read_scope",
+        "app_occurrence_cancel_own",
+        "app_occurrence_has_capability",
+        "app_occurrence_touch_own"
+      ],
+      "file": "apps/api/src/modules/occurrences/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/occurrences/:occurrenceId"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "occurrences",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 163,
+    "router": "occurrencesRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/occurrences/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "occurrences",
+      "tenantContext": true,
+      "tableTokens": [
+        "occurrenceEvents",
+        "occurrences"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_capability",
+        "app_occurrence_assignee_active",
+        "app_occurrence_can_read_scope",
+        "app_occurrence_cancel_own",
+        "app_occurrence_has_capability",
+        "app_occurrence_touch_own"
+      ],
+      "file": "apps/api/src/modules/occurrences/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/occurrences/:occurrenceId/comments"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "occurrences",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 87,
+    "router": "occurrencesRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/occurrences/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "occurrences",
+      "tenantContext": true,
+      "tableTokens": [
+        "occurrenceEvents",
+        "occurrences"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_capability",
+        "app_occurrence_assignee_active",
+        "app_occurrence_can_read_scope",
+        "app_occurrence_cancel_own",
+        "app_occurrence_has_capability",
+        "app_occurrence_touch_own"
+      ],
+      "file": "apps/api/src/modules/occurrences/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/occurrences/duplicates"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "occurrences",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 98,
+    "router": "occurrencesRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/occurrences/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "occurrences",
+      "tenantContext": true,
+      "tableTokens": [
+        "occurrenceEvents",
+        "occurrences"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_capability",
+        "app_occurrence_assignee_active",
+        "app_occurrence_can_read_scope",
+        "app_occurrence_cancel_own",
+        "app_occurrence_has_capability",
+        "app_occurrence_touch_own"
+      ],
+      "file": "apps/api/src/modules/occurrences/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/occurrences/group"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "organizations",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 49,
+    "router": "organizationsRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/organizations/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "organizations",
+      "tenantContext": true,
+      "tableTokens": [
+        "organizations",
+        "permits"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_global_capability",
+        "app_list_mfa_organizations"
+      ],
+      "file": "apps/api/src/modules/organizations/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/organizations/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "organizations",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 61,
+    "router": "organizationsRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/organizations/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "organizations",
+      "tenantContext": true,
+      "tableTokens": [
+        "organizations",
+        "permits"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_global_capability",
+        "app_list_mfa_organizations"
+      ],
+      "file": "apps/api/src/modules/organizations/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/organizations/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "organizations",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 88,
+    "router": "organizationsRouter",
+    "method": "PATCH",
+    "file": "apps/api/src/modules/organizations/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "organizations",
+      "tenantContext": true,
+      "tableTokens": [
+        "organizations",
+        "permits"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_global_capability",
+        "app_list_mfa_organizations"
+      ],
+      "file": "apps/api/src/modules/organizations/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/organizations/:organizationId"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "overview",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 52,
+    "router": "overviewRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/overview/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "overview",
+      "tenantContext": true,
+      "tableTokens": [
+        "alerts",
+        "app_alert_authorized_contexts",
+        "app_overview_building_scope",
+        "app_overview_occurrences",
+        "devices",
+        "gateways"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_alert_authorized_contexts",
+        "app_has_global_capability",
+        "app_occurrence_can_read_scope",
+        "app_overview_building_scope",
+        "app_overview_occurrences",
+        "app_overview_platform_health",
+        "app_platform_service_health"
+      ],
+      "file": "apps/api/src/modules/overview/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/overview/building"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "overview",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 16,
+    "router": "overviewRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/overview/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "overview",
+      "tenantContext": true,
+      "tableTokens": [
+        "alerts",
+        "app_alert_authorized_contexts",
+        "app_overview_building_scope",
+        "app_overview_occurrences",
+        "devices",
+        "gateways"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_alert_authorized_contexts",
+        "app_has_global_capability",
+        "app_occurrence_can_read_scope",
+        "app_overview_building_scope",
+        "app_overview_occurrences",
+        "app_overview_platform_health",
+        "app_platform_service_health"
+      ],
+      "file": "apps/api/src/modules/overview/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/overview/platform"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "overview",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 35,
+    "router": "overviewRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/overview/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "overview",
+      "tenantContext": true,
+      "tableTokens": [
+        "alerts",
+        "app_alert_authorized_contexts",
+        "app_overview_building_scope",
+        "app_overview_occurrences",
+        "devices",
+        "gateways"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_alert_authorized_contexts",
+        "app_has_global_capability",
+        "app_occurrence_can_read_scope",
+        "app_overview_building_scope",
+        "app_overview_occurrences",
+        "app_overview_platform_health",
+        "app_platform_service_health"
+      ],
+      "file": "apps/api/src/modules/overview/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/overview/platform/services"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "parking",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 117,
+    "router": "parkingRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/parking/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "parking",
+      "tenantContext": true,
+      "tableTokens": [
+        "parking_lots",
+        "parkingLots"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [],
+      "file": "apps/api/src/modules/parking/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/parking/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "parking",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 160,
+    "router": "parkingRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/parking/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "parking",
+      "tenantContext": true,
+      "tableTokens": [
+        "parking_lots",
+        "parkingLots"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [],
+      "file": "apps/api/src/modules/parking/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/parking/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "parking",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 196,
+    "router": "parkingRouter",
+    "method": "PATCH",
+    "file": "apps/api/src/modules/parking/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "parking",
+      "tenantContext": true,
+      "tableTokens": [
+        "parking_lots",
+        "parkingLots"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [],
+      "file": "apps/api/src/modules/parking/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/parking/:parkingId"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "parking",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 260,
+    "router": "parkingRouter",
+    "method": "PATCH",
+    "file": "apps/api/src/modules/parking/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "parking",
+      "tenantContext": true,
+      "tableTokens": [
+        "parking_lots",
+        "parkingLots"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [],
+      "file": "apps/api/src/modules/parking/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/parking/:parkingId/occupancy"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "reservations",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 99,
+    "router": "reservationsRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/reservations/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "reservations",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_reservation_availability",
+        "app_reservation_own_units",
+        "building_events",
+        "commonAreas",
+        "reservations",
+        "the"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_building_person_name",
+        "app_cancel_own_reservation",
+        "app_common_area_has_capability",
+        "app_reservation_area_capability",
+        "app_reservation_availability",
+        "app_reservation_can_create",
+        "app_reservation_can_read_calendar",
+        "app_reservation_can_read_feature_state",
+        "app_reservation_can_read_scope",
+        "app_reservation_has_capability",
+        "app_reservation_own_units"
+      ],
+      "file": "apps/api/src/modules/reservations/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/reservations/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "reservations",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 159,
+    "router": "reservationsRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/reservations/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "reservations",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_reservation_availability",
+        "app_reservation_own_units",
+        "building_events",
+        "commonAreas",
+        "reservations",
+        "the"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_building_person_name",
+        "app_cancel_own_reservation",
+        "app_common_area_has_capability",
+        "app_reservation_area_capability",
+        "app_reservation_availability",
+        "app_reservation_can_create",
+        "app_reservation_can_read_calendar",
+        "app_reservation_can_read_feature_state",
+        "app_reservation_can_read_scope",
+        "app_reservation_has_capability",
+        "app_reservation_own_units"
+      ],
+      "file": "apps/api/src/modules/reservations/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/reservations/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "reservations",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 206,
+    "router": "reservationsRouter",
+    "method": "DELETE",
+    "file": "apps/api/src/modules/reservations/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "reservations",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_reservation_availability",
+        "app_reservation_own_units",
+        "building_events",
+        "commonAreas",
+        "reservations",
+        "the"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_building_person_name",
+        "app_cancel_own_reservation",
+        "app_common_area_has_capability",
+        "app_reservation_area_capability",
+        "app_reservation_availability",
+        "app_reservation_can_create",
+        "app_reservation_can_read_calendar",
+        "app_reservation_can_read_feature_state",
+        "app_reservation_can_read_scope",
+        "app_reservation_has_capability",
+        "app_reservation_own_units"
+      ],
+      "file": "apps/api/src/modules/reservations/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/reservations/:reservationId"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "reservations",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 190,
+    "router": "reservationsRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/reservations/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "reservations",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_reservation_availability",
+        "app_reservation_own_units",
+        "building_events",
+        "commonAreas",
+        "reservations",
+        "the"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_building_person_name",
+        "app_cancel_own_reservation",
+        "app_common_area_has_capability",
+        "app_reservation_area_capability",
+        "app_reservation_availability",
+        "app_reservation_can_create",
+        "app_reservation_can_read_calendar",
+        "app_reservation_can_read_feature_state",
+        "app_reservation_can_read_scope",
+        "app_reservation_has_capability",
+        "app_reservation_own_units"
+      ],
+      "file": "apps/api/src/modules/reservations/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/reservations/:reservationId/decision"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "reservations",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 114,
+    "router": "reservationsRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/reservations/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "reservations",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_reservation_availability",
+        "app_reservation_own_units",
+        "building_events",
+        "commonAreas",
+        "reservations",
+        "the"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_building_person_name",
+        "app_cancel_own_reservation",
+        "app_common_area_has_capability",
+        "app_reservation_area_capability",
+        "app_reservation_availability",
+        "app_reservation_can_create",
+        "app_reservation_can_read_calendar",
+        "app_reservation_can_read_feature_state",
+        "app_reservation_can_read_scope",
+        "app_reservation_has_capability",
+        "app_reservation_own_units"
+      ],
+      "file": "apps/api/src/modules/reservations/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/reservations/availability"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "reservations",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 137,
+    "router": "reservationsRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/reservations/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "reservations",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_reservation_availability",
+        "app_reservation_own_units",
+        "building_events",
+        "commonAreas",
+        "reservations",
+        "the"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_building_person_name",
+        "app_cancel_own_reservation",
+        "app_common_area_has_capability",
+        "app_reservation_area_capability",
+        "app_reservation_availability",
+        "app_reservation_can_create",
+        "app_reservation_can_read_calendar",
+        "app_reservation_can_read_feature_state",
+        "app_reservation_can_read_scope",
+        "app_reservation_has_capability",
+        "app_reservation_own_units"
+      ],
+      "file": "apps/api/src/modules/reservations/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/reservations/calendar"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "reservations",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 126,
+    "router": "reservationsRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/reservations/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "reservations",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_reservation_availability",
+        "app_reservation_own_units",
+        "building_events",
+        "commonAreas",
+        "reservations",
+        "the"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_building_person_name",
+        "app_cancel_own_reservation",
+        "app_common_area_has_capability",
+        "app_reservation_area_capability",
+        "app_reservation_availability",
+        "app_reservation_can_create",
+        "app_reservation_can_read_calendar",
+        "app_reservation_can_read_feature_state",
+        "app_reservation_can_read_scope",
+        "app_reservation_has_capability",
+        "app_reservation_own_units"
+      ],
+      "file": "apps/api/src/modules/reservations/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/reservations/units"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "support",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 42,
+    "router": "supportRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/support/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "support",
+      "tenantContext": true,
+      "tableTokens": [
+        "buildings",
+        "supportHosts",
+        "supportRequests",
+        "users"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [],
+      "file": "apps/api/src/modules/support/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/support/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "support",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 56,
+    "router": "supportRouter",
+    "method": "PUT",
+    "file": "apps/api/src/modules/support/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "support",
+      "tenantContext": true,
+      "tableTokens": [
+        "buildings",
+        "supportHosts",
+        "supportRequests",
+        "users"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [],
+      "file": "apps/api/src/modules/support/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/support/:buildingId"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "support",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 72,
+    "router": "supportRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/support/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "support",
+      "tenantContext": true,
+      "tableTokens": [
+        "buildings",
+        "supportHosts",
+        "supportRequests",
+        "users"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [],
+      "file": "apps/api/src/modules/support/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/support/:buildingId/requests"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "support",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 101,
+    "router": "supportRouter",
+    "method": "PATCH",
+    "file": "apps/api/src/modules/support/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "support",
+      "tenantContext": true,
+      "tableTokens": [
+        "buildings",
+        "supportHosts",
+        "supportRequests",
+        "users"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [],
+      "file": "apps/api/src/modules/support/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/support/:buildingId/requests/:id"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "telemetry",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 49,
+    "router": "telemetryRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/telemetry/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "telemetry",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_published_water_levels",
+        "app_telemetry_authorized_devices",
+        "LATERAL",
+        "telemetry",
+        "telemetry_series",
+        "the"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_capability",
+        "app_published_water_levels",
+        "app_telemetry_authorized_devices"
+      ],
+      "file": "apps/api/src/modules/telemetry/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/telemetry/latest"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "telemetry",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 95,
+    "router": "telemetryRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/telemetry/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "telemetry",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_published_water_levels",
+        "app_telemetry_authorized_devices",
+        "LATERAL",
+        "telemetry",
+        "telemetry_series",
+        "the"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_capability",
+        "app_published_water_levels",
+        "app_telemetry_authorized_devices"
+      ],
+      "file": "apps/api/src/modules/telemetry/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/telemetry/series"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT_AND_AUTH_MODEL",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "access",
+    "entryGate": "Independent device/service credential; no human SID",
+    "classification": "service",
+    "line": 39,
+    "router": "totemRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/access/totem-routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "access",
+      "tenantContext": false,
+      "tableTokens": [
+        "identity_totem_display"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "identity_totem_display",
+        "identity_totem_pair"
+      ],
+      "file": "apps/api/src/modules/access/totem-routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": true
+    },
+    "path": "/totem/display"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT_AND_AUTH_MODEL",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "access",
+    "entryGate": "Independent device/service credential; no human SID",
+    "classification": "service",
+    "line": 26,
+    "router": "totemRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/access/totem-routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "access",
+      "tenantContext": false,
+      "tableTokens": [
+        "identity_totem_display"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "identity_totem_display",
+        "identity_totem_pair"
+      ],
+      "file": "apps/api/src/modules/access/totem-routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": true
+    },
+    "path": "/totem/pair"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "users",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 66,
+    "router": "usersRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/users/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "users",
+      "tenantContext": true,
+      "tableTokens": [
+        "memberships",
+        "users"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_global_capability"
+      ],
+      "file": "apps/api/src/modules/users/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/users/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "users",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 85,
+    "router": "usersRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/users/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "users",
+      "tenantContext": true,
+      "tableTokens": [
+        "memberships",
+        "users"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_global_capability"
+      ],
+      "file": "apps/api/src/modules/users/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/users/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "users",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 120,
+    "router": "usersRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/users/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "users",
+      "tenantContext": true,
+      "tableTokens": [
+        "memberships",
+        "users"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_global_capability"
+      ],
+      "file": "apps/api/src/modules/users/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/users/memberships"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "users",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 159,
+    "router": "usersRouter",
+    "method": "DELETE",
+    "file": "apps/api/src/modules/users/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "users",
+      "tenantContext": true,
+      "tableTokens": [
+        "memberships",
+        "users"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_global_capability"
+      ],
+      "file": "apps/api/src/modules/users/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/users/memberships/:membershipId"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "assets",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 60,
+    "router": "assetsRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/assets/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "assets",
+      "tenantContext": true,
+      "tableTokens": [
+        "asset_device_links",
+        "assets",
+        "devices",
+        "work_orders"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_capability"
+      ],
+      "file": "apps/api/src/modules/assets/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/assets/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "assets",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 75,
+    "router": "assetsRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/assets/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "assets",
+      "tenantContext": true,
+      "tableTokens": [
+        "asset_device_links",
+        "assets",
+        "devices",
+        "work_orders"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_capability"
+      ],
+      "file": "apps/api/src/modules/assets/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/assets/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "assets",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 91,
+    "router": "assetsRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/assets/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "assets",
+      "tenantContext": true,
+      "tableTokens": [
+        "asset_device_links",
+        "assets",
+        "devices",
+        "work_orders"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_capability"
+      ],
+      "file": "apps/api/src/modules/assets/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/assets/:id"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "assets",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 102,
+    "router": "assetsRouter",
+    "method": "PATCH",
+    "file": "apps/api/src/modules/assets/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "assets",
+      "tenantContext": true,
+      "tableTokens": [
+        "asset_device_links",
+        "assets",
+        "devices",
+        "work_orders"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_capability"
+      ],
+      "file": "apps/api/src/modules/assets/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/assets/:id"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "assets",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 130,
+    "router": "assetsRouter",
+    "method": "PUT",
+    "file": "apps/api/src/modules/assets/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "assets",
+      "tenantContext": true,
+      "tableTokens": [
+        "asset_device_links",
+        "assets",
+        "devices",
+        "work_orders"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_capability"
+      ],
+      "file": "apps/api/src/modules/assets/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/assets/:id/devices"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "authorization",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 27,
+    "router": "authorizationRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/authorization/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "authorization",
+      "tenantContext": true,
+      "tableTokens": [],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_mfa_platform_authorization",
+        "app_mfa_scope_authorization"
+      ],
+      "file": "apps/api/src/modules/authorization/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/authorization/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "authorization",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 12,
+    "router": "authorizationRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/authorization/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "authorization",
+      "tenantContext": true,
+      "tableTokens": [],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_mfa_platform_authorization",
+        "app_mfa_scope_authorization"
+      ],
+      "file": "apps/api/src/modules/authorization/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/authorization/platform"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "automations",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 87,
+    "router": "automationsRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/automations/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "automations",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_automation_simulate",
+        "automation_rules",
+        "automation_runs",
+        "automation_versions",
+        "base",
+        "clock_timestamp"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_automation_simulate",
+        "app_has_capability"
+      ],
+      "file": "apps/api/src/modules/automations/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/automations/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "automations",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 96,
+    "router": "automationsRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/automations/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "automations",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_automation_simulate",
+        "automation_rules",
+        "automation_runs",
+        "automation_versions",
+        "base",
+        "clock_timestamp"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_automation_simulate",
+        "app_has_capability"
+      ],
+      "file": "apps/api/src/modules/automations/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/automations/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "automations",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 110,
+    "router": "automationsRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/automations/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "automations",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_automation_simulate",
+        "automation_rules",
+        "automation_runs",
+        "automation_versions",
+        "base",
+        "clock_timestamp"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_automation_simulate",
+        "app_has_capability"
+      ],
+      "file": "apps/api/src/modules/automations/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/automations/:id"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "automations",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 138,
+    "router": "automationsRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/automations/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "automations",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_automation_simulate",
+        "automation_rules",
+        "automation_runs",
+        "automation_versions",
+        "base",
+        "clock_timestamp"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_automation_simulate",
+        "app_has_capability"
+      ],
+      "file": "apps/api/src/modules/automations/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/automations/:id/publish"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "automations",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 167,
+    "router": "automationsRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/automations/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "automations",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_automation_simulate",
+        "automation_rules",
+        "automation_runs",
+        "automation_versions",
+        "base",
+        "clock_timestamp"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_automation_simulate",
+        "app_has_capability"
+      ],
+      "file": "apps/api/src/modules/automations/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/automations/:id/simulate"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "automations",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 151,
+    "router": "automationsRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/automations/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "automations",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_automation_simulate",
+        "automation_rules",
+        "automation_runs",
+        "automation_versions",
+        "base",
+        "clock_timestamp"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_automation_simulate",
+        "app_has_capability"
+      ],
+      "file": "apps/api/src/modules/automations/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/automations/:id/state"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "automations",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 122,
+    "router": "automationsRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/automations/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "automations",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_automation_simulate",
+        "automation_rules",
+        "automation_runs",
+        "automation_versions",
+        "base",
+        "clock_timestamp"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_automation_simulate",
+        "app_has_capability"
+      ],
+      "file": "apps/api/src/modules/automations/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/automations/:id/versions"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "building-events",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 143,
+    "router": "buildingEventsRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/building-events/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "building-events",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_building_event_totals",
+        "building_event_responses",
+        "building_events",
+        "common_areas",
+        "set"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_building_event_totals",
+        "app_building_person_name",
+        "app_has_capability"
+      ],
+      "file": "apps/api/src/modules/building-events/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/building-events/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "building-events",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 158,
+    "router": "buildingEventsRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/building-events/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "building-events",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_building_event_totals",
+        "building_event_responses",
+        "building_events",
+        "common_areas",
+        "set"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_building_event_totals",
+        "app_building_person_name",
+        "app_has_capability"
+      ],
+      "file": "apps/api/src/modules/building-events/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/building-events/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "building-events",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 176,
+    "router": "buildingEventsRouter",
+    "method": "PATCH",
+    "file": "apps/api/src/modules/building-events/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "building-events",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_building_event_totals",
+        "building_event_responses",
+        "building_events",
+        "common_areas",
+        "set"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_building_event_totals",
+        "app_building_person_name",
+        "app_has_capability"
+      ],
+      "file": "apps/api/src/modules/building-events/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/building-events/:eventId"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "building-events",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 207,
+    "router": "buildingEventsRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/building-events/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "building-events",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_building_event_totals",
+        "building_event_responses",
+        "building_events",
+        "common_areas",
+        "set"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_building_event_totals",
+        "app_building_person_name",
+        "app_has_capability"
+      ],
+      "file": "apps/api/src/modules/building-events/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/building-events/:eventId/cancel"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "building-events",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 240,
+    "router": "buildingEventsRouter",
+    "method": "PUT",
+    "file": "apps/api/src/modules/building-events/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "building-events",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_building_event_totals",
+        "building_event_responses",
+        "building_events",
+        "common_areas",
+        "set"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_building_event_totals",
+        "app_building_person_name",
+        "app_has_capability"
+      ],
+      "file": "apps/api/src/modules/building-events/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/building-events/:eventId/response"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "building-events",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 225,
+    "router": "buildingEventsRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/building-events/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "building-events",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_building_event_totals",
+        "building_event_responses",
+        "building_events",
+        "common_areas",
+        "set"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_building_event_totals",
+        "app_building_person_name",
+        "app_has_capability"
+      ],
+      "file": "apps/api/src/modules/building-events/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/building-events/:eventId/responses"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "demo",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 16,
+    "router": "demoRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/demo/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "demo",
+      "tenantContext": true,
+      "tableTokens": [
+        "demo_scenarios"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_demo_scenario_set"
+      ],
+      "file": "apps/api/src/modules/demo/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/demo/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "demo",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 19,
+    "router": "demoRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/demo/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "demo",
+      "tenantContext": true,
+      "tableTokens": [
+        "demo_scenarios"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_demo_scenario_set"
+      ],
+      "file": "apps/api/src/modules/demo/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/demo/scenarios/:buildingId"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "demo",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 30,
+    "router": "demoRouter",
+    "method": "PUT",
+    "file": "apps/api/src/modules/demo/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "demo",
+      "tenantContext": true,
+      "tableTokens": [
+        "demo_scenarios"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_demo_scenario_set"
+      ],
+      "file": "apps/api/src/modules/demo/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/demo/scenarios/:buildingId"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "support-access",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 127,
+    "router": "supportAccessRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/support-access/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "support-access",
+      "tenantContext": true,
+      "tableTokens": [
+        "buildings",
+        "in",
+        "of",
+        "role_bindings",
+        "roleBindings",
+        "staff",
+        "support_grants",
+        "users"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_global_capability"
+      ],
+      "file": "apps/api/src/modules/support-access/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/support-access/grants"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "support-access",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 137,
+    "router": "supportAccessRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/support-access/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "support-access",
+      "tenantContext": true,
+      "tableTokens": [
+        "buildings",
+        "in",
+        "of",
+        "role_bindings",
+        "roleBindings",
+        "staff",
+        "support_grants",
+        "users"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_global_capability"
+      ],
+      "file": "apps/api/src/modules/support-access/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/support-access/grants"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "support-access",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 175,
+    "router": "supportAccessRouter",
+    "method": "DELETE",
+    "file": "apps/api/src/modules/support-access/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "support-access",
+      "tenantContext": true,
+      "tableTokens": [
+        "buildings",
+        "in",
+        "of",
+        "role_bindings",
+        "roleBindings",
+        "staff",
+        "support_grants",
+        "users"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_global_capability"
+      ],
+      "file": "apps/api/src/modules/support-access/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/support-access/grants/:id"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "support-access",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 191,
+    "router": "supportAccessRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/support-access/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "support-access",
+      "tenantContext": true,
+      "tableTokens": [
+        "buildings",
+        "in",
+        "of",
+        "role_bindings",
+        "roleBindings",
+        "staff",
+        "support_grants",
+        "users"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_global_capability"
+      ],
+      "file": "apps/api/src/modules/support-access/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/support-access/mine"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "support-access",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 75,
+    "router": "supportAccessRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/support-access/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "support-access",
+      "tenantContext": true,
+      "tableTokens": [
+        "buildings",
+        "in",
+        "of",
+        "role_bindings",
+        "roleBindings",
+        "staff",
+        "support_grants",
+        "users"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_global_capability"
+      ],
+      "file": "apps/api/src/modules/support-access/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/support-access/staff"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "support-access",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 86,
+    "router": "supportAccessRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/support-access/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "support-access",
+      "tenantContext": true,
+      "tableTokens": [
+        "buildings",
+        "in",
+        "of",
+        "role_bindings",
+        "roleBindings",
+        "staff",
+        "support_grants",
+        "users"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_global_capability"
+      ],
+      "file": "apps/api/src/modules/support-access/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/support-access/staff"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "support-access",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 106,
+    "router": "supportAccessRouter",
+    "method": "DELETE",
+    "file": "apps/api/src/modules/support-access/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "support-access",
+      "tenantContext": true,
+      "tableTokens": [
+        "buildings",
+        "in",
+        "of",
+        "role_bindings",
+        "roleBindings",
+        "staff",
+        "support_grants",
+        "users"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_global_capability"
+      ],
+      "file": "apps/api/src/modules/support-access/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/support-access/staff/:id"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "tenancy",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 81,
+    "router": "tenancyRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/tenancy/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "tenancy",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_tenancy_people",
+        "blocks",
+        "invitations",
+        "is",
+        "roleBindings",
+        "table",
+        "teamMembers",
+        "teams",
+        "unitMemberships",
+        "units"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_tenancy_is_resident",
+        "app_tenancy_people"
+      ],
+      "file": "apps/api/src/modules/tenancy/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/tenancy/blocks"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "tenancy",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 90,
+    "router": "tenancyRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/tenancy/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "tenancy",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_tenancy_people",
+        "blocks",
+        "invitations",
+        "is",
+        "roleBindings",
+        "table",
+        "teamMembers",
+        "teams",
+        "unitMemberships",
+        "units"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_tenancy_is_resident",
+        "app_tenancy_people"
+      ],
+      "file": "apps/api/src/modules/tenancy/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/tenancy/blocks"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "tenancy",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 236,
+    "router": "tenancyRouter",
+    "method": "PATCH",
+    "file": "apps/api/src/modules/tenancy/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "tenancy",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_tenancy_people",
+        "blocks",
+        "invitations",
+        "is",
+        "roleBindings",
+        "table",
+        "teamMembers",
+        "teams",
+        "unitMemberships",
+        "units"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_tenancy_is_resident",
+        "app_tenancy_people"
+      ],
+      "file": "apps/api/src/modules/tenancy/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/tenancy/blocks/:id"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "tenancy",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 285,
+    "router": "tenancyRouter",
+    "method": "PATCH",
+    "file": "apps/api/src/modules/tenancy/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "tenancy",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_tenancy_people",
+        "blocks",
+        "invitations",
+        "is",
+        "roleBindings",
+        "table",
+        "teamMembers",
+        "teams",
+        "unitMemberships",
+        "units"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_tenancy_is_resident",
+        "app_tenancy_people"
+      ],
+      "file": "apps/api/src/modules/tenancy/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/tenancy/blocks/:id/status"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "tenancy",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 315,
+    "router": "tenancyRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/tenancy/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "tenancy",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_tenancy_people",
+        "blocks",
+        "invitations",
+        "is",
+        "roleBindings",
+        "table",
+        "teamMembers",
+        "teams",
+        "unitMemberships",
+        "units"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_tenancy_is_resident",
+        "app_tenancy_people"
+      ],
+      "file": "apps/api/src/modules/tenancy/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/tenancy/invitations"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "tenancy",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 325,
+    "router": "tenancyRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/tenancy/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "tenancy",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_tenancy_people",
+        "blocks",
+        "invitations",
+        "is",
+        "roleBindings",
+        "table",
+        "teamMembers",
+        "teams",
+        "unitMemberships",
+        "units"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_tenancy_is_resident",
+        "app_tenancy_people"
+      ],
+      "file": "apps/api/src/modules/tenancy/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/tenancy/invitations"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "tenancy",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 351,
+    "router": "tenancyRouter",
+    "method": "DELETE",
+    "file": "apps/api/src/modules/tenancy/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "tenancy",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_tenancy_people",
+        "blocks",
+        "invitations",
+        "is",
+        "roleBindings",
+        "table",
+        "teamMembers",
+        "teams",
+        "unitMemberships",
+        "units"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_tenancy_is_resident",
+        "app_tenancy_people"
+      ],
+      "file": "apps/api/src/modules/tenancy/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/tenancy/invitations/:id"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "tenancy",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 70,
+    "router": "tenancyRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/tenancy/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "tenancy",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_tenancy_people",
+        "blocks",
+        "invitations",
+        "is",
+        "roleBindings",
+        "table",
+        "teamMembers",
+        "teams",
+        "unitMemberships",
+        "units"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_tenancy_is_resident",
+        "app_tenancy_people"
+      ],
+      "file": "apps/api/src/modules/tenancy/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/tenancy/people"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "tenancy",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 188,
+    "router": "tenancyRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/tenancy/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "tenancy",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_tenancy_people",
+        "blocks",
+        "invitations",
+        "is",
+        "roleBindings",
+        "table",
+        "teamMembers",
+        "teams",
+        "unitMemberships",
+        "units"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_tenancy_is_resident",
+        "app_tenancy_people"
+      ],
+      "file": "apps/api/src/modules/tenancy/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/tenancy/role-bindings"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "tenancy",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 197,
+    "router": "tenancyRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/tenancy/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "tenancy",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_tenancy_people",
+        "blocks",
+        "invitations",
+        "is",
+        "roleBindings",
+        "table",
+        "teamMembers",
+        "teams",
+        "unitMemberships",
+        "units"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_tenancy_is_resident",
+        "app_tenancy_people"
+      ],
+      "file": "apps/api/src/modules/tenancy/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/tenancy/role-bindings"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "tenancy",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 157,
+    "router": "tenancyRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/tenancy/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "tenancy",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_tenancy_people",
+        "blocks",
+        "invitations",
+        "is",
+        "roleBindings",
+        "table",
+        "teamMembers",
+        "teams",
+        "unitMemberships",
+        "units"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_tenancy_is_resident",
+        "app_tenancy_people"
+      ],
+      "file": "apps/api/src/modules/tenancy/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/tenancy/team-members"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "tenancy",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 166,
+    "router": "tenancyRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/tenancy/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "tenancy",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_tenancy_people",
+        "blocks",
+        "invitations",
+        "is",
+        "roleBindings",
+        "table",
+        "teamMembers",
+        "teams",
+        "unitMemberships",
+        "units"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_tenancy_is_resident",
+        "app_tenancy_people"
+      ],
+      "file": "apps/api/src/modules/tenancy/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/tenancy/team-members"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "tenancy",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 119,
+    "router": "tenancyRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/tenancy/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "tenancy",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_tenancy_people",
+        "blocks",
+        "invitations",
+        "is",
+        "roleBindings",
+        "table",
+        "teamMembers",
+        "teams",
+        "unitMemberships",
+        "units"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_tenancy_is_resident",
+        "app_tenancy_people"
+      ],
+      "file": "apps/api/src/modules/tenancy/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/tenancy/teams"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "tenancy",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 128,
+    "router": "tenancyRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/tenancy/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "tenancy",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_tenancy_people",
+        "blocks",
+        "invitations",
+        "is",
+        "roleBindings",
+        "table",
+        "teamMembers",
+        "teams",
+        "unitMemberships",
+        "units"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_tenancy_is_resident",
+        "app_tenancy_people"
+      ],
+      "file": "apps/api/src/modules/tenancy/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/tenancy/teams"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "tenancy",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 251,
+    "router": "tenancyRouter",
+    "method": "PATCH",
+    "file": "apps/api/src/modules/tenancy/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "tenancy",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_tenancy_people",
+        "blocks",
+        "invitations",
+        "is",
+        "roleBindings",
+        "table",
+        "teamMembers",
+        "teams",
+        "unitMemberships",
+        "units"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_tenancy_is_resident",
+        "app_tenancy_people"
+      ],
+      "file": "apps/api/src/modules/tenancy/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/tenancy/teams/:id"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "tenancy",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 298,
+    "router": "tenancyRouter",
+    "method": "PATCH",
+    "file": "apps/api/src/modules/tenancy/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "tenancy",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_tenancy_people",
+        "blocks",
+        "invitations",
+        "is",
+        "roleBindings",
+        "table",
+        "teamMembers",
+        "teams",
+        "unitMemberships",
+        "units"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_tenancy_is_resident",
+        "app_tenancy_people"
+      ],
+      "file": "apps/api/src/modules/tenancy/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/tenancy/teams/:id/status"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "tenancy",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 138,
+    "router": "tenancyRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/tenancy/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "tenancy",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_tenancy_people",
+        "blocks",
+        "invitations",
+        "is",
+        "roleBindings",
+        "table",
+        "teamMembers",
+        "teams",
+        "unitMemberships",
+        "units"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_tenancy_is_resident",
+        "app_tenancy_people"
+      ],
+      "file": "apps/api/src/modules/tenancy/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/tenancy/unit-memberships"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "tenancy",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 147,
+    "router": "tenancyRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/tenancy/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "tenancy",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_tenancy_people",
+        "blocks",
+        "invitations",
+        "is",
+        "roleBindings",
+        "table",
+        "teamMembers",
+        "teams",
+        "unitMemberships",
+        "units"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_tenancy_is_resident",
+        "app_tenancy_people"
+      ],
+      "file": "apps/api/src/modules/tenancy/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/tenancy/unit-memberships"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "tenancy",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 100,
+    "router": "tenancyRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/tenancy/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "tenancy",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_tenancy_people",
+        "blocks",
+        "invitations",
+        "is",
+        "roleBindings",
+        "table",
+        "teamMembers",
+        "teams",
+        "unitMemberships",
+        "units"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_tenancy_is_resident",
+        "app_tenancy_people"
+      ],
+      "file": "apps/api/src/modules/tenancy/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/tenancy/units"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "tenancy",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 109,
+    "router": "tenancyRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/tenancy/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "tenancy",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_tenancy_people",
+        "blocks",
+        "invitations",
+        "is",
+        "roleBindings",
+        "table",
+        "teamMembers",
+        "teams",
+        "unitMemberships",
+        "units"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_tenancy_is_resident",
+        "app_tenancy_people"
+      ],
+      "file": "apps/api/src/modules/tenancy/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/tenancy/units"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "tenancy",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 244,
+    "router": "tenancyRouter",
+    "method": "PATCH",
+    "file": "apps/api/src/modules/tenancy/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "tenancy",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_tenancy_people",
+        "blocks",
+        "invitations",
+        "is",
+        "roleBindings",
+        "table",
+        "teamMembers",
+        "teams",
+        "unitMemberships",
+        "units"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_tenancy_is_resident",
+        "app_tenancy_people"
+      ],
+      "file": "apps/api/src/modules/tenancy/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/tenancy/units/:id"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "tenancy",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 292,
+    "router": "tenancyRouter",
+    "method": "PATCH",
+    "file": "apps/api/src/modules/tenancy/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "tenancy",
+      "tenantContext": true,
+      "tableTokens": [
+        "app_tenancy_people",
+        "blocks",
+        "invitations",
+        "is",
+        "roleBindings",
+        "table",
+        "teamMembers",
+        "teams",
+        "unitMemberships",
+        "units"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_tenancy_is_resident",
+        "app_tenancy_people"
+      ],
+      "file": "apps/api/src/modules/tenancy/routes.ts",
+      "capabilityAssert": true,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/tenancy/units/:id/status"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "work-orders",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 73,
+    "router": "workOrdersRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/work-orders/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "work-orders",
+      "tenantContext": true,
+      "tableTokens": [
+        "assets",
+        "work_order_events",
+        "work_orders"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_capability",
+        "app_work_order_assigned"
+      ],
+      "file": "apps/api/src/modules/work-orders/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/work-orders/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "work-orders",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 88,
+    "router": "workOrdersRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/work-orders/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "work-orders",
+      "tenantContext": true,
+      "tableTokens": [
+        "assets",
+        "work_order_events",
+        "work_orders"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_capability",
+        "app_work_order_assigned"
+      ],
+      "file": "apps/api/src/modules/work-orders/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/work-orders/"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "work-orders",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 102,
+    "router": "workOrdersRouter",
+    "method": "GET",
+    "file": "apps/api/src/modules/work-orders/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "work-orders",
+      "tenantContext": true,
+      "tableTokens": [
+        "assets",
+        "work_order_events",
+        "work_orders"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_capability",
+        "app_work_order_assigned"
+      ],
+      "file": "apps/api/src/modules/work-orders/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/work-orders/:id"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "work-orders",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 112,
+    "router": "workOrdersRouter",
+    "method": "PATCH",
+    "file": "apps/api/src/modules/work-orders/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "work-orders",
+      "tenantContext": true,
+      "tableTokens": [
+        "assets",
+        "work_order_events",
+        "work_orders"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_capability",
+        "app_work_order_assigned"
+      ],
+      "file": "apps/api/src/modules/work-orders/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/work-orders/:id"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "work-orders",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 160,
+    "router": "workOrdersRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/work-orders/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "work-orders",
+      "tenantContext": true,
+      "tableTokens": [
+        "assets",
+        "work_order_events",
+        "work_orders"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_capability",
+        "app_work_order_assigned"
+      ],
+      "file": "apps/api/src/modules/work-orders/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/work-orders/:id/notes"
+  },
+  {
+    "classificationConfidence": "REVIEWED_MOUNT; handler details heuristic",
+    "associationLimit": "Helpers/tables listed at FILE level, not proven per-handler dataflow",
+    "module": "work-orders",
+    "entryGate": "app.use(authenticate) before domain mount; initial operational MFA, NOT SQL atomicity",
+    "classification": "human",
+    "line": 143,
+    "router": "workOrdersRouter",
+    "method": "POST",
+    "file": "apps/api/src/modules/work-orders/routes.ts",
+    "fileSignals": {
+      "withUserContext": false,
+      "inlineMfaGuard": false,
+      "module": "work-orders",
+      "tenantContext": true,
+      "tableTokens": [
+        "assets",
+        "work_order_events",
+        "work_orders"
+      ],
+      "mfaQuery": false,
+      "rawDbImport": false,
+      "helpers": [
+        "app_has_capability",
+        "app_work_order_assigned"
+      ],
+      "file": "apps/api/src/modules/work-orders/routes.ts",
+      "capabilityAssert": false,
+      "brokerPool": false,
+      "identityPool": false
+    },
+    "path": "/v1/work-orders/:id/status"
+  }
+]

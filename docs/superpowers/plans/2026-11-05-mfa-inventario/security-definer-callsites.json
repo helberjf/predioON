@@ -1,0 +1,1612 @@
+[
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/auth/governance.ts",
+    "catalogPath": "infrastructure/011-governance.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_governance_access",
+    "module": "auth",
+    "line": 7
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/auth/invitations.ts",
+    "catalogPath": "infrastructure/042-resident-invitations.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "identity_invitation_preview",
+    "module": "auth",
+    "line": 31
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/auth/invitations.ts",
+    "catalogPath": "infrastructure/042-resident-invitations.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "identity_accept_invitation",
+    "module": "auth",
+    "line": 78
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/auth/login-budget.ts",
+    "catalogPath": "infrastructure/035-login-throttling.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "identity_take_login_budget",
+    "module": "auth",
+    "line": 14
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/auth/mfa.ts",
+    "catalogPath": "infrastructure/015-api-runtime-roles.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "identity_lock_account_active",
+    "module": "auth",
+    "line": 23
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/auth/mfa.ts",
+    "catalogPath": "infrastructure/068-platform-mfa-required.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "identity_platform_mfa_required",
+    "module": "auth",
+    "line": 32
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/auth/mfa.ts",
+    "catalogPath": "infrastructure/068-platform-mfa-required.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "identity_platform_mfa_required",
+    "module": "auth",
+    "line": 117
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/auth/middleware.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_has_capability",
+    "module": "auth",
+    "line": 73
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/auth/middleware.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_has_global_capability",
+    "module": "auth",
+    "line": 83
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/auth/middleware.ts",
+    "catalogPath": "infrastructure/019-building-discovery-resource-validation.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_can_discover_building",
+    "module": "auth",
+    "line": 89
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/auth/recovery.ts",
+    "catalogPath": "infrastructure/047-password-recovery.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "identity_issue_password_reset",
+    "module": "auth",
+    "line": 59
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/auth/recovery.ts",
+    "catalogPath": "infrastructure/047-password-recovery.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "identity_reset_password",
+    "module": "auth",
+    "line": 82
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/auth/service.ts",
+    "catalogPath": "infrastructure/068-platform-mfa-required.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "identity_session_mfa_requirement",
+    "module": "auth",
+    "line": 44
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/auth/service.ts",
+    "catalogPath": "infrastructure/015-api-runtime-roles.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "identity_lock_account_active",
+    "module": "auth",
+    "line": 95
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/auth/service.ts",
+    "catalogPath": "infrastructure/015-api-runtime-roles.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "identity_lock_account_active",
+    "module": "auth",
+    "line": 116
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/auth/service.ts",
+    "catalogPath": "infrastructure/037-password-change.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "identity_replace_password",
+    "module": "auth",
+    "line": 183
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/auth/service.ts",
+    "catalogPath": "infrastructure/015-api-runtime-roles.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "identity_lock_account_active",
+    "module": "auth",
+    "line": 224
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/auth/verification.ts",
+    "catalogPath": "infrastructure/015-api-runtime-roles.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "identity_lock_account_active",
+    "module": "auth",
+    "line": 49
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/access/authorization.ts",
+    "catalogPath": "infrastructure/034-access-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_access_can_read_scope",
+    "module": "access",
+    "line": 19
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/access/authorization.ts",
+    "catalogPath": "infrastructure/034-access-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_access_has_capability",
+    "module": "access",
+    "line": 37
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/access/authorization.ts",
+    "catalogPath": "infrastructure/034-access-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_access_has_capability",
+    "module": "access",
+    "line": 38
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/access/authorization.ts",
+    "catalogPath": "infrastructure/034-access-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_access_request_permitted",
+    "module": "access",
+    "line": 39
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/access/authorization.ts",
+    "catalogPath": "infrastructure/034-access-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_access_lock_target",
+    "module": "access",
+    "line": 62
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/access/routes.ts",
+    "catalogPath": "infrastructure/034-access-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_access_hardware_state",
+    "module": "access",
+    "line": 70
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/access/routes.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_has_capability",
+    "module": "access",
+    "line": 267
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/access/routes.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_has_capability",
+    "module": "access",
+    "line": 267
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/access/routes.ts",
+    "catalogPath": "infrastructure/059-access-qr-totem.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_request_access_by_qr",
+    "module": "access",
+    "line": 488
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/access/routes.ts",
+    "catalogPath": "infrastructure/059-access-qr-totem.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_gate_qr_renew",
+    "module": "access",
+    "line": 523
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/access/routes.ts",
+    "catalogPath": "infrastructure/061-totem-pairing-clock.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_gate_totem_pairing_create",
+    "module": "access",
+    "line": 538
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/access/routes.ts",
+    "catalogPath": "infrastructure/059-access-qr-totem.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_gate_totem_revoke",
+    "module": "access",
+    "line": 560
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/access/routes.ts",
+    "catalogPath": "infrastructure/059-access-qr-totem.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_request_access",
+    "module": "access",
+    "line": 582
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/access/totem-routes.ts",
+    "catalogPath": "infrastructure/059-access-qr-totem.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "identity_totem_pair",
+    "module": "access",
+    "line": 35
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/access/totem-routes.ts",
+    "catalogPath": "infrastructure/059-access-qr-totem.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "identity_totem_display",
+    "module": "access",
+    "line": 46
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/alert-rules/authorization.ts",
+    "catalogPath": "infrastructure/032-alert-rules-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_alert_rule_can_read_scope",
+    "module": "alert-rules",
+    "line": 11
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/alert-rules/authorization.ts",
+    "catalogPath": "infrastructure/032-alert-rules-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_alert_rule_has_capability",
+    "module": "alert-rules",
+    "line": 15
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/alert-rules/authorization.ts",
+    "catalogPath": "infrastructure/032-alert-rules-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_alert_rule_has_capability",
+    "module": "alert-rules",
+    "line": 16
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/alert-rules/authorization.ts",
+    "catalogPath": "infrastructure/032-alert-rules-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_alert_rule_target_has_capability",
+    "module": "alert-rules",
+    "line": 21
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/alert-rules/authorization.ts",
+    "catalogPath": "infrastructure/032-alert-rules-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_alert_rule_target_has_capability",
+    "module": "alert-rules",
+    "line": 22
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/alert-rules/authorization.ts",
+    "catalogPath": "infrastructure/032-alert-rules-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_alert_rule_lock_target",
+    "module": "alert-rules",
+    "line": 26
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/alert-rules/authorization.ts",
+    "catalogPath": "infrastructure/032-alert-rules-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_alert_rule_context",
+    "module": "alert-rules",
+    "line": 30
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/alert-rules/authorization.ts",
+    "catalogPath": "infrastructure/032-alert-rules-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_alert_rule_target_context",
+    "module": "alert-rules",
+    "line": 34
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/alerts/authorization.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_alert_authorized_contexts",
+    "module": "alerts",
+    "line": 20
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/alerts/routes.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_alert_can_read_feature_state",
+    "module": "alerts",
+    "line": 24
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/alerts/routes.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_alert_has_capability",
+    "module": "alerts",
+    "line": 54
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/alerts/routes.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_transition_alert",
+    "module": "alerts",
+    "line": 59
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/assets/routes.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_has_capability",
+    "module": "assets",
+    "line": 65
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/audit/routes.ts",
+    "catalogPath": "infrastructure/036-audit-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_audit_query_scope",
+    "module": "audit",
+    "line": 14
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/automations/routes.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_has_capability",
+    "module": "automations",
+    "line": 92
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/automations/routes.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_has_capability",
+    "module": "automations",
+    "line": 92
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/automations/routes.ts",
+    "catalogPath": "infrastructure/045-automations.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_automation_simulate",
+    "module": "automations",
+    "line": 186
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/building-events/routes.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_has_capability",
+    "module": "building-events",
+    "line": 87
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/building-events/routes.ts",
+    "catalogPath": "infrastructure/064-reservation-limits-events.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_building_event_totals",
+    "module": "building-events",
+    "line": 111
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/building-events/routes.ts",
+    "catalogPath": "infrastructure/064-reservation-limits-events.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_building_person_name",
+    "module": "building-events",
+    "line": 231
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/buildings/routes.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_has_global_capability",
+    "module": "buildings",
+    "line": 64
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/common-areas/authorization.ts",
+    "catalogPath": "infrastructure/028-common-areas-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_common_area_can_read_scope",
+    "module": "common-areas",
+    "line": 7
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/common-areas/authorization.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_has_capability",
+    "module": "common-areas",
+    "line": 12
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/common-areas/authorization.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_has_capability",
+    "module": "common-areas",
+    "line": 13
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/common-areas/authorization.ts",
+    "catalogPath": "infrastructure/028-common-areas-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_common_area_has_capability",
+    "module": "common-areas",
+    "line": 18
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/common-areas/authorization.ts",
+    "catalogPath": "infrastructure/028-common-areas-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_common_area_has_capability",
+    "module": "common-areas",
+    "line": 19
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/demo/routes.ts",
+    "catalogPath": "infrastructure/062-demo-field-scenarios.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_demo_scenario_set",
+    "module": "demo",
+    "line": 37
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/equipment/authorization.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_equipment_can_read_scope",
+    "module": "equipment",
+    "line": 11
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/equipment/authorization.ts",
+    "catalogPath": "infrastructure/020-equipment-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_device_has_capability",
+    "module": "equipment",
+    "line": 24
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/equipment/authorization.ts",
+    "catalogPath": "infrastructure/020-equipment-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_gateway_has_capability",
+    "module": "equipment",
+    "line": 25
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/equipment/authorization.ts",
+    "catalogPath": "infrastructure/020-equipment-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_device_can_assign_gateway",
+    "module": "equipment",
+    "line": 31
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/features/routes.ts",
+    "catalogPath": "infrastructure/038-durable-alert-delivery.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_apply_feature_transition",
+    "module": "features",
+    "line": 74
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/finance/authorization.ts",
+    "catalogPath": "infrastructure/030-finance-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_finance_can_read_scope",
+    "module": "finance",
+    "line": 7
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/finance/authorization.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_has_capability",
+    "module": "finance",
+    "line": 11
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/finance/authorization.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_has_capability",
+    "module": "finance",
+    "line": 11
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/finance/authorization.ts",
+    "catalogPath": "infrastructure/030-finance-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_finance_has_capability",
+    "module": "finance",
+    "line": 15
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/finance/authorization.ts",
+    "catalogPath": "infrastructure/030-finance-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_finance_has_capability",
+    "module": "finance",
+    "line": 16
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/finance/routes.ts",
+    "catalogPath": "infrastructure/030-finance-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_finance_can_publish_revision",
+    "module": "finance",
+    "line": 107
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/monitoring/authorization.ts",
+    "catalogPath": "infrastructure/023-monitoring-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_monitoring_scope_context",
+    "module": "monitoring",
+    "line": 11
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/monitoring/authorization.ts",
+    "catalogPath": "infrastructure/023-monitoring-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_monitoring_authorized_profiles",
+    "module": "monitoring",
+    "line": 17
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/monitoring/authorization.ts",
+    "catalogPath": "infrastructure/023-monitoring-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_monitoring_can_read_scope",
+    "module": "monitoring",
+    "line": 23
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/monitoring/authorization.ts",
+    "catalogPath": "infrastructure/023-monitoring-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_monitoring_authorized_profiles",
+    "module": "monitoring",
+    "line": 24
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/monitoring/authorization.ts",
+    "catalogPath": "infrastructure/023-monitoring-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_monitoring_device_has_capability",
+    "module": "monitoring",
+    "line": 31
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/monitoring/authorization.ts",
+    "catalogPath": "infrastructure/023-monitoring-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_monitoring_device_has_capability",
+    "module": "monitoring",
+    "line": 32
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/monitoring/authorization.ts",
+    "catalogPath": "infrastructure/023-monitoring-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_monitoring_device_has_capability",
+    "module": "monitoring",
+    "line": 33
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/monitoring/authorization.ts",
+    "catalogPath": "infrastructure/023-monitoring-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_monitoring_active_device",
+    "module": "monitoring",
+    "line": 38
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/monitoring/routes.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_has_capability",
+    "module": "monitoring",
+    "line": 31
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/monitoring/routes.ts",
+    "catalogPath": "infrastructure/051-resident-consumption-opt-in.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_resident_consumption_released",
+    "module": "monitoring",
+    "line": 32
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/monitoring/routes.ts",
+    "catalogPath": "infrastructure/051-resident-consumption-opt-in.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_published_consumption",
+    "module": "monitoring",
+    "line": 40
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/monitoring/routes.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_has_capability",
+    "module": "monitoring",
+    "line": 53
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/monitoring/routes.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_has_capability",
+    "module": "monitoring",
+    "line": 53
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/monitoring/routes.ts",
+    "catalogPath": "infrastructure/051-resident-consumption-opt-in.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_resident_consumption_released",
+    "module": "monitoring",
+    "line": 54
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/monitoring/routes.ts",
+    "catalogPath": "infrastructure/051-resident-consumption-opt-in.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_set_resident_consumption",
+    "module": "monitoring",
+    "line": 64
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/notices/authorization.ts",
+    "catalogPath": "infrastructure/026-notices-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_notice_can_read_scope",
+    "module": "notices",
+    "line": 8
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/notices/authorization.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_has_capability",
+    "module": "notices",
+    "line": 13
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/notices/authorization.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_has_capability",
+    "module": "notices",
+    "line": 13
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/notices/authorization.ts",
+    "catalogPath": "infrastructure/026-notices-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_notice_can_read",
+    "module": "notices",
+    "line": 18
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/notices/authorization.ts",
+    "catalogPath": "infrastructure/026-notices-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_notice_has_capability",
+    "module": "notices",
+    "line": 19
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/notices/routes.ts",
+    "catalogPath": "infrastructure/026-notices-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_notice_has_capability",
+    "module": "notices",
+    "line": 78
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/occurrences/authorization.ts",
+    "catalogPath": "infrastructure/027-occurrences-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_occurrence_can_read_scope",
+    "module": "occurrences",
+    "line": 8
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/occurrences/authorization.ts",
+    "catalogPath": "infrastructure/027-occurrences-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_occurrence_has_capability",
+    "module": "occurrences",
+    "line": 12
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/occurrences/authorization.ts",
+    "catalogPath": "infrastructure/027-occurrences-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_occurrence_has_capability",
+    "module": "occurrences",
+    "line": 12
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/occurrences/authorization.ts",
+    "catalogPath": "infrastructure/027-occurrences-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_occurrence_can_manage_group",
+    "module": "occurrences",
+    "line": 18
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/occurrences/routes.ts",
+    "catalogPath": "infrastructure/027-occurrences-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_occurrence_has_capability",
+    "module": "occurrences",
+    "line": 49
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/occurrences/routes.ts",
+    "catalogPath": "infrastructure/027-occurrences-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_occurrence_can_read_scope",
+    "module": "occurrences",
+    "line": 81
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/occurrences/routes.ts",
+    "catalogPath": "infrastructure/027-occurrences-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_occurrence_has_capability",
+    "module": "occurrences",
+    "line": 92
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/occurrences/routes.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_has_capability",
+    "module": "occurrences",
+    "line": 126
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/occurrences/routes.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_has_capability",
+    "module": "occurrences",
+    "line": 126
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/occurrences/routes.ts",
+    "catalogPath": "infrastructure/027-occurrences-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_occurrence_cancel_own",
+    "module": "occurrences",
+    "line": 144
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/occurrences/routes.ts",
+    "catalogPath": "infrastructure/027-occurrences-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_occurrence_assignee_active",
+    "module": "occurrences",
+    "line": 147
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/occurrences/routes.ts",
+    "catalogPath": "infrastructure/027-occurrences-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_occurrence_touch_own",
+    "module": "occurrences",
+    "line": 168
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/organizations/routes.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_has_global_capability",
+    "module": "organizations",
+    "line": 27
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/organizations/routes.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_has_global_capability",
+    "module": "organizations",
+    "line": 28
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/overview/authorization.ts",
+    "catalogPath": "infrastructure/027-occurrences-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_occurrence_can_read_scope",
+    "module": "overview",
+    "line": 8
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/overview/authorization.ts",
+    "catalogPath": "infrastructure/024-overview-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_overview_building_scope",
+    "module": "overview",
+    "line": 8
+  },
+  {
+    "catalogMfaGuardToken": true,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/overview/routes.ts",
+    "catalogPath": "infrastructure/068-platform-mfa-required.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_overview_platform_health",
+    "module": "overview",
+    "line": 21
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/overview/routes.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_has_global_capability",
+    "module": "overview",
+    "line": 26
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/overview/routes.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_has_global_capability",
+    "module": "overview",
+    "line": 26
+  },
+  {
+    "catalogMfaGuardToken": true,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/overview/routes.ts",
+    "catalogPath": "infrastructure/068-platform-mfa-required.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_platform_service_health",
+    "module": "overview",
+    "line": 38
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/overview/routes.ts",
+    "catalogPath": "infrastructure/027-occurrences-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_occurrence_can_read_scope",
+    "module": "overview",
+    "line": 66
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/overview/routes.ts",
+    "catalogPath": "infrastructure/024-overview-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_overview_building_scope",
+    "module": "overview",
+    "line": 66
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/overview/routes.ts",
+    "catalogPath": "infrastructure/031-overview-occurrences.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_overview_occurrences",
+    "module": "overview",
+    "line": 67
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/overview/routes.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_alert_authorized_contexts",
+    "module": "overview",
+    "line": 70
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/parking/authorization.ts",
+    "catalogPath": "infrastructure/033-parking-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_parking_can_read_scope",
+    "module": "parking",
+    "line": 19
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/parking/authorization.ts",
+    "catalogPath": "infrastructure/033-parking-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_parking_has_capability",
+    "module": "parking",
+    "line": 29
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/parking/authorization.ts",
+    "catalogPath": "infrastructure/033-parking-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_parking_has_capability",
+    "module": "parking",
+    "line": 30
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/parking/authorization.ts",
+    "catalogPath": "infrastructure/033-parking-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_parking_target_has_capability",
+    "module": "parking",
+    "line": 41
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/parking/authorization.ts",
+    "catalogPath": "infrastructure/033-parking-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_parking_target_has_capability",
+    "module": "parking",
+    "line": 42
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/parking/authorization.ts",
+    "catalogPath": "infrastructure/033-parking-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_parking_sensor_configurable",
+    "module": "parking",
+    "line": 53
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/parking/authorization.ts",
+    "catalogPath": "infrastructure/033-parking-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_parking_lock_target",
+    "module": "parking",
+    "line": 66
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/reservations/routes.ts",
+    "catalogPath": "infrastructure/029-reservations-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_reservation_can_read_feature_state",
+    "module": "reservations",
+    "line": 71
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/reservations/routes.ts",
+    "catalogPath": "infrastructure/029-reservations-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_reservation_has_capability",
+    "module": "reservations",
+    "line": 81
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/reservations/routes.ts",
+    "catalogPath": "infrastructure/029-reservations-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_reservation_can_read_scope",
+    "module": "reservations",
+    "line": 104
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/reservations/routes.ts",
+    "catalogPath": "infrastructure/029-reservations-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_reservation_can_read_calendar",
+    "module": "reservations",
+    "line": 118
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/reservations/routes.ts",
+    "catalogPath": "infrastructure/064-reservation-limits-events.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_reservation_availability",
+    "module": "reservations",
+    "line": 121
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/reservations/routes.ts",
+    "catalogPath": "infrastructure/064-reservation-limits-events.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_reservation_own_units",
+    "module": "reservations",
+    "line": 131
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/reservations/routes.ts",
+    "catalogPath": "infrastructure/029-reservations-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_reservation_area_capability",
+    "module": "reservations",
+    "line": 140
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/reservations/routes.ts",
+    "catalogPath": "infrastructure/028-common-areas-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_common_area_has_capability",
+    "module": "reservations",
+    "line": 141
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/reservations/routes.ts",
+    "catalogPath": "infrastructure/064-reservation-limits-events.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_building_person_name",
+    "module": "reservations",
+    "line": 146
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/reservations/routes.ts",
+    "catalogPath": "infrastructure/029-reservations-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_reservation_can_create",
+    "module": "reservations",
+    "line": 169
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/reservations/routes.ts",
+    "catalogPath": "infrastructure/029-reservations-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_cancel_own_reservation",
+    "module": "reservations",
+    "line": 220
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/support-access/routes.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_has_global_capability",
+    "module": "support-access",
+    "line": 63
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/telemetry/authorization.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_telemetry_authorized_devices",
+    "module": "telemetry",
+    "line": 17
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/telemetry/routes.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_has_capability",
+    "module": "telemetry",
+    "line": 56
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/telemetry/routes.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_has_capability",
+    "module": "telemetry",
+    "line": 57
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/telemetry/routes.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_telemetry_authorized_devices",
+    "module": "telemetry",
+    "line": 65
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/telemetry/routes.ts",
+    "catalogPath": "infrastructure/017-telemetry-capabilities.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_published_water_levels",
+    "module": "telemetry",
+    "line": 85
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/telemetry/routes.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_telemetry_authorized_devices",
+    "module": "telemetry",
+    "line": 103
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/tenancy/routes.ts",
+    "catalogPath": "infrastructure/060-team-member-eligibility.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_tenancy_people",
+    "module": "tenancy",
+    "line": 76
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/tenancy/routes.ts",
+    "catalogPath": "infrastructure/060-team-member-eligibility.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_tenancy_is_resident",
+    "module": "tenancy",
+    "line": 180
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/users/routes.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_has_global_capability",
+    "module": "users",
+    "line": 59
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/work-orders/routes.ts",
+    "catalogPath": "infrastructure/043-work-orders.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_work_order_assigned",
+    "module": "work-orders",
+    "line": 42
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/work-orders/routes.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_has_capability",
+    "module": "work-orders",
+    "line": 77
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "apps/api/src/modules/work-orders/routes.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_has_capability",
+    "module": "work-orders",
+    "line": 78
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "packages/db/src/access-service-operations.ts",
+    "catalogPath": "infrastructure/052-ingest-runtime-roles.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "access_service_next_pending",
+    "module": "db-package",
+    "line": 19
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "packages/db/src/access-service-operations.ts",
+    "catalogPath": "infrastructure/052-ingest-runtime-roles.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "access_service_expire_commands",
+    "module": "db-package",
+    "line": 27
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "packages/db/src/access-service-operations.ts",
+    "catalogPath": "infrastructure/052-ingest-runtime-roles.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "access_service_fail_pending",
+    "module": "db-package",
+    "line": 32
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "packages/db/src/access-service-operations.ts",
+    "catalogPath": "infrastructure/052-ingest-runtime-roles.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "access_service_mark_sent",
+    "module": "db-package",
+    "line": 36
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "packages/db/src/access-service-operations.ts",
+    "catalogPath": "infrastructure/052-ingest-runtime-roles.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "access_service_fail_publish",
+    "module": "db-package",
+    "line": 41
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "packages/db/src/access-service-operations.ts",
+    "catalogPath": "infrastructure/052-ingest-runtime-roles.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "access_service_apply_ack",
+    "module": "db-package",
+    "line": 45
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "packages/db/src/ingest-operations.ts",
+    "catalogPath": "infrastructure/052-ingest-runtime-roles.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "ingest_count_rejection",
+    "module": "db-package",
+    "line": 8
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "packages/db/src/ingest-operations.ts",
+    "catalogPath": "infrastructure/052-ingest-runtime-roles.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "ingest_lock_monitoring_profiles",
+    "module": "db-package",
+    "line": 13
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "packages/db/src/ingest-operations.ts",
+    "catalogPath": "infrastructure/052-ingest-runtime-roles.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "ingest_lock_parking_lot",
+    "module": "db-package",
+    "line": 21
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "packages/db/src/ingest-operations.ts",
+    "catalogPath": "infrastructure/052-ingest-runtime-roles.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "ingest_persist_alert",
+    "module": "db-package",
+    "line": 51
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "packages/db/src/ingest-operations.ts",
+    "catalogPath": "infrastructure/052-ingest-runtime-roles.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "ingest_alert_outbox_signature",
+    "module": "db-package",
+    "line": 61
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "packages/db/src/ingest-operations.ts",
+    "catalogPath": "infrastructure/052-ingest-runtime-roles.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "ingest_write_parking_observation",
+    "module": "db-package",
+    "line": 67
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "packages/db/src/telemetry-capacity.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_telemetry_authorized_devices",
+    "module": "db-package",
+    "line": 68
+  },
+  {
+    "catalogMfaGuardToken": false,
+    "confidence": "LEXICAL_CALLSITE; inspect enclosing transaction and indirect calls",
+    "file": "packages/db/src/telemetry-capacity.ts",
+    "catalogPath": "infrastructure/021-authorization-time-windows.sql",
+    "catalogSecurity": "DEFINER",
+    "helper": "app_telemetry_authorized_devices",
+    "module": "db-package",
+    "line": 77
+  }
+]

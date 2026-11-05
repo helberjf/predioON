@@ -1,0 +1,2306 @@
+[
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "api-infrastructure",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/app.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "auth",
+    "tenantContext": false,
+    "tableTokens": [
+      "alertRules",
+      "devices",
+      "gates",
+      "parkingLots"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/auth/features.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "auth",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_governance_access"
+    ],
+    "file": "apps/api/src/auth/governance.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "auth",
+    "tenantContext": false,
+    "tableTokens": [
+      "identity_invitation_preview",
+      "users"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "identity_accept_invitation",
+      "identity_invitation_preview"
+    ],
+    "file": "apps/api/src/auth/invitations.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": true
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "auth",
+    "tenantContext": false,
+    "tableTokens": [
+      "email",
+      "networkIdentity"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/auth/login-budget-keys.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "auth",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/auth/login-budget-secret.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "auth",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "identity_take_login_budget"
+    ],
+    "file": "apps/api/src/auth/login-budget.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": true
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "auth",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/auth/login-schema.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "auth",
+    "tenantContext": false,
+    "tableTokens": [
+      "code",
+      "factor",
+      "hkdfSync",
+      "mfa_factors",
+      "mfa_recovery_codes",
+      "sealed",
+      "secret",
+      "sessions",
+      "the",
+      "userId"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/auth/mfa-factor.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": true
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "auth",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/auth/mfa-policy.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "auth",
+    "tenantContext": false,
+    "tableTokens": [
+      "is"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/auth/mfa-query.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "auth",
+    "tenantContext": false,
+    "tableTokens": [
+      "authority",
+      "deleted",
+      "factor",
+      "mfa_factors",
+      "mfa_recovery_codes",
+      "users"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "identity_lock_account_active",
+      "identity_platform_mfa_required"
+    ],
+    "file": "apps/api/src/auth/mfa.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": true
+  },
+  {
+    "withUserContext": true,
+    "inlineMfaGuard": false,
+    "module": "auth",
+    "tenantContext": false,
+    "tableTokens": [
+      "active"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_can_discover_building",
+      "app_has_capability",
+      "app_has_global_capability"
+    ],
+    "file": "apps/api/src/auth/middleware.ts",
+    "capabilityAssert": true,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "auth",
+    "tenantContext": false,
+    "tableTokens": [
+      "secret",
+      "token"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/auth/opaque-token.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "auth",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/auth/password-change-schema.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "auth",
+    "tenantContext": false,
+    "tableTokens": [
+      "random"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/auth/passwords.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "auth",
+    "tenantContext": false,
+    "tableTokens": [
+      "secret",
+      "token",
+      "users"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "identity_issue_password_reset",
+      "identity_reset_password"
+    ],
+    "file": "apps/api/src/auth/recovery.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": true
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "auth",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/auth/routes.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "auth",
+    "tenantContext": false,
+    "tableTokens": [
+      "buildings",
+      "currentPassword",
+      "memberships",
+      "newPassword",
+      "organizations",
+      "refreshTokens",
+      "sessions",
+      "users"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "identity_lock_account_active",
+      "identity_replace_password",
+      "identity_session_mfa_requirement"
+    ],
+    "file": "apps/api/src/auth/service.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": true
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "auth",
+    "tenantContext": false,
+    "tableTokens": [
+      "token"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/auth/tokens.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "auth",
+    "tenantContext": false,
+    "tableTokens": [
+      "bytes",
+      "counter",
+      "presented",
+      "totpCode"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/auth/totp.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "auth",
+    "tenantContext": false,
+    "tableTokens": [
+      "sessions",
+      "users"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "identity_lock_account_active"
+    ],
+    "file": "apps/api/src/auth/verification.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": true
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "auth",
+    "tenantContext": false,
+    "tableTokens": [
+      "origin"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/auth/web-routes.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "api-infrastructure",
+    "tenantContext": false,
+    "tableTokens": [
+      "one"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/config.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "api-infrastructure",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/database.ts",
+    "capabilityAssert": false,
+    "brokerPool": true,
+    "identityPool": true
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "api-infrastructure",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/env.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "api-infrastructure",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/http/error-handler.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "api-infrastructure",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/http/errors.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "api-infrastructure",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/http/ids.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "api-infrastructure",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/http/pagination.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "api-infrastructure",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/http/params.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "api-infrastructure",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/http/serverless.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "api-infrastructure",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/http/sql-time.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "api-infrastructure",
+    "tenantContext": false,
+    "tableTokens": [
+      "env"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/http/trusted-proxies.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "api-infrastructure",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/http/validate.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "api-infrastructure",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/mail/mailer.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "access",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_access_can_read_scope",
+      "app_access_has_capability",
+      "app_access_lock_target",
+      "app_access_request_permitted"
+    ],
+    "file": "apps/api/src/modules/access/authorization.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "access",
+    "tenantContext": false,
+    "tableTokens": [
+      "GATE_QR_SECRET",
+      "gateQrMac",
+      "hkdfSync",
+      "qr"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/modules/access/qr-code.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "access",
+    "tenantContext": true,
+    "tableTokens": [
+      "app_access_hardware_state",
+      "app_request_access",
+      "app_request_access_by_qr",
+      "database",
+      "devices",
+      "gate_totems",
+      "gateCommands",
+      "gates",
+      "gateways"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_access_hardware_state",
+      "app_gate_qr_renew",
+      "app_gate_totem_pairing_create",
+      "app_gate_totem_revoke",
+      "app_has_capability",
+      "app_request_access",
+      "app_request_access_by_qr"
+    ],
+    "file": "apps/api/src/modules/access/routes.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "access",
+    "tenantContext": false,
+    "tableTokens": [
+      "code"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/modules/access/totem-pairing.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "access",
+    "tenantContext": false,
+    "tableTokens": [
+      "identity_totem_display"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "identity_totem_display",
+      "identity_totem_pair"
+    ],
+    "file": "apps/api/src/modules/access/totem-routes.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": true
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "alert-rules",
+    "tenantContext": false,
+    "tableTokens": [
+      "app_alert_rule_context",
+      "app_alert_rule_target_context"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_alert_rule_can_read_scope",
+      "app_alert_rule_context",
+      "app_alert_rule_has_capability",
+      "app_alert_rule_lock_target",
+      "app_alert_rule_target_context",
+      "app_alert_rule_target_has_capability"
+    ],
+    "file": "apps/api/src/modules/alert-rules/authorization.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "alert-rules",
+    "tenantContext": true,
+    "tableTokens": [
+      "alert_rules",
+      "alertRules"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/modules/alert-rules/routes.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "alerts",
+    "tenantContext": false,
+    "tableTokens": [
+      "app_alert_authorized_contexts"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_alert_authorized_contexts"
+    ],
+    "file": "apps/api/src/modules/alerts/authorization.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "alerts",
+    "tenantContext": true,
+    "tableTokens": [
+      "alerts"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_alert_can_read_feature_state",
+      "app_alert_has_capability",
+      "app_transition_alert"
+    ],
+    "file": "apps/api/src/modules/alerts/routes.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "assets",
+    "tenantContext": true,
+    "tableTokens": [
+      "asset_device_links",
+      "assets",
+      "devices",
+      "work_orders"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_has_capability"
+    ],
+    "file": "apps/api/src/modules/assets/routes.ts",
+    "capabilityAssert": true,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "audit",
+    "tenantContext": false,
+    "tableTokens": [
+      "auditLogs",
+      "the"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/modules/audit/repo.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "audit",
+    "tenantContext": true,
+    "tableTokens": [
+      "app_audit_query_scope",
+      "audit_logs",
+      "live"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_audit_query_scope"
+    ],
+    "file": "apps/api/src/modules/audit/routes.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "authorization",
+    "tenantContext": true,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_mfa_platform_authorization",
+      "app_mfa_scope_authorization"
+    ],
+    "file": "apps/api/src/modules/authorization/routes.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "automations",
+    "tenantContext": true,
+    "tableTokens": [
+      "app_automation_simulate",
+      "automation_rules",
+      "automation_runs",
+      "automation_versions",
+      "base",
+      "clock_timestamp"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_automation_simulate",
+      "app_has_capability"
+    ],
+    "file": "apps/api/src/modules/automations/routes.ts",
+    "capabilityAssert": true,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "building-events",
+    "tenantContext": true,
+    "tableTokens": [
+      "app_building_event_totals",
+      "building_event_responses",
+      "building_events",
+      "common_areas",
+      "set"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_building_event_totals",
+      "app_building_person_name",
+      "app_has_capability"
+    ],
+    "file": "apps/api/src/modules/building-events/routes.ts",
+    "capabilityAssert": true,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "buildings",
+    "tenantContext": true,
+    "tableTokens": [
+      "bindings",
+      "buildings",
+      "subsequently"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_has_global_capability"
+    ],
+    "file": "apps/api/src/modules/buildings/routes.ts",
+    "capabilityAssert": true,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "common-areas",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_common_area_can_read_scope",
+      "app_common_area_has_capability",
+      "app_has_capability"
+    ],
+    "file": "apps/api/src/modules/common-areas/authorization.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "common-areas",
+    "tenantContext": true,
+    "tableTokens": [
+      "commonAreas"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/modules/common-areas/routes.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "demo",
+    "tenantContext": true,
+    "tableTokens": [
+      "demo_scenarios"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_demo_scenario_set"
+    ],
+    "file": "apps/api/src/modules/demo/routes.ts",
+    "capabilityAssert": true,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "devices",
+    "tenantContext": true,
+    "tableTokens": [
+      "deviceMetrics",
+      "devices"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_list_mfa_devices"
+    ],
+    "file": "apps/api/src/modules/devices/routes.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "equipment",
+    "tenantContext": false,
+    "tableTokens": [
+      "gateway"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_device_can_assign_gateway",
+      "app_device_has_capability",
+      "app_equipment_can_read_scope",
+      "app_gateway_has_capability"
+    ],
+    "file": "apps/api/src/modules/equipment/authorization.ts",
+    "capabilityAssert": true,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "events",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_mfa_alert_event_context"
+    ],
+    "file": "apps/api/src/modules/events/alerts.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "events",
+    "tenantContext": false,
+    "tableTokens": [
+      "listener"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/modules/events/bus.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "events",
+    "tenantContext": false,
+    "tableTokens": [
+      "gateways"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_mfa_device_event_allowed",
+      "app_mfa_device_event_context"
+    ],
+    "file": "apps/api/src/modules/events/equipment.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "events",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_mfa_feature_event_allowed"
+    ],
+    "file": "apps/api/src/modules/events/features.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "events",
+    "tenantContext": true,
+    "tableTokens": [
+      "closing"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/modules/events/routes.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "events",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_mfa_telemetry_event_context"
+    ],
+    "file": "apps/api/src/modules/events/telemetry.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "features",
+    "tenantContext": true,
+    "tableTokens": [
+      "buildingFeatureSettings",
+      "buildings",
+      "globalFeatureSettings"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_apply_feature_transition"
+    ],
+    "file": "apps/api/src/modules/features/routes.ts",
+    "capabilityAssert": true,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "finance",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_finance_can_read_scope",
+      "app_finance_has_capability",
+      "app_has_capability"
+    ],
+    "file": "apps/api/src/modules/finance/authorization.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "finance",
+    "tenantContext": true,
+    "tableTokens": [
+      "financialReports",
+      "RLS"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_finance_can_publish_revision"
+    ],
+    "file": "apps/api/src/modules/finance/routes.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "gateways",
+    "tenantContext": true,
+    "tableTokens": [
+      "gateways"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_list_mfa_gateways"
+    ],
+    "file": "apps/api/src/modules/gateways/routes.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "health.ts",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/modules/health.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "monitoring",
+    "tenantContext": false,
+    "tableTokens": [
+      "app_monitoring_authorized_profiles",
+      "app_monitoring_scope_context"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_monitoring_active_device",
+      "app_monitoring_authorized_profiles",
+      "app_monitoring_can_read_scope",
+      "app_monitoring_device_has_capability",
+      "app_monitoring_scope_context"
+    ],
+    "file": "apps/api/src/modules/monitoring/authorization.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "monitoring",
+    "tenantContext": true,
+    "tableTokens": [
+      "app_published_consumption",
+      "buildings",
+      "dailyUsage",
+      "monitoringProfiles",
+      "usageCursors"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_has_capability",
+      "app_published_consumption",
+      "app_resident_consumption_released",
+      "app_set_resident_consumption"
+    ],
+    "file": "apps/api/src/modules/monitoring/routes.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "mqtt",
+    "tenantContext": false,
+    "tableTokens": [
+      "a",
+      "b",
+      "buildings",
+      "devices",
+      "gates",
+      "gateways"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/modules/mqtt/routes.ts",
+    "capabilityAssert": false,
+    "brokerPool": true,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "notices",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_has_capability",
+      "app_notice_can_read",
+      "app_notice_can_read_scope",
+      "app_notice_has_capability"
+    ],
+    "file": "apps/api/src/modules/notices/authorization.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "notices",
+    "tenantContext": true,
+    "tableTokens": [
+      "logging",
+      "notices",
+      "noticeSchedules"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_notice_has_capability"
+    ],
+    "file": "apps/api/src/modules/notices/routes.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "occurrences",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_occurrence_can_manage_group",
+      "app_occurrence_can_read_scope",
+      "app_occurrence_has_capability"
+    ],
+    "file": "apps/api/src/modules/occurrences/authorization.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "occurrences",
+    "tenantContext": true,
+    "tableTokens": [
+      "occurrenceEvents",
+      "occurrences"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_has_capability",
+      "app_occurrence_assignee_active",
+      "app_occurrence_can_read_scope",
+      "app_occurrence_cancel_own",
+      "app_occurrence_has_capability",
+      "app_occurrence_touch_own"
+    ],
+    "file": "apps/api/src/modules/occurrences/routes.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "organizations",
+    "tenantContext": true,
+    "tableTokens": [
+      "organizations",
+      "permits"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_has_global_capability",
+      "app_list_mfa_organizations"
+    ],
+    "file": "apps/api/src/modules/organizations/routes.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "overview",
+    "tenantContext": false,
+    "tableTokens": [
+      "app_overview_building_scope"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_occurrence_can_read_scope",
+      "app_overview_building_scope"
+    ],
+    "file": "apps/api/src/modules/overview/authorization.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "overview",
+    "tenantContext": true,
+    "tableTokens": [
+      "alerts",
+      "app_alert_authorized_contexts",
+      "app_overview_building_scope",
+      "app_overview_occurrences",
+      "devices",
+      "gateways"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_alert_authorized_contexts",
+      "app_has_global_capability",
+      "app_occurrence_can_read_scope",
+      "app_overview_building_scope",
+      "app_overview_occurrences",
+      "app_overview_platform_health",
+      "app_platform_service_health"
+    ],
+    "file": "apps/api/src/modules/overview/routes.ts",
+    "capabilityAssert": true,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "parking",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_parking_can_read_scope",
+      "app_parking_has_capability",
+      "app_parking_lock_target",
+      "app_parking_sensor_configurable",
+      "app_parking_target_has_capability"
+    ],
+    "file": "apps/api/src/modules/parking/authorization.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "parking",
+    "tenantContext": true,
+    "tableTokens": [
+      "parking_lots",
+      "parkingLots"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/modules/parking/routes.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "reservations",
+    "tenantContext": true,
+    "tableTokens": [
+      "app_reservation_availability",
+      "app_reservation_own_units",
+      "building_events",
+      "commonAreas",
+      "reservations",
+      "the"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_building_person_name",
+      "app_cancel_own_reservation",
+      "app_common_area_has_capability",
+      "app_reservation_area_capability",
+      "app_reservation_availability",
+      "app_reservation_can_create",
+      "app_reservation_can_read_calendar",
+      "app_reservation_can_read_feature_state",
+      "app_reservation_can_read_scope",
+      "app_reservation_has_capability",
+      "app_reservation_own_units"
+    ],
+    "file": "apps/api/src/modules/reservations/routes.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "support-access",
+    "tenantContext": true,
+    "tableTokens": [
+      "buildings",
+      "in",
+      "of",
+      "role_bindings",
+      "roleBindings",
+      "staff",
+      "support_grants",
+      "users"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_has_global_capability"
+    ],
+    "file": "apps/api/src/modules/support-access/routes.ts",
+    "capabilityAssert": true,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "support",
+    "tenantContext": true,
+    "tableTokens": [
+      "buildings",
+      "supportHosts",
+      "supportRequests",
+      "users"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/modules/support/routes.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "telemetry",
+    "tenantContext": false,
+    "tableTokens": [
+      "app_telemetry_authorized_devices"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_telemetry_authorized_devices"
+    ],
+    "file": "apps/api/src/modules/telemetry/authorization.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "telemetry",
+    "tenantContext": true,
+    "tableTokens": [
+      "app_published_water_levels",
+      "app_telemetry_authorized_devices",
+      "LATERAL",
+      "telemetry",
+      "telemetry_series",
+      "the"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_has_capability",
+      "app_published_water_levels",
+      "app_telemetry_authorized_devices"
+    ],
+    "file": "apps/api/src/modules/telemetry/routes.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "tenancy",
+    "tenantContext": true,
+    "tableTokens": [
+      "app_tenancy_people",
+      "blocks",
+      "invitations",
+      "is",
+      "roleBindings",
+      "table",
+      "teamMembers",
+      "teams",
+      "unitMemberships",
+      "units"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_tenancy_is_resident",
+      "app_tenancy_people"
+    ],
+    "file": "apps/api/src/modules/tenancy/routes.ts",
+    "capabilityAssert": true,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "users",
+    "tenantContext": true,
+    "tableTokens": [
+      "memberships",
+      "users"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_has_global_capability"
+    ],
+    "file": "apps/api/src/modules/users/routes.ts",
+    "capabilityAssert": true,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "work-orders",
+    "tenantContext": true,
+    "tableTokens": [
+      "assets",
+      "work_order_events",
+      "work_orders"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_has_capability",
+      "app_work_order_assigned"
+    ],
+    "file": "apps/api/src/modules/work-orders/routes.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "api-infrastructure",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "apps/api/src/server.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [
+      "access_service_next_pending"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "access_service_apply_ack",
+      "access_service_expire_commands",
+      "access_service_fail_pending",
+      "access_service_fail_publish",
+      "access_service_mark_sent",
+      "access_service_next_pending"
+    ],
+    "file": "packages/db/src/access-service-operations.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/access-service.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/apply-infrastructure.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [
+      "pg_class",
+      "pg_constraint",
+      "pg_index",
+      "pg_namespace",
+      "pg_tables",
+      "public",
+      "the"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/baseline-schema.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/bootstrap.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/broker-auth.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_current_user_id",
+      "app_is_platform_admin"
+    ],
+    "file": "packages/db/src/context.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/env.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [
+      "buildingFeatureSettings",
+      "featureRuntime",
+      "globalFeatureSettings"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/features.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/identity.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/index.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [
+      "pg_namespace",
+      "pg_policies",
+      "pg_proc",
+      "pg_roles",
+      "schema_migrations"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/infrastructure-migrations.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [
+      "ingest_lock_monitoring_profiles",
+      "ingest_lock_parking_lot",
+      "ingest_persist_alert",
+      "monitoringProfiles",
+      "parkingLots"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "ingest_alert_outbox_signature",
+      "ingest_count_rejection",
+      "ingest_lock_monitoring_profiles",
+      "ingest_lock_parking_lot",
+      "ingest_persist_alert",
+      "ingest_write_parking_observation"
+    ],
+    "file": "packages/db/src/ingest-operations.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/ingest-projections.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/ingest.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [
+      "pg_roles",
+      "public",
+      "source"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/migration-runner.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [
+      "pg_roles",
+      "timescaledb_information"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_automation_schedule_job"
+    ],
+    "file": "packages/db/src/neon-migrations.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/notifications.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [
+      "pg_auth_members",
+      "pg_roles",
+      "pg_shdepend"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/provision-runtime-roles.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [
+      "pg_catalog"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/runtime-connection.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/runtime-role-credentials.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/runtime.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/schema-access.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/schema-features.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/schema-finance.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/schema-monitoring.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/schema-notice-schedules.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/schema-parking.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [
+      "impersonation"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/schema-rbac.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/schema-support.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/schema.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [
+      "devices",
+      "gates",
+      "monitoringProfiles",
+      "parkingLots"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/seed-features.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [
+      "deviceMetrics",
+      "devices"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/seed-sensors.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [
+      "building_feature_settings",
+      "buildings",
+      "commonAreas",
+      "deviceMetrics",
+      "devices",
+      "gateways",
+      "global_feature_settings",
+      "memberships",
+      "notices",
+      "organizations",
+      "users"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/seed.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [
+      "app_telemetry_authorized_devices",
+      "buildings",
+      "devices",
+      "generate_series",
+      "hypertable_detailed_size",
+      "lateral",
+      "organizations",
+      "pg_indexes",
+      "role_bindings",
+      "telemetry",
+      "telemetry_series",
+      "users"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [
+      "app_telemetry_authorized_devices"
+    ],
+    "file": "packages/db/src/telemetry-capacity.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/telemetry-retention-policy.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [
+      "migrations",
+      "show_chunks",
+      "telemetry",
+      "timescaledb_information"
+    ],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/telemetry-retention.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/transaction.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  },
+  {
+    "withUserContext": false,
+    "inlineMfaGuard": false,
+    "module": "db-package",
+    "tenantContext": false,
+    "tableTokens": [],
+    "mfaQuery": false,
+    "rawDbImport": false,
+    "helpers": [],
+    "file": "packages/db/src/wait-db.ts",
+    "capabilityAssert": false,
+    "brokerPool": false,
+    "identityPool": false
+  }
+]

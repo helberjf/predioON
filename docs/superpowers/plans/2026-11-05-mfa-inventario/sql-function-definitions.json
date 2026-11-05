@@ -1,0 +1,3211 @@
+[
+  {
+    "bodyCalls": [],
+    "arguments": "",
+    "path": "infrastructure/001-timescale-rls.sql",
+    "name": "app_current_user_id",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 33,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "",
+    "path": "infrastructure/001-timescale-rls.sql",
+    "name": "app_is_platform_admin",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 41,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_is_platform_admin"
+    ],
+    "arguments": "target_building_id text",
+    "path": "infrastructure/001-timescale-rls.sql",
+    "name": "app_can_access_building",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 50,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_is_platform_admin"
+    ],
+    "arguments": "target_building_id text",
+    "path": "infrastructure/001-timescale-rls.sql",
+    "name": "app_is_building_admin",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 69,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_can_access_building",
+      "app_is_platform_admin"
+    ],
+    "arguments": "target_organization_id text",
+    "path": "infrastructure/001-timescale-rls.sql",
+    "name": "app_can_access_organization",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 89,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_is_building_admin",
+      "app_is_platform_admin"
+    ],
+    "arguments": "target_user_id text",
+    "path": "infrastructure/001-timescale-rls.sql",
+    "name": "app_can_access_user",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 105,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "",
+    "path": "infrastructure/004-occurrences.sql",
+    "name": "next_occurrence_protocol",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 6,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id"
+    ],
+    "arguments": "target_building_id text",
+    "path": "infrastructure/008-access.sql",
+    "name": "app_access_role",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 36,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_access_role"
+    ],
+    "arguments": "target_gate_id uuid",
+    "path": "infrastructure/008-access.sql",
+    "name": "app_access_request_throttled",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 45,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "",
+    "path": "infrastructure/008-access.sql",
+    "name": "check_access_hardware",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 94,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "",
+    "path": "infrastructure/009-parking-notices.sql",
+    "name": "validate_parking_sensor_scope",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 26,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "",
+    "path": "infrastructure/009-parking-notices.sql",
+    "name": "validate_notice_schedule_scope",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 36,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_is_platform_admin"
+    ],
+    "arguments": "",
+    "path": "infrastructure/010-support.sql",
+    "name": "app_support_admin",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 29,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_is_platform_admin"
+    ],
+    "arguments": "target text, manage boolean DEFAULT false",
+    "path": "infrastructure/011-governance.sql",
+    "name": "app_governance_access",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 6,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_support_admin"
+    ],
+    "arguments": "target text, feature text, enabled_now boolean",
+    "path": "infrastructure/012-features.sql",
+    "name": "app_apply_feature_transition",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 49,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "resource_type text, resource_id text",
+    "path": "infrastructure/014-rbac-tenancy.sql",
+    "name": "app_rbac_scope_valid",
+    "mfaGuardToken": false,
+    "volatility": "IMMUTABLE",
+    "line": 218,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "active boolean, starts_at timestamptz, ends_at timestamptz",
+    "path": "infrastructure/014-rbac-tenancy.sql",
+    "name": "app_rbac_window",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 224,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id"
+    ],
+    "arguments": "target_building_id text",
+    "path": "infrastructure/014-rbac-tenancy.sql",
+    "name": "app_rbac_tenant_active",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 251,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_rbac_window"
+    ],
+    "arguments": "target_user_id text, target_role text",
+    "path": "infrastructure/014-rbac-tenancy.sql",
+    "name": "app_rbac_platform_role",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 259,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_rbac_platform_role"
+    ],
+    "arguments": "target_capability text",
+    "path": "infrastructure/014-rbac-tenancy.sql",
+    "name": "app_has_global_capability",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 271,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_rbac_tenant_active",
+      "app_rbac_window"
+    ],
+    "arguments": "target_building_id text, target_team_id uuid",
+    "path": "infrastructure/014-rbac-tenancy.sql",
+    "name": "app_rbac_team_member",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 278,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_rbac_platform_role",
+      "app_rbac_scope_valid",
+      "app_rbac_team_member",
+      "app_rbac_tenant_active",
+      "app_rbac_window"
+    ],
+    "arguments": "\n  target_building_id text, target_capability text,\n  target_resource_type text DEFAULT NULL, target_resource_id text DEFAULT NULL\n",
+    "path": "infrastructure/014-rbac-tenancy.sql",
+    "name": "app_has_capability",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 286,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_rbac_tenant_active",
+      "app_rbac_window"
+    ],
+    "arguments": "target_building_id text, target_unit_id uuid",
+    "path": "infrastructure/014-rbac-tenancy.sql",
+    "name": "app_rbac_own_unit",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 322,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_has_capability",
+      "app_has_global_capability",
+      "app_rbac_scope_valid"
+    ],
+    "arguments": "\n  target_building_id text, target_role text, target_resource_type text, target_resource_id text\n",
+    "path": "infrastructure/014-rbac-tenancy.sql",
+    "name": "app_rbac_can_delegate",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 331,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "target_user_id text",
+    "path": "infrastructure/015-api-runtime-roles.sql",
+    "name": "identity_lock_account_active",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 90,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_rbac_platform_role"
+    ],
+    "arguments": "target_capability text",
+    "path": "infrastructure/016-building-feature-capabilities.sql",
+    "name": "app_has_global_capability",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 16,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_has_capability",
+      "app_has_global_capability",
+      "app_rbac_team_member",
+      "app_rbac_tenant_active",
+      "app_rbac_window"
+    ],
+    "arguments": "target_building_id text",
+    "path": "infrastructure/016-building-feature-capabilities.sql",
+    "name": "app_can_discover_building",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 27,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_has_global_capability"
+    ],
+    "arguments": "target text, feature text, enabled_now boolean",
+    "path": "infrastructure/016-building-feature-capabilities.sql",
+    "name": "app_apply_feature_transition",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 96,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_has_capability",
+      "app_rbac_team_member",
+      "app_rbac_window"
+    ],
+    "arguments": "\n target_building_id text DEFAULT NULL, target_capability text DEFAULT 'telemetry:read'\n",
+    "path": "infrastructure/017-telemetry-capabilities.sql",
+    "name": "app_telemetry_authorized_devices",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 14,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_has_capability",
+      "app_telemetry_authorized_devices"
+    ],
+    "arguments": "target_building_id text",
+    "path": "infrastructure/017-telemetry-capabilities.sql",
+    "name": "app_telemetry_can_read_feature_state",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 51,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_telemetry_authorized_devices"
+    ],
+    "arguments": "target_building_id text",
+    "path": "infrastructure/017-telemetry-capabilities.sql",
+    "name": "app_published_water_levels",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 68,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_has_capability"
+    ],
+    "arguments": "target_building_id text,target_alert_id text,target_capability text",
+    "path": "infrastructure/018-alert-capabilities.sql",
+    "name": "app_alert_has_capability",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 12,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_alert_has_capability",
+      "app_current_user_id",
+      "app_rbac_team_member",
+      "app_rbac_window"
+    ],
+    "arguments": "target_building_id text DEFAULT NULL,target_alert_id uuid DEFAULT NULL",
+    "path": "infrastructure/018-alert-capabilities.sql",
+    "name": "app_alert_authorized_contexts",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 30,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_alert_has_capability",
+      "app_current_user_id",
+      "app_has_capability",
+      "app_rbac_team_member",
+      "app_rbac_window"
+    ],
+    "arguments": "target_building_id text",
+    "path": "infrastructure/018-alert-capabilities.sql",
+    "name": "app_alert_can_read_feature_state",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 69,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_alert_has_capability",
+      "app_current_user_id"
+    ],
+    "arguments": "target_alert_id uuid,target_status text,request_ip text DEFAULT NULL,request_user_agent text DEFAULT NULL",
+    "path": "infrastructure/018-alert-capabilities.sql",
+    "name": "app_transition_alert",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 103,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "\n  target_building_id text, target_resource_type text, target_resource_id text\n",
+    "path": "infrastructure/019-building-discovery-resource-validation.sql",
+    "name": "app_discovery_resource_belongs",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 4,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_discovery_resource_belongs",
+      "app_has_capability",
+      "app_has_global_capability",
+      "app_rbac_team_member",
+      "app_rbac_tenant_active",
+      "app_rbac_window"
+    ],
+    "arguments": "target_building_id text",
+    "path": "infrastructure/019-building-discovery-resource-validation.sql",
+    "name": "app_can_discover_building",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 55,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_rbac_tenant_active",
+      "app_rbac_window"
+    ],
+    "arguments": "target_building_id text,target_gate_id uuid",
+    "path": "infrastructure/020-equipment-capabilities.sql",
+    "name": "app_access_hardware_state",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 7,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "target_building_id text,target_gateway_id text",
+    "path": "infrastructure/020-equipment-capabilities.sql",
+    "name": "app_equipment_gateway_belongs",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 25,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_equipment_gateway_belongs",
+      "app_has_capability"
+    ],
+    "arguments": "target_building_id text,target_device_id text,target_capability text",
+    "path": "infrastructure/020-equipment-capabilities.sql",
+    "name": "app_device_has_capability",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 32,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_has_capability"
+    ],
+    "arguments": "target_building_id text,target_gateway_id text,target_capability text",
+    "path": "infrastructure/020-equipment-capabilities.sql",
+    "name": "app_gateway_has_capability",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 40,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_device_has_capability"
+    ],
+    "arguments": "target_building_id text,target_metric_id text,target_capability text",
+    "path": "infrastructure/020-equipment-capabilities.sql",
+    "name": "app_device_metric_has_capability",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 47,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_device_has_capability",
+      "app_equipment_gateway_belongs",
+      "app_has_capability"
+    ],
+    "arguments": "target_building_id text,target_device_id text,target_gateway_id text",
+    "path": "infrastructure/020-equipment-capabilities.sql",
+    "name": "app_device_can_assign_gateway",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 59,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_device_has_capability",
+      "app_gateway_has_capability",
+      "app_has_capability",
+      "app_rbac_team_member",
+      "app_rbac_window"
+    ],
+    "arguments": "target_building_id text,target_resource_type text",
+    "path": "infrastructure/020-equipment-capabilities.sql",
+    "name": "app_equipment_can_read_scope",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 71,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "active boolean, starts_at timestamptz, ends_at timestamptz",
+    "path": "infrastructure/021-authorization-time-windows.sql",
+    "name": "app_rbac_window",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 5,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "active boolean, starts_at timestamptz, ends_at timestamptz, evaluated_at timestamptz",
+    "path": "infrastructure/021-authorization-time-windows.sql",
+    "name": "app_rbac_window_at",
+    "mfaGuardToken": false,
+    "volatility": "IMMUTABLE",
+    "line": 13,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [
+      "app_rbac_window_at"
+    ],
+    "arguments": "target_user_id text, target_role text, evaluated_at timestamptz",
+    "path": "infrastructure/021-authorization-time-windows.sql",
+    "name": "app_rbac_platform_role_at",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 21,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_rbac_tenant_active",
+      "app_rbac_window_at"
+    ],
+    "arguments": "target_building_id text, target_team_id uuid, evaluated_at timestamptz",
+    "path": "infrastructure/021-authorization-time-windows.sql",
+    "name": "app_rbac_team_member_at",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 34,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_rbac_platform_role_at",
+      "app_rbac_scope_valid",
+      "app_rbac_team_member_at",
+      "app_rbac_tenant_active",
+      "app_rbac_window_at"
+    ],
+    "arguments": "\n  target_building_id text, target_capability text,\n  target_resource_type text, target_resource_id text, evaluated_at timestamptz\n",
+    "path": "infrastructure/021-authorization-time-windows.sql",
+    "name": "app_has_capability_at",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 43,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_rbac_platform_role_at"
+    ],
+    "arguments": "target_capability text, evaluated_at timestamptz",
+    "path": "infrastructure/021-authorization-time-windows.sql",
+    "name": "app_has_global_capability_at",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 80,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_rbac_platform_role_at"
+    ],
+    "arguments": "target_user_id text, target_role text",
+    "path": "infrastructure/021-authorization-time-windows.sql",
+    "name": "app_rbac_platform_role",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 89,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_rbac_team_member_at"
+    ],
+    "arguments": "target_building_id text, target_team_id uuid",
+    "path": "infrastructure/021-authorization-time-windows.sql",
+    "name": "app_rbac_team_member",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 94,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_has_capability_at"
+    ],
+    "arguments": "target_building_id text, target_capability text, target_resource_type text DEFAULT NULL, target_resource_id text DEFAULT NULL",
+    "path": "infrastructure/021-authorization-time-windows.sql",
+    "name": "app_has_capability",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 99,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_has_global_capability_at"
+    ],
+    "arguments": "target_capability text",
+    "path": "infrastructure/021-authorization-time-windows.sql",
+    "name": "app_has_global_capability",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 104,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_has_capability_at"
+    ],
+    "arguments": "target_building_id text,target_alert_id text,target_capability text, evaluated_at timestamptz",
+    "path": "infrastructure/021-authorization-time-windows.sql",
+    "name": "app_alert_has_capability_at",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 109,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_alert_has_capability_at"
+    ],
+    "arguments": "target_building_id text,target_alert_id text,target_capability text",
+    "path": "infrastructure/021-authorization-time-windows.sql",
+    "name": "app_alert_has_capability",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 125,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_has_capability",
+      "app_rbac_team_member",
+      "app_rbac_window"
+    ],
+    "arguments": "\n target_building_id text DEFAULT NULL, target_capability text DEFAULT 'telemetry:read'\n",
+    "path": "infrastructure/021-authorization-time-windows.sql",
+    "name": "app_telemetry_authorized_devices",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 130,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_alert_has_capability",
+      "app_current_user_id",
+      "app_rbac_team_member",
+      "app_rbac_window"
+    ],
+    "arguments": "target_building_id text DEFAULT NULL,target_alert_id uuid DEFAULT NULL",
+    "path": "infrastructure/021-authorization-time-windows.sql",
+    "name": "app_alert_authorized_contexts",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 169,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_alert_has_capability",
+      "app_current_user_id",
+      "app_has_capability",
+      "app_rbac_team_member",
+      "app_rbac_window"
+    ],
+    "arguments": "target_building_id text",
+    "path": "infrastructure/021-authorization-time-windows.sql",
+    "name": "app_alert_can_read_feature_state",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 203,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_device_has_capability",
+      "app_gateway_has_capability",
+      "app_has_capability",
+      "app_rbac_team_member",
+      "app_rbac_window"
+    ],
+    "arguments": "target_building_id text,target_resource_type text",
+    "path": "infrastructure/021-authorization-time-windows.sql",
+    "name": "app_equipment_can_read_scope",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 229,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_alert_has_capability",
+      "app_alert_has_capability_at",
+      "app_current_user_id"
+    ],
+    "arguments": "target_alert_id uuid,target_status text,request_ip text DEFAULT NULL,request_user_agent text DEFAULT NULL",
+    "path": "infrastructure/021-authorization-time-windows.sql",
+    "name": "app_transition_alert",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 269,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_has_global_capability",
+      "app_has_global_capability_at"
+    ],
+    "arguments": "target text, feature text, enabled_now boolean",
+    "path": "infrastructure/021-authorization-time-windows.sql",
+    "name": "app_apply_feature_transition",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 311,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_device_has_capability"
+    ],
+    "arguments": "target_building_id text,target_device_id text",
+    "path": "infrastructure/022-equipment-events-capabilities.sql",
+    "name": "app_equipment_device_classification",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 3,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_alert_can_read_feature_state",
+      "app_can_discover_building",
+      "app_equipment_can_read_scope",
+      "app_has_global_capability",
+      "app_telemetry_can_read_feature_state"
+    ],
+    "arguments": "target_building_id text",
+    "path": "infrastructure/022-equipment-events-capabilities.sql",
+    "name": "app_can_read_feature_event",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 19,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_device_has_capability",
+      "app_equipment_gateway_belongs",
+      "app_has_capability"
+    ],
+    "arguments": "target_building_id text,target_device_id text,target_capability text",
+    "path": "infrastructure/023-monitoring-capabilities.sql",
+    "name": "app_monitoring_device_has_capability",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 3,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_monitoring_device_has_capability"
+    ],
+    "arguments": "target_building_id text,target_profile_id text,target_capability text",
+    "path": "infrastructure/023-monitoring-capabilities.sql",
+    "name": "app_monitoring_profile_has_capability",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 16,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_equipment_gateway_belongs",
+      "app_telemetry_authorized_devices"
+    ],
+    "arguments": "target_building_id text DEFAULT NULL",
+    "path": "infrastructure/023-monitoring-capabilities.sql",
+    "name": "app_monitoring_authorized_profiles",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 26,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_equipment_gateway_belongs",
+      "app_has_capability",
+      "app_rbac_tenant_active",
+      "app_telemetry_authorized_devices"
+    ],
+    "arguments": "target_building_id text",
+    "path": "infrastructure/023-monitoring-capabilities.sql",
+    "name": "app_monitoring_can_read_scope",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 38,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_monitoring_can_read_scope"
+    ],
+    "arguments": "target_building_id text",
+    "path": "infrastructure/023-monitoring-capabilities.sql",
+    "name": "app_monitoring_scope_context",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 51,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_equipment_gateway_belongs",
+      "app_monitoring_can_read_scope",
+      "app_monitoring_device_has_capability"
+    ],
+    "arguments": "target_building_id text,target_device_id text",
+    "path": "infrastructure/023-monitoring-capabilities.sql",
+    "name": "app_monitoring_active_device",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 55,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_rbac_platform_role_at"
+    ],
+    "arguments": "target_capability text, evaluated_at timestamptz",
+    "path": "infrastructure/024-overview-capabilities.sql",
+    "name": "app_has_global_capability_at",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 10,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_equipment_gateway_belongs",
+      "app_has_global_capability"
+    ],
+    "arguments": "",
+    "path": "infrastructure/024-overview-capabilities.sql",
+    "name": "app_overview_platform_health",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 21,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_alert_can_read_feature_state",
+      "app_current_user_id",
+      "app_discovery_resource_belongs",
+      "app_equipment_can_read_scope",
+      "app_equipment_gateway_belongs",
+      "app_has_capability",
+      "app_rbac_team_member",
+      "app_rbac_tenant_active",
+      "app_rbac_window",
+      "app_telemetry_authorized_devices"
+    ],
+    "arguments": "target_building_id text",
+    "path": "infrastructure/024-overview-capabilities.sql",
+    "name": "app_overview_building_scope",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 77,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_discovery_resource_belongs",
+      "app_has_capability",
+      "app_rbac_window"
+    ],
+    "arguments": "\n  target_building_id text,\n  after_user_id text DEFAULT NULL,\n  requested_limit integer DEFAULT 50\n",
+    "path": "infrastructure/025-tenancy-directory.sql",
+    "name": "app_tenancy_people",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 4,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_has_capability"
+    ],
+    "arguments": "target_building_id text, target_notice_id text, target_capability text",
+    "path": "infrastructure/026-notices-capabilities.sql",
+    "name": "app_notice_has_capability",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 3,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_notice_has_capability"
+    ],
+    "arguments": "target_building_id text, target_notice_id text",
+    "path": "infrastructure/026-notices-capabilities.sql",
+    "name": "app_notice_can_read",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 15,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_has_capability",
+      "app_notice_has_capability",
+      "app_rbac_team_member",
+      "app_rbac_window"
+    ],
+    "arguments": "target_building_id text, require_management boolean DEFAULT false",
+    "path": "infrastructure/026-notices-capabilities.sql",
+    "name": "app_notice_can_read_scope",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 27,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_notice_can_read_scope"
+    ],
+    "arguments": "target_building_id text",
+    "path": "infrastructure/026-notices-capabilities.sql",
+    "name": "app_notice_can_read_feature_state",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 46,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_has_capability_at"
+    ],
+    "arguments": "target_building_id text,target_occurrence_id text,target_capability text,evaluated_at timestamptz",
+    "path": "infrastructure/027-occurrences-capabilities.sql",
+    "name": "app_occurrence_has_capability_at",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 3,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_occurrence_has_capability_at"
+    ],
+    "arguments": "target_building_id text,target_occurrence_id text,target_capability text",
+    "path": "infrastructure/027-occurrences-capabilities.sql",
+    "name": "app_occurrence_has_capability",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 13,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_has_capability",
+      "app_occurrence_has_capability",
+      "app_rbac_team_member",
+      "app_rbac_window"
+    ],
+    "arguments": "target_building_id text,require_management boolean DEFAULT false",
+    "path": "infrastructure/027-occurrences-capabilities.sql",
+    "name": "app_occurrence_can_read_scope",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 17,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_occurrence_can_read_scope"
+    ],
+    "arguments": "target_building_id text",
+    "path": "infrastructure/027-occurrences-capabilities.sql",
+    "name": "app_occurrence_can_read_feature_state",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 31,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_occurrence_has_capability"
+    ],
+    "arguments": "target_building_id text,target_occurrence_id text",
+    "path": "infrastructure/027-occurrences-capabilities.sql",
+    "name": "app_occurrence_cancelled_own",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 35,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_occurrence_has_capability"
+    ],
+    "arguments": "target_building_id text,target_group_id text",
+    "path": "infrastructure/027-occurrences-capabilities.sql",
+    "name": "app_occurrence_group_can_manage",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 42,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_occurrence_group_can_manage",
+      "app_occurrence_has_capability"
+    ],
+    "arguments": "target_building_id text,target_occurrence_id text",
+    "path": "infrastructure/027-occurrences-capabilities.sql",
+    "name": "app_occurrence_can_manage_group",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 49,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_discovery_resource_belongs",
+      "app_occurrence_has_capability",
+      "app_rbac_window"
+    ],
+    "arguments": "target_building_id text,target_occurrence_id text,target_user_id text",
+    "path": "infrastructure/027-occurrences-capabilities.sql",
+    "name": "app_occurrence_assignee_active",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 56,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_occurrence_has_capability",
+      "app_occurrence_has_capability_at"
+    ],
+    "arguments": "target_building_id text,target_occurrence_id uuid",
+    "path": "infrastructure/027-occurrences-capabilities.sql",
+    "name": "app_occurrence_cancel_own",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 101,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_occurrence_has_capability",
+      "app_occurrence_has_capability_at"
+    ],
+    "arguments": "target_building_id text,target_occurrence_id uuid",
+    "path": "infrastructure/027-occurrences-capabilities.sql",
+    "name": "app_occurrence_touch_own",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 119,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_has_capability"
+    ],
+    "arguments": "target_building_id text, target_area_id text, target_capability text",
+    "path": "infrastructure/028-common-areas-capabilities.sql",
+    "name": "app_common_area_has_capability",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 38,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_common_area_has_capability",
+      "app_current_user_id",
+      "app_has_capability",
+      "app_rbac_team_member",
+      "app_rbac_window"
+    ],
+    "arguments": "target_building_id text",
+    "path": "infrastructure/028-common-areas-capabilities.sql",
+    "name": "app_common_area_can_read_scope",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 48,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_has_capability"
+    ],
+    "arguments": "target_building_id text,target_area_id text,target_capability text",
+    "path": "infrastructure/029-reservations-capabilities.sql",
+    "name": "app_reservation_area_capability",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 42,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_has_capability_at"
+    ],
+    "arguments": "target_building_id text,target_reservation_id text,target_capability text,evaluated_at timestamptz",
+    "path": "infrastructure/029-reservations-capabilities.sql",
+    "name": "app_reservation_has_capability_at",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 50,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_reservation_has_capability_at"
+    ],
+    "arguments": "target_building_id text,target_reservation_id text,target_capability text",
+    "path": "infrastructure/029-reservations-capabilities.sql",
+    "name": "app_reservation_has_capability",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 64,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_reservation_has_capability"
+    ],
+    "arguments": "target_building_id text,target_reservation_id text",
+    "path": "infrastructure/029-reservations-capabilities.sql",
+    "name": "app_reservation_can_read",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 68,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_has_capability",
+      "app_reservation_area_capability"
+    ],
+    "arguments": "target_building_id text,target_area_id text",
+    "path": "infrastructure/029-reservations-capabilities.sql",
+    "name": "app_reservation_can_create",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 73,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_common_area_has_capability",
+      "app_reservation_area_capability"
+    ],
+    "arguments": "target_building_id text,target_area_id text",
+    "path": "infrastructure/029-reservations-capabilities.sql",
+    "name": "app_reservation_can_read_calendar",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 82,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_common_area_has_capability",
+      "app_current_user_id",
+      "app_has_capability",
+      "app_rbac_team_member",
+      "app_rbac_window",
+      "app_reservation_area_capability",
+      "app_reservation_can_read"
+    ],
+    "arguments": "target_building_id text",
+    "path": "infrastructure/029-reservations-capabilities.sql",
+    "name": "app_reservation_can_read_scope",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 87,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_has_capability",
+      "app_rbac_team_member",
+      "app_rbac_window",
+      "app_reservation_can_read_calendar",
+      "app_reservation_can_read_scope"
+    ],
+    "arguments": "target_building_id text",
+    "path": "infrastructure/029-reservations-capabilities.sql",
+    "name": "app_reservation_can_read_feature_state",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 101,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_reservation_has_capability"
+    ],
+    "arguments": "",
+    "path": "infrastructure/029-reservations-capabilities.sql",
+    "name": "app_reservation_transition_guard",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 134,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [
+      "app_reservation_has_capability_at"
+    ],
+    "arguments": "target_reservation_id text",
+    "path": "infrastructure/029-reservations-capabilities.sql",
+    "name": "app_cancel_own_reservation",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 163,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_reservation_can_read_calendar"
+    ],
+    "arguments": "target_building_id text,target_area_id text,target_from timestamptz,target_to timestamptz",
+    "path": "infrastructure/029-reservations-capabilities.sql",
+    "name": "app_reservation_availability",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 187,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_has_capability"
+    ],
+    "arguments": "target_building_id text,target_report_id text,target_capability text",
+    "path": "infrastructure/030-finance-capabilities.sql",
+    "name": "app_finance_has_capability",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 11,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_finance_has_capability"
+    ],
+    "arguments": "target_building_id text,target_report_id text",
+    "path": "infrastructure/030-finance-capabilities.sql",
+    "name": "app_finance_can_read",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 21,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_finance_can_read",
+      "app_has_capability",
+      "app_rbac_team_member",
+      "app_rbac_window"
+    ],
+    "arguments": "target_building_id text",
+    "path": "infrastructure/030-finance-capabilities.sql",
+    "name": "app_finance_can_read_scope",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 26,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_finance_can_read_scope"
+    ],
+    "arguments": "target_building_id text",
+    "path": "infrastructure/030-finance-capabilities.sql",
+    "name": "app_finance_can_read_feature_state",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 35,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_has_capability"
+    ],
+    "arguments": "target_building_id text,target_report_id text",
+    "path": "infrastructure/030-finance-capabilities.sql",
+    "name": "app_finance_can_publish_revision",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 41,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_has_capability",
+      "app_occurrence_can_read_scope",
+      "app_occurrence_has_capability"
+    ],
+    "arguments": "target_building_id text",
+    "path": "infrastructure/031-overview-occurrences.sql",
+    "name": "app_overview_occurrences",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 2,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "target_building_id text,target_device_id text",
+    "path": "infrastructure/032-alert-rules-capabilities.sql",
+    "name": "app_alert_rule_parent_valid",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 37,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_alert_rule_parent_valid",
+      "app_has_capability"
+    ],
+    "arguments": "target_building_id text,target_device_id text,target_capability text",
+    "path": "infrastructure/032-alert-rules-capabilities.sql",
+    "name": "app_alert_rule_target_has_capability",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 43,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_alert_rule_parent_valid",
+      "app_has_capability"
+    ],
+    "arguments": "target_building_id text,target_rule_id text,target_capability text",
+    "path": "infrastructure/032-alert-rules-capabilities.sql",
+    "name": "app_alert_rule_has_capability",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 50,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_alert_rule_has_capability",
+      "app_alert_rule_target_has_capability"
+    ],
+    "arguments": "target_building_id text,target_rule_id text,target_device_id text",
+    "path": "infrastructure/032-alert-rules-capabilities.sql",
+    "name": "app_alert_rule_lock_target",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 62,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_alert_rule_has_capability",
+      "app_alert_rule_target_has_capability",
+      "app_current_user_id",
+      "app_has_capability",
+      "app_rbac_team_member",
+      "app_rbac_window"
+    ],
+    "arguments": "target_building_id text",
+    "path": "infrastructure/032-alert-rules-capabilities.sql",
+    "name": "app_alert_rule_can_read_scope",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 81,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_alert_rule_has_capability"
+    ],
+    "arguments": "target_building_id text,target_rule_id text",
+    "path": "infrastructure/032-alert-rules-capabilities.sql",
+    "name": "app_alert_rule_context",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 92,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_alert_rule_target_has_capability"
+    ],
+    "arguments": "target_building_id text,target_device_id text",
+    "path": "infrastructure/032-alert-rules-capabilities.sql",
+    "name": "app_alert_rule_target_context",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 102,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_alert_rule_target_has_capability",
+      "app_current_user_id"
+    ],
+    "arguments": "",
+    "path": "infrastructure/032-alert-rules-capabilities.sql",
+    "name": "app_alert_rule_target_guard",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 135,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "target_building_id text,target_sensor_id text",
+    "path": "infrastructure/033-parking-capabilities.sql",
+    "name": "app_parking_parent_valid",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 38,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_has_capability",
+      "app_parking_parent_valid"
+    ],
+    "arguments": "target_building_id text,target_sensor_id text,target_capability text",
+    "path": "infrastructure/033-parking-capabilities.sql",
+    "name": "app_parking_target_has_capability",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 44,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_has_capability",
+      "app_parking_parent_valid"
+    ],
+    "arguments": "target_building_id text,target_parking_id text,target_capability text",
+    "path": "infrastructure/033-parking-capabilities.sql",
+    "name": "app_parking_has_capability",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 51,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_parking_has_capability",
+      "app_parking_target_has_capability"
+    ],
+    "arguments": "target_building_id text,target_parking_id text,target_sensor_id text",
+    "path": "infrastructure/033-parking-capabilities.sql",
+    "name": "app_parking_lock_target",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 62,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_has_capability",
+      "app_parking_has_capability",
+      "app_parking_target_has_capability",
+      "app_rbac_team_member",
+      "app_rbac_window"
+    ],
+    "arguments": "target_building_id text",
+    "path": "infrastructure/033-parking-capabilities.sql",
+    "name": "app_parking_can_read_scope",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 81,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_parking_has_capability",
+      "app_parking_target_has_capability"
+    ],
+    "arguments": "target_building_id text,target_parking_id text,target_sensor_id text",
+    "path": "infrastructure/033-parking-capabilities.sql",
+    "name": "app_parking_sensor_configurable",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 93,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_parking_parent_valid"
+    ],
+    "arguments": "",
+    "path": "infrastructure/033-parking-capabilities.sql",
+    "name": "validate_parking_sensor_scope",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 122,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_parking_sensor_configurable",
+      "app_parking_target_has_capability"
+    ],
+    "arguments": "",
+    "path": "infrastructure/033-parking-capabilities.sql",
+    "name": "app_parking_target_guard",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 131,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "target_building_id text,target_gateway_id text,target_device_id text",
+    "path": "infrastructure/034-access-capabilities.sql",
+    "name": "app_access_parent_valid",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 43,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_access_parent_valid",
+      "app_has_capability_at"
+    ],
+    "arguments": "target_building_id text,target_gateway_id text,target_device_id text,target_capability text,evaluated_at timestamptz",
+    "path": "infrastructure/034-access-capabilities.sql",
+    "name": "app_access_target_has_capability_at",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 50,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_access_target_has_capability_at"
+    ],
+    "arguments": "target_building_id text,target_gateway_id text,target_device_id text,target_capability text",
+    "path": "infrastructure/034-access-capabilities.sql",
+    "name": "app_access_target_has_capability",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 59,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_access_parent_valid",
+      "app_has_capability_at"
+    ],
+    "arguments": "target_building_id text,target_gate_id text,target_capability text,evaluated_at timestamptz",
+    "path": "infrastructure/034-access-capabilities.sql",
+    "name": "app_access_has_capability_at",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 64,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_access_has_capability_at"
+    ],
+    "arguments": "target_building_id text,target_gate_id text,target_capability text",
+    "path": "infrastructure/034-access-capabilities.sql",
+    "name": "app_access_has_capability",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 75,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_access_has_capability",
+      "app_access_parent_valid",
+      "app_current_user_id",
+      "app_has_capability",
+      "app_rbac_team_member",
+      "app_rbac_window"
+    ],
+    "arguments": "target_building_id text",
+    "path": "infrastructure/034-access-capabilities.sql",
+    "name": "app_access_can_read_scope",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 80,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_access_has_capability_at"
+    ],
+    "arguments": "target_building_id text,target_gate_id text,evaluated_at timestamptz",
+    "path": "infrastructure/034-access-capabilities.sql",
+    "name": "app_access_request_permitted_at",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 96,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_access_request_permitted_at"
+    ],
+    "arguments": "target_building_id text,target_gate_id text",
+    "path": "infrastructure/034-access-capabilities.sql",
+    "name": "app_access_request_permitted",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 105,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_access_has_capability_at",
+      "app_access_parent_valid",
+      "app_current_user_id"
+    ],
+    "arguments": "target_building_id text,target_command_id text,evaluated_at timestamptz",
+    "path": "infrastructure/034-access-capabilities.sql",
+    "name": "app_access_command_can_read_at",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 110,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_access_command_can_read_at"
+    ],
+    "arguments": "target_building_id text,target_command_id text",
+    "path": "infrastructure/034-access-capabilities.sql",
+    "name": "app_access_command_can_read",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 120,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "target_building_id text,target_kind text",
+    "path": "infrastructure/034-access-capabilities.sql",
+    "name": "app_access_feature_enabled",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 127,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_access_parent_valid"
+    ],
+    "arguments": "target_gate_id uuid,evaluated_at timestamptz",
+    "path": "infrastructure/034-access-capabilities.sql",
+    "name": "app_access_operational_reason",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 136,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_access_has_capability",
+      "app_access_parent_valid",
+      "app_access_target_has_capability"
+    ],
+    "arguments": "target_building_id text,target_gate_id text,target_gateway_id text,target_device_id text",
+    "path": "infrastructure/034-access-capabilities.sql",
+    "name": "app_access_config_target",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 155,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_access_config_target",
+      "app_access_has_capability",
+      "app_access_has_capability_at",
+      "app_access_target_has_capability_at"
+    ],
+    "arguments": "target_building_id text,target_gate_id text,target_gateway_id text,target_device_id text",
+    "path": "infrastructure/034-access-capabilities.sql",
+    "name": "app_access_lock_target",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 165,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_access_has_capability"
+    ],
+    "arguments": "target_building_id text,target_gate_id uuid",
+    "path": "infrastructure/034-access-capabilities.sql",
+    "name": "app_access_hardware_state",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 185,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_access_parent_valid"
+    ],
+    "arguments": "",
+    "path": "infrastructure/034-access-capabilities.sql",
+    "name": "check_access_hardware",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 219,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_access_target_has_capability",
+      "app_current_user_id"
+    ],
+    "arguments": "",
+    "path": "infrastructure/034-access-capabilities.sql",
+    "name": "app_access_target_guard",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 226,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [
+      "app_access_command_can_read_at",
+      "app_access_feature_enabled",
+      "app_access_operational_reason",
+      "app_access_request_permitted_at",
+      "app_current_user_id"
+    ],
+    "arguments": "target_gate_id uuid,target_request_id uuid,request_ip text DEFAULT NULL,request_user_agent text DEFAULT NULL",
+    "path": "infrastructure/034-access-capabilities.sql",
+    "name": "app_request_access",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 268,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_access_feature_enabled",
+      "app_access_operational_reason",
+      "app_access_parent_valid",
+      "app_access_request_permitted_at"
+    ],
+    "arguments": "target_command_id uuid",
+    "path": "infrastructure/034-access-capabilities.sql",
+    "name": "app_mark_access_sent",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 375,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "target_scope text,target_key bytea",
+    "path": "infrastructure/035-login-throttling.sql",
+    "name": "identity_consume_login_bucket",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 15,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "identity_consume_login_bucket"
+    ],
+    "arguments": "network_key bytea,account_key bytea",
+    "path": "infrastructure/035-login-throttling.sql",
+    "name": "identity_take_login_budget",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 48,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "",
+    "path": "infrastructure/036-audit-capabilities.sql",
+    "name": "app_audit_capture_scope",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 47,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "value text",
+    "path": "infrastructure/036-audit-capabilities.sql",
+    "name": "app_audit_resource_type",
+    "mfaGuardToken": false,
+    "volatility": "IMMUTABLE",
+    "line": 69,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [
+      "app_audit_resource_type",
+      "app_discovery_resource_belongs",
+      "app_has_capability",
+      "app_rbac_tenant_active"
+    ],
+    "arguments": "target_building text,target_type text,target_id text",
+    "path": "infrastructure/036-audit-capabilities.sql",
+    "name": "app_audit_local_read",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 74,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_audit_local_read",
+      "app_has_global_capability"
+    ],
+    "arguments": "category text,target_building text,target_type text,target_id text",
+    "path": "infrastructure/036-audit-capabilities.sql",
+    "name": "app_audit_row_visible",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 82,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_discovery_resource_belongs",
+      "app_has_capability",
+      "app_has_global_capability",
+      "app_rbac_team_member"
+    ],
+    "arguments": "target_building text DEFAULT NULL",
+    "path": "infrastructure/036-audit-capabilities.sql",
+    "name": "app_audit_can_query",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 88,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_discovery_resource_belongs",
+      "app_has_capability",
+      "app_has_global_capability",
+      "app_rbac_team_member"
+    ],
+    "arguments": "target_building text DEFAULT NULL",
+    "path": "infrastructure/036-audit-capabilities.sql",
+    "name": "app_audit_query_scope",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 107,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id"
+    ],
+    "arguments": "",
+    "path": "infrastructure/036-audit-capabilities.sql",
+    "name": "app_audit_legacy_platform_actor",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 127,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_audit_legacy_platform_actor",
+      "app_current_user_id",
+      "app_has_capability",
+      "app_support_admin"
+    ],
+    "arguments": "target_building text,action_name text,target_type text,target_id text",
+    "path": "infrastructure/036-audit-capabilities.sql",
+    "name": "app_audit_legacy_insert",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 134,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_audit_legacy_platform_actor",
+      "app_has_global_capability"
+    ],
+    "arguments": "category text,target_building text,action_name text,target_type text,target_id text",
+    "path": "infrastructure/036-audit-capabilities.sql",
+    "name": "app_audit_platform_insert",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 191,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "\n  target_user_id text, current_session_id uuid, observed_hash text, replacement_hash text\n",
+    "path": "infrastructure/037-password-change.sql",
+    "name": "identity_replace_password",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 3,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "",
+    "path": "infrastructure/038-durable-alert-delivery.sql",
+    "name": "notification_immutable",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 72,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "",
+    "path": "infrastructure/038-durable-alert-delivery.sql",
+    "name": "notification_delivery_identity",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 77,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "device_type text",
+    "path": "infrastructure/038-durable-alert-delivery.sql",
+    "name": "notification_device_features",
+    "mfaGuardToken": false,
+    "volatility": "IMMUTABLE",
+    "line": 86,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "metric text",
+    "path": "infrastructure/038-durable-alert-delivery.sql",
+    "name": "notification_metric_feature",
+    "mfaGuardToken": false,
+    "volatility": "IMMUTABLE",
+    "line": 96,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "target text, feature text, triggered timestamptz",
+    "path": "infrastructure/038-durable-alert-delivery.sql",
+    "name": "notification_feature_allowed",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 106,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "source_id uuid",
+    "path": "infrastructure/038-durable-alert-delivery.sql",
+    "name": "notification_alert_clauses",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 116,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "target uuid",
+    "path": "infrastructure/038-durable-alert-delivery.sql",
+    "name": "notification_delivery_eligible",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 169,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "desired public.event_deliveries",
+    "path": "infrastructure/038-durable-alert-delivery.sql",
+    "name": "notification_write_delivery",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 182,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "target uuid, reason text",
+    "path": "infrastructure/038-durable-alert-delivery.sql",
+    "name": "notification_cancel_delivery",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 195,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "source_id uuid",
+    "path": "infrastructure/038-durable-alert-delivery.sql",
+    "name": "notification_enqueue_alert",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 204,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "",
+    "path": "infrastructure/038-durable-alert-delivery.sql",
+    "name": "notification_backend_start",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 271,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "",
+    "path": "infrastructure/038-durable-alert-delivery.sql",
+    "name": "notification_has_barrier",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 274,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "",
+    "path": "infrastructure/038-durable-alert-delivery.sql",
+    "name": "notification_begin_attempt",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 278,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "",
+    "path": "infrastructure/038-durable-alert-delivery.sql",
+    "name": "notification_end_attempt",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 296,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "batch_limit integer DEFAULT 1",
+    "path": "infrastructure/038-durable-alert-delivery.sql",
+    "name": "notification_claim",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 310,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "target uuid, token uuid",
+    "path": "infrastructure/038-durable-alert-delivery.sql",
+    "name": "notification_revalidate",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 350,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "target uuid,token uuid,outcome text,http_status integer DEFAULT NULL,retry_after_seconds integer DEFAULT NULL",
+    "path": "infrastructure/038-durable-alert-delivery.sql",
+    "name": "notification_complete",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 367,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_has_global_capability",
+      "app_has_global_capability_at"
+    ],
+    "arguments": "target text,feature text,enabled_now boolean",
+    "path": "infrastructure/038-durable-alert-delivery.sql",
+    "name": "app_apply_feature_transition",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 400,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "candidate bytea",
+    "path": "infrastructure/042-resident-invitations.sql",
+    "name": "identity_invitation_preview",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 81,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_has_capability",
+      "app_rbac_can_delegate"
+    ],
+    "arguments": "\n  candidate bytea, new_user_id text, replacement_hash text, existing_user_id text\n",
+    "path": "infrastructure/042-resident-invitations.sql",
+    "name": "identity_accept_invitation",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 97,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_rbac_team_member"
+    ],
+    "arguments": "target_building text, assignee_user text, assignee_team uuid",
+    "path": "infrastructure/043-work-orders.sql",
+    "name": "app_work_order_assigned",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 54,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_has_capability",
+      "app_work_order_assigned"
+    ],
+    "arguments": "target_building text, assignee_user text, assignee_team uuid, executing boolean",
+    "path": "infrastructure/043-work-orders.sql",
+    "name": "app_work_order_access",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 61,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_work_order_access"
+    ],
+    "arguments": "target_building text, target_order uuid, executing boolean",
+    "path": "infrastructure/043-work-orders.sql",
+    "name": "app_work_order_row_access",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 70,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_rbac_window"
+    ],
+    "arguments": "target_building text, candidate text",
+    "path": "infrastructure/043-work-orders.sql",
+    "name": "app_work_order_assignee_linked",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 78,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_has_capability",
+      "app_work_order_access",
+      "app_work_order_assignee_linked"
+    ],
+    "arguments": "",
+    "path": "infrastructure/043-work-orders.sql",
+    "name": "app_work_order_guard",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 91,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id"
+    ],
+    "arguments": "",
+    "path": "infrastructure/044-assets.sql",
+    "name": "app_asset_guard",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 53,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_has_capability",
+      "app_work_order_access",
+      "app_work_order_assignee_linked"
+    ],
+    "arguments": "",
+    "path": "infrastructure/044-assets.sql",
+    "name": "app_work_order_guard",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 112,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "target automation_versions, alert_type text, alert_level alert_severity, alert_device text",
+    "path": "infrastructure/045-automations.sql",
+    "name": "app_automation_matches",
+    "mfaGuardToken": false,
+    "volatility": "IMMUTABLE",
+    "line": 67,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id"
+    ],
+    "arguments": "",
+    "path": "infrastructure/045-automations.sql",
+    "name": "app_automation_guard",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 75,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_automation_matches"
+    ],
+    "arguments": "",
+    "path": "infrastructure/045-automations.sql",
+    "name": "app_automation_on_alert",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 128,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_automation_matches",
+      "app_has_capability"
+    ],
+    "arguments": "target_automation uuid, target_number integer",
+    "path": "infrastructure/045-automations.sql",
+    "name": "app_automation_simulate",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 172,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "target_user_id text, candidate bytea, lifetime interval",
+    "path": "infrastructure/047-password-recovery.sql",
+    "name": "identity_issue_password_reset",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 26,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "candidate bytea, replacement_hash text",
+    "path": "infrastructure/047-password-recovery.sql",
+    "name": "identity_reset_password",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 47,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_has_capability",
+      "app_rbac_tenant_active"
+    ],
+    "arguments": "target_building_id text",
+    "path": "infrastructure/051-resident-consumption-opt-in.sql",
+    "name": "app_resident_consumption_released",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 34,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_has_capability",
+      "app_rbac_tenant_active"
+    ],
+    "arguments": "target_building_id text, release boolean",
+    "path": "infrastructure/051-resident-consumption-opt-in.sql",
+    "name": "app_set_resident_consumption",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 44,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_has_capability",
+      "app_rbac_tenant_active"
+    ],
+    "arguments": "target_building_id text, first_day text, last_day text",
+    "path": "infrastructure/051-resident-consumption-opt-in.sql",
+    "name": "app_published_consumption",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 67,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "expected_role name",
+    "path": "infrastructure/052-ingest-runtime-roles.sql",
+    "name": "service_runtime_guard",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 98,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "original public.gate_commands,target_status text,public_reason text,audit_action text",
+    "path": "infrastructure/052-ingest-runtime-roles.sql",
+    "name": "service_runtime_finish_command",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 116,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "",
+    "path": "infrastructure/052-ingest-runtime-roles.sql",
+    "name": "access_service_next_pending",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 135,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "",
+    "path": "infrastructure/052-ingest-runtime-roles.sql",
+    "name": "access_service_expire_commands",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 145,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "target_command_id uuid,reason_code text",
+    "path": "infrastructure/052-ingest-runtime-roles.sql",
+    "name": "access_service_fail_pending",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 160,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_mark_access_sent"
+    ],
+    "arguments": "target_command_id uuid",
+    "path": "infrastructure/052-ingest-runtime-roles.sql",
+    "name": "access_service_mark_sent",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 176,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "target_command_id uuid,reason_code text",
+    "path": "infrastructure/052-ingest-runtime-roles.sql",
+    "name": "access_service_fail_publish",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 219,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "target_command_id uuid,target_building_id text,target_gateway_id text,\n target_gate_id text,target_device_id text,ack_result text",
+    "path": "infrastructure/052-ingest-runtime-roles.sql",
+    "name": "access_service_apply_ack",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 235,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "category text,target_building_id text DEFAULT ''",
+    "path": "infrastructure/052-ingest-runtime-roles.sql",
+    "name": "ingest_count_rejection",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 351,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "target_building_id text,target_device_id text",
+    "path": "infrastructure/052-ingest-runtime-roles.sql",
+    "name": "ingest_lock_monitoring_profiles",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 367,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "target_building_id text,target_device_id text",
+    "path": "infrastructure/052-ingest-runtime-roles.sql",
+    "name": "ingest_lock_parking_lot",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 378,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "source_id uuid,target_event_id uuid",
+    "path": "infrastructure/052-ingest-runtime-roles.sql",
+    "name": "ingest_alert_outbox_signature",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 387,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "ingest_alert_outbox_signature"
+    ],
+    "arguments": "source_id uuid,target_building_id text,target_device_id text,target_gateway_id text,\n target_rule_id uuid,severity public.alert_severity,alert_type text,alert_message text,triggered_value jsonb,\n triggered_at timestamptz,source_created_at timestamptz",
+    "path": "infrastructure/052-ingest-runtime-roles.sql",
+    "name": "ingest_persist_alert",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 405,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "desired public.audit_logs",
+    "path": "infrastructure/052-ingest-runtime-roles.sql",
+    "name": "service_runtime_assert_audit",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 436,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "target_building_id text,target_user_id text,audit_action text,target_type text,target_id text,audit_metadata jsonb",
+    "path": "infrastructure/052-ingest-runtime-roles.sql",
+    "name": "service_runtime_write_audit",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 442,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "target_lot_id uuid,target_building_id text,target_device_id text,target_event_id text,\n occupancy integer,observation_at timestamptz,written_at timestamptz,expected_version integer",
+    "path": "infrastructure/052-ingest-runtime-roles.sql",
+    "name": "ingest_write_parking_observation",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 456,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_has_capability",
+      "app_has_global_capability"
+    ],
+    "arguments": "target_user_id text",
+    "path": "infrastructure/054-users-memberships-capabilities.sql",
+    "name": "app_user_visible",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 15,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "",
+    "path": "infrastructure/056-telemetry-series-catalog.sql",
+    "name": "app_private_record_telemetry_series",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 36,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "target automation_versions, alert_type text, alert_level alert_severity, alert_device text",
+    "path": "infrastructure/057-automation-schedules.sql",
+    "name": "app_automation_matches",
+    "mfaGuardToken": false,
+    "volatility": "IMMUTABLE",
+    "line": 28,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id"
+    ],
+    "arguments": "",
+    "path": "infrastructure/057-automation-schedules.sql",
+    "name": "app_automation_guard",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 38,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "starts_at timestamptz, every_days integer, at_time timestamptz",
+    "path": "infrastructure/057-automation-schedules.sql",
+    "name": "app_automation_due_occurrence",
+    "mfaGuardToken": false,
+    "volatility": "IMMUTABLE",
+    "line": 87,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [
+      "app_automation_due_occurrence"
+    ],
+    "arguments": "at_time timestamptz DEFAULT clock_timestamp()",
+    "path": "infrastructure/057-automation-schedules.sql",
+    "name": "app_automation_run_schedules",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 95,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_has_global_capability"
+    ],
+    "arguments": "",
+    "path": "infrastructure/058-platform-service-health.sql",
+    "name": "app_platform_service_health",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 11,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_access_feature_enabled"
+    ],
+    "arguments": "target_building_id text,target_kind text",
+    "path": "infrastructure/059-access-qr-totem.sql",
+    "name": "app_gate_qr_enabled",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 81,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_access_command_can_read_at",
+      "app_access_feature_enabled",
+      "app_access_has_capability_at",
+      "app_access_operational_reason",
+      "app_access_request_permitted_at",
+      "app_current_user_id",
+      "app_gate_qr_enabled"
+    ],
+    "arguments": "target_gate_id uuid,target_request_id uuid,request_ip text,request_user_agent text,\n via text,expected_qr_generation integer",
+    "path": "infrastructure/059-access-qr-totem.sql",
+    "name": "app_request_access_admit",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 93,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_request_access_admit"
+    ],
+    "arguments": "target_gate_id uuid,target_request_id uuid,request_ip text DEFAULT NULL,request_user_agent text DEFAULT NULL",
+    "path": "infrastructure/059-access-qr-totem.sql",
+    "name": "app_request_access",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 213,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_request_access_admit"
+    ],
+    "arguments": "target_gate_id uuid,qr_generation integer,target_request_id uuid,\n request_ip text DEFAULT NULL,request_user_agent text DEFAULT NULL",
+    "path": "infrastructure/059-access-qr-totem.sql",
+    "name": "app_request_access_by_qr",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 221,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_access_has_capability",
+      "app_current_user_id",
+      "app_gate_qr_enabled"
+    ],
+    "arguments": "target_gate_id uuid",
+    "path": "infrastructure/059-access-qr-totem.sql",
+    "name": "app_gate_qr_renew",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 231,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_access_has_capability",
+      "app_current_user_id",
+      "app_gate_qr_enabled"
+    ],
+    "arguments": "target_gate_id uuid,candidate bytea",
+    "path": "infrastructure/059-access-qr-totem.sql",
+    "name": "app_gate_totem_pairing_create",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 253,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_access_has_capability",
+      "app_current_user_id"
+    ],
+    "arguments": "target_gate_id uuid,target_totem_id uuid",
+    "path": "infrastructure/059-access-qr-totem.sql",
+    "name": "app_gate_totem_revoke",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 278,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_access_has_capability",
+      "app_gate_qr_enabled"
+    ],
+    "arguments": "candidate bytea,token bytea,totem_label text",
+    "path": "infrastructure/059-access-qr-totem.sql",
+    "name": "identity_totem_pair",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 301,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_gate_qr_enabled"
+    ],
+    "arguments": "token bytea",
+    "path": "infrastructure/059-access-qr-totem.sql",
+    "name": "identity_totem_display",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 330,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_discovery_resource_belongs",
+      "app_has_capability",
+      "app_rbac_window"
+    ],
+    "arguments": "target_building_id text, target_user_id text",
+    "path": "infrastructure/060-team-member-eligibility.sql",
+    "name": "app_tenancy_is_resident",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 4,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_discovery_resource_belongs",
+      "app_has_capability",
+      "app_rbac_window",
+      "app_tenancy_is_resident"
+    ],
+    "arguments": "\n  target_building_id text, after_user_id text, requested_limit integer, exclude_residents boolean\n",
+    "path": "infrastructure/060-team-member-eligibility.sql",
+    "name": "app_tenancy_people",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 37,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_tenancy_people"
+    ],
+    "arguments": "\n  target_building_id text, after_user_id text DEFAULT NULL, requested_limit integer DEFAULT 50\n",
+    "path": "infrastructure/060-team-member-eligibility.sql",
+    "name": "app_tenancy_people",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 81,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_access_has_capability",
+      "app_current_user_id",
+      "app_gate_qr_enabled"
+    ],
+    "arguments": "target_gate_id uuid,candidate bytea",
+    "path": "infrastructure/061-totem-pairing-clock.sql",
+    "name": "app_gate_totem_pairing_create",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 5,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_has_global_capability"
+    ],
+    "arguments": "target_building_id text,target_scenario text",
+    "path": "infrastructure/062-demo-field-scenarios.sql",
+    "name": "app_demo_scenario_set",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 27,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "expected_role name",
+    "path": "infrastructure/063-service-guard-admin-memberships.sql",
+    "name": "service_runtime_guard",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 6,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_rbac_window"
+    ],
+    "arguments": "target_building_id text, target_user_id text",
+    "path": "infrastructure/064-reservation-limits-events.sql",
+    "name": "app_person_current_units",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 109,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_has_capability",
+      "app_person_current_units"
+    ],
+    "arguments": "target_building_id text",
+    "path": "infrastructure/064-reservation-limits-events.sql",
+    "name": "app_reservation_own_units",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 119,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_has_capability"
+    ],
+    "arguments": "target_building_id text, target_user_id text",
+    "path": "infrastructure/064-reservation-limits-events.sql",
+    "name": "app_building_person_name",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 130,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "target_area_id uuid",
+    "path": "infrastructure/064-reservation-limits-events.sql",
+    "name": "app_common_area_lock",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 141,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [
+      "app_common_area_lock",
+      "app_person_current_units"
+    ],
+    "arguments": "",
+    "path": "infrastructure/064-reservation-limits-events.sql",
+    "name": "app_reservation_booking_guard",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 147,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_reservation_has_capability"
+    ],
+    "arguments": "",
+    "path": "infrastructure/064-reservation-limits-events.sql",
+    "name": "app_reservation_transition_guard",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 211,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [
+      "app_reservation_can_read_calendar"
+    ],
+    "arguments": "target_building_id text,target_area_id text,target_from timestamptz,target_to timestamptz",
+    "path": "infrastructure/064-reservation-limits-events.sql",
+    "name": "app_reservation_availability",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 238,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_common_area_lock",
+      "app_current_user_id"
+    ],
+    "arguments": "",
+    "path": "infrastructure/064-reservation-limits-events.sql",
+    "name": "app_building_event_guard",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 257,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_person_current_units"
+    ],
+    "arguments": "",
+    "path": "infrastructure/064-reservation-limits-events.sql",
+    "name": "app_building_event_response_guard",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 297,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_has_capability"
+    ],
+    "arguments": "target_building_id text",
+    "path": "infrastructure/064-reservation-limits-events.sql",
+    "name": "app_building_event_totals",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 334,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_current_user_id",
+      "app_has_capability"
+    ],
+    "arguments": "",
+    "path": "infrastructure/065-work-order-named-assignee.sql",
+    "name": "app_work_order_named_assignee_guard",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 13,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "target_building_id text",
+    "path": "infrastructure/066-default-alert-rules.sql",
+    "name": "seed_default_alert_rules",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 6,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [],
+    "arguments": "",
+    "path": "infrastructure/066-default-alert-rules.sql",
+    "name": "provision_building_alert_rules",
+    "mfaGuardToken": false,
+    "volatility": "VOLATILE/default",
+    "line": 55,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_rbac_platform_role_at"
+    ],
+    "arguments": "target_user_id text",
+    "path": "infrastructure/068-platform-mfa-required.sql",
+    "name": "identity_platform_mfa_required",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 17,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "identity_platform_mfa_required"
+    ],
+    "arguments": "target_user_id text,target_session_id uuid",
+    "path": "infrastructure/068-platform-mfa-required.sql",
+    "name": "identity_session_mfa_requirement",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 25,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "identity_platform_mfa_required",
+      "identity_session_mfa_requirement"
+    ],
+    "arguments": "",
+    "path": "infrastructure/068-platform-mfa-required.sql",
+    "name": "app_require_session_mfa",
+    "mfaGuardToken": false,
+    "volatility": "STABLE",
+    "line": 43,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_has_global_capability",
+      "app_require_session_mfa"
+    ],
+    "arguments": "",
+    "path": "infrastructure/068-platform-mfa-required.sql",
+    "name": "app_list_mfa_organizations",
+    "mfaGuardToken": true,
+    "volatility": "STABLE",
+    "line": 108,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [
+      "app_equipment_can_read_scope",
+      "app_require_session_mfa"
+    ],
+    "arguments": "target_building_id text DEFAULT NULL",
+    "path": "infrastructure/068-platform-mfa-required.sql",
+    "name": "app_list_mfa_devices",
+    "mfaGuardToken": true,
+    "volatility": "STABLE",
+    "line": 201,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [
+      "app_require_session_mfa"
+    ],
+    "arguments": "",
+    "path": "infrastructure/068-platform-mfa-required.sql",
+    "name": "app_list_mfa_gateways",
+    "mfaGuardToken": true,
+    "volatility": "STABLE",
+    "line": 216,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [
+      "app_has_global_capability",
+      "app_require_session_mfa"
+    ],
+    "arguments": "target_capabilities text[]",
+    "path": "infrastructure/068-platform-mfa-required.sql",
+    "name": "app_mfa_platform_authorization",
+    "mfaGuardToken": true,
+    "volatility": "STABLE",
+    "line": 230,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [
+      "app_has_capability",
+      "app_require_session_mfa"
+    ],
+    "arguments": "\n target_building_id text,target_resource_type text,target_resource_id text,\n target_capabilities text[]\n",
+    "path": "infrastructure/068-platform-mfa-required.sql",
+    "name": "app_mfa_scope_authorization",
+    "mfaGuardToken": true,
+    "volatility": "STABLE",
+    "line": 242,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [
+      "app_equipment_gateway_belongs",
+      "app_has_global_capability",
+      "app_require_session_mfa"
+    ],
+    "arguments": "",
+    "path": "infrastructure/068-platform-mfa-required.sql",
+    "name": "app_overview_platform_health",
+    "mfaGuardToken": true,
+    "volatility": "STABLE",
+    "line": 261,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_has_global_capability",
+      "app_require_session_mfa"
+    ],
+    "arguments": "",
+    "path": "infrastructure/068-platform-mfa-required.sql",
+    "name": "app_platform_service_health",
+    "mfaGuardToken": true,
+    "volatility": "STABLE",
+    "line": 316,
+    "security": "DEFINER"
+  },
+  {
+    "bodyCalls": [
+      "app_can_read_feature_event",
+      "app_require_session_mfa"
+    ],
+    "arguments": "target_building_id text",
+    "path": "infrastructure/068-platform-mfa-required.sql",
+    "name": "app_mfa_feature_event_allowed",
+    "mfaGuardToken": true,
+    "volatility": "STABLE",
+    "line": 358,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [
+      "app_require_session_mfa",
+      "app_telemetry_authorized_devices"
+    ],
+    "arguments": "\n target_building_id text, target_device_id text\n",
+    "path": "infrastructure/068-platform-mfa-required.sql",
+    "name": "app_mfa_telemetry_event_context",
+    "mfaGuardToken": true,
+    "volatility": "STABLE",
+    "line": 372,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [
+      "app_alert_authorized_contexts",
+      "app_require_session_mfa"
+    ],
+    "arguments": "\n target_building_id text, target_alert_id uuid\n",
+    "path": "infrastructure/068-platform-mfa-required.sql",
+    "name": "app_mfa_alert_event_context",
+    "mfaGuardToken": true,
+    "volatility": "STABLE",
+    "line": 412,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [
+      "app_equipment_device_classification",
+      "app_require_session_mfa"
+    ],
+    "arguments": "\n target_building_id text, target_device_id text\n",
+    "path": "infrastructure/068-platform-mfa-required.sql",
+    "name": "app_mfa_device_event_context",
+    "mfaGuardToken": true,
+    "volatility": "STABLE",
+    "line": 459,
+    "security": "INVOKER/default"
+  },
+  {
+    "bodyCalls": [
+      "app_device_has_capability",
+      "app_require_session_mfa"
+    ],
+    "arguments": "\n target_building_id text, target_device_id text\n",
+    "path": "infrastructure/068-platform-mfa-required.sql",
+    "name": "app_mfa_device_event_allowed",
+    "mfaGuardToken": true,
+    "volatility": "STABLE",
+    "line": 496,
+    "security": "INVOKER/default"
+  }
+]
