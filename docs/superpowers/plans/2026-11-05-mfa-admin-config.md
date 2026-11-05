@@ -1,5 +1,8 @@
 # ADMIN/CONFIG: três ações comuns, sem 174 guards individuais
 
+**Resultado do segundo lote em 05/11:** blocos, unidades e equipes passaram nos seis cenários de concorrência e quatro controles funcionais, mais 162 regressões. [Prova, contagens TAP e limites](../../evidencias/mfa-tenancy-structure-2026-11-05.json). Seguem as três listas de vínculos/papéis; comandos e convites continuam pendentes.
+
+
 **Resultado do primeiro lote em 05/11:** o adaptador comum e GETs de prédios/pessoas passaram em oito testes dirigidos e 121 regressões. [Prova e limites](../../evidencias/mfa-guarded-read-2026-11-05.json). A próxima etapa cobre blocos, unidades e equipes; vínculos, comandos e convites continuam pendentes.
 
 

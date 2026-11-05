@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "status": "CANONICAL_GUARDED_READ_VALIDATED_RESTORED_CANDIDATE",
+  "status": "CANONICAL_TENANCY_STRUCTURE_VALIDATED_RESTORED_CANDIDATE",
   "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
   "plannedBase": "Approved published source base53c4c70; current documentation may be newer.",
   "sourceBaseline": "2676a74216b012dcab6fa2fb9735dc1b6ef8e9d8",
@@ -748,9 +748,9 @@
       "beforeSha256": "2d2fcd5eace979677565cdf1f084128ea4a735f74d2bb8824249b29922c69e60",
       "beforeGitSha256": "2d2fcd5eace979677565cdf1f084128ea4a735f74d2bb8824249b29922c69e60",
       "beforeGitObject": "62c828c1f209775f4decd7e67bd30378f74e0f55",
-      "afterSha256": "b1fd2d80ded5a60d8b43ecc041164e9e977d4dcdba6c6e7b28bc79deb32b5eea",
-      "bytes": 26333,
-      "component": "guarded-read-mfa",
+      "afterSha256": "d88d31ff1a046fefc674a3b7a760dd569a401edbdb3d480c8bc3f7d8fd8dc367",
+      "bytes": 28118,
+      "component": "tenancy-structure-read-mfa",
       "kind": "runtime"
     },
     {
@@ -763,10 +763,32 @@
       "bytes": 16437,
       "component": "guarded-read-mfa",
       "kind": "database-test"
+    },
+    {
+      "path": "apps/api/test/platform-mfa-tenancy-structure.test.ts",
+      "payload": "payload/runtime/apps/api/test/platform-mfa-tenancy-structure.test.ts.txt",
+      "beforeSha256": null,
+      "beforeGitSha256": null,
+      "beforeGitObject": null,
+      "afterSha256": "5fcf975688d297d52af9b3f9f460b2badb744b21b417090f037e5a5e8f24c3f5",
+      "bytes": 12530,
+      "component": "tenancy-structure-read-mfa",
+      "kind": "database-test"
+    },
+    {
+      "path": "apps/api/test/tenancy-people.test.ts",
+      "payload": "payload/runtime/apps/api/test/tenancy-people.test.ts.txt",
+      "beforeSha256": "714aae54817b9fcb83a1064c79c7e6fe01d2a0297de6e8b4ccf3aa6756329560",
+      "beforeGitSha256": "714aae54817b9fcb83a1064c79c7e6fe01d2a0297de6e8b4ccf3aa6756329560",
+      "beforeGitObject": "2ead15b17527dcc4a1867e7c5214c9ed0177f640",
+      "afterSha256": "f802c095b76adc426062ea9a6c3f151b09f703ade1fa459bcc8ff8d4e08231e5",
+      "bytes": 16179,
+      "component": "tenancy-people-mfa-fixture",
+      "kind": "database-test"
     }
   ],
   "pending": [
-    "Complete remaining SQL/SD/no-match mutations, locks/triggers and integrated regressions; guarded-read8 and eleven regression files121 are finite isolated validations, not API integral or global rollout.",
+    "Complete remaining SQL/SD/no-match mutations, locks/triggers and integrated regressions; structure12 TAP entries and sixteen regression files162 are finite isolated validations, not API integral or global rollout.",
     "Renderer staging recipe remains authored and not executed; do not transfer its earlier separate harness PASS."
   ],
   "excluded": [
@@ -857,5 +879,12 @@
     "sourceManifestSha256": "45449b1b7c296be2b88683ad0c0ad25bffea839f3e3e99cbc9bdc4f6e92343e1",
     "scope": "Guarded-read8 plus eleven regression files121; two GETs and adapter only; no SQL migration change",
     "restorationEvidence": "../../evidencias/mfa-guarded-read-restore-2026-11-05.json"
+  },
+  "tenancyStructureValidation": {
+    "evidence": "../../evidencias/mfa-tenancy-structure-2026-11-05.json",
+    "evidenceSha256": "062a2276f29b3329167a92510259683ac0c3f8b414b2ecd1f7556c25a7647177",
+    "sourceManifestSha256": "74f0199cc300856828adc1b3f2f75b5e488c63fbdeb2b683d3622b0ff9afde2e",
+    "scope": "Structure12 TAP entries plus sixteen regression files162; three GETs and local people fixture; helper and SQL unchanged",
+    "restorationEvidence": "../../evidencias/mfa-tenancy-structure-restore-2026-11-05.json"
   }
 }

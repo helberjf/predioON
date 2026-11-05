@@ -42,6 +42,34 @@ const blockView = { id: blocks.id, buildingId: blocks.buildingId, code: blocks.c
 const unitView = { id: units.id, buildingId: units.buildingId, blockId: units.blockId, code: units.code, floor: units.floor, active: units.active };
 const teamView = { id: teams.id, buildingId: teams.buildingId, name: teams.name, kind: teams.kind, active: teams.active };
 
+// Dedicated SELECT aliases: the existing *View objects also serve mutation
+// RETURNING/status checks and must keep their original columns and decoders.
+const blockReadFields = {
+  id: sql`${blocks.id}`.as("id"), buildingId: sql`${blocks.buildingId}`.as("buildingId"),
+  code: sql`${blocks.code}`.as("code"), name: sql`${blocks.name}`.as("name"),
+  active: sql`${blocks.active}`.as("active"),
+};
+const unitReadFields = {
+  id: sql`${units.id}`.as("id"), buildingId: sql`${units.buildingId}`.as("buildingId"),
+  blockId: sql`${units.blockId}`.as("blockId"), code: sql`${units.code}`.as("code"),
+  floor: sql`${units.floor}`.as("floor"), active: sql`${units.active}`.as("active"),
+};
+const teamReadFields = {
+  id: sql`${teams.id}`.as("id"), buildingId: sql`${teams.buildingId}`.as("buildingId"),
+  name: sql`${teams.name}`.as("name"), kind: sql`${teams.kind}`.as("kind"),
+  active: sql`${teams.active}`.as("active"),
+};
+const BlockReadRow = z.object({
+  id: z.string(), buildingId: z.string(), code: z.string(), name: z.string(), active: z.boolean(),
+}).strict();
+const UnitReadRow = z.object({
+  id: z.string(), buildingId: z.string(), blockId: z.string().nullable(), code: z.string(),
+  floor: z.number().int().nullable(), active: z.boolean(),
+}).strict();
+const TeamReadRow = z.object({
+  id: z.string(), buildingId: z.string(), name: z.string(), kind: z.string(), active: z.boolean(),
+}).strict();
+
 /** Listing inactive records needs the management capability, not only the read one. */
 async function listScope(tx: AppTransaction, q: StructureQuery, read: "units:read" | "teams:read", manage: "units:manage" | "teams:manage"): Promise<boolean> {
   await assertCapability(tx, read, q.buildingId);
@@ -89,8 +117,13 @@ tenancyRouter.get("/blocks", validateQuery(StructureListSchema), async (req, res
   const q = query<StructureQuery>(req);
   res.json(await inTenancy(req, async tx => {
     const all = await listScope(tx, q, "units:read", "units:manage");
-    return page(await tx.select(blockView).from(blocks)
-      .where(and(eq(blocks.buildingId, q.buildingId), all ? undefined : eq(blocks.active, true), q.after ? gt(blocks.id, q.after) : undefined)).orderBy(asc(blocks.id)).limit(q.limit + 1), q.limit);
+    const rows = await readMfaRows(tx,
+      tx.select(blockReadFields).from(blocks)
+        .where(and(eq(blocks.buildingId, q.buildingId), all ? undefined : eq(blocks.active, true), q.after ? gt(blocks.id, q.after) : undefined))
+        .orderBy(asc(blocks.id)).limit(q.limit + 1).getSQL(),
+      value => BlockReadRow.parse(value), ["id"],
+    );
+    return page(rows, q.limit);
   }));
 });
 tenancyRouter.post("/blocks", validateBody(CreateBlock), async (req, res) => {
@@ -108,8 +141,13 @@ tenancyRouter.get("/units", validateQuery(StructureListSchema), async (req, res)
   const q = query<StructureQuery>(req);
   res.json(await inTenancy(req, async tx => {
     const all = await listScope(tx, q, "units:read", "units:manage");
-    return page(await tx.select(unitView).from(units)
-      .where(and(eq(units.buildingId, q.buildingId), all ? undefined : eq(units.active, true), q.after ? gt(units.id, q.after) : undefined)).orderBy(asc(units.id)).limit(q.limit + 1), q.limit);
+    const rows = await readMfaRows(tx,
+      tx.select(unitReadFields).from(units)
+        .where(and(eq(units.buildingId, q.buildingId), all ? undefined : eq(units.active, true), q.after ? gt(units.id, q.after) : undefined))
+        .orderBy(asc(units.id)).limit(q.limit + 1).getSQL(),
+      value => UnitReadRow.parse(value), ["id"],
+    );
+    return page(rows, q.limit);
   }));
 });
 tenancyRouter.post("/units", validateBody(CreateUnit), async (req, res) => {
@@ -127,8 +165,13 @@ tenancyRouter.get("/teams", validateQuery(StructureListSchema), async (req, res)
   const q = query<StructureQuery>(req);
   res.json(await inTenancy(req, async tx => {
     const all = await listScope(tx, q, "teams:read", "teams:manage");
-    return page(await tx.select(teamView).from(teams)
-      .where(and(eq(teams.buildingId, q.buildingId), all ? undefined : eq(teams.active, true), q.after ? gt(teams.id, q.after) : undefined)).orderBy(asc(teams.id)).limit(q.limit + 1), q.limit);
+    const rows = await readMfaRows(tx,
+      tx.select(teamReadFields).from(teams)
+        .where(and(eq(teams.buildingId, q.buildingId), all ? undefined : eq(teams.active, true), q.after ? gt(teams.id, q.after) : undefined))
+        .orderBy(asc(teams.id)).limit(q.limit + 1).getSQL(),
+      value => TeamReadRow.parse(value), ["id"],
+    );
+    return page(rows, q.limit);
   }));
 });
 tenancyRouter.post("/teams", validateBody(CreateTeam), async (req, res) => {

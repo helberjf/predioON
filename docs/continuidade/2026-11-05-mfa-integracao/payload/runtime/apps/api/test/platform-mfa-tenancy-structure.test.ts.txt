@@ -1,0 +1,115 @@
+import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
+import type { Server } from "node:http";
+import { after, before, describe, it } from "node:test";
+import { decodeJwt } from "jose";
+import { PgDialect } from "drizzle-orm/pg-core";
+import { sqlClient } from "@predioon/db";
+import { appDb, closeAppDb, type AppTransaction } from "@predioon/db/runtime";
+import { app } from "../src/app.js";
+import { hashPassword } from "../src/auth/passwords.js";
+import "./helpers.js";
+
+// Same test source for baseline and candidate: no import of the new helper.
+type Actor = { id: string; token: string; sid: string; binding: string; generation: string };
+type HttpResult = { status: number; body: unknown; cache: string | null };
+function signal() {
+  let resolve!: () => void;
+  const promise = new Promise<void>(done => { resolve = done; }); return { promise, resolve };
+}
+async function bounded<T>(promise: PromiseLike<T>, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try { return await Promise.race([Promise.resolve(promise), new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`Fixture deadline: ${label}`)), 5000);
+  })]); } finally { clearTimeout(timer); }
+}
+function beforeProjection(capability:string) {
+  const original = appDb.transaction, run = original.bind(appDb), dialect = new PgDialect();
+  const reached = signal(), release = signal(), finished = signal(); let contexts = 0;
+  type Input = Parameters<AppTransaction['execute']>[0];
+  appDb.transaction = (callback, config) => run(tx => callback(new Proxy(tx, { get(target,key) {
+    if (key === 'execute') return async (query: Input) => {
+      const compiled = typeof query === 'string' ? {sql:query,params:[]} : dialect.sqlToQuery(query.getSQL());
+      const text=compiled.sql;
+      const rows = await target.execute(query);
+      if (text.includes("app_has_capability(") && compiled.params.includes(capability)) {
+        contexts++; assert.equal(contexts,1); reached.resolve(); await bounded(release.promise,'projection release');
+      }
+      return rows;
+    };
+    const value = Reflect.get(target,key,target); return typeof value === 'function' ? value.bind(target) : value;
+  }})), config).finally(() => finished.resolve());
+  return { reached,release,finished,get contexts(){return contexts;},restore(){appDb.transaction=original;} };
+}
+
+describe('MFA Batch A tenancy structure reads', {concurrency:false},()=>{
+  const suffix=randomUUID(),org=`struct-org-${suffix}`,building=`struct-a-${suffix}`,foreign=`struct-b-${suffix}`;
+  const routes=['blocks','units','teams'] as const;type Route=typeof routes[number];
+  const users:string[]=[],password='structure-fictitious-password';let server:Server|undefined,url='',hash='';
+  let manager:Actor,resident:Actor,satisfied:Actor;
+  const ids:Record<Route,string[]>={blocks:[randomUUID(),randomUUID(),randomUUID()].sort(),units:[randomUUID(),randomUUID(),randomUUID()].sort(),teams:[randomUUID(),randomUUID(),randomUUID()].sort()};
+  async function request(a:Actor,path:string,abort=new AbortController()):Promise<HttpResult>{
+    try{const r=await bounded(fetch(url+path,{headers:{Authorization:`Bearer ${a.token}`},signal:abort.signal}),'HTTP');return{status:r.status,body:await bounded(r.json(),'JSON'),cache:r.headers.get('cache-control')};}finally{abort.abort();}
+  }
+  function path(route:Route,extra='',b=building){return `/v1/tenancy/${route}?buildingId=${b}${extra}`;}
+  async function actor(label:string,role='BUILDING_ADMIN'):Promise<Actor>{
+    const id=`struct-${suffix}-${label}`,binding=randomUUID(),generation=randomUUID();users.push(id);
+    await sqlClient`insert into users(id,name,email,password_hash) values(${id},${label},${id+'@example.invalid'},${hash})`;
+    await sqlClient`insert into memberships(user_id,building_id,role) values(${id},${building},${role})`;
+    await sqlClient`insert into role_bindings(id,user_id,role_key,active) values(${binding},${id},'PLATFORM_ADMIN',false)`;
+    const abort=new AbortController();try{const r=await bounded(fetch(url+'/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:id+'@example.invalid',password}),signal:abort.signal}),'login');assert.equal(r.status,200);const body=await bounded(r.json(),'login JSON') as {accessToken:string};const sid=decodeJwt(body.accessToken).sid;assert.equal(typeof sid,'string');return{id,token:body.accessToken,sid:sid as string,binding,generation};}finally{abort.abort();}
+  }
+  const prove=(a:Actor)=>sqlClient`update sessions set mfa_verified_at=now(),mfa_factor_generation=${a.generation} where id=${a.sid}`;
+  before(async()=>{
+    const [ledger]=await sqlClient`select count(*)::int as count from schema_migrations`;assert.equal(ledger?.count,68);
+    hash=await hashPassword(password);await sqlClient`insert into organizations(id,name,slug) values(${org},'Structure',${org})`;
+    for(const b of [building,foreign])await sqlClient`insert into buildings(id,organization_id,name,code) values(${b},${org},${b},${b})`;
+    for(let i=0;i<3;i++){
+      await sqlClient`insert into blocks(id,building_id,code,name,active) values(${ids.blocks[i]!},${building},${'B'+i},${'Block '+i},${i<2})`;
+      await sqlClient`insert into units(id,building_id,code,block_id,floor,active) values(${ids.units[i]!},${building},${'U'+i},${i===1?ids.blocks[1]!:null},${i===0?null:-1},${i<2})`;
+      await sqlClient`insert into teams(id,building_id,name,active) values(${ids.teams[i]!},${building},${'Team '+i},${i<2})`;
+    }
+    server=await new Promise<Server>(resolve=>{const s=app.listen(0,'127.0.0.1',()=>resolve(s));});const a=server.address();assert.ok(a&&typeof a!=='string');url=`http://127.0.0.1:${a.port}`;
+    manager=await actor('manager');resident=await actor('resident','RESIDENT');satisfied=await actor('satisfied');
+    await sqlClient`insert into mfa_factors(user_id,secret_ciphertext,confirmed_at,generation) values(${satisfied.id},decode(repeat('00',40),'hex'),now(),${satisfied.generation})`;
+    await prove(satisfied);await sqlClient`update role_bindings set active=true where id=${satisfied.binding}`;
+  });
+  after(async()=>{
+    try{await bounded(new Promise<void>((resolve,reject)=>{if(!server){resolve();return;}server.close(e=>e?reject(e):resolve());server.closeAllConnections();}),'listener close');}
+    finally{try{await bounded(sqlClient.begin(async tx=>{await tx`set local lock_timeout='2s'`;await tx`set local statement_timeout='3s'`;await tx`delete from buildings where organization_id=${org}`;await tx`delete from organizations where id=${org}`;for(const id of users)await tx`delete from users where id=${id}`;}),'fixture cleanup');}
+      finally{const r=await Promise.allSettled([bounded(closeAppDb(),'app close'),bounded(sqlClient.end({timeout:3}),'owner close')]);const e=r.find(x=>x.status==='rejected');if(e?.status==='rejected')throw e.reason;}}
+  });
+  async function interleave(a:Actor,route:Route,extra:string,change:()=>Promise<unknown>){
+    const cap=`${route==='teams'?'teams':'units'}:${extra.includes('includeInactive=true')?'manage':'read'}`;
+    const barrier=beforeProjection(cap),abort=new AbortController(),pending=request(a,path(route,extra),abort);void pending.catch(()=>undefined);let failed=false;
+    try{const first=await bounded(Promise.race([barrier.reached.promise.then(()=>'capability'),pending.then(()=>'response')]),'reach final capability');assert.equal(first,'capability');await bounded(change(),'committed change');barrier.release.resolve();return await pending;}
+    catch(e){failed=true;throw e;}finally{barrier.release.resolve();abort.abort();const r=await Promise.allSettled([bounded(pending,'request settled'),barrier.contexts?bounded(barrier.finished.promise,'transaction settled'):Promise.resolve()]);barrier.restore();if(!failed){const e=r.find(x=>x.status==='rejected');if(e?.status==='rejected')throw e.reason;}}
+  }
+  function denied(r:HttpResult,reason:string){assert.equal(r.status,403);assert.equal((r.body as {details?:{reason:string}}).details?.reason,reason);assert.equal('items' in (r.body as object),false);}
+  it('all three nonempty projections require enrollment after the last successful capability check',async t=>{
+    for(const route of routes)await t.test(route,async()=>{await sqlClient`update role_bindings set active=false where id=${manager.binding}`;
+      try{const positive=await request(manager,path(route,'&includeInactive=true'));assert.equal(positive.status,200);assert.equal((positive.body as {items:unknown[]}).items.length,3);
+        const result=await interleave(manager,route,'&includeInactive=true',()=>sqlClient`update role_bindings set active=true where id=${manager.binding}`);
+        if(result.status===200){assert.deepEqual(result.body,positive.body);t.diagnostic(`${route}: decoded full baseline projection after promotion`);}denied(result,'MFA_ENROLLMENT_REQUIRED');
+      }finally{await sqlClient`update role_bindings set active=false where id=${manager.binding}`;}});
+  });
+  it('all three empty cursor projections require family proof after the read capability',async t=>{
+    for(const route of routes)await t.test(route,async()=>{await prove(satisfied);try{const extra='&after=ffffffff-ffff-ffff-ffff-ffffffffffff';const positive=await request(satisfied,path(route,extra));assert.equal(positive.status,200);assert.deepEqual(positive.body,{items:[],nextCursor:null});const result=await interleave(satisfied,route,extra,()=>sqlClient`update sessions set mfa_verified_at=null,mfa_factor_generation=null where id=${satisfied.sid}`);if(result.status===200)assert.deepEqual(result.body,positive.body);denied(result,'MFA_VERIFICATION_REQUIRED');}finally{await prove(satisfied);}});
+  });
+  it('preserves minimal DTO keys, UUID strings, booleans and nullable numeric/unit parent fields',async()=>{
+    for(const route of routes){const r=await request(manager,path(route));assert.equal(r.status,200);assert.equal(r.cache,'no-store');const body=r.body as {items:Array<Record<string,unknown>>;nextCursor:null};assert.equal(body.nextCursor,null);assert.deepEqual(body.items.map(x=>x.id),ids[route].slice(0,2));
+      for(const [i,row] of body.items.entries()){const keys=route==='blocks'?['id','buildingId','code','name','active']:route==='units'?['id','buildingId','blockId','code','floor','active']:['id','buildingId','name','kind','active'];assert.deepEqual(Object.keys(row).sort(),keys.sort());assert.equal(row.buildingId,building);assert.equal(row.active,true);if(route==='units'){assert.equal(row.blockId,i===0?null:ids.blocks[1]);assert.equal(row.floor,i===0?null:-1);assert.equal(row.code,'U'+i);}else{assert.equal(row.name,(route==='blocks'?'Block ':'Team ')+i);if(route==='teams')assert.equal(row.kind,'MAINTENANCE');else assert.equal(row.code,'B'+i);}}
+    }
+  });
+  it('preserves ordered UUID cursor, limit+1 and finite pagination for all three structures',async()=>{
+    for(const route of routes){const one=await request(manager,path(route,'&limit=1'));assert.equal(one.status,200);const first=one.body as {items:Array<{id:string}>;nextCursor:string};assert.deepEqual(first.items.map(x=>x.id),[ids[route][0]]);assert.equal(first.nextCursor,ids[route][0]);const two=await request(manager,path(route,'&limit=1&after='+first.nextCursor));assert.equal(two.status,200);assert.deepEqual((two.body as {items:Array<{id:string}>}).items.map(x=>x.id),[ids[route][1]]);assert.equal((two.body as {nextCursor:null}).nextCursor,null);assert.equal((await request(manager,path(route,'&after=not-a-uuid'))).status,400);}
+  });
+  it('keeps inactive management listings distinct from ordinary read capability',async()=>{
+    for(const route of routes){const full=await request(manager,path(route,'&includeInactive=true'));assert.equal(full.status,200);assert.deepEqual((full.body as {items:Array<{id:string}>}).items.map(x=>x.id),ids[route]);}
+    // Resident has units:read; it must not acquire units:manage through includeInactive.
+    assert.equal((await request(resident,path('units'))).status,200);assert.equal((await request(resident,path('units','&includeInactive=true'))).status,403);
+  });
+  it('preserves foreign scope denial and satisfied administrator local grants',async()=>{
+    for(const route of routes){assert.equal((await request(manager,path(route,'',foreign))).status,403);const a=await request(manager,path(route)),b=await request(satisfied,path(route));assert.equal(a.status,200);assert.equal(b.status,200);assert.deepEqual(b.body,a.body);}
+  });
+});

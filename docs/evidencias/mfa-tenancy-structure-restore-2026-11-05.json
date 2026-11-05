@@ -1,0 +1,77 @@
+{
+  "recordedOn": "2026-11-05",
+  "status": "TENANCY_STRUCTURE_CANDIDATE_CANONICAL_SOURCE_RESTORE_PASSED",
+  "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+  "inputInventorySha256": "b22dee98030cd2e48917292c54eb200f1fde1390f2f53dac8a75c30bbc901496",
+  "testedPreparedSha256": "74f0199cc300856828adc1b3f2f75b5e488c63fbdeb2b683d3622b0ff9afde2e",
+  "all1021RestoredFilesMatchTestedComposition": true,
+  "baseFiles": 994,
+  "canonicalBaseGitObjectsVerified": 994,
+  "inventoryPayloads": 71,
+  "candidateRuntimeAndTests": 67,
+  "explicitRendererTests": 2,
+  "alreadyPublishedQueryPayloads": 2,
+  "qaSupportFiles": 5,
+  "manifestCandidateFiles": 69,
+  "manifestSha256": "be6ca77a11bd44e249ff3519498037be068f585147ee8481944b4c703ca0d51e",
+  "receiptSha256": "d5da843464a854042c39215f530fe025446d0bbd583c903b55fab191fb5000bf",
+  "receipt": {
+    "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+    "sourceHeadBefore": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+    "canonicalBaseFiles": 994,
+    "candidateFiles": 69,
+    "qaSupportFiles": 5,
+    "status": "SOURCE_ONLY_NOT_TESTED_NOT_APPLIED",
+    "dependenciesInstalled": false,
+    "migrationsApplied": false,
+    "databaseStarted": false
+  },
+  "directedEvidenceSha256": "062a2276f29b3329167a92510259683ac0c3f8b414b2ecd1f7556c25a7647177",
+  "comparison": "Canonical994 Git blobs plus69 candidate overlays produce exactly1021 tested source files; five renderer supports and receipt are additional. All package/payload/source hashes verified.",
+  "limits": [
+    "Source restoration only; no dependency installation, database, migration or test execution by builder/restorer.",
+    "Directed12TAP equals six top-level tests (two groups) plus six subtests: ten independent scenarios, not twelve independent scenarios.",
+    "Sixteen regression processes162 are selected coverage, not API integral or production acceptance.",
+    "Three nonempty baseline projections decoded actual data after promotion; three empty-cursor failures did not expose data; two parent failures aggregate these assertions.",
+    "Only three structure GETs and a local global-admin people fixture ceremony changed; remaining readers/mutations and integrated acceptance pending.",
+    "Metadata updates preserve source payload bytes; inputInventorySha256 and package README refer to builder inputs."
+  ],
+  "computerRestarted": false,
+  "productionAccepted": false,
+  "builder": {
+    "phase": "builder",
+    "childExitedAt": "2026-11-05T09:02:49.2906881Z",
+    "exitCode": 0,
+    "durationMs": 2456.3295,
+    "timedOut": false,
+    "ownedPid": 46312,
+    "guard": {
+      "freeMiB": 2344.0,
+      "minimumMiB": 1536,
+      "at": "2026-11-05T09:02:46.8052622Z",
+      "phase": "builder"
+    },
+    "heapMiB": 128,
+    "resultSha256": "163a962537ba450a4cda9a0b54ffb68508b7bf0a7446c5102ae9be82664444fc",
+    "stdoutSha256": "d97d458ab94fd797a375b65bb5c137c7c8006efdf1067c527a163126af2b43b2",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "restore": {
+    "ownedPid": 39212,
+    "timedOut": false,
+    "durationMs": 3275.3695,
+    "phase": "restore",
+    "childExitedAt": "2026-11-05T09:02:58.7852953Z",
+    "exitCode": 0,
+    "guard": {
+      "at": "2026-11-05T09:02:55.4883537Z",
+      "minimumMiB": 1536,
+      "phase": "restore",
+      "freeMiB": 2530.0
+    },
+    "heapMiB": 128,
+    "resultSha256": "56557f5e489b4c7f8a345c883d925b4822aa1acf812b0f7ec3ee4b7ace14ea87",
+    "stdoutSha256": "5d235f6a30170e2aa45149c03b8e7aaf4b605e3f66b3f1e798763b632bc34c5a",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}
