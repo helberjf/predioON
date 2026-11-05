@@ -1,0 +1,35 @@
+{
+  "recordedAt": "2026-11-05T07:07:16.7720473Z",
+  "sourceCommit": "c57428a3957509641fbc51d461099dbf86c985e2",
+  "status": "PASS_ISOLATED_BEHAVIOR_ONLY",
+  "command": "pwsh -NoLogo -NoProfile -File scripts/test-start-local.ps1",
+  "hostVersion": "7.6.5",
+  "effectiveExecutionPolicy": "RemoteSigned",
+  "exitCode": 0,
+  "elapsedMs": 1287,
+  "freeMiBBefore": 3107,
+  "sourceSha256": "4d10c40e1df90de5c2f2d9d78337bd91acd3dad4da1be40621d90c0ae6ea1dfa",
+  "testSha256": "23f38853736bddc453caf3199e77e0e2474f2e2b15c03890cf0205d1855e3a29",
+  "privateLogSha256": "599c63b5b326ec33902d9f745b9c98a466d234407f0183abdbe87164e1dd0b9b",
+  "casesExecuted": 8,
+  "casesPassed": 8,
+  "casesFailed": 0,
+  "realServicesExecuted": false,
+  "executionPolicyChanged": false,
+  "computerDockerOrWslRestarted": false,
+  "scenarios": [
+    "Resume starts infrastructure and checks the ledger without implicit migration, seed or dependency installation.",
+    "Pending migrations block application startup.",
+    "Legacy history blocks application startup.",
+    "Explicit setup provisions schema and restricted ingestion environment without implicit seed.",
+    "Explicit Setup plus SeedDemo invokes the demonstration seed.",
+    "SeedDemo without Setup is rejected before tool execution.",
+    "Infrastructure failure prevents database waiting and application startup.",
+    "Missing restricted ingestion environment blocks ordinary resume."
+  ],
+  "limits": [
+    "Runs the unchanged real launcher with isolated files and fake node, pnpm and docker functions.",
+    "Does not establish installed pnpm resolution, real Docker startup, database migration, browser login or mobile acceptance.",
+    "The separate Windows PowerShell attempt remains blocked before cases; no policy was changed to run this supported PowerShell 7 host."
+  ]
+}

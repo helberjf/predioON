@@ -142,4 +142,12 @@ Detecção estatística de desvios de consumo e bomba implementada. A validaçã
 - [ ] Entregar o roteiro para entrevistas/apresentações: públicos, jornadas, arquitetura, integrações, testes, decisões e limites reais.
 - [ ] Atualizar capturas, vídeos e documentação final sem confundir evidências históricas com homologação atual.
 
+Primeiras versões dos materiais: [roteiro para entrevistas](ROTEIRO_ENTREVISTA.md)
+e [guia de abertura dos sistemas](COMO_ABRIR_OS_SISTEMAS.md). Ainda precisam de
+revisão na fonte final e execução observada dos launchers/jornadas. O launcher
+passou [8/8 cenários isolados no PowerShell 7](evidencias/launcher-behavior-pwsh7-2026-11-05.json),
+sem serviços reais. A tentativa no Windows PowerShell ficou
+[bloqueada antes do primeiro caso](evidencias/launcher-preflight-2026-11-05.json).
+Os itens acima continuam abertos.
+
 Consultar o estado corrente e a sequência de retomada em [CONTINUIDADE.md](CONTINUIDADE.md).

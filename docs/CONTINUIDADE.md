@@ -10,6 +10,8 @@ A rodada anterior aprovou alertas **9/9** e cinco regressões separadas: telemet
 
 O [roteiro de fechamento em quatro lotes](superpowers/plans/2026-11-05-mfa-fechamento-e-demonstracao.md) identifica as lacunas concretas de MFA e os scripts existentes de abertura, demonstração e codegen. Sua auditoria é estática; os critérios de saída exigem novas provas.
 
+**Materiais de apresentação em elaboração:** o [roteiro para entrevistas](ROTEIRO_ENTREVISTA.md) explica os cinco produtos, arquitetura, decisões e exemplos de testes; o [guia de abertura](COMO_ABRIR_OS_SISTEMAS.md) reúne os scripts existentes, portas, execução nativa e Codegen. Ambos distinguem instruções de aceitação observada. Os [oito cenários do launcher passaram no PowerShell 7.6.5](evidencias/launcher-behavior-pwsh7-2026-11-05.json), com arquivos isolados e ferramentas simuladas. A [tentativa separada no Windows PowerShell](evidencias/launcher-preflight-2026-11-05.json) foi bloqueada antes do primeiro caso. Não houve mudança de política nem inicialização de serviços reais. Validar abertura real e revisar os materiais na fonte final continuam pendentes.
+
 ## Estado corrente verificado em 05/11
 
 | Verificação | Resultado observado | O que continua aberto |

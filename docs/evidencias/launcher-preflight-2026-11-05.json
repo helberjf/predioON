@@ -1,0 +1,25 @@
+{
+  "recordedAt": "2026-11-05T07:02:06.7885781Z",
+  "sourceCommit": "c57428a3957509641fbc51d461099dbf86c985e2",
+  "status": "BLOCKED_BEFORE_TEST_EXECUTION",
+  "command": "powershell.exe -NoLogo -NoProfile -File scripts/test-start-local.ps1",
+  "exitCode": 1,
+  "elapsedMs": 926,
+  "freeMiBBefore": 2780,
+  "sourceSha256": "4d10c40e1df90de5c2f2d9d78337bd91acd3dad4da1be40621d90c0ae6ea1dfa",
+  "testSha256": "23f38853736bddc453caf3199e77e0e2474f2e2b15c03890cf0205d1855e3a29",
+  "privateLogSha256": "5011990b0c424a9952f38772f5b7b3fafdc8d50ecfe742ed99f43d6e6f8bd50f",
+  "observedError": "SecurityError / UnauthorizedAccess: running scripts is disabled on this system",
+  "casesAuthored": 8,
+  "casesExecuted": 0,
+  "casesPassed": 0,
+  "realServicesExecuted": false,
+  "executionPolicyChanged": false,
+  "computerDockerOrWslRestarted": false,
+  "limits": [
+    "The PowerShell host refused the file before any test case ran.",
+    "This is an environment refusal, not a failing product assertion or a passing launcher test.",
+    "No current web, Android or iOS startup acceptance is established by this attempt.",
+    "The original isolated behavioral test uses fake tools; even a successful run would not establish real-service acceptance."
+  ]
+}
