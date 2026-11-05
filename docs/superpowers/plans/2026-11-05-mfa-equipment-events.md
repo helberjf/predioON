@@ -1,7 +1,9 @@
-# MFA: próximo recorte de equipamentos e coordenação do SSE
+# MFA: equipamentos e coordenação do SSE
 
-Estado em 05/11/2026: **análise estática; nenhum código ou teste deste recorte
-foi autorado ou executado**. Fonte consultada: composição preparada original17
+**Atualização:** device-status passou nos nove testes dirigidos e nas sete regressões separadas (71 casos). [Prova](../../evidencias/mfa-device-events-2026-11-05.json). Os dois envelopes propostos foram implementados no candidato, com ACL15, preservando a rechecagem final e ANY sem freshness. O desenho inicial abaixo fica como histórico; original25, gateway e heartbeat continuam como próximas etapas. Não houve ativação no runtime da main.
+
+Registro do desenho inicial de 05/11/2026: na ocasião era **análise estática,
+sem autoria ou execução**. Fonte consultada: composição preparada original17
 `52b2c494…`, com produto idêntico a `77b1c351…`. As provas de alertas, telemetria
 e suas fixtures permanecem separadas. Este desenho não autoriza aplicar068 à
 instalação publicada067, nem afirma cobertura global de MFA.

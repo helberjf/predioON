@@ -1,0 +1,413 @@
+import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
+import type { Server } from "node:http";
+import { after, before, describe, it } from "node:test";
+import postgres from "postgres";
+import { sql } from "drizzle-orm";
+import { PgDialect } from "drizzle-orm/pg-core";
+import { sqlClient } from "@predioon/db";
+import { appDb, closeAppDb, withUserContext, type AppTransaction } from "@predioon/db/runtime";
+import { app } from "../src/app.js";
+import { hashPassword } from "../src/auth/passwords.js";
+import { startRealtimeBus } from "../src/modules/events/bus.js";
+import { projectDeviceStatusEvent } from "../src/modules/events/equipment.js";
+import type { RealtimeEvent } from "@predioon/shared";
+type DeviceEvent = Extract<RealtimeEvent, { kind: "device-status" }>;
+import "./helpers.js";
+
+// Authored only. Official fresh UUID fixture with candidate068 required.
+// Synthetic factor/proof rows isolate SQL policy; they do not prove TOTP ceremony.
+const signatures = ["public.app_mfa_device_event_context(text,text)", "public.app_mfa_device_event_allowed(text,text)"];
+const roleVariables = {
+  predioon_app: "DATABASE_URL_APP", predioon_identity: "DATABASE_URL_IDENTITY",
+  predioon_broker_auth: "DATABASE_URL_BROKER_AUTH", predioon_notifications: "DATABASE_URL_NOTIFICATIONS",
+  predioon_ingest: "DATABASE_URL_INGEST", predioon_access_service: "DATABASE_URL_ACCESS_SERVICE",
+} as const;
+type Actor = { id: string; sid: string; generation: string };
+type DeviceContext = {
+  stored: { buildingId: string; deviceId: string; status: string } | null;
+  classification: { device_type: string; gate_kind: string | null; parking_vehicle_type: string | null } | null;
+  global: Array<{ key: string; enabled: boolean | null; version: number }>;
+  local: Array<{ key: string; enabled: boolean | null; version: number }>;
+};
+function signal() {
+  let resolve!: () => void;
+  const promise = new Promise<void>(done => { resolve = done; });
+  return { promise, resolve };
+}
+async function bounded<T>(promise: PromiseLike<T>, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([Promise.resolve(promise), new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(new Error(`Fixture deadline: ${label}`)), 5000);
+    })]);
+  } finally { clearTimeout(timer); }
+}
+function codeOf(error: unknown): string | undefined {
+  if (!error || typeof error !== "object") return undefined;
+  if ("code" in error && typeof error.code === "string") return error.code;
+  return "cause" in error ? codeOf(error.cause) : undefined;
+}
+
+/** Pause after the real first context/classification, before the fresh final authority statement.
+ * All queries still execute normally after release; no production hook or mock data. */
+function deviceContextBarrier() {
+  const reached = signal(), release = signal(), finished = signal();
+  const state = { contexts: 0 };
+  const original = appDb.transaction, run = original.bind(appDb), dialect = new PgDialect();
+  type Input = Parameters<AppTransaction["execute"]>[0];
+  const intercepted: typeof appDb.transaction = (callback, config) => run(tx => callback(new Proxy(tx, {
+    get(target, key) {
+      if (key === "execute") return async (query: Input) => {
+        const text = typeof query === "string" ? query : dialect.sqlToQuery(query.getSQL()).sql;
+        const rows = await target.execute(query);
+        if (text.includes("app_equipment_device_classification(") || text.includes("app_mfa_device_event_context(")) {
+          state.contexts++;
+          assert.equal(state.contexts, 1, "one real event context, no reconnect or replay");
+          reached.resolve();
+          await bounded(release.promise, "release device context");
+        }
+        return rows;
+      };
+      const value = Reflect.get(target, key, target);
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  })), config).finally(() => finished.resolve());
+  appDb.transaction = intercepted;
+  return { reached, release, finished, state, restore() { appDb.transaction = original; } };
+}
+
+describe("MFA device status context and fresh authority boundary", { concurrency: false }, () => {
+  const suffix = randomUUID(), org = `mfa-device-org-${suffix}`;
+  const building = `mfa-device-building-${suffix}`, foreign = `mfa-device-foreign-${suffix}`;
+  const device = `mfa-device-device-${suffix}`, neighbor = `mfa-device-neighbor-${suffix}`, foreignDevice = `mfa-device-foreign-device-${suffix}`;
+  const gateway = `mfa-device-gateway-${suffix}`, foreignGateway = `mfa-device-foreign-gateway-${suffix}`;
+  const grant = randomUUID();
+  const binding = randomUUID(), password = "mfa-device-fictitious-password";
+  const actors: Actor[] = [], pools = new Map<string, postgres.Sql>();
+  let enrolling: Actor, verifying: Actor, satisfied: Actor, local: Actor, racing: Actor, buildingReader: Actor, support: Actor;
+  let server: Server | undefined, url = "";
+  function context<T>(actor: Actor, fn: (tx: AppTransaction) => Promise<T>, sid = actor.sid) {
+    return withUserContext({ userId: actor.id, role: "RESIDENT", sessionId: sid }, fn);
+  }
+  function event(extra: Partial<DeviceEvent> = {}): DeviceEvent {
+    return { kind: "device-status", buildingId: building, deviceId: device, status: "ONLINE", ...extra };
+  }
+  function projected(actor: Actor, value = event()) { return context(actor, tx => projectDeviceStatusEvent(tx, value)); }
+  const empty = { stored: null, classification: null, global: [], local: [] };
+  function envelope(actor: Actor, targetBuilding: string | null = building, targetDevice: string | null = device, sid = actor.sid) {
+    return context(actor, async tx => {
+      const rows = await tx.execute<{ context: DeviceContext }>(sql`select public.app_mfa_device_event_context(${targetBuilding},${targetDevice}) as context`);
+      assert.equal(rows.length, 1);
+      assert.ok(rows[0]?.context && typeof rows[0].context === "object");
+      return rows[0]!.context;
+    }, sid);
+  }
+  function allowed(actor: Actor, targetBuilding: string | null = building, targetDevice: string | null = device, sid = actor.sid) {
+    return context(actor, async tx => {
+      const rows = await tx.execute<{ allowed: boolean }>(sql`select public.app_mfa_device_event_allowed(${targetBuilding},${targetDevice}) as allowed`);
+      assert.equal(rows.length, 1); return rows[0]!.allowed;
+    }, sid);
+  }
+  async function actor(hash: string): Promise<Actor> {
+    const a = { id: `mfa-device-user-${randomUUID()}`, sid: randomUUID(), generation: randomUUID() };
+    actors.push(a);
+    await sqlClient`insert into users(id,name,email,password_hash) values(${a.id},'Device fixture',${a.id+'@example.invalid'},${hash})`;
+    await sqlClient`insert into sessions(id,user_id,expires_at) values(${a.sid},${a.id},now()+interval '1 hour')`;
+    return a;
+  }
+  before(async () => {
+    const [ledger] = await sqlClient`select count(*)::int as count from schema_migrations`;
+    assert.equal(ledger?.count, 68, "official candidate068 fixture, never skip");
+    const hash = await hashPassword(password);
+    enrolling = await actor(hash); verifying = await actor(hash); satisfied = await actor(hash);
+    local = await actor(hash); racing = await actor(hash);
+    buildingReader = await actor(hash); support = await actor(hash);
+    await sqlClient`insert into organizations(id,name,slug) values(${org},'Device fixture',${org})`;
+    for (const id of [building, foreign]) await sqlClient`insert into buildings(id,organization_id,name,code) values(${id},${org},'Device fixture',${id})`;
+    await sqlClient`insert into devices(id,building_id,name,type,metadata) values
+      (${device},${building},'Mixed device','ENERGY_METER','{"fixturePrivate":"not-projected"}'::jsonb),
+      (${neighbor},${building},'Neighbor water','WATER_LEVEL_SENSOR','{}'::jsonb),
+      (${foreignDevice},${foreign},'Foreign water','WATER_LEVEL_SENSOR','{}'::jsonb)`;
+    await sqlClient`insert into gateways(id,building_id,name,serial_number) values
+      (${gateway},${building},'Fixture gateway',${gateway}),(${foreignGateway},${foreign},'Foreign gateway',${foreignGateway})`;
+    await sqlClient`update devices set gateway_id=${gateway},status='ONLINE' where id=${device}`;
+    await sqlClient`update devices set gateway_id=${foreignGateway} where id=${foreignDevice}`;
+    for (const a of [local, satisfied, racing]) await sqlClient`insert into role_bindings(user_id,building_id,role_key,resource_type,resource_id)
+      values(${a.id},${building},'MAINTENANCE','device',${device})`;
+    await sqlClient`insert into role_bindings(user_id,building_id,role_key) values(${buildingReader.id},${building},'MAINTENANCE')`;
+    await sqlClient`insert into role_bindings(user_id,role_key) values(${support.id},'PLATFORM_SUPPORT')`;
+    await sqlClient`insert into support_grants(id,building_id,support_user_id,capability,resource_type,resource_id,reason,expires_at,granted_by)
+      values(${grant},${building},${support.id},'devices:read','device',${device},'Fixture device only',now()+interval '1 hour',${satisfied.id})`;
+    for (const a of [enrolling, verifying, satisfied]) await sqlClient`update users set is_platform_admin=true where id=${a.id}`;
+    for (const a of [verifying, satisfied]) await sqlClient`insert into mfa_factors(user_id,secret_ciphertext,confirmed_at,generation)
+      values(${a.id},decode(repeat('00',40),'hex'),now(),${a.generation})`;
+    await sqlClient`update sessions set mfa_verified_at=now(),mfa_factor_generation=${satisfied.generation} where id=${satisfied.sid}`;
+    await sqlClient`insert into role_bindings(id,user_id,role_key,active) values(${binding},${racing.id},'PLATFORM_ADMIN',false)`;
+    const [database] = await sqlClient`select current_database() as name`;
+    for (const [role, variable] of Object.entries(roleVariables)) {
+      const dsn = process.env[variable]; assert.ok(dsn, `required restricted DSN ${variable}`);
+      const parsed = new URL(dsn); assert.equal(parsed.username, role); assert.equal(decodeURIComponent(parsed.pathname.slice(1)), database?.name);
+      const pool = postgres(dsn, { max: 1, onnotice: () => {} }); pools.set(role, pool);
+      const [identity] = await pool`select current_user as name`; assert.equal(identity?.name, role);
+    }
+    server = await new Promise<Server>(resolve => {
+      const listener = app.listen(0, "127.0.0.1", () => resolve(listener));
+    });
+    const address = server.address(); assert.ok(address && typeof address !== "string");
+    url = `http://127.0.0.1:${address.port}`;
+    await bounded(startRealtimeBus(), "real PostgreSQL LISTEN ready");
+  });
+  after(async () => {
+    const closing = server ? new Promise<void>((resolve, reject) => {
+      server!.close(error => error ? reject(error) : resolve()); server!.closeAllConnections();
+    }) : Promise.resolve();
+    const outcomes = await Promise.allSettled([
+      bounded(closing, "own HTTP listener close"),
+      ...[...pools.values()].map(pool => bounded(pool.end({ timeout: 3 }), "own role pool close")),
+    ]);
+    try {
+      await bounded(sqlClient.begin(async owner => {
+        await owner`set local lock_timeout='2s'`; await owner`set local statement_timeout='3s'`;
+        for (const id of [building, foreign]) await owner`delete from gates where building_id=${id}`;
+        for (const id of [building, foreign]) await owner`delete from buildings where id=${id}`;
+        await owner`delete from organizations where id=${org}`;
+        for (const a of actors) await owner`delete from users where id=${a.id}`;
+      }), "own fixture cleanup");
+    } finally {
+      const closed = await Promise.allSettled([
+        bounded(closeAppDb(), "app pool and LISTEN close"),
+        bounded(sqlClient.end({ timeout: 3 }), "owner pool close"),
+      ]);
+      const failure = closed.find(result => result.status === "rejected");
+      if (failure?.status === "rejected") throw failure.reason;
+    }
+    const failed = outcomes.find(result => result.status === "rejected");
+    if (failed?.status === "rejected") throw failed.reason;
+  });
+
+  it("an ordinary device reader receives persisted status then closes after promotion between context and final authority", async () => {
+    const cancellation = new AbortController();
+    let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+    let barrier: ReturnType<typeof deviceContextBarrier> | undefined;
+    let failed = false;
+    try {
+      const login = await bounded(fetch(`${url}/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: racing.id+'@example.invalid', password }), signal: cancellation.signal }), "ordinary login");
+      assert.equal(login.status, 200);
+      const identity = await bounded(login.json(), "login body") as { accessToken: string; user: { mfaRequirement: string } };
+      assert.ok(identity.accessToken); assert.equal(identity.user.mfaRequirement, "not-required");
+      const response = await bounded(fetch(`${url}/events/stream`, { headers: { Authorization: `Bearer ${identity.accessToken}` }, signal: cancellation.signal }), "SSE open");
+      assert.equal(response.status, 200, "only initial HTTP status; errors after headers close the stream");
+      reader = response.body!.getReader();
+      let buffered = ""; const decoder = new TextDecoder();
+      while (!buffered.includes("\n\n")) {
+        const part: ReadableStreamReadResult<Uint8Array> = await bounded(reader.read(), "initial retry frame"); assert.equal(part.done, false);
+        buffered += decoder.decode(part.value, { stream: true });
+      }
+      assert.equal(buffered, "retry: 5000\n\n");
+      // Positive delivery on this same connection precedes the controlled race.
+      await bounded(sqlClient`select pg_notify('predioon_events',${JSON.stringify(event({ status: "FORGED" }))})`, "publish positive device notification");
+      let positive = "";
+      while (!positive.includes("\n\n")) {
+        const part: ReadableStreamReadResult<Uint8Array> = await bounded(reader.read(), "ordinary positive device frame");
+        assert.equal(part.done, false, "ordinary stream must really deliver before promotion");
+        positive += decoder.decode(part.value, { stream: true });
+      }
+      assert.equal(positive, `event: device-status\ndata: ${JSON.stringify(event())}\n\n`);
+      barrier = deviceContextBarrier();
+      await bounded(sqlClient`select pg_notify('predioon_events',${JSON.stringify(event())})`, "publish device notification");
+      const observation = bounded(reader.read(), "event frame or stream closure");
+      void observation.catch(() => undefined);
+      const first = await bounded(Promise.race([barrier.reached.promise.then(() => "boundary" as const), observation.then(() => "read" as const)]), "event reached real context");
+      assert.equal(first, "boundary", "initial guarded context/classification completed before the promotion");
+      const [prior] = await sqlClient`select public.identity_platform_mfa_required(${racing.id}) as required`;
+      assert.equal(prior?.required, false);
+      await bounded(sqlClient.begin(async owner => {
+        await owner`set local lock_timeout='2s'`; await owner`set local statement_timeout='3s'`;
+        const rows = await owner`update role_bindings set active=true where id=${binding} and active=false returning id`;
+        assert.equal(rows.length, 1);
+      }), "commit ADMIN promotion before final authority");
+      const [current] = await sqlClient`select public.identity_platform_mfa_required(${racing.id}) as required`;
+      assert.equal(current?.required, true);
+      barrier.release.resolve();
+      const next = await observation;
+      let decodedAfterPromotion: unknown = null;
+      if (!next.done) {
+        // Decode the actual baseline frame before failing; done=false alone is not a payload claim.
+        let frame = decoder.decode(next.value, { stream: true });
+        while (!frame.includes("\n\n")) {
+          const part: ReadableStreamReadResult<Uint8Array> = await bounded(reader.read(), "complete post-promotion device frame");
+          assert.equal(part.done, false, "partial frame must complete before classification");
+          frame += decoder.decode(part.value, { stream: true });
+        }
+        assert.ok(frame.startsWith("event: device-status\n"), "classify an actual device event, not heartbeat or features marker");
+        const line = frame.split("\n").find(line => line.startsWith("data: "));
+        assert.ok(line); decodedAfterPromotion = JSON.parse(line.slice(6));
+        assert.deepEqual(decodedAfterPromotion, event(), "baseline delivered the exact persisted device DTO");
+      }
+      assert.deepEqual(decodedAfterPromotion, null, "must close without a persisted device frame after promotion");
+      assert.equal(next.done, true);
+      assert.equal(next.value, undefined);
+      assert.equal(barrier.state.contexts, 1);
+    } catch (error) { failed = true; throw error; }
+    finally {
+      barrier?.release.resolve(); cancellation.abort();
+      const outcomes = await Promise.allSettled([
+        bounded(reader?.cancel().catch(() => undefined) ?? Promise.resolve(), "own SSE reader cancel"),
+        ...(barrier?.state.contexts ? [bounded(barrier.finished.promise, "own event transaction settle")] : []),
+      ]);
+      barrier?.restore();
+      const failure = outcomes.find(result => result.status === "rejected");
+      if (!failed && failure?.status === "rejected") throw failure.reason;
+    }
+  });
+  it("both SQL points guard enrollment before matching, missing, divergent and NULL inputs", async () => {
+    for (const operation of [envelope, allowed]) for (const [b, d] of [[building, device], [foreign, device], [building, 'missing'], [null, null]]) {
+      await assert.rejects(() => operation(enrolling, b, d), error => codeOf(error) === 'PMF01');
+    }
+  });
+  it("both SQL points reject unverified, missing, malformed and foreign session proof", async () => {
+    for (const operation of [envelope, allowed]) {
+      await assert.rejects(() => operation(verifying), error => codeOf(error) === 'PMF02');
+      for (const sid of ['', 'invalid-uuid', local.sid]) for (const [b, d] of [[building, device], [null, null]]) {
+        await assert.rejects(() => operation(satisfied, b, d, sid), error => codeOf(error) === 'PMF02');
+      }
+    }
+  });
+  it("minimal exact persisted context includes disabled inventory but never private fields or other scopes", async () => {
+    const current = await envelope(local);
+    assert.deepEqual(Object.keys(current).sort(), ['classification','global','local','stored']);
+    assert.deepEqual(current.stored, { buildingId: building, deviceId: device, status: 'ONLINE' });
+    assert.deepEqual(current.classification, { device_type: 'ENERGY_METER', gate_kind: null, parking_vehicle_type: null });
+    assert.equal(await allowed(local), true);
+    for (const rows of [current.global, current.local]) for (const row of rows) {
+      assert.deepEqual(Object.keys(row).sort(), ['enabled','key','version']);
+      assert.equal(typeof row.key, 'string'); assert.equal(typeof row.version, 'number');
+      assert.ok(row.enabled === null || typeof row.enabled === 'boolean');
+    }
+    for (const [b, d] of [[building, neighbor], [foreign, foreignDevice], [foreign, device], [building, foreignDevice], [building, "x'::uuid"], [building, ''], [null, null]]) {
+      assert.deepEqual(await envelope(local, b, d), empty);
+      assert.equal(await allowed(local, b, d), false);
+    }
+    try {
+      await sqlClient`update devices set enabled=false,status='OFFLINE' where id=${device}`;
+      assert.deepEqual(await projected(local, event({ status: 'FORGED' })), event({ status: 'OFFLINE' }));
+      assert.equal((await envelope(local)).stored?.status, 'OFFLINE');
+    } finally { await sqlClient`update devices set enabled=true,status='ONLINE' where id=${device}`; }
+  });
+  it("mixed-device ANY and current status after resume do not require a fresh observation", async () => {
+    try {
+      await sqlClient`insert into building_feature_settings(building_id,feature_key,enabled) values(${building},'ENERGY_CONSUMPTION',false)`;
+      assert.deepEqual(await projected(local), event(), 'ELECTRICAL still enabled: ANY, not ALL');
+      await sqlClient`insert into building_feature_settings(building_id,feature_key,enabled) values(${building},'ELECTRICAL',false)`;
+      assert.equal(await projected(local), null);
+      await sqlClient`update building_feature_settings set enabled=true where building_id=${building} and feature_key='ENERGY_CONSUMPTION'`;
+      await sqlClient`insert into feature_runtime(building_id,feature_key,resumed_at) values(${building},'ENERGY_CONSUMPTION',clock_timestamp()+interval '1 hour')`;
+      assert.deepEqual(await projected(local), event(), 'future resume time does not hide current equipment inventory');
+    } finally {
+      await sqlClient`delete from feature_runtime where building_id=${building}`;
+      await sqlClient`delete from building_feature_settings where building_id=${building}`;
+    }
+  });
+  it("gate and parking classification belongs to the actual building", async () => {
+    try {
+      await sqlClient`update devices set type='GATE_CONTROLLER' where id in (${device},${foreignDevice})`;
+      await sqlClient`insert into gates(building_id,name,kind,gateway_id,device_id) values
+        (${building},'Own gate','PEDESTRIAN',${gateway},${device}),(${foreign},'Foreign gate','PEDESTRIAN',${foreignGateway},${foreignDevice})`;
+      await sqlClient`insert into building_feature_settings(building_id,feature_key,enabled) values(${building},'PEDESTRIAN_ACCESS',false)`;
+      assert.equal((await envelope(local)).classification?.gate_kind, 'PEDESTRIAN');
+      assert.equal(await projected(local), null);
+      await sqlClient`update devices set building_id=${building},gateway_id=${gateway} where id=${foreignDevice}`;
+      assert.equal((await envelope(buildingReader, building, foreignDevice)).classification?.gate_kind, null);
+      assert.deepEqual(await projected(buildingReader, event({ deviceId: foreignDevice })), event({ deviceId: foreignDevice, status: 'PROVISIONING' }));
+      await sqlClient`delete from gates where device_id in (${device},${foreignDevice})`;
+      await sqlClient`update devices set type='PARKING_SENSOR' where id in (${device},${foreignDevice})`;
+      await sqlClient`update devices set building_id=${foreign},gateway_id=${foreignGateway} where id=${foreignDevice}`;
+      await sqlClient`insert into parking_lots(building_id,vehicle_type,capacity,sensor_id) values
+        (${building},'MOTORCYCLE',10,${device}),(${foreign},'MOTORCYCLE',10,${foreignDevice})`;
+      await sqlClient`insert into building_feature_settings(building_id,feature_key,enabled) values(${building},'MOTORCYCLE_PARKING',false)`;
+      assert.equal((await envelope(local)).classification?.parking_vehicle_type, 'MOTORCYCLE');
+      assert.equal(await projected(local), null);
+      await sqlClient`update devices set building_id=${building},gateway_id=${gateway} where id=${foreignDevice}`;
+      assert.equal((await envelope(buildingReader, building, foreignDevice)).classification?.parking_vehicle_type, null);
+      assert.deepEqual(await projected(buildingReader, event({ deviceId: foreignDevice })), event({ deviceId: foreignDevice, status: 'PROVISIONING' }));
+    } finally {
+      await sqlClient`delete from gates where device_id in (${device},${foreignDevice})`;
+      await sqlClient`delete from parking_lots where sensor_id in (${device},${foreignDevice})`;
+      await sqlClient`delete from building_feature_settings where building_id=${building}`;
+      await sqlClient`update devices set type='ENERGY_METER' where id=${device}`;
+      await sqlClient`update devices set type='WATER_LEVEL_SENSOR',building_id=${foreign},gateway_id=${foreignGateway} where id=${foreignDevice}`;
+    }
+  });
+  it("fresh final authority observes support expiry or revocation after context, even while features are off", async () => {
+    const [caps] = await context(support, tx => tx.execute(sql`select
+      app_has_capability(${building},'telemetry:read','device',${device}) as telemetry,
+      app_has_capability(${building},'alerts:read','device',${device}) as alerts`));
+    assert.equal(caps?.telemetry, false); assert.equal(caps?.alerts, false);
+    assert.deepEqual(await projected(support), event());
+    for (const mode of ['expired','revoked','paused'] as const) {
+      let queries = 0;
+      try {
+        if (mode === 'paused') await sqlClient`insert into building_feature_settings(building_id,feature_key,enabled)
+          values(${building},'ENERGY_CONSUMPTION',false),(${building},'ELECTRICAL',false)`;
+        await context(support, async tx => {
+          const wrapped = new Proxy(tx, { get(target, key) {
+            if (key === 'execute') return async (...args: Parameters<typeof tx.execute>) => {
+              const rows = await target.execute(...args);
+              if (++queries === 1) {
+                // No sleep: expiration commits strictly after initial authorized context.
+                if (mode === 'expired') await bounded(sqlClient`update support_grants
+                  set created_at=clock_timestamp()-interval '2 hours',expires_at=clock_timestamp()-interval '1 hour' where id=${grant}`, 'expire own grant');
+                else await bounded(sqlClient`update support_grants set revoked_at=clock_timestamp() where id=${grant}`, 'revoke own grant');
+              }
+              return rows;
+            };
+            const value = Reflect.get(target, key, target);
+            return typeof value === 'function' ? value.bind(target) : value;
+          }});
+          assert.equal(await projectDeviceStatusEvent(wrapped, event()), null);
+        });
+        assert.equal(queries, 2, 'final fresh authority must run before the ANY feature filter');
+      } finally {
+        await sqlClient`update support_grants set revoked_at=null,created_at=clock_timestamp()-interval '1 hour',expires_at=clock_timestamp()+interval '1 hour' where id=${grant}`;
+        await sqlClient`delete from building_feature_settings where building_id=${building}`;
+      }
+    }
+  });
+  it("synthetic satisfied family preserves only its real local device grant", async () => {
+    assert.equal((await envelope(satisfied)).stored?.deviceId, device);
+    assert.equal(await allowed(satisfied), true);
+    assert.deepEqual(await projected(satisfied), event());
+    assert.deepEqual(await envelope(satisfied, building, neighbor), empty);
+    assert.equal(await allowed(satisfied, building, neighbor), false);
+    assert.equal(await projected(satisfied, event({ deviceId: neighbor })), null);
+  });
+  it("both new functions extend the thirteen-object inventory with app-only ACL across six real roles", async () => {
+    const prior = ['public.identity_platform_mfa_required(text)','public.identity_session_mfa_requirement(text,uuid)',
+      'public.app_require_session_mfa()','public.app_list_mfa_organizations()','public.app_list_mfa_devices(text)',
+      'public.app_list_mfa_gateways()','public.app_mfa_platform_authorization(text[])','public.app_mfa_scope_authorization(text,text,text,text[])',
+      'public.app_overview_platform_health()','public.app_platform_service_health()','public.app_mfa_feature_event_allowed(text)',
+      'public.app_mfa_telemetry_event_context(text,text)','public.app_mfa_alert_event_context(text,uuid)'];
+    assert.equal(prior.length + signatures.length, 15);
+    for (const signature of prior) {
+      const [row] = await sqlClient`select to_regprocedure(${signature}) is not null as present`; assert.equal(row?.present, true);
+    }
+    for (const signature of signatures) {
+      const [definition] = await sqlClient`select p.prosecdef,p.provolatile,p.proconfig,p.proisstrict,
+        p.proowner=(select proowner from pg_proc where oid='public.app_require_session_mfa()'::regprocedure) as same_owner
+        from pg_proc p where p.oid=${signature}::regprocedure`;
+      assert.equal(definition?.prosecdef, false); assert.equal(definition?.provolatile, 's'); assert.equal(definition?.proisstrict, false);
+      assert.equal(definition?.same_owner, true); assert.deepEqual(definition?.proconfig, ['search_path=pg_catalog, public, pg_temp']);
+      const acl = await sqlClient`select coalesce(r.rolname,'PUBLIC') as grantee,a.privilege_type,a.is_grantable
+        from pg_proc p cross join lateral aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a
+        left join pg_roles r on r.oid=a.grantee where p.oid=${signature}::regprocedure and a.grantee<>p.proowner`;
+      assert.deepEqual([...acl], [{ grantee: 'predioon_app', privilege_type: 'EXECUTE', is_grantable: false }]);
+      for (const [role, pool] of pools) {
+        const [row] = await pool`select has_function_privilege(current_user,${signature},'EXECUTE') as allowed,
+          has_function_privilege(current_user,${signature},'EXECUTE WITH GRANT OPTION') as grantable`;
+        assert.equal(row?.allowed, role === 'predioon_app'); assert.equal(row?.grantable, false);
+      }
+    }
+  });
+});

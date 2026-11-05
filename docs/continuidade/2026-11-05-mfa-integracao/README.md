@@ -1,37 +1,37 @@
 # Retomada MFA - checkpoint candidato atualizado em 05/11/2026
 
-**Os 17 testes originais de alertas passaram com preparação MFA explícita.**
+**Status de dispositivos: nove testes dirigidos e 71 regressões passaram.**
 A base canônica continua `53c4c70dcd24f1045fad420fbce36757fd3753a2`; a composição
-atual possui **1.015 arquivos e cinco suportes**. Apenas uma fixture mudou;
-produto/SQL/projectors e os outros 16 corpos de casos mantêm seus bytes.
-[Prova específica](../../evidencias/mfa-alert-original17-2026-11-05.json).
+atual possui **1.016 arquivos e cinco suportes**. As sete regressões são processos
+separados, na mesma fonte candidata; não constituem a API integral.
+[Prova específica](../../evidencias/mfa-device-events-2026-11-05.json).
 
-A montagem/restauração do novo conjunto **passou**, com todos os 1.015 arquivos
-idênticos à composição testada.
-[Prova de restauração](../../evidencias/mfa-alert-original17-restore-2026-11-05.json).
-A política MFA
-permanece candidata, sem ativação no runtime da main.
-
-Na composição anterior, alertas 9 e cinco processos de regressão 9/7/5/11/13
-passaram. Esses 54 casos não foram repetidos nesta rodada; conservam sua
-[prova e fonte 77b1](../../evidencias/mfa-alert-events-2026-11-05.json) e sua
-[restauração anterior](../../evidencias/mfa-alert-restore-2026-11-05.json).
-A associação de bytes de produto idênticos não representa execução nova deles.
+A [montagem/restauração passou](../../evidencias/mfa-device-restore-2026-11-05.json),
+com todos os 1.016 arquivos e cinco suportes conferidos. A política
+MFA permanece candidata, sem ativação no runtime da main. A composição anterior
+com os 17 testes originais de alertas conserva sua
+[prova](../../evidencias/mfa-alert-original17-2026-11-05.json) e sua
+[restauração](../../evidencias/mfa-alert-original17-restore-2026-11-05.json).
 
 ## Conteúdo recuperável
 
-O inventário tem **60 payloads**. Dois são helper/teste de
+O inventário tem **62 payloads**. Dois são helper/teste de
 query já publicados e serão excluídos do delta pelos hashes exatos. O pacote
-contém **56 arquivos de implementação/testes candidatos**, dois testes explícitos
+contém **58 arquivos de implementação/testes candidatos**, dois testes explícitos
 de renderer e cinco suportes do renderer. O transporte publicado também é
 dependência da base; não reaplicá-lo.
 
-A única mudança desta rodada é a fixture original de alertas
-`alert-events-capabilities.test.ts`, SHA `7f240d2d...`: cadastro e confirmação MFA
-por HTTP/TOTP somente para os dois administradores do caso 6, mantendo bearer e
-família. Os outros 16 corpos de casos continuam iguais. A SQL 59cda, o projector
-0e61 e os nove testes dirigidos 8bf permanecem byte a byte iguais a 77b1. Nenhum
-runtime novo foi ativado por esta adaptação de testes.
+A rodada altera a SQL068 candidata e o projector de dispositivos, além de
+acrescentar `platform-mfa-device-events.test.ts`. Os envelopes
+`app_mfa_device_event_context(text,text)` e `app_mfa_device_event_allowed(text,text)`
+protegem contexto e autoridade final em statements separados. Mantêm status
+persistido, classificação, ANY das funcionalidades sem freshness, inventário
+desabilitado e a atualização da autoridade de suporte. A ACL tem 15 assinaturas,
+sem novos grants de tabelas. Gateway e heartbeat não mudaram.
+
+A adaptação MFA dos 25 testes originais de equipamentos está separada e ainda
+não integra este checkpoint. A fixture original de alertas permanece `7f240d2d…`,
+a de telemetria `e7431620…`; ambas foram reexecutadas entre as sete regressões.
 
 O [checkpoint separado de desativação](../2026-11-05-mfa-disable/README.md)
 conserva seu antes/depois histórico; não reaplicar esse patch. O complemento SQL
@@ -74,7 +74,33 @@ processos desconhecidos ou reiniciar computador, Docker ou WSL. Os comandos de
 restauração não instalam dependências, executam testes, iniciam serviços ou
 aplicam migrations.
 
-## Rodada atual: 17 originais de alertas
+## Rodada atual: dispositivos e regressões
+
+O comparador anterior teve **2 PASS e 7 FAIL** em 4,685 s de TAP. Um caso mostrou
+o frame real com DTO persistido de quatro campos depois da promoção: a conexão
+recebeu um evento positivo, a barreira pausou após o contexto/classificação real
+e a promoção foi confirmada antes da autoridade final. O frame foi decodificado
+e comparado antes da assertiva negativa. As outras seis falhas são contratos
+SQL novos ausentes. Os controles de ANY e expiração/revogação de suporte passaram.
+
+A versão corrigida passou **9/9** em 4,333 s. Depois, sete processos separados
+passaram na mesma fonte: telemetria9, funcionalidades7, desativação5, SQL11,
+telemetria original13, alertas originais17 e alertas dirigidos9. São **80 casos
+em oito processos**, sem falhas, cancelamentos, skips ou todo; não uma integral.
+
+A primeira resolução foi recusada com 780 MiB antes de iniciar o compilador.
+Após recuperar memória, resolução/tipos passaram: 1,695/8,894 s na anterior,
+1,082/9,072 s na corrigida. O escopo é oito arquivos e imports, não todos os
+workspaces. Fontes e limpeza passaram; seis roles, credenciais privadas e
+configurações foram restauradas, com zero bases temporárias e outros clientes.
+
+Somente a corrida dirigida usa SSE real. Os outros controles novos usam SQL e
+projector, com fatores/provas sintéticos; não estabelecem cerimônia TOTP, web,
+Android/iOS ou produção. As fixtures originais de alertas/telemetria têm suas
+cerimônias administrativas próprias. Nenhuma dessas provas fecha outros callers
+SQL, gateway, heartbeat, mutações ou todos os domínios.
+
+## Rodada anterior: 17 originais de alertas
 
 A fixture anterior teve **16 PASS e 1 FAIL**, em 28,975 s de TAP. O primeiro
 administrador do caso 6 recebeu 403 `MFA_ENROLLMENT_REQUIRED` onde a fixture

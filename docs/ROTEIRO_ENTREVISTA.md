@@ -118,8 +118,7 @@ Nos equipamentos também precisamos preservar uma rechecagem posterior, porque
 o suporte pode expirar entre a classificação do dispositivo e a entrega.”
 
 Use o [registro dos testes de alertas](evidencias/mfa-alert-events-2026-11-05.json)
-como exemplo executado. A etapa de equipamentos está planejada/em trabalho;
-nunca apresente sua análise estática como falha reproduzida ou correção aceita.
+como exemplo executado. O recorte de status de dispositivos também tem [nove testes dirigidos aprovados](evidencias/mfa-device-events-2026-11-05.json). Gateway, heartbeat e integração completa continuam pendentes; o resultado desse recorte não aprova todos os eventos ou o rollout.
 
 **Quais decisões você mudaria com mais tempo?**
 

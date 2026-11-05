@@ -1,0 +1,64 @@
+{
+  "recordedOn": "2026-11-05",
+  "status": "DEVICE_EVENTS_CANDIDATE_CANONICAL_SOURCE_RESTORE_PASSED",
+  "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+  "inputInventorySha256": "4eb3a6f87034363fcb5267b8813b529c4accd386465f168a4e524569a2eb5069",
+  "testedPreparedSha256": "7b53ab4e47a4bf7f2fc480d2ce2f9f6a013c206da10367a895bab35c2894dbfb",
+  "all1016RestoredFilesMatchTestedComposition": true,
+  "baseFiles": 994,
+  "candidateRuntimeAndTests": 58,
+  "explicitRendererTests": 2,
+  "qaSupportFiles": 5,
+  "manifestSha256": "3ccff17667e40b86963de04262aaf8a468c3596fe6e54c3485a7e75f787ab759",
+  "receiptSha256": "89d9cd3b3d312bb49a9720eeb64a641b1519c0e0ec2392c25a679f807abcd7e3",
+  "receipt": {
+    "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+    "sourceHeadBefore": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+    "canonicalBaseFiles": 994,
+    "candidateFiles": 60,
+    "qaSupportFiles": 5,
+    "status": "SOURCE_ONLY_NOT_TESTED_NOT_APPLIED",
+    "dependenciesInstalled": false,
+    "migrationsApplied": false,
+    "databaseStarted": false
+  },
+  "limits": [
+    "Source restore only: no dependency installation, service startup, migration or test execution by builder/restorer.",
+    "Nine directed device cases and71 regressions across seven separate processes passed on this exact composition; not a full API suite.",
+    "Original equipment25 fixture is separate and not included in this62-payload composition.",
+    "Renderer staging, other MFA domains, browser/native and production remain outside this proof.",
+    "Status documentation and inventory pending notes updated after verification without changing source payloads."
+  ],
+  "computerRestarted": false,
+  "productionAccepted": false,
+  "builder": {
+    "childExitedAt": "2026-11-05T07:25:14.7731578Z",
+    "ownedPid": 15076,
+    "phase": "builder",
+    "exitCode": 0,
+    "durationMs": 3327.1399,
+    "timedOut": false,
+    "guard": {
+      "at": "2026-11-05T07:25:11.3928537Z",
+      "minimumMiB": 1536,
+      "phase": "builder",
+      "freeMiB": 2713.0
+    },
+    "heapMiB": 128
+  },
+  "restore": {
+    "childExitedAt": "2026-11-05T07:25:17.9545347Z",
+    "ownedPid": 21164,
+    "phase": "restore",
+    "exitCode": 0,
+    "durationMs": 2921.3091,
+    "timedOut": false,
+    "guard": {
+      "at": "2026-11-05T07:25:15.0287851Z",
+      "minimumMiB": 1536,
+      "phase": "restore",
+      "freeMiB": 2690.0
+    },
+    "heapMiB": 128
+  }
+}

@@ -1,5 +1,5 @@
 {
-  "status": "CANDIDATE_ALERT_ORIGINAL17_FIXTURE_VALIDATED_CANONICAL_RESTORE_PASSED",
+  "status": "CANDIDATE_DEVICE_EVENTS_VALIDATED_CANONICAL_RESTORE_PASSED",
   "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
   "metadata": [
     {
@@ -8,7 +8,7 @@
     },
     {
       "path": "INVENTORY.json",
-      "sha256": "5297b0e6821d6a385aec31fac44878fe8cc3da2d4f85ea968dafa4fce14fa9f0"
+      "sha256": "624bb194a07ecdd16eaf37915ae50b78cacadbc59e1fef2c74e1da0b86879557"
     },
     {
       "path": "git-blobs.mjs",
@@ -24,7 +24,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "da3463c7388d070a639ff6270df21e1e11f18b31bb418277a77dc4ce788e25e4"
+      "sha256": "d9c19fff58c8416281769f753a99764369556dda2f6997e364dfc6b514b5ecff"
     },
     {
       "path": "qaSupport/renderer/package.json",
@@ -47,9 +47,9 @@
       "sha256": "cab9d8393b345aa0d90ea6f7662cd38100b9433f9c16a7e7eed035b18da4e876"
     }
   ],
-  "inventoryPayloads": 60,
+  "inventoryPayloads": 62,
   "alreadyPublishedQueryPayloads": 2,
-  "pendingRuntimeAndTestFiles": 56,
+  "pendingRuntimeAndTestFiles": 58,
   "explicitRendererTestFiles": 2,
   "rendererSupportFiles": 5,
   "canonicalSourceFiles": 994,
@@ -64,29 +64,39 @@
     "evidence": "../../evidencias/mfa-canonical-restore-2026-11-05.json"
   },
   "currentPayloadSet": {
-    "sourceManifestSha256": "52b2c494b9527a3b4c0e1bb3c326397a3048261710a8aa5163863708b1551828",
-    "evidence": "../../evidencias/mfa-alert-original17-2026-11-05.json",
-    "evidenceSha256": "87956187287bab4b2b7e958a32565f0eff7eb4df8458cb25a7ecc2ed25e28c1f",
+    "sourceManifestSha256": "7b53ab4e47a4bf7f2fc480d2ce2f9f6a013c206da10367a895bab35c2894dbfb",
+    "evidence": "../../evidencias/mfa-device-events-2026-11-05.json",
+    "evidenceSha256": "ea6bdbaacd254d42a9a36c6c4516410f91adac0306e61950039374c68438fb52",
     "composition": [
       {
-        "path": "apps/api/test/alert-events-capabilities.test.ts",
-        "sha256": "7f240d2d135c16ce65c6de633a7ddad56f4f6f6ea3f3c12808b53dc5bcdba6dc",
-        "bytes": 22907
+        "path": "infrastructure/068-platform-mfa-required.sql",
+        "sha256": "7838dcbc01d9bdf741f293e1afe1645dd0daff546760197c991e2b2ddb7f61bb",
+        "bytes": 31514
+      },
+      {
+        "path": "apps/api/src/modules/events/equipment.ts",
+        "sha256": "34a7275d9fdcaac7ce787e8451c51a43c1c65f26acf4015da077c853e8730d5d",
+        "bytes": 2987
+      },
+      {
+        "path": "apps/api/test/platform-mfa-device-events.test.ts",
+        "sha256": "51b23eac96a46b285d96f0a177722d9e7bb448ab33e9a48323c5bdcf232b38bc",
+        "bytes": 29154
       }
     ],
     "previousSql11V5TestSha256": "2c8a7bc400bd7b8055922f11a06239026db9dce7e9c4195cba696c67c5cd6710",
-    "validatedMergedScope": "Original alert17 with explicit MFA fixture adaptation; product unchanged; historical54 not rerun",
+    "validatedMergedScope": "Device-status SSE9 plus seven separate regression files71; original equipment25 excluded; no global rollout",
     "assemblyAndRestoreExecutedForThisUpdatedSet": true,
-    "restorationEvidence": "../../evidencias/mfa-alert-original17-restore-2026-11-05.json",
-    "restoredComposedFiles": 1015,
+    "restorationEvidence": "../../evidencias/mfa-device-restore-2026-11-05.json",
+    "restoredComposedFiles": 1016,
     "matchesTestedComposition": true,
-    "manifestSha256": "d34700d609aabff08ae608599548cfe88371d61946fbfa23a584d79a835bd39c",
-    "receiptSha256": "738975db60e29f83b4c2f09046ce21fa935fa5549905c1f96c78104c1abfcb5c"
+    "manifestSha256": "3ccff17667e40b86963de04262aaf8a468c3596fe6e54c3485a7e75f787ab759",
+    "receiptSha256": "89d9cd3b3d312bb49a9720eeb64a641b1519c0e0ec2392c25a679f807abcd7e3"
   },
   "rendererStagingRecipeExecuted": false,
   "p0DisablePatchIncluded": true,
   "publishedApiDatabaseChanged": false,
-  "staticPeerReview": "Original alert17 fixture and canonical restoration verified:1015 source files and5 supports match tested52b2. Product identical to preceding54-test composition, which was not rerun; no global rollout acceptance.",
+  "staticPeerReview": "Device-status context and fresh final authority, directed9 and seven separate regression files71 verified. Canonical1016 source files plus5 supports match tested7b53; original equipment25, gateway/heartbeat and global rollout remain outside acceptance.",
   "historicalGuardRefusal": {
     "minimumMiB": 1536,
     "at": "2026-11-05T03:53:51.9727239Z",
@@ -157,6 +167,14 @@
     {
       "path": "../../evidencias/mfa-alert-original17-restore-2026-11-05.json",
       "sha256": "90c787048598a4d66212a77b470f7bbe8f0daff6b6ddd34524d1258bbb196ea2"
+    },
+    {
+      "path": "../../evidencias/mfa-device-events-2026-11-05.json",
+      "sha256": "ea6bdbaacd254d42a9a36c6c4516410f91adac0306e61950039374c68438fb52"
+    },
+    {
+      "path": "../../evidencias/mfa-device-restore-2026-11-05.json",
+      "sha256": "178c5bb0a7779514d0780746d36e093cc2ef0ebb3c4717b0c23f1079a5b94332"
     }
   ],
   "computerRestarted": false,
@@ -301,5 +319,37 @@
     "matchesTestedComposition": true,
     "manifestSha256": "f2ec4811affcd74b143960c277ab16c407e45ce5653d43abe05773f5eb8ebdd5",
     "receiptSha256": "d6a95a80ed5107e22d2b91ad8a0cb8e1cc0fc32ef3478e8d633d452ad2d97bc0"
+  },
+  "previousOriginalAlert17PayloadSet": {
+    "sourceManifestSha256": "52b2c494b9527a3b4c0e1bb3c326397a3048261710a8aa5163863708b1551828",
+    "evidence": "../../evidencias/mfa-alert-original17-2026-11-05.json",
+    "evidenceSha256": "87956187287bab4b2b7e958a32565f0eff7eb4df8458cb25a7ecc2ed25e28c1f",
+    "composition": [
+      {
+        "path": "apps/api/test/alert-events-capabilities.test.ts",
+        "sha256": "7f240d2d135c16ce65c6de633a7ddad56f4f6f6ea3f3c12808b53dc5bcdba6dc",
+        "bytes": 22907
+      }
+    ],
+    "previousSql11V5TestSha256": "2c8a7bc400bd7b8055922f11a06239026db9dce7e9c4195cba696c67c5cd6710",
+    "validatedMergedScope": "Original alert17 with explicit MFA fixture adaptation; product unchanged; historical54 not rerun",
+    "assemblyAndRestoreExecutedForThisUpdatedSet": true,
+    "restorationEvidence": "../../evidencias/mfa-alert-original17-restore-2026-11-05.json",
+    "restoredComposedFiles": 1015,
+    "matchesTestedComposition": true,
+    "manifestSha256": "d34700d609aabff08ae608599548cfe88371d61946fbfa23a584d79a835bd39c",
+    "receiptSha256": "738975db60e29f83b4c2f09046ce21fa935fa5549905c1f96c78104c1abfcb5c"
+  },
+  "deviceEvidenceTransportNormalization": {
+    "path": "../../evidencias/mfa-device-events-2026-11-05.json",
+    "authoredSha256": "470a337a7248d12b8644cb278bc7d4cdb5b24874fe35b57ac943239e71ad1ce5",
+    "publishedSha256": "ea6bdbaacd254d42a9a36c6c4516410f91adac0306e61950039374c68438fb52",
+    "authoredBytes": 13459,
+    "publishedBytes": 13070,
+    "operation": "CRLF to LF only to match Git transport",
+    "jsonDataEqual": true,
+    "originalScratchPreserved": true,
+    "sourcePayloadsChanged": false,
+    "runtimeOrTestsReexecuted": false
   }
 }
