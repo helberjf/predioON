@@ -1,14 +1,14 @@
 {
-  "status": "CANDIDATE_HEARTBEAT_COORDINATION_VALIDATED_CANONICAL_RESTORE_PASSED",
+  "status": "CANDIDATE_GATEWAY_EVENTS_VALIDATED_CANONICAL_RESTORE_PASSED",
   "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
   "metadata": [
     {
       "path": ".gitattributes",
-      "sha256": "0a6df220fadabc2d6be9319124e1e3fdd7822905d61b3786a5572a3c79b6b5e2"
+      "sha256": "2f9963021f93fd5f5c4395a2af256144ce4b9a3f6cbea5776428fb31352eba6a"
     },
     {
       "path": "INVENTORY.json",
-      "sha256": "075b92f62d23c3d18f5af63103c8f82f4dfe0ee46e1683a88ca8480effa79dde"
+      "sha256": "b9992fb6fcd1f63d90235caba43bbc69441f2d7c6ab60d5137388c662d3553e4"
     },
     {
       "path": "git-blobs.mjs",
@@ -24,7 +24,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "56320a9a5dfa1b881ff463f2624cbb5807c43ae7283e38ae2b20f6893ae0c280"
+      "sha256": "3f90210a3d17691f082bb65faaf9339ccb274f17d30c18f8c15c91ab1ae8e326"
     },
     {
       "path": "qaSupport/renderer/package.json",
@@ -47,9 +47,9 @@
       "sha256": "cab9d8393b345aa0d90ea6f7662cd38100b9433f9c16a7e7eed035b18da4e876"
     }
   ],
-  "inventoryPayloads": 64,
+  "inventoryPayloads": 65,
   "alreadyPublishedQueryPayloads": 2,
-  "pendingRuntimeAndTestFiles": 60,
+  "pendingRuntimeAndTestFiles": 61,
   "explicitRendererTestFiles": 2,
   "rendererSupportFiles": 5,
   "canonicalSourceFiles": 994,
@@ -64,34 +64,39 @@
     "evidence": "../../evidencias/mfa-canonical-restore-2026-11-05.json"
   },
   "currentPayloadSet": {
-    "sourceManifestSha256": "72119c309b6fcd1935c7f07017af618de3f807de42195ca84dde71d69c108541",
-    "evidence": "../../evidencias/mfa-heartbeat-2026-11-05.json",
-    "evidenceSha256": "45818a9694ff2e4129558051d574da1a5b0d8adfe4782a77cc2877d0451551e0",
+    "sourceManifestSha256": "d4ed11a9d1696696edaec7e4729da4b25463a6a1a7b813e12fcfb3aa1f88771f",
+    "evidence": "../../evidencias/mfa-gateway-events-2026-11-05.json",
+    "evidenceSha256": "d04b5aac4a300dc360b9036be5f6cb1a2fab985d13f842d53c115eff4974dd07",
     "composition": [
       {
-        "path": "apps/api/src/modules/events/routes.ts",
-        "sha256": "e6b29dbac6e821b289f9f066528511f46cfaaba6e1c5deeeb57fa885d8eb7be4",
-        "bytes": 5569
+        "path": "infrastructure/068-platform-mfa-required.sql",
+        "sha256": "231ba481ebed3a1867fcb0332daba3850a53a6674c4cdd4dd019984de280c5a5",
+        "bytes": 32426
       },
       {
-        "path": "apps/api/test/platform-mfa-heartbeat.test.ts",
-        "sha256": "0a69940a33bc9c1c26898548d31c47c9b06eaca6e87dcf2f13ec1f06cfd22be3",
-        "bytes": 24346
+        "path": "apps/api/src/modules/events/equipment.ts",
+        "sha256": "994f43517b47848cda566755d5c931da9f1b62e85276e5f6ac9979f028dfd512",
+        "bytes": 3048
+      },
+      {
+        "path": "apps/api/test/platform-mfa-gateway-events.test.ts",
+        "sha256": "b2fc657d8b95aa079c232ca0d669ccaa813febf726c5c64b152877a08c2eb33d",
+        "bytes": 22111
       }
     ],
     "previousSql11V5TestSha256": "2c8a7bc400bd7b8055922f11a06239026db9dce7e9c4195cba696c67c5cd6710",
-    "validatedMergedScope": "Heartbeat9 plus nine regression files105; only routes changed in product; no private-frame exposure claim",
+    "validatedMergedScope": "Gateway7 plus ten regression files114; SQL/equipment changes only; no private-frame leak claim",
     "assemblyAndRestoreExecutedForThisUpdatedSet": true,
-    "restorationEvidence": "../../evidencias/mfa-heartbeat-restore-2026-11-05.json",
-    "restoredComposedFiles": 1017,
+    "restorationEvidence": "../../evidencias/mfa-gateway-restore-2026-11-05.json",
+    "restoredComposedFiles": 1018,
     "matchesTestedComposition": true,
-    "manifestSha256": "43e60f0833df6f87cfe67c6381ae5a68b745aa235d60eda45a99bc4b4c440d1f",
-    "receiptSha256": "ac9ce2024c35d116b1a9c9d4d9124e392e9c93fdc7db28ae84c93895dc8b72b7"
+    "manifestSha256": "5a65e5345403febabd60e60cae4f2fff3b4fa5673c981c8030023cee297a5479",
+    "receiptSha256": "7671411713ed982a6e8e4373eefff588036ff60b08640cf5b438b7b409dd6ee8"
   },
   "rendererStagingRecipeExecuted": false,
   "p0DisablePatchIncluded": true,
   "publishedApiDatabaseChanged": false,
-  "staticPeerReview": "Heartbeat queue/closure update: canonical1017 sources plus5 supports match tested72119 exactly. Heartbeat9 and nine regression files105 passed separately; baseline eight failures are not private-frame leaks. Expiry callback and exactly-once res.end were not measured; gateway, renderer staging and global rollout remain outside acceptance.",
+  "staticPeerReview": "Gateway guard-first update: canonical1018 sources plus5 supports match tested d4ed exactly. Gateway7 and ten regression files114 passed separately; no-row baseline closure failure is not a private-frame leak. Other domains/mutations, renderer staging and global rollout remain outside acceptance.",
   "historicalGuardRefusal": {
     "minimumMiB": 1536,
     "at": "2026-11-05T03:53:51.9727239Z",
@@ -186,6 +191,14 @@
     {
       "path": "../../evidencias/mfa-heartbeat-restore-2026-11-05.json",
       "sha256": "75f0fa826d311ede9b7de43f8282336595ae5c7e909712cc8680bffa1be1440b"
+    },
+    {
+      "path": "../../evidencias/mfa-gateway-events-2026-11-05.json",
+      "sha256": "d04b5aac4a300dc360b9036be5f6cb1a2fab985d13f842d53c115eff4974dd07"
+    },
+    {
+      "path": "../../evidencias/mfa-gateway-restore-2026-11-05.json",
+      "sha256": "945f3634901972fe8b28363b5a29671ffe1e6f559add18105b33a332d2521fb0"
     }
   ],
   "computerRestarted": false,
@@ -412,5 +425,30 @@
     "matchesTestedComposition": true,
     "manifestSha256": "73c95cb8537fa3c1b49bf7bbc4de9c78e433f6a8fa8c9becbfc64fad7543507b",
     "receiptSha256": "3967dd0d7a678af80d308eb744fb80be297645c1623d017d09892cb54078c999"
+  },
+  "previousHeartbeatPayloadSet": {
+    "sourceManifestSha256": "72119c309b6fcd1935c7f07017af618de3f807de42195ca84dde71d69c108541",
+    "evidence": "../../evidencias/mfa-heartbeat-2026-11-05.json",
+    "evidenceSha256": "45818a9694ff2e4129558051d574da1a5b0d8adfe4782a77cc2877d0451551e0",
+    "composition": [
+      {
+        "path": "apps/api/src/modules/events/routes.ts",
+        "sha256": "e6b29dbac6e821b289f9f066528511f46cfaaba6e1c5deeeb57fa885d8eb7be4",
+        "bytes": 5569
+      },
+      {
+        "path": "apps/api/test/platform-mfa-heartbeat.test.ts",
+        "sha256": "0a69940a33bc9c1c26898548d31c47c9b06eaca6e87dcf2f13ec1f06cfd22be3",
+        "bytes": 24346
+      }
+    ],
+    "previousSql11V5TestSha256": "2c8a7bc400bd7b8055922f11a06239026db9dce7e9c4195cba696c67c5cd6710",
+    "validatedMergedScope": "Heartbeat9 plus nine regression files105; only routes changed in product; no private-frame exposure claim",
+    "assemblyAndRestoreExecutedForThisUpdatedSet": true,
+    "restorationEvidence": "../../evidencias/mfa-heartbeat-restore-2026-11-05.json",
+    "restoredComposedFiles": 1017,
+    "matchesTestedComposition": true,
+    "manifestSha256": "43e60f0833df6f87cfe67c6381ae5a68b745aa235d60eda45a99bc4b4c440d1f",
+    "receiptSha256": "ac9ce2024c35d116b1a9c9d4d9124e392e9c93fdc7db28ae84c93895dc8b72b7"
   }
 }

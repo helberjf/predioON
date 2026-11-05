@@ -1,6 +1,6 @@
 # Execução da arquitetura de produto — Prédio ON
 
-**Avanço em 05/11:** heartbeat 9/9 e 105 regressões passaram na mesma composição isolada. O checkpoint recuperável contém 60 arquivos candidatos, dois testes renderer e cinco suportes; runtime publicado segue 001–067. Restam gateway, os grupos de domínios/mutações, regressão integral, Playwright real, aparelhos e operação. Ver o estado corrente em [CONTINUIDADE.md](../../CONTINUIDADE.md).
+**Avanço em 05/11:** gateways 7/7 e 114 regressões passaram na mesma composição isolada. O checkpoint recuperável contém 61 arquivos candidatos, dois testes renderer e cinco suportes; runtime publicado segue 001–067. Próximos: famílias ADMIN/CONFIG e demais domínios/mutações, regressão integral, Playwright real, aparelhos e operação. Ver o estado corrente em [CONTINUIDADE.md](../../CONTINUIDADE.md).
 
 Base aprovada: [arquitetura](../specs/2026-09-27-arquitetura-produto-design.md). A execução iniciada em `codex/product-platform` e continuada em `codex/continue-product-plan` já está integrada à `main`. Atualização de 04/11/2026: cliente MFA publicado em `9e79bde`, migrations 001–067; integração obrigatória ainda candidata. Commits e pushes seguem por meta verificada, conforme autorização do proprietário. Esta lista registra progresso real, sem considerar código não verificado como entregue. O ponto de retomada atualizado, inclusive em outra máquina, está em [CONTINUIDADE.md](../../CONTINUIDADE.md).
 

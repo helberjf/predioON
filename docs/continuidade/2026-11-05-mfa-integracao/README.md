@@ -1,69 +1,72 @@
-# Retomada MFA — heartbeat candidato atualizado em 05/11/2026
+# Retomada MFA — gateway candidato atualizado em 05/11/2026
 
-**Heartbeat 9 e nove regressões separadas 105 passaram na composição isolada.**
-A base canônica continua `53c4c70dcd24f1045fad420fbce36757fd3753a2`.
-A fonte testada é `72119c30…`: **1.017 arquivos e cinco suportes**.
-[Prova específica](../../evidencias/mfa-heartbeat-2026-11-05.json).
-A [montagem/restauração passou](../../evidencias/mfa-heartbeat-restore-2026-11-05.json),
-com os 1.017 arquivos e cinco suportes idênticos à composição testada. A restauração anterior de
-[equipamentos](../../evidencias/mfa-equipment-original25-restore-2026-11-05.json)
-não atesta automaticamente estes bytes novos. Nenhuma política foi ativada na main.
+**Gateway 7/7 e dez regressões separadas, com 114 casos, passaram na composição isolada.**
+Base canônica `53c4c70dcd24f1045fad420fbce36757fd3753a2`; fonte testada `d4ed11a9…`,
+**1.018 arquivos e cinco suportes**. [Prova específica](../../evidencias/mfa-gateway-events-2026-11-05.json).
+A [montagem/restauração passou](../../evidencias/mfa-gateway-restore-2026-11-05.json),
+com os 1.018 arquivos e cinco suportes idênticos à composição testada. A
+[restauração anterior do heartbeat](../../evidencias/mfa-heartbeat-restore-2026-11-05.json)
+permanece histórica e não comprova automaticamente os novos bytes. Runtime principal
+continua 001–067; a migração 068 e a política completa permanecem candidatas.
 
 ## Conteúdo recuperável
 
-São **64 payloads**: 60 arquivos de implementação/testes candidatos, dois testes
-renderer explícitos e dois arquivos helper/teste de query já publicados, que o
-builder exclui por hashes exatos. Há cinco suportes renderer separados.
-O transporte publicado é dependência da base, não patch para reaplicar.
-Nesta rodada muda somente `apps/api/src/modules/events/routes.ts` no produto e
-entra `apps/api/test/platform-mfa-heartbeat.test.ts`. SQL068, projectors e os
-originais de equipamentos/alertas/telemetria conservam seus bytes anteriores.
+Inventário de **65 payloads**: 61 arquivos candidatos de implementação/testes,
+dois testes renderer explícitos e dois helper/teste query já publicados, excluídos
+do delta pelos hashes exatos. Cinco suportes renderer são separados. Não reaplicar
+transporte publicado ou patches históricos sobre a main.
 
-A fila por conexão agora inclui heartbeat. No máximo um heartbeat fica pendente
-ou em execução; não consome o orçamento de 100 eventos. Identidade local no ping
-não altera req.auth durante um evento. Close é idempotente e imediato, inclusive
-expiry/overflow, sem aguardar query lenta. Depois de await e antes de escrever,
-a conexão precisa continuar aberta. Há proteção adicional para desconexão durante
-a identidade inicial, antes de instalar headers/timers/subscription.
+Esta rodada substitui somente SQL068 candidata e
+`apps/api/src/modules/events/equipment.ts`, e acrescenta
+`apps/api/test/platform-mfa-gateway-events.test.ts`. O novo envelope
+`app_mfa_gateway_event_context(text,text)` executa o guard antes de procurar o alvo,
+inclusive para linha ausente, argumentos NULL e par divergente. Depois lê registro
+persistido sob RLS e devolve stored mínimo ou null. Projector conserva quatro campos
+persistidos, sem usar o status forjado de NOTIFY. Mantém device e heartbeat intactos;
+não adiciona classificação, features, freshness ou grants de tabelas ao gateway.
+ACL de inventário passa de 15 a 16 assinaturas, com nova função INVOKER app-only.
 
-Token por header/query, retry5000, intervalo25_000 e expiração JWT permanecem.
-Close não cancela SQL já em execução. Heartbeat pode atrasar atrás de evento
-lento; os guards SQL de cada evento continuam necessários. Não se promete
-linearização entre a última leitura autorizada e uma revogação posterior.
+STABLE compartilha o snapshot do guard e da leitura, mas não torna linearizável
+uma revogação posterior ao statement, commit ou envio de bytes na rede.
+`MANIFEST.json` e `PACKAGE-HASHES.json` surgem na montagem do pacote; somente nova
+restauração verificada pode confirmar a composição inteira em outro computador.
 
-`MANIFEST.json` e `PACKAGE-HASHES.json` surgem no pacote final. Cada montagem
-nova exige verificação própria antes de declarar a composição restaurada.
+## Rodada atual: gateway e regressões
 
-## Rodada atual: heartbeat e regressões
+Baseline teve **0 PASS/7 FAIL**, sem cancelamentos/skips/todo, em **3,088 s de TAP**.
+No caso 1, a conexão primeiro entregou DTO positivo persistido; depois da promoção,
+um alvo ausente produziu zero frames de dados e a resposta continuou aberta.
+A falha observada foi false contra true na exigência de fechamento: **não houve
+vazamento de frame privado**. As outras seis falhas correspondem ao contrato novo
+ausente; caso 7 expõe 42883, enquanto os wrappers dos demais logs não expõem um PMF
+específico. Não atribuir execução às etapas posteriores à primeira assertiva falha.
 
-Baseline: **1 PASS/8 FAIL**, sem cancelamento/skip/todo, em 4,478 s TAP.
-As falhas observadas foram início concorrente de SELECTs (casos 1/2/6/8), consulta
-por callback manual tardio após close (4/7), comentário `: ping` recebido quando
-se esperava fechamento (3) e writeHead após desconexão inicial (9).
-O tick do caso 3 ocorreu ANTES da promoção: não foi provada emissão após commit,
-nem houve DTO privado exposto. O caso 8 falhou antes de publicar a 101ª notificação;
-não demonstrou que o teto original 100 estivesse quebrado. Caso 5 já passou.
-As assertivas posteriores à primeira falha de cada caso não são resultados baseline.
+A corrigida passou **7/7 em 3,146 s de TAP**. Em seguida passaram dez processos
+separados: heartbeat 9, dispositivos 9, telemetria 9, funcionalidades 7, desativação 5,
+SQL 11, telemetria original 13, alertas originais 17, alertas dirigidos 9 e equipamentos
+originais 25, total 114. São 121 casos em onze processos, não API integral.
+Resolução/tipos dos 11 arquivos e imports passaram: 1,368/10,441 s na baseline e
+1,232/10,136 s na corrigida. Fontes, logs e limpeza foram conferidos, com seis
+roles/credenciais/settings restaurados e zero bancos temporários/outros clientes.
 
-Corrigida: **9/9 PASS em 3,595 s TAP**. Timer25k capturado/acionado manualmente,
-observadores delegados e barreiras sobre consultas reais evitam sleeps25s; HTTP,
-LISTEN/NOTIFY, identidade e queries continuam reais. Fatores/provas dos controles
-novos são sintéticos; não são teste de cerimônia TOTP.
+Nova prova usa SSE/HTTP/NOTIFY reais para o cenário de fechamento, consultas e
+projeções reais nos controles; fatores/provas sintéticos não estabelecem TOTP.
+As fixtures originais administrativas conservam suas cerimônias próprias.
+Owner é conhecido pelo processo para arranjo/instrumentação; runtime usa seis
+conexões restritas. Nenhuma alegação de ausência de owner em todo o teste.
 
-Depois passaram nove processos separados: dispositivos 9, telemetria 9, funcionalidades 7,
-desativação 5, SQL 11, telemetria original 13, alertas originais 17, alertas dirigidos 9 e
-equipamentos originais 25, total 105. Não é uma API integral. Os originais com
-administradores mantêm suas cerimônias TOTP HTTP explícitas. Tipos dos 10 arquivos
-e imports passaram nas duas variantes: resolução/tipos 1,257/9,770 s e 2,141/10,327 s.
-Fontes antes/depois e cleanup passaram: seis roles/credenciais/settings restaurados,
-zero bases temporárias e outros clientes. Valores privados não integram a prova.
+O heartbeat permanece com os limites já registrados: callback de expiração JWT
+não exercitado e ausência de assertiva res.end exatamente uma vez. SQL já em voo
+não é cancelado por close. Demais domínios/SD/mutações, integração web/nativa e
+produção continuam pendentes. As seções históricas abaixo mantêm seus escopos.
 
-O callback de expiração JWT não foi exercitado; sua captura no caso 9 só limpa
-a baseline. O contador res.end não possui assertiva exatamente uma vez:
-idempotência é revisão da implementação, não medida desse contador.
+## Histórico imediato: heartbeat
 
-As seções abaixo conservam as rodadas anteriores com seus escopos próprios.
-Gateway, demais superfícies SQL/SD/mutações e aceites integrados continuam pendentes.
+A [rodada heartbeat 9 e regressões 105](../../evidencias/mfa-heartbeat-2026-11-05.json)
+permanece documentada na fonte 72119. Sua baseline mostrou 1 PASS/8 FAIL por ordem de
+consultas, callbacks após close, ping e headers iniciais, sem DTO privado exposto.
+Nesta rodada gateway, os nove casos heartbeat foram reexecutados como um dos dez
+processos de regressão; não somar a execução histórica como casos novos.
 
 ## Retomar em outro computador
 
@@ -152,8 +155,8 @@ e comparado antes da assertiva negativa. As outras seis falhas são contratos
 SQL novos ausentes. Os controles de ANY e expiração/revogação de suporte passaram.
 
 A versão corrigida passou **9/9** em 4,333 s. Depois, sete processos separados
-passaram na mesma fonte: telemetria9, funcionalidades7, desativação5, SQL11,
-telemetria original13, alertas originais17 e alertas dirigidos9. São **80 casos
+passaram na mesma fonte: telemetria 9, funcionalidades 7, desativação 5, SQL 11,
+telemetria original 13, alertas originais 17 e alertas dirigidos 9. São **80 casos
 em oito processos**, sem falhas, cancelamentos, skips ou todo; não uma integral.
 
 A primeira resolução foi recusada com 780 MiB antes de iniciar o compilador.
@@ -265,15 +268,16 @@ envelope de alertas uma mudança desse protocolo de telemetria.
 
 A observação SQL não estabelece linearização com promoções posteriores ao
 snapshot ou escrita na rede. A coordenação do heartbeat e a desconexão durante
-a identidade inicial passaram nos nove casos desta rodada. Gateway, outros
-callers HTTP/SD, mutações sem correspondência, funções VOLATILE e expiração
+a identidade inicial passaram nos nove casos de heartbeat, reexecutados aqui.
+O novo guard gateway passou nos sete casos desta rodada. Outros callers HTTP/SD, mutações sem correspondência, funções VOLATILE e expiração
 após locks continuam pendentes, assim como a regressão integrada. A expiração
 JWT automática não foi acionada no teste. Não houve novo aceite de navegador,
 aparelhos ou produção.
 
 O [plano de equipamentos e coordenação do SSE](../../superpowers/plans/2026-11-05-mfa-equipment-events.md)
-conserva o desenho inicial. O próximo recorte é o
-[guard de gateways](../../superpowers/plans/2026-11-05-mfa-gateway-events.md).
+conserva o desenho inicial. O
+[guard de gateways](../../superpowers/plans/2026-11-05-mfa-gateway-events.md)
+agora está incluído nesta composição candidata e validado no escopo descrito acima.
 Device-status já está nesta fonte candidata, com o recheck final de autoridade
 após expirar suporte e o ANY de funcionalidades sem freshness preservados.
 Os demais domínios e a integração completa continuam abertos.

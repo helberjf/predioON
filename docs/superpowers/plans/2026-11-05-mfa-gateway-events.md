@@ -1,5 +1,8 @@
 # Próximo recorte: gateway-status SSE
 
+**Resultado em 05/11:** sete testes dirigidos e 114 regressões passaram na composição candidata. [Prova e limites](../../evidencias/mfa-gateway-events-2026-11-05.json). O cenário de alvo ausente demonstrou falta de encerramento, com zero frames de dados. O desenho inicial abaixo fica como histórico; demais domínios e integração continuam pendentes.
+
+
 Proposta estática de 05/11/2026, sem execução/autoria de produto. Fonte: original25 fixed prepared `f2d3055b792c5db6ba5bac5bd699574a064b74d2a3a78b91f1cf1f6d0caeef38`; produto idêntico a7b53. `apps/api/src/modules/events/equipment.ts` SHA34a7275d9fdcaac7ce787e8451c51a43c1c65f26acf4015da077c853e8730d5d; SQL068 SHA7838dcbc01d9bdf741f293e1afe1645dd0daff546760197c991e2b2ddb7f61bb. Fixture25 adaptada SHAadca4cd46d2c9b4e0d2855cc60fcfb28572f67d3d5bffd100d9021a5ae795239. Composição de execução posterior deve incluir heartbeat somente após seu aceite; não transferir provas entre fontes.
 
 ## Lacuna concreta de contrato, não vazamento demonstrado

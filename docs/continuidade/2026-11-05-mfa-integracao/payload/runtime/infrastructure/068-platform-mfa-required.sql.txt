@@ -502,6 +502,24 @@ BEGIN
  RETURN public.app_device_has_capability(target_building_id,target_device_id,'devices:read');
 END $$;
 
+-- Gateway-status has one persisted read and no feature/classification phase.
+-- Guard before target lookup even for NULL, no-match or RLS-hidden gateways.
+-- Keep the exact pair and existing capability policies under caller privileges.
+CREATE FUNCTION public.app_mfa_gateway_event_context(
+ target_building_id text, target_gateway_id text
+) RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY INVOKER
+CALLED ON NULL INPUT SET search_path = pg_catalog, public, pg_temp AS $$
+DECLARE result jsonb;
+BEGIN
+ PERFORM public.app_require_session_mfa();
+ SELECT jsonb_build_object('stored',(
+   SELECT jsonb_build_object('buildingId',g.building_id,'gatewayId',g.id,'status',g.status)
+   FROM public.gateways g
+   WHERE g.building_id=target_building_id AND g.id=target_gateway_id
+ )) INTO result;
+ RETURN result;
+END $$;
+
 -- Close every touched/new entrypoint, including installation-specific default
 -- function grants. No identity-only helper is granted to app or service roles.
 DO $mfa_v3_acl$
@@ -521,7 +539,8 @@ DECLARE controlled_owner name; signature text; grant_row record;
    'public.app_mfa_telemetry_event_context(text,text)',
    'public.app_mfa_alert_event_context(text,uuid)',
    'public.app_mfa_device_event_context(text,text)',
-   'public.app_mfa_device_event_allowed(text,text)'
+   'public.app_mfa_device_event_allowed(text,text)',
+   'public.app_mfa_gateway_event_context(text,text)'
  ];
 BEGIN
  SELECT pg_catalog.pg_get_userbyid(p.proowner) INTO STRICT controlled_owner
@@ -558,7 +577,8 @@ GRANT EXECUTE ON FUNCTION public.app_require_session_mfa(),
  public.app_mfa_feature_event_allowed(text),
  public.app_mfa_telemetry_event_context(text,text),
  public.app_mfa_alert_event_context(text,uuid),
- public.app_mfa_device_event_context(text,text),public.app_mfa_device_event_allowed(text,text) TO predioon_app;
+ public.app_mfa_device_event_context(text,text),public.app_mfa_device_event_allowed(text,text),
+ public.app_mfa_gateway_event_context(text,text) TO predioon_app;
 
 -- No new table SELECT/UPDATE grants, no changes to001-067, no global enforcement
 -- claim. Metrics point/empty reads, zero-match writes, other domain projections,

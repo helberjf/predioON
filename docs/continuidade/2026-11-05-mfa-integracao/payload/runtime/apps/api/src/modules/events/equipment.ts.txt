@@ -1,9 +1,10 @@
-import { and, eq, sql } from "drizzle-orm";
-import { gateways, type AppTransaction } from "@predioon/db/runtime";
+import { sql } from "drizzle-orm";
+import type { AppTransaction } from "@predioon/db/runtime";
 import { deviceFeatures, gateFeature, parkingFeature, resolveFeatures, type FeatureSetting, type RealtimeEvent } from "@predioon/shared";
 
 type DeviceStatusEvent = Extract<RealtimeEvent, { kind: "device-status" }>;
 type GatewayStatusEvent = Extract<RealtimeEvent, { kind: "gateway-status" }>;
+type GatewayEventContext = { stored: Pick<GatewayStatusEvent, "buildingId" | "gatewayId" | "status"> | null };
 type DeviceClassification = { device_type: string; gate_kind: string | null; parking_vehicle_type: string | null };
 type DeviceEventContext = {
   stored: Pick<DeviceStatusEvent, "buildingId" | "deviceId" | "status"> | null;
@@ -33,8 +34,8 @@ export async function projectDeviceStatusEvent(tx: AppTransaction, event: Device
 }
 
 export async function projectGatewayStatusEvent(tx: AppTransaction, event: GatewayStatusEvent): Promise<GatewayStatusEvent | null> {
-  const [stored] = await tx.select({ buildingId: gateways.buildingId, gatewayId: gateways.id, status: gateways.status })
-    .from(gateways).where(and(eq(gateways.id, event.gatewayId), eq(gateways.buildingId, event.buildingId))).limit(1);
+  const [row] = await tx.execute<{ context: GatewayEventContext }>(sql`select public.app_mfa_gateway_event_context(${event.buildingId},${event.gatewayId}) as context`);
+  const stored = row?.context?.stored;
   if (!stored || stored.buildingId !== event.buildingId || stored.gatewayId !== event.gatewayId) return null;
   return { kind: "gateway-status", buildingId: stored.buildingId, gatewayId: stored.gatewayId, status: stored.status };
 }

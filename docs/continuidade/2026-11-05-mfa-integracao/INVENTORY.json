@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "status": "CANONICAL_HEARTBEAT_COORDINATION_VALIDATED_RESTORED_CANDIDATE",
+  "status": "CANONICAL_GATEWAY_EVENTS_VALIDATED_RESTORED_CANDIDATE",
   "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
   "plannedBase": "Approved published source base53c4c70; current documentation may be newer.",
   "sourceBaseline": "2676a74216b012dcab6fa2fb9735dc1b6ef8e9d8",
@@ -295,10 +295,10 @@
       "path": "infrastructure/068-platform-mfa-required.sql",
       "payload": "payload/runtime/infrastructure/068-platform-mfa-required.sql.txt",
       "beforeSha256": null,
-      "afterSha256": "7838dcbc01d9bdf741f293e1afe1645dd0daff546760197c991e2b2ddb7f61bb",
-      "component": "device-events-mfa",
+      "afterSha256": "231ba481ebed3a1867fcb0332daba3850a53a6674c4cdd4dd019984de280c5a5",
+      "component": "gateway-events-mfa",
       "kind": "migration",
-      "bytes": 31514,
+      "bytes": 32426,
       "beforeGitSha256": null,
       "beforeGitObject": null
     },
@@ -671,9 +671,9 @@
       "beforeSha256": "eaa9470280205bff0782a1bedb2e104b59e03a9130b9ca5d2cdeb5b48c2133b2",
       "beforeGitSha256": "eaa9470280205bff0782a1bedb2e104b59e03a9130b9ca5d2cdeb5b48c2133b2",
       "beforeGitObject": "45f13329ca37ddae734cc7159d850b89a87c2a59",
-      "afterSha256": "34a7275d9fdcaac7ce787e8451c51a43c1c65f26acf4015da077c853e8730d5d",
-      "bytes": 2987,
-      "component": "device-events-mfa",
+      "afterSha256": "994f43517b47848cda566755d5c931da9f1b62e85276e5f6ac9979f028dfd512",
+      "bytes": 3048,
+      "component": "gateway-events-mfa",
       "kind": "runtime"
     },
     {
@@ -708,10 +708,21 @@
       "bytes": 24346,
       "component": "heartbeat-coordination",
       "kind": "database-test"
+    },
+    {
+      "path": "apps/api/test/platform-mfa-gateway-events.test.ts",
+      "payload": "payload/runtime/apps/api/test/platform-mfa-gateway-events.test.ts.txt",
+      "beforeSha256": null,
+      "beforeGitSha256": null,
+      "beforeGitObject": null,
+      "afterSha256": "b2fc657d8b95aa079c232ca0d669ccaa813febf726c5c64b152877a08c2eb33d",
+      "bytes": 22111,
+      "component": "gateway-events-mfa",
+      "kind": "database-test"
     }
   ],
   "pending": [
-    "Complete gateway projectors and other SQL/SD/SSE/no-match mutations, locks/triggers and integrated regressions; heartbeat9 and nine regression files105 are finite isolated validations, not API integral or global rollout.",
+    "Complete remaining SQL/SD/no-match mutations, locks/triggers and integrated regressions; gateway7 and ten regression files114 are finite isolated validations, not API integral or global rollout.",
     "Renderer staging recipe remains authored and not executed; do not transfer its earlier separate harness PASS."
   ],
   "excluded": [
@@ -788,5 +799,12 @@
     "sourceManifestSha256": "72119c309b6fcd1935c7f07017af618de3f807de42195ca84dde71d69c108541",
     "scope": "Heartbeat9 plus nine regression files105; only routes changed in product; no private-frame exposure claim",
     "restorationEvidence": "../../evidencias/mfa-heartbeat-restore-2026-11-05.json"
+  },
+  "gatewayEventsValidation": {
+    "evidence": "../../evidencias/mfa-gateway-events-2026-11-05.json",
+    "evidenceSha256": "d04b5aac4a300dc360b9036be5f6cb1a2fab985d13f842d53c115eff4974dd07",
+    "sourceManifestSha256": "d4ed11a9d1696696edaec7e4729da4b25463a6a1a7b813e12fcfb3aa1f88771f",
+    "scope": "Gateway7 plus ten regression files114; SQL/equipment changes only; no private-frame leak claim",
+    "restorationEvidence": "../../evidencias/mfa-gateway-restore-2026-11-05.json"
   }
 }

@@ -1,0 +1,305 @@
+import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
+import { createServer, type Server, type ServerResponse } from "node:http";
+import { after, before, describe, it } from "node:test";
+import postgres from "postgres";
+import { sql } from "drizzle-orm";
+import { PgDialect } from "drizzle-orm/pg-core";
+import { sqlClient } from "@predioon/db";
+import { appDb, closeAppDb, withUserContext, type AppTransaction } from "@predioon/db/runtime";
+import { app } from "../src/app.js";
+import { hashPassword } from "../src/auth/passwords.js";
+import { startRealtimeBus } from "../src/modules/events/bus.js";
+import { projectGatewayStatusEvent } from "../src/modules/events/equipment.js";
+import "./helpers.js";
+
+// Authored only. Official fresh UUID fixture with candidate068 required.
+// Synthetic factor/proof rows isolate SQL policy; they do not prove TOTP ceremony.
+const signature = "public.app_mfa_gateway_event_context(text,text)";
+const roleVariables = {
+  predioon_app: "DATABASE_URL_APP", predioon_identity: "DATABASE_URL_IDENTITY",
+  predioon_broker_auth: "DATABASE_URL_BROKER_AUTH", predioon_notifications: "DATABASE_URL_NOTIFICATIONS",
+  predioon_ingest: "DATABASE_URL_INGEST", predioon_access_service: "DATABASE_URL_ACCESS_SERVICE",
+} as const;
+type Actor = { id: string; sid: string; generation: string };
+function signal() {
+  let resolve!: () => void;
+  const promise = new Promise<void>(done => { resolve = done; });
+  return { promise, resolve };
+}
+async function bounded<T>(promise: PromiseLike<T>, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([Promise.resolve(promise), new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(new Error(`Fixture deadline: ${label}`)), 5000);
+    })]);
+  } finally { clearTimeout(timer); }
+}
+function codeOf(error: unknown): string | undefined {
+  if (!error || typeof error !== "object") return undefined;
+  if ("code" in error && typeof error.code === "string") return error.code;
+  return "cause" in error ? codeOf(error.cause) : undefined;
+}
+
+/** Pause after real identity/context setup, before either baseline or candidate gateway query. */
+function gatewayContextBarrier() {
+  const reached = signal(), release = signal(), finished = signal();
+  const state = { contexts: 0 };
+  const original = appDb.transaction, run = original.bind(appDb), dialect = new PgDialect();
+  type Input = Parameters<AppTransaction["execute"]>[0];
+  const intercepted: typeof appDb.transaction = (callback, config) => run(tx => callback(new Proxy(tx, {
+    get(target, key) {
+      if (key === "execute") return async (query: Input) => {
+        const text = typeof query === "string" ? query : dialect.sqlToQuery(query.getSQL()).sql;
+        const rows = await target.execute(query);
+        if (text.includes("set_config('app.user_id'") && text.includes("set_config('app.session_id'")) {
+          state.contexts++;
+          assert.equal(state.contexts, 1, "one real event context, no reconnect or replay");
+          reached.resolve();
+          await bounded(release.promise, "release gateway event context");
+        }
+        return rows;
+      };
+      const value = Reflect.get(target, key, target);
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  })), config).finally(() => finished.resolve());
+  appDb.transaction = intercepted;
+  return { reached, release, finished, state, restore() { appDb.transaction = original; } };
+}
+
+type GatewayContext = { stored: { buildingId: string; gatewayId: string; status: string } | null };
+describe("MFA gateway scalar guard and exact persisted projection", { concurrency: false }, () => {
+  const suffix = randomUUID(), org = `gw-org-${suffix}`, building = `gw-building-${suffix}`, foreign = `gw-foreign-${suffix}`;
+  const gateway = `gw-primary-${suffix}`, neighbor = `gw-neighbor-${suffix}`, foreignGateway = `gw-foreign-gateway-${suffix}`;
+  const device = `gw-device-${suffix}`, binding = randomUUID(), grant = randomUUID();
+  const password = "gateway-fictitious-password", actors: Actor[] = [], pools = new Map<string, postgres.Sql>();
+  let local: Actor, satisfied: Actor, enrolling: Actor, verifying: Actor, racing: Actor, deviceOnly: Actor, support: Actor;
+  let server: Server | undefined, url = "";
+  let observation: { response: ServerResponse; writes: string[]; closed: ReturnType<typeof signal> } | undefined;
+  const event = (gatewayId = gateway, buildingId = building, status = "ONLINE") => ({ kind: "gateway-status" as const, buildingId, gatewayId, status });
+  const empty: GatewayContext = { stored: null };
+  function context<T>(a: Actor, fn: (tx: AppTransaction) => Promise<T>, sid = a.sid) {
+    return withUserContext({ userId: a.id, role: "RESIDENT", sessionId: sid }, fn);
+  }
+  function envelope(a: Actor, b: string | null = building, g: string | null = gateway, sid = a.sid) {
+    return context(a, async tx => {
+      const rows = await tx.execute<{ context: GatewayContext }>(sql`select public.app_mfa_gateway_event_context(${b},${g}) as context`);
+      assert.equal(rows.length, 1, "scalar envelope always returns one row");
+      assert.ok(rows[0]?.context && typeof rows[0].context === "object"); return rows[0]!.context;
+    }, sid);
+  }
+  function project(a: Actor, value = event()) { return context(a, tx => projectGatewayStatusEvent(tx, value)); }
+  async function actor(hash: string): Promise<Actor> {
+    const a = { id: `gw-user-${randomUUID()}`, sid: randomUUID(), generation: randomUUID() }; actors.push(a);
+    await sqlClient`insert into users(id,name,email,password_hash) values(${a.id},'Gateway fixture',${a.id+'@example.invalid'},${hash})`;
+    await sqlClient`insert into sessions(id,user_id,expires_at) values(${a.sid},${a.id},now()+interval '1 hour')`;
+    return a;
+  }
+  before(async () => {
+    const [ledger] = await sqlClient`select count(*)::int as count from schema_migrations`;
+    assert.equal(ledger?.count, 68, "official candidate068 fixture");
+    const hash = await hashPassword(password);
+    local = await actor(hash); satisfied = await actor(hash); enrolling = await actor(hash); verifying = await actor(hash);
+    racing = await actor(hash); deviceOnly = await actor(hash); support = await actor(hash);
+    await sqlClient`insert into organizations(id,name,slug) values(${org},'Gateway fixture',${org})`;
+    for (const id of [building, foreign]) await sqlClient`insert into buildings(id,organization_id,name,code) values(${id},${org},'Gateway fixture',${id})`;
+    for (const [id,b] of [[gateway,building],[neighbor,building],[foreignGateway,foreign]] as const) {
+      await sqlClient`insert into gateways(id,building_id,name,serial_number,status,metadata)
+        values(${id},${b},'Gateway fixture',${id},'ONLINE','{"privateFixture":"not-projected"}'::jsonb)`;
+    }
+    await sqlClient`insert into devices(id,building_id,gateway_id,name,type) values(${device},${building},${gateway},'Gateway child','ENERGY_METER')`;
+    for (const a of [local,satisfied,racing]) await sqlClient`insert into role_bindings(user_id,building_id,role_key,resource_type,resource_id)
+      values(${a.id},${building},'MAINTENANCE','gateway',${gateway})`;
+    await sqlClient`insert into role_bindings(user_id,building_id,role_key,resource_type,resource_id)
+      values(${deviceOnly.id},${building},'MAINTENANCE','device',${device})`;
+    await sqlClient`insert into role_bindings(user_id,role_key) values(${support.id},'PLATFORM_SUPPORT')`;
+    await sqlClient`insert into support_grants(id,building_id,support_user_id,capability,resource_type,resource_id,reason,expires_at,granted_by)
+      values(${grant},${building},${support.id},'devices:read','gateway',${gateway},'Gateway fixture',now()+interval '1 hour',${satisfied.id})`;
+    for (const a of [enrolling,verifying,satisfied]) await sqlClient`update users set is_platform_admin=true where id=${a.id}`;
+    for (const a of [verifying,satisfied]) await sqlClient`insert into mfa_factors(user_id,secret_ciphertext,confirmed_at,generation)
+      values(${a.id},decode(repeat('00',40),'hex'),now(),${a.generation})`;
+    await sqlClient`update sessions set mfa_verified_at=now(),mfa_factor_generation=${satisfied.generation} where id=${satisfied.sid}`;
+    await sqlClient`insert into role_bindings(id,user_id,role_key,active) values(${binding},${racing.id},'PLATFORM_ADMIN',false)`;
+    const [database] = await sqlClient`select current_database() as name`;
+    for (const [role,variable] of Object.entries(roleVariables)) {
+      const dsn = process.env[variable]; assert.ok(dsn, `restricted DSN ${variable} required`);
+      const parsed = new URL(dsn); assert.equal(parsed.username, role); assert.equal(decodeURIComponent(parsed.pathname.slice(1)), database?.name);
+      const pool = postgres(dsn, { max: 1, onnotice: () => {} }); pools.set(role,pool);
+      const [identity] = await pool`select current_user as name`; assert.equal(identity?.name, role);
+    }
+    server = createServer((req,res) => {
+      if (req.url?.startsWith('/events/stream')) {
+        const current = { response: res, writes: [] as string[], closed: signal() }; observation = current;
+        res.write = new Proxy(res.write, { apply(target,receiver,args) {
+          current.writes.push(String(args[0])); return Reflect.apply(target,receiver,args);
+        } });
+        res.on('close', current.closed.resolve);
+      }
+      app(req,res);
+    });
+    await bounded(new Promise<void>(resolve => server!.listen(0,'127.0.0.1',resolve)), 'own listener');
+    const address = server.address(); assert.ok(address && typeof address !== 'string'); url = `http://127.0.0.1:${address.port}`;
+    await bounded(startRealtimeBus(), 'real PostgreSQL LISTEN');
+  });
+  after(async () => {
+    const closed = server ? new Promise<void>((resolve,reject) => {
+      server!.close(error => error ? reject(error) : resolve()); server!.closeAllConnections();
+    }) : Promise.resolve();
+    const closing = await Promise.allSettled([bounded(closed,'own listener close'), ...[...pools.values()].map(p => bounded(p.end({ timeout: 3 }),'role pool close'))]);
+    try {
+      await bounded(sqlClient.begin(async owner => {
+        await owner`set local lock_timeout='2s'`; await owner`set local statement_timeout='3s'`;
+        for (const id of [building,foreign]) await owner`delete from buildings where id=${id}`;
+        await owner`delete from organizations where id=${org}`;
+        for (const a of actors) await owner`delete from users where id=${a.id}`;
+      }), 'own fixture cleanup');
+    } finally {
+      const outcomes = await Promise.allSettled([bounded(closeAppDb(),'runtime/LISTEN close'),bounded(sqlClient.end({ timeout: 3 }),'owner close')]);
+      const failure = outcomes.find(x => x.status === 'rejected'); if (failure?.status === 'rejected') throw failure.reason;
+    }
+    const failure = closing.find(x => x.status === 'rejected'); if (failure?.status === 'rejected') throw failure.reason;
+  });
+
+  it("delivers real persisted gateway status then requires closure for a missing target after promotion", async t => {
+    const abort = new AbortController(); let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+    let barrier: ReturnType<typeof gatewayContextBarrier> | undefined, failed = false;
+    try {
+      const login = await bounded(fetch(`${url}/auth/login`, { method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({email:racing.id+'@example.invalid',password}),signal:abort.signal }), 'ordinary login');
+      assert.equal(login.status,200);
+      const credentials = await bounded(login.json(),'login body') as { accessToken: string };
+      const response = await bounded(fetch(`${url}/events/stream`,{headers:{Authorization:`Bearer ${credentials.accessToken}`},signal:abort.signal}),'SSE open');
+      assert.equal(response.status,200); assert.ok(response.body); reader = response.body.getReader();
+      const decoder = new TextDecoder(); let buffer = '';
+      async function frame(): Promise<string|null> {
+        while (!buffer.includes('\n\n')) {
+          const part: ReadableStreamReadResult<Uint8Array> = await bounded(reader!.read(),'gateway frame/EOF');
+          if (part.done) { assert.equal(buffer,''); return null; }
+          buffer += decoder.decode(part.value,{stream:true});
+        }
+        const end = buffer.indexOf('\n\n')+2, result = buffer.slice(0,end); buffer = buffer.slice(end); return result;
+      }
+      assert.equal(await frame(),'retry: 5000\n\n');
+      await sqlClient`select pg_notify('predioon_events',${JSON.stringify({...event(),status:'FORGED',metadata:'private'})})`;
+      assert.equal(await frame(),`event: gateway-status\ndata: ${JSON.stringify(event())}\n\n`);
+      const current = observation; assert.ok(current); const writeCount = current.writes.length;
+      barrier = gatewayContextBarrier();
+      await sqlClient`select pg_notify('predioon_events',${JSON.stringify(event('missing-'+suffix))})`;
+      await bounded(barrier.reached.promise,'real context before missing-target projector');
+      await bounded(sqlClient.begin(async owner => {
+        await owner`set local lock_timeout='2s'`; await owner`set local statement_timeout='3s'`;
+        const rows = await owner`update role_bindings set active=true where id=${binding} and active=false returning id`;
+        assert.equal(rows.length,1);
+      }), 'committed ADMIN promotion');
+      const [required] = await sqlClient`select public.identity_platform_mfa_required(${racing.id}) as required`;
+      assert.equal(required?.required,true);
+      barrier.release.resolve(); await bounded(barrier.finished.promise,'gateway operation settled');
+      await new Promise<void>(resolve => setImmediate(resolve));
+      // Observe the actual response after transaction settlement, never wait for
+      // an unprotected baseline EOF timeout or use another protected event marker.
+      const frames = current.writes.slice(writeCount).join('');
+      const decoded = frames.split('\n').filter(line => line.startsWith('data: ')).map(line => JSON.parse(line.slice(6)) as unknown);
+      t.diagnostic(`Gateway post-promotion emitted-data-frame-count=${decoded.length}; response-ended=${current.response.writableEnded}`);
+      assert.deepEqual(decoded,[], 'no private payload for an absent gateway');
+      assert.equal(frames,'','no event/comment frame after promotion');
+      assert.equal(current.response.writableEnded || current.response.destroyed,true,
+        'guard-first must close even for no matching row; baseline RLS may already satisfy this control');
+      assert.equal(await frame(),null); await bounded(current.closed.promise,'closed response');
+    } catch (error) { failed = true; throw error; }
+    finally {
+      barrier?.release.resolve(); abort.abort();
+      const cleanup = await Promise.allSettled([
+        reader ? bounded(reader.cancel().catch(() => undefined),'reader cancelled') : Promise.resolve(),
+        barrier ? bounded(barrier.finished.promise,'transaction settled cleanup') : Promise.resolve(),
+        observation ? bounded(observation.closed.promise,'response closed cleanup') : Promise.resolve(),
+      ]);
+      barrier?.restore();
+      if (!failed) { const failure = cleanup.find(x => x.status === 'rejected'); if (failure?.status === 'rejected') throw failure.reason; }
+    }
+  });
+
+  it("guard-first enrollment errors precede existing missing foreign mismatched and NULL lookup", async () => {
+    for (const [b,g] of [[building,gateway],[building,'missing'],[foreign,foreignGateway],[foreign,gateway],[null,null]] as const) {
+      await assert.rejects(envelope(enrolling,b,g),error => codeOf(error)==='PMF01');
+    }
+  });
+  it("guard-first verification errors cover unproved absent malformed and foreign family contexts", async () => {
+    for (const sid of [verifying.sid,'','not-a-uuid',satisfied.sid]) {
+      for (const [b,g] of [[building,gateway],[building,'missing'],[null,null]] as const) {
+        await assert.rejects(envelope(verifying,b,g,sid),error => codeOf(error)==='PMF02');
+      }
+    }
+  });
+  it("optional and synthetically satisfied readers retain exact scope and minimal persisted DTO in one operation", async () => {
+    for (const a of [local,satisfied]) {
+      assert.deepEqual(await envelope(a),{stored:{buildingId:building,gatewayId:gateway,status:'ONLINE'}});
+      let executions=0;
+      const dto = await context(a,async tx => {
+        const wrapped = new Proxy(tx,{get(target,key) {
+          if (key==='execute') return (...args: Parameters<AppTransaction['execute']>) => { executions++; return target.execute(...args); };
+          const value = Reflect.get(target,key,target); return typeof value==='function'?value.bind(target):value;
+        }});
+        return projectGatewayStatusEvent(wrapped,{...event(),status:'FORGED'});
+      });
+      assert.deepEqual(dto,event()); assert.equal(executions,1,'one scalar SQL operation, no classification/features/final recheck');
+      assert.deepEqual(await envelope(a,building,neighbor),empty); assert.equal(await project(a,event(neighbor)),null);
+    }
+    assert.deepEqual(await envelope(deviceOnly),empty); assert.equal(await project(deviceOnly),null);
+  });
+  it("optional absent foreign NULL and strange TEXT targets return scalar empty without broadening authority", async () => {
+    for (const [b,g] of [[building,'missing'],[building,foreignGateway],[foreign,gateway],[foreign,foreignGateway],
+      [building,"x'::uuid"],[building,''],[null,gateway],[building,null],[null,null]] as const) {
+      assert.deepEqual(await envelope(local,b,g),empty);
+      if (b!==null && g!==null) assert.equal(await project(local,event(g,b)),null);
+    }
+    assert.deepEqual(await project(local),event(),'later valid projection still works');
+  });
+  it("disabled current gateway ignores feature freshness while scoped support expiry and revocation remain effective", async () => {
+    try {
+      await sqlClient`update gateways set enabled=false,status='OFFLINE' where id=${gateway}`;
+      await sqlClient`insert into building_feature_settings(building_id,feature_key,enabled)
+        values(${building},'ENERGY_CONSUMPTION',false),(${building},'ELECTRICAL',false)`;
+      await sqlClient`insert into feature_runtime(building_id,feature_key,resumed_at)
+        values(${building},'ENERGY_CONSUMPTION',clock_timestamp()+interval '1 hour'),(${building},'ELECTRICAL',clock_timestamp()+interval '1 hour')`;
+      assert.equal((await envelope(local)).stored?.status,'OFFLINE');
+      assert.deepEqual(await project(local),event(gateway,building,'OFFLINE'));
+      assert.deepEqual(await project(support),event(gateway,building,'OFFLINE'));
+      assert.equal(await project(support,event(neighbor)),null);
+      await sqlClient`update support_grants set created_at=clock_timestamp()-interval '2 hours',expires_at=clock_timestamp()-interval '1 hour' where id=${grant}`;
+      assert.deepEqual(await envelope(support),empty); assert.equal(await project(support),null);
+      await sqlClient`update support_grants set expires_at=clock_timestamp()+interval '1 hour',revoked_at=clock_timestamp() where id=${grant}`;
+      assert.deepEqual(await envelope(support),empty); assert.equal(await project(support),null);
+    } finally {
+      await sqlClient`update gateways set enabled=true,status='ONLINE' where id=${gateway}`;
+      await sqlClient`delete from feature_runtime where building_id=${building}`;
+      await sqlClient`delete from building_feature_settings where building_id=${building}`;
+      await sqlClient`update support_grants set revoked_at=null,expires_at=clock_timestamp()+interval '1 hour' where id=${grant}`;
+    }
+  });
+  it("extends the fifteen-function inventory with an app-only INVOKER scalar guard across six real roles", async () => {
+    const prior=['public.identity_platform_mfa_required(text)','public.identity_session_mfa_requirement(text,uuid)',
+      'public.app_require_session_mfa()','public.app_list_mfa_organizations()','public.app_list_mfa_devices(text)',
+      'public.app_list_mfa_gateways()','public.app_mfa_platform_authorization(text[])','public.app_mfa_scope_authorization(text,text,text,text[])',
+      'public.app_overview_platform_health()','public.app_platform_service_health()','public.app_mfa_feature_event_allowed(text)',
+      'public.app_mfa_telemetry_event_context(text,text)','public.app_mfa_alert_event_context(text,uuid)',
+      'public.app_mfa_device_event_context(text,text)','public.app_mfa_device_event_allowed(text,text)'];
+    assert.equal(prior.length+1,16);
+    for (const name of prior) { const [row] = await sqlClient`select to_regprocedure(${name}) is not null as present`; assert.equal(row?.present,true); }
+    const [definition] = await sqlClient`select p.prosecdef,p.provolatile,p.proconfig,p.proisstrict,
+      p.proowner=(select proowner from pg_proc where oid='public.app_require_session_mfa()'::regprocedure) as same_owner
+      from pg_proc p where p.oid=${signature}::regprocedure`;
+    assert.equal(definition?.prosecdef,false); assert.equal(definition?.provolatile,'s'); assert.equal(definition?.proisstrict,false);
+    assert.equal(definition?.same_owner,true); assert.deepEqual(definition?.proconfig,['search_path=pg_catalog, public, pg_temp']);
+    const acl = await sqlClient`select coalesce(r.rolname,'PUBLIC') as grantee,a.privilege_type,a.is_grantable
+      from pg_proc p cross join lateral aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a
+      left join pg_roles r on r.oid=a.grantee where p.oid=${signature}::regprocedure and a.grantee<>p.proowner`;
+    assert.deepEqual([...acl],[{grantee:'predioon_app',privilege_type:'EXECUTE',is_grantable:false}]);
+    for (const [role,pool] of pools) {
+      const [row] = await pool`select has_function_privilege(current_user,${signature},'EXECUTE') as allowed,
+        has_function_privilege(current_user,${signature},'EXECUTE WITH GRANT OPTION') as grantable`;
+      assert.equal(row?.allowed,role==='predioon_app'); assert.equal(row?.grantable,false);
+    }
+  });
+});
+

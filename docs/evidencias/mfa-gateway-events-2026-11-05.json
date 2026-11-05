@@ -1,0 +1,440 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-11-05",
+  "scope": "Candidata isolada de envelope gateway guard-first; fechamento sem alvo não equivale a vazamento privado",
+  "sources": {
+    "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+    "baselinePreparedSha256": "d28b040c242da8d14f39157479d4e0daaeac3229835ba5766486b08342349d32",
+    "fixedPreparedSha256": "d4ed11a9d1696696edaec7e4729da4b25463a6a1a7b813e12fcfb3aa1f88771f",
+    "rootFiles": 994,
+    "composedFiles": 1018,
+    "workspaceJunctions": 23,
+    "productManifest": {
+      "id": "mfa-gateway-events-candidate-20261105/manifest.json",
+      "sha256": "018633ca9102e58ed79053cdad7efd6cd3125764b360bf05e7475960df3f80cd",
+      "bytes": 1810
+    },
+    "testManifest": {
+      "id": "mfa-gateway-events-tests-20261105/manifest.json",
+      "sha256": "f4d33c38e78b3181298f158b5fe8fb0e2a21266f38146a84c68332af6b5ec79e",
+      "bytes": 244
+    }
+  },
+  "typeChecks": [
+    {
+      "variant": "baseline",
+      "phase": "resolve",
+      "exitCode": 0,
+      "durationMs": 1368,
+      "freeMiB": 2337,
+      "sourceCandidateConfigPreparedJunctionsAfter": true,
+      "result": {
+        "id": "mfa-gateway-baseline-qa-20261105/checks/resolve/result.json",
+        "sha256": "a49844368f9974f3c88a9f60d8297bd63eedbbe5cd8e6bc90dd4adb90869c6ee",
+        "bytes": 1119
+      }
+    },
+    {
+      "variant": "baseline",
+      "phase": "types",
+      "exitCode": 0,
+      "durationMs": 10441,
+      "freeMiB": 2335,
+      "sourceCandidateConfigPreparedJunctionsAfter": true,
+      "result": {
+        "id": "mfa-gateway-baseline-qa-20261105/checks/types/result.json",
+        "sha256": "150a506ade10a453788e36d8b17336b5e712d0ec81f220527842c17f1da41ec3",
+        "bytes": 1025
+      }
+    },
+    {
+      "variant": "fixed",
+      "phase": "resolve",
+      "exitCode": 0,
+      "durationMs": 1232,
+      "freeMiB": 2367,
+      "sourceCandidateConfigPreparedJunctionsAfter": true,
+      "result": {
+        "id": "mfa-gateway-fixed-qa-20261105/checks/resolve/result.json",
+        "sha256": "40c7496c7223692241e4a4a5f4cfb5eae78187be6e97ba5eb1b46eef42ed80cb",
+        "bytes": 1116
+      }
+    },
+    {
+      "variant": "fixed",
+      "phase": "types",
+      "exitCode": 0,
+      "durationMs": 10136,
+      "freeMiB": 2381,
+      "sourceCandidateConfigPreparedJunctionsAfter": true,
+      "result": {
+        "id": "mfa-gateway-fixed-qa-20261105/checks/types/result.json",
+        "sha256": "25e5c84092ce05a66df95285c39e42b75cd100eac4a5e871b2a82cb0ed912f99",
+        "bytes": 1022
+      }
+    }
+  ],
+  "runs": {
+    "baseline": {
+      "startedUtc": "2026-11-05T08:09:04.828Z",
+      "endedUtc": "2026-11-05T08:09:15.276Z",
+      "observedHeadBefore": "9f486b1cd360158702a485221c6718edbbc4cca9",
+      "observedHeadAfter": "9f486b1cd360158702a485221c6718edbbc4cca9",
+      "processes": [
+        {
+          "file": "platform-mfa-gateway-events.test.ts",
+          "tap": {
+            "tests": 7,
+            "suites": 1,
+            "pass": 0,
+            "fail": 7,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 3088.3547
+          },
+          "exitCode": 1,
+          "childDurationMs": 3230.7135,
+          "log": {
+            "id": "mfa-gateway-baseline-qa-20261105/platform-mfa-gateway-events.log",
+            "sha256": "8e6a72ea924dbf369cf2178547b493df5b60f69b279b1cf612fb2db1a473d7a2",
+            "bytes": 13879
+          }
+        }
+      ],
+      "result": {
+        "id": "mfa-gateway-baseline-qa-20261105/mfa-directed-result.json",
+        "sha256": "7d6ffeb6593f2ac09a310583c19ba4d665d2f892829facabac5de3410871fa98",
+        "bytes": 311171
+      },
+      "postchecks": {
+        "id": "mfa-gateway-baseline-qa-20261105/mfa-directed-postchecks.json",
+        "sha256": "e5dfaee2992244da2653b3c517aabcbd337b9bfa920525b4bd12a8393ad61668",
+        "bytes": 390
+      },
+      "cleanupPassed": true,
+      "sourceHashesAfterMatch": true,
+      "rolesRestoredIncludingPrivateCredentials": true,
+      "settingsRestored": true,
+      "baseTablesTemporaryOtherDatabasesAndOtherClients": 0,
+      "roles": 6,
+      "freeMiBAtStart": 2419.0
+    },
+    "fixed": {
+      "startedUtc": "2026-11-05T08:09:31.058Z",
+      "endedUtc": "2026-11-05T08:09:42.080Z",
+      "observedHeadBefore": "9f486b1cd360158702a485221c6718edbbc4cca9",
+      "observedHeadAfter": "9f486b1cd360158702a485221c6718edbbc4cca9",
+      "processes": [
+        {
+          "file": "platform-mfa-gateway-events.test.ts",
+          "tap": {
+            "tests": 7,
+            "suites": 1,
+            "pass": 7,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 3146.1657
+          },
+          "exitCode": 0,
+          "childDurationMs": 3804.2911999999997,
+          "log": {
+            "id": "mfa-gateway-fixed-qa-20261105/platform-mfa-gateway-events.log",
+            "sha256": "1a4f0a78c75f430fd442873580b7f125ba3c31329e9b71226f3c568bc0172c12",
+            "bytes": 2487
+          }
+        }
+      ],
+      "result": {
+        "id": "mfa-gateway-fixed-qa-20261105/mfa-directed-result.json",
+        "sha256": "ad673cd9443c2defa5af9a24dcfc4ea759b1fde00e2c38fac07c8f9c45e51baf",
+        "bytes": 311158
+      },
+      "postchecks": {
+        "id": "mfa-gateway-fixed-qa-20261105/mfa-directed-postchecks.json",
+        "sha256": "53e52aab336b1db36d344a79a9385dd25c74695cf54348244e25cb563470eafb",
+        "bytes": 390
+      },
+      "cleanupPassed": true,
+      "sourceHashesAfterMatch": true,
+      "rolesRestoredIncludingPrivateCredentials": true,
+      "settingsRestored": true,
+      "baseTablesTemporaryOtherDatabasesAndOtherClients": 0,
+      "roles": 6,
+      "freeMiBAtStart": 2425.0
+    },
+    "fixed-regression": {
+      "startedUtc": "2026-11-05T08:10:00.432Z",
+      "endedUtc": "2026-11-05T08:12:45.044Z",
+      "observedHeadBefore": "9f486b1cd360158702a485221c6718edbbc4cca9",
+      "observedHeadAfter": "9f486b1cd360158702a485221c6718edbbc4cca9",
+      "processes": [
+        {
+          "file": "platform-mfa-heartbeat.test.ts",
+          "tap": {
+            "tests": 9,
+            "suites": 1,
+            "pass": 9,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 3572.9236
+          },
+          "exitCode": 0,
+          "childDurationMs": 3727.482,
+          "log": {
+            "id": "mfa-gateway-fixed-regression-qa-20261105/platform-mfa-heartbeat.log",
+            "sha256": "af7c336519d85da6328b09eb9d09a414adc6410ef1fe12493d9f3f7da0933fe1",
+            "bytes": 2780
+          }
+        },
+        {
+          "file": "platform-mfa-device-events.test.ts",
+          "tap": {
+            "tests": 9,
+            "suites": 1,
+            "pass": 9,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 4710.4449
+          },
+          "exitCode": 0,
+          "childDurationMs": 4876.016600000001,
+          "log": {
+            "id": "mfa-gateway-fixed-regression-qa-20261105/platform-mfa-device-events.log",
+            "sha256": "6c0037d5ff12c8e372344c40024d9ad238dbed3028dad442a5a3185643047aba",
+            "bytes": 2791
+          }
+        },
+        {
+          "file": "platform-mfa-telemetry-events.test.ts",
+          "tap": {
+            "tests": 9,
+            "suites": 1,
+            "pass": 9,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 4230.1089
+          },
+          "exitCode": 0,
+          "childDurationMs": 4390.117399999999,
+          "log": {
+            "id": "mfa-gateway-fixed-regression-qa-20261105/platform-mfa-telemetry-events.log",
+            "sha256": "13a7225d5a912fe279c9ac5bd4eb545980a6e49c8759a37529e6d1e24e2d956c",
+            "bytes": 2653
+          }
+        },
+        {
+          "file": "platform-mfa-feature-events.test.ts",
+          "tap": {
+            "tests": 7,
+            "suites": 1,
+            "pass": 7,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 3534.0015
+          },
+          "exitCode": 0,
+          "childDurationMs": 3694.0264000000025,
+          "log": {
+            "id": "mfa-gateway-fixed-regression-qa-20261105/platform-mfa-feature-events.log",
+            "sha256": "e759956969e31cad510d35dde948e7c46526d2d6b879c13381aaee4c1acda553",
+            "bytes": 2106
+          }
+        },
+        {
+          "file": "platform-mfa-disable-snapshot.test.ts",
+          "tap": {
+            "tests": 5,
+            "suites": 1,
+            "pass": 5,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 3406.7861
+          },
+          "exitCode": 0,
+          "childDurationMs": 3590.684699999998,
+          "log": {
+            "id": "mfa-gateway-fixed-regression-qa-20261105/platform-mfa-disable-snapshot.log",
+            "sha256": "f092e8369ef336ab4eaa4aaec3dd735ebfdea54db36bab2774e5f5cd42f4fb61",
+            "bytes": 1569
+          }
+        },
+        {
+          "file": "platform-mfa-sql-envelopes.test.ts",
+          "tap": {
+            "tests": 11,
+            "suites": 1,
+            "pass": 11,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 3496.7551
+          },
+          "exitCode": 0,
+          "childDurationMs": 3661.7505999999994,
+          "log": {
+            "id": "mfa-gateway-fixed-regression-qa-20261105/platform-mfa-sql-envelopes.log",
+            "sha256": "2ca9c18946b1888f46e0ebe0ab48375ff44c9f2ebde66258c1aa9b0a4c1868ac",
+            "bytes": 3173
+          }
+        },
+        {
+          "file": "telemetry-events-capabilities.test.ts",
+          "tap": {
+            "tests": 13,
+            "suites": 1,
+            "pass": 13,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 17426.3447
+          },
+          "exitCode": 0,
+          "childDurationMs": 17590.232600000003,
+          "log": {
+            "id": "mfa-gateway-fixed-regression-qa-20261105/telemetry-events-capabilities.log",
+            "sha256": "67c603b0076ce41960202a747cd1463027df355cdd5f5d0a34e7c00bef7af447",
+            "bytes": 3410
+          }
+        },
+        {
+          "file": "alert-events-capabilities.test.ts",
+          "tap": {
+            "tests": 17,
+            "suites": 1,
+            "pass": 17,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 19858.5267
+          },
+          "exitCode": 0,
+          "childDurationMs": 20012.175500000005,
+          "log": {
+            "id": "mfa-gateway-fixed-regression-qa-20261105/alert-events-capabilities.log",
+            "sha256": "b5bfc74bdf3388b8c387e3cb8be9c719736fd09ba9bbaf1511e50aeb1e46ddad",
+            "bytes": 4314
+          }
+        },
+        {
+          "file": "platform-mfa-alert-events.test.ts",
+          "tap": {
+            "tests": 9,
+            "suites": 1,
+            "pass": 9,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 5224.3759
+          },
+          "exitCode": 0,
+          "childDurationMs": 5382.2300000000105,
+          "log": {
+            "id": "mfa-gateway-fixed-regression-qa-20261105/platform-mfa-alert-events.log",
+            "sha256": "451c043e2459e698b7046f03c4974ac534e8cbd3f45fddbca9c44e61b14c1e70",
+            "bytes": 2676
+          }
+        },
+        {
+          "file": "equipment-events-capabilities.test.ts",
+          "tap": {
+            "tests": 25,
+            "suites": 1,
+            "pass": 25,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 78342.3368
+          },
+          "exitCode": 0,
+          "childDurationMs": 79049.9281,
+          "log": {
+            "id": "mfa-gateway-fixed-regression-qa-20261105/equipment-events-capabilities.log",
+            "sha256": "6dfcd20513c1ed90822768b1d0d67e6bfac513d6650a6b56bcb2ffed286d52e7",
+            "bytes": 6885
+          }
+        }
+      ],
+      "result": {
+        "id": "mfa-gateway-fixed-regression-qa-20261105/mfa-directed-result.json",
+        "sha256": "87b181faa81e16ace5e7b6853a11573b406b7a50c3437278a504aca4790efb50",
+        "bytes": 316805
+      },
+      "postchecks": {
+        "id": "mfa-gateway-fixed-regression-qa-20261105/mfa-directed-postchecks.json",
+        "sha256": "1a19c13ab8a1416cd8bf1d371117a2c7c9b841f43a00001db355b5f0712aff17",
+        "bytes": 390
+      },
+      "cleanupPassed": true,
+      "sourceHashesAfterMatch": true,
+      "rolesRestoredIncludingPrivateCredentials": true,
+      "settingsRestored": true,
+      "baseTablesTemporaryOtherDatabasesAndOtherClients": 0,
+      "roles": 6,
+      "freeMiBAtStart": 2388.0
+    }
+  },
+  "baselineClassification": {
+    "behavioralCase": {
+      "case": 1,
+      "observedDataFrameCount": 0,
+      "observedResponseEnded": false,
+      "assertion": "Response writableEnded||destroyed expectedtrue, actualfalse after absent-target operation settled",
+      "interpretation": "Falha de fechamento guard-first para alvo ausente após promoção. DTOpositivo foi anterior. Não houve frame privado após promoção."
+    },
+    "missingContractCases": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "errorEvidence": {
+      "cases2and3": "Outer ERR_ASSERTION porque validator não recebeu PMF esperado; log mostra Failedquery, não PMF observado.",
+      "cases4to6": "Failedquery no novo envelope; código de causa não exposto pelo wrapper do log.",
+      "case7": "42883 explícito: function public.app_mfa_gateway_event_context(text,text) does not exist.",
+      "basis": "Ausência do novo envelope corroborada pelo SQL baseline e caso7; não seis vazamentos demonstrados."
+    },
+    "privateFrameLeakDemonstrated": false,
+    "scope": "Somente assertivas até primeira falha de cada caso; loops posteriores da baseline não são cobertura."
+  },
+  "gates": {
+    "typesExitCode": 0,
+    "gatewayTestsPassed": 7,
+    "regressionTestsPassed": 114,
+    "failures": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "cleanupPass": true,
+    "sourceBeforeAfterPass": true
+  },
+  "limits": [
+    "Baseline0PASS/7FAIL é execução separada; apenascase1 mostra ausência de fechamento, com zero frames de dados após promoção.",
+    "Dez arquivos/processos seriais somam114 regressões nesta composição; não API integral.",
+    "SQL068/equipment são os únicos arquivos de produto alterados; devicefunction, heartbeat e originais mantidos.",
+    "Fixture UUID oficial ledger68, owner para arranjo/instrumentação e seis URLs runtime restritas; não alegar ausência de owner no processo de teste.",
+    "Famílias/provas novas são sintéticas, não teste TOTP; originais administrativos conservam cerimônias próprias.",
+    "STABLE compartilha snapshot guard+leitura, sem linearizar revogação posterior ao statement/commit/rede.",
+    "Sem nova classificação/features/freshness ou ampliação de permissões de tabela. ACL inclui16 assinaturas, não prova exaustiva de todos os grants da aplicação.",
+    "Demais domínios/mutações, integração web/nativa e produção continuam pendentes."
+  ]
+}
