@@ -1,0 +1,29 @@
+{
+  "observedOn": "2026-11-05",
+  "scope": "Read-only verification of the published guarded-read checkpoint",
+  "run": {
+    "id": 41996875067,
+    "headSha": "b83f7f20eddeb35aaa85d18f4b4360370979ca5f",
+    "url": "https://github.com/helberjf/predioON/actions/runs/41996875067",
+    "createdAt": "2026-11-05T08:45:03Z",
+    "status": "completed",
+    "conclusion": "startup_failure",
+    "path": "BuildFailed",
+    "checkSuiteId": 113798485298,
+    "jobsReturned": 0,
+    "checkRunsReturned": 0
+  },
+  "browser": {
+    "surface": "in-app browser",
+    "observedPage": "Page not found; Sign in link visible",
+    "authenticatedRunSummaryObserved": false
+  },
+  "currentCauseConfirmed": false,
+  "limits": [
+    "The REST API establishes startup failure without jobs/check runs, not its cause.",
+    "The available browser session is signed out; no authenticated annotation was read for this run.",
+    "The billing-or-spending-limit annotation observed on November 4 belongs to a different run and is not automatically attributed to this run.",
+    "No workflow dispatch, rerun, account, billing or settings change was performed.",
+    "Local test evidence and successful Git push remain separate from remote CI acceptance."
+  ]
+}
