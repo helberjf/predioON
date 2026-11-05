@@ -1,4 +1,45 @@
-# Retomada MFA — lote B de vínculos candidato em 05/11/2026
+# Retomada MFA — leitura de convites
+
+**Dez entradas TAP dirigidas e 195 entradas TAP de regressão passaram na composição isolada, em vinte processos separados.**
+O dirigido tem oito cenários independentes e dois grupos; as regressões incluem
+quatro grupos dos lotes A/B. São 205 entradas TAP e 199 cenários independentes,
+sem representar a API inteira ou aceite global de MFA.
+
+Este conjunto contém 73 payloads: 69 candidatos de runtime/testes, dois testes
+renderer explícitos e dois arquivos query já publicados. A composição tem
+1.023 arquivos e cinco suportes renderer separados. A [montagem/restauração passou](../../evidencias/mfa-invitations-read-restore-2026-11-05.json),
+com os 1.023 arquivos e cinco suportes idênticos à composição testada. A
+restauração anterior do lote B72 permanece histórica e não substitui esta etapa.
+
+A alteração protege somente GET de convites; substitui tenancy/routes.ts e o
+comentário de auth/mfa-read.ts, acrescentando um teste dirigido. A assinatura e
+o corpo do helper, SQL068, shared invitationView, nove campos DTO, isoTime,
+precedência ACCEPTED→REVOKED→EXPIRED→PENDING, paginação e mutações permanecem
+preservados. A exceção documentada é apenas o clock_timestamp nativo escalar;
+não permite leitor SQL/SD VOLATILE nem troca o relógio por tempo de transação.
+
+Na baseline, quatro cenários falharam com HTTP200 em vez de403: duas páginas
+exatas com quatro convites e duas páginas vazias com items=[]/nextCursor=null,
+comparadas antes da primeira falha. As outras duas falhas TAP são agregações dos
+grupos. A baseline não alcançou as asserções de motivo MFA e ausência de items.
+Na versão corrigida, os dez TAP passaram; os dezenove arquivos de regressão
+passaram separadamente, incluindo os nove casos originais de convites intactos.
+
+As quatro fases de resolução/tipagem passaram. Cada rodada de banco teve limpeza da
+fixture UUID, restauração das seis roles e configurações privadas, zero bancos
+temporários/clientes residuais e fontes preservadas. O erro do wrapper externo
+após o preparo baseline ocorreu depois de child exit0, sem timeout; não foi
+falha de produto nem repetição do preparo bem-sucedido.
+
+Catálogo do relógio nativo e quatro status afastados da borda não comprovam uma
+transição exata de expiração. Os casos dirigidos usam prova MFA sintética;
+não equivalem a nova cerimônia TOTP, navegador ou aplicativo nativo. A montagem
+portável também não aceita produção, demais domínios ou comandos. O runtime
+principal continua com as migrações001–067.
+
+[Prova de convites](../../evidencias/mfa-invitations-read-2026-11-05.json).
+
+## Rodada anterior: lote B de vínculos
 
 **Lote B: 12 entradas TAP aprovadas; regressões: 174 entradas TAP em 17 processos.**
 O dirigido corresponde a dez cenários independentes e dois grupos. As regressões
@@ -11,7 +52,7 @@ com os 1.022 arquivos e cinco suportes idênticos à composição testada. A
 [restauração anterior do lote A](../../evidencias/mfa-tenancy-structure-restore-2026-11-05.json)
 permanece histórica. Runtime principal continua 001–067; a política completa permanece candidata.
 
-## Conteúdo recuperável
+### Conteúdo recuperável
 
 72 payloads: 68 arquivos candidatos, dois testes renderer explícitos e dois arquivos
 query já publicados, excluídos do delta por hashes. Cinco suportes renderer são separados.
@@ -27,7 +68,7 @@ contrato existente, enquanto inativos permanecem excluídos. Predicados de préd
 capacidade, cursor UUID, ordenação, limit+1 e paginação não mudam. Os outros 19 blocos
 de rotas, mutações, views compartilhadas, helper e SQL068 permanecem idênticos.
 
-## Rodada atual e limites
+### Rodada atual e limites
 
 Baseline: **4 PASS/8 FAIL**, TAP 4904.5992 ms,
 sem cancelamento, skip ou todo. Há seis asserções HTTP 200 versus 403 e duas agregações
@@ -52,7 +93,7 @@ as fixtures originais conservam suas cerimônias. STABLE não lineariza revogaç
 snapshot, commit ou rede. Outros leitores, comandos, integração e produção continuam
 pendentes. A receita de staging renderer não foi executada.
 
-## Rodada anterior: lote A de estrutura
+### Rodada anterior: lote A de estrutura
 
 **O lote A passou nas 12 entradas TAP e em 162 regressões, em 17 processos separados.**
 O ensaio dirigido contém seis testes de topo, sendo dois grupos, mais seis subtestes.
@@ -63,7 +104,7 @@ com os 1.021 arquivos e cinco suportes idênticos à composição testada. A
 [restauração anterior das leituras guardadas](../../evidencias/mfa-guarded-read-restore-2026-11-05.json)
 permanece histórica. Runtime principal continua 001–067; a política completa permanece candidata.
 
-### Conteúdo recuperável
+#### Conteúdo recuperável
 
 71 payloads: 67 arquivos candidatos de implementação/testes, dois testes renderer
 explícitos e dois arquivos query já publicados, excluídos do delta por hashes.
@@ -81,7 +122,7 @@ unidade com pai não-null e andar negativo. Nenhum campo de data foi acrescentad
 Filtros, cursores UUID, ordenação, limit+1, page() e listScope permanecem iguais.
 Helper mfa-read e SQL068 não mudam.
 
-### Rodada atual e limites
+#### Rodada atual e limites
 
 Baseline: **4 PASS/8 FAIL**, sem cancelamento, skip ou todo, em 4,400 s de TAP.
 São seis asserções independentes HTTP 200 versus 403 e duas falhas agregadas dos grupos,
@@ -105,7 +146,7 @@ as fixtures originais preservam suas cerimônias. STABLE compartilha o snapshot
 sem linearizar revogação posterior ao statement ou rede. Outros leitores, mutações,
 integração e produção seguem pendentes. Receita de staging renderer não executada.
 
-### Rodada anterior: protótipo de leitura
+#### Rodada anterior: protótipo de leitura
 
 **Oito casos dirigidos e 121 regressões passaram na composição isolada, em doze processos separados.**
 Base canônica `53c4c70dcd24f1045fad420fbce36757fd3753a2`; fonte corrigida `45449b1b…`,
@@ -115,7 +156,7 @@ com os 1.020 arquivos e cinco suportes idênticos à composição testada. A
 [restauração anterior dos gateways](../../evidencias/mfa-gateway-restore-2026-11-05.json)
 permanece histórica. Runtime principal continua 001–067; migração 068 e política completa permanecem candidatas.
 
-#### Conteúdo recuperável
+##### Conteúdo recuperável
 
 Inventário de **69 payloads**: 65 arquivos candidatos de implementação/testes,
 dois testes renderer explícitos e dois arquivos query já publicados e excluídos
@@ -134,7 +175,7 @@ UTC. People conserva cursor TEXT parametrizado, filtro de residentes antes de
 limit+1, ordenação e paginação. Empates de nomes em buildings continuam sem ordem
 definida. Nenhuma alteração de SQL068, ACL, heartbeat ou projectors foi incluída.
 
-#### Rodada atual e limites
+##### Rodada atual e limites
 
 A baseline terminou **5 PASS/3 FAIL**, sem cancelamento, skip ou todo, em 3,869 s
 de TAP. Caso 1: HTTP 200 com lista comprovadamente vazia, quando era esperado 403;
@@ -166,7 +207,7 @@ O heartbeat conserva seus limites: expiração JWT não exercitada nessa prova h
 e ausência de assertiva de res.end exatamente uma vez. A receita de staging do
 renderer não foi executada; não transferir aceitação de ensaios anteriores.
 
-#### Retomar em outro computador
+##### Retomar em outro computador
 
 1. Clone a main atual, compare suas mudanças e leia `docs/CONTINUIDADE.md`.
 2. Para montar a composição exata, crie uma base isolada no commit indicado.
@@ -199,7 +240,7 @@ processos desconhecidos ou reiniciar computador, Docker ou WSL. Os comandos de
 restauração não instalam dependências, executam testes, iniciam serviços ou
 aplicam migrations.
 
-#### Histórico anterior: 25 originais de equipamentos
+##### Histórico anterior: 25 originais de equipamentos
 
 A fixture anterior teve **23 PASS e 2 FAIL**, em **76,947 s de TAP**. Nos casos
 5 e 18, o helper de stream recebeu HTTP 403 onde esperava 200. O log não
@@ -243,7 +284,7 @@ A prova cobre este arquivo com fixture oficial isolada e cerimônias TOTP das
 contas indicadas. Não constitui aceite de navegador, aparelho, produção ou
 obrigação MFA completa de todos os domínios.
 
-#### Rodada anterior: dispositivos e regressões
+##### Rodada anterior: dispositivos e regressões
 
 O comparador anterior teve **2 PASS e 7 FAIL** em 4,685 s de TAP. Um caso mostrou
 o frame real com DTO persistido de quatro campos depois da promoção: a conexão
@@ -269,7 +310,7 @@ Android/iOS ou produção. As fixtures originais de alertas/telemetria têm suas
 cerimônias administrativas próprias. Nenhuma dessas provas fecha outros callers
 SQL, gateway, heartbeat, mutações ou todos os domínios.
 
-#### Rodada anterior: 17 originais de alertas
+##### Rodada anterior: 17 originais de alertas
 
 A fixture anterior teve **16 PASS e 1 FAIL**, em 28,975 s de TAP. O primeiro
 administrador do caso 6 recebeu 403 `MFA_ENROLLMENT_REQUIRED` onde a fixture
@@ -297,7 +338,7 @@ próprios. O HTTP/TOTP desta fixture não demonstra novo replay/recovery, jornad
 web/nativa, aparelho ou implantação. As provas dirigidas sintéticas anteriores
 continuam com seu escopo; não passam a ser cerimônias TOTP por associação.
 
-#### Rodada dirigida anterior: alertas e regressões
+##### Rodada dirigida anterior: alertas e regressões
 
 A versão corrigida passou nos nove casos de alertas em **5,518 s de TAP**.
 Depois, na mesma fonte 77b1, cinco processos separados passaram: telemetria 9 em
@@ -330,7 +371,7 @@ específica. As regras compartilhadas permanecem intactas. Não alegar cobertura
 exaustiva de gate/parking/equipe/janelas. Naquela prova os 17 originais de alertas ainda não haviam sido executados;
 a rodada específica atual está documentada acima.
 
-#### Históricos preservados
+##### Históricos preservados
 
 Os [13 originais de telemetria](../../evidencias/mfa-telemetry-original13-2026-11-05.json)
 passaram na composição anterior, com cadastro/confirmação MFA por HTTP/TOTP dos
@@ -352,7 +393,7 @@ históricas. As cinco regressões daquela rodada estão registradas acima, sobre
 UI 143/143, mobile 242/242 e o renderer V6 de quatro casos conservam as provas e
 limites de suas rodadas anteriores. Esta proposta não lhes atribui execução nova.
 
-#### Contratos e pendências
+##### Contratos e pendências
 
 Alertas relêem o registro persistido: mensagem, status, gateway e instante da
 observação vêm do banco; a notificação fornece identificadores. O envelope
@@ -380,7 +421,7 @@ Device-status já está nesta fonte candidata, com o recheck final de autoridade
 após expirar suporte e o ANY de funcionalidades sem freshness preservados.
 Os demais domínios e a integração completa continuam abertos.
 
-#### Bytes canônicos e receita renderer
+##### Bytes canônicos e receita renderer
 
 A base vem dos objetos Git: árvore/OIDs/modos e blobs binários por comprimento,
 sem converter payloads para UTF-8 ou normalizar CRLF/LF. A auditoria inicial de

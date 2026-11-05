@@ -1,12 +1,15 @@
 import { sql, type SQL } from "drizzle-orm";
 import type { AppTransaction } from "@predioon/db/runtime";
 
-/** Server-authored pure SELECTs only, after reviewing all called SQL functions
- * as STABLE/IMMUTABLE reads. SQL fragments and sort keys must never come from a
- * client. This is not a parser/sandbox for arbitrary SQL or a mutator wrapper.
- * The selected columns must have explicit DTO aliases; JSON bypasses Drizzle's
- * usual column decoders, so every caller supplies its explicit row decoder.
- * CASE/empty behavior requires real PostgreSQL regression before acceptance.
+/** Server-authored SELECTs only. Relation-reading SQL/SD dependencies must be
+ * reviewed STABLE/IMMUTABLE reads. The sole reviewed volatile exception is the
+ * existing pg_catalog.clock_timestamp() wall-clock scalar in the status of
+ * GET /v1/tenancy/invitations: native clock only, with no internal SQL or effects.
+ * This exception never covers VOLATILE SQL/SD/custom readers or mutators.
+ * SQL fragments and sort keys must never come from a client. This is not a
+ * parser/sandbox for arbitrary SQL. Selected columns need explicit DTO aliases;
+ * JSON bypasses Drizzle column decoders, so callers supply explicit decoders.
+ * CASE/empty behavior requires real PostgreSQL regression for each read family.
  */
 export async function readMfaRows<Row>(
   tx: AppTransaction,

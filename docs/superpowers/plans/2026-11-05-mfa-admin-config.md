@@ -1,5 +1,8 @@
 # ADMIN/CONFIG: três ações comuns, sem 174 guards individuais
 
+**Resultado do quarto lote em 05/11:** convites passaram nos quatro cenários de concorrência e quatro controles, mais 19 arquivos de regressão. [Prova e contagens](../../evidencias/mfa-invitations-read-2026-11-05.json). DTO, escopo, paginação e relógio de expiração preservados. Próximos: detalhe de condomínio, usuários e equipe de suporte; demais leituras e comandos continuam pendentes.
+
+
 **Resultado do terceiro lote em 05/11:** vínculos de unidades, integrantes de equipes e papéis passaram nos seis cenários de concorrência, quatro controles e regressões de 17 arquivos. [Prova e contagens](../../evidencias/mfa-tenancy-binding-2026-11-05.json). A leitura de convites e os comandos seguem pendentes.
 
 

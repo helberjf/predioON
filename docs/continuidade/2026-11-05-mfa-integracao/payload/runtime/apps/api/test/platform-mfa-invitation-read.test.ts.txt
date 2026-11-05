@@ -1,0 +1,118 @@
+import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
+import type { Server } from "node:http";
+import { after, before, describe, it } from "node:test";
+import { decodeJwt } from "jose";
+import { PgDialect } from "drizzle-orm/pg-core";
+import { sqlClient } from "@predioon/db";
+import { appDb, closeAppDb, type AppTransaction } from "@predioon/db/runtime";
+import { app } from "../src/app.js";
+import { hashPassword } from "../src/auth/passwords.js";
+import "./helpers.js";
+
+// Same test source for baseline and candidate: no import of the new helper.
+type Actor = { id: string; token: string; sid: string; binding: string; generation: string };
+type HttpResult = { status: number; body: unknown; cache: string | null };
+function signal() {
+  let resolve!: () => void;
+  const promise = new Promise<void>(done => { resolve = done; }); return { promise, resolve };
+}
+async function bounded<T>(promise: PromiseLike<T>, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try { return await Promise.race([Promise.resolve(promise), new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`Fixture deadline: ${label}`)), 5000);
+  })]); } finally { clearTimeout(timer); }
+}
+function beforeProjection(capability:string) {
+  const original = appDb.transaction, run = original.bind(appDb), dialect = new PgDialect();
+  const reached = signal(), release = signal(), finished = signal(); let contexts = 0;
+  type Input = Parameters<AppTransaction['execute']>[0];
+  appDb.transaction = (callback, config) => run(tx => callback(new Proxy(tx, { get(target,key) {
+    if (key === 'execute') return async (query: Input) => {
+      const compiled = typeof query === 'string' ? {sql:query,params:[]} : dialect.sqlToQuery(query.getSQL());
+      const text=compiled.sql;
+      const rows = await target.execute(query);
+      if (text.includes("app_has_capability(") && compiled.params.includes(capability)) {
+        contexts++; assert.equal(contexts,1); reached.resolve(); await bounded(release.promise,'projection release');
+      }
+      return rows;
+    };
+    const value = Reflect.get(target,key,target); return typeof value === 'function' ? value.bind(target) : value;
+  }})), config).finally(() => finished.resolve());
+  return { reached,release,finished,get contexts(){return contexts;},restore(){appDb.transaction=original;} };
+}
+
+describe('MFA invitation list with preserved native wall-clock status', {concurrency:false},()=>{
+  const suffix=randomUUID(),org=`invite-read-${suffix}`,building=`invite-a-${suffix}`,foreign=`invite-b-${suffix}`,unit=randomUUID();
+  const users:string[]=[],ids=[randomUUID(),randomUUID(),randomUUID(),randomUUID()].sort();
+  const states=['PENDING','EXPIRED','ACCEPTED','REVOKED'];
+  const password='invitation-read-fictitious-password';let server:Server|undefined,url='',hash='';
+  let manager:Actor,resident:Actor,satisfied:Actor,globalOnly:Actor;
+  type Item={id:string;buildingId:string;email:string;name:string;unitId:string|null;kind:string|null;status:string;createdAt:string;expiresAt:string};
+  const expected:Item[]=[];
+  const path=(extra='',b=building)=>`/v1/tenancy/invitations?buildingId=${b}${extra}`;
+  async function request(a:Actor,p:string,abort=new AbortController()):Promise<HttpResult>{try{const r=await bounded(fetch(url+p,{headers:{Authorization:`Bearer ${a.token}`},signal:abort.signal}),'HTTP');return{status:r.status,body:await bounded(r.json(),'JSON'),cache:r.headers.get('cache-control')};}finally{abort.abort();}}
+  async function actor(label:string,role:string|null='BUILDING_ADMIN'):Promise<Actor>{
+    const id=`invite-${suffix}-${label}`,binding=randomUUID(),generation=randomUUID();users.push(id);
+    await sqlClient`insert into users(id,name,email,password_hash) values(${id},${label},${id+'@example.invalid'},${hash})`;
+    if(role)await sqlClient`insert into memberships(user_id,building_id,role) values(${id},${building},${role})`;
+    await sqlClient`insert into role_bindings(id,user_id,role_key,active) values(${binding},${id},'PLATFORM_ADMIN',false)`;
+    const abort=new AbortController();try{const r=await bounded(fetch(url+'/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:id+'@example.invalid',password}),signal:abort.signal}),'login');assert.equal(r.status,200);const body=await bounded(r.json(),'loginJSON') as {accessToken:string};const sid=decodeJwt(body.accessToken).sid;assert.equal(typeof sid,'string');return{id,token:body.accessToken,sid:sid as string,binding,generation};}finally{abort.abort();}
+  }
+  const prove=(a:Actor)=>sqlClient`update sessions set mfa_verified_at=now(),mfa_factor_generation=${a.generation} where id=${a.sid}`;
+  before(async()=>{
+    const [ledger]=await sqlClient`select count(*)::int as count from schema_migrations`;assert.equal(ledger?.count,68);
+    hash=await hashPassword(password);await sqlClient`insert into organizations(id,name,slug) values(${org},'Invitation read',${org})`;
+    for(const b of [building,foreign])await sqlClient`insert into buildings(id,organization_id,name,code) values(${b},${org},${b},${b})`;
+    await sqlClient`insert into units(id,building_id,code) values(${unit},${building},'101')`;
+    server=await new Promise<Server>(resolve=>{const s=app.listen(0,'127.0.0.1',()=>resolve(s));});const a=server.address();assert.ok(a&&typeof a!=='string');url=`http://127.0.0.1:${a.port}`;
+    manager=await actor('manager');resident=await actor('resident','RESIDENT');satisfied=await actor('satisfied');globalOnly=await actor('global',null);
+    for(const a of [satisfied,globalOnly]){await sqlClient`insert into mfa_factors(user_id,secret_ciphertext,confirmed_at,generation) values(${a.id},decode(repeat('00',40),'hex'),now(),${a.generation})`;await prove(a);await sqlClient`update role_bindings set active=true where id=${a.binding}`;}
+    for(let i=0;i<4;i++){
+      const name="Invited ' "+i,email=`invited-${suffix}-${i}@example.invalid`;
+      // All CHECK042 windows/outcomes remain valid. ACCEPTED and REVOKED are never combined.
+      const [row]=await sqlClient`insert into invitations(id,building_id,email,name,unit_id,unit_kind,token_hash,invited_by,created_at,expires_at,accepted_at,accepted_user_id,revoked_at,revoked_by)
+        values(${ids[i]!},${building},${email},${name},${i===0?null:unit},${i===0?null:'OCCUPANT'},decode(md5(${ids[i]!})||md5(${ids[i]!}),'hex'),${manager.id},
+        clock_timestamp()-interval '10 days',case when ${i===0} then clock_timestamp()+interval '7 days' else clock_timestamp()-interval '2 days' end,
+        case when ${i===2} then clock_timestamp()-interval '3 days' else null end,${i===2?resident.id:null},
+        case when ${i===3} then clock_timestamp()-interval '3 days' else null end,${i===3?manager.id:null})
+        returning to_char(created_at at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as created, to_char(expires_at at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as expires`;
+      assert.equal(typeof row?.created,'string');assert.equal(typeof row?.expires,'string');expected.push({id:ids[i]!,buildingId:building,email,name,unitId:i===0?null:unit,kind:i===0?null:'OCCUPANT',status:states[i]!,createdAt:row!.created as string,expiresAt:row!.expires as string});
+    }
+  });
+  after(async()=>{try{await bounded(new Promise<void>((resolve,reject)=>{if(!server){resolve();return;}server.close(e=>e?reject(e):resolve());server.closeAllConnections();}),'listener close');}
+    finally{try{await bounded(sqlClient.begin(async tx=>{await tx`set local lock_timeout='2s'`;await tx`set local statement_timeout='3s'`;await tx`delete from buildings where organization_id=${org}`;await tx`delete from organizations where id=${org}`;for(const id of users)await tx`delete from users where id=${id}`;}),'fixture cleanup');}
+      finally{const r=await Promise.allSettled([bounded(closeAppDb(),'app close'),bounded(sqlClient.end({timeout:3}),'owner close')]);const e=r.find(x=>x.status==='rejected');if(e?.status==='rejected')throw e.reason;}}});
+  async function interleave(a:Actor,extra:string,change:()=>Promise<unknown>){
+    const barrier=beforeProjection('memberships:manage'),abort=new AbortController(),pending=request(a,path(extra),abort);void pending.catch(()=>undefined);let failed=false;
+    try{const first=await bounded(Promise.race([barrier.reached.promise.then(()=>'capability'),pending.then(()=>'response')]),'reach capability');assert.equal(first,'capability');await bounded(change(),'committed change');barrier.release.resolve();return await pending;}
+    catch(e){failed=true;throw e;}finally{barrier.release.resolve();abort.abort();const r=await Promise.allSettled([bounded(pending,'request settled'),barrier.contexts?bounded(barrier.finished.promise,'transaction settled'):Promise.resolve()]);barrier.restore();if(!failed){const e=r.find(x=>x.status==='rejected');if(e?.status==='rejected')throw e.reason;}}
+  }
+  function denied(r:HttpResult,reason:string){assert.equal(r.status,403);assert.equal((r.body as {details?:{reason:string}}).details?.reason,reason);assert.equal('items' in (r.body as object),false);}
+  for(const mode of ['enrollment','verification'] as const)it(`requires ${mode} for full and empty lists after the final capability check`,async t=>{
+    for(const empty of [false,true])await t.test(empty?'empty':'full',async()=>{
+      const a=mode==='enrollment'?manager:satisfied,extra=empty?'&after=ffffffff-ffff-ffff-ffff-ffffffffffff':'';
+      await sqlClient`update role_bindings set active=${mode==='verification'} where id=${a.binding}`;if(mode==='verification')await prove(a);
+      try{const positive=await request(a,path(extra));assert.equal(positive.status,200);assert.deepEqual(positive.body,{items:empty?[]:expected,nextCursor:null});
+        const r=await interleave(a,extra,()=>mode==='enrollment'?sqlClient`update role_bindings set active=true where id=${a.binding}`:sqlClient`update sessions set mfa_verified_at=null,mfa_factor_generation=null where id=${a.sid}`);
+        if(r.status===200){assert.deepEqual(r.body,positive.body);t.diagnostic(`${mode}/${empty?'empty':'full'}: decoded actual baseline invitation list`);}denied(r,mode==='enrollment'?'MFA_ENROLLMENT_REQUIRED':'MFA_VERIFICATION_REQUIRED');
+      }finally{if(mode==='enrollment')await sqlClient`update role_bindings set active=false where id=${a.binding}`;else await prove(a);}
+    });
+  });
+  it('preserves nine public fields, ISO strings, nullable unit fields and valid status precedence',async()=>{
+    const r=await request(manager,path());assert.equal(r.status,200);assert.equal(r.cache,'no-store');const body=r.body as {items:Item[];nextCursor:null};assert.deepEqual(body,{items:expected,nextCursor:null});
+    for(const row of body.items){assert.equal(Object.keys(row).length,9);assert.equal(new Date(row.createdAt).toISOString(),row.createdAt);assert.equal(new Date(row.expiresAt).toISOString(),row.expiresAt);assert.ok(!/token|hash|invitedBy|acceptedAt|revokedAt/i.test(JSON.stringify(row)));}
+    assert.deepEqual(body.items.map(x=>x.status),states);
+  });
+  it('preserves bounded UUID pagination and rejects malformed cursor without exposing secret columns',async()=>{
+    const found:Item[]=[];let extra='&limit=1';for(let i=0;i<4;i++){const r=await request(manager,path(extra));assert.equal(r.status,200);const body=r.body as {items:Item[];nextCursor:string|null};assert.equal(body.items.length,1);found.push(...body.items);assert.equal(body.nextCursor,i===3?null:ids[i]);if(body.nextCursor)extra='&limit=1&after='+body.nextCursor;}assert.deepEqual(found,expected);assert.equal((await request(manager,path('&after=not-a-uuid'))).status,400);
+  });
+  it('retains local scope and never treats satisfied global authority as tenant management',async()=>{
+    assert.equal((await request(resident,path())).status,403);assert.equal((await request(globalOnly,path())).status,403);assert.equal((await request(manager,path('',foreign))).status,403);const r=await request(satisfied,path());assert.equal(r.status,200);assert.deepEqual(r.body,{items:expected,nextCursor:null});
+  });
+  it('attests the exact native clock function rather than accepting arbitrary VOLATILE functions',async()=>{
+    const [row]=await sqlClient`select n.nspname,p.proname,p.provolatile,l.lanname,p.prosrc,p.prosecdef,p.pronargs,(to_regprocedure('clock_timestamp()')=p.oid) as resolves_native
+      from pg_proc p join pg_namespace n on n.oid=p.pronamespace join pg_language l on l.oid=p.prolang where p.oid='pg_catalog.clock_timestamp()'::regprocedure`;
+    assert.deepEqual({...row},{nspname:'pg_catalog',proname:'clock_timestamp',provolatile:'v',lanname:'internal',prosrc:'clock_timestamp',prosecdef:false,pronargs:0,resolves_native:true});
+  });
+});

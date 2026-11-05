@@ -1,0 +1,78 @@
+{
+  "recordedOn": "2026-11-05",
+  "status": "INVITATIONS_READ_CANDIDATE_CANONICAL_SOURCE_RESTORE_PASSED",
+  "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+  "inputInventorySha256": "cddcf0a6db01ad24ab0831178b736ec5bb2b0bcbb3d4dcf0697ddc72171a21c5",
+  "testedPreparedSha256": "cdf2002e3d3c775b6af419e2e189f56a22ebd1c543c1c6909c7a66afeb03603f",
+  "baseFiles": 994,
+  "canonicalBaseGitObjectsVerified": 994,
+  "inventoryPayloads": 73,
+  "candidateRuntimeAndTests": 69,
+  "explicitRendererTests": 2,
+  "alreadyPublishedQueryPayloads": 2,
+  "qaSupportFiles": 5,
+  "manifestCandidateFiles": 71,
+  "manifestSha256": "96e30322d14a2f9bf987e0ba06c0b7282e6e0fb4c1c458fac35f3736b8a58dc5",
+  "receiptSha256": "15c1002b1e7dfb2b7fddeb924768329aa62b85f407a45f236d8ad6ce6fd3bdfc",
+  "receipt": {
+    "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+    "sourceHeadBefore": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+    "canonicalBaseFiles": 994,
+    "candidateFiles": 71,
+    "qaSupportFiles": 5,
+    "status": "SOURCE_ONLY_NOT_TESTED_NOT_APPLIED",
+    "dependenciesInstalled": false,
+    "migrationsApplied": false,
+    "databaseStarted": false
+  },
+  "directedEvidenceSha256": "43d6189ba505436cef1a5da3cf9562b268711247475a30adca4edf1cd8bd1735",
+  "comparison": "Canonical994 Git blobs plus71 candidate overlays produce exactly1023 tested source files; five renderer supports and receipt are additional. All package/payload/source hashes verified.",
+  "limits": [
+    "Source restoration only; no dependency installation, database, migration or test execution by builder/restorer.",
+    "Directed10TAP contains eight independent scenarios and two aggregate groups; nineteen regressions195TAP include four BatchA/BatchB groups.",
+    "Two full baseline pages decoded four invitation DTOs each; two empty pages exposed no private rows; two parent failures aggregate these four assertions.",
+    "One invitation GET and helper JSDoc changed; SQL068, shared invitationView, mutations and native clock expression preserved.",
+    "Native clock catalog and four separated statuses do not prove an exact expiry-boundary transition.",
+    "Other domains, commands and integrated acceptance remain pending; no production acceptance.",
+    "Metadata updates preserve source payload bytes; inputInventorySha256 and package README refer to builder inputs."
+  ],
+  "computerRestarted": false,
+  "productionAccepted": false,
+  "builder": {
+    "ownedPid": 37304,
+    "durationMs": 2207.1064,
+    "timedOut": false,
+    "childExitedAt": "2026-11-05T09:47:35.5902126Z",
+    "phase": "builder",
+    "exitCode": 0,
+    "guard": {
+      "phase": "builder",
+      "minimumMiB": 1536,
+      "at": "2026-11-05T09:47:33.3627963Z",
+      "freeMiB": 2366.0
+    },
+    "heapMiB": 128,
+    "resultSha256": "1d4df853bdadefa0bc41300fb6febf3c2d6aadf756e358c638dc6a51efa6ce50",
+    "stdoutSha256": "7e9500aa4796f59e76408cc88fb9ab7a052a6be8a89ad7426a39003d6c951a9e",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "restore": {
+    "ownedPid": 35728,
+    "durationMs": 3320.0697,
+    "timedOut": false,
+    "childExitedAt": "2026-11-05T09:47:39.1740496Z",
+    "phase": "restore",
+    "exitCode": 0,
+    "guard": {
+      "phase": "restore",
+      "minimumMiB": 1536,
+      "at": "2026-11-05T09:47:35.8501573Z",
+      "freeMiB": 2347.0
+    },
+    "heapMiB": 128,
+    "resultSha256": "7042a2da7b0cd41cfc8ea25288c9a33698ef3a7b6ad7ea5dad97c491bea70830",
+    "stdoutSha256": "5d235f6a30170e2aa45149c03b8e7aaf4b605e3f66b3f1e798763b632bc34c5a",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "all1023RestoredFilesMatchTestedComposition": true
+}

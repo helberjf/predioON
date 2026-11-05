@@ -154,6 +154,13 @@ const RoleBindingReadRow = z.object({
 }).strict();
 
 
+const InvitationReadRow = z.object({
+  id: z.string(), buildingId: z.string(), email: z.string(), name: z.string(),
+  unitId: z.string().nullable(), kind: z.string().nullable(), status: z.string(),
+  // isoTime already emits the existing UTC/millisecond strings; keep them text.
+  createdAt: z.string(), expiresAt: z.string(),
+}).strict();
+
 /** Listing inactive records needs the management capability, not only the read one. */
 async function listScope(tx: AppTransaction, q: StructureQuery, read: "units:read" | "teams:read", manage: "units:manage" | "teams:manage"): Promise<boolean> {
   await assertCapability(tx, read, q.buildingId);
@@ -465,9 +472,12 @@ tenancyRouter.get("/invitations", validateQuery(ListSchema), async (req, res) =>
   const q = query<ListQuery>(req);
   res.json(await inTenancy(req, async tx => {
     await assertCapability(tx, "memberships:manage", q.buildingId);
-    const rows = await tx.execute(sql`select ${invitationView} from invitations where building_id=${q.buildingId}
-      and (${q.after ?? null}::uuid is null or id > ${q.after ?? null}::uuid) order by id limit ${q.limit + 1}`);
-    return page(rows as unknown as InvitationRow[], q.limit);
+    const rows = await readMfaRows(tx,
+      sql`select ${invitationView} from invitations where building_id=${q.buildingId}
+        and (${q.after ?? null}::uuid is null or id > ${q.after ?? null}::uuid) order by id limit ${q.limit + 1}`,
+      value => InvitationReadRow.parse(value), ["id"],
+    );
+    return page(rows, q.limit);
   }));
 });
 tenancyRouter.post("/invitations", validateBody(CreateInvitation), async (req, res) => {
