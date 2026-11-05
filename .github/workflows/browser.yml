@@ -75,6 +75,9 @@ jobs:
       - name: Preserve pages and drafts when returning to the browser
         if: matrix.browser == 'chromium'
         run: pnpm test:e2e:focus
+      - name: Preserve MFA recovery codes until acknowledgment
+        if: matrix.browser == 'chromium'
+        run: pnpm test:e2e:mfa-recovery
       - name: Validate saved alert rules and activation states
         if: matrix.browser == 'chromium'
         run: pnpm exec playwright test --config playwright.rules.config.ts
@@ -89,6 +92,7 @@ jobs:
             .local/playwright-results/
             .local/playwright-report/
             .local/focus-results/
+            .local/mfa-recovery-results/
             .local/rules-results/
           include-hidden-files: true
           if-no-files-found: ignore

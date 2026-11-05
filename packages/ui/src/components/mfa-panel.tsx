@@ -37,7 +37,7 @@ export function MfaPanel() {
     });
     if (step.kind === "confirm") void run(async () => {
       const result = await api.post<MfaConfirmResponse>("/auth/mfa/confirm", { code: code.trim() });
-      setCode(""); setStep({ kind: "codes", codes: result.recoveryCodes }); status.reload();
+      setCode(""); setStep({ kind: "codes", codes: result.recoveryCodes });
     });
   }
 

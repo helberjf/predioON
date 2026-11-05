@@ -73,6 +73,8 @@ Atualizado em **05/11/2026**, horário de São Paulo. Leia este arquivo primeiro
 
 Na composição candidata, passaram os tipos de 11 pacotes/apps e quatro testes React renderizados da cerimônia, com fontes conferidas. Estes usam React/renderer19.2.3 e primitivas HTTP/browser sintéticas; não aprovam DOM, aparelhos ou o React19.3.0 do web. Os nove REDs ainda não são GREEN da implementação. O timeout anterior fica histórico: sua duração incluía hashes posteriores, sem medição isolada da vida do compilador. SQL ampliado e ligação das listas estão em revisão externa; não entraram no runtime publicado.
 
+**Correção web de recuperação MFA — 05/11:** o painel compartilhado agora consulta o estado somente depois de “Já guardei os códigos”. Antes, uma falha nessa consulta podia esconder os códigos recém-gerados. Baseline: uma falha legítima e um controle aprovado; correção: dois casos Playwright aprovados; nova execução com captura: dois aprovados. Tipos E2E e actionlint passaram. [Prova e limites](evidencias/mfa-recovery-codes-2026-11-05.json); [imagens reais](imagens/2026-11-05/README.md). Esta correção independente não conclui a MFA administrativa obrigatória. O teste usa o portal real e HTTP sintético; a CI remota continua sem aceite.
+
 ## 1. Instruções permanentes do proprietário
 
 - Commits pequenos em Conventional Commits (`feat:`, `fix:`, `test:`, `docs:`), com push na `main` depois de cada incremento verificado.

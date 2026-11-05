@@ -31,6 +31,8 @@ pnpm e2e:db up
 | `pnpm typecheck:e2e` | Confere os tipos da suíte (o Playwright transpila sem checar) |
 | `pnpm check:e2e-selectors` | Reprova seletores frágeis (XPath, classe CSS, `.nth()`, `waitForTimeout`) |
 
+`pnpm test:e2e:mfa-recovery` executa dois casos Chromium no portal Morador, com API sintética e sem banco: preservar os códigos diante de falha na próxima consulta e recarregar o estado após “Já guardei os códigos”, sem reenviar confirmação. Usa Vite52964, origem de API interceptada32964, um worker e zero retries. Capturas ficam em `.local/mfa-recovery-results`; a configuração recusa servidor já aberto. Execute com pelo menos2GB livres nesta máquina. A prova dirigida não substitui as jornadas de MFA com API/banco reais.
+
 `pnpm test:e2e:focus` roda a regressão de retorno à janela nos três portais em Chromium, com respostas de API sintéticas e sem banco. A configuração sobe Vite nas portas 52961 a 52963 e grava as evidências em `.local/focus-results`. Os cenários conferem a preservação da página e dos rascunhos durante a verificação em segundo plano, além de mudanças confirmadas de funcionalidades e recuperação após erro.
 
 Para executar um portal por vez com menor carga, defina `E2E_FOCUS_PANEL` como `admin`, `building` ou `resident`. A seleção inicia somente o projeto e o servidor daquele portal, mantendo sua porta original (52961, 52962 ou 52963, respectivamente) e grava em `.local/focus-results-admin`, `.local/focus-results-building` ou `.local/focus-results-resident`. Um valor inválido, inclusive vazio, interrompe a configuração antes de iniciar servidores. Sem a variável, continuam os três projetos e servidores e a pasta original. Apenas `--project` não reduz os servidores globais.

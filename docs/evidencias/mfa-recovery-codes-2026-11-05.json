@@ -1,0 +1,147 @@
+{
+  "recordedOn": "2026-11-05",
+  "status": "NARROW_WEB_RECOVERY_FIX_VALIDATED",
+  "baseCommit": "01b0f0934c65792487b6e1f3e927c48f7f1661cd",
+  "change": "Remove the MFA status reload after confirmation; keep the existing reload after the user acknowledges saving recovery codes.",
+  "files": [
+    {
+      "path": "packages/ui/src/components/mfa-panel.tsx",
+      "sha256": "5baee6493cc152884fe7d9b175209833fa8ab8124b30f8b2cde9a63618513417"
+    },
+    {
+      "path": "e2e/browser/mfa-recovery.spec.ts",
+      "sha256": "89f52db9509431a9468a3e72b42162de350bf36e02c27194019825ec0750d0e3"
+    },
+    {
+      "path": "e2e/mfa-recovery.config.ts",
+      "sha256": "64eff81ce1298391489837f3f41299c28b04c8e9a1ccb26252e7262256364480"
+    },
+    {
+      "path": "package.json",
+      "sha256": "09c0cec7d53836d48f0987687821b0d637b0fa1de8b3d1f484ee0ce5a12e8cbc"
+    },
+    {
+      "path": ".github/workflows/browser.yml",
+      "sha256": "26aecbc5bc25867b4a219e696177736048407df139c752f5aa8c10b5e8701286"
+    }
+  ],
+  "baseline": {
+    "status": "EXITED_REQUIRES_ASSERTION_REVIEW",
+    "exitCode": 1,
+    "signal": null,
+    "timedOut": false,
+    "childDurationMs": 40611.037,
+    "spawnedAt": "2026-11-05T03:09:48.992Z",
+    "childExitedAt": "2026-11-05T03:10:29.606Z",
+    "freeMiBBeforeSpawn": 5429,
+    "preHashFailures": [],
+    "postHashFailures": [],
+    "stdoutSha256": "95e3347e5ff8a094f8d3ca58a7941d34ee6ebf36a2ca376e2ef4ca42d1f9875d",
+    "stderrSha256": "f16ff3f3c99e54a983a309d25f58e72c7e1d1c84b67545672d4f93054cc834e0",
+    "reactVersion": "19.3.0",
+    "uiPanelSha256": "cd0cb15b973bf6292088b0c76753e8bb9eae5944e0c94aba04182aee7036a2ce",
+    "resultSha256": "8c21aaaddd9cdab3b3b335802ec06ab8bec7ed5a98dfaea0bbc1ca6f1dc1e1cc",
+    "passed": 1,
+    "failed": 1,
+    "classification": "Premature status GET: expected2,received3 at line101. Code-list assertions passed transiently; later DOM and screenshot show the error without codes. Not an import or preparation failure."
+  },
+  "fixed": {
+    "status": "EXITED_REQUIRES_ASSERTION_REVIEW",
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "childDurationMs": 21206.028,
+    "spawnedAt": "2026-11-05T03:12:02.718Z",
+    "childExitedAt": "2026-11-05T03:12:23.928Z",
+    "freeMiBBeforeSpawn": 5356,
+    "preHashFailures": [],
+    "postHashFailures": [],
+    "stdoutSha256": "b031974cabf3474202c34c3dccdd5c3bb57af59ae0dea0f224cf9bd16b955917",
+    "stderrSha256": "bb138c0a0dd107df0e0ef05f260bea37d2e19e6890b74215a63062c7eb320512",
+    "reactVersion": "19.3.0",
+    "uiPanelSha256": "5baee6493cc152884fe7d9b175209833fa8ab8124b30f8b2cde9a63618513417",
+    "resultSha256": "2cb4f20a3efebfa731d60ce9b28cbfceb9e63e8560e615dea1baaee49a5bbecf",
+    "passed": 2,
+    "failed": 0
+  },
+  "captureRun": {
+    "status": "EXITED_REQUIRES_ASSERTION_REVIEW",
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "childDurationMs": 12793.723,
+    "spawnedAt": "2026-11-05T03:35:20.133Z",
+    "childExitedAt": "2026-11-05T03:35:32.927Z",
+    "freeMiBBeforeSpawn": 3287,
+    "preHashFailures": [],
+    "postHashFailures": [],
+    "stdoutSha256": "99c32714ebabb0540f1c7b3191d75a29ace801a9ef0c80796470095b8d67affd",
+    "stderrSha256": "4cb8f4e0dc81e740bebff3ac7c3558bc01b18f964e4664e033a115ec6a120d71",
+    "reactVersion": "19.3.0",
+    "uiPanelSha256": "5baee6493cc152884fe7d9b175209833fa8ab8124b30f8b2cde9a63618513417",
+    "resultSha256": "06cf22bcfd8552f9ed55bdeb60eac9b73767202ea7ce3a314b3d0592c4e8e50e",
+    "passed": 2,
+    "failed": 0,
+    "specSha256": "89f52db9509431a9468a3e72b42162de350bf36e02c27194019825ec0750d0e3"
+  },
+  "browser": "Chromium, actual resident portal and React19.3.0; synthetic intercepted HTTP, no API/database/TOTP execution; one worker and zero retries.",
+  "typesE2E": {
+    "startedUtc": "2026-11-05T03:34:23.755Z",
+    "endedUtc": "2026-11-05T03:34:26.688Z",
+    "durationMs": 2932,
+    "freeMiB": 2134,
+    "guardMiB": 1536,
+    "heapMiB": 640,
+    "timedOut": false,
+    "exitCode": 0,
+    "signal": null,
+    "files": 992,
+    "before": [],
+    "after": [],
+    "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "workflowValidation": {
+    "tool": "actionlint1.7.12",
+    "exitCode": 0,
+    "scope": "proposed browser.yml identical to published bytes",
+    "remoteCiAccepted": false
+  },
+  "preparationHistory": {
+    "captureV1": "Controller watchdog before attempt directory/Playwright spawn; not a product test failure. Original evidence preserved.",
+    "captureV2": {
+      "status": "GUARD_REFUSED_BEFORE_PLAYWRIGHT",
+      "freeMiB": 1980,
+      "minimumMiB": 2048,
+      "childPid": null
+    },
+    "typesV1": "MODULE_NOT_FOUND for nonexistent root TypeScript path; corrected to existing packages/mobile TypeScript; no dependency installation."
+  },
+  "images": [
+    {
+      "path": "docs/imagens/2026-11-05/mfa-recuperacao-antes.png",
+      "sha256": "e5b5a8f4dcd516a755bc05c386fcd8ca76e57ebcfe9c77115b4c405b728c26e4",
+      "width": 1280,
+      "height": 720,
+      "description": "Baseline: GET antecipado e erro no lugar dos códigos.",
+      "visuallyInspected": true
+    },
+    {
+      "path": "docs/imagens/2026-11-05/mfa-recuperacao-corrigida.png",
+      "sha256": "c22651e0d4e07235f05809821181d72328709dd8b81194866d8277f609ec9c62",
+      "width": 1280,
+      "height": 1571,
+      "description": "Correção: códigos sintéticos visíveis antes de guardar; captura de página inteira.",
+      "visuallyInspected": true
+    }
+  ],
+  "computerRestarted": false,
+  "productionAccepted": false,
+  "limits": [
+    "No new Android/iOS native acceptance.",
+    "No full browser matrix or real TOTP/backend acceptance.",
+    "Mandatory platform MFA remains a separate incomplete candidate.",
+    "Shared panel is used by all portals; these two DOM scenarios ran only in the resident portal.",
+    "The GitHub account CI startup blocker is still unresolved."
+  ]
+}
