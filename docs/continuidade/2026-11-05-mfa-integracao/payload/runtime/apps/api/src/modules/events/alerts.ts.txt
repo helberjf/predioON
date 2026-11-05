@@ -1,0 +1,49 @@
+import { sql } from "drizzle-orm";
+import { z } from "zod";
+import type { AppTransaction } from "@predioon/db/runtime";
+import { resolveFeatures, type FeatureKey, type FeatureSetting, type FeatureStates, type RealtimeEvent } from "@predioon/shared";
+import { observationIsCurrent } from "../../auth/features.js";
+import { alertFeatureKeys, type AlertContext } from "../alerts/authorization.js";
+
+export type AlertEvent = Extract<RealtimeEvent, { kind: "alert" }>;
+
+type AlertEventContext = {
+  authorized: AlertContext | null;
+  stored: (Omit<AlertEvent, "kind"> & { triggeredAt: string }) | null;
+  global: FeatureSetting[];
+  local: FeatureSetting[];
+  runtime: { key: FeatureKey; resumedAt: string | null }[];
+};
+
+/** Pure JSON/date adapter; feature classification stays in alertFeatureKeys. */
+function contextFeatureStates(context: AlertEventContext): FeatureStates {
+  const states = resolveFeatures(context.global, context.local);
+  for (const row of context.runtime) {
+    if (states[row.key]) states[row.key].resumedAt = row.resumedAt ? new Date(row.resumedAt).toISOString() : null;
+  }
+  return states;
+}
+
+/** Notifications identify alerts; one SQL snapshot supplies authority and persisted content. */
+export async function projectAlertEvent(tx: AppTransaction, event: AlertEvent): Promise<AlertEvent | null> {
+  if (!z.uuid().safeParse(event.alertId).success) return null;
+  const [row] = await tx.execute<{ context: AlertEventContext }>(sql`select public.app_mfa_alert_event_context(${event.buildingId},${event.alertId}::uuid) as context`);
+  const envelope = row?.context;
+  if (!envelope) return null;
+  const context = envelope.authorized, stored = envelope.stored;
+  if (!context || context.building_id !== event.buildingId || context.alert_id !== event.alertId) return null;
+  if (!stored || stored.buildingId !== event.buildingId || stored.alertId !== event.alertId) return null;
+  const states = contextFeatureStates(envelope);
+  if (!observationIsCurrent(states, alertFeatureKeys(context, stored.type), new Date(stored.triggeredAt))) return null;
+  return {
+    kind: "alert",
+    buildingId: stored.buildingId,
+    alertId: stored.alertId,
+    deviceId: stored.deviceId,
+    gatewayId: stored.gatewayId,
+    severity: stored.severity,
+    type: stored.type,
+    message: stored.message,
+    status: stored.status,
+  };
+}

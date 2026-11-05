@@ -1,0 +1,522 @@
+{
+  "version": 1,
+  "status": "OBSERVED_AND_REVIEWED",
+  "date": "2026-11-05",
+  "scope": "Envelope MFA de alertas SSE e regressões isoladas; não representa implantação em produção.",
+  "sources": {
+    "composedFiles": 1015,
+    "priorPreparedSha256": "f452fcff809abf8667fb3d731581808411baf0b02c72824dd8b5aa3c4f9b23d5",
+    "harnessHandoffSha256": "26ff4e25a2ae0d3e1aa93fabe1a0bf0e2e48689a0581d63651af0a09a1d63452",
+    "productDelta": [
+      {
+        "afterSha256": "0e61f7e803c0eebc6ccf9708e80fc4706f6d1a1962bf29179c6995872809bad5",
+        "beforeSha256": "8ecfdbbbc416dfb85dd5a12349e1dc5a1352847eb11179fef35e272eb5df5f78",
+        "path": "apps/api/src/modules/events/alerts.ts"
+      },
+      {
+        "afterSha256": "59cda6787bce345d1c6aeac4a06e2daa0ebf17a9032a8952c9d112ac4edcfefc",
+        "beforeSha256": "4fdb1498adaf3c6a884e972ce1f4a0a4a1025640a4e705aa53d52e98bf42d2a6",
+        "path": "infrastructure/068-platform-mfa-required.sql"
+      }
+    ],
+    "fixedPreparedSha256": "77b1c35133b45fff3143ae79d0d095ba0bf6270e0795ace7aef22f52f70d54a8",
+    "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+    "testManifestSha256": "7423691815eb3fb5deb24ba7d0beca0a0bd91a171b79d96d0bbbd2172ea77d46",
+    "sourceFiles": 994,
+    "productManifestSha256": "17a598d0cb8cfe0929cae8ff7382c71357fe9fa37af21c5ecb734697ba226d52",
+    "baselinePreparedSha256": "f44955b427e66b03f3dcff88a8ca36b8e5a300bb3d35b878edfdff0c19aa95f2",
+    "typeConfigSha256": "58b6f0c2317cd5077e0594dd6ed44d422933fb4441df96a65f938d7acd9fdb53",
+    "testSha256": "8bf2bf9f4fe16525dbc6b13098f051b53419cb861f8f12e8222ad5ece426b151",
+    "sourcePinSha256": "3229f7e5df9c2b75f7efd40fe0e793fd3a7de74ae3e57d641a7775531b47cba3"
+  },
+  "gates": {
+    "typesExitCode": 0,
+    "todo": 0,
+    "failures": 0,
+    "cleanupPass": true,
+    "sql11TestsPassed": 11,
+    "alertTestsPassed": 9,
+    "originalTelemetryTestsPassed": 13,
+    "featureEventsTestsPassed": 7,
+    "telemetryTestsPassed": 9,
+    "skipped": 0,
+    "p0TestsPassed": 5,
+    "sourceBeforeAfterPass": true,
+    "cancelled": 0
+  },
+  "gatesScope": "Somente fixed9 e cinco regressões9/7/5/11/13: seis processos separados. Baseline2PASS/7FAIL intencional fora dos contadores zero.",
+  "types": [
+    {
+      "resolved": {
+        "requiredSourcesListed": true,
+        "allTestsListed": true,
+        "originalWorkspacePaths": []
+      },
+      "preparedSha256": "f44955b427e66b03f3dcff88a8ca36b8e5a300bb3d35b878edfdff0c19aa95f2",
+      "commandSha256": "758e6a9ab44906fb348fe22fddcf71dd304f8bcd249efc5024ce05ec404f6e7a",
+      "before": {
+        "source": true,
+        "candidate": true,
+        "config": true,
+        "prepared": true,
+        "junctions": true
+      },
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "durationMs": 1661,
+      "stdoutSha256": "0f2c98d64430c8dbd8b7f7e5021b929b37dc8204c50eb05f33732f3fb7c251db",
+      "resultSha256": "7f3925e9b7c081e5bc2da1b633959dee53dc62d12d8f1652920256744209fbca",
+      "variant": "baseline",
+      "passed": true,
+      "phase": "resolve",
+      "after": {
+        "source": true,
+        "candidate": true,
+        "config": true,
+        "prepared": true,
+        "junctions": true
+      },
+      "exitCode": 0
+    },
+    {
+      "resolved": null,
+      "preparedSha256": "f44955b427e66b03f3dcff88a8ca36b8e5a300bb3d35b878edfdff0c19aa95f2",
+      "commandSha256": "8ff93caaf5fa51d6e76d896ca0effa7680af805e37a29c818a6b6f9f566e09f8",
+      "before": {
+        "source": true,
+        "candidate": true,
+        "config": true,
+        "prepared": true,
+        "junctions": true
+      },
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "durationMs": 9347,
+      "stdoutSha256": "ce65427338e29c5740a4fc30e381051dc1622cb25471007fa012b045d20a48a8",
+      "resultSha256": "e2b20c5ef27300214f3856540411d55e6cc9f942f0d1a60eb321db0662fa696d",
+      "variant": "baseline",
+      "passed": true,
+      "phase": "types",
+      "after": {
+        "source": true,
+        "candidate": true,
+        "config": true,
+        "prepared": true,
+        "junctions": true
+      },
+      "exitCode": 0
+    },
+    {
+      "resolved": {
+        "requiredSourcesListed": true,
+        "allTestsListed": true,
+        "originalWorkspacePaths": []
+      },
+      "preparedSha256": "77b1c35133b45fff3143ae79d0d095ba0bf6270e0795ace7aef22f52f70d54a8",
+      "commandSha256": "5ed25b808dba48c759e465c691a1a868b81bb89bc26325c90b0543310c356ce2",
+      "before": {
+        "source": true,
+        "candidate": true,
+        "config": true,
+        "prepared": true,
+        "junctions": true
+      },
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "durationMs": 2061,
+      "stdoutSha256": "ed11e3d29448ea16849107931bccf9bff2ef7d290eefcd844da3d58d0d8bf106",
+      "resultSha256": "808f02c0003099be295bbb1f800d1d5dc0ef4171395bc01416f7687a3d134b50",
+      "variant": "fixed",
+      "passed": true,
+      "phase": "resolve",
+      "after": {
+        "source": true,
+        "candidate": true,
+        "config": true,
+        "prepared": true,
+        "junctions": true
+      },
+      "exitCode": 0
+    },
+    {
+      "resolved": null,
+      "preparedSha256": "77b1c35133b45fff3143ae79d0d095ba0bf6270e0795ace7aef22f52f70d54a8",
+      "commandSha256": "1d2b364274f4f3f3b09b8c9aae448d31ab8434f7d4bb733f9ed50dff139e4486",
+      "before": {
+        "source": true,
+        "candidate": true,
+        "config": true,
+        "prepared": true,
+        "junctions": true
+      },
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "durationMs": 9234,
+      "stdoutSha256": "fff843ecd524524237098623e1cd8c8e66b0bcd8e8f546441d92814cc9970b35",
+      "resultSha256": "44f9c15e9865824cd4b08d6a4e3ec2fb80a735299f4bf9e859a6a444298d85e9",
+      "variant": "fixed",
+      "passed": true,
+      "phase": "types",
+      "after": {
+        "source": true,
+        "candidate": true,
+        "config": true,
+        "prepared": true,
+        "junctions": true
+      },
+      "exitCode": 0
+    }
+  ],
+  "runs": {
+    "fixed": {
+      "tests": [
+        {
+          "process": {
+            "label": "platform-mfa-alert-events",
+            "pid": 8788,
+            "exitCode": 0,
+            "signal": null,
+            "spawnError": false,
+            "timedOut": false,
+            "overflow": false,
+            "treeKillFailed": false,
+            "exitObserved": true,
+            "drainTimedOut": false,
+            "maxHeartbeatGapMs": 5026.1170999999995,
+            "elapsedMs": 5792.515299999999,
+            "logSha256": "50ea0dc38549292f4889ec0ba0ad012b7f193fbf747df4145fd5db3343e700f0"
+          },
+          "eventsSha256": "38fb551c9859f743a287d058dec4458996f2a53cdc220c4c4e197fe9484f4a52",
+          "tap": {
+            "tests": 9.0,
+            "skipped": 0.0,
+            "pass": 9.0,
+            "todo": 0.0,
+            "cancelled": 0.0,
+            "suites": 1.0,
+            "fail": 0.0,
+            "duration_ms": 5517.8654
+          },
+          "name": "platform-mfa-alert-events"
+        }
+      ],
+      "resultSha256": "31b31d362393f66b056facab5bc32775ee1e283ac3e5b808397b49386ba0eec4",
+      "preparedSha256": "77b1c35133b45fff3143ae79d0d095ba0bf6270e0795ace7aef22f52f70d54a8",
+      "testSources": [
+        {
+          "name": "platform-mfa-alert-events.test.ts",
+          "cases": 9,
+          "sha256": "8bf2bf9f4fe16525dbc6b13098f051b53419cb861f8f12e8222ad5ece426b151"
+        }
+      ],
+      "startedUtc": "2026-11-05T06:30:33.651Z",
+      "postchecks": {
+        "exitCode": 0,
+        "systemIdentifierMatches": true,
+        "basePublicTables": 0,
+        "temporaryDatabases": 0,
+        "otherDatabases": 0,
+        "rolesRestoredIncludingPrivateCredentials": true,
+        "settingsRestored": true,
+        "roles": 6,
+        "otherClients": 0,
+        "containerAttestationMatches": true,
+        "freeMiBAtStart": 2783.0,
+        "computerRestarted": false,
+        "credentialsPublished": false
+      },
+      "postchecksSha256": "f8447728095f94c74d91e3cf70e8a959dadbf8096a22a645c16c589385970fe3",
+      "sourceHashesAfterMatch": true,
+      "endedUtc": "2026-11-05T06:30:48.068Z",
+      "fixtureCleanupPassed": true
+    },
+    "fixed-regression": {
+      "tests": [
+        {
+          "process": {
+            "label": "platform-mfa-telemetry-events",
+            "pid": 2056,
+            "exitCode": 0,
+            "signal": null,
+            "spawnError": false,
+            "timedOut": false,
+            "overflow": false,
+            "treeKillFailed": false,
+            "exitObserved": true,
+            "drainTimedOut": false,
+            "maxHeartbeatGapMs": 5024.004099999998,
+            "elapsedMs": 7002.170900000001,
+            "logSha256": "7418e883c94e501bf0857db0c297fe1800daec92acb57251b42cacea2b1fdcc8"
+          },
+          "eventsSha256": "f5491c8f66d20d4aa323c65bdf803463089a0fc1aa81c01756cc0070a591d8f7",
+          "tap": {
+            "tests": 9.0,
+            "skipped": 0.0,
+            "pass": 9.0,
+            "todo": 0.0,
+            "cancelled": 0.0,
+            "suites": 1.0,
+            "fail": 0.0,
+            "duration_ms": 6254.9422
+          },
+          "name": "platform-mfa-telemetry-events"
+        },
+        {
+          "process": {
+            "label": "platform-mfa-feature-events",
+            "pid": 46224,
+            "exitCode": 0,
+            "signal": null,
+            "spawnError": false,
+            "timedOut": false,
+            "overflow": false,
+            "treeKillFailed": false,
+            "exitObserved": true,
+            "drainTimedOut": false,
+            "maxHeartbeatGapMs": 0,
+            "elapsedMs": 4971.9892,
+            "logSha256": "cfbde098ce70968553894a1900f605f27f4a7cae6c5bdc927db13bd9bb3562f3"
+          },
+          "eventsSha256": "979f23bd8615f39a99ae4fd1efb6a880db95895a54fb87693b037b2132d831be",
+          "tap": {
+            "tests": 7.0,
+            "skipped": 0.0,
+            "pass": 7.0,
+            "todo": 0.0,
+            "cancelled": 0.0,
+            "suites": 1.0,
+            "fail": 0.0,
+            "duration_ms": 4797.7858
+          },
+          "name": "platform-mfa-feature-events"
+        },
+        {
+          "process": {
+            "label": "platform-mfa-disable-snapshot",
+            "pid": 32436,
+            "exitCode": 0,
+            "signal": null,
+            "spawnError": false,
+            "timedOut": false,
+            "overflow": false,
+            "treeKillFailed": false,
+            "exitObserved": true,
+            "drainTimedOut": false,
+            "maxHeartbeatGapMs": 5022.935600000001,
+            "elapsedMs": 5231.429700000004,
+            "logSha256": "77c116dd4ad5f41df7fbdb8dee6f5ac776b409ced2039adc930e489ad6e17cea"
+          },
+          "eventsSha256": "05623ab9f02c9d6faedb74981d5914fa654a5176fe4bc7a5c7ec481cf0595232",
+          "tap": {
+            "tests": 5.0,
+            "skipped": 0.0,
+            "pass": 5.0,
+            "todo": 0.0,
+            "cancelled": 0.0,
+            "suites": 1.0,
+            "fail": 0.0,
+            "duration_ms": 5059.5727
+          },
+          "name": "platform-mfa-disable-snapshot"
+        },
+        {
+          "process": {
+            "label": "platform-mfa-sql-envelopes",
+            "pid": 33956,
+            "exitCode": 0,
+            "signal": null,
+            "spawnError": false,
+            "timedOut": false,
+            "overflow": false,
+            "treeKillFailed": false,
+            "exitObserved": true,
+            "drainTimedOut": false,
+            "maxHeartbeatGapMs": 0,
+            "elapsedMs": 4986.798300000002,
+            "logSha256": "1e22fed4d04096e0c8ec62b6d3132353c4af11f3de4931532f222c517eecfb72"
+          },
+          "eventsSha256": "3cdd88d8b72acb44d27470a016f3eebbfba0d710303c729809e84ac026f930c2",
+          "tap": {
+            "tests": 11.0,
+            "skipped": 0.0,
+            "pass": 11.0,
+            "todo": 0.0,
+            "cancelled": 0.0,
+            "suites": 1.0,
+            "fail": 0.0,
+            "duration_ms": 4737.1141
+          },
+          "name": "platform-mfa-sql-envelopes"
+        },
+        {
+          "process": {
+            "label": "telemetry-events-capabilities",
+            "pid": 27716,
+            "exitCode": 0,
+            "signal": null,
+            "spawnError": false,
+            "timedOut": false,
+            "overflow": false,
+            "treeKillFailed": false,
+            "exitObserved": true,
+            "drainTimedOut": false,
+            "maxHeartbeatGapMs": 5024.828800000003,
+            "elapsedMs": 20146.069300000003,
+            "logSha256": "e65f7ac27e2ce50c7ca450a2734d2e47abdb1d71f40aeb045d953b5ce4a66e2a"
+          },
+          "eventsSha256": "1c49a77a2799948029e548c9565d8a7bbacfacf7dd675c670bd270795c568ccf",
+          "tap": {
+            "tests": 13.0,
+            "skipped": 0.0,
+            "pass": 13.0,
+            "todo": 0.0,
+            "cancelled": 0.0,
+            "suites": 1.0,
+            "fail": 0.0,
+            "duration_ms": 19970.0446
+          },
+          "name": "telemetry-events-capabilities"
+        }
+      ],
+      "resultSha256": "e291a499c2955e870bcd31a18852bc7d7b0d59ec1f9ef911f88186b6d0314806",
+      "preparedSha256": "77b1c35133b45fff3143ae79d0d095ba0bf6270e0795ace7aef22f52f70d54a8",
+      "testSources": [
+        {
+          "name": "platform-mfa-telemetry-events.test.ts",
+          "cases": 9,
+          "sha256": "b0fa6de7d768a2ac3f0c7e2483063c69e13bdc51eeecbb96fef630e149a3fc3b"
+        },
+        {
+          "name": "platform-mfa-feature-events.test.ts",
+          "cases": 7,
+          "sha256": "8cf0331de1417ba7c606e9cb94b2158f2f1db6e0691e8d59a239796f286a1d98"
+        },
+        {
+          "name": "platform-mfa-disable-snapshot.test.ts",
+          "cases": 5,
+          "sha256": "3306d7a8e703c996ba62f51814017e5b5576021e1251511aa3af5e706ca8d19e"
+        },
+        {
+          "name": "platform-mfa-sql-envelopes.test.ts",
+          "cases": 11,
+          "sha256": "2c8a7bc400bd7b8055922f11a06239026db9dce7e9c4195cba696c67c5cd6710"
+        },
+        {
+          "name": "telemetry-events-capabilities.test.ts",
+          "cases": 13,
+          "sha256": "e743162021533e813a7823b482a578c6e9d042e563599cdc39dd4e93519adc29"
+        }
+      ],
+      "startedUtc": "2026-11-05T06:31:29.517Z",
+      "postchecks": {
+        "exitCode": 0,
+        "systemIdentifierMatches": true,
+        "basePublicTables": 0,
+        "temporaryDatabases": 0,
+        "otherDatabases": 0,
+        "rolesRestoredIncludingPrivateCredentials": true,
+        "settingsRestored": true,
+        "roles": 6,
+        "otherClients": 0,
+        "containerAttestationMatches": true,
+        "freeMiBAtStart": 2765.0,
+        "computerRestarted": false,
+        "credentialsPublished": false
+      },
+      "postchecksSha256": "4569e6dcff9221ca0beaacf5c9b9052e9f2d627ba1102e93c80937eb71c9e832",
+      "sourceHashesAfterMatch": true,
+      "endedUtc": "2026-11-05T06:32:26.865Z",
+      "fixtureCleanupPassed": true
+    },
+    "baseline": {
+      "tests": [
+        {
+          "process": {
+            "label": "platform-mfa-alert-events",
+            "pid": 26644,
+            "exitCode": 1,
+            "signal": null,
+            "spawnError": false,
+            "timedOut": false,
+            "overflow": false,
+            "treeKillFailed": false,
+            "exitObserved": true,
+            "drainTimedOut": false,
+            "maxHeartbeatGapMs": 5018.148000000001,
+            "elapsedMs": 5237.9146,
+            "logSha256": "ec6a6690c15ca2c1b2f57365f62aa6d115c2bfe97a17cf2c16b0742abe81abdb"
+          },
+          "eventsSha256": "6da6d4a4ee1ab93ac03393317cd7253472dc0a251b8732f1f233b1ee48d9126a",
+          "tap": {
+            "tests": 9.0,
+            "skipped": 0.0,
+            "pass": 2.0,
+            "todo": 0.0,
+            "cancelled": 0.0,
+            "suites": 1.0,
+            "fail": 7.0,
+            "duration_ms": 5060.3946
+          },
+          "name": "platform-mfa-alert-events"
+        }
+      ],
+      "resultSha256": "82435822fea7663bdcb31a0a6b48195670489c5c13dc439db956ebc1d7dbe0e1",
+      "preparedSha256": "f44955b427e66b03f3dcff88a8ca36b8e5a300bb3d35b878edfdff0c19aa95f2",
+      "testSources": [
+        {
+          "name": "platform-mfa-alert-events.test.ts",
+          "cases": 9,
+          "sha256": "8bf2bf9f4fe16525dbc6b13098f051b53419cb861f8f12e8222ad5ece426b151"
+        }
+      ],
+      "startedUtc": "2026-11-05T06:29:44.047Z",
+      "postchecks": {
+        "exitCode": 0,
+        "systemIdentifierMatches": true,
+        "basePublicTables": 0,
+        "temporaryDatabases": 0,
+        "otherDatabases": 0,
+        "rolesRestoredIncludingPrivateCredentials": true,
+        "settingsRestored": true,
+        "roles": 6,
+        "otherClients": 0,
+        "containerAttestationMatches": true,
+        "freeMiBAtStart": 2829.0,
+        "computerRestarted": false,
+        "credentialsPublished": false
+      },
+      "postchecksSha256": "a0153bb841159e3e3616979d51348a7b3e11dfc3f6416522f4a0414bf2086080",
+      "sourceHashesAfterMatch": true,
+      "endedUtc": "2026-11-05T06:29:59.342Z",
+      "fixtureCleanupPassed": true
+    }
+  },
+  "classification": {
+    "fixed": "Nove casos passaram, incluindo EOF sem frame após promoção e controles SQL/projector.",
+    "baseline": {
+      "missingContractCases": [
+        2,
+        3,
+        4,
+        6,
+        8,
+        9
+      ],
+      "assertionLine": 252,
+      "passedControls": [
+        5,
+        7
+      ],
+      "observed": "Na mesma conexão que entregou DTO persistido positivo, promoção ADMIN foi confirmada depois do contexto e antes da projeção. Recebido e decodificado DTO exato de nove campos; assert compara objeto com null. Conteúdo: mensagem Persisted fixture alert, status OPEN, severity HIGH, type WATER_LOW, gatewayId null e IDs da própria fixture.",
+      "missingContract": "Envelope ausente no baseline; casoACL expõe42883, demais falhas embrulhadas por Drizzle/assert. Não são seis vazamentos demonstrados.",
+      "exactDecodedDtoAssertionLine": 250,
+      "behaviorFailureCase": 1
+    }
+  },
+  "limits": [
+    "Apenas uma corrida de promoção usa SSE real; demais controles dirigidos são SQL/projector.",
+    "Prova satisfeita sintética escrita pelo owner isola política; não comprova cerimônia TOTP.",
+    "CasoPUMP confirma supressão com PUMP e WATER simultaneamente false; não isola precedênciaPUMPvsWATER. DAILY_ENERGY com WATERfalse verifica precedência específica.",
+    "Sem contador runtime de uma consulta; estrutura singleSELECT revisada estaticamente.",
+    "Original17 de alertas permanece separado e não foi executado nesta rodada.",
+    "Telemetria original13 usa fixture administrativa e743 já revisada; outras evidências históricas permanecem independentes.",
+    "Não comprova gates/parking/team/janelas adicionais, expiração após locks, outros callers ou rollout global."
+  ],
+  "credentialsPublished": false
+}

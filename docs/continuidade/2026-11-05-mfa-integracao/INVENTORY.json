@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "status": "CANONICAL_TELEMETRY_ORIGINAL13_FIXTURE_VALIDATED_RESTORED_CANDIDATE",
+  "status": "CANONICAL_ALERT_VALIDATED_RESTORED_CANDIDATE",
   "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
   "plannedBase": "Approved published source base53c4c70; current documentation may be newer.",
   "sourceBaseline": "2676a74216b012dcab6fa2fb9735dc1b6ef8e9d8",
@@ -295,10 +295,10 @@
       "path": "infrastructure/068-platform-mfa-required.sql",
       "payload": "payload/runtime/infrastructure/068-platform-mfa-required.sql.txt",
       "beforeSha256": null,
-      "afterSha256": "4fdb1498adaf3c6a884e972ce1f4a0a4a1025640a4e705aa53d52e98bf42d2a6",
-      "component": "sql-v3-telemetry-events",
+      "afterSha256": "59cda6787bce345d1c6aeac4a06e2daa0ebf17a9032a8952c9d112ac4edcfefc",
+      "component": "sql-v3-alert-events",
       "kind": "migration-candidate",
-      "bytes": 26197,
+      "bytes": 28772,
       "beforeGitSha256": null,
       "beforeGitObject": null
     },
@@ -631,10 +631,33 @@
       "bytes": 18356,
       "component": "telemetry-original13-mfa-fixture",
       "kind": "database-test"
+    },
+    {
+      "path": "apps/api/src/modules/events/alerts.ts",
+      "payload": "payload/runtime/apps/api/src/modules/events/alerts.ts.txt",
+      "beforeSha256": "8ecfdbbbc416dfb85dd5a12349e1dc5a1352847eb11179fef35e272eb5df5f78",
+      "beforeGitSha256": "8ecfdbbbc416dfb85dd5a12349e1dc5a1352847eb11179fef35e272eb5df5f78",
+      "beforeGitObject": "a421b78c508ce627965df77e72c885905eef604b",
+      "afterSha256": "0e61f7e803c0eebc6ccf9708e80fc4706f6d1a1962bf29179c6995872809bad5",
+      "bytes": 2343,
+      "component": "sse-alert-events",
+      "kind": "runtime"
+    },
+    {
+      "path": "apps/api/test/platform-mfa-alert-events.test.ts",
+      "payload": "payload/runtime/apps/api/test/platform-mfa-alert-events.test.ts.txt",
+      "beforeSha256": null,
+      "beforeGitSha256": null,
+      "beforeGitObject": null,
+      "afterSha256": "8bf2bf9f4fe16525dbc6b13098f051b53419cb861f8f12e8222ad5ece426b151",
+      "bytes": 27993,
+      "component": "sse-alert-events-test",
+      "kind": "database-test"
     }
   ],
   "pending": [
-    "Complete alert/equipment projectors, other SQL/SD/SSE/no-match mutations, heartbeat, locks/triggers and remaining original regressions; original telemetry13 is a new fixture-scoped run, not a rerun of historical32.",
+    "Run/adapt the separate original17 alert suite explicitly; its external fixture overlay is NOT included in this composition or its nine directed cases.",
+    "Complete equipment projectors, remaining SQL/SD/SSE/no-match mutations, heartbeat, locks/triggers and original/integrated regressions; bounded alert coverage is not global enforcement.",
     "Renderer staging recipe remains authored and not executed; do not transfer its earlier separate harness PASS."
   ],
   "excluded": [
@@ -676,5 +699,12 @@
     "sourceManifestSha256": "f452fcff809abf8667fb3d731581808411baf0b02c72824dd8b5aa3c4f9b23d5",
     "scope": "Original telemetry13 with explicit MFA fixture adaptation; product unchanged; historical32 not rerun",
     "restorationEvidence": "../../evidencias/mfa-telemetry-original13-restore-2026-11-05.json"
+  },
+  "alertValidation": {
+    "evidence": "../../evidencias/mfa-alert-events-2026-11-05.json",
+    "evidenceSha256": "815ff8f1514332b04203023b689307650a71de4872cc45f5827110fb6819a787",
+    "sourceManifestSha256": "77b1c35133b45fff3143ae79d0d095ba0bf6270e0795ace7aef22f52f70d54a8",
+    "scope": "Alert9 plus separate telemetry9/feature7/P05/SQL11/originalTelemetry13 regression; originalAlert17 not included",
+    "restorationEvidence": "../../evidencias/mfa-alert-restore-2026-11-05.json"
   }
 }

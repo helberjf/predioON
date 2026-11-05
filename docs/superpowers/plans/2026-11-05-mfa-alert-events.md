@@ -1,7 +1,9 @@
-# MFA: próximo recorte do projector de alertas
+# MFA: proteção do projector de alertas
 
-Estado em 05/11/2026: **desenho revisado, sem implementação ou testes deste
-recorte**. Parte do [checkpoint composto de MFA](../../continuidade/2026-11-05-mfa-integracao/README.md),
+Estado em 05/11/2026: **implementado e validado no checkpoint candidato**.
+Nove casos dirigidos e cinco regressões separadas (9/7/5/11/13) passaram, com
+tipos e limpeza aprovados. [Prova e limites](../../evidencias/mfa-alert-events-2026-11-05.json).
+Os 17 testes originais de alertas ainda precisam de execução. Parte do [checkpoint composto de MFA](../../continuidade/2026-11-05-mfa-integracao/README.md),
 que já preserva desativação, eventos de funcionalidades e telemetria candidatos.
 A [prova dirigida da telemetria](../../evidencias/mfa-telemetry-events-2026-11-05.json)
 não aprova o projector de alertas nem representa implantação da política.
@@ -9,9 +11,9 @@ Não reescrever SQL 001–067.
 
 ## Problema e contrato a preservar
 
-`apps/api/src/modules/events/alerts.ts` consulta autorização/contexto no helper
-SD, relê o alerta persistido e depois consulta funcionalidades em instruções
-separadas. O gate HTTP anterior não compartilha necessariamente a observação
+Na versão anterior, `apps/api/src/modules/events/alerts.ts` consultava
+autorização/contexto no helper SD, relia o alerta persistido e depois consultava
+funcionalidades em instruções separadas. O gate HTTP anterior não compartilha necessariamente a observação
 de autoridade administrativa dessas leituras. As políticas MFA candidatas
 ainda não cobrem a tabela de alertas.
 
@@ -21,7 +23,7 @@ persistido. O recorte deve conservar essa releitura e o DTO de nove campos.
 Não confiar em valores forjados ou antigos da notificação, escolher outro alerta
 ou acrescentar capacidades de devices/telemetry como pré-requisito de alerts:read.
 
-## Implementação proposta
+## Implementação no candidato
 
 1. Acrescentar somente à SQL candidata 068 um envelope escalar
    `app_mfa_alert_event_context(text,uuid) RETURNS jsonb`, STABLE, INVOKER e não
@@ -54,7 +56,7 @@ novo. Um adaptador puro compartilhado pode exigir alteração mecânica separada
 na telemetria. Não ampliar esta entrega para outbox, regras, reservas, comandos
 ou todos os domínios.
 
-## Verificação necessária
+## Critérios e cobertura
 
 - Criar fontes anterior/corrigida isoladas com hashes e fixture UUID oficial.
 - Em SSE real, confirmar um frame positivo reconstruído do alerta persistido,
@@ -71,7 +73,7 @@ ou todos os domínios.
   com alerts:read independente de leitura de dispositivos/telemetria.
 - Cobrir pausa/retomada, igualdade com resumedAt, classificação e precedência de
   métricas, e ACL/owner/search_path/STABLE/INVOKER dos seis papéis efetivos.
-- Reexecutar os 17 testes originais de `alert-events-capabilities.test.ts` e os
+- **Pendente:** reexecutar os 17 testes originais de `alert-events-capabilities.test.ts` e os
   recortes MFA aplicáveis. Adaptar autenticação de fixtures legitimamente, sem
   retirar assertivas administrativas, desativar a política ou criar skips.
 - Conservar barreiras, prazos e cleanup limitados; distinguir erro de preparo,

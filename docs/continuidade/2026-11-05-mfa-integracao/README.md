@@ -1,45 +1,39 @@
-# Retomada MFA — checkpoint candidato atualizado em 05/11/2026
+# Retomada MFA - checkpoint candidato atualizado em 05/11/2026
 
-**Composição candidata: desativação, funcionalidades, telemetria e preparação
-MFA explícita dos testes originais.** Base canônica
-`53c4c70dcd24f1045fad420fbce36757fd3753a2`; 1.014 arquivos e cinco suportes.
-A montagem/restauração deste conjunto **passou**, com todos os hashes iguais
-à QA. [Prova](../../evidencias/mfa-telemetry-original13-restore-2026-11-05.json).
-A política obrigatória permanece candidata, sem ativação no runtime da main.
+**Composição candidata com projector de alertas.** A base canônica continua
+`53c4c70dcd24f1045fad420fbce36757fd3753a2`; a fonte testada possui **1.015 arquivos
+e cinco suportes**. Os nove casos dirigidos de alertas passaram, assim como os
+cinco processos de regressão: telemetria 9, funcionalidades 7, desativação 5, SQL 11
+e os 13 originais de telemetria. São 54 casos aprovados em seis processos
+separados, não uma integral. Resolução e tipos dos seis testes e imports passaram
+nas duas variantes. [Prova e limites](../../evidencias/mfa-alert-events-2026-11-05.json).
 
-Os **13 testes originais de telemetria passaram**, incluindo cadastro e confirmação
-MFA por HTTP/TOTP no caso administrativo. Tipos do arquivo e imports passaram nas
-duas variantes. [Prova específica](../../evidencias/mfa-telemetry-original13-2026-11-05.json).
-Somente a fixture mudou; produto e os outros 12 corpos de casos mantêm seus bytes.
-
-Na composição anterior passaram telemetria 9/9, funcionalidades 7/7, desativação
-5/5 e SQL 11/11, em processos separados. Esses 32 casos não foram repetidos nesta
-rodada. [Prova dirigida anterior](../../evidencias/mfa-telemetry-events-2026-11-05.json).
-As restaurações [da telemetria](../../evidencias/mfa-telemetry-restore-2026-11-05.json),
-[de funcionalidades](../../evidencias/mfa-merged-restore-2026-11-05.json) e
-[do complemento SQL](../../evidencias/mfa-canonical-restore-2026-11-05.json)
-conservam seus resultados históricos.
+A montagem/restauração deste conjunto **passou**, com todos os 1.015 arquivos
+idênticos à composição testada. [Prova de restauração](../../evidencias/mfa-alert-restore-2026-11-05.json).
+A política obrigatória
+permanece candidata, sem ativação no runtime da main.
 
 ## Conteúdo recuperável
 
-O inventário tem **57 payloads**. Dois são helper/teste de query já publicados e
-serão excluídos do delta pelos hashes exatos. O pacote contém **53 arquivos de
-implementação e testes candidatos**, dois testes explícitos de renderer e cinco
-suportes do renderer. O transporte publicado também é dependência da base;
-não reaplicá-lo.
+O inventário tem **59 payloads**. Dois são helper/teste de
+query já publicados e serão excluídos do delta pelos hashes exatos. O pacote
+contém **55 arquivos de implementação/testes candidatos**, dois testes explícitos
+de renderer e cinco suportes do renderer. O transporte publicado também é
+dependência da base; não reaplicá-lo.
 
-Esta composição conserva a correção da desativação concorrente, seus cinco
-casos, o envelope/projector de `features-changed` e seus sete casos. Acrescenta
-o envelope `app_mfa_telemetry_event_context(text,text)`, o projector de telemetria
-e nove casos dirigidos. O complemento SQL V5 mantém o teste `2c8a7bc4…` e foi
-repetido contra a SQL e a API compostas. Os consumidores preservam seus bytes
-anteriores. O [checkpoint separado de desativação](../2026-11-05-mfa-disable/README.md)
-guarda o antes/depois histórico; não reaplicar seu patch sobre esta composição.
+Esta etapa substitui a SQL candidata pelo envelope adicional
+`app_mfa_alert_event_context(text,uuid)`, inclui o projector de alertas atualizado
+e seus nove casos dirigidos. Preserva os payloads de P0, funcionalidades,
+telemetria e a fixture original 13 `e7431620…`. A fixture separada dos 17 testes
+originais de alertas **não integra este conjunto** nem os nove casos novos.
+
+O [checkpoint separado de desativação](../2026-11-05-mfa-disable/README.md)
+conserva seu antes/depois histórico; não reaplicar esse patch. O complemento SQL
+V5 conserva o teste `2c8a7bc4…`. Os consumidores permanecem com os mesmos bytes.
 
 `MANIFEST.json` e `PACKAGE-HASHES.json` são produzidos no pacote final; não são
-arquivos ausentes de autoria. O inventário, todos os payloads e os scripts de
-montagem necessários estão neste diretório. Os checkpoints e provas anteriores
-permanecem históricos, com seus próprios hashes e limites.
+arquivos ausentes de autoria. O inventário, payloads e scripts estão neste
+diretório. As provas e composições anteriores conservam seus próprios hashes.
 
 ## Retomar em outro computador
 
@@ -74,80 +68,78 @@ processos desconhecidos ou reiniciar computador, Docker ou WSL. Os comandos de
 restauração não instalam dependências, executam testes, iniciam serviços ou
 aplicam migrations.
 
-## Testes originais de telemetria
+## Resultados observados deste recorte
 
-O comparador antigo teve 12 PASS e uma falha no caso 5: HTTP 403 com
-`MFA_ENROLLMENT_REQUIRED` ao abrir o stream de um administrador autenticado só
-por senha. É uma fixture incompleta diante da política correta. A adaptação
-cadastra e confirma MFA com TOTP real, recebe dez códigos de recuperação e
-verifica `/auth/me` como `satisfied`, mantendo bearer e família de sessão.
-Os dois administradores continuam sem acesso privado antes do grant local e
-passam a receber o evento depois do grant específico de dispositivo.
+A versão corrigida passou nos nove casos de alertas em **5,518 s de TAP**.
+Depois, na mesma fonte 77b1, cinco processos separados passaram: telemetria 9 em
+6,255 s, funcionalidades 7 em 4,798 s, desativação 5 em 5,060 s, SQL 11 em 4,737 s
+e telemetria original 13 em 19,970 s. Todos terminaram sem falhas, cancelamentos,
+skips ou todo. Esses 45 casos de regressão são execuções novas e separadas dos
+registros históricos. Com os nove dirigidos, somam 54; não uma integral.
 
-Resultado: 13/13 em 17,272 s, zero falhas, skips, cancelamentos ou todo. Tipos
-do arquivo/imports: 7,750 s na anterior e 11,131 s na adaptada. Cleanup e seis
-roles foram conferidos nas duas execuções. Os streams mantêm o prazo de 20 s;
-o helper HTTP depende do prazo externo do runner. Não foi acrescentada prova
-de replay, recuperação, navegador ou aparelho. Os 32 dirigidos anteriores
-conservam sua fonte, que difere somente nesta fixture.
+O comparador anterior teve **2 PASS e 7 FAIL**, sem cancelamentos/skips/todo,
+em 5,060 s. Um caso demonstrou o DTO persistido de nove campos após a promoção:
+a mesma conexão recebeu o frame positivo, pausou depois da identidade/contexto,
+confirmou a ativação ADMIN antes da projeção e recebeu outro frame. O teste
+**decodificou e comparou esse DTO exato** antes de falhar na assertiva que
+esperava ausência de frame. As outras seis falhas são o contrato SQL novo
+ausente; não seis vazamentos demonstrados. Os dois controles do projector
+anterior passaram. A composição corrigida fechou a conexão sem esse frame.
 
-## O que foi observado na rodada dirigida anterior nesta rodada
+Tipos dos seis arquivos e imports: 9,347 s na variante anterior e 9,234 s na
+corrigida; resolução também aprovada nas duas. Isso não equivale a novo
+typecheck de todos os workspaces. Fontes antes/depois e cleanup passaram,
+com as seis roles/credenciais/configurações restauradas e sem bases temporárias
+ou outros clientes. As provas públicas não contêm os valores privados.
 
-O SSE real entregou um frame bruto de telemetria exatamente esperado para um
-leitor local comum. Na mesma conexão, uma barreira pausou o contexto depois da
-resolução de identidade e antes da projeção. Outro comando ativou o binding
-ADMIN preexistente antes de liberar o SQL real.
+Somente uma corrida usa SSE real. Os controles de escopo, família, funcionalidades
+e ACL usam SQL/projector; fatores/provas sintéticos não são cerimônia TOTP.
+A estrutura de uma consulta foi revisada na fonte, sem contador runtime.
+O caso PUMP bloqueado junto com WATER_TANK não isola sua precedência entre essas
+duas funcionalidades; DAILY_ENERGY com WATER_TANK desativado verifica uma precedência
+específica. As regras compartilhadas permanecem intactas. Não alegar cobertura
+exaustiva de gate/parking/equipe/janelas nem execução dos 17 originais de alertas.
+A fixture separada desses 17 permanece fora deste pacote.
 
-A composição anterior terminou com **3 PASS e 6 FAIL**, sem cancelamentos,
-skips ou todo, em 5,051 s de TAP. Uma falha foi a assertiva de fechamento: a
-leitura retornou `done:false` onde se esperava EOF. **O conteúdo desse chunk
-pós-promoção não foi decodificado.** Não afirmar que ele contém um payload
-privado demonstrado nem que houve seis vazamentos. As outras cinco falhas são
-contratos do novo helper SQL ausente; os três controles do projector anterior
-passaram. O frame positivo decodificado ocorreu antes da promoção.
+## Históricos preservados
 
-Na composição corrigida, os nove casos passaram em 5,978 s de TAP. Depois,
-três processos de regressão na mesma fonte passaram: funcionalidades 7/7 em
-4,241 s, desativação 5/5 em 5,084 s e SQL 11/11 em 5,163 s. A soma de 32 casos
-é somente dessas quatro execuções aprovadas; os seis controles negativos do
-comparador ficam separados. A compilação dos quatro testes e imports passou
-nas duas variantes, com TypeScript em 9,385 s e 10,377 s; as fases de resolução
-também passaram. Isso não é um typecheck novo de todos os workspaces.
+Os [13 originais de telemetria](../../evidencias/mfa-telemetry-original13-2026-11-05.json)
+passaram na composição anterior, com cadastro/confirmação MFA por HTTP/TOTP dos
+dois administradores do caso local. Bearer e família foram mantidos; os outros
+12 corpos de teste permaneceram iguais. O comparador antigo teve 12 PASS e um
+403 `MFA_ENROLLMENT_REQUIRED` contra um esperado 200: guard correto e fixture
+incompleta, não vulnerabilidade. A [restauração correspondente](../../evidencias/mfa-telemetry-original13-restore-2026-11-05.json)
+conserva sua fonte f452 e 1.014 arquivos.
 
-Cleanup e pós-verificações conferiram seis papéis, credenciais e configurações
-restaurados, zero tabelas públicas na base original, zero bases temporárias ou
-outras bases, zero outros clientes e fontes inalteradas. Valores privados de
-credenciais não fazem parte das provas publicadas.
+Antes, [telemetria 9, funcionalidades 7, desativação 5 e SQL 11](../../evidencias/mfa-telemetry-events-2026-11-05.json)
+passaram em processos separados sobre a fonte ab71. São 32 casos históricos;
+não transferir seus resultados automaticamente para uma composição modificada.
+As [restaurações de telemetria](../../evidencias/mfa-telemetry-restore-2026-11-05.json),
+[funcionalidades](../../evidencias/mfa-merged-restore-2026-11-05.json) e
+[complemento SQL](../../evidencias/mfa-canonical-restore-2026-11-05.json) permanecem
+históricas. As cinco regressões novas desta rodada estão registradas acima, sobre a fonte
+77b1, separadamente desses históricos.
 
-Somente o caso de promoção durante telemetria bruta usa SSE real nesta rodada.
-Os controles de publicação, escopo, funcionalidades e sessão satisfeita chamam
-SQL/projector. Fatores e provas desses controles são sintéticos, não cerimônias
-TOTP/recovery. Uma chamada SQL no projector foi conferida na fonte, sem assertiva
-de contagem de queries em runtime. A prova dirigida anterior não incluía os 13 originais;
-a execução original13 acima fecha essa pendência em prova separada. Os nove
-casos dirigidos não acrescentaram controles de team/support/gate/parking.
+UI 143/143, mobile 242/242 e o renderer V6 de quatro casos conservam as provas e
+limites de suas rodadas anteriores. Esta proposta não lhes atribui execução nova.
 
-## Contrato da telemetria e limites
+## Contratos e pendências
 
-Os valores continuam vindo do evento validado de NOTIFY; não há releitura de
-amostra persistida ou identificador único da amostra nesse contrato. O envelope
-captura no mesmo snapshot a obrigação MFA, a autoridade raw/publicada, a
-classificação mínima e os estados de funcionalidades. O projector conserva
-as regras compartilhadas, a prioridade raw e o DTO sanitizado de água.
-Autenticidade do valor persistido exige outro recorte de protocolo.
+Alertas relêem o registro persistido: mensagem, status, gateway e instante da
+observação vêm do banco; a notificação fornece identificadores. O envelope
+proposto captura obrigação MFA, autorização exata, registro e estados de
+funcionalidades no mesmo snapshot, sob RLS do chamador, sem novo SELECT de
+tabela. O projector conserva os nove campos, gateway nulo e regras puras.
 
-A garantia examinada é a observação da operação SQL. Não cobre promoções que
-confirmem depois daquele snapshot nem linearização com a escrita na rede.
-Alertas, equipamentos, heartbeat, demais projeções HTTP/SD, mutações sem
-correspondência, funções VOLATILE e expiração após locks ainda precisam de
-integração e provas próprias. O próximo recorte proposto é o projector de alertas.
+Telemetria continua com seu contrato distinto: os valores vêm de NOTIFY, sem
+releitura de amostra nem ID único da observação persistida. Não atribuir ao novo
+envelope de alertas uma mudança desse protocolo de telemetria.
 
-Não houve nova integral da API, execução de navegador, build nativo ou aceite
-de produção nesta fatia. As unidades UI 143/143 e mobile 242/242 pertencem à
-rodada anterior, com os mesmos bytes desses consumidores, e não se somam como
-uma suíte integral nova. O histórico do SSE de funcionalidades conserva os
-dois TS7022 corrigidos por anotações e a incompatibilidade anterior do formato
-do manifesto no preparador; esses registros não são falhas do produto.
+A observação SQL não estabelece linearização com promoções posteriores ao
+snapshot ou escrita na rede. Equipamentos, heartbeat/headers iniciais, outros
+callers HTTP/SD, mutações sem correspondência, funções VOLATILE e expiração
+após locks continuam pendentes, assim como os17 originais de alertas e a
+regressão integrada. Não houve novo aceite de navegador, aparelhos ou produção.
 
 ## Bytes canônicos e receita renderer
 

@@ -1,0 +1,386 @@
+import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
+import type { Server } from "node:http";
+import { after, before, describe, it } from "node:test";
+import postgres from "postgres";
+import { sql } from "drizzle-orm";
+import { PgDialect } from "drizzle-orm/pg-core";
+import { sqlClient } from "@predioon/db";
+import { appDb, closeAppDb, withUserContext, type AppTransaction } from "@predioon/db/runtime";
+import { app } from "../src/app.js";
+import { hashPassword } from "../src/auth/passwords.js";
+import { startRealtimeBus } from "../src/modules/events/bus.js";
+import { projectAlertEvent, type AlertEvent } from "../src/modules/events/alerts.js";
+import "./helpers.js";
+
+// Authored only. Official fresh UUID fixture with candidate068 required.
+// Synthetic factor/proof rows isolate SQL policy; they do not prove TOTP ceremony.
+const signature = "public.app_mfa_alert_event_context(text,uuid)";
+const roleVariables = {
+  predioon_app: "DATABASE_URL_APP", predioon_identity: "DATABASE_URL_IDENTITY",
+  predioon_broker_auth: "DATABASE_URL_BROKER_AUTH", predioon_notifications: "DATABASE_URL_NOTIFICATIONS",
+  predioon_ingest: "DATABASE_URL_INGEST", predioon_access_service: "DATABASE_URL_ACCESS_SERVICE",
+} as const;
+type Actor = { id: string; sid: string; generation: string };
+type AlertContext = {
+  authorized: { building_id: string; alert_id: string; device_id: string | null; gateway_id: string | null;
+    rule_id: string | null; rule_metric: string | null; device_type: string | null; gate_kind: string | null; parking_vehicle_type: string | null } | null;
+  stored: (Omit<AlertEvent, "kind"> & { triggeredAt: string }) | null;
+  global: Array<{ key: string; enabled: boolean | null; version: number }>;
+  local: Array<{ key: string; enabled: boolean | null; version: number }>;
+  runtime: Array<{ key: string; resumedAt: string | null }>;
+};
+function signal() {
+  let resolve!: () => void;
+  const promise = new Promise<void>(done => { resolve = done; });
+  return { promise, resolve };
+}
+async function bounded<T>(promise: PromiseLike<T>, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([Promise.resolve(promise), new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(new Error(`Fixture deadline: ${label}`)), 5000);
+    })]);
+  } finally { clearTimeout(timer); }
+}
+function codeOf(error: unknown): string | undefined {
+  if (!error || typeof error !== "object") return undefined;
+  if ("code" in error && typeof error.code === "string") return error.code;
+  return "cause" in error ? codeOf(error.cause) : undefined;
+}
+
+/** Pause the real context after route identity, before any alert projection SQL.
+ * All queries still execute normally after release; no production hook or mock data. */
+function alertContextBarrier() {
+  const reached = signal(), release = signal(), finished = signal();
+  const state = { contexts: 0 };
+  const original = appDb.transaction, run = original.bind(appDb), dialect = new PgDialect();
+  type Input = Parameters<AppTransaction["execute"]>[0];
+  const intercepted: typeof appDb.transaction = (callback, config) => run(tx => callback(new Proxy(tx, {
+    get(target, key) {
+      if (key === "execute") return async (query: Input) => {
+        const text = typeof query === "string" ? query : dialect.sqlToQuery(query.getSQL()).sql;
+        const rows = await target.execute(query);
+        if (text.includes("set_config('app.user_id'") && text.includes("set_config('app.session_id'")) {
+          state.contexts++;
+          assert.equal(state.contexts, 1, "one real event context, no reconnect or replay");
+          reached.resolve();
+          await bounded(release.promise, "release alert event context");
+        }
+        return rows;
+      };
+      const value = Reflect.get(target, key, target);
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  })), config).finally(() => finished.resolve());
+  appDb.transaction = intercepted;
+  return { reached, release, finished, state, restore() { appDb.transaction = original; } };
+}
+
+describe("MFA alert context and live SSE boundary", { concurrency: false }, () => {
+  const suffix = randomUUID(), org = `mfa-alert-org-${suffix}`;
+  const building = `mfa-alert-building-${suffix}`, foreign = `mfa-alert-foreign-${suffix}`;
+  const device = `mfa-alert-device-${suffix}`, neighbor = `mfa-alert-neighbor-${suffix}`, foreignDevice = `mfa-alert-foreign-device-${suffix}`;
+  const alert = randomUUID(), sibling = randomUUID(), gatewayAlert = randomUUID(), foreignAlert = randomUUID(), missing = randomUUID(), rule = randomUUID();
+  const gateway = `mfa-alert-gateway-${suffix}`;
+  const stamp = "2026-01-02T03:04:05.000Z";
+  const binding = randomUUID(), password = "mfa-alert-fictitious-password";
+  const actors: Actor[] = [], pools = new Map<string, postgres.Sql>();
+  let enrolling: Actor, verifying: Actor, satisfied: Actor, local: Actor, racing: Actor, exact: Actor, gatewayReader: Actor, buildingReader: Actor, support: Actor;
+  let server: Server | undefined, url = "";
+  function context<T>(actor: Actor, fn: (tx: AppTransaction) => Promise<T>, sid = actor.sid) {
+    return withUserContext({ userId: actor.id, role: "RESIDENT", sessionId: sid }, fn);
+  }
+  function event(extra: Partial<AlertEvent> = {}): AlertEvent {
+    return { kind: "alert", buildingId: building, alertId: alert, deviceId: device, gatewayId: null,
+      severity: "HIGH", type: "WATER_LOW", message: "Persisted fixture alert", status: "OPEN", ...extra };
+  }
+  function projected(actor: Actor, value = event()) { return context(actor, tx => projectAlertEvent(tx, value)); }
+  const empty = { authorized: null, stored: null, global: [], local: [], runtime: [] };
+  function envelope(actor: Actor, targetBuilding: string | null = building, targetAlert: string | null = alert, sid = actor.sid) {
+    return context(actor, async tx => {
+      const rows = await tx.execute<{ context: AlertContext }>(sql`select public.app_mfa_alert_event_context(${targetBuilding},${targetAlert}::uuid) as context`);
+      assert.equal(rows.length, 1, "scalar guard contract also covers denied, missing and NULL inputs");
+      assert.ok(rows[0]?.context && typeof rows[0].context === "object");
+      return rows[0]!.context;
+    }, sid);
+  }
+  async function actor(hash: string): Promise<Actor> {
+    const a = { id: `mfa-alert-user-${randomUUID()}`, sid: randomUUID(), generation: randomUUID() };
+    actors.push(a);
+    await sqlClient`insert into users(id,name,email,password_hash) values(${a.id},'Alert fixture',${a.id+'@example.invalid'},${hash})`;
+    await sqlClient`insert into sessions(id,user_id,expires_at) values(${a.sid},${a.id},now()+interval '1 hour')`;
+    return a;
+  }
+  before(async () => {
+    const [ledger] = await sqlClient`select count(*)::int as count from schema_migrations`;
+    assert.equal(ledger?.count, 68, "official candidate068 fixture, never skip");
+    const hash = await hashPassword(password);
+    enrolling = await actor(hash); verifying = await actor(hash); satisfied = await actor(hash);
+    local = await actor(hash); racing = await actor(hash); exact = await actor(hash);
+    gatewayReader = await actor(hash); buildingReader = await actor(hash); support = await actor(hash);
+    await sqlClient`insert into organizations(id,name,slug) values(${org},'Alert fixture',${org})`;
+    for (const id of [building, foreign]) await sqlClient`insert into buildings(id,organization_id,name,code) values(${id},${org},'Alert fixture',${id})`;
+    await sqlClient`insert into devices(id,building_id,name,type,metadata) values
+      (${device},${building},'Mixed device','ENERGY_METER','{"fixturePrivate":"not-projected"}'::jsonb),
+      (${neighbor},${building},'Neighbor water','WATER_LEVEL_SENSOR','{}'::jsonb),
+      (${foreignDevice},${foreign},'Foreign water','WATER_LEVEL_SENSOR','{}'::jsonb)`;
+    await sqlClient`insert into gateways(id,building_id,name,serial_number) values(${gateway},${building},'Fixture gateway',${gateway})`;
+    await sqlClient`update devices set gateway_id=${gateway} where id=${device}`;
+    await sqlClient`insert into alert_rules(id,building_id,device_id,name,metric,operator,threshold,alert_type,message_template)
+      values(${rule},${building},${device},'Fixture rule','water_level_percent','LT',10,'WATER_LOW','private template')`;
+    await sqlClient`insert into alerts(id,building_id,device_id,rule_id,gateway_id,severity,type,message,triggered_at) values
+      (${alert},${building},${device},${rule},null,'HIGH','WATER_LOW','Persisted fixture alert',${stamp}::timestamptz),
+      (${sibling},${building},${neighbor},null,null,'LOW','WATER_HIGH','Sibling',${stamp}::timestamptz),
+      (${gatewayAlert},${building},null,null,${gateway},'CRITICAL','GATEWAY_OFFLINE','Gateway persisted',${stamp}::timestamptz),
+      (${foreignAlert},${foreign},${foreignDevice},null,null,'HIGH','WATER_LOW','Foreign persisted',${stamp}::timestamptz)`;
+    for (const a of [local, satisfied, racing]) await sqlClient`insert into role_bindings(user_id,building_id,role_key,resource_type,resource_id)
+      values(${a.id},${building},'MAINTENANCE','device',${device})`;
+    await sqlClient`insert into role_bindings(user_id,building_id,role_key,resource_type,resource_id) values
+      (${exact.id},${building},'MAINTENANCE_MANAGER','alert',${alert}),
+      (${gatewayReader.id},${building},'MAINTENANCE_MANAGER','gateway',${gateway})`;
+    await sqlClient`insert into role_bindings(user_id,building_id,role_key) values(${buildingReader.id},${building},'MAINTENANCE')`;
+    await sqlClient`insert into role_bindings(user_id,role_key) values(${support.id},'PLATFORM_SUPPORT')`;
+    await sqlClient`insert into support_grants(building_id,support_user_id,capability,resource_type,resource_id,reason,expires_at,granted_by)
+      values(${building},${support.id},'alerts:read','alert',${alert},'Fixture alert only',now()+interval '1 hour',${satisfied.id})`;
+    for (const a of [enrolling, verifying, satisfied]) await sqlClient`update users set is_platform_admin=true where id=${a.id}`;
+    for (const a of [verifying, satisfied]) await sqlClient`insert into mfa_factors(user_id,secret_ciphertext,confirmed_at,generation)
+      values(${a.id},decode(repeat('00',40),'hex'),now(),${a.generation})`;
+    await sqlClient`update sessions set mfa_verified_at=now(),mfa_factor_generation=${satisfied.generation} where id=${satisfied.sid}`;
+    await sqlClient`insert into role_bindings(id,user_id,role_key,active) values(${binding},${racing.id},'PLATFORM_ADMIN',false)`;
+    const [database] = await sqlClient`select current_database() as name`;
+    for (const [role, variable] of Object.entries(roleVariables)) {
+      const dsn = process.env[variable]; assert.ok(dsn, `required restricted DSN ${variable}`);
+      const parsed = new URL(dsn); assert.equal(parsed.username, role); assert.equal(decodeURIComponent(parsed.pathname.slice(1)), database?.name);
+      const pool = postgres(dsn, { max: 1, onnotice: () => {} }); pools.set(role, pool);
+      const [identity] = await pool`select current_user as name`; assert.equal(identity?.name, role);
+    }
+    server = await new Promise<Server>(resolve => {
+      const listener = app.listen(0, "127.0.0.1", () => resolve(listener));
+    });
+    const address = server.address(); assert.ok(address && typeof address !== "string");
+    url = `http://127.0.0.1:${address.port}`;
+    await bounded(startRealtimeBus(), "real PostgreSQL LISTEN ready");
+  });
+  after(async () => {
+    const closing = server ? new Promise<void>((resolve, reject) => {
+      server!.close(error => error ? reject(error) : resolve()); server!.closeAllConnections();
+    }) : Promise.resolve();
+    const outcomes = await Promise.allSettled([
+      bounded(closing, "own HTTP listener close"),
+      ...[...pools.values()].map(pool => bounded(pool.end({ timeout: 3 }), "own role pool close")),
+    ]);
+    try {
+      await bounded(sqlClient.begin(async owner => {
+        await owner`set local lock_timeout='2s'`; await owner`set local statement_timeout='3s'`;
+        for (const id of [building, foreign]) await owner`delete from buildings where id=${id}`;
+        await owner`delete from organizations where id=${org}`;
+        for (const a of actors) await owner`delete from users where id=${a.id}`;
+      }), "own fixture cleanup");
+    } finally {
+      const closed = await Promise.allSettled([
+        bounded(closeAppDb(), "app pool and LISTEN close"),
+        bounded(sqlClient.end({ timeout: 3 }), "owner pool close"),
+      ]);
+      const failure = closed.find(result => result.status === "rejected");
+      if (failure?.status === "rejected") throw failure.reason;
+    }
+    const failed = outcomes.find(result => result.status === "rejected");
+    if (failed?.status === "rejected") throw failed.reason;
+  });
+
+  it("an ordinary alert reader receives persisted DTO then closes without a frame after ADMIN promotion", async () => {
+    const cancellation = new AbortController();
+    let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+    let barrier: ReturnType<typeof alertContextBarrier> | undefined;
+    let failed = false;
+    try {
+      const login = await bounded(fetch(`${url}/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: racing.id+'@example.invalid', password }), signal: cancellation.signal }), "ordinary login");
+      assert.equal(login.status, 200);
+      const identity = await bounded(login.json(), "login body") as { accessToken: string; user: { mfaRequirement: string } };
+      assert.ok(identity.accessToken); assert.equal(identity.user.mfaRequirement, "not-required");
+      const response = await bounded(fetch(`${url}/events/stream`, { headers: { Authorization: `Bearer ${identity.accessToken}` }, signal: cancellation.signal }), "SSE open");
+      assert.equal(response.status, 200, "only initial HTTP status; errors after headers close the stream");
+      reader = response.body!.getReader();
+      let buffered = ""; const decoder = new TextDecoder();
+      while (!buffered.includes("\n\n")) {
+        const part: ReadableStreamReadResult<Uint8Array> = await bounded(reader.read(), "initial retry frame"); assert.equal(part.done, false);
+        buffered += decoder.decode(part.value, { stream: true });
+      }
+      assert.equal(buffered, "retry: 5000\n\n");
+      // Positive delivery on this same connection precedes the controlled race.
+      await bounded(sqlClient`select pg_notify('predioon_events',${JSON.stringify(event({ message: "Forged notification", status: "RESOLVED", gatewayId: gateway }))})`, "publish positive alert notification");
+      let positive = "";
+      while (!positive.includes("\n\n")) {
+        const part: ReadableStreamReadResult<Uint8Array> = await bounded(reader.read(), "ordinary positive alert frame");
+        assert.equal(part.done, false, "ordinary stream must really deliver before promotion");
+        positive += decoder.decode(part.value, { stream: true });
+      }
+      assert.equal(positive, `event: alert\ndata: ${JSON.stringify(event())}\n\n`);
+      barrier = alertContextBarrier();
+      await bounded(sqlClient`select pg_notify('predioon_events',${JSON.stringify(event())})`, "publish alert notification");
+      const observation = bounded(reader.read(), "event frame or stream closure");
+      void observation.catch(() => undefined);
+      const first = await bounded(Promise.race([barrier.reached.promise.then(() => "boundary" as const), observation.then(() => "read" as const)]), "event reached real context");
+      assert.equal(first, "boundary", "resolveIdentity admitted ordinary event before real transaction dispatch");
+      const [prior] = await sqlClient`select public.identity_platform_mfa_required(${racing.id}) as required`;
+      assert.equal(prior?.required, false);
+      await bounded(sqlClient.begin(async owner => {
+        await owner`set local lock_timeout='2s'`; await owner`set local statement_timeout='3s'`;
+        const rows = await owner`update role_bindings set active=true where id=${binding} and active=false returning id`;
+        assert.equal(rows.length, 1);
+      }), "commit ADMIN promotion before projector");
+      const [current] = await sqlClient`select public.identity_platform_mfa_required(${racing.id}) as required`;
+      assert.equal(current?.required, true);
+      barrier.release.resolve();
+      const next = await observation;
+      let decodedAfterPromotion: unknown = null;
+      if (!next.done) {
+        // Decode the actual baseline frame before failing; done=false alone is not a payload claim.
+        let frame = decoder.decode(next.value, { stream: true });
+        while (!frame.includes("\n\n")) {
+          const part: ReadableStreamReadResult<Uint8Array> = await bounded(reader.read(), "complete post-promotion alert frame");
+          assert.equal(part.done, false, "partial frame must complete before classification");
+          frame += decoder.decode(part.value, { stream: true });
+        }
+        assert.ok(frame.startsWith("event: alert\n"), "classify an actual alert, not heartbeat or features marker");
+        const line = frame.split("\n").find(line => line.startsWith("data: "));
+        assert.ok(line); decodedAfterPromotion = JSON.parse(line.slice(6));
+        assert.deepEqual(decodedAfterPromotion, event(), "baseline delivered the exact persisted alert DTO");
+      }
+      assert.deepEqual(decodedAfterPromotion, null, "must close without a persisted alert frame after promotion");
+      assert.equal(next.done, true);
+      assert.equal(next.value, undefined);
+      assert.equal(barrier.state.contexts, 1);
+    } catch (error) { failed = true; throw error; }
+    finally {
+      barrier?.release.resolve(); cancellation.abort();
+      const outcomes = await Promise.allSettled([
+        bounded(reader?.cancel().catch(() => undefined) ?? Promise.resolve(), "own SSE reader cancel"),
+        ...(barrier?.state.contexts ? [bounded(barrier.finished.promise, "own event transaction settle")] : []),
+      ]);
+      barrier?.restore();
+      const failure = outcomes.find(result => result.status === "rejected");
+      if (!failed && failure?.status === "rejected") throw failure.reason;
+    }
+  });
+  it("SQL checks enrollment before matching, mismatched, missing and NULL alert inputs", async () => {
+    for (const [b, id] of [[building, alert], [foreign, alert], [building, missing], [null, null]]) {
+      await assert.rejects(() => envelope(enrolling, b, id), error => codeOf(error) === 'PMF01');
+    }
+  });
+  it("SQL requires current family proof for unverified, missing, malformed and foreign SID", async () => {
+    await assert.rejects(() => envelope(verifying), error => codeOf(error) === 'PMF02');
+    for (const sid of ['', 'invalid-uuid', local.sid]) {
+      await assert.rejects(() => envelope(satisfied, building, alert, sid), error => codeOf(error) === 'PMF02');
+      await assert.rejects(() => envelope(satisfied, null, null, sid), error => codeOf(error) === 'PMF02');
+    }
+  });
+  it("minimal exact alert/device/gateway/building scope returns one context without widening", async () => {
+    const visible = await envelope(local);
+    assert.deepEqual(Object.keys(visible).sort(), ['authorized','global','local','runtime','stored']);
+    assert.deepEqual(visible.authorized, { building_id: building, alert_id: alert, device_id: device,
+      gateway_id: null, rule_id: rule, rule_metric: 'water_level_percent', device_type: 'ENERGY_METER', gate_kind: null, parking_vehicle_type: null });
+    assert.deepEqual(Object.keys(visible.stored!).sort(), ['alertId','buildingId','deviceId','gatewayId','message','severity','status','triggeredAt','type']);
+    assert.equal(new Date(visible.stored!.triggeredAt).toISOString(), stamp);
+    for (const rows of [visible.global, visible.local]) for (const row of rows) {
+      assert.deepEqual(Object.keys(row).sort(), ['enabled','key','version']);
+      assert.equal(typeof row.key, 'string'); assert.equal(typeof row.version, 'number');
+      assert.ok(row.enabled === null || typeof row.enabled === 'boolean');
+    }
+    assert.equal((await envelope(exact)).authorized?.alert_id, alert);
+    assert.equal((await envelope(gatewayReader, building, gatewayAlert)).authorized?.alert_id, gatewayAlert);
+    assert.equal((await envelope(buildingReader, building, sibling)).authorized?.alert_id, sibling);
+    for (const a of [local, exact, gatewayReader]) assert.deepEqual(await envelope(a, building, sibling), empty);
+    for (const [b, id] of [[foreign, foreignAlert], [foreign, alert], [building, foreignAlert], [building, missing], [null, null]]) {
+      assert.deepEqual(await envelope(local, b, id), empty);
+    }
+    // Overlapping scope cannot duplicate an event or enlarge the scalar contract.
+    await sqlClient`insert into role_bindings(user_id,building_id,role_key,resource_type,resource_id)
+      values(${exact.id},${building},'MAINTENANCE','device',${device})`;
+    assert.deepEqual(await projected(exact), event());
+  });
+  it("projector rereads persisted message/status/gateway and ignores forged notification content", async () => {
+    const forged = event({ message: 'Forged', status: 'RESOLVED', deviceId: foreignDevice, gatewayId: gateway, severity: 'LOW', type: 'GENERAL' });
+    assert.deepEqual(await projected(local, forged), event());
+    try {
+      await sqlClient`update alerts set message='Updated persisted',status='RESOLVED' where id=${alert}`;
+      assert.deepEqual(await projected(local, forged), event({ message: 'Updated persisted', status: 'RESOLVED' }));
+      assert.deepEqual(await projected(gatewayReader, event({ alertId: gatewayAlert })), event({ alertId: gatewayAlert,
+        deviceId: null, gatewayId: gateway, severity: 'CRITICAL', type: 'GATEWAY_OFFLINE', message: 'Gateway persisted' }));
+      for (const input of [event({ alertId: missing }), event({ alertId: 'invalid-uuid' }), event({ buildingId: foreign }), event({ alertId: foreignAlert })]) {
+        assert.equal(await projected(local, input), null);
+      }
+    } finally { await sqlClient`update alerts set message='Persisted fixture alert',status='OPEN' where id=${alert}`; }
+  });
+  it("support alerts-only grant does not require device or telemetry read authority", async () => {
+    const [caps] = await context(support, tx => tx.execute(sql`select
+      app_has_capability(${building},'devices:read','device',${device}) as devices,
+      app_has_capability(${building},'telemetry:read','device',${device}) as telemetry`));
+    assert.equal(caps?.devices, false); assert.equal(caps?.telemetry, false);
+    assert.equal((await envelope(support)).authorized?.alert_id, alert);
+    assert.deepEqual(await projected(support), event());
+    assert.equal(await projected(support, event({ alertId: sibling })), null);
+  });
+  it("feature pause, strict resumedAt and usage-kind/rule-metric precedence use persisted state", async () => {
+    try {
+      await sqlClient`insert into building_feature_settings(building_id,feature_key,enabled) values(${building},'WATER_TANK',false)`;
+      assert.equal(await projected(local, event({ type: 'GENERAL' })), null, 'persisted water rule overrides ENERGY_METER device and forged type');
+      await sqlClient`update alerts set type='DAILY_ENERGY_HIGH' where id=${alert}`;
+      assert.deepEqual(await projected(local), event({ type: 'DAILY_ENERGY_HIGH' }), 'usage kind takes precedence over water rule');
+      await sqlClient`insert into building_feature_settings(building_id,feature_key,enabled) values(${building},'AI_ANALYSIS',false),(${building},'PUMP',false)`;
+      await sqlClient`update alerts set type='ADAPTIVE_ENERGY_HIGH' where id=${alert}`;
+      assert.equal(await projected(local), null, 'adaptive depends on AI');
+      await sqlClient`update alerts set type='PUMP_CONTINUOUS_LIMIT' where id=${alert}`;
+      assert.equal(await projected(local), null, 'pump kind precedes water rule and energy device');
+      await sqlClient`update alerts set type='WATER_LOW' where id=${alert}`;
+      await sqlClient`update building_feature_settings set enabled=true where building_id=${building} and feature_key='WATER_TANK'`;
+      await sqlClient`insert into feature_runtime(building_id,feature_key,resumed_at) values(${building},'WATER_TANK',${stamp}::timestamptz)`;
+      assert.equal(await projected(local), null, 'equal resumedAt is not fresh');
+      await sqlClient`update alerts set triggered_at=${'2026-01-02T03:04:04.999Z'}::timestamptz where id=${alert}`;
+      assert.equal(await projected(local), null, 'older persisted alert remains suppressed');
+      await sqlClient`update alerts set triggered_at=${'2026-01-02T03:04:05.001Z'}::timestamptz where id=${alert}`;
+      assert.deepEqual(await projected(local), event());
+    } finally {
+      await sqlClient`delete from feature_runtime where building_id=${building}`;
+      await sqlClient`delete from building_feature_settings where building_id=${building}`;
+      await sqlClient`update alerts set type='WATER_LOW',triggered_at=${stamp}::timestamptz where id=${alert}`;
+    }
+  });
+  it("synthetic satisfied family retains only its real local alert grant", async () => {
+    assert.equal((await envelope(satisfied)).authorized?.alert_id, alert);
+    assert.deepEqual(await projected(satisfied), event());
+    assert.deepEqual(await envelope(satisfied, building, sibling), empty);
+    assert.deepEqual(await envelope(satisfied, foreign, foreignAlert), empty);
+  });
+  it("context function is STABLE INVOKER with minimal app-only ACL across six roles", async () => {
+    const priorSignatures = [
+      'public.identity_platform_mfa_required(text)', 'public.identity_session_mfa_requirement(text,uuid)',
+      'public.app_require_session_mfa()', 'public.app_list_mfa_organizations()', 'public.app_list_mfa_devices(text)',
+      'public.app_list_mfa_gateways()', 'public.app_mfa_platform_authorization(text[])',
+      'public.app_mfa_scope_authorization(text,text,text,text[])', 'public.app_overview_platform_health()',
+      'public.app_platform_service_health()', 'public.app_mfa_feature_event_allowed(text)',
+      'public.app_mfa_telemetry_event_context(text,text)',
+    ];
+    assert.equal(priorSignatures.length + 1, 13, 'new signature extends the existing twelve-object ACL inventory');
+    for (const existing of priorSignatures) {
+      const [present] = await sqlClient`select to_regprocedure(${existing}) is not null as present`;
+      assert.equal(present?.present, true, 'existing envelope signature retained');
+    }
+    const [definition] = await sqlClient`select p.prosecdef,p.provolatile,p.proconfig,p.proisstrict,
+      p.proowner=(select proowner from pg_proc where oid='public.app_require_session_mfa()'::regprocedure) as same_owner
+      from pg_proc p where p.oid=${signature}::regprocedure`;
+    assert.equal(definition?.prosecdef, false); assert.equal(definition?.provolatile, 's'); assert.equal(definition?.proisstrict, false);
+    assert.equal(definition?.same_owner, true); assert.deepEqual(definition?.proconfig, ['search_path=pg_catalog, public, pg_temp']);
+    const acl = await sqlClient`select coalesce(r.rolname,'PUBLIC') as grantee,a.privilege_type,a.is_grantable
+      from pg_proc p cross join lateral aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a
+      left join pg_roles r on r.oid=a.grantee where p.oid=${signature}::regprocedure and a.grantee<>p.proowner`;
+    assert.deepEqual([...acl], [{ grantee: 'predioon_app', privilege_type: 'EXECUTE', is_grantable: false }]);
+    for (const [role, pool] of pools) {
+      const [row] = await pool`select has_function_privilege(current_user,${signature},'EXECUTE') as allowed,
+        has_function_privilege(current_user,${signature},'EXECUTE WITH GRANT OPTION') as grantable`;
+      assert.equal(row?.allowed, role === 'predioon_app'); assert.equal(row?.grantable, false);
+    }
+  });
+});

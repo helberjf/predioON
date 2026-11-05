@@ -1,5 +1,5 @@
 {
-  "status": "CANDIDATE_TELEMETRY_ORIGINAL13_FIXTURE_VALIDATED_CANONICAL_RESTORE_PASSED",
+  "status": "CANDIDATE_ALERT_VALIDATED_CANONICAL_RESTORE_PASSED",
   "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
   "metadata": [
     {
@@ -8,7 +8,7 @@
     },
     {
       "path": "INVENTORY.json",
-      "sha256": "9590bd8ad79718dd06e0d4b5bbf7725250442a40c4c1e027cc084a452c2f3cce"
+      "sha256": "b32b16cf8aadde55aebbebc3820acab7606ca73cd934779e105a84cca220c635"
     },
     {
       "path": "git-blobs.mjs",
@@ -24,7 +24,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "e95aa374c30c8713bac4888a9ce0d63c89f82547e59ea53164443d724d9bd307"
+      "sha256": "ac3390cbd0db50f4a52607d537752238590e18d85555d67c2efa218a1f5818e4"
     },
     {
       "path": "qaSupport/renderer/package.json",
@@ -47,9 +47,9 @@
       "sha256": "cab9d8393b345aa0d90ea6f7662cd38100b9433f9c16a7e7eed035b18da4e876"
     }
   ],
-  "inventoryPayloads": 57,
+  "inventoryPayloads": 59,
   "alreadyPublishedQueryPayloads": 2,
-  "pendingRuntimeAndTestFiles": 53,
+  "pendingRuntimeAndTestFiles": 55,
   "explicitRendererTestFiles": 2,
   "rendererSupportFiles": 5,
   "canonicalSourceFiles": 994,
@@ -64,29 +64,39 @@
     "evidence": "../../evidencias/mfa-canonical-restore-2026-11-05.json"
   },
   "currentPayloadSet": {
-    "sourceManifestSha256": "f452fcff809abf8667fb3d731581808411baf0b02c72824dd8b5aa3c4f9b23d5",
-    "evidence": "../../evidencias/mfa-telemetry-original13-2026-11-05.json",
-    "evidenceSha256": "e2532e2c1d2667ffbeee9768d2da525634fc6d62fe6e8d3a1bc4005e088085a4",
+    "sourceManifestSha256": "77b1c35133b45fff3143ae79d0d095ba0bf6270e0795ace7aef22f52f70d54a8",
+    "evidence": "../../evidencias/mfa-alert-events-2026-11-05.json",
+    "evidenceSha256": "815ff8f1514332b04203023b689307650a71de4872cc45f5827110fb6819a787",
     "composition": [
       {
-        "path": "apps/api/test/telemetry-events-capabilities.test.ts",
-        "sha256": "e743162021533e813a7823b482a578c6e9d042e563599cdc39dd4e93519adc29",
-        "bytes": 18356
+        "path": "infrastructure/068-platform-mfa-required.sql",
+        "sha256": "59cda6787bce345d1c6aeac4a06e2daa0ebf17a9032a8952c9d112ac4edcfefc",
+        "bytes": 28772
+      },
+      {
+        "path": "apps/api/src/modules/events/alerts.ts",
+        "sha256": "0e61f7e803c0eebc6ccf9708e80fc4706f6d1a1962bf29179c6995872809bad5",
+        "bytes": 2343
+      },
+      {
+        "path": "apps/api/test/platform-mfa-alert-events.test.ts",
+        "sha256": "8bf2bf9f4fe16525dbc6b13098f051b53419cb861f8f12e8222ad5ece426b151",
+        "bytes": 27993
       }
     ],
     "previousSql11V5TestSha256": "2c8a7bc400bd7b8055922f11a06239026db9dce7e9c4195cba696c67c5cd6710",
-    "validatedMergedScope": "Original telemetry13 with explicit MFA fixture adaptation; product unchanged; historical32 not rerun",
+    "validatedMergedScope": "Alert9 plus separate telemetry9/feature7/P05/SQL11/originalTelemetry13 regression; originalAlert17 not included",
     "assemblyAndRestoreExecutedForThisUpdatedSet": true,
-    "restorationEvidence": "../../evidencias/mfa-telemetry-original13-restore-2026-11-05.json",
-    "restoredComposedFiles": 1014,
+    "restorationEvidence": "../../evidencias/mfa-alert-restore-2026-11-05.json",
+    "restoredComposedFiles": 1015,
     "matchesTestedComposition": true,
-    "manifestSha256": "478497f0568b5794f47c9b17ccfefb12cdc7b6adfe9d0e6fc13efacc1595c37d",
-    "receiptSha256": "59d0812812ab1defe377d673e460effb27edf07c2c2527791740bc31fe63f816"
+    "manifestSha256": "f2ec4811affcd74b143960c277ab16c407e45ce5653d43abe05773f5eb8ebdd5",
+    "receiptSha256": "d6a95a80ed5107e22d2b91ad8a0cb8e1cc0fc32ef3478e8d633d452ad2d97bc0"
   },
   "rendererStagingRecipeExecuted": false,
   "p0DisablePatchIncluded": true,
   "publishedApiDatabaseChanged": false,
-  "staticPeerReview": "Original13 fixture update and canonical restoration verified:1014 source files and5 supports match testedf452. Product identical to earlier32 directed composition; no rerun of32 or production acceptance.",
+  "staticPeerReview": "Alert9 plus separate9/7/5/11/13 regressions passed; canonical restore matches all1015 tested77b1 source files and5 supports. Originalalert17 and global rollout are not accepted by this proof.",
   "historicalGuardRefusal": {
     "minimumMiB": 1536,
     "at": "2026-11-05T03:53:51.9727239Z",
@@ -141,6 +151,14 @@
     {
       "path": "../../evidencias/mfa-telemetry-original13-restore-2026-11-05.json",
       "sha256": "ece393df4141c202b116261d0b3517ba8cac59ff420cc3bedc8eb1b128742ed2"
+    },
+    {
+      "path": "../../evidencias/mfa-alert-events-2026-11-05.json",
+      "sha256": "815ff8f1514332b04203023b689307650a71de4872cc45f5827110fb6819a787"
+    },
+    {
+      "path": "../../evidencias/mfa-alert-restore-2026-11-05.json",
+      "sha256": "f2bc6f49fc62cd9f3e557fafe45b94197b8977779ccb948870c804cad12171a1"
     }
   ],
   "computerRestarted": false,
@@ -235,5 +253,25 @@
     "jsonMeaningUnchanged": true,
     "sourcePayloadsChanged": false,
     "reason": "Git normalizes documentation JSON to LF; public checksum must match the actual Git blob."
+  },
+  "previousOriginal13PayloadSet": {
+    "sourceManifestSha256": "f452fcff809abf8667fb3d731581808411baf0b02c72824dd8b5aa3c4f9b23d5",
+    "evidence": "../../evidencias/mfa-telemetry-original13-2026-11-05.json",
+    "evidenceSha256": "e2532e2c1d2667ffbeee9768d2da525634fc6d62fe6e8d3a1bc4005e088085a4",
+    "composition": [
+      {
+        "path": "apps/api/test/telemetry-events-capabilities.test.ts",
+        "sha256": "e743162021533e813a7823b482a578c6e9d042e563599cdc39dd4e93519adc29",
+        "bytes": 18356
+      }
+    ],
+    "previousSql11V5TestSha256": "2c8a7bc400bd7b8055922f11a06239026db9dce7e9c4195cba696c67c5cd6710",
+    "validatedMergedScope": "Original telemetry13 with explicit MFA fixture adaptation; product unchanged; historical32 not rerun",
+    "assemblyAndRestoreExecutedForThisUpdatedSet": true,
+    "restorationEvidence": "../../evidencias/mfa-telemetry-original13-restore-2026-11-05.json",
+    "restoredComposedFiles": 1014,
+    "matchesTestedComposition": true,
+    "manifestSha256": "478497f0568b5794f47c9b17ccfefb12cdc7b6adfe9d0e6fc13efacc1595c37d",
+    "receiptSha256": "59d0812812ab1defe377d673e460effb27edf07c2c2527791740bc31fe63f816"
   }
 }

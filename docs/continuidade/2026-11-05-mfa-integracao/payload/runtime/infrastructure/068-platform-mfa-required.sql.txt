@@ -407,6 +407,51 @@ BEGIN
  RETURN result;
 END $$;
 
+-- Finite alert SSE slice: authorize the exact pair, then reread the persisted
+-- DTO under caller RLS and capture feature inputs in the same statement snapshot.
+CREATE FUNCTION public.app_mfa_alert_event_context(
+ target_building_id text, target_alert_id uuid
+) RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY INVOKER
+SET search_path = pg_catalog, public, pg_temp AS $$
+DECLARE result jsonb;
+BEGIN
+ PERFORM public.app_require_session_mfa();
+ WITH authorized_scope AS MATERIALIZED (
+  SELECT c.* FROM public.app_alert_authorized_contexts(target_building_id,target_alert_id) c
+  WHERE c.building_id=target_building_id AND c.alert_id=target_alert_id
+ ), stored_alert AS MATERIALIZED (
+  SELECT a.building_id,a.id,a.device_id,a.gateway_id,a.severity,a.type,a.message,a.status,a.triggered_at
+  FROM public.alerts a
+  WHERE a.building_id=target_building_id AND a.id=target_alert_id
+   AND EXISTS(SELECT 1 FROM authorized_scope c WHERE c.building_id=a.building_id AND c.alert_id=a.id)
+ ), authority AS (
+  SELECT EXISTS(SELECT 1 FROM stored_alert) AS allowed
+ )
+ SELECT pg_catalog.jsonb_build_object(
+  'authorized',CASE WHEN authority.allowed THEN (SELECT pg_catalog.to_jsonb(c) FROM authorized_scope c LIMIT 1) ELSE NULL END,
+  'stored',(SELECT pg_catalog.jsonb_build_object(
+   'buildingId',a.building_id,'alertId',a.id,'deviceId',a.device_id,'gatewayId',a.gateway_id,
+   'severity',a.severity,'type',a.type,'message',a.message,'status',a.status,'triggeredAt',a.triggered_at
+  ) FROM stored_alert a LIMIT 1),
+  'global',CASE WHEN authority.allowed THEN coalesce((
+   SELECT pg_catalog.jsonb_agg(pg_catalog.jsonb_build_object(
+    'key',g.feature_key,'enabled',g.enabled,'version',g.version) ORDER BY g.feature_key)
+   FROM public.global_feature_settings g
+  ),'[]'::jsonb) ELSE '[]'::jsonb END,
+  'local',CASE WHEN authority.allowed THEN coalesce((
+   SELECT pg_catalog.jsonb_agg(pg_catalog.jsonb_build_object(
+    'key',b.feature_key,'enabled',b.enabled,'version',b.version) ORDER BY b.feature_key)
+   FROM public.building_feature_settings b WHERE b.building_id=target_building_id
+  ),'[]'::jsonb) ELSE '[]'::jsonb END,
+  'runtime',CASE WHEN authority.allowed THEN coalesce((
+   SELECT pg_catalog.jsonb_agg(pg_catalog.jsonb_build_object(
+    'key',r.feature_key,'resumedAt',r.resumed_at) ORDER BY r.feature_key)
+   FROM public.feature_runtime r WHERE r.building_id=target_building_id
+  ),'[]'::jsonb) ELSE '[]'::jsonb END
+ ) INTO result FROM authority;
+ RETURN result;
+END $$;
+
 -- Close every touched/new entrypoint, including installation-specific default
 -- function grants. No identity-only helper is granted to app or service roles.
 DO $mfa_v3_acl$
@@ -423,7 +468,8 @@ DECLARE controlled_owner name; signature text; grant_row record;
    'public.app_overview_platform_health()',
    'public.app_platform_service_health()',
    'public.app_mfa_feature_event_allowed(text)',
-   'public.app_mfa_telemetry_event_context(text,text)'
+   'public.app_mfa_telemetry_event_context(text,text)',
+   'public.app_mfa_alert_event_context(text,uuid)'
  ];
 BEGIN
  SELECT pg_catalog.pg_get_userbyid(p.proowner) INTO STRICT controlled_owner
@@ -458,7 +504,8 @@ GRANT EXECUTE ON FUNCTION public.app_require_session_mfa(),
  public.app_mfa_scope_authorization(text,text,text,text[]),
  public.app_overview_platform_health(),public.app_platform_service_health(),
  public.app_mfa_feature_event_allowed(text),
- public.app_mfa_telemetry_event_context(text,text) TO predioon_app;
+ public.app_mfa_telemetry_event_context(text,text),
+ public.app_mfa_alert_event_context(text,uuid) TO predioon_app;
 
 -- No new table SELECT/UPDATE grants, no changes to001-067, no global enforcement
 -- claim. Metrics point/empty reads, zero-match writes, other domain projections,
