@@ -1,29 +1,29 @@
 # Retomada MFA — checkpoint candidato atualizado em 05/11/2026
 
-**Composição candidata: desativação concorrente, eventos de funcionalidades e
-projector de telemetria.** A base canônica continua
-`53c4c70dcd24f1045fad420fbce36757fd3753a2`. A composição usada na QA contém
-**1.014 arquivos e cinco suportes**. A montagem/restauração do conjunto atualizado
-**passou**, com todos os arquivos idênticos à composição testada.
-[Prova dessa restauração](../../evidencias/mfa-telemetry-restore-2026-11-05.json).
+**Composição candidata: desativação, funcionalidades, telemetria e preparação
+MFA explícita dos testes originais.** Base canônica
+`53c4c70dcd24f1045fad420fbce36757fd3753a2`; 1.014 arquivos e cinco suportes.
+A montagem/restauração deste conjunto **passou**, com todos os hashes iguais
+à QA. [Prova](../../evidencias/mfa-telemetry-original13-restore-2026-11-05.json).
 A política obrigatória permanece candidata, sem ativação no runtime da main.
 
-Na composição corrigida passaram **telemetria 9/9**, **eventos de funcionalidades
-7/7**, **desativação 5/5** e **complemento SQL 11/11**, em processos separados,
-sem falhas, cancelamentos, skips ou todo. São 32 casos dirigidos; não são uma
-integral da aplicação. Os quatro arquivos de teste e seus imports passaram na
-resolução e no TypeScript das composições anterior e corrigida.
-[Prova, fontes, comparadores e limites](../../evidencias/mfa-telemetry-events-2026-11-05.json).
+Os **13 testes originais de telemetria passaram**, incluindo cadastro e confirmação
+MFA por HTTP/TOTP no caso administrativo. Tipos do arquivo e imports passaram nas
+duas variantes. [Prova específica](../../evidencias/mfa-telemetry-original13-2026-11-05.json).
+Somente a fixture mudou; produto e os outros 12 corpos de casos mantêm seus bytes.
 
-A [restauração anterior de 1.013 arquivos](../../evidencias/mfa-merged-restore-2026-11-05.json)
-e as [restaurações anteriores do complemento SQL](../../evidencias/mfa-canonical-restore-2026-11-05.json)
-continuam históricas. Seus resultados não aprovam automaticamente este conjunto
-de 1.014 arquivos.
+Na composição anterior passaram telemetria 9/9, funcionalidades 7/7, desativação
+5/5 e SQL 11/11, em processos separados. Esses 32 casos não foram repetidos nesta
+rodada. [Prova dirigida anterior](../../evidencias/mfa-telemetry-events-2026-11-05.json).
+As restaurações [da telemetria](../../evidencias/mfa-telemetry-restore-2026-11-05.json),
+[de funcionalidades](../../evidencias/mfa-merged-restore-2026-11-05.json) e
+[do complemento SQL](../../evidencias/mfa-canonical-restore-2026-11-05.json)
+conservam seus resultados históricos.
 
 ## Conteúdo recuperável
 
-O inventário tem **56 payloads**. Dois são helper/teste de query já publicados e
-serão excluídos do delta pelos hashes exatos. O pacote contém **52 arquivos de
+O inventário tem **57 payloads**. Dois são helper/teste de query já publicados e
+serão excluídos do delta pelos hashes exatos. O pacote contém **53 arquivos de
 implementação e testes candidatos**, dois testes explícitos de renderer e cinco
 suportes do renderer. O transporte publicado também é dependência da base;
 não reaplicá-lo.
@@ -74,7 +74,24 @@ processos desconhecidos ou reiniciar computador, Docker ou WSL. Os comandos de
 restauração não instalam dependências, executam testes, iniciam serviços ou
 aplicam migrations.
 
-## O que foi observado nesta rodada
+## Testes originais de telemetria
+
+O comparador antigo teve 12 PASS e uma falha no caso 5: HTTP 403 com
+`MFA_ENROLLMENT_REQUIRED` ao abrir o stream de um administrador autenticado só
+por senha. É uma fixture incompleta diante da política correta. A adaptação
+cadastra e confirma MFA com TOTP real, recebe dez códigos de recuperação e
+verifica `/auth/me` como `satisfied`, mantendo bearer e família de sessão.
+Os dois administradores continuam sem acesso privado antes do grant local e
+passam a receber o evento depois do grant específico de dispositivo.
+
+Resultado: 13/13 em 17,272 s, zero falhas, skips, cancelamentos ou todo. Tipos
+do arquivo/imports: 7,750 s na anterior e 11,131 s na adaptada. Cleanup e seis
+roles foram conferidos nas duas execuções. Os streams mantêm o prazo de 20 s;
+o helper HTTP depende do prazo externo do runner. Não foi acrescentada prova
+de replay, recuperação, navegador ou aparelho. Os 32 dirigidos anteriores
+conservam sua fonte, que difere somente nesta fixture.
+
+## O que foi observado na rodada dirigida anterior nesta rodada
 
 O SSE real entregou um frame bruto de telemetria exatamente esperado para um
 leitor local comum. Na mesma conexão, uma barreira pausou o contexto depois da
@@ -106,9 +123,9 @@ Somente o caso de promoção durante telemetria bruta usa SSE real nesta rodada.
 Os controles de publicação, escopo, funcionalidades e sessão satisfeita chamam
 SQL/projector. Fatores e provas desses controles são sintéticos, não cerimônias
 TOTP/recovery. Uma chamada SQL no projector foi conferida na fonte, sem assertiva
-de contagem de queries em runtime. Os 13 testes originais de telemetria não foram
-adaptados ou reexecutados por esta evidência, nem surgiram novos controles de
-team/support/gate/parking.
+de contagem de queries em runtime. A prova dirigida anterior não incluía os 13 originais;
+a execução original13 acima fecha essa pendência em prova separada. Os nove
+casos dirigidos não acrescentaram controles de team/support/gate/parking.
 
 ## Contrato da telemetria e limites
 

@@ -1,0 +1,261 @@
+{
+  "version": 1,
+  "status": "OBSERVED_AND_REVIEWED",
+  "date": "2026-11-05",
+  "scope": "Regressão original de telemetria: adaptação exclusiva da fixture administrativa, sem mudança de produto.",
+  "sources": {
+    "fixedPreparedSha256": "f452fcff809abf8667fb3d731581808411baf0b02c72824dd8b5aa3c4f9b23d5",
+    "composedFiles": 1014,
+    "testBeforeSha256": "a547fd301ab959057a2c58a41455ad4f9ab39ff5b96ffa394dceae8c11feec60",
+    "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+    "sourceFiles": 994,
+    "overlayManifestSha256": "f5400ad6a2cedf60a809564ec80959b88887ce6c98f8025b834041f5b8e0d937",
+    "baselinePreparedSha256": "b71fc30ac5cc1c5abdd01a02d694e8b52a5476ec50ac47dcfedc1846c59f8e73",
+    "productSourceUnchanged": true,
+    "onlyChangedPath": "apps/api/test/telemetry-events-capabilities.test.ts",
+    "testAfterSha256": "e743162021533e813a7823b482a578c6e9d042e563599cdc39dd4e93519adc29",
+    "priorPreparedSha256": "ab71c2b79b4ca8c452d5583dee3fe34fbdfa9469287f19d8a347e9600d5fcaa7"
+  },
+  "gates": {
+    "typesExitCode": 0,
+    "cleanupPass": true,
+    "skipped": 0,
+    "productSourceUnchanged": true,
+    "cancelled": 0,
+    "originalTelemetryTestsPassed": 13,
+    "todo": 0,
+    "sourceBeforeAfterPass": true,
+    "failures": 0
+  },
+  "gatesScope": "Somente fixed13 e suas verificações; baseline12PASS/1FAIL é controle separado.",
+  "types": [
+    {
+      "durationMs": 1371,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "variant": "baseline",
+      "after": {
+        "source": true,
+        "candidate": true,
+        "config": true,
+        "prepared": true,
+        "junctions": true
+      },
+      "commandSha256": "722bf0a46181ac0e9060c16c709bb1daf619efa47fa71fe5621ced2ecfff3a7e",
+      "resolved": {
+        "requiredSourcesListed": true,
+        "allTestsListed": true,
+        "originalWorkspacePaths": []
+      },
+      "stdoutSha256": "4f98856d7de28235ef1bc2953a86f7b6b4071aa99894cfa2579fed8f2412b22d",
+      "exitCode": 0,
+      "phase": "resolve",
+      "before": {
+        "source": true,
+        "candidate": true,
+        "config": true,
+        "prepared": true,
+        "junctions": true
+      },
+      "preparedSha256": "b71fc30ac5cc1c5abdd01a02d694e8b52a5476ec50ac47dcfedc1846c59f8e73",
+      "passed": true,
+      "resultSha256": "24400e3aa7298d5b9980cd6c906f09d54e6290c118f569e97972d9dc6e83f41e"
+    },
+    {
+      "durationMs": 7750,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "variant": "baseline",
+      "after": {
+        "source": true,
+        "candidate": true,
+        "config": true,
+        "prepared": true,
+        "junctions": true
+      },
+      "commandSha256": "cac52fd5f790ea10f353ce3300655b5cdc2feeb3f025af5fcb3e9f32edeba364",
+      "resolved": null,
+      "stdoutSha256": "8d0efb9614e75635ba89ce14cc7e92c5a9824745a33bbb6c1778e34de59c8bbb",
+      "exitCode": 0,
+      "phase": "types",
+      "before": {
+        "source": true,
+        "candidate": true,
+        "config": true,
+        "prepared": true,
+        "junctions": true
+      },
+      "preparedSha256": "b71fc30ac5cc1c5abdd01a02d694e8b52a5476ec50ac47dcfedc1846c59f8e73",
+      "passed": true,
+      "resultSha256": "1837e84f07e1aee9627c991af4bae9e7d15186a3ebddd18f5dda33d9db5aa9af"
+    },
+    {
+      "durationMs": 1387,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "variant": "fixed",
+      "after": {
+        "source": true,
+        "candidate": true,
+        "config": true,
+        "prepared": true,
+        "junctions": true
+      },
+      "commandSha256": "d6c06402e1cfa6bb721886b2e30ae728d74f6da04d9fd0d3a866451c617fb413",
+      "resolved": {
+        "requiredSourcesListed": true,
+        "allTestsListed": true,
+        "originalWorkspacePaths": []
+      },
+      "stdoutSha256": "92f00241f97c9032757d5065d1c95dc2f96cc9447740840e95c0a95b4e8e9b03",
+      "exitCode": 0,
+      "phase": "resolve",
+      "before": {
+        "source": true,
+        "candidate": true,
+        "config": true,
+        "prepared": true,
+        "junctions": true
+      },
+      "preparedSha256": "f452fcff809abf8667fb3d731581808411baf0b02c72824dd8b5aa3c4f9b23d5",
+      "passed": true,
+      "resultSha256": "dac8b2b7f7471569501501f855711bd57c04ae980b3118b8e973dbc363a38704"
+    },
+    {
+      "durationMs": 11131,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "variant": "fixed",
+      "after": {
+        "source": true,
+        "candidate": true,
+        "config": true,
+        "prepared": true,
+        "junctions": true
+      },
+      "commandSha256": "650595f661884d6a44507be910b6508282c04c84f69430416ad024c7cecc1006",
+      "resolved": null,
+      "stdoutSha256": "6b521f10431913a2e9e77b719dab33703ddaed635fd37b981d0eca4596ea0fda",
+      "exitCode": 0,
+      "phase": "types",
+      "before": {
+        "source": true,
+        "candidate": true,
+        "config": true,
+        "prepared": true,
+        "junctions": true
+      },
+      "preparedSha256": "f452fcff809abf8667fb3d731581808411baf0b02c72824dd8b5aa3c4f9b23d5",
+      "passed": true,
+      "resultSha256": "ce64bb352b0c66c9eb89adfc2fbc0329f2d0e827e036325915a8bccfd008343e"
+    }
+  ],
+  "runs": {
+    "fixed": {
+      "typeConfigSha256": "7a9006d088a78cd297c0add79f5dd46c76dc235ae73bd6528ad84f34ac512b5a",
+      "tap": {
+        "fail": 0.0,
+        "tests": 13.0,
+        "pass": 13.0,
+        "duration_ms": 17271.8919,
+        "skipped": 0.0,
+        "cancelled": 0.0,
+        "todo": 0.0,
+        "suites": 1.0
+      },
+      "sourceHashesAfterMatch": true,
+      "postchecksSha256": "fec65549a198271ea47beadc3c4e428a3f7a2031187b02ea8e8a7c6eba73a7d8",
+      "sourcePinSha256": "3229f7e5df9c2b75f7efd40fe0e793fd3a7de74ae3e57d641a7775531b47cba3",
+      "preparedSha256": "f452fcff809abf8667fb3d731581808411baf0b02c72824dd8b5aa3c4f9b23d5",
+      "process": {
+        "label": "telemetry-events-capabilities",
+        "pid": 40640,
+        "exitCode": 0,
+        "signal": null,
+        "spawnError": false,
+        "timedOut": false,
+        "overflow": false,
+        "treeKillFailed": false,
+        "exitObserved": true,
+        "drainTimedOut": false,
+        "maxHeartbeatGapMs": 5018.532500000001,
+        "elapsedMs": 17950.6252,
+        "logSha256": "cabc2a1c053107a8674934952c9624f55e8d5b93f864c3c4cbf3141d9994d9a9"
+      },
+      "resultSha256": "18a098afe36a153a822a405c8be5281b40ae83ad6a3bc705293ef86c481dcaff",
+      "fixtureCleanupPassed": true,
+      "postchecks": {
+        "exitCode": 0,
+        "systemIdentifierMatches": true,
+        "basePublicTables": 0,
+        "temporaryDatabases": 0,
+        "otherDatabases": 0,
+        "rolesRestoredIncludingPrivateCredentials": true,
+        "settingsRestored": true,
+        "roles": 6,
+        "otherClients": 0,
+        "containerAttestationMatches": true,
+        "freeMiBAtStart": 3140.0,
+        "computerRestarted": false,
+        "credentialsPublished": false
+      }
+    },
+    "baseline": {
+      "typeConfigSha256": "7a9006d088a78cd297c0add79f5dd46c76dc235ae73bd6528ad84f34ac512b5a",
+      "tap": {
+        "fail": 1.0,
+        "tests": 13.0,
+        "pass": 12.0,
+        "duration_ms": 14178.0127,
+        "skipped": 0.0,
+        "cancelled": 0.0,
+        "todo": 0.0,
+        "suites": 1.0
+      },
+      "sourceHashesAfterMatch": true,
+      "postchecksSha256": "1f2a47da80fed60f74f3e23f363d61d5207dcc49addb094da082e348acf203a1",
+      "sourcePinSha256": "3229f7e5df9c2b75f7efd40fe0e793fd3a7de74ae3e57d641a7775531b47cba3",
+      "preparedSha256": "b71fc30ac5cc1c5abdd01a02d694e8b52a5476ec50ac47dcfedc1846c59f8e73",
+      "process": {
+        "label": "telemetry-events-capabilities",
+        "pid": 43348,
+        "exitCode": 1,
+        "signal": null,
+        "spawnError": false,
+        "timedOut": false,
+        "overflow": false,
+        "treeKillFailed": false,
+        "exitObserved": true,
+        "drainTimedOut": false,
+        "maxHeartbeatGapMs": 5023.8271,
+        "elapsedMs": 14373.382900000002,
+        "logSha256": "5ea5e4f7fabbde71eaac5ecd3c627f060e62a7f665ed5a63a66cfd6b478b889f"
+      },
+      "resultSha256": "e974b318e34930baf05c0ca27e43fc7df01e65d0b668543c9534d2b1680adb83",
+      "fixtureCleanupPassed": true,
+      "postchecks": {
+        "exitCode": 0,
+        "systemIdentifierMatches": true,
+        "basePublicTables": 0,
+        "temporaryDatabases": 0,
+        "otherDatabases": 0,
+        "rolesRestoredIncludingPrivateCredentials": true,
+        "settingsRestored": true,
+        "roles": 6,
+        "otherClients": 0,
+        "containerAttestationMatches": true,
+        "freeMiBAtStart": 2890.0,
+        "computerRestarted": false,
+        "credentialsPublished": false
+      }
+    }
+  },
+  "classification": {
+    "fixed": "Mesmo produto: cerimônia HTTP enroll/confirm TOTP e /me satisfied para os dois administradores, mantendo bearer/sid. Asserts de ausência de acesso global e concessão local preservados.",
+    "baseline": "Caso5 esperava HTTP200, recebeu403 MFA_ENROLLMENT_REQUIRED na primeira conta com flag. Fixture anterior não concluía MFA. Não é vulnerabilidade nem RED de produto."
+  },
+  "limits": [
+    "Os outros12 corpos de casos permanecem iguais; o caso5 conserva assertions e prazos originais.",
+    "Nenhum replay de TOTP ou teste adicional de recuperação foi introduzido.",
+    "Helper HTTP depende do deadline externo; stream conserva limite20s.",
+    "Os32 casos da rodada anterior permanecem evidência histórica independente; não foram reexecutados nesta rodada.",
+    "Teste isolado com fixture UUID e seis roles; não comprova rollout ou aplicação em produção."
+  ],
+  "credentialsPublished": false
+}

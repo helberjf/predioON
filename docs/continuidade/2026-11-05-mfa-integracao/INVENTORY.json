@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "status": "CANONICAL_MERGED_TELEMETRY_VALIDATED_RESTORED_CANDIDATE",
+  "status": "CANONICAL_TELEMETRY_ORIGINAL13_FIXTURE_VALIDATED_RESTORED_CANDIDATE",
   "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
   "plannedBase": "Approved published source base53c4c70; current documentation may be newer.",
   "sourceBaseline": "2676a74216b012dcab6fa2fb9735dc1b6ef8e9d8",
@@ -620,10 +620,21 @@
       "bytes": 24007,
       "component": "sse-telemetry-events-test",
       "kind": "database-test"
+    },
+    {
+      "path": "apps/api/test/telemetry-events-capabilities.test.ts",
+      "payload": "payload/runtime/apps/api/test/telemetry-events-capabilities.test.ts.txt",
+      "beforeSha256": "a547fd301ab959057a2c58a41455ad4f9ab39ff5b96ffa394dceae8c11feec60",
+      "beforeGitSha256": "a547fd301ab959057a2c58a41455ad4f9ab39ff5b96ffa394dceae8c11feec60",
+      "beforeGitObject": "1355f26d3554ce8bbf91d33297c21b88b8e7136c",
+      "afterSha256": "e743162021533e813a7823b482a578c6e9d042e563599cdc39dd4e93519adc29",
+      "bytes": 18356,
+      "component": "telemetry-original13-mfa-fixture",
+      "kind": "database-test"
     }
   ],
   "pending": [
-    "Complete remaining alert/equipment projectors, other SQL/SD/SSE/no-match mutations, heartbeat, locks/triggers and original regressions; telemetry/P0/feature slices are finite.",
+    "Complete alert/equipment projectors, other SQL/SD/SSE/no-match mutations, heartbeat, locks/triggers and remaining original regressions; original telemetry13 is a new fixture-scoped run, not a rerun of historical32.",
     "Renderer staging recipe remains authored and not executed; do not transfer its earlier separate harness PASS."
   ],
   "excluded": [
@@ -658,5 +669,12 @@
     "sourceManifestSha256": "ab71c2b79b4ca8c452d5583dee3fe34fbdfa9469287f19d8a347e9600d5fcaa7",
     "scope": "Telemetry + retained P0/feature/SQL11 directed regressions; not global rollout",
     "restorationEvidence": "../../evidencias/mfa-telemetry-restore-2026-11-05.json"
+  },
+  "telemetryOriginal13Validation": {
+    "evidence": "../../evidencias/mfa-telemetry-original13-2026-11-05.json",
+    "evidenceSha256": "e2532e2c1d2667ffbeee9768d2da525634fc6d62fe6e8d3a1bc4005e088085a4",
+    "sourceManifestSha256": "f452fcff809abf8667fb3d731581808411baf0b02c72824dd8b5aa3c4f9b23d5",
+    "scope": "Original telemetry13 with explicit MFA fixture adaptation; product unchanged; historical32 not rerun",
+    "restorationEvidence": "../../evidencias/mfa-telemetry-original13-restore-2026-11-05.json"
   }
 }

@@ -5,7 +5,8 @@ Telemetria 9/9; regressões separadas de funcionalidades 7/7, desativação 5/5 
 11/11, com tipos dirigidos e limpeza aprovados. O comparador anterior teve três
 aprovações, uma falha de fechamento SSE e cinco falhas pelo contrato SQL ausente.
 [Prova e limites](../../evidencias/mfa-telemetry-events-2026-11-05.json).
-Os 13 testes originais ainda não foram repetidos/adaptados nesta prova.
+Os 13 testes originais passaram depois, com preparação MFA explícita do caso
+administrativo, em [prova separada](../../evidencias/mfa-telemetry-original13-2026-11-05.json).
 Parte do [checkpoint composto de MFA](../../continuidade/2026-11-05-mfa-integracao/README.md),
 com a correção de desativação e eventos de funcionalidades. Não altera SQL 001–067
 nem representa aceite de produção. [Prova da composição de partida](../../evidencias/mfa-feature-events-2026-11-05.json).
@@ -59,8 +60,8 @@ com identificador de evento/amostra e evolução compatível da ingestão.
   esse projector já protegido pode fechar a conexão depois de um vazamento anterior.
 - Cobrir PMF01/PMF02, sessão ausente/estrangeira, leitura bruta/publicada, escopo,
   funcionalidades pausadas/retomadas, DTO e ACL dos seis serviços, sem skips novos.
-- **Pendente:** reexecutar os testes originais aplicáveis, adaptando autenticação de fixtures
-  explicitamente quando necessário. Os recortes MFA já integrados passaram novamente em processos separados.
+- Os 13 testes originais passaram com a preparação MFA do caso administrativo;
+  os recortes MFA dirigidos conservam suas execuções anteriores separadas.
 - Manter barreiras e cleanup limitados, banco UUID próprio e provas separadas.
 
 ## Fora deste recorte
