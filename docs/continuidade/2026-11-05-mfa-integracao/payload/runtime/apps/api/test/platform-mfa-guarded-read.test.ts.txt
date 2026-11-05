@@ -1,0 +1,215 @@
+import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
+import type { Server } from "node:http";
+import { after, before, describe, it } from "node:test";
+import { decodeJwt } from "jose";
+import { PgDialect } from "drizzle-orm/pg-core";
+import { sqlClient } from "@predioon/db";
+import { appDb, closeAppDb, type AppTransaction } from "@predioon/db/runtime";
+import { app } from "../src/app.js";
+import { hashPassword } from "../src/auth/passwords.js";
+import "./helpers.js";
+
+// Same test source for baseline and candidate: no import of the new helper.
+type Actor = { id: string; token: string; sid: string; binding: string; generation: string };
+type Person = { id: string; name: string; email: string };
+type PeoplePage = { items: Person[]; nextCursor: string | null };
+type HttpResult = { status: number; body: unknown; cache: string | null };
+function signal() {
+  let resolve!: () => void;
+  const promise = new Promise<void>(done => { resolve = done; }); return { promise, resolve };
+}
+async function bounded<T>(promise: PromiseLike<T>, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try { return await Promise.race([Promise.resolve(promise), new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`Fixture deadline: ${label}`)), 5000);
+  })]); } finally { clearTimeout(timer); }
+}
+function beforeProjection() {
+  const original = appDb.transaction, run = original.bind(appDb), dialect = new PgDialect();
+  const reached = signal(), release = signal(), finished = signal(); let contexts = 0;
+  type Input = Parameters<AppTransaction['execute']>[0];
+  appDb.transaction = (callback, config) => run(tx => callback(new Proxy(tx, { get(target,key) {
+    if (key === 'execute') return async (query: Input) => {
+      const text = typeof query === 'string' ? query : dialect.sqlToQuery(query.getSQL()).sql;
+      const rows = await target.execute(query);
+      if (text.includes("set_config('app.user_id'") && text.includes("set_config('app.session_id'")) {
+        contexts++; assert.equal(contexts,1); reached.resolve(); await bounded(release.promise,'projection release');
+      }
+      return rows;
+    };
+    const value = Reflect.get(target,key,target); return typeof value === 'function' ? value.bind(target) : value;
+  }})), config).finally(() => finished.resolve());
+  return { reached,release,finished,get contexts(){return contexts;},restore(){appDb.transaction=original;} };
+}
+
+describe('Guarded server SELECT prototype at two real HTTP callers', { concurrency:false }, () => {
+  const suffix=randomUUID(),org=`read-org-${suffix}`,building=`read-building-${suffix}`,second=`read-second-${suffix}`,foreign=`read-foreign-${suffix}`;
+  const password='read-prototype-fictitious-password',stamp='2026-11-05T01:02:03.456Z';
+  const address={street:"O'Connor",number:17,extra:null,nested:{enabled:false,labels:['a','b']}};
+  const users:string[]=[], roster:string[]=[], residentIds:string[]=[];
+  let server:Server|undefined,url='',hash='';
+  let manager:Actor,emptyReader:Actor,racePeople:Actor,satisfied:Actor,resident:Actor;
+  async function request(a:Actor,path:string,abort=new AbortController()):Promise<HttpResult> {
+    try {
+      const response=await bounded(fetch(`${url}${path}`,{headers:{Authorization:`Bearer ${a.token}`},signal:abort.signal}),'HTTP response');
+      return {status:response.status,body:await bounded(response.json(),'HTTP body'),cache:response.headers.get('cache-control')};
+    } finally {abort.abort();}
+  }
+  async function makeActor(label:string,local=false):Promise<Actor> {
+    const id=`read-${suffix}-${label}`,binding=randomUUID(),generation=randomUUID();users.push(id);
+    await sqlClient`insert into users(id,name,email,password_hash) values(${id},${'Name '+label},${label+'-'+suffix+'@example.invalid'},${hash})`;
+    if(local){roster.push(id);await sqlClient`insert into role_bindings(user_id,building_id,role_key) values(${id},${building},'BUILDING_ADMIN')`;}
+    await sqlClient`insert into role_bindings(id,user_id,role_key,active) values(${binding},${id},'PLATFORM_ADMIN',false)`;
+    const abort=new AbortController();
+    try {
+      const response=await bounded(fetch(`${url}/auth/login`,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({email:label+'-'+suffix+'@example.invalid',password}),signal:abort.signal}),'real login');
+      assert.equal(response.status,200);const body=await bounded(response.json(),'login JSON') as {accessToken:string};
+      const sid=decodeJwt(body.accessToken).sid;assert.equal(typeof sid,'string');
+      return {id,token:body.accessToken,sid:sid as string,binding,generation};
+    } finally {abort.abort();}
+  }
+  function peoplePath(b=building,after?:string,limit=50,purpose=false) {
+    const q=new URLSearchParams({buildingId:b,limit:String(limit)});if(after!==undefined)q.set('after',after);if(purpose)q.set('purpose','team-members');
+    return `/v1/tenancy/people?${q}`;
+  }
+  async function expectedPeople(excludeResidents=false):Promise<Person[]> {
+    const ids=excludeResidents?roster.filter(id=>!residentIds.includes(id)):roster;
+    const rows=await sqlClient`select id,name,email from users where id in ${sqlClient(ids)} order by id`;
+    return rows.map(row=>{assert.equal(typeof row.id,'string');assert.equal(typeof row.name,'string');assert.equal(typeof row.email,'string');return {id:row.id as string,name:row.name as string,email:row.email as string};});
+  }
+  async function prove(a:Actor) {
+    await sqlClient`update sessions set mfa_verified_at=now(),mfa_factor_generation=${a.generation} where id=${a.sid}`;
+  }
+  before(async()=>{
+    const [ledger]=await sqlClient`select count(*)::int as count from schema_migrations`;assert.equal(ledger?.count,68);
+    hash=await hashPassword(password);
+    await sqlClient`insert into organizations(id,name,slug) values(${org},'Read prototype',${org})`;
+    for(const [id,name] of [[building,'Alpha read'],[second,'Zulu read'],[foreign,'Foreign read']] as const){
+      await sqlClient`insert into buildings(id,organization_id,name,code,address,created_at,updated_at)
+        values(${id},${org},${name},${id},${JSON.stringify(address)}::jsonb,${stamp}::timestamptz,${stamp}::timestamptz)`;
+    }
+    server=await new Promise<Server>(resolve=>{const listener=app.listen(0,'127.0.0.1',()=>resolve(listener));});
+    const at=server.address();assert.ok(at&&typeof at!=='string');url=`http://127.0.0.1:${at.port}`;
+    manager=await makeActor('manager',true);emptyReader=await makeActor('empty');racePeople=await makeActor('race',true);
+    satisfied=await makeActor('satisfied',true);resident=await makeActor('resident');
+    roster.push(resident.id);residentIds.push(resident.id);
+    await sqlClient`insert into memberships(user_id,building_id,role) values(${resident.id},${building},'RESIDENT')`;
+    for(const label of ["person'quoted",'person-other']){
+      const id=`read-${suffix}-${label}`;users.push(id);roster.push(id);residentIds.push(id);
+      await sqlClient`insert into users(id,name,email,password_hash) values(${id},${label},${randomUUID()+'@example.invalid'},${hash})`;
+      await sqlClient`insert into memberships(user_id,building_id,role) values(${id},${building},'RESIDENT')`;
+    }
+    await sqlClient`insert into role_bindings(user_id,building_id,role_key) values(${manager.id},${second},'BUILDING_ADMIN')`;
+    // Synthetic proof set after a real ordinary login, preserving its signed SID.
+    await sqlClient`insert into mfa_factors(user_id,secret_ciphertext,confirmed_at,generation)
+      values(${satisfied.id},decode(repeat('00',40),'hex'),now(),${satisfied.generation})`;
+    await prove(satisfied);await sqlClient`update role_bindings set active=true where id=${satisfied.binding}`;
+  });
+  after(async()=>{
+    const closing=server?new Promise<void>((resolve,reject)=>{server!.close(error=>error?reject(error):resolve());server!.closeAllConnections();}):Promise.resolve();
+    await bounded(closing,'own listener close');
+    try {await bounded(sqlClient.begin(async owner=>{
+      await owner`set local lock_timeout='2s'`;await owner`set local statement_timeout='3s'`;
+      for(const id of [building,second,foreign])await owner`delete from buildings where id=${id}`;
+      await owner`delete from organizations where id=${org}`;
+      for(const id of users)await owner`delete from users where id=${id}`;
+    }),'own fixture cleanup');}
+    finally {const outcomes=await Promise.allSettled([bounded(closeAppDb(),'app close'),bounded(sqlClient.end({timeout:3}),'owner close')]);
+      const failure=outcomes.find(x=>x.status==='rejected');if(failure?.status==='rejected')throw failure.reason;}
+  });
+  async function interleave(a:Actor,path:string,change:()=>Promise<unknown>):Promise<HttpResult>{
+    const barrier=beforeProjection(),abort=new AbortController();let failed=false;
+    const pending=request(a,path,abort);void pending.catch(()=>undefined);
+    try {
+      const first=await bounded(Promise.race([barrier.reached.promise.then(()=> 'context' as const),pending.then(()=> 'response' as const)]),'reach real projection boundary');
+      assert.equal(first,'context','authentication passed before controlled authority change');
+      await bounded(change(),'committed fixture change');barrier.release.resolve();return await pending;
+    }catch(error){failed=true;throw error;}
+    finally{barrier.release.resolve();abort.abort();const results=await Promise.allSettled([
+      bounded(pending,'HTTP settled cleanup'),barrier.contexts?bounded(barrier.finished.promise,'transaction cleanup'):Promise.resolve(),
+    ]);barrier.restore();if(!failed){const failure=results.find(x=>x.status==='rejected');if(failure?.status==='rejected')throw failure.reason;}}
+  }
+  function denied(result:HttpResult,reason:string){
+    assert.equal(result.status,403,'actual HTTP decision after the real authority interleaving');
+    const body=result.body as {details?:{reason?:string}};assert.equal(body.details?.reason,reason);
+    assert.equal('items' in (result.body as object),false,'restricted response contains no result list');
+  }
+  it('rejects legacy enrollment over a genuinely empty building SELECT with inactive platform catalog',async t=>{
+    const [catalog]=await sqlClient`select active from roles where key='PLATFORM_ADMIN'`;
+    assert.equal(typeof catalog?.active,'boolean');
+    try {
+      await sqlClient`update roles set active=false where key='PLATFORM_ADMIN'`;
+      const positive=await request(emptyReader,'/buildings');assert.equal(positive.status,200);assert.deepEqual(positive.body,{items:[]});
+      const result=await interleave(emptyReader,'/buildings',()=>sqlClient`update users set is_platform_admin=true where id=${emptyReader.id}`);
+      if(result.status===200){assert.deepEqual(result.body,{items:[]});
+        t.diagnostic('Baseline returned an empty successful list after legacy obligation changed; no data leak claimed');}
+      denied(result,'MFA_ENROLLMENT_REQUIRED');
+    } finally {
+      try {await sqlClient`update users set is_platform_admin=false where id=${emptyReader.id}`;}
+      finally {await sqlClient`update roles set active=${catalog!.active} where key='PLATFORM_ADMIN'`;}
+    }
+  });
+  it('rejects the real SD people projection after ordinary authorization becomes administrative',async t=>{
+    const positive=await request(racePeople,peoplePath());assert.equal(positive.status,200);
+    assert.deepEqual(positive.body,{items:await expectedPeople(),nextCursor:null});
+    const result=await interleave(racePeople,peoplePath(),()=>sqlClient`update role_bindings set active=true where id=${racePeople.binding}`);
+    if(result.status===200){assert.deepEqual(result.body,positive.body,'decode and compare actual baseline minimal directory before negative assertion');
+      t.diagnostic('Baseline delivered the exact previously authorized minimal people page after promotion');}
+    denied(result,'MFA_ENROLLMENT_REQUIRED');
+  });
+  it('rejects missing family proof after authentication for both real projections including an empty SD cursor',async()=>{
+    try{for(const path of ['/buildings',peoplePath(building,'zzzz-after-every-fixture',1)]){
+      await prove(satisfied);const before=await request(satisfied,path);assert.equal(before.status,200);
+      const result=await interleave(satisfied,path,()=>sqlClient`update sessions set mfa_verified_at=null,mfa_factor_generation=null where id=${satisfied.sid}`);
+      denied(result,'MFA_VERIFICATION_REQUIRED');
+    }}finally{await prove(satisfied);}
+  });
+  it('preserves the complete building DTO, JSON nested null, UTC dates and explicit name order',async()=>{
+    const result=await request(manager,'/buildings');assert.equal(result.status,200);
+    const body=result.body as {items:Array<Record<string,unknown>>};
+    assert.deepEqual(body.items.map(x=>x.id),[building,second]);
+    for(const row of body.items){assert.deepEqual(Object.keys(row).sort(),['id','organizationId','name','code','timezone','propertyType','address','active','createdAt','updatedAt'].sort());
+      assert.equal(row.organizationId,org);assert.deepEqual(row.address,address);assert.equal(row.createdAt,stamp);assert.equal(row.updatedAt,stamp);
+      assert.equal(row.timezone,'America/Sao_Paulo');assert.equal(row.propertyType,'CONDOMINIUM');assert.equal(row.active,true);}
+  });
+  it('preserves SD TEXT cursor binding, limit+1 and minimal ordered page shape',async()=>{
+    const expected=await expectedPeople(),found:Person[]=[];let cursor:string|undefined;
+    for(let page=0;page<=expected.length;page++){
+      const result=await request(manager,peoplePath(building,cursor,1));assert.equal(result.status,200);assert.equal(result.cache,'no-store');
+      const body=result.body as PeoplePage;assert.ok(body.items.length<=1);for(const row of body.items)assert.deepEqual(Object.keys(row).sort(),['email','id','name']);
+      found.push(...body.items);if(body.nextCursor===null)break;assert.equal(body.nextCursor,body.items[0]!.id);cursor=body.nextCursor;
+      assert.ok(page<expected.length,'finite forward-only pagination');
+    }
+    assert.deepEqual(found,expected);
+    const quoted=expected.find(x=>x.id.includes("'"));assert.ok(quoted);
+    const result=await request(manager,peoplePath(building,quoted.id,100));assert.equal(result.status,200);
+    assert.deepEqual(result.body,{items:expected.slice(expected.findIndex(x=>x.id===quoted.id)+1),nextCursor:null});
+  });
+  it('keeps the purpose boolean filter before pagination and preserves an empty nextCursor',async()=>{
+    const expected=await expectedPeople(true),found:Person[]=[];let cursor:string|undefined;
+    for(let page=0;page<=roster.length;page++){
+      const result=await request(manager,peoplePath(building,cursor,1,true));assert.equal(result.status,200);const body=result.body as PeoplePage;
+      found.push(...body.items);if(body.nextCursor===null)break;cursor=body.nextCursor;assert.ok(page<roster.length,'bounded pages');
+    }
+    assert.deepEqual(found,expected);assert.ok(found.every(x=>!residentIds.includes(x.id)));
+    const empty=await request(manager,peoplePath(building,'zzzz-after-every-fixture',1,true));assert.equal(empty.status,200);
+    assert.deepEqual(empty.body,{items:[],nextCursor:null});
+  });
+  it('does not broaden ordinary resident or foreign-building directory capabilities',async()=>{
+    assert.equal((await request(resident,peoplePath())).status,403);
+    assert.equal((await request(manager,peoplePath(foreign))).status,403);
+    const buildings=await request(resident,'/buildings');assert.equal(buildings.status,200);
+    assert.deepEqual((buildings.body as {items:Array<{id:string}>}).items.map(x=>x.id),[building]);
+  });
+  it('retains global building discovery and local SD grants for a real family with a synthetic satisfied proof',async()=>{
+    await prove(satisfied);
+    const buildings=await request(satisfied,'/buildings');assert.equal(buildings.status,200);
+    const expected=await sqlClient`select id from buildings order by name`;
+    assert.deepEqual((buildings.body as {items:Array<{id:string}>}).items.map(x=>x.id).sort(),expected.map(row=>row.id).sort());
+    const people=await request(satisfied,peoplePath());assert.equal(people.status,200);
+    assert.deepEqual(people.body,{items:await expectedPeople(),nextCursor:null});
+    assert.equal((await request(satisfied,peoplePath(foreign))).status,403);
+  });
+});

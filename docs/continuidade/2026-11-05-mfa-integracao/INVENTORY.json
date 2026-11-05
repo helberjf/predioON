@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "status": "CANONICAL_GATEWAY_EVENTS_VALIDATED_RESTORED_CANDIDATE",
+  "status": "CANONICAL_GUARDED_READ_VALIDATED_RESTORED_CANDIDATE",
   "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
   "plannedBase": "Approved published source base53c4c70; current documentation may be newer.",
   "sourceBaseline": "2676a74216b012dcab6fa2fb9735dc1b6ef8e9d8",
@@ -719,10 +719,54 @@
       "bytes": 22111,
       "component": "gateway-events-mfa",
       "kind": "database-test"
+    },
+    {
+      "path": "apps/api/src/auth/mfa-read.ts",
+      "payload": "payload/runtime/apps/api/src/auth/mfa-read.ts.txt",
+      "beforeSha256": null,
+      "beforeGitSha256": null,
+      "beforeGitObject": null,
+      "afterSha256": "b1660c12bbed1c3bccb3de564fff1aca836adc962970b51122dcd3e9d6fed801",
+      "bytes": 1764,
+      "component": "guarded-read-mfa",
+      "kind": "runtime"
+    },
+    {
+      "path": "apps/api/src/modules/buildings/routes.ts",
+      "payload": "payload/runtime/apps/api/src/modules/buildings/routes.ts.txt",
+      "beforeSha256": "50fbc74a34023b7834ead2c6e04846b57169738d051f5093c629f44598f1bf60",
+      "beforeGitSha256": "50fbc74a34023b7834ead2c6e04846b57169738d051f5093c629f44598f1bf60",
+      "beforeGitObject": "3b53a43d32147a99e8fba36b8706e5362ba29e8e",
+      "afterSha256": "fed0d6791c1e4607d08a7c66b0eec3fd42b7acdd9f20664a2c7d5eb3c80f0cf3",
+      "bytes": 4743,
+      "component": "guarded-read-mfa",
+      "kind": "runtime"
+    },
+    {
+      "path": "apps/api/src/modules/tenancy/routes.ts",
+      "payload": "payload/runtime/apps/api/src/modules/tenancy/routes.ts.txt",
+      "beforeSha256": "2d2fcd5eace979677565cdf1f084128ea4a735f74d2bb8824249b29922c69e60",
+      "beforeGitSha256": "2d2fcd5eace979677565cdf1f084128ea4a735f74d2bb8824249b29922c69e60",
+      "beforeGitObject": "62c828c1f209775f4decd7e67bd30378f74e0f55",
+      "afterSha256": "b1fd2d80ded5a60d8b43ecc041164e9e977d4dcdba6c6e7b28bc79deb32b5eea",
+      "bytes": 26333,
+      "component": "guarded-read-mfa",
+      "kind": "runtime"
+    },
+    {
+      "path": "apps/api/test/platform-mfa-guarded-read.test.ts",
+      "payload": "payload/runtime/apps/api/test/platform-mfa-guarded-read.test.ts.txt",
+      "beforeSha256": null,
+      "beforeGitSha256": null,
+      "beforeGitObject": null,
+      "afterSha256": "273b91214f0bdce2e0ff43fbaf2c7b28a67db270bcafc816a5e3a81ae9fbbd03",
+      "bytes": 16437,
+      "component": "guarded-read-mfa",
+      "kind": "database-test"
     }
   ],
   "pending": [
-    "Complete remaining SQL/SD/no-match mutations, locks/triggers and integrated regressions; gateway7 and ten regression files114 are finite isolated validations, not API integral or global rollout.",
+    "Complete remaining SQL/SD/no-match mutations, locks/triggers and integrated regressions; guarded-read8 and eleven regression files121 are finite isolated validations, not API integral or global rollout.",
     "Renderer staging recipe remains authored and not executed; do not transfer its earlier separate harness PASS."
   ],
   "excluded": [
@@ -806,5 +850,12 @@
     "sourceManifestSha256": "d4ed11a9d1696696edaec7e4729da4b25463a6a1a7b813e12fcfb3aa1f88771f",
     "scope": "Gateway7 plus ten regression files114; SQL/equipment changes only; no private-frame leak claim",
     "restorationEvidence": "../../evidencias/mfa-gateway-restore-2026-11-05.json"
+  },
+  "guardedReadValidation": {
+    "evidence": "../../evidencias/mfa-guarded-read-2026-11-05.json",
+    "evidenceSha256": "2f565ba1762bf79a2ea08840573e54f3ff19bf733f942d5f660af3e46a7f9569",
+    "sourceManifestSha256": "45449b1b7c296be2b88683ad0c0ad25bffea839f3e3e99cbc9bdc4f6e92343e1",
+    "scope": "Guarded-read8 plus eleven regression files121; two GETs and adapter only; no SQL migration change",
+    "restorationEvidence": "../../evidencias/mfa-guarded-read-restore-2026-11-05.json"
   }
 }

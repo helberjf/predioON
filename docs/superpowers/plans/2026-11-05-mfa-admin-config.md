@@ -1,5 +1,8 @@
 # ADMIN/CONFIG: três ações comuns, sem 174 guards individuais
 
+**Resultado do primeiro lote em 05/11:** o adaptador comum e GETs de prédios/pessoas passaram em oito testes dirigidos e 121 regressões. [Prova e limites](../../evidencias/mfa-guarded-read-2026-11-05.json). A próxima etapa cobre blocos, unidades e equipes; vínculos, comandos e convites continuam pendentes.
+
+
 Análise estática sobre composição heartbeat72119 (base7b53, original25adaptado). Nenhum runtime/teste/DB executado. Inventário174 é heurístico; os achados abaixo descrevem arquitetura e oportunidades de redução, não vulnerabilidades reproduzidas.
 
 ## O que já está pronto e não deve ser refeito

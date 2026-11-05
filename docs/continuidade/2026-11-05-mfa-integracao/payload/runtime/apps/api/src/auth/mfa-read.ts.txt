@@ -1,0 +1,36 @@
+import { sql, type SQL } from "drizzle-orm";
+import type { AppTransaction } from "@predioon/db/runtime";
+
+/** Server-authored pure SELECTs only, after reviewing all called SQL functions
+ * as STABLE/IMMUTABLE reads. SQL fragments and sort keys must never come from a
+ * client. This is not a parser/sandbox for arbitrary SQL or a mutator wrapper.
+ * The selected columns must have explicit DTO aliases; JSON bypasses Drizzle's
+ * usual column decoders, so every caller supplies its explicit row decoder.
+ * CASE/empty behavior requires real PostgreSQL regression before acceptance.
+ */
+export async function readMfaRows<Row>(
+  tx: AppTransaction,
+  query: SQL,
+  decode: (value: unknown) => Row,
+  orderBy: readonly [keyof Row & string, ...(keyof Row & string)[]],
+): Promise<Row[]> {
+  const alias = sql.identifier("mfa_read_row");
+  const order = sql.join(orderBy.map(key => sql`${alias}.${sql.identifier(key)}`), sql`, `);
+  const [result] = await tx.execute<{ rows: unknown }>(sql`
+    select case when public.app_require_session_mfa() then coalesce((
+      select jsonb_agg(to_jsonb(${alias}) order by ${order})
+      from (${query}) as ${alias}
+    ), '[]'::jsonb) else null end as rows
+  `);
+  // Guard currently returns true or PMF01/02. An unexpected false/null result
+  // cannot become a successful empty response, and no private row is decoded.
+  if (!result || !Array.isArray(result.rows)) throw new Error("Invalid guarded read result");
+  return result.rows.map(decode);
+}
+
+/** Restore the Date semantics of timestamp columns after PostgreSQL JSON. */
+export function decodeMfaReadDate(value: string): Date {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) throw new Error("Invalid guarded read timestamp");
+  return date;
+}

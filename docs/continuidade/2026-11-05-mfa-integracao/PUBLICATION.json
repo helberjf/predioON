@@ -1,5 +1,5 @@
 {
-  "status": "CANDIDATE_GATEWAY_EVENTS_VALIDATED_CANONICAL_RESTORE_PASSED",
+  "status": "CANDIDATE_GUARDED_READ_VALIDATED_CANONICAL_RESTORE_PASSED",
   "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
   "metadata": [
     {
@@ -8,7 +8,7 @@
     },
     {
       "path": "INVENTORY.json",
-      "sha256": "b9992fb6fcd1f63d90235caba43bbc69441f2d7c6ab60d5137388c662d3553e4"
+      "sha256": "761e978021ca63167479803ceffe0e21ad357dc0612d09cb849d7e0b43511cc5"
     },
     {
       "path": "git-blobs.mjs",
@@ -24,7 +24,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "3f90210a3d17691f082bb65faaf9339ccb274f17d30c18f8c15c91ab1ae8e326"
+      "sha256": "58234ceed3c3f8ad1786778b27a334f664acecda6d2299b465ca752814ca94fb"
     },
     {
       "path": "qaSupport/renderer/package.json",
@@ -47,9 +47,9 @@
       "sha256": "cab9d8393b345aa0d90ea6f7662cd38100b9433f9c16a7e7eed035b18da4e876"
     }
   ],
-  "inventoryPayloads": 65,
+  "inventoryPayloads": 69,
   "alreadyPublishedQueryPayloads": 2,
-  "pendingRuntimeAndTestFiles": 61,
+  "pendingRuntimeAndTestFiles": 65,
   "explicitRendererTestFiles": 2,
   "rendererSupportFiles": 5,
   "canonicalSourceFiles": 994,
@@ -64,39 +64,44 @@
     "evidence": "../../evidencias/mfa-canonical-restore-2026-11-05.json"
   },
   "currentPayloadSet": {
-    "sourceManifestSha256": "d4ed11a9d1696696edaec7e4729da4b25463a6a1a7b813e12fcfb3aa1f88771f",
-    "evidence": "../../evidencias/mfa-gateway-events-2026-11-05.json",
-    "evidenceSha256": "d04b5aac4a300dc360b9036be5f6cb1a2fab985d13f842d53c115eff4974dd07",
+    "sourceManifestSha256": "45449b1b7c296be2b88683ad0c0ad25bffea839f3e3e99cbc9bdc4f6e92343e1",
+    "evidence": "../../evidencias/mfa-guarded-read-2026-11-05.json",
+    "evidenceSha256": "2f565ba1762bf79a2ea08840573e54f3ff19bf733f942d5f660af3e46a7f9569",
     "composition": [
       {
-        "path": "infrastructure/068-platform-mfa-required.sql",
-        "sha256": "231ba481ebed3a1867fcb0332daba3850a53a6674c4cdd4dd019984de280c5a5",
-        "bytes": 32426
+        "path": "apps/api/src/auth/mfa-read.ts",
+        "sha256": "b1660c12bbed1c3bccb3de564fff1aca836adc962970b51122dcd3e9d6fed801",
+        "bytes": 1764
       },
       {
-        "path": "apps/api/src/modules/events/equipment.ts",
-        "sha256": "994f43517b47848cda566755d5c931da9f1b62e85276e5f6ac9979f028dfd512",
-        "bytes": 3048
+        "path": "apps/api/src/modules/buildings/routes.ts",
+        "sha256": "fed0d6791c1e4607d08a7c66b0eec3fd42b7acdd9f20664a2c7d5eb3c80f0cf3",
+        "bytes": 4743
       },
       {
-        "path": "apps/api/test/platform-mfa-gateway-events.test.ts",
-        "sha256": "b2fc657d8b95aa079c232ca0d669ccaa813febf726c5c64b152877a08c2eb33d",
-        "bytes": 22111
+        "path": "apps/api/src/modules/tenancy/routes.ts",
+        "sha256": "b1fd2d80ded5a60d8b43ecc041164e9e977d4dcdba6c6e7b28bc79deb32b5eea",
+        "bytes": 26333
+      },
+      {
+        "path": "apps/api/test/platform-mfa-guarded-read.test.ts",
+        "sha256": "273b91214f0bdce2e0ff43fbaf2c7b28a67db270bcafc816a5e3a81ae9fbbd03",
+        "bytes": 16437
       }
     ],
     "previousSql11V5TestSha256": "2c8a7bc400bd7b8055922f11a06239026db9dce7e9c4195cba696c67c5cd6710",
-    "validatedMergedScope": "Gateway7 plus ten regression files114; SQL/equipment changes only; no private-frame leak claim",
+    "validatedMergedScope": "Guarded-read8 plus eleven regression files121; two GETs and adapter only; no SQL migration change",
     "assemblyAndRestoreExecutedForThisUpdatedSet": true,
-    "restorationEvidence": "../../evidencias/mfa-gateway-restore-2026-11-05.json",
-    "restoredComposedFiles": 1018,
+    "restorationEvidence": "../../evidencias/mfa-guarded-read-restore-2026-11-05.json",
+    "restoredComposedFiles": 1020,
     "matchesTestedComposition": true,
-    "manifestSha256": "5a65e5345403febabd60e60cae4f2fff3b4fa5673c981c8030023cee297a5479",
-    "receiptSha256": "7671411713ed982a6e8e4373eefff588036ff60b08640cf5b438b7b409dd6ee8"
+    "manifestSha256": "fe3ff78ed0dd38dd57ea07ce4c4191029666c9775ac3d6a9e2f0fbc6abe6e6c6",
+    "receiptSha256": "427e008a418a4a0feaa4adfee32ac0b09fab3a6a0e1749f228388fa45fa8f948"
   },
   "rendererStagingRecipeExecuted": false,
   "p0DisablePatchIncluded": true,
   "publishedApiDatabaseChanged": false,
-  "staticPeerReview": "Gateway guard-first update: canonical1018 sources plus5 supports match tested d4ed exactly. Gateway7 and ten regression files114 passed separately; no-row baseline closure failure is not a private-frame leak. Other domains/mutations, renderer staging and global rollout remain outside acceptance.",
+  "staticPeerReview": "Guarded-read prototype: canonical1020 sources plus5 supports match tested45449 exactly. Eight directed cases and eleven regression files121 passed separately; only two GETs use the adapter. Other readers/mutations, renderer staging and integrated rollout remain outside acceptance.",
   "historicalGuardRefusal": {
     "minimumMiB": 1536,
     "at": "2026-11-05T03:53:51.9727239Z",
@@ -199,6 +204,14 @@
     {
       "path": "../../evidencias/mfa-gateway-restore-2026-11-05.json",
       "sha256": "945f3634901972fe8b28363b5a29671ffe1e6f559add18105b33a332d2521fb0"
+    },
+    {
+      "path": "../../evidencias/mfa-guarded-read-2026-11-05.json",
+      "sha256": "2f565ba1762bf79a2ea08840573e54f3ff19bf733f942d5f660af3e46a7f9569"
+    },
+    {
+      "path": "../../evidencias/mfa-guarded-read-restore-2026-11-05.json",
+      "sha256": "7bc16df2191a29240bc62a0d8eca118deca4bf719a64c6e0fce835727d4c0d37"
     }
   ],
   "computerRestarted": false,
@@ -450,5 +463,35 @@
     "matchesTestedComposition": true,
     "manifestSha256": "43e60f0833df6f87cfe67c6381ae5a68b745aa235d60eda45a99bc4b4c440d1f",
     "receiptSha256": "ac9ce2024c35d116b1a9c9d4d9124e392e9c93fdc7db28ae84c93895dc8b72b7"
+  },
+  "previousGatewayPayloadSet": {
+    "sourceManifestSha256": "d4ed11a9d1696696edaec7e4729da4b25463a6a1a7b813e12fcfb3aa1f88771f",
+    "evidence": "../../evidencias/mfa-gateway-events-2026-11-05.json",
+    "evidenceSha256": "d04b5aac4a300dc360b9036be5f6cb1a2fab985d13f842d53c115eff4974dd07",
+    "composition": [
+      {
+        "path": "infrastructure/068-platform-mfa-required.sql",
+        "sha256": "231ba481ebed3a1867fcb0332daba3850a53a6674c4cdd4dd019984de280c5a5",
+        "bytes": 32426
+      },
+      {
+        "path": "apps/api/src/modules/events/equipment.ts",
+        "sha256": "994f43517b47848cda566755d5c931da9f1b62e85276e5f6ac9979f028dfd512",
+        "bytes": 3048
+      },
+      {
+        "path": "apps/api/test/platform-mfa-gateway-events.test.ts",
+        "sha256": "b2fc657d8b95aa079c232ca0d669ccaa813febf726c5c64b152877a08c2eb33d",
+        "bytes": 22111
+      }
+    ],
+    "previousSql11V5TestSha256": "2c8a7bc400bd7b8055922f11a06239026db9dce7e9c4195cba696c67c5cd6710",
+    "validatedMergedScope": "Gateway7 plus ten regression files114; SQL/equipment changes only; no private-frame leak claim",
+    "assemblyAndRestoreExecutedForThisUpdatedSet": true,
+    "restorationEvidence": "../../evidencias/mfa-gateway-restore-2026-11-05.json",
+    "restoredComposedFiles": 1018,
+    "matchesTestedComposition": true,
+    "manifestSha256": "5a65e5345403febabd60e60cae4f2fff3b4fa5673c981c8030023cee297a5479",
+    "receiptSha256": "7671411713ed982a6e8e4373eefff588036ff60b08640cf5b438b7b409dd6ee8"
   }
 }

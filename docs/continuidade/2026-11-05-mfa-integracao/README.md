@@ -1,72 +1,63 @@
-# Retomada MFA — gateway candidato atualizado em 05/11/2026
+# Retomada MFA — leituras guardadas candidatas em 05/11/2026
 
-**Gateway 7/7 e dez regressões separadas, com 114 casos, passaram na composição isolada.**
-Base canônica `53c4c70dcd24f1045fad420fbce36757fd3753a2`; fonte testada `d4ed11a9…`,
-**1.018 arquivos e cinco suportes**. [Prova específica](../../evidencias/mfa-gateway-events-2026-11-05.json).
-A [montagem/restauração passou](../../evidencias/mfa-gateway-restore-2026-11-05.json),
-com os 1.018 arquivos e cinco suportes idênticos à composição testada. A
-[restauração anterior do heartbeat](../../evidencias/mfa-heartbeat-restore-2026-11-05.json)
-permanece histórica e não comprova automaticamente os novos bytes. Runtime principal
-continua 001–067; a migração 068 e a política completa permanecem candidatas.
+**Oito casos dirigidos e 121 regressões passaram na composição isolada, em doze processos separados.**
+Base canônica `53c4c70dcd24f1045fad420fbce36757fd3753a2`; fonte corrigida `45449b1b…`,
+**1.020 arquivos e cinco suportes**. [Prova específica](../../evidencias/mfa-guarded-read-2026-11-05.json).
+A [montagem/restauração passou](../../evidencias/mfa-guarded-read-restore-2026-11-05.json),
+com os 1.020 arquivos e cinco suportes idênticos à composição testada. A
+[restauração anterior dos gateways](../../evidencias/mfa-gateway-restore-2026-11-05.json)
+permanece histórica. Runtime principal continua 001–067; migração 068 e política completa permanecem candidatas.
 
 ## Conteúdo recuperável
 
-Inventário de **65 payloads**: 61 arquivos candidatos de implementação/testes,
-dois testes renderer explícitos e dois helper/teste query já publicados, excluídos
-do delta pelos hashes exatos. Cinco suportes renderer são separados. Não reaplicar
+Inventário de **69 payloads**: 65 arquivos candidatos de implementação/testes,
+dois testes renderer explícitos e dois arquivos query já publicados e excluídos
+do delta por seus hashes. Cinco suportes renderer são separados. Não reaplicar
 transporte publicado ou patches históricos sobre a main.
 
-Esta rodada substitui somente SQL068 candidata e
-`apps/api/src/modules/events/equipment.ts`, e acrescenta
-`apps/api/test/platform-mfa-gateway-events.test.ts`. O novo envelope
-`app_mfa_gateway_event_context(text,text)` executa o guard antes de procurar o alvo,
-inclusive para linha ausente, argumentos NULL e par divergente. Depois lê registro
-persistido sob RLS e devolve stored mínimo ou null. Projector conserva quatro campos
-persistidos, sem usar o status forjado de NOTIFY. Mantém device e heartbeat intactos;
-não adiciona classificação, features, freshness ou grants de tabelas ao gateway.
-ACL de inventário passa de 15 a 16 assinaturas, com nova função INVOKER app-only.
+Este recorte acrescenta ao inventário o adaptador `auth/mfa-read.ts`, duas rotas
+(`modules/buildings/routes.ts` e `modules/tenancy/routes.ts`) e o teste dirigido.
+Somente GET `/buildings` e GET `/tenancy/people` usam o adaptador. O guard e a
+subconsulta pertencem ao mesmo statement; CASE preserva a decisão para resultado
+vazio. As consultas são escritas pelo servidor, com dependências STABLE revisadas.
+Não é um executor genérico de SQL do cliente ou de comandos de alteração.
 
-STABLE compartilha o snapshot do guard e da leitura, mas não torna linearizável
-uma revogação posterior ao statement, commit ou envio de bytes na rede.
-`MANIFEST.json` e `PACKAGE-HASHES.json` surgem na montagem do pacote; somente nova
-restauração verificada pode confirmar a composição inteira em outro computador.
+Aliases explícitos conservam o DTO de buildings, inclusive JSON com nulls e datas
+UTC. People conserva cursor TEXT parametrizado, filtro de residentes antes de
+limit+1, ordenação e paginação. Empates de nomes em buildings continuam sem ordem
+definida. Nenhuma alteração de SQL068, ACL, heartbeat ou projectors foi incluída.
 
-## Rodada atual: gateway e regressões
+## Rodada atual e limites
 
-Baseline teve **0 PASS/7 FAIL**, sem cancelamentos/skips/todo, em **3,088 s de TAP**.
-No caso 1, a conexão primeiro entregou DTO positivo persistido; depois da promoção,
-um alvo ausente produziu zero frames de dados e a resposta continuou aberta.
-A falha observada foi false contra true na exigência de fechamento: **não houve
-vazamento de frame privado**. As outras seis falhas correspondem ao contrato novo
-ausente; caso 7 expõe 42883, enquanto os wrappers dos demais logs não expõem um PMF
-específico. Não atribuir execução às etapas posteriores à primeira assertiva falha.
+A baseline terminou **5 PASS/3 FAIL**, sem cancelamento, skip ou todo, em 3,869 s
+de TAP. Caso 1: HTTP 200 com lista comprovadamente vazia, quando era esperado 403;
+sem exposição de dados. Caso 2: página mínima real de pessoas entregue após
+promoção administrativa, decodificada e comparada antes da assertiva negativa.
+Caso 3: HTTP 200 no primeiro caminho, buildings, após remoção da prova da família;
+o corpo não foi comparado em profundidade e o segundo caminho SD não foi alcançado.
+Não transferir cobertura às etapas posteriores à primeira falha.
 
-A corrigida passou **7/7 em 3,146 s de TAP**. Em seguida passaram dez processos
-separados: heartbeat 9, dispositivos 9, telemetria 9, funcionalidades 7, desativação 5,
-SQL 11, telemetria original 13, alertas originais 17, alertas dirigidos 9 e equipamentos
-originais 25, total 114. São 121 casos em onze processos, não API integral.
-Resolução/tipos dos 11 arquivos e imports passaram: 1,368/10,441 s na baseline e
-1,232/10,136 s na corrigida. Fontes, logs e limpeza foram conferidos, com seis
-roles/credenciais/settings restaurados e zero bancos temporários/outros clientes.
+A corrigida passou **8/8 em 3,857 s de TAP**. As onze regressões separadas somam
+121: gateway 7, heartbeat 9, dispositivos 9, telemetria 9, funcionalidades 7,
+desativação 5, SQL 11, telemetria original 13, alertas originais 17, alertas dirigidos
+9 e equipamentos originais 25. São 129 casos em doze processos, não API integral.
+Resolução/tipos passaram em 1,226/10,292 s na baseline e 1,105/10,422 s na corrigida;
+12 arquivos de testes e imports, com nove fontes exigidas na baseline e dez na
+corrigida devido ao adaptador novo. Baseline tem 1.019 arquivos, corrigida 1.020.
 
-Nova prova usa SSE/HTTP/NOTIFY reais para o cenário de fechamento, consultas e
-projeções reais nos controles; fatores/provas sintéticos não estabelecem TOTP.
-As fixtures originais administrativas conservam suas cerimônias próprias.
-Owner é conhecido pelo processo para arranjo/instrumentação; runtime usa seis
-conexões restritas. Nenhuma alegação de ausência de owner em todo o teste.
+As execuções usam fixture UUID oficial, owner para arranjo/instrumentação e seis
+conexões runtime restritas. As seis roles, credenciais e settings foram restauradas;
+fontes permaneceram iguais e a limpeza terminou com zero bancos temporários e
+outros clientes. Provas MFA deste teste são sintéticas; não é nova aceitação TOTP,
+Playwright ou nativa. As regressões originais preservam suas próprias cerimônias.
 
-O heartbeat permanece com os limites já registrados: callback de expiração JWT
-não exercitado e ausência de assertiva res.end exatamente uma vez. SQL já em voo
-não é cancelado por close. Demais domínios/SD/mutações, integração web/nativa e
-produção continuam pendentes. As seções históricas abaixo mantêm seus escopos.
-
-## Histórico imediato: heartbeat
-
-A [rodada heartbeat 9 e regressões 105](../../evidencias/mfa-heartbeat-2026-11-05.json)
-permanece documentada na fonte 72119. Sua baseline mostrou 1 PASS/8 FAIL por ordem de
-consultas, callbacks após close, ping e headers iniciais, sem DTO privado exposto.
-Nesta rodada gateway, os nove casos heartbeat foram reexecutados como um dos dez
-processos de regressão; não somar a execução histórica como casos novos.
+STABLE não lineariza revogação posterior ao snapshot, commit ou envio de bytes.
+Demais domínios, mutações, integração e produção permanecem pendentes. A
+[rodada anterior de gateways](../../evidencias/mfa-gateway-events-2026-11-05.json)
+permanece documentada; seus sete casos foram novamente executados nesta composição.
+O heartbeat conserva seus limites: expiração JWT não exercitada nessa prova histórica,
+e ausência de assertiva de res.end exatamente uma vez. A receita de staging do
+renderer não foi executada; não transferir aceitação de ensaios anteriores.
 
 ## Retomar em outro computador
 

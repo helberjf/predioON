@@ -1,0 +1,463 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-11-05",
+  "scope": "Protótipo de leitura MFA no mesmo statement para dois GETs reais; DTO e paginação preservados",
+  "sources": {
+    "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+    "baselinePreparedSha256": "38f820cfd8800964b6d27cadd9288df96e4d38253f09d906e42b60ea310a5deb",
+    "fixedPreparedSha256": "45449b1b7c296be2b88683ad0c0ad25bffea839f3e3e99cbc9bdc4f6e92343e1",
+    "rootFiles": 994,
+    "composedFilesByVariant": {
+      "baseline": 1019,
+      "fixed": 1020
+    },
+    "workspaceJunctions": 23,
+    "productManifest": {
+      "id": "mfa-guarded-read-candidate-20261105/manifest.json",
+      "sha256": "99412cd45f7a9d16eb4b3ccb0d2b740fecf385864a429a96a78d2a361d7c3f64",
+      "bytes": 2317
+    },
+    "testManifest": {
+      "id": "mfa-read-prototype-tests-20261105/manifest.json",
+      "sha256": "3bad379dd69d6f66a46f8e001a7a3654fc339481f97680893ac94156d3bb5379",
+      "bytes": 242
+    }
+  },
+  "typeChecks": [
+    {
+      "variant": "baseline",
+      "phase": "resolve",
+      "exitCode": 0,
+      "durationMs": 1226,
+      "freeMiB": 2221,
+      "sourceCandidateConfigPreparedJunctionsAfter": true,
+      "result": {
+        "id": "mfa-guarded-read-baseline-qa-20261105/checks/resolve/result.json",
+        "sha256": "4f10adbbdd512d830e5dfbe352ecd0c8b642b21b58dd06a7168d9c11ea73e597",
+        "bytes": 1178
+      }
+    },
+    {
+      "variant": "baseline",
+      "phase": "types",
+      "exitCode": 0,
+      "durationMs": 10292,
+      "freeMiB": 2248,
+      "sourceCandidateConfigPreparedJunctionsAfter": true,
+      "result": {
+        "id": "mfa-guarded-read-baseline-qa-20261105/checks/types/result.json",
+        "sha256": "e2093efd0fde09ce55441d12530b41f51280ade8bcce4ee844ecde61a780a043",
+        "bytes": 1025
+      }
+    },
+    {
+      "variant": "fixed",
+      "phase": "resolve",
+      "exitCode": 0,
+      "durationMs": 1105,
+      "freeMiB": 2747,
+      "sourceCandidateConfigPreparedJunctionsAfter": true,
+      "result": {
+        "id": "mfa-guarded-read-fixed-qa-20261105/checks/resolve/result.json",
+        "sha256": "ef334337dd983736f0b016bfc94c0a6165b46d92eb58cc3db57220475d08f8d2",
+        "bytes": 1175
+      }
+    },
+    {
+      "variant": "fixed",
+      "phase": "types",
+      "exitCode": 0,
+      "durationMs": 10422,
+      "freeMiB": 2711,
+      "sourceCandidateConfigPreparedJunctionsAfter": true,
+      "result": {
+        "id": "mfa-guarded-read-fixed-qa-20261105/checks/types/result.json",
+        "sha256": "16b2e5cdf735243d206c047994183be279f8e4e8f63613899abf9d9bf373aa2f",
+        "bytes": 1022
+      }
+    }
+  ],
+  "runs": {
+    "baseline": {
+      "startedUtc": "2026-11-05T08:32:06.222Z",
+      "endedUtc": "2026-11-05T08:32:17.208Z",
+      "observedHeadBefore": "0b9aa7eb4744d4007dc5fa13e1ac8c020838470e",
+      "observedHeadAfter": "0b9aa7eb4744d4007dc5fa13e1ac8c020838470e",
+      "processes": [
+        {
+          "file": "platform-mfa-guarded-read.test.ts",
+          "tap": {
+            "tests": 8,
+            "suites": 1,
+            "pass": 5,
+            "fail": 3,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 3868.8857
+          },
+          "exitCode": 1,
+          "childDurationMs": 4028.066700000001,
+          "log": {
+            "id": "mfa-guarded-read-baseline-qa-20261105/platform-mfa-guarded-read.log",
+            "sha256": "cef0f637567d3ef59c5cbbec537a5f81daafe50da6eb35112cc976b8ff2276cf",
+            "bytes": 6708
+          }
+        }
+      ],
+      "result": {
+        "id": "mfa-guarded-read-baseline-qa-20261105/mfa-directed-result.json",
+        "sha256": "174faed8b243b4a493d21cb6c0e540bfd3ff51c77b6815e9ec9e16305ebd3973",
+        "bytes": 311335
+      },
+      "postchecks": {
+        "id": "mfa-guarded-read-baseline-qa-20261105/mfa-directed-postchecks.json",
+        "sha256": "527c8ca1593b1db33ff13bc7a258009ccc51b63ce4f69535863c2b6a2404ad35",
+        "bytes": 390
+      },
+      "cleanupPassed": true,
+      "sourceHashesAfterMatch": true,
+      "rolesRestoredIncludingPrivateCredentials": true,
+      "settingsRestored": true,
+      "baseTablesTemporaryOtherDatabasesAndOtherClients": 0,
+      "roles": 6,
+      "freeMiBAtStart": 2797.0
+    },
+    "fixed": {
+      "startedUtc": "2026-11-05T08:32:41.434Z",
+      "endedUtc": "2026-11-05T08:32:52.518Z",
+      "observedHeadBefore": "0b9aa7eb4744d4007dc5fa13e1ac8c020838470e",
+      "observedHeadAfter": "0b9aa7eb4744d4007dc5fa13e1ac8c020838470e",
+      "processes": [
+        {
+          "file": "platform-mfa-guarded-read.test.ts",
+          "tap": {
+            "tests": 8,
+            "suites": 1,
+            "pass": 8,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 3857.334
+          },
+          "exitCode": 0,
+          "childDurationMs": 4024.869999999999,
+          "log": {
+            "id": "mfa-guarded-read-fixed-qa-20261105/platform-mfa-guarded-read.log",
+            "sha256": "d81d5453de59eba45a583dfe2fc5d27ee4ac0e5dd1b52fe4918eabccd0e470f0",
+            "bytes": 2494
+          }
+        }
+      ],
+      "result": {
+        "id": "mfa-guarded-read-fixed-qa-20261105/mfa-directed-result.json",
+        "sha256": "420a2085a805537b90b13edfbce164a8e1e9919b24fd72ffe05f618677bbfcf8",
+        "bytes": 311483
+      },
+      "postchecks": {
+        "id": "mfa-guarded-read-fixed-qa-20261105/mfa-directed-postchecks.json",
+        "sha256": "d3c9d27814f4f7815737590fc680e7864b394e570eb66d47a27071a64ddc20a3",
+        "bytes": 390
+      },
+      "cleanupPassed": true,
+      "sourceHashesAfterMatch": true,
+      "rolesRestoredIncludingPrivateCredentials": true,
+      "settingsRestored": true,
+      "baseTablesTemporaryOtherDatabasesAndOtherClients": 0,
+      "roles": 6,
+      "freeMiBAtStart": 2756.0
+    },
+    "fixed-regression": {
+      "startedUtc": "2026-11-05T08:33:03.440Z",
+      "endedUtc": "2026-11-05T08:35:52.832Z",
+      "observedHeadBefore": "0b9aa7eb4744d4007dc5fa13e1ac8c020838470e",
+      "observedHeadAfter": "0b9aa7eb4744d4007dc5fa13e1ac8c020838470e",
+      "processes": [
+        {
+          "file": "platform-mfa-gateway-events.test.ts",
+          "tap": {
+            "tests": 7,
+            "suites": 1,
+            "pass": 7,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 3831.8851
+          },
+          "exitCode": 0,
+          "childDurationMs": 4499.3632,
+          "log": {
+            "id": "mfa-guarded-read-fixed-regression-qa-20261105/platform-mfa-gateway-events.log",
+            "sha256": "f14332c03aa4f492ffa0f3533c7e46d5c0097311e7037830b971996c592c1989",
+            "bytes": 2487
+          }
+        },
+        {
+          "file": "platform-mfa-heartbeat.test.ts",
+          "tap": {
+            "tests": 9,
+            "suites": 1,
+            "pass": 9,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 4012.0525
+          },
+          "exitCode": 0,
+          "childDurationMs": 4185.0134,
+          "log": {
+            "id": "mfa-guarded-read-fixed-regression-qa-20261105/platform-mfa-heartbeat.log",
+            "sha256": "ea91954741bca32544bcf854e93d3c35ac0f2bab35bc3332ff92a6165cbef018",
+            "bytes": 2779
+          }
+        },
+        {
+          "file": "platform-mfa-device-events.test.ts",
+          "tap": {
+            "tests": 9,
+            "suites": 1,
+            "pass": 9,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 4358.0576
+          },
+          "exitCode": 0,
+          "childDurationMs": 5022.848199999997,
+          "log": {
+            "id": "mfa-guarded-read-fixed-regression-qa-20261105/platform-mfa-device-events.log",
+            "sha256": "4142ccf16981b106dd752289a266beb7af38319d6920de8cd971441cb1ad5057",
+            "bytes": 2792
+          }
+        },
+        {
+          "file": "platform-mfa-telemetry-events.test.ts",
+          "tap": {
+            "tests": 9,
+            "suites": 1,
+            "pass": 9,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 4348.8056
+          },
+          "exitCode": 0,
+          "childDurationMs": 4503.810699999998,
+          "log": {
+            "id": "mfa-guarded-read-fixed-regression-qa-20261105/platform-mfa-telemetry-events.log",
+            "sha256": "1e16a84f27d44618af871153a551bc1605cf2cd9e697c31b54cf2edece681d9e",
+            "bytes": 2654
+          }
+        },
+        {
+          "file": "platform-mfa-feature-events.test.ts",
+          "tap": {
+            "tests": 7,
+            "suites": 1,
+            "pass": 7,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 3487.1294
+          },
+          "exitCode": 0,
+          "childDurationMs": 3651.0250000000015,
+          "log": {
+            "id": "mfa-guarded-read-fixed-regression-qa-20261105/platform-mfa-feature-events.log",
+            "sha256": "6573db922f02aee79677d0c9d5f610e80104d94e27cf029b8cd419b93c720e64",
+            "bytes": 2106
+          }
+        },
+        {
+          "file": "platform-mfa-disable-snapshot.test.ts",
+          "tap": {
+            "tests": 5,
+            "suites": 1,
+            "pass": 5,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 3661.6053
+          },
+          "exitCode": 0,
+          "childDurationMs": 4326.780599999998,
+          "log": {
+            "id": "mfa-guarded-read-fixed-regression-qa-20261105/platform-mfa-disable-snapshot.log",
+            "sha256": "4f16921b68a8cab461c5a17fbc2ab6a0fae603443c1beacc004a9185e008b8b6",
+            "bytes": 1570
+          }
+        },
+        {
+          "file": "platform-mfa-sql-envelopes.test.ts",
+          "tap": {
+            "tests": 11,
+            "suites": 1,
+            "pass": 11,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 3819.2458
+          },
+          "exitCode": 0,
+          "childDurationMs": 4483.841800000002,
+          "log": {
+            "id": "mfa-guarded-read-fixed-regression-qa-20261105/platform-mfa-sql-envelopes.log",
+            "sha256": "eb48ebb68fc211437e9de70ea76c51a882e30afe2a6b09a1d6f397d54703f9e8",
+            "bytes": 3173
+          }
+        },
+        {
+          "file": "telemetry-events-capabilities.test.ts",
+          "tap": {
+            "tests": 13,
+            "suites": 1,
+            "pass": 13,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 16374.1334
+          },
+          "exitCode": 0,
+          "childDurationMs": 16533.5176,
+          "log": {
+            "id": "mfa-guarded-read-fixed-regression-qa-20261105/telemetry-events-capabilities.log",
+            "sha256": "cdbde2010f11b080df507b1466184cbdcf521f4f1d5cfd6eccc133ea8d477801",
+            "bytes": 3411
+          }
+        },
+        {
+          "file": "alert-events-capabilities.test.ts",
+          "tap": {
+            "tests": 17,
+            "suites": 1,
+            "pass": 17,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 19042.5362
+          },
+          "exitCode": 0,
+          "childDurationMs": 19203.648599999993,
+          "log": {
+            "id": "mfa-guarded-read-fixed-regression-qa-20261105/alert-events-capabilities.log",
+            "sha256": "cd801e0b8cfcf04bd813be8d7b019e1449a6ffae7daefa779c2fd1386afde16c",
+            "bytes": 4311
+          }
+        },
+        {
+          "file": "platform-mfa-alert-events.test.ts",
+          "tap": {
+            "tests": 9,
+            "suites": 1,
+            "pass": 9,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 4960.5746
+          },
+          "exitCode": 0,
+          "childDurationMs": 5137.330000000002,
+          "log": {
+            "id": "mfa-guarded-read-fixed-regression-qa-20261105/platform-mfa-alert-events.log",
+            "sha256": "6e9b46074b12b6bac160867616584c37fc58204b1230de1c489f663a2d818bad",
+            "bytes": 2673
+          }
+        },
+        {
+          "file": "equipment-events-capabilities.test.ts",
+          "tap": {
+            "tests": 25,
+            "suites": 1,
+            "pass": 25,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 79224.9443
+          },
+          "exitCode": 0,
+          "childDurationMs": 79389.26479999999,
+          "log": {
+            "id": "mfa-guarded-read-fixed-regression-qa-20261105/equipment-events-capabilities.log",
+            "sha256": "5fe3d1ce3ffac2d53b90f8ac5d66e3fcb92fa347924e0dbb656a5e2e8a72e72d",
+            "bytes": 6890
+          }
+        }
+      ],
+      "result": {
+        "id": "mfa-guarded-read-fixed-regression-qa-20261105/mfa-directed-result.json",
+        "sha256": "a8781183d49d728b3553f9f933dda8e6343f31b4d0b6df1582c385379cbd49cc",
+        "bytes": 317736
+      },
+      "postchecks": {
+        "id": "mfa-guarded-read-fixed-regression-qa-20261105/mfa-directed-postchecks.json",
+        "sha256": "8103f9a8c222a6bf65cacab85d75e9e943f598d4510d13225e100b70de9645a3",
+        "bytes": 390
+      },
+      "cleanupPassed": true,
+      "sourceHashesAfterMatch": true,
+      "rolesRestoredIncludingPrivateCredentials": true,
+      "settingsRestored": true,
+      "baseTablesTemporaryOtherDatabasesAndOtherClients": 0,
+      "roles": 6,
+      "freeMiBAtStart": 2912.0
+    }
+  },
+  "baselineClassification": {
+    "cases": [
+      {
+        "case": 1,
+        "observation": "HTTP200 versus expected403 after legacy administrative obligation changed. Actual body decoded as items=[]; no private-data exposure claimed.",
+        "bodyAsserted": true
+      },
+      {
+        "case": 2,
+        "observation": "HTTP200 versus expected403 after activation of administrative binding. Actual minimal people page decoded and deep-equal to the authorized positive page before the negative assertion; restricted directory data was actually returned.",
+        "bodyAsserted": true
+      },
+      {
+        "case": 3,
+        "observation": "HTTP200 versus expected403 after current family proof cleared. First buildings path fails; no deep assertion on this baseline response body, and second SD path is not reached.",
+        "bodyAsserted": false
+      }
+    ],
+    "baselineCounts": {
+      "pass": 5,
+      "fail": 3
+    },
+    "otherCases": "Five DTO/date/order/cursor/filter/scope/satisfied controls passed in baseline.",
+    "limits": "The three failures are ERR_ASSERTION decisions, not infrastructure. Baseline denied-body reasons and later statements after first failure are not observed."
+  },
+  "gates": {
+    "typesExitCode": 0,
+    "guardedReadTestsPassed": 8,
+    "regressionTestsPassed": 121,
+    "failures": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "cleanupPass": true,
+    "sourceBeforeAfterPass": true
+  },
+  "limits": [
+    "Baseline5PASS/3FAIL é execução separada: somente o caso2 decodificou dados privados após promoção; caso1 lista vazia e caso3 falha antes da segunda projeção SD.",
+    "Oito casos dirigidos e onze regressões separadas121 não são API integral nem fechamento global de MFA.",
+    "Mudanças de produto somente adaptador mfa-read.ts e GET/buildings, GET/tenancy/people; SQL068231ba e outros produtos permanecem intactos.",
+    "CASE e subconsulta compartilham statement/snapshot para SELECTs puros com dependências STABLE revisadas; não é executor de SQL cliente ou mutações nem proteção linearizável após snapshot/rede.",
+    "Fixture UUID oficial ledger68, owner conhecido para arranjo/instrumentação, seis URLs runtime restritas; não alegar ausência de owner no processo.",
+    "Famílias/provas deste teste são sintéticas; não estabelece nova cerimônia TOTP, browser ou nativo. Regressões originais conservam suas fixtures.",
+    "Empate entre nomes de buildings permanece sem ordem definida; paginação people conserva cursor TEXT e limit+1.",
+    "Restauração deste conjunto69/1020 exige nova montagem/conferência; demais domínios/mutações e aceite integrado/produção permanecem pendentes."
+  ]
+}
