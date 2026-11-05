@@ -1,0 +1,440 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-11-05",
+  "scope": "Candidata isolada de coordenação heartbeat SSE; não prova de vazamento privado ou rollout",
+  "sources": {
+    "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+    "baselinePreparedSha256": "837af798408cc88a8ab935eb08a882ce860cc56e231437dd016128a1f8cfd856",
+    "fixedPreparedSha256": "72119c309b6fcd1935c7f07017af618de3f807de42195ca84dde71d69c108541",
+    "rootFiles": 994,
+    "composedFiles": 1017,
+    "workspaceJunctions": 23,
+    "productManifest": {
+      "id": "mfa-heartbeat-candidate-20261105/manifest.json",
+      "sha256": "865b5ae1826a73d80c3443b30c81d9563778b9880cdc1a282bc1dc97458078d3",
+      "bytes": 438
+    },
+    "testManifest": {
+      "id": "mfa-heartbeat-tests-20261105/manifest.json",
+      "sha256": "8523a56954fe667f297231f821e31a48c97c0b30c155e43a8c779063ac8b61c5",
+      "bytes": 239
+    }
+  },
+  "typeChecks": [
+    {
+      "variant": "baseline",
+      "phase": "resolve",
+      "exitCode": 0,
+      "durationMs": 1257,
+      "freeMiB": 2578,
+      "sourceCandidateConfigPreparedJunctionsAfter": true,
+      "result": {
+        "id": "mfa-heartbeat-baseline-qa-20261105/checks/resolve/result.json",
+        "sha256": "638957e9ba317e59c01be27d3dacbc55b207bc4cb61c093cddaea7998e8178e9",
+        "bytes": 1119
+      }
+    },
+    {
+      "variant": "baseline",
+      "phase": "types",
+      "exitCode": 0,
+      "durationMs": 9770,
+      "freeMiB": 2563,
+      "sourceCandidateConfigPreparedJunctionsAfter": true,
+      "result": {
+        "id": "mfa-heartbeat-baseline-qa-20261105/checks/types/result.json",
+        "sha256": "e189815bf799b76728e5700f33c96d1ff1335a6d6fdbda472ad9edab2d4c6845",
+        "bytes": 1024
+      }
+    },
+    {
+      "variant": "fixed",
+      "phase": "resolve",
+      "exitCode": 0,
+      "durationMs": 2141,
+      "freeMiB": 2532,
+      "sourceCandidateConfigPreparedJunctionsAfter": true,
+      "result": {
+        "id": "mfa-heartbeat-fixed-qa-20261105/checks/resolve/result.json",
+        "sha256": "2654fc9f542fd82005c767815fb07f229ced92aecf71b3be6f22e0b096803e75",
+        "bytes": 1116
+      }
+    },
+    {
+      "variant": "fixed",
+      "phase": "types",
+      "exitCode": 0,
+      "durationMs": 10327,
+      "freeMiB": 2565,
+      "sourceCandidateConfigPreparedJunctionsAfter": true,
+      "result": {
+        "id": "mfa-heartbeat-fixed-qa-20261105/checks/types/result.json",
+        "sha256": "0d6ce0e021dfbb57dc7e2ced1d11e5d12b982bb6ad983ee5971fd32d302de912",
+        "bytes": 1022
+      }
+    }
+  ],
+  "runs": {
+    "baseline": {
+      "startedUtc": "2026-11-05T07:54:51.949Z",
+      "endedUtc": "2026-11-05T07:55:04.398Z",
+      "processes": [
+        {
+          "file": "platform-mfa-heartbeat.test.ts",
+          "tap": {
+            "tests": 9,
+            "suites": 1,
+            "pass": 1,
+            "fail": 8,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 4478.2871
+          },
+          "exitCode": 1,
+          "childDurationMs": 5152.4712,
+          "log": {
+            "id": "mfa-heartbeat-baseline-qa-20261105/platform-mfa-heartbeat.log",
+            "sha256": "68f939e13f0bea39001e5eccb62b269db4f75af5a19369bded25f1a033d2e1e1",
+            "bytes": 16288
+          }
+        }
+      ],
+      "result": {
+        "id": "mfa-heartbeat-baseline-qa-20261105/mfa-directed-result.json",
+        "sha256": "5021571c0989314f29fda12755d9e1739e81b44559e59aeaf91976a9be69c990",
+        "bytes": 311594
+      },
+      "postchecks": {
+        "id": "mfa-heartbeat-baseline-qa-20261105/mfa-directed-postchecks.json",
+        "sha256": "ca15f5cd1c68f753726601abf51ba0873f5c0263bf280ff0fdeee1aa961e6b98",
+        "bytes": 390
+      },
+      "cleanupPassed": true,
+      "sourceHashesAfterMatch": true,
+      "rolesRestoredIncludingPrivateCredentials": true,
+      "settingsRestored": true,
+      "baseTablesTemporaryOtherDatabasesAndOtherClients": 0,
+      "roles": 6,
+      "freeMiBAtStart": 2630.0,
+      "observedHeadBefore": "173de0e2c11d58f537d08a24a174f57d9741fa7a",
+      "observedHeadAfter": "173de0e2c11d58f537d08a24a174f57d9741fa7a",
+      "headDeltaScope": "HEAD unchanged; frozen994 root source bytes unchanged"
+    },
+    "fixed": {
+      "startedUtc": "2026-11-05T07:55:22.091Z",
+      "endedUtc": "2026-11-05T07:55:33.919Z",
+      "processes": [
+        {
+          "file": "platform-mfa-heartbeat.test.ts",
+          "tap": {
+            "tests": 9,
+            "suites": 1,
+            "pass": 9,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 3595.3763
+          },
+          "exitCode": 0,
+          "childDurationMs": 3737.814700000001,
+          "log": {
+            "id": "mfa-heartbeat-fixed-qa-20261105/platform-mfa-heartbeat.log",
+            "sha256": "7f56a6fc5e9583156015649c271a878148d71a5d3fc028f539d30b5a74468446",
+            "bytes": 2781
+          }
+        }
+      ],
+      "result": {
+        "id": "mfa-heartbeat-fixed-qa-20261105/mfa-directed-result.json",
+        "sha256": "720c0e9f6d26d5402646cf75b68044572cf5a72999f7eae533c77cad6295633d",
+        "bytes": 311579
+      },
+      "postchecks": {
+        "id": "mfa-heartbeat-fixed-qa-20261105/mfa-directed-postchecks.json",
+        "sha256": "70ef9f972e9185b5041c45ec1dd9f81f79f8e3ed9d61f486243b414a865c1a5c",
+        "bytes": 390
+      },
+      "cleanupPassed": true,
+      "sourceHashesAfterMatch": true,
+      "rolesRestoredIncludingPrivateCredentials": true,
+      "settingsRestored": true,
+      "baseTablesTemporaryOtherDatabasesAndOtherClients": 0,
+      "roles": 6,
+      "freeMiBAtStart": 2608.0,
+      "observedHeadBefore": "173de0e2c11d58f537d08a24a174f57d9741fa7a",
+      "observedHeadAfter": "173de0e2c11d58f537d08a24a174f57d9741fa7a",
+      "headDeltaScope": "HEAD unchanged; frozen994 root source bytes unchanged"
+    },
+    "fixed-regression": {
+      "startedUtc": "2026-11-05T07:55:50.094Z",
+      "endedUtc": "2026-11-05T07:58:26.839Z",
+      "processes": [
+        {
+          "file": "platform-mfa-device-events.test.ts",
+          "tap": {
+            "tests": 9,
+            "suites": 1,
+            "pass": 9,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 3919.7794
+          },
+          "exitCode": 0,
+          "childDurationMs": 4572.986800000001,
+          "log": {
+            "id": "mfa-heartbeat-fixed-regression-qa-20261105/platform-mfa-device-events.log",
+            "sha256": "bf92f01c5668d800f360aa6256b04b78ddeda8309a742ad5cc840b41638dd643",
+            "bytes": 2789
+          }
+        },
+        {
+          "file": "platform-mfa-telemetry-events.test.ts",
+          "tap": {
+            "tests": 9,
+            "suites": 1,
+            "pass": 9,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 4970.9092
+          },
+          "exitCode": 0,
+          "childDurationMs": 5158.580400000001,
+          "log": {
+            "id": "mfa-heartbeat-fixed-regression-qa-20261105/platform-mfa-telemetry-events.log",
+            "sha256": "df9f89c7da8995da15ed74ae1902a155329b38156a8fefb51505cc8793ca27e4",
+            "bytes": 2651
+          }
+        },
+        {
+          "file": "platform-mfa-feature-events.test.ts",
+          "tap": {
+            "tests": 7,
+            "suites": 1,
+            "pass": 7,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 3014.5281
+          },
+          "exitCode": 0,
+          "childDurationMs": 3159.9578,
+          "log": {
+            "id": "mfa-heartbeat-fixed-regression-qa-20261105/platform-mfa-feature-events.log",
+            "sha256": "a778d58b068c2fccac4b134ad2561e3c27fd33f8513f802ac90bcecf44152d5f",
+            "bytes": 2106
+          }
+        },
+        {
+          "file": "platform-mfa-disable-snapshot.test.ts",
+          "tap": {
+            "tests": 5,
+            "suites": 1,
+            "pass": 5,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 4469.0566
+          },
+          "exitCode": 0,
+          "childDurationMs": 4671.771400000001,
+          "log": {
+            "id": "mfa-heartbeat-fixed-regression-qa-20261105/platform-mfa-disable-snapshot.log",
+            "sha256": "d3632c6180c834869f3f6ee7f62d1e761b538556db59d75790d7fd979e70c422",
+            "bytes": 1568
+          }
+        },
+        {
+          "file": "platform-mfa-sql-envelopes.test.ts",
+          "tap": {
+            "tests": 11,
+            "suites": 1,
+            "pass": 11,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 3517.3209
+          },
+          "exitCode": 0,
+          "childDurationMs": 3697.0028999999995,
+          "log": {
+            "id": "mfa-heartbeat-fixed-regression-qa-20261105/platform-mfa-sql-envelopes.log",
+            "sha256": "3e1c0d104601748051c950e50e0bb8396609ac53fc63efa43e0dc6186e1e774d",
+            "bytes": 3174
+          }
+        },
+        {
+          "file": "telemetry-events-capabilities.test.ts",
+          "tap": {
+            "tests": 13,
+            "suites": 1,
+            "pass": 13,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 14539.208
+          },
+          "exitCode": 0,
+          "childDurationMs": 14703.939299999998,
+          "log": {
+            "id": "mfa-heartbeat-fixed-regression-qa-20261105/telemetry-events-capabilities.log",
+            "sha256": "0789a8b8b53c5f42e8e5c3d8571d27b3238120daff14b8bd175afdb6b94268f0",
+            "bytes": 3406
+          }
+        },
+        {
+          "file": "alert-events-capabilities.test.ts",
+          "tap": {
+            "tests": 17,
+            "suites": 1,
+            "pass": 17,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 19951.6183
+          },
+          "exitCode": 0,
+          "childDurationMs": 20107.195799999994,
+          "log": {
+            "id": "mfa-heartbeat-fixed-regression-qa-20261105/alert-events-capabilities.log",
+            "sha256": "b38e6941de9fd76b6f3a3a680489403ab8596c99f426b1a4d04353127fb252b7",
+            "bytes": 4312
+          }
+        },
+        {
+          "file": "platform-mfa-alert-events.test.ts",
+          "tap": {
+            "tests": 9,
+            "suites": 1,
+            "pass": 9,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 5587.268
+          },
+          "exitCode": 0,
+          "childDurationMs": 5751.712699999989,
+          "log": {
+            "id": "mfa-heartbeat-fixed-regression-qa-20261105/platform-mfa-alert-events.log",
+            "sha256": "0e40841e6d7dd3df839790bedeaa4b86c2d954ff69466a8d3afc543b4165141a",
+            "bytes": 2675
+          }
+        },
+        {
+          "file": "equipment-events-capabilities.test.ts",
+          "tap": {
+            "tests": 25,
+            "suites": 1,
+            "pass": 25,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 79758.952
+          },
+          "exitCode": 0,
+          "childDurationMs": 79923.8452,
+          "log": {
+            "id": "mfa-heartbeat-fixed-regression-qa-20261105/equipment-events-capabilities.log",
+            "sha256": "ea2baf896abe62ff020b52c72ef256f0dc0c2cad3227b8bea1d01bc49d57921b",
+            "bytes": 6886
+          }
+        }
+      ],
+      "result": {
+        "id": "mfa-heartbeat-fixed-regression-qa-20261105/mfa-directed-result.json",
+        "sha256": "37309880e14b65b5694efa0bec7669dabfb2e946a1090728098e756693b50ecd",
+        "bytes": 316620
+      },
+      "postchecks": {
+        "id": "mfa-heartbeat-fixed-regression-qa-20261105/mfa-directed-postchecks.json",
+        "sha256": "2ecc4c758e5f7c5abac9a10eff7e44d5521f57687946dc7ca056c1876c46f7d3",
+        "bytes": 390
+      },
+      "cleanupPassed": true,
+      "sourceHashesAfterMatch": true,
+      "rolesRestoredIncludingPrivateCredentials": true,
+      "settingsRestored": true,
+      "baseTablesTemporaryOtherDatabasesAndOtherClients": 0,
+      "roles": 6,
+      "freeMiBAtStart": 2570.0,
+      "observedHeadBefore": "173de0e2c11d58f537d08a24a174f57d9741fa7a",
+      "observedHeadAfter": "ed16eb66b1f3261d1ea64da19e5589aa44e7d4a3",
+      "headDeltaScope": "Documentation only; frozen994 root source bytes unchanged"
+    }
+  },
+  "baselineClassification": {
+    "behavioralFailures": [
+      {
+        "case": 1,
+        "observation": "Uma identityDb.select real iniciou durante evento bloqueado (1 contra0). Assertivas posteriores de ordem de frames não foram alcançadas na baseline."
+      },
+      {
+        "case": 2,
+        "observation": "Oito ticks iniciaram oito SELECTs durante a barreira (8 contra0). Não houve prova baseline das assertivas posteriores de coalescência concluída."
+      },
+      {
+        "case": 3,
+        "observation": "Leitura recebeu apenas comentário : ping contra null. Tick ocorreu antes do UPDATE da promoção; não há prova de emissão do ping após commit nem de DTO privado exposto."
+      },
+      {
+        "case": 4,
+        "observation": "Ping inicial e fechamento por revogação passaram. Callback tardio manual iniciou SELECT depois de close (1 contra0). Não é reabertura do stream."
+      },
+      {
+        "case": 6,
+        "observation": "SELECT do heartbeat já iniciado antes de abort persistiu no contador (1 contra0). Assertiva posterior de lateWrites não foi alcançada; não prova escrita depois de close."
+      },
+      {
+        "case": 7,
+        "observation": "Ausência de lateWrites/ping e limpeza do timer passaram. Novo callback manual depois de close iniciou segundo SELECT (2 contra1)."
+      },
+      {
+        "case": 8,
+        "observation": "100 eventos foram admitidos sem fechamento; falha foi10SELECTs de heartbeat contra0. O teste falhou antes de publicar101ª notificação; não prova violação do teto original."
+      },
+      {
+        "case": 9,
+        "observation": "Depois de abort durante identidade inicial, houve uma chamada delegada writeHead contra0. Assertivas seguintes de writes/timers/subscription não foram alcançadas na baseline."
+      }
+    ],
+    "passingControl": {
+      "case": 5,
+      "observation": "Família satisfeita recebeu ping e fechou quando prova foi removida; zero lateWrites."
+    },
+    "privateFrameLeakDemonstrated": false,
+    "timerMechanism": "Callback25k capturado e acionado manualmente; SELECTs delegados reais, barreiras em query/contexto real, sem sleep25s ou identidade fabricada."
+  },
+  "gates": {
+    "typesExitCode": 0,
+    "heartbeatTestsPassed": 9,
+    "regressionTestsPassed": 105,
+    "failures": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "cleanupPass": true,
+    "sourceBeforeAfterPass": true
+  },
+  "limits": [
+    "Baseline1PASS/8FAIL é separada da corrigida; oito falhas não significam oito exposições de dados.",
+    "Regressões105 são nove arquivos/processos seriais nesta composição, não API integral.",
+    "Somente routes.ts mudou no produto; SQL e projectors mantidos. Novo teste usa captura de timer/observadores delegados, HTTP/NOTIFY e consultas reais.",
+    "Fatores/provas sintéticos nos controles novos não estabelecem cerimônia TOTP; originais administrativos têm fixtures próprias.",
+    "Close não cancela SQL já em execução. Heartbeat pode atrasar atrás de evento lento; sem garantia linearizável entre última leitura e revogação posterior.",
+    "Sem execução nativa, navegador, hardware ou aceite de produção nesta rodada.",
+    "O callback de expiração JWT não foi exercitado nesta suíte; captura do handle de expiry no caso9 serve somente ao cleanup da baseline.",
+    "O observador coleta chamadas de res.end, mas não há assertiva exatamente uma vez; idempotência do close é propriedade revisada da fonte, não medição exatamente-uma-vez nesta prova."
+  ]
+}

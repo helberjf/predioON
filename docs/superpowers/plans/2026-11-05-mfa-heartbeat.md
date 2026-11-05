@@ -1,5 +1,8 @@
 # Coordenação do heartbeat SSE — proposta para revisão
 
+**Resultado em 05/11:** nove testes dirigidos e 105 regressões passaram na composição candidata. [Prova e limites](../../evidencias/mfa-heartbeat-2026-11-05.json). Apenas routes.ts mudou no produto. Os controles de expiração automática e quantidade exata de res.end continuam fora da prova; integração web/nativa e rollout não foram aprovados. O desenho original abaixo fica como histórico.
+
+
 Estado: análise estática; nenhum teste, compilador, banco ou código de produto executado/alterado nesta tarefa. Fonte candidata: prepared7b53ab4e47a4bf7f2fc480d2ce2f9f6a013c206da10367a895bab35c2894dbfb, 1016 arquivos, raiz994,23 junctions. `apps/api/src/modules/events/routes.ts` SHA7d79f6233982db76e13f001761bcf36223da02a6198ea60d815aa075c8d81551.
 
 ## Achado e limite da conclusão

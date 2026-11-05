@@ -1,49 +1,69 @@
-# Retomada MFA - checkpoint candidato atualizado em 05/11/2026
+# Retomada MFA — heartbeat candidato atualizado em 05/11/2026
 
-**Os 25 testes originais de equipamentos passaram com preparo MFA explícito.**
-A base canônica continua `53c4c70dcd24f1045fad420fbce36757fd3753a2`; a composição
-atual conserva **1.016 arquivos e cinco suportes**. Nesta rodada muda somente a
-fixture de equipamentos. SQL e código do produto são byte a byte iguais entre
-as duas variantes. [Prova específica](../../evidencias/mfa-equipment-original25-2026-11-05.json).
-
-A [montagem/restauração passou](../../evidencias/mfa-equipment-original25-restore-2026-11-05.json),
-com os 1.016 arquivos e cinco suportes idênticos à composição testada. A [restauração anterior de dispositivos](../../evidencias/mfa-device-restore-2026-11-05.json)
-permanece histórica: não prova automaticamente os bytes da fixture alterada.
-A política MFA continua candidata, sem ativação no runtime da main.
+**Heartbeat 9 e nove regressões separadas 105 passaram na composição isolada.**
+A base canônica continua `53c4c70dcd24f1045fad420fbce36757fd3753a2`.
+A fonte testada é `72119c30…`: **1.017 arquivos e cinco suportes**.
+[Prova específica](../../evidencias/mfa-heartbeat-2026-11-05.json).
+A [montagem/restauração passou](../../evidencias/mfa-heartbeat-restore-2026-11-05.json),
+com os 1.017 arquivos e cinco suportes idênticos à composição testada. A restauração anterior de
+[equipamentos](../../evidencias/mfa-equipment-original25-restore-2026-11-05.json)
+não atesta automaticamente estes bytes novos. Nenhuma política foi ativada na main.
 
 ## Conteúdo recuperável
 
-O inventário tem **63 payloads**. Dois são helper/teste de
-query já publicados e serão excluídos do delta pelos hashes exatos. O pacote
-contém **59 arquivos de implementação/testes candidatos**, dois testes explícitos
-de renderer e cinco suportes do renderer. O transporte publicado também é
-dependência da base; não reaplicá-lo.
+São **64 payloads**: 60 arquivos de implementação/testes candidatos, dois testes
+renderer explícitos e dois arquivos helper/teste de query já publicados, que o
+builder exclui por hashes exatos. Há cinco suportes renderer separados.
+O transporte publicado é dependência da base, não patch para reaplicar.
+Nesta rodada muda somente `apps/api/src/modules/events/routes.ts` no produto e
+entra `apps/api/test/platform-mfa-heartbeat.test.ts`. SQL068, projectors e os
+originais de equipamentos/alertas/telemetria conservam seus bytes anteriores.
 
-A rodada atual acrescenta ao delta somente a fixture
-`apps/api/test/equipment-events-capabilities.test.ts`, que já existe na base:
-o número de caminhos compostos permanece 1.016. Não inclui alterações de
-heartbeat, matriz de apresentação ou scripts de abertura.
+A fila por conexão agora inclui heartbeat. No máximo um heartbeat fica pendente
+ou em execução; não consome o orçamento de 100 eventos. Identidade local no ping
+não altera req.auth durante um evento. Close é idempotente e imediato, inclusive
+expiry/overflow, sem aguardar query lenta. Depois de await e antes de escrever,
+a conexão precisa continuar aberta. Há proteção adicional para desconexão durante
+a identidade inicial, antes de instalar headers/timers/subscription.
 
-A rodada anterior alterou a SQL068 candidata e o projector de dispositivos,
-além de acrescentar `platform-mfa-device-events.test.ts`. Os envelopes
-`app_mfa_device_event_context(text,text)` e `app_mfa_device_event_allowed(text,text)`
-protegem contexto e autoridade final em statements separados. Mantêm status
-persistido, classificação, ANY das funcionalidades sem freshness, inventário
-desabilitado e a atualização da autoridade de suporte. A ACL tem 15 assinaturas,
-sem novos grants de tabelas. Gateway e heartbeat não mudaram.
+Token por header/query, retry5000, intervalo25_000 e expiração JWT permanecem.
+Close não cancela SQL já em execução. Heartbeat pode atrasar atrás de evento
+lento; os guards SQL de cada evento continuam necessários. Não se promete
+linearização entre a última leitura autorizada e uma revogação posterior.
 
-A fixture atual de equipamentos é `adca4cd4…`, antes `b42e2af9…`.
-A fixture original de alertas permanece `7f240d2d…`, a de telemetria
-`e7431620…`; ambas foram reexecutadas entre as sete regressões da rodada
-anterior de dispositivos. Não foram reexecutadas nesta rodada original25.
+`MANIFEST.json` e `PACKAGE-HASHES.json` surgem no pacote final. Cada montagem
+nova exige verificação própria antes de declarar a composição restaurada.
 
-O [checkpoint separado de desativação](../2026-11-05-mfa-disable/README.md)
-conserva seu antes/depois histórico; não reaplicar esse patch. O complemento SQL
-V5 conserva o teste `2c8a7bc4…`. Os consumidores permanecem com os mesmos bytes.
+## Rodada atual: heartbeat e regressões
 
-`MANIFEST.json` e `PACKAGE-HASHES.json` são produzidos no pacote final; não são
-arquivos ausentes de autoria. O inventário, payloads e scripts estão neste
-diretório. As provas e composições anteriores conservam seus próprios hashes.
+Baseline: **1 PASS/8 FAIL**, sem cancelamento/skip/todo, em 4,478 s TAP.
+As falhas observadas foram início concorrente de SELECTs (casos 1/2/6/8), consulta
+por callback manual tardio após close (4/7), comentário `: ping` recebido quando
+se esperava fechamento (3) e writeHead após desconexão inicial (9).
+O tick do caso 3 ocorreu ANTES da promoção: não foi provada emissão após commit,
+nem houve DTO privado exposto. O caso 8 falhou antes de publicar a 101ª notificação;
+não demonstrou que o teto original 100 estivesse quebrado. Caso 5 já passou.
+As assertivas posteriores à primeira falha de cada caso não são resultados baseline.
+
+Corrigida: **9/9 PASS em 3,595 s TAP**. Timer25k capturado/acionado manualmente,
+observadores delegados e barreiras sobre consultas reais evitam sleeps25s; HTTP,
+LISTEN/NOTIFY, identidade e queries continuam reais. Fatores/provas dos controles
+novos são sintéticos; não são teste de cerimônia TOTP.
+
+Depois passaram nove processos separados: dispositivos 9, telemetria 9, funcionalidades 7,
+desativação 5, SQL 11, telemetria original 13, alertas originais 17, alertas dirigidos 9 e
+equipamentos originais 25, total 105. Não é uma API integral. Os originais com
+administradores mantêm suas cerimônias TOTP HTTP explícitas. Tipos dos 10 arquivos
+e imports passaram nas duas variantes: resolução/tipos 1,257/9,770 s e 2,141/10,327 s.
+Fontes antes/depois e cleanup passaram: seis roles/credenciais/settings restaurados,
+zero bases temporárias e outros clientes. Valores privados não integram a prova.
+
+O callback de expiração JWT não foi exercitado; sua captura no caso 9 só limpa
+a baseline. O contador res.end não possui assertiva exatamente uma vez:
+idempotência é revisão da implementação, não medida desse contador.
+
+As seções abaixo conservam as rodadas anteriores com seus escopos próprios.
+Gateway, demais superfícies SQL/SD/mutações e aceites integrados continuam pendentes.
 
 ## Retomar em outro computador
 
@@ -78,7 +98,7 @@ processos desconhecidos ou reiniciar computador, Docker ou WSL. Os comandos de
 restauração não instalam dependências, executam testes, iniciam serviços ou
 aplicam migrations.
 
-## Rodada atual: 25 originais de equipamentos
+## Histórico anterior: 25 originais de equipamentos
 
 A fixture anterior teve **23 PASS e 2 FAIL**, em **76,947 s de TAP**. Nos casos
 5 e 18, o helper de stream recebeu HTTP 403 onde esperava 200. O log não
@@ -244,16 +264,19 @@ releitura de amostra nem ID único da observação persistida. Não atribuir ao 
 envelope de alertas uma mudança desse protocolo de telemetria.
 
 A observação SQL não estabelece linearização com promoções posteriores ao
-snapshot ou escrita na rede. Gateway, heartbeat/headers iniciais, outros callers
-HTTP/SD, mutações sem correspondência, funções VOLATILE e expiração após locks
-continuam pendentes, assim como a regressão integrada. Não houve novo aceite
-de navegador, aparelhos ou produção.
+snapshot ou escrita na rede. A coordenação do heartbeat e a desconexão durante
+a identidade inicial passaram nos nove casos desta rodada. Gateway, outros
+callers HTTP/SD, mutações sem correspondência, funções VOLATILE e expiração
+após locks continuam pendentes, assim como a regressão integrada. A expiração
+JWT automática não foi acionada no teste. Não houve novo aceite de navegador,
+aparelhos ou produção.
 
 O [plano de equipamentos e coordenação do SSE](../../superpowers/plans/2026-11-05-mfa-equipment-events.md)
-conserva os próximos recortes de gateway e heartbeat. Device-status já está
-nesta fonte candidata, com o recheck final de autoridade após expirar suporte
-e o ANY de funcionalidades sem freshness preservados. Isso não encerra os
-demais projectors ou a coordenação concorrente do stream.
+conserva o desenho inicial. O próximo recorte é o
+[guard de gateways](../../superpowers/plans/2026-11-05-mfa-gateway-events.md).
+Device-status já está nesta fonte candidata, com o recheck final de autoridade
+após expirar suporte e o ANY de funcionalidades sem freshness preservados.
+Os demais domínios e a integração completa continuam abertos.
 
 ## Bytes canônicos e receita renderer
 

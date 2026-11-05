@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "status": "CANONICAL_EQUIPMENT_ORIGINAL25_FIXTURE_VALIDATED_RESTORED_CANDIDATE",
+  "status": "CANONICAL_HEARTBEAT_COORDINATION_VALIDATED_RESTORED_CANDIDATE",
   "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
   "plannedBase": "Approved published source base53c4c70; current documentation may be newer.",
   "sourceBaseline": "2676a74216b012dcab6fa2fb9735dc1b6ef8e9d8",
@@ -152,10 +152,10 @@
       "path": "apps/api/src/modules/events/routes.ts",
       "payload": "payload/runtime/apps/api/src/modules/events/routes.ts.txt",
       "beforeSha256": "4e5e0403fcb89e46b28b8a97a590886a46bc4cdf2e24bc188e0e0f895a6aadbf",
-      "afterSha256": "7d79f6233982db76e13f001761bcf36223da02a6198ea60d815aa075c8d81551",
-      "component": "backend",
+      "afterSha256": "e6b29dbac6e821b289f9f066528511f46cfaaba6e1c5deeeb57fa885d8eb7be4",
+      "component": "heartbeat-coordination",
       "kind": "runtime",
-      "bytes": 4624,
+      "bytes": 5569,
       "beforeGitSha256": "4e5e0403fcb89e46b28b8a97a590886a46bc4cdf2e24bc188e0e0f895a6aadbf",
       "beforeGitObject": "a782ec0b09e0730177e16114e9c12c3acf270cef"
     },
@@ -697,10 +697,21 @@
       "bytes": 42018,
       "component": "equipment-original25-mfa-fixture",
       "kind": "database-test"
+    },
+    {
+      "path": "apps/api/test/platform-mfa-heartbeat.test.ts",
+      "payload": "payload/runtime/apps/api/test/platform-mfa-heartbeat.test.ts.txt",
+      "beforeSha256": null,
+      "beforeGitSha256": null,
+      "beforeGitObject": null,
+      "afterSha256": "0a69940a33bc9c1c26898548d31c47c9b06eaca6e87dcf2f13ec1f06cfd22be3",
+      "bytes": 24346,
+      "component": "heartbeat-coordination",
+      "kind": "database-test"
     }
   ],
   "pending": [
-    "Complete gateway projectors, heartbeat coordination, other SQL/SD/SSE/no-match mutations, locks/triggers and integrated regressions; original equipment25 is a new fixture-scoped run, not a rerun of historical80.",
+    "Complete gateway projectors and other SQL/SD/SSE/no-match mutations, locks/triggers and integrated regressions; heartbeat9 and nine regression files105 are finite isolated validations, not API integral or global rollout.",
     "Renderer staging recipe remains authored and not executed; do not transfer its earlier separate harness PASS."
   ],
   "excluded": [
@@ -770,5 +781,12 @@
     "sourceManifestSha256": "f2d3055b792c5db6ba5bac5bd699574a064b74d2a3a78b91f1cf1f6d0caeef38",
     "scope": "Original equipment25 with explicit MFA fixture adaptation; product unchanged; historical80 not rerun",
     "restorationEvidence": "../../evidencias/mfa-equipment-original25-restore-2026-11-05.json"
+  },
+  "heartbeatValidation": {
+    "evidence": "../../evidencias/mfa-heartbeat-2026-11-05.json",
+    "evidenceSha256": "45818a9694ff2e4129558051d574da1a5b0d8adfe4782a77cc2877d0451551e0",
+    "sourceManifestSha256": "72119c309b6fcd1935c7f07017af618de3f807de42195ca84dde71d69c108541",
+    "scope": "Heartbeat9 plus nine regression files105; only routes changed in product; no private-frame exposure claim",
+    "restorationEvidence": "../../evidencias/mfa-heartbeat-restore-2026-11-05.json"
   }
 }

@@ -1,0 +1,450 @@
+import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
+import { createServer, type Server, type ServerResponse } from "node:http";
+import { after, before, describe, it } from "node:test";
+import { decodeJwt } from "jose";
+import { PgDialect } from "drizzle-orm/pg-core";
+import { sqlClient } from "@predioon/db";
+import { identityDb } from "@predioon/db/identity";
+import { appDb, appSqlClient, closeAppDb, type AppTransaction } from "@predioon/db/runtime";
+import { app } from "../src/app.js";
+import { hashPassword } from "../src/auth/passwords.js";
+import { startRealtimeBus } from "../src/modules/events/bus.js";
+import "./helpers.js";
+
+// Real HTTP, LISTEN and restricted identity/app SQL. Wrappers observe/defer actual
+// results; they never fabricate identity, capability, projection or response data.
+function signal() {
+  let resolve!: () => void;
+  const promise = new Promise<void>(done => { resolve = done; });
+  return { promise, resolve };
+}
+async function bounded<T>(promise: PromiseLike<T>, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([Promise.resolve(promise), new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(new Error(`Fixture deadline: ${label}`)), 5000);
+    })]);
+  } finally { clearTimeout(timer); }
+}
+function contextBarrier() {
+  const reached = signal(), release = signal(), finished = signal();
+  const original = appDb.transaction, run = original.bind(appDb), dialect = new PgDialect();
+  let seen = false;
+  type Input = Parameters<AppTransaction["execute"]>[0];
+  appDb.transaction = (callback, config) => run(tx => callback(new Proxy(tx, {
+    get(target, key) {
+      if (key === "execute") return async (query: Input) => {
+        const text = typeof query === "string" ? query : dialect.sqlToQuery(query.getSQL()).sql;
+        const rows = await target.execute(query);
+        if (text.includes("app_mfa_device_event_context(")) {
+          assert.equal(seen, false, "only the first blocked event may reach SQL");
+          seen = true; reached.resolve(); await bounded(release.promise, "context release");
+        }
+        return rows;
+      };
+      const value = Reflect.get(target, key, target);
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  })), config).finally(() => finished.resolve());
+  return { reached, release, finished, restore() { appDb.transaction = original; } };
+}
+
+/** Preserve the overloaded select API and its real fluent builder. Only its
+ * Promise settlement can be held, after SQL completed, by the optional barrier. */
+function identityObserver(hold = false) {
+  const original = identityDb.select, reached = signal(), release = signal(), settled = signal();
+  const state = { started: 0, completed: 0 };
+  const pending = new Set<Promise<unknown>>();
+  function wrap<T extends object>(builder: T): T {
+    return new Proxy(builder, {
+      get(target, key) {
+        if (key === "then") return (fulfilled?: (value: unknown) => unknown, rejected?: (error: unknown) => unknown) => {
+          const real = Promise.resolve(target as unknown as PromiseLike<unknown>);
+          const operation = real.then(async rows => {
+            reached.resolve();
+            if (hold) await bounded(release.promise, "identity result release");
+            state.completed++; settled.resolve(); return rows;
+          });
+          pending.add(operation); void operation.catch(() => undefined);
+          return operation.then(fulfilled, rejected);
+        };
+        const value = Reflect.get(target, key, target);
+        if (typeof value !== "function") return value;
+        return (...args: unknown[]) => {
+          const result: unknown = Reflect.apply(value, target, args);
+          return result !== null && typeof result === "object" ? wrap(result) : result;
+        };
+      },
+    });
+  }
+  identityDb.select = new Proxy(original, {
+    apply(target, receiver, args) {
+      state.started++;
+      return wrap(Reflect.apply(target, receiver, args));
+    },
+  });
+  return { state, reached, release, settled,
+    async finish() {
+      release.resolve(); identityDb.select = original;
+      await new Promise<void>(resolve => setImmediate(resolve));
+      await bounded(Promise.allSettled([...pending]), "observed identity queries settled");
+    },
+  };
+}
+
+type ResponseObservation = {
+  closed: ReturnType<typeof signal>; writes: string[]; lateWrites: number; ends: number; headers: number; response: ServerResponse;
+};
+function captureHeartbeat() {
+  const original = globalThis.setInterval, originalClear = globalThis.clearInterval;
+  let tick: (() => void) | undefined, handle: ReturnType<typeof setInterval> | undefined;
+  const state = { cleared: false, created: 0 };
+  globalThis.setInterval = new Proxy(original, {
+    apply(target, receiver, args) {
+      if (args[1] !== 25_000) return Reflect.apply(target, receiver, args);
+      assert.equal(tick, undefined, "one heartbeat for the target connection");
+      assert.equal(typeof args[0], "function");
+      const callback = args[0] as (...values: unknown[]) => void;
+      tick = () => callback(...args.slice(2));
+      state.created++;
+      handle = Reflect.apply(target, receiver, [() => {}, 25_000]);
+      return handle;
+    },
+  });
+  globalThis.clearInterval = new Proxy(originalClear, {
+    apply(target, receiver, args) {
+      if (handle !== undefined && args[0] === handle) state.cleared = true;
+      return Reflect.apply(target, receiver, args);
+    },
+  });
+  return {
+    state,
+    stopCapture() { globalThis.setInterval = original; assert.ok(tick, "production25k timer observed"); },
+    tick() { assert.ok(tick); tick(); },
+    restore() { globalThis.setInterval = original; globalThis.clearInterval = originalClear; if (handle) originalClear(handle); },
+  };
+}
+
+describe("SSE heartbeat shares per-connection authorization queue", { concurrency: false }, () => {
+  const suffix = randomUUID(), org = `hb-org-${suffix}`, building = `hb-building-${suffix}`, device = `hb-device-${suffix}`;
+  const password = "heartbeat-fictitious-password", users: string[] = [];
+  let hash = "", server: Server | undefined, url = "", current: ResponseObservation | undefined;
+  let notifications = 0;
+  const notifyWaiters = new Map<number, ReturnType<typeof signal>>();
+  const event = { kind: "device-status", buildingId: building, deviceId: device, status: "ONLINE" };
+  const expected = `event: device-status\ndata: ${JSON.stringify(event)}\n\n`;
+
+  before(async () => {
+    const [ledger] = await sqlClient`select count(*)::int as count from schema_migrations`;
+    assert.equal(ledger?.count, 68, "official UUID fixture with candidate068");
+    hash = await hashPassword(password);
+    await sqlClient`insert into organizations(id,name,slug) values(${org},'Heartbeat fixture',${org})`;
+    await sqlClient`insert into buildings(id,organization_id,name,code) values(${building},${org},'Heartbeat fixture',${building})`;
+    await sqlClient`insert into devices(id,building_id,name,type,status) values(${device},${building},'Heartbeat device','ENERGY_METER','ONLINE')`;
+    const listen = appSqlClient.listen;
+    appSqlClient.listen = new Proxy(listen, {
+      apply(target, receiver, args) {
+        assert.equal(args[0], "predioon_events");
+        const callback = args[1]; assert.equal(typeof callback, "function");
+        return Reflect.apply(target, receiver, [args[0], (...values: unknown[]) => {
+          const result: unknown = Reflect.apply(callback, undefined, values);
+          notifications++; notifyWaiters.get(notifications)?.resolve();
+          return result;
+        }, ...args.slice(2)]);
+      },
+    });
+    try { await bounded(startRealtimeBus(), "real LISTEN ready"); }
+    finally { appSqlClient.listen = listen; }
+    server = createServer((req, res) => {
+      if (req.url?.startsWith("/events/stream")) {
+        const observation: ResponseObservation = { closed: signal(), writes: [], lateWrites: 0, ends: 0, headers: 0, response: res };
+        current = observation; let closed = false;
+        res.on("close", () => { closed = true; observation.closed.resolve(); });
+        res.writeHead = new Proxy(res.writeHead, { apply(target, receiver, args) {
+          observation.headers++; return Reflect.apply(target, receiver, args);
+        } });
+        res.write = new Proxy(res.write, { apply(target, receiver, args) {
+          if (closed || res.destroyed || res.writableEnded) observation.lateWrites++;
+          observation.writes.push(String(args[0]));
+          return Reflect.apply(target, receiver, args);
+        } });
+        res.end = new Proxy(res.end, { apply(target, receiver, args) {
+          observation.ends++; return Reflect.apply(target, receiver, args);
+        } });
+      }
+      app(req, res);
+    });
+    await bounded(new Promise<void>(resolve => server!.listen(0, "127.0.0.1", resolve)), "own HTTP server");
+    const address = server.address(); assert.ok(address && typeof address !== "string");
+    url = `http://127.0.0.1:${address.port}`;
+  });
+  after(async () => {
+    const closing = server ? new Promise<void>((resolve, reject) => {
+      server!.close(error => error ? reject(error) : resolve()); server!.closeAllConnections();
+    }) : Promise.resolve();
+    await bounded(closing, "own server close");
+    try {
+      await bounded(sqlClient.begin(async owner => {
+        await owner`set local lock_timeout='2s'`; await owner`set local statement_timeout='3s'`;
+        await owner`delete from buildings where id=${building}`;
+        await owner`delete from organizations where id=${org}`;
+        for (const id of users) await owner`delete from users where id=${id}`;
+      }), "own fixture cleanup");
+    } finally {
+      const outcomes = await Promise.allSettled([
+        bounded(closeAppDb(), "runtime and LISTEN close"), bounded(sqlClient.end({ timeout: 3 }), "owner close"),
+      ]);
+      const failure = outcomes.find(x => x.status === "rejected");
+      if (failure?.status === "rejected") throw failure.reason;
+    }
+  });
+
+  async function publish() {
+    const wanted = notifications + 1, delivered = signal(); notifyWaiters.set(wanted, delivered);
+    try {
+      await bounded(sqlClient`select pg_notify('predioon_events',${JSON.stringify(event)})`, "NOTIFY statement");
+      await bounded(delivered.promise, "real LISTEN callback completed");
+    } finally { notifyWaiters.delete(wanted); }
+  }
+  async function connect(satisfied = false) {
+    const id = `hb-user-${randomUUID()}`, binding = randomUUID(); users.push(id);
+    await sqlClient`insert into users(id,name,email,password_hash) values(${id},'Heartbeat reader',${id+'@example.invalid'},${hash})`;
+    await sqlClient`insert into role_bindings(user_id,building_id,role_key,resource_type,resource_id)
+      values(${id},${building},'MAINTENANCE','device',${device})`;
+    await sqlClient`insert into role_bindings(id,user_id,role_key,active) values(${binding},${id},'PLATFORM_ADMIN',false)`;
+    const abort = new AbortController();
+    const login = await bounded(fetch(`${url}/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: id+'@example.invalid', password }), signal: abort.signal }), "real login");
+    assert.equal(login.status, 200);
+    const credentials = await bounded(login.json(), "login JSON") as { accessToken: string };
+    const sid = decodeJwt(credentials.accessToken).sid; assert.equal(typeof sid, "string");
+    if (satisfied) {
+      // Owner arrangement only. Not a TOTP ceremony claim; the stream reads the real projection.
+      const generation = randomUUID();
+      await sqlClient`insert into mfa_factors(user_id,secret_ciphertext,confirmed_at,generation)
+        values(${id},decode(repeat('00',40),'hex'),now(),${generation})`;
+      await sqlClient`update sessions set mfa_verified_at=now(),mfa_factor_generation=${generation} where id=${sid as string}`;
+      await sqlClient`update role_bindings set active=true where id=${binding}`;
+    }
+    const timer = captureHeartbeat();
+    try {
+      const response = await bounded(fetch(`${url}/events/stream`, {
+        headers: { Authorization: `Bearer ${credentials.accessToken}` }, signal: abort.signal,
+      }), "real SSE open");
+      assert.equal(response.status, 200); assert.ok(response.body); timer.stopCapture();
+      const observation = current; assert.ok(observation);
+      const reader = response.body.getReader(), decoder = new TextDecoder(); let buffer = "";
+      async function frame(): Promise<string | null> {
+        while (!buffer.includes("\n\n")) {
+          const part: ReadableStreamReadResult<Uint8Array> = await bounded(reader.read(), "SSE frame/EOF");
+          if (part.done) { assert.equal(buffer, "", "no partial frame at EOF"); return null; }
+          buffer += decoder.decode(part.value, { stream: true });
+        }
+        const end = buffer.indexOf("\n\n") + 2, result = buffer.slice(0, end); buffer = buffer.slice(end); return result;
+      }
+      assert.equal(await frame(), "retry: 5000\n\n");
+      return { id, sid: sid as string, token: credentials.accessToken, binding, timer, abort, reader, frame, observation };
+    } catch (error) { abort.abort(); timer.restore(); throw error; }
+  }
+  type Connection = Awaited<ReturnType<typeof connect>>;
+  async function use(satisfied: boolean, body: (c: Connection) => Promise<void>) {
+    const c = await connect(satisfied); let failed = false;
+    try { await body(c); }
+    catch (error) { failed = true; throw error; }
+    finally {
+      c.abort.abort();
+      const clean = await Promise.allSettled([
+        bounded(c.reader.cancel().catch(() => undefined), "reader cancellation"),
+        bounded(c.observation.closed.promise, "response close"),
+      ]);
+      c.timer.restore();
+      if (!failed) { const failure = clean.find(x => x.status === "rejected"); if (failure?.status === "rejected") throw failure.reason; }
+    }
+  }
+  async function positive(c: Connection) { await publish(); assert.equal(await c.frame(), expected); }
+  async function heldEvent(c: Connection, body: (barrier: ReturnType<typeof contextBarrier>) => Promise<void>) {
+    const barrier = contextBarrier(); let failed = false;
+    try { await publish(); await bounded(barrier.reached.promise, "real context reached"); await body(barrier); }
+    catch (error) { failed = true; throw error; }
+    finally {
+      barrier.release.resolve();
+      try { await bounded(barrier.finished.promise, "event transaction settled"); }
+      catch (error) { if (!failed) throw error; }
+      finally { barrier.restore(); }
+    }
+  }
+
+  it("serializes a real heartbeat authorization after the blocked event and delivers event before ping", async () => {
+    await use(false, async c => {
+      await positive(c);
+      await heldEvent(c, async barrier => {
+        const identity = identityObserver();
+        try {
+          c.timer.tick();
+          assert.equal(identity.state.started, 0, "heartbeat must not start identity SQL concurrently with event context");
+          barrier.release.resolve();
+          assert.equal(await c.frame(), expected); assert.equal(await c.frame(), ": ping\n\n");
+          assert.equal(identity.state.started, 1); assert.equal(identity.state.completed, 1);
+        } finally { await identity.finish(); }
+      });
+    });
+  });
+
+  it("coalesces repeated ticks while queued and permits a new heartbeat after completion", async () => {
+    await use(false, async c => {
+      await positive(c);
+      await heldEvent(c, async barrier => {
+        const identity = identityObserver();
+        try {
+          for (let i = 0; i < 8; i++) c.timer.tick();
+          assert.equal(identity.state.started, 0, "all ticks wait for the event");
+          barrier.release.resolve(); assert.equal(await c.frame(), expected); assert.equal(await c.frame(), ": ping\n\n");
+          assert.equal(identity.state.started, 1);
+          c.timer.tick(); assert.equal(await c.frame(), ": ping\n\n");
+          assert.equal(identity.state.started, 2);
+          assert.equal(c.observation.writes.filter(x => x === ": ping\n\n").length, 2);
+        } finally { await identity.finish(); }
+      });
+    });
+  });
+
+  it("closes after ADMIN promotion while an event and heartbeat are pending without event or ping", async () => {
+    await use(false, async c => {
+      await positive(c);
+      await heldEvent(c, async barrier => {
+        c.timer.tick();
+        await sqlClient`update role_bindings set active=true where id=${c.binding}`;
+        const [required] = await sqlClient`select public.identity_platform_mfa_required(${c.id}) as value`;
+        assert.equal(required?.value, true);
+        barrier.release.resolve(); assert.equal(await c.frame(), null);
+        await bounded(c.observation.closed.promise, "promoted stream close");
+        assert.equal(c.observation.writes.filter(x => x === ": ping\n\n").length, 0);
+        assert.equal(c.timer.state.cleared, true);
+      });
+    });
+  });
+
+  it("rechecks a revoked idle family and ignores a late tick after close", async () => {
+    await use(false, async c => {
+      c.timer.tick(); assert.equal(await c.frame(), ": ping\n\n");
+      await sqlClient`update sessions set revoked_at=now(),revoked_reason='fixture heartbeat' where id=${c.sid}`;
+      c.timer.tick(); assert.equal(await c.frame(), null); await bounded(c.observation.closed.promise, "revoked close");
+      assert.equal(c.timer.state.cleared, true);
+      const identity = identityObserver();
+      try { c.timer.tick(); assert.equal(identity.state.started, 0, "late callback must not begin authorization"); }
+      finally { await identity.finish(); }
+      assert.equal(c.observation.writes.filter(x => x === ": ping\n\n").length, 1);
+    });
+  });
+
+  it("permits a satisfied family ping then closes when the real family proof is removed", async () => {
+    await use(true, async c => {
+      await positive(c); c.timer.tick(); assert.equal(await c.frame(), ": ping\n\n");
+      await sqlClient`update sessions set mfa_verified_at=null,mfa_factor_generation=null where id=${c.sid}`;
+      c.timer.tick(); assert.equal(await c.frame(), null); await bounded(c.observation.closed.promise, "proof removed close");
+      assert.equal(c.observation.writes.filter(x => x === ": ping\n\n").length, 1);
+      assert.equal(c.observation.lateWrites, 0);
+    });
+  });
+
+  it("aborting an in-flight event discards its queued heartbeat without another identity query or write", async () => {
+    await use(false, async c => {
+      await positive(c);
+      await heldEvent(c, async barrier => {
+        const identity = identityObserver();
+        try {
+          c.timer.tick(); c.abort.abort(); await bounded(c.observation.closed.promise, "abort while context pending");
+          barrier.release.resolve(); await bounded(barrier.finished.promise, "aborted event settled");
+          assert.equal(identity.state.started, 0); assert.equal(c.observation.lateWrites, 0);
+          assert.equal(c.timer.state.cleared, true);
+        } finally { await identity.finish(); }
+      });
+    });
+  });
+
+  it("aborting during a real identity SELECT settlement cannot write a late ping", async () => {
+    await use(false, async c => {
+      const identity = identityObserver(true);
+      try {
+        c.timer.tick(); await bounded(identity.reached.promise, "real heartbeat SELECT returned rows");
+        assert.equal(identity.state.started, 1); assert.equal(identity.state.completed, 0);
+        c.abort.abort(); await bounded(c.observation.closed.promise, "abort during identity settlement");
+        identity.release.resolve(); await bounded(identity.settled.promise, "identity settlement released");
+        // Await a turn of the real asynchronous pipeline, without time-based sleeps.
+        await new Promise<void>(resolve => setImmediate(resolve));
+        assert.equal(c.observation.lateWrites, 0);
+        assert.equal(c.observation.writes.filter(x => x === ": ping\n\n").length, 0);
+        assert.equal(c.timer.state.cleared, true);
+        c.timer.tick(); assert.equal(identity.state.started, 1, "no new query after close");
+      } finally { await identity.finish(); }
+    });
+  });
+
+  it("keeps the100-event budget independent of one coalesced heartbeat and closes at101 without waiting", async () => {
+    await use(false, async c => {
+      await positive(c);
+      await heldEvent(c, async barrier => {
+        const identity = identityObserver();
+        try {
+          for (let i = 0; i < 10; i++) c.timer.tick();
+          // The blocked first event counts; every publication is a separate real NOTIFY.
+          for (let i = 0; i < 99; i++) await publish();
+          assert.equal(c.observation.response.writableEnded, false, "100 events plus one heartbeat remain admitted");
+          assert.equal(c.observation.response.destroyed, false);
+          assert.equal(identity.state.started, 0, "no concurrent heartbeat or queued event identity");
+          await publish(); await bounded(c.observation.closed.promise, "101st event closes before context release");
+          assert.equal(await c.frame(), null); assert.equal(c.timer.state.cleared, true);
+          barrier.release.resolve(); await bounded(barrier.finished.promise, "overflow context settled");
+          await new Promise<void>(resolve => setImmediate(resolve));
+          const count = identity.state.started;
+          await publish(); c.timer.tick();
+          assert.equal(identity.state.started, count, "unsubscribed and late-tick callbacks start no work");
+          assert.equal(count, 0); assert.equal(c.observation.lateWrites, 0);
+        } finally { await identity.finish(); }
+      });
+    });
+  });
+
+  it("a disconnect during initial identity resolution installs no headers, subscription work or heartbeat", async () => {
+    await use(false, async c => {
+      c.abort.abort(); await bounded(c.observation.closed.promise, "first connection closed"); c.timer.restore();
+      const identity = identityObserver(true), timers = captureHeartbeat(), abort = new AbortController();
+      // A baseline may install expiry after the response's close event already
+      // fired. Observe/delegate that exact JWT-relative timer and own its cleanup.
+      const originalTimeout = globalThis.setTimeout, expires = decodeJwt(c.token).exp! * 1000;
+      let expiryHandle: ReturnType<typeof setTimeout> | undefined;
+      globalThis.setTimeout = new Proxy(originalTimeout, { apply(target, receiver, args) {
+        const handle = Reflect.apply(target, receiver, args);
+        if (typeof args[1] === "number" && args[1] > 5000 && Math.abs(args[1] - (expires - Date.now())) < 1000) {
+          assert.equal(expiryHandle, undefined, "one JWT expiry timer"); expiryHandle = handle;
+        }
+        return handle;
+      } });
+      const request = fetch(`${url}/events/stream`, { headers: { Authorization: `Bearer ${c.token}` }, signal: abort.signal });
+      void request.catch(() => undefined);
+      try {
+        await bounded(identity.reached.promise, "initial identity SQL returned real rows");
+        const initial = current; assert.ok(initial); assert.notEqual(initial, c.observation);
+        abort.abort(); await bounded(initial.closed.promise, "disconnect before headers");
+        identity.release.resolve(); await bounded(identity.settled.promise, "initial identity settlement released");
+        await new Promise<void>(resolve => setImmediate(resolve));
+        assert.equal(initial.headers, 0); assert.deepEqual(initial.writes, []);
+        assert.equal(timers.state.created, 0, "no timer installed after client disconnected");
+        const count = identity.state.started;
+        await publish(); await new Promise<void>(resolve => setImmediate(resolve));
+        assert.equal(identity.state.started, count, "disconnected subscriber starts no authorization work");
+        assert.equal(initial.lateWrites, 0);
+      } finally {
+        abort.abort(); identity.release.resolve();
+        try {
+          await bounded(Promise.allSettled([request]), "aborted initial request settled");
+          await identity.finish();
+        } finally {
+          globalThis.setTimeout = originalTimeout;
+          clearTimeout(expiryHandle); timers.restore();
+        }
+      }
+    });
+  });
+});

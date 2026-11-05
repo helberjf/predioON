@@ -1,0 +1,76 @@
+{
+  "recordedOn": "2026-11-05",
+  "status": "HEARTBEAT_CANDIDATE_CANONICAL_SOURCE_RESTORE_PASSED",
+  "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+  "inputInventorySha256": "3fcefefa051bea636af2bcbca262bebb55c81a3c8017dc5bed4030a6affeaf76",
+  "testedPreparedSha256": "72119c309b6fcd1935c7f07017af618de3f807de42195ca84dde71d69c108541",
+  "all1017RestoredFilesMatchTestedComposition": true,
+  "baseFiles": 994,
+  "canonicalBaseGitObjectsVerified": 994,
+  "inventoryPayloads": 64,
+  "candidateRuntimeAndTests": 60,
+  "explicitRendererTests": 2,
+  "alreadyPublishedQueryPayloads": 2,
+  "qaSupportFiles": 5,
+  "manifestCandidateFiles": 62,
+  "manifestSha256": "43e60f0833df6f87cfe67c6381ae5a68b745aa235d60eda45a99bc4b4c440d1f",
+  "receiptSha256": "ac9ce2024c35d116b1a9c9d4d9124e392e9c93fdc7db28ae84c93895dc8b72b7",
+  "receipt": {
+    "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+    "sourceHeadBefore": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+    "canonicalBaseFiles": 994,
+    "candidateFiles": 62,
+    "qaSupportFiles": 5,
+    "status": "SOURCE_ONLY_NOT_TESTED_NOT_APPLIED",
+    "dependenciesInstalled": false,
+    "migrationsApplied": false,
+    "databaseStarted": false
+  },
+  "heartbeatEvidenceSha256": "45818a9694ff2e4129558051d574da1a5b0d8adfe4782a77cc2877d0451551e0",
+  "comparison": "Canonical994 Git blobs plus62 candidate overlays produce exactly tested1017 sources, with only5 renderer supports and receipt additional. Payload/package/source hashes independently verified; RAW EOL diagnostics are not canonical input.",
+  "limits": [
+    "Source restoration only; no dependency installation, database, migration or test execution by builder/restorer.",
+    "Heartbeat9 and nine separate regressions105 passed on exact composition72119; not an API integral, browser/native or production acceptance.",
+    "Expiry callback was not exercised and exactly-once res.end was not asserted in the heartbeat suite; close idempotence is a source review property.",
+    "Gateway and remaining MFA surfaces remain outside acceptance. Renderer staging recipe is not executed.",
+    "Metadata updates after verification preserve source payload bytes; inputInventorySha256 and package README refer to builder inputs."
+  ],
+  "computerRestarted": false,
+  "productionAccepted": false,
+  "builder": {
+    "exitCode": 0,
+    "childExitedAt": "2026-11-05T08:02:54.7244715Z",
+    "timedOut": false,
+    "phase": "builder",
+    "durationMs": 2261.2263,
+    "ownedPid": 42216,
+    "guard": {
+      "freeMiB": 2629.0,
+      "minimumMiB": 1536,
+      "phase": "builder",
+      "at": "2026-11-05T08:02:52.4249177Z"
+    },
+    "heapMiB": 128,
+    "resultSha256": "e92c84825a00fd3fb08ba32e74b4d2fec57f4ae4e0210d6475f9eca00b59cad7",
+    "stdoutSha256": "4673a924592336dfb5838ec28fe60aa3ccff314132b7906cedfe4c451e1e8176",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "restore": {
+    "childExitedAt": "2026-11-05T08:03:07.5275029Z",
+    "exitCode": 0,
+    "ownedPid": 10808,
+    "phase": "restore",
+    "durationMs": 3800.8743,
+    "timedOut": false,
+    "guard": {
+      "freeMiB": 2570.0,
+      "phase": "restore",
+      "minimumMiB": 1536,
+      "at": "2026-11-05T08:03:03.6420411Z"
+    },
+    "heapMiB": 128,
+    "resultSha256": "2082b5d13dd4ae57a2531a33756775542f3833c469d165c66c217bbc99e90637",
+    "stdoutSha256": "5d235f6a30170e2aa45149c03b8e7aaf4b605e3f66b3f1e798763b632bc34c5a",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

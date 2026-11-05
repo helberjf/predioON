@@ -25,8 +25,34 @@ eventsRouter.get("/stream", async (req, res) => {
   const claims = await verifyAccessToken(token);
   if (!claims) throw unauthorized("Token inválido ou expirado");
 
-  req.auth = { ...(await resolveIdentity(claims)), sessionId: claims.sid };
-  assertOperationalMfa(req.auth);
+  const initialIdentity = await resolveIdentity(claims);
+  // The client may disconnect while the initial identity query is in flight.
+  // Do not install timers/subscriptions or write headers on an ended response.
+  if (res.destroyed || res.writableEnded) return;
+  assertOperationalMfa(initialIdentity);
+  req.auth = { ...initialIdentity, sessionId: claims.sid };
+
+  let closed = false, queued = 0, heartbeatPending = false;
+  let delivery: Promise<void> = Promise.resolve();
+  let heartbeat: ReturnType<typeof setInterval> | undefined;
+  let expiry: ReturnType<typeof setTimeout> | undefined;
+  let unsubscribe: () => void = () => {};
+  const isOpen = () => !closed && !res.writableEnded && !res.destroyed;
+  const close = () => {
+    if (closed) return;
+    closed = true;
+    clearInterval(heartbeat);
+    clearTimeout(expiry);
+    unsubscribe();
+    if (!res.writableEnded && !res.destroyed) res.end();
+  };
+  // Expiry, overflow and transport closure must not wait for a slow query.
+  res.on("close", close);
+  const enqueue = (work: () => Promise<void>, settled: () => void) => {
+    delivery = delivery.then(async () => {
+      if (isOpen()) await work();
+    }).catch(close).finally(settled);
+  };
 
   res.writeHead(200, {
     "Content-Type": "text/event-stream",
@@ -36,63 +62,60 @@ eventsRouter.get("/stream", async (req, res) => {
   });
   res.write(`retry: 5000\n\n`);
 
-  let closed = false, queued = 0, delivery: Promise<void> = Promise.resolve();
-  const unsubscribe = subscribe((event) => {
-    if (closed) return;
-    // Serialize authorization and delivery per subscriber. A slow client reconnects instead of retaining an unbounded queue.
-    if (++queued > 100) { res.end(); return; }
-    delivery = delivery.then(async () => {
-      if (closed) return;
-      req.auth = { ...(await resolveIdentity(claims)), sessionId: claims.sid };
-      assertOperationalMfa(req.auth);
+  unsubscribe = subscribe((event) => {
+    if (!isOpen()) return;
+    // The budget includes the active event, but not the coalesced heartbeat.
+    if (queued >= 100) { close(); return; }
+    queued++;
+    enqueue(async () => {
+      const identity = await resolveIdentity(claims);
+      if (!isOpen()) return;
+      assertOperationalMfa(identity);
+      req.auth = { ...identity, sessionId: claims.sid };
       if (event.kind === "telemetry") {
         const projected = await inTenantContext(req, tx => projectTelemetryEvent(tx, event));
         // No frame may leave before the transaction has successfully settled.
-        if (projected && !closed && !res.writableEnded) res.write(`event: telemetry\ndata: ${JSON.stringify(projected)}\n\n`);
+        if (projected && isOpen()) res.write(`event: telemetry\ndata: ${JSON.stringify(projected)}\n\n`);
         return;
       }
       if (event.kind === "alert") {
         const projected = await inTenantContext(req, tx => projectAlertEvent(tx, event));
         // No frame may leave before the transaction has successfully settled.
-        if (projected && !closed && !res.writableEnded) res.write(`event: alert\ndata: ${JSON.stringify(projected)}\n\n`);
+        if (projected && isOpen()) res.write(`event: alert\ndata: ${JSON.stringify(projected)}\n\n`);
         return;
       }
       if (event.kind === "device-status") {
         const projected = await inTenantContext(req, tx => projectDeviceStatusEvent(tx, event));
         // No frame may leave before the transaction has successfully settled.
-        if (projected && !closed && !res.writableEnded) res.write(`event: device-status\ndata: ${JSON.stringify(projected)}\n\n`);
+        if (projected && isOpen()) res.write(`event: device-status\ndata: ${JSON.stringify(projected)}\n\n`);
         return;
       }
       if (event.kind === "gateway-status") {
         const projected = await inTenantContext(req, tx => projectGatewayStatusEvent(tx, event));
         // No frame may leave before the transaction has successfully settled.
-        if (projected && !closed && !res.writableEnded) res.write(`event: gateway-status\ndata: ${JSON.stringify(projected)}\n\n`);
+        if (projected && isOpen()) res.write(`event: gateway-status\ndata: ${JSON.stringify(projected)}\n\n`);
         return;
       }
       if (event.kind === "features-changed") {
         const projected = await inTenantContext(req, tx => projectFeatureEvent(tx, event));
         // No frame may leave before the transaction has successfully settled.
-        if (projected && !closed && !res.writableEnded) res.write(`event: features-changed\ndata: ${JSON.stringify(projected)}\n\n`);
+        if (projected && isOpen()) res.write(`event: features-changed\ndata: ${JSON.stringify(projected)}\n\n`);
       }
-    }).catch(() => { res.end(); }).finally(() => { queued--; });
+    }, () => { queued--; });
   });
 
-  // Comment frames keep proxies from closing an idle connection.
-  const heartbeat = setInterval(() => {
-    void resolveIdentity(claims).then(identity => {
-      if (closed || res.writableEnded) return;
+  // One pending/running heartbeat shares the delivery queue. Slow queries do
+  // not accumulate ticks, and a heartbeat never overwrites an event's auth.
+  heartbeat = setInterval(() => {
+    if (!isOpen() || heartbeatPending) return;
+    heartbeatPending = true;
+    enqueue(async () => {
+      const identity = await resolveIdentity(claims);
+      if (!isOpen()) return;
       assertOperationalMfa(identity);
-      req.auth = { ...identity, sessionId: claims.sid };
       res.write(`: ping\n\n`);
-    }).catch(() => res.end());
+    }, () => { heartbeatPending = false; });
   }, 25_000);
 
-  const expiry = setTimeout(() => res.end(), Math.max(1, (decodeJwt(token).exp! * 1000) - Date.now()));
-  res.on("close", () => {
-    closed = true;
-    clearInterval(heartbeat);
-    clearTimeout(expiry);
-    unsubscribe();
-    res.end();
-  });
+  expiry = setTimeout(close, Math.max(1, (decodeJwt(token).exp! * 1000) - Date.now()));
 });
