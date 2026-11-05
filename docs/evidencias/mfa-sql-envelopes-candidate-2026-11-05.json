@@ -1,0 +1,312 @@
+{
+  "recordedOn": "2026-11-05",
+  "status": "PARTIAL_MFA_CANDIDATE_DIRECTED_GREEN_NOT_PRODUCTION_ACCEPTED",
+  "source": {
+    "operationalBaseCommit": "2676a74216b012dcab6fa2fb9735dc1b6ef8e9d8",
+    "observedPublishedHeadBefore": "01b0f0934c65792487b6e1f3e927c48f7f1661cd",
+    "observedPublishedHeadAfter": "01b0f0934c65792487b6e1f3e927c48f7f1661cd",
+    "interveningDiffReadmeAndDocsOnly": true,
+    "readmeSourceCommit": "8d176168954f1082f88d7b00340c81bec8d778b2",
+    "preparedSha256": "13fed9ea7d57c142790e6ab5ab22c0b16468acaed0db1aad11f3ff3a90519a7a",
+    "sourcePinManifestSha256": "cb7e12531528a35917a2e5bdb70dc05e7ebcedd7e1a502e5f155010e720485b1",
+    "sourceFreezeFiles": 990,
+    "composedFreezeFiles": 1006,
+    "scratchControlFiles": 1,
+    "allFrozenFiles": 1007,
+    "selectedManifestPathsRehashedByReviewer": 53,
+    "selectedPathHashMismatches": 0,
+    "allSourceHashesAfterMatchReportedByHarness": true,
+    "sqlCandidateVersion": 3,
+    "sqlCandidateSha256": "61bda99d24219a630d0a7ec3d754ff306ad4b0ed8317b3ebcbc8f59caab8bb7a",
+    "httpWiringVersion": 4,
+    "httpWiringManifestSha256": "2ad05fb3ee27292f548731df86b7039c52a6163dd11a90e0b5e440e703e751bf",
+    "httpWiringPatchSha256": "c281047259cb8acb9ad13f561d4b2b61d27e3cbd450d7e866674ded05fb865d2"
+  },
+  "queryProjectionControlRed": {
+    "exitCode": 1,
+    "timedOut": false,
+    "heapMiB": 384,
+    "deadlineMs": 60000,
+    "freeMiB": 5332,
+    "startedUtc": "2026-11-05T03:13:47.994Z",
+    "childExitedUtc": "2026-11-05T03:13:50.513Z",
+    "childDurationMs": 2518,
+    "before": {
+      "source": true,
+      "candidate": true
+    },
+    "after": {
+      "source": true,
+      "candidate": true
+    },
+    "stdoutSha256": "99b4cdb54ea4e2a763351bc4fa46a88c2fb53e9d2ec28b35d582c3cd30bb1172",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "database": false,
+    "browser": false,
+    "native": false,
+    "counters": {
+      "tests": 3,
+      "suites": 0,
+      "pass": 0,
+      "fail": 3,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "tapDurationMs": 2300.727,
+    "testConcurrency": 1,
+    "perFileTimeoutMs": 10000,
+    "classification": "EXPECTED_QUERY_BUILDER_ASSERTION_RED",
+    "missingTableNames": [
+      "organizations",
+      "devices",
+      "gateways"
+    ],
+    "importOrPreparationFailure": false,
+    "mfaDatabasePolicyRed": false
+  },
+  "queryProjectionFixedGreen": {
+    "exitCode": 0,
+    "timedOut": false,
+    "heapMiB": 384,
+    "deadlineMs": 60000,
+    "freeMiB": 5328,
+    "startedUtc": "2026-11-05T03:14:01.444Z",
+    "childExitedUtc": "2026-11-05T03:14:03.633Z",
+    "childDurationMs": 2188,
+    "before": {
+      "source": true,
+      "candidate": true
+    },
+    "after": {
+      "source": true,
+      "candidate": true
+    },
+    "stdoutSha256": "4ec7a7a623911a802b22b1b5938cfa6367871e610c795c5ba652915653cea456",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "database": false,
+    "browser": false,
+    "native": false,
+    "counters": {
+      "tests": 7,
+      "suites": 0,
+      "pass": 7,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "tapDurationMs": 1974.3685,
+    "testConcurrency": 1,
+    "perFileTimeoutMs": 10000
+  },
+  "composedApiTypecheck": {
+    "exitCode": 0,
+    "timedOut": false,
+    "heapMiB": 640,
+    "deadlineMs": 300000,
+    "freeMiB": 5327,
+    "startedUtc": "2026-11-05T03:14:14.635Z",
+    "childExitedUtc": "2026-11-05T03:14:26.669Z",
+    "childDurationMs": 12032,
+    "before": {
+      "source": true,
+      "candidate": true
+    },
+    "after": {
+      "source": true,
+      "candidate": true
+    },
+    "stdoutSha256": "2b63e3ce8c44f9c9ab0205a168eee91401b95320fc9c6cafaa60788568bbf3a7",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "database": false,
+    "browser": false,
+    "native": false,
+    "compilerReportedSeconds": 11.5,
+    "noEmit": true,
+    "originalTsconfig": true,
+    "scope": "API tsconfig src include; does not typecheck test files, consumers or SQL."
+  },
+  "directedDatabaseGreen": {
+    "passed": 9,
+    "testProcesses": 2,
+    "serial": true,
+    "freshOfficialUuidDatabases": 1,
+    "canonicalMigrationCount": 68,
+    "candidateMigrationId": "068-platform-mfa-required",
+    "appliedOnlyInsideTemporaryFixture": true,
+    "suites": [
+      {
+        "file": "platform-mfa-required.test.ts",
+        "counters": {
+          "tests": 6,
+          "suites": 1,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "durationMs": 7375.1123,
+        "exitCode": 0,
+        "timedOut": false,
+        "logSha256": "26b2da890dbeac97dc28a73b3bf9e71f27ec5724df4d0c9dda986b27f65120fc"
+      },
+      {
+        "file": "platform-mfa-authority-races.test.ts",
+        "counters": {
+          "tests": 3,
+          "suites": 1,
+          "pass": 3,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "durationMs": 5838.7205,
+        "exitCode": 0,
+        "timedOut": false,
+        "logSha256": "c4ad2af9b393a75708ce2dcdba72e5de254437cfe67f9d945ed1c0a0bcb5c14a"
+      }
+    ],
+    "controllerStartedUtc": "2026-11-05T03:15:55.963Z",
+    "controllerEndedUtc": "2026-11-05T03:16:28.858Z",
+    "controllerExitCode": 0,
+    "provisionExitCode": 0,
+    "seedExitCode": 0,
+    "fixtureCleanupPassed": true,
+    "runtimeConnectionsRestricted": true,
+    "ownerCredentialBoundary": "Official fixture/test arrangement and administrative proofs may use the owner connection. Application pools use restricted runtime connections; do not claim every child process is unaware of owner credentials."
+  },
+  "cleanup": {
+    "systemIdentifierMatches": true,
+    "basePublicTables": 0,
+    "temporaryDatabases": 0,
+    "otherDatabases": 0,
+    "rolesRestoredIncludingPrivateCredentials": true,
+    "settingsRestored": true,
+    "roles": 6,
+    "otherClients": 0,
+    "containerAttestationMatches": true,
+    "computerRestarted": false,
+    "credentialsPublished": false
+  },
+  "review": {
+    "readOnly": true,
+    "reranTests": false,
+    "startedDatabase": false,
+    "checkedLogAndExitAssociations": true,
+    "checkedV3SqlAndV4SourcePins": true,
+    "schemaAndApiProductionChangedByThisEvidence": false
+  },
+  "historicalArtifacts": "Prepared handoff/README statements predate execution and remain intact. This later proof classifies query RED3, query GREEN7, API typecheck and directed database GREEN9; labels RED1... in passing tests are historical case names.",
+  "limits": [
+    "Query RED3 reproduces an authored SQL-envelope builder integration defect; it is not the baseline RED9 of the MFA policy. Counts are separate, not a combined test suite.",
+    "GREEN7 uses drizzle.mock().toSQL() and actual decoder methods, with synthetic values; it does not execute SQL, HTTP or database row materialization.",
+    "API typecheck passed for the composed V4 src tree. The older timeout and earlier11-package results retain their original source scope; this run does not validate all consumer types or test-file typing.",
+    "GREEN9 covers six family/obligation cases and three controlled authority races only. It is not the original865-test API regression, an ACL/catalogue audit, a worker regression or global MFA completeness.",
+    "No new real-browser, native device/build, whole-product acceptance or production deployment is established. A later Playwright capture attempt was reported aborted before Playwright start; no browser PASS may be attributed to it.",
+    "SQL V3 remains an external candidate. Published migrations remain001-067; no candidate migration was applied to the base or an installation."
+  ],
+  "requiredRemaining": [
+    "Complete same-statement authorization/proof in remaining SECURITY DEFINER and SSE projections, plus relevant domains.",
+    "Cover metrics and absent-ID/zero-match mutations with explicit envelopes; preserve403 reasons without turning ordinary42501 into MFA.",
+    "Test ACL/default-grant contamination, six real runtime roles and worker paths without SID, plus payload compatibility for health/authorization/equipment.",
+    "Close factor-disable promotion, expiry during lock waits and proof readback after triggers; validate VOLATILE mutation snapshots.",
+    "Run appropriate original regressions and real-browser/mobile acceptance after coherent integration; maintain existing memory guards and no-restart instruction."
+  ],
+  "artifacts": [
+    {
+      "localRelativePath": "mfa-green9-v4-20261105/prepared.json",
+      "sha256": "13fed9ea7d57c142790e6ab5ab22c0b16468acaed0db1aad11f3ff3a90519a7a",
+      "bytes": 540387
+    },
+    {
+      "localRelativePath": "mfa-green9-v4-20261105/source-pin-2676-readme8d.manifest.json",
+      "sha256": "cb7e12531528a35917a2e5bdb70dc05e7ebcedd7e1a502e5f155010e720485b1",
+      "bytes": 147922
+    },
+    {
+      "localRelativePath": "mfa-green9-v4-20261105/mfa-directed-result.json",
+      "sha256": "118b8bf43cb639fac7295e4d29b0488ecaf14e4d0a30d3757b423e51094b3678",
+      "bytes": 308945
+    },
+    {
+      "localRelativePath": "mfa-green9-v4-20261105/mfa-directed-postchecks.json",
+      "sha256": "371bc67d976b5c914bc05e7971f17188156b54768528784b0a7cae70c625bca3",
+      "bytes": 390
+    },
+    {
+      "localRelativePath": "mfa-green9-v4-20261105/checks/query-red/result.json",
+      "sha256": "7c69fa5f34564cb9ffb88db4707d5bb94ce753af48f56b1f494c34c62be7bf10",
+      "bytes": 1460
+    },
+    {
+      "localRelativePath": "mfa-green9-v4-20261105/checks/query-red/child-exit.json",
+      "sha256": "2eae991bee1610c8a15756515bedb5916132771bab3fe1818e9c646613f3a8c9",
+      "bytes": 169
+    },
+    {
+      "localRelativePath": "mfa-green9-v4-20261105/checks/query-red/stdout.log",
+      "sha256": "99b4cdb54ea4e2a763351bc4fa46a88c2fb53e9d2ec28b35d582c3cd30bb1172",
+      "bytes": 8538
+    },
+    {
+      "localRelativePath": "mfa-green9-v4-20261105/checks/query-red/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "localRelativePath": "mfa-green9-v4-20261105/checks/query-green/result.json",
+      "sha256": "0a4bf6b586e5345406a281d59552bd6a3f6eec677dfb0694846a02e401b4cbba",
+      "bytes": 1449
+    },
+    {
+      "localRelativePath": "mfa-green9-v4-20261105/checks/query-green/child-exit.json",
+      "sha256": "1dc1a5fb885640a5520b69f62ce4ea6b09a45136e648e3e1c31611445ec8f14b",
+      "bytes": 169
+    },
+    {
+      "localRelativePath": "mfa-green9-v4-20261105/checks/query-green/stdout.log",
+      "sha256": "4ec7a7a623911a802b22b1b5938cfa6367871e610c795c5ba652915653cea456",
+      "bytes": 1611
+    },
+    {
+      "localRelativePath": "mfa-green9-v4-20261105/checks/query-green/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "localRelativePath": "mfa-green9-v4-20261105/checks/types-api/result.json",
+      "sha256": "41d2d1864559d2dcbbfaf0e09053a44a2896fc64910655fa9b1ad3975734b519",
+      "bytes": 1434
+    },
+    {
+      "localRelativePath": "mfa-green9-v4-20261105/checks/types-api/child-exit.json",
+      "sha256": "c146500ad2fe442b1936a30a620bb95d374540ff59654c5a956b2d70041acc42",
+      "bytes": 170
+    },
+    {
+      "localRelativePath": "mfa-green9-v4-20261105/checks/types-api/stdout.log",
+      "sha256": "2b63e3ce8c44f9c9ab0205a168eee91401b95320fc9c6cafaa60788568bbf3a7",
+      "bytes": 972
+    },
+    {
+      "localRelativePath": "mfa-green9-v4-20261105/checks/types-api/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "localRelativePath": "mfa-green9-v4-20261105/platform-mfa-required.log",
+      "sha256": "26b2da890dbeac97dc28a73b3bf9e71f27ec5724df4d0c9dda986b27f65120fc",
+      "bytes": 1922
+    },
+    {
+      "localRelativePath": "mfa-green9-v4-20261105/platform-mfa-authority-races.log",
+      "sha256": "c4ad2af9b393a75708ce2dcdba72e5de254437cfe67f9d945ed1c0a0bcb5c14a",
+      "bytes": 1129
+    }
+  ],
+  "integratedMfaAccepted": false,
+  "productionAccepted": false
+}

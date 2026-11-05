@@ -1,0 +1,51 @@
+{
+  "recordedOn": "2026-11-05",
+  "status": "QUERY_FOUNDATION_PUBLISHED_WITHOUT_ROUTE_WIRING",
+  "baseCommit": "6d05e52348299447dd444815583039ae18316b0a",
+  "files": [
+    {
+      "path": "apps/api/src/auth/mfa-query.ts",
+      "sha256": "c183ed7864ea5b86cdebd863cefe23cd52744a8c9a474752640295afea06cb48"
+    },
+    {
+      "path": "apps/api/test/mfa-query.test.ts",
+      "sha256": "84abe0a65d04841f57829eab6d87629844101944bebb07893f37cab84a860e7b"
+    }
+  ],
+  "behavior": "Create typed SQL selections that preserve column decoders when selecting from function envelopes; no existing route imports the helper in this increment.",
+  "directedUnitTests": {
+    "tests": 7,
+    "passed": 7,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "durationMs": 1089.8195,
+    "logSha256": "64130cee1b0bb682cea8dbb3be070fbda35d1cab4b1ab7982601ec10d4402996",
+    "database": false,
+    "command": "node --max-old-space-size=384 --import tsx --test --test-reporter=tap --test-concurrency=1 --test-timeout=10000 test/mfa-query.test.ts",
+    "workingDirectory": "apps/api"
+  },
+  "apiSourceTypes": {
+    "startedUtc": "2026-11-05T03:39:20.1069546Z",
+    "endedUtc": "2026-11-05T03:39:27.6064933Z",
+    "durationMs": 7494,
+    "pid": 46684,
+    "exitCode": 0,
+    "timedOut": false,
+    "freeMiB": 3157.0,
+    "guardMiB": 1536,
+    "heapMiB": 640,
+    "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "upstreamCandidateEvidence": "mfa-sql-envelopes-candidate-2026-11-05.json",
+  "preparationFailure": "First copy/test invocation used the wrong working directory; no files were copied and test module was absent. Corrected working directory, not classified as a product regression.",
+  "limits": [
+    "The seven pure tests exercise SQL generation and decoders, not database policy.",
+    "API tsconfig covers src, not the new test file.",
+    "The historical865 API full run was not repeated;872 is only a future arithmetic expectation.",
+    "No migration068, routes, backend MFA policy or consumer gates were activated by this increment."
+  ],
+  "productionAccepted": false,
+  "computerRestarted": false
+}

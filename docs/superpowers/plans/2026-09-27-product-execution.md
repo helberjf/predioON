@@ -481,3 +481,7 @@ O ponto corrente está na [continuidade](../../CONTINUIDADE.md), sem rascunhos d
 ## 04/11: bloqueio de conta identificado no GitHub
 
 O [resumo do run 41842973688](https://github.com/helberjf/predioON/actions/runs/41842973688), fonte b259f80, informa que o job não iniciou por pagamentos recentes que falharam ou limite de gastos insuficiente. [Registro da leitura autenticada](../../evidencias/ci-account-blocker-2026-11-04.json). A causa entre essas duas alternativas não está discriminada; nenhuma cobrança/configuração foi alterada. O diagnóstico anterior pela API permanece histórico. CI, builds nativos e testes remotos seguem sem aceite atual.
+
+## 05/11 — avanço dirigido da MFA
+
+Correção de recuperação publicada com dois cenários Playwright e capturas reais; helper SQL com sete testes puros e tipos da API aprovados. Na composição candidata separada, nove casos PostgreSQL passaram após seus nove REDs de base067. A068 e integração obrigatória ainda não estão no runtime; os11 casos SQL complementares V2 aguardam execução. Não marcar a etapa de identidade, os apps ou produção como concluídos. [Continuidade](../../CONTINUIDADE.md) e [prova SQL](../../evidencias/mfa-sql-envelopes-candidate-2026-11-05.json).

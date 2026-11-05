@@ -2,7 +2,7 @@
 
 Atualizado em **05/11/2026**, horário de São Paulo. Leia este arquivo primeiro ao retomar, em qualquer computador. A [retomada de 03/11](RETOMADA_2026-11-03.md) registra a comparação com o GitHub, os rascunhos preservados e a ordem de validação. O histórico anterior está em [continuidade/historico-ate-2026-10-17.md](continuidade/historico-ate-2026-10-17.md); a entrega de entrada pública, testes e VPS está em [VERIFICACAO_2026-10-24.md](VERIFICACAO_2026-10-24.md).
 
-## Estado corrente verificado em 04/11
+## Estado corrente verificado em 05/11
 
 | Verificação | Resultado observado | O que continua aberto |
 | --- | --- | --- |
@@ -11,7 +11,7 @@ Atualizado em **05/11/2026**, horário de São Paulo. Leia este arquivo primeiro
 | Cliente publicado / UI / mobile | Cliente `9e79bde`: 25 dirigidos + 118 originais e tipos aprovados; UI 130/130 e mobile 236/236 na fonte histórica c619844 | Consumidores MFA V5 ainda candidatos; jornadas atuais em aparelhos |
 | Tipos e builds | 14 pacotes + tiposE2E; seis builds de produção aprovados, fontea2c8ab1 | Android/iOS não compilados nesta rodada; distTSC pode conservar arquivos antigos |
 | Playwright dirigido | Chromium:20 aprovados e dois skips originais, fonte14e3008; API sintética | Matriz completa atual com backend/PostgreSQL e demais motores |
-| MFA obrigatória da plataforma | [Checkpoint ativo](continuidade/2026-11-04-mfa-integracao/README.md): 47 arquivos recuperáveis, cinco publicados e 42 candidatos; backend: sete testes puros; consumidores V5: 19 testes puros aprovados | SQL incompleto; nove REDs observados na base067; 11 tipos e quatro renderizados aprovados; GREEN do backend candidato pendente |
+| MFA obrigatória da plataforma | Composição candidata:11 tipos,19 testes puros de consumidores, quatro renderizados e nove PostgreSQL aprovados; helper de consultas com sete testes publicado | Política SQL e integração ainda parciais;11 casos SQL complementares V2 não executados; demais domínios/SSE/mutações e regressões pendentes |
 | Android / iOS | Tipos atuais; evidências nativas anteriores conservam suas datas | Câmera/aparelhos Android, Apple/distribuição e jornada iOS atual |
 | Operação e apresentação | Restore067 aprovado; imagens novas no Git | VPS/TLS/e-mail/hardware reais, documentação final e cinco vídeos atualizados |
 
@@ -74,6 +74,10 @@ Atualizado em **05/11/2026**, horário de São Paulo. Leia este arquivo primeiro
 Na composição candidata, passaram os tipos de 11 pacotes/apps e quatro testes React renderizados da cerimônia, com fontes conferidas. Estes usam React/renderer19.2.3 e primitivas HTTP/browser sintéticas; não aprovam DOM, aparelhos ou o React19.3.0 do web. Os nove REDs ainda não são GREEN da implementação. O timeout anterior fica histórico: sua duração incluía hashes posteriores, sem medição isolada da vida do compilador. SQL ampliado e ligação das listas estão em revisão externa; não entraram no runtime publicado.
 
 **Correção web de recuperação MFA — 05/11:** o painel compartilhado agora consulta o estado somente depois de “Já guardei os códigos”. Antes, uma falha nessa consulta podia esconder os códigos recém-gerados. Baseline: uma falha legítima e um controle aprovado; correção: dois casos Playwright aprovados; nova execução com captura: dois aprovados. Tipos E2E e actionlint passaram. [Prova e limites](evidencias/mfa-recovery-codes-2026-11-05.json); [imagens reais](imagens/2026-11-05/README.md). Esta correção independente não conclui a MFA administrativa obrigatória. O teste usa o portal real e HTTP sintético; a CI remota continua sem aceite.
+
+**Integração MFA candidata — segundo avanço de 05/11:** nove casos PostgreSQL passaram na composição SQLV3/HTTPV4/backend/consumidores, com fixture UUID própria,68 migrations e conexões restritas. Os mesmos nove tinham falhado por asserção na base067. Sete testes puros de projeção passaram após três controles negativos reproduzirem a incompatibilidade do construtor SQL; tipos da API candidata também passaram. A limpeza confirmou zero bancos temporários/clientes e restauração de seis roles/configurações/credenciais. [Prova auditada e limites](evidencias/mfa-sql-envelopes-candidate-2026-11-05.json).
+
+Somente o helper de projeção e seus sete testes entraram na API publicada, sem ligar rotas novas ou aplicar068. Na main, esses sete casos e os tipos src da API passaram novamente. [Prova do incremento independente](evidencias/mfa-query-foundation-2026-11-05.json). A política obrigatória continua incompleta: outros domínios/projeções/SSE, mutações sem correspondência, promoção durante desativação, expiração após lock e leitura após triggers ainda exigem implementação/testes. Os11 casos SQL complementares V2 estão escritos; a revisão corrigiu um código de prédio duplicado na fixture, mas V2 ainda não executou no banco. A tipagem da V1 anterior passou e não é aceite da V2.
 
 ## 1. Instruções permanentes do proprietário
 

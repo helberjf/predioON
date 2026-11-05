@@ -299,3 +299,7 @@ Identidade autenticada 37307304828 e os dois jobs de inicialização 37307304855
 ### 13/10: preparo para credenciais por carga
 
 O [plano de ingestão/acesso](superpowers/plans/2026-10-13-ingest-runtime-credentials.md), publicado em a9c088a, separa permissões de observação e comando no mesmo processo. A primeira tarefa elimina dotenv do construtor compartilhado e explicita os loaders existentes; 19/22 casos em Windows e Linux (3 skips SQL por execução), quatro tipos, fronteiras e duas revisões foram verificados. [Evidência](evidencias/runtime-environment-prepare-2026-10-13.json). A retirada de owner da ingestão continua pendente: exige ambas as roles, ACL/RLS, produtores, dispatcher/ACK, provisionamento e restore. A 052 permanece proposta, sem aplicação.
+
+## 05/11 — próxima cobertura da MFA obrigatória
+
+O helper de projeções e seus sete testes já foram publicados; a composição candidata passou nove testes PostgreSQL. Priorizar os11 casos SQL complementares V2 (ACL efetiva em seis roles, DTOs, remoção de segredos MQTT, família/escopo e ingestão sem SID), ainda sem execução no banco. Depois fechar projeções/SSE de outros domínios, operações sem correspondência, mutadores, promoção durante desativação e provas após lock/triggers; revalidar regressões e consumidores antes de ativar068. [Estado e evidências](CONTINUIDADE.md).
