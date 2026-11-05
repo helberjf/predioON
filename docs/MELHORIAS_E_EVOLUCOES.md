@@ -12,6 +12,8 @@ Próximas entregas: REDs e implementação da MFA obrigatória, matriz completa 
 
 **Incremento de identidade publicado em `9e79bde`:** cliente MFA com 25 testes dirigidos, 118 originais e tipos aprovados. O [checkpoint ativo](continuidade/2026-11-04-mfa-integracao/README.md) preserva 47 arquivos, dos quais42 ainda candidatos. Backend 7 e consumidores V5 19 unidades puras passaram em execuções distintas; isso não entrega a obrigatoriedade. Prioridade P0: concluir a proteção SQL no snapshot da operação, executar os nove casos de banco, integrar a cerimônia web/mobile e validar HTTP/SSE, tipos, Playwright real e aparelhos. O timeout de tipos da API candidata não produziu resultado. Configurar a origem HTTPS de MFA dos apps somente no ambiente de implantação definido. [Prova específica V5 e limites](evidencias/mfa-consumer-candidate-2026-11-04.json).
 
+**Validação registrada em 05/11:** [11 checagens de tipos e quatro testes React renderizados aprovados](evidencias/mfa-integration-validation-2026-11-05.json) na composição candidata. Os nove casos de banco foram finalmente executados sobre067 e produziram as falhas esperadas; limpeza e restauração dos papéis aprovadas. Próxima prioridade: GREEN do candidato SQL/API em UUID nova, sem considerar tipos ou REDs como entrega da MFA obrigatória. A revisão também identificou uma incompatibilidade do query builder a corrigir antes desse ensaio.
+
 ## 1. Como usar este documento
 
 Antes de iniciar um item, conferir sua situação no código e nos testes do commit atual. Um recurso só deve ser marcado como concluído quando sua API, autorização, interface aplicável e validação estiverem integradas. Um build bem-sucedido comprova compilação; não comprova homologação em aparelho ou equipamento físico.

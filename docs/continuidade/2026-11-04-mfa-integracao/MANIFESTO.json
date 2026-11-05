@@ -360,7 +360,7 @@
   "migrationApplied": false,
   "functionalDatabaseCasesExecuted": 0,
   "policyPureUnitCasesPassed": 7,
-  "apiTypecheck": "TIMEOUT_WITHOUT_COMPILER_RESULT",
+  "apiTypecheck": "PASSED_CURRENT_COMPOSITION",
   "recordedAt": "2026-11-04T16:23:13.328678+00:00",
   "publishedFiles": [
     {
@@ -401,5 +401,11 @@
   "consumerAuthoredPureCases": 19,
   "consumerPureUnitCasesPassed": 19,
   "consumerStaticReview": "APPROVED_FOR_CANDIDATE_PRESERVATION_ONLY",
-  "consumerEvidence": "docs/evidencias/mfa-consumer-candidate-2026-11-04.json"
+  "consumerEvidence": "docs/evidencias/mfa-consumer-candidate-2026-11-04.json",
+  "candidateTypecheckPackagesPassed": 11,
+  "consumerTypecheckPassed": true,
+  "consumerRenderedCasesPassed": 4,
+  "baselineDatabaseCasesExecuted": 9,
+  "baselineDatabaseAssertionFailures": 9,
+  "currentValidation": "docs/evidencias/mfa-integration-validation-2026-11-05.json"
 }

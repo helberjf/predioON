@@ -4,6 +4,8 @@ Base aprovada: [arquitetura](../specs/2026-09-27-arquitetura-produto-design.md).
 
 **Incremento verificado:** transporte MFA com 25 casos dirigidos, 118 originais e tipos do cliente aprovados. [Prova](../../evidencias/mfa-client-transport-2026-11-04.json). O [checkpoint ativo](../../continuidade/2026-11-04-mfa-integracao/README.md) preserva 47 arquivos exatos: cinco publicados e 42 candidatos. Backend 7 e consumidores V5 19 unidades puras passaram; os nove casos PostgreSQL não foram executados e os tipos da API candidata terminaram sem resultado. Integração SQL/HTTP/SSE/web/mobile, navegador real e aceite nativo permanecem na etapa 2/5, sem marcação de conclusão. O [bloqueio de conta do CI](../../evidencias/ci-account-blocker-2026-11-04.json) precisa ser regularizado antes de validar novos runners.
 
+**Validação registrada em 05/11:** [11 checagens de tipos e quatro testes React renderizados aprovados](../../evidencias/mfa-integration-validation-2026-11-05.json) na composição candidata. Os nove casos de banco foram finalmente executados sobre067 e produziram as falhas esperadas; limpeza e restauração dos papéis aprovadas. Próxima prioridade: GREEN do candidato SQL/API em UUID nova, sem considerar tipos ou REDs como entrega da MFA obrigatória. A revisão também identificou uma incompatibilidade do query builder a corrigir antes desse ensaio.
+
 ## Sequência e aceite
 
 - [x] 1. Contratos e cliente HTTP: separar DTOs e cliente portátil da UI, preservar consumidores web, testar renovação concorrente, troca de sessão, falhas de rede e fronteiras entre pacotes.

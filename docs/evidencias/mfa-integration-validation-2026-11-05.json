@@ -1,0 +1,620 @@
+{
+  "recordedOn": "2026-11-05",
+  "sourceCommit": "2676a74216b012dcab6fa2fb9735dc1b6ef8e9d8",
+  "candidateCheckpointAtSourceCommit": "docs/continuidade/2026-11-04-mfa-integracao/MANIFESTO.json",
+  "candidateCheckpointSha256": "c056d28e7ee759f02a40a53691cd6c778c91c437bc44dc21ded54d15ef618b82",
+  "candidateFiles": 47,
+  "publishedSourceFilesFrozen": 990,
+  "composedSourceFilesFrozen": 1003,
+  "typechecks": [
+    {
+      "phase": "types-api",
+      "startedUtc": "2026-11-04T16:59:34.193Z",
+      "childExitedUtc": "2026-11-04T16:59:51.217Z",
+      "childDurationMs": 17020,
+      "heapMiB": 640,
+      "freeMiB": 5191,
+      "deadlineMs": 300000,
+      "exitCode": 0,
+      "timedOut": false,
+      "before": {
+        "source": true,
+        "candidate": true
+      },
+      "after": {
+        "source": true,
+        "candidate": true
+      },
+      "stdoutSha256": "ce13e1ef0a24e1a6b1b77cdae6a42d387c8ec1d76e78e973ebffb9b18bb4c09c",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "phase": "types-contracts",
+      "startedUtc": "2026-11-04T17:00:19.904Z",
+      "childExitedUtc": "2026-11-04T17:00:22.420Z",
+      "childDurationMs": 2514,
+      "heapMiB": 384,
+      "freeMiB": 5056,
+      "deadlineMs": 120000,
+      "exitCode": 0,
+      "timedOut": false,
+      "before": {
+        "source": true,
+        "candidate": true
+      },
+      "after": {
+        "source": true,
+        "candidate": true
+      },
+      "stdoutSha256": "cc8e96e1fbd8763d563e2f80a518c457e101cf76e2e2399d1a87daefbb45b00c",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "phase": "types-db",
+      "startedUtc": "2026-11-04T17:00:25.479Z",
+      "childExitedUtc": "2026-11-04T17:00:31.954Z",
+      "childDurationMs": 6473,
+      "heapMiB": 640,
+      "freeMiB": 5063,
+      "deadlineMs": 180000,
+      "exitCode": 0,
+      "timedOut": false,
+      "before": {
+        "source": true,
+        "candidate": true
+      },
+      "after": {
+        "source": true,
+        "candidate": true
+      },
+      "stdoutSha256": "08b80f0f47521050027d292ddbecb5f512a0a3700af8ad78afbc6deb66825274",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "phase": "types-ui",
+      "startedUtc": "2026-11-04T17:00:35.147Z",
+      "childExitedUtc": "2026-11-04T17:00:44.864Z",
+      "childDurationMs": 9716,
+      "heapMiB": 640,
+      "freeMiB": 5101,
+      "deadlineMs": 180000,
+      "exitCode": 0,
+      "timedOut": false,
+      "before": {
+        "source": true,
+        "candidate": true
+      },
+      "after": {
+        "source": true,
+        "candidate": true
+      },
+      "stdoutSha256": "d11a5ed8b5c2d1aba40685388b3088dbf707eae1595da7a29812e17bacc5d60d",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "phase": "types-mobile",
+      "startedUtc": "2026-11-04T17:00:48.376Z",
+      "childExitedUtc": "2026-11-04T17:00:57.132Z",
+      "childDurationMs": 8755,
+      "heapMiB": 640,
+      "freeMiB": 5035,
+      "deadlineMs": 180000,
+      "exitCode": 0,
+      "timedOut": false,
+      "before": {
+        "source": true,
+        "candidate": true
+      },
+      "after": {
+        "source": true,
+        "candidate": true
+      },
+      "stdoutSha256": "d46ab5eaa5988e3f50d1ac1077c740b56edfda6119bd2fb9f621e9dc91d1af22",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "phase": "types-client",
+      "startedUtc": "2026-11-04T17:01:13.850Z",
+      "childExitedUtc": "2026-11-04T17:01:16.303Z",
+      "childDurationMs": 2452,
+      "heapMiB": 384,
+      "freeMiB": 4911,
+      "deadlineMs": 120000,
+      "exitCode": 0,
+      "timedOut": false,
+      "before": {
+        "source": true,
+        "candidate": true
+      },
+      "after": {
+        "source": true,
+        "candidate": true
+      },
+      "stdoutSha256": "51c170817e68e01d4bd78e488cd4d6208d63360fd186e784c0f9bf095a5fe550",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "phase": "types-admin-web",
+      "startedUtc": "2026-11-04T17:01:19.761Z",
+      "childExitedUtc": "2026-11-04T17:01:31.473Z",
+      "childDurationMs": 11709,
+      "heapMiB": 640,
+      "freeMiB": 4906,
+      "deadlineMs": 180000,
+      "exitCode": 0,
+      "timedOut": false,
+      "before": {
+        "source": true,
+        "candidate": true
+      },
+      "after": {
+        "source": true,
+        "candidate": true
+      },
+      "stdoutSha256": "61d9a7046422f01b77eb57cfdcd0a599b557e184a99cc0194c145709abc2857b",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "phase": "types-building-web",
+      "startedUtc": "2026-11-04T17:01:34.879Z",
+      "childExitedUtc": "2026-11-04T17:01:48.289Z",
+      "childDurationMs": 13407,
+      "heapMiB": 640,
+      "freeMiB": 4979,
+      "deadlineMs": 180000,
+      "exitCode": 0,
+      "timedOut": false,
+      "before": {
+        "source": true,
+        "candidate": true
+      },
+      "after": {
+        "source": true,
+        "candidate": true
+      },
+      "stdoutSha256": "4dba380a62b01ba9cffc109e35ec08ed4a49b51040fe3a9c8635aa7eed2d63f4",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "phase": "types-resident-web",
+      "startedUtc": "2026-11-04T17:01:51.458Z",
+      "childExitedUtc": "2026-11-04T17:02:03.449Z",
+      "childDurationMs": 11990,
+      "heapMiB": 640,
+      "freeMiB": 4803,
+      "deadlineMs": 180000,
+      "exitCode": 0,
+      "timedOut": false,
+      "before": {
+        "source": true,
+        "candidate": true
+      },
+      "after": {
+        "source": true,
+        "candidate": true
+      },
+      "stdoutSha256": "ca0962870e63d75ed6e3a14fe1c8cae1e1ddafc007affec88be072d1bbb3e362",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "phase": "types-operations-mobile",
+      "startedUtc": "2026-11-04T17:02:06.554Z",
+      "childExitedUtc": "2026-11-04T17:02:10.823Z",
+      "childDurationMs": 4268,
+      "heapMiB": 640,
+      "freeMiB": 4923,
+      "deadlineMs": 180000,
+      "exitCode": 0,
+      "timedOut": false,
+      "before": {
+        "source": true,
+        "candidate": true
+      },
+      "after": {
+        "source": true,
+        "candidate": true
+      },
+      "stdoutSha256": "9fbd25719d2dca3a4cd277e99a8e7b3472fd441d81135ca5669d552f2c3c75ae",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "phase": "types-resident-mobile",
+      "startedUtc": "2026-11-04T17:02:12.981Z",
+      "childExitedUtc": "2026-11-04T17:02:15.920Z",
+      "childDurationMs": 2935,
+      "heapMiB": 640,
+      "freeMiB": 4908,
+      "deadlineMs": 180000,
+      "exitCode": 0,
+      "timedOut": false,
+      "before": {
+        "source": true,
+        "candidate": true
+      },
+      "after": {
+        "source": true,
+        "candidate": true
+      },
+      "stdoutSha256": "9b053e1e9991653372900e39a2fcdc82b87dedcb6e4a3a833dccae7a32014dfd",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "typecheckPackagesPassed": 11,
+  "resolutionOnly": {
+    "semanticTypecheck": false,
+    "candidateApiSourcesFound": 11,
+    "originalWorkspacePaths": [],
+    "durationMs": 4051
+  },
+  "previousTimeoutClarification": "The old 1066162 ms duration was recorded after post-run hashing, not at compiler exit. It is harness duration, not proven compiler lifetime. Its ETIMEDOUT/SIGTERM and absence of compiler result remain historical; cause was not established.",
+  "renderedConsumerTests": {
+    "consumerVersion": 5,
+    "testHarnessVersion": 6,
+    "passed": 4,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "durationMs": 756.5971,
+    "childDurationMs": 902.564,
+    "startedUtc": "2026-11-04T17:14:40.7601195Z",
+    "endedUtc": "2026-11-04T17:14:41.6660488Z",
+    "sourceFiles": 37,
+    "sourceAndHarnessHashesMatched": true,
+    "ownedProcessAliveAfter": false,
+    "freeMiBBefore": 5079.0,
+    "heapMiB": 384,
+    "realComponents": [
+      "AuthProvider",
+      "MfaSessionGate",
+      "SessionsPanel",
+      "MfaPanel",
+      "useResource",
+      "API client",
+      "session coordinator"
+    ],
+    "synthetic": [
+      "HTTP responses",
+      "browser event/storage primitives",
+      "dialog host"
+    ],
+    "cases": [
+      "Pending optional confirmation survives mandatory denial and private-provider unmount until recovery-code acknowledgment",
+      "Displayed codes survive another-tab authorization hint and Escape cannot dismiss them",
+      "Stale profile acknowledgment cannot discard codes after a newer requirement",
+      "New identity discards the old ceremony and late old confirmation"
+    ],
+    "reactAndRendererVersion": "19.2.3",
+    "webReactVersion": "19.3.0",
+    "deprecatedRendererWarningObserved": true,
+    "domBrowserLayoutOrNativeAcceptance": false
+  },
+  "databaseBaseline": {
+    "schema": 67,
+    "implementationCandidateApplied": false,
+    "casesExecuted": 9,
+    "expectedAssertionFailures": 9,
+    "passed": 0,
+    "processes": [
+      {
+        "file": "platform-mfa-required.test.ts",
+        "cases": 6,
+        "passed": 0,
+        "assertionFailures": 6,
+        "cancelled": 0,
+        "skipped": 0,
+        "timedOut": false,
+        "logSha256": "8add1820c7697ce4fc7a5e19d06f91980bbc925eef0aad357385f04397c73ad0"
+      },
+      {
+        "file": "platform-mfa-authority-races.test.ts",
+        "cases": 3,
+        "passed": 0,
+        "assertionFailures": 3,
+        "cancelled": 0,
+        "skipped": 0,
+        "timedOut": false,
+        "logSha256": "0386993502557de6e89240f6d2c2a9e42408b5a9f9e7294591399b8fad7d61b4"
+      }
+    ],
+    "startedUtc": "2026-11-04T17:15:05.292Z",
+    "endedUtc": "2026-11-04T17:15:23.036Z",
+    "classification": [
+      "Cases 1 and 2: missing enrollment-required session state",
+      "Case 3: organizations returned 200 instead of mandatory-MFA 403",
+      "Case 4: another unproven family could still read organizations",
+      "Case 5: an administrator could disable the factor (204 instead of 403)",
+      "Control case: missing not-required session state; later branches were not reached",
+      "Three controlled races returned a fictitious protected marker after authority changed"
+    ],
+    "limits": "Each failed test stops at its first assertion; not every later branch was exercised. These REDs establish missing behavior on schema067, not candidate GREEN.",
+    "fixture": "Official runtime-services, new disposable UUID database; owner only for setup/observation, restricted runtime pools",
+    "cleanup": {
+      "exitCode": 0,
+      "systemIdentifierMatches": true,
+      "basePublicTables": 0,
+      "temporaryDatabases": 0,
+      "otherDatabases": 0,
+      "rolesRestoredIncludingPrivateCredentials": true,
+      "settingsRestored": true,
+      "roles": 6,
+      "otherClients": 0,
+      "containerAttestationMatches": true,
+      "freeMiBAtStart": 2347.0,
+      "computerRestarted": false,
+      "credentialsPublished": false
+    },
+    "ownedDatabaseStoppedAfterPostchecks": true,
+    "computerRestarted": false
+  },
+  "candidateDatabaseCasesExecuted": 0,
+  "migration068AppliedToPublishedRuntime": false,
+  "productionRuntimeChanged": false,
+  "productionAccepted": false,
+  "artifacts": [
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-api/result.json",
+      "sha256": "2a153b73e96b2e9f96fb8154f8738038dfe53d2bdb8922a1ad2dc230e672f1c2",
+      "bytes": 1452
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-api/command.json",
+      "sha256": "3ac19658a47091fd00028e6acd7dce19fc6b10d5c1b757611ee7aa60e4caf25c",
+      "bytes": 812
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-api/stdout.log",
+      "sha256": "ce13e1ef0a24e1a6b1b77cdae6a42d387c8ec1d76e78e973ebffb9b18bb4c09c",
+      "bytes": 972
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-api/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-contracts/result.json",
+      "sha256": "be2932438569022b06d8b30fb1611eaf485bbe0b8c6232a9d599730b2f714294",
+      "bytes": 1483
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-contracts/command.json",
+      "sha256": "580656829b0aec714ace88cf6d38ac53023b6e00df215f66d400e3c635e64273",
+      "bytes": 844
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-contracts/stdout.log",
+      "sha256": "cc8e96e1fbd8763d563e2f80a518c457e101cf76e2e2399d1a87daefbb45b00c",
+      "bytes": 936
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-contracts/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-db/result.json",
+      "sha256": "d1e4b4ec91fa55a89b7d579cea62d6e1e901f63141fd7d0c5a8823f5a75666d4",
+      "bytes": 1455
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-db/command.json",
+      "sha256": "68847c758cf65c1e35c9f7a40627a1905bc7d7c4318faf8e616527a6c19bcf6b",
+      "bytes": 816
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-db/stdout.log",
+      "sha256": "08b80f0f47521050027d292ddbecb5f512a0a3700af8ad78afbc6deb66825274",
+      "bytes": 972
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-db/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-ui/result.json",
+      "sha256": "8dbfac8cfe16b4d4fbab870fe488b98d16825e262f243fc92c8fe5401e970858",
+      "bytes": 1455
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-ui/command.json",
+      "sha256": "24cb34b76ce5506b7fd1aea400eb3bff5d6f3602dbd2eec4d58d4229fc409a7e",
+      "bytes": 816
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-ui/stdout.log",
+      "sha256": "d11a5ed8b5c2d1aba40685388b3088dbf707eae1595da7a29812e17bacc5d60d",
+      "bytes": 972
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-ui/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-mobile/result.json",
+      "sha256": "8742db52f82fef16cd6551c1cf6beb977a32d4e1c95a3a292678ac4d1b96bee1",
+      "bytes": 1471
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-mobile/command.json",
+      "sha256": "df22f332dceeac6db9d6ed652999cb3d35dc937ced073f70445e20062f6ae4f8",
+      "bytes": 832
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-mobile/stdout.log",
+      "sha256": "d46ab5eaa5988e3f50d1ac1077c740b56edfda6119bd2fb9f621e9dc91d1af22",
+      "bytes": 972
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-mobile/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-client/result.json",
+      "sha256": "471f0543374bfd1d77095f7d864a6984bf66c478c103d8a9769279361a09cab4",
+      "bytes": 1479
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-client/command.json",
+      "sha256": "cfd86516bcdb6c1635d845ba0df2441f918005df71d087cfcad67b3e5f6cb9ef",
+      "bytes": 840
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-client/stdout.log",
+      "sha256": "51c170817e68e01d4bd78e488cd4d6208d63360fd186e784c0f9bf095a5fe550",
+      "bytes": 936
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-client/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-admin-web/result.json",
+      "sha256": "9dcca4b98e1201b1a5104163eba2b7da9f7b4d21d43d174b4c62e96729fce6e5",
+      "bytes": 1476
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-admin-web/command.json",
+      "sha256": "9c9778423d1afa09d7d75179d49f2cfdbdb65d7c233bc9528d73ff7902c01739",
+      "bytes": 836
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-admin-web/stdout.log",
+      "sha256": "61d9a7046422f01b77eb57cfdcd0a599b557e184a99cc0194c145709abc2857b",
+      "bytes": 972
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-admin-web/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-building-web/result.json",
+      "sha256": "2d1f0d25ff45c5d6741c14a8b21236d665cf10b0ccd717b1d019f8fb289ccda1",
+      "bytes": 1488
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-building-web/command.json",
+      "sha256": "e413688748cce88ff4f6a4e258a0fabf68fa7dc93fde7eb761945ebba492c71b",
+      "bytes": 848
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-building-web/stdout.log",
+      "sha256": "4dba380a62b01ba9cffc109e35ec08ed4a49b51040fe3a9c8635aa7eed2d63f4",
+      "bytes": 972
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-building-web/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-resident-web/result.json",
+      "sha256": "dcb08e601b5e660605a5fdf61481fdb11073c1658a603a3d40c4b45df7f5fffd",
+      "bytes": 1488
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-resident-web/command.json",
+      "sha256": "2d91bcad56d49d15896d7099ad1dd9706d34cda8ab6a249f9342e2ff89c3f68b",
+      "bytes": 848
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-resident-web/stdout.log",
+      "sha256": "ca0962870e63d75ed6e3a14fe1c8cae1e1ddafc007affec88be072d1bbb3e362",
+      "bytes": 972
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-resident-web/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-operations-mobile/result.json",
+      "sha256": "1642b41b1580807e6b766b03e8d9b587262ce83c9aa2e546360287505f4cb1c9",
+      "bytes": 1507
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-operations-mobile/command.json",
+      "sha256": "ced87bd9842812639002fe95a75283c7f3f6bc357ab53dd66e51b544a49559f7",
+      "bytes": 868
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-operations-mobile/stdout.log",
+      "sha256": "9fbd25719d2dca3a4cd277e99a8e7b3472fd441d81135ca5669d552f2c3c75ae",
+      "bytes": 972
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-operations-mobile/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-resident-mobile/result.json",
+      "sha256": "6ec38055a9368eff9cd943de95c66f94051d31154d2d9cbc96030a5b7e62f0a7",
+      "bytes": 1499
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-resident-mobile/command.json",
+      "sha256": "e15494d494cb94abf15db0455a5728cb4fd488ce0d576130ef35c75076cb8502",
+      "bytes": 860
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-resident-mobile/stdout.log",
+      "sha256": "9b053e1e9991653372900e39a2fcdc82b87dedcb6e4a3a833dccae7a32014dfd",
+      "bytes": 972
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/checks/types-resident-mobile/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "localRelativePath": "mfa-consumer-render-v6-20261104/attempt-1/result.json",
+      "sha256": "7b03419b1b0d013384cade922a1d1e79f223cdb37e4257d0147616ea37331ab6",
+      "bytes": 1656
+    },
+    {
+      "localRelativePath": "mfa-consumer-render-v6-20261104/attempt-1/stdout.txt",
+      "sha256": "a438ad27e8db68ac56515e78f7a1ab9c8d342ab04506c70d1cf382ff3375cdf4",
+      "bytes": 925
+    },
+    {
+      "localRelativePath": "mfa-consumer-render-v6-20261104/attempt-1/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "localRelativePath": "mfa-directed-baseline9-2676-20261104/platform-mfa-required.log",
+      "sha256": "8add1820c7697ce4fc7a5e19d06f91980bbc925eef0aad357385f04397c73ad0",
+      "bytes": 8685
+    },
+    {
+      "localRelativePath": "mfa-directed-baseline9-2676-20261104/platform-mfa-authority-races.log",
+      "sha256": "0386993502557de6e89240f6d2c2a9e42408b5a9f9e7294591399b8fad7d61b4",
+      "bytes": 5185
+    },
+    {
+      "localRelativePath": "mfa-directed-baseline9-2676-20261104/mfa-directed-result.json",
+      "sha256": "7e9fa9a2e8ccca992420f0219e406d668b33e5a9ab63f6bc32cb0535196a10be",
+      "bytes": 306275
+    },
+    {
+      "localRelativePath": "mfa-directed-baseline9-2676-20261104/mfa-directed-postchecks.json",
+      "sha256": "22e4c57bbb66eb1ee6e58561a1d07e3abf8767a3f7b7ad4b1bad6328991975ab",
+      "bytes": 390
+    },
+    {
+      "localRelativePath": "mfa-directed-baseline9-2676-20261104/source-pin-2676.manifest.json",
+      "sha256": "3df28c8dade10f40dd8cfef522f0031f4cdfbbf32e406e73b87df6868bc54b91",
+      "bytes": 147922
+    },
+    {
+      "localRelativePath": "mfa-integration-round2-20261104/prepared.json",
+      "sha256": "3cf615f5e19bd0625ffad7b786a894287af7fb8deed9e09f07428ef240bb067b",
+      "bytes": 539444
+    }
+  ]
+}
