@@ -1,0 +1,215 @@
+{
+  "status": "OBSERVED_DIRECTED_RED_GREEN_AND_SEPARATE_REGRESSIONS_CANDIDATE_ONLY",
+  "sourceBaseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+  "sourceMergedPreparedSha": "dfffa47b8a4e86ce33a17ab20f6c3c9b44afb2cdc41203323e26b6fb38fe49cf",
+  "sourceCounts": {
+    "baseFiles": 994,
+    "composedFiles": 1013
+  },
+  "sourcePins": {
+    "baselinePrepared": "b38ebe6c92fda3736adcfdcb3b79cb30536a74f75c1e7ecfcae3a13804c63a3c",
+    "fixedPrepared": "dfffa47b8a4e86ce33a17ab20f6c3c9b44afb2cdc41203323e26b6fb38fe49cf",
+    "sqlBefore": "61bda99d24219a630d0a7ec3d754ff306ad4b0ed8317b3ebcbc8f59caab8bb7a",
+    "sqlAfter": "b653775cebe33ec0cd58619b3094e874bc310222a9333c68e8c0d08db57ad794",
+    "projectorAfter": "aae3618096414d30613976db4cf53ef14ac41b42f5b2d91137cf9334ed8d0460",
+    "sseTestV2": "8cf0331de1417ba7c606e9cb94b2158f2f1db6e0691e8d59a239796f286a1d98",
+    "commonP0Source": "7e8eabbf250ed010daa5c496b5ca2ae14a7d4a08333484b9f6e1a7816977babd",
+    "p0Test": "3306d7a8e703c996ba62f51814017e5b5576021e1251511aa3af5e706ca8d19e",
+    "sql11Test": "2c8a7bc400bd7b8055922f11a06239026db9dce7e9c4195cba696c67c5cd6710"
+  },
+  "gates": {
+    "typesExitCode": 0,
+    "sseTestsPassed": 7,
+    "sql11TestsPassed": 11,
+    "p0TestsPassed": 5,
+    "failures": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "cleanupPass": true,
+    "sourceBeforeAfterPass": true
+  },
+  "gatesScope": "Fixed composition only. Three separate processes/suites; counts are not presented as a single suite. Baseline failures are classified separately below.",
+  "types": [
+    {
+      "variant": "baseline",
+      "phase": "resolve",
+      "exitCode": 0,
+      "durationMs": 1964,
+      "passed": true,
+      "resultSha256": "d2304e441bb9e854f25320b11314567815236ac2f5a5c648702e1afc85578740"
+    },
+    {
+      "variant": "baseline",
+      "phase": "types",
+      "exitCode": 0,
+      "durationMs": 10160,
+      "passed": true,
+      "resultSha256": "ce11cd996dd3065bb63b2dadf37254be6d770ab3d73c69204687a45e5e8dd643"
+    },
+    {
+      "variant": "fixed",
+      "phase": "resolve",
+      "exitCode": 0,
+      "durationMs": 1863,
+      "passed": true,
+      "resultSha256": "0bf2ae794cfa154c5508a910ea740a7ddb51b5a0cccaa83e04dcee01bd047588"
+    },
+    {
+      "variant": "fixed",
+      "phase": "types",
+      "exitCode": 0,
+      "durationMs": 11921,
+      "passed": true,
+      "resultSha256": "1cb789809b6826bf6a7e9090718de70959018d166c75a371dc4b89b331af5077"
+    }
+  ],
+  "baseline": {
+    "preparedSha256": "b38ebe6c92fda3736adcfdcb3b79cb30536a74f75c1e7ecfcae3a13804c63a3c",
+    "resultSha256": "c93ce47a296c13426a824a13e48382898b22d34ed9d4c127ed1cf28c22d22bfb",
+    "postchecksSha256": "6fa9a02717e38149a56646950a221151f752ef5199d152b32ebcdbddbf524ade",
+    "tests": [
+      {
+        "name": "platform-mfa-feature-events",
+        "exitCode": 1,
+        "tap": {
+          "tests": 7.0,
+          "suites": 1.0,
+          "pass": 0.0,
+          "fail": 7.0,
+          "cancelled": 0.0,
+          "skipped": 0.0,
+          "todo": 0.0,
+          "duration_ms": 4261.4747
+        },
+        "logSha256": "6bfd9f7288fea92575870913be53055ed31f0225d4876398a09d22ee37f45374",
+        "timedOut": false,
+        "sourceBeforeAfterPass": true
+      }
+    ],
+    "cleanupPass": true,
+    "sourceBeforeAfterPass": true,
+    "cleanup": {
+      "roles": 6,
+      "rolesRestoredIncludingPrivateCredentials": true,
+      "settingsRestored": true,
+      "basePublicTables": 0,
+      "temporaryDatabases": 0,
+      "otherDatabases": 0,
+      "otherClients": 0
+    }
+  },
+  "baselineClassification": {
+    "behavioralFailureCount": 1,
+    "missingSqlContractFailureCount": 6,
+    "actualBehavior": "The same SSE connection delivered an exact positive global frame while ordinary; after committed ADMIN promotion the next read returned done=false instead of EOF.",
+    "assertion": {
+      "line": 198,
+      "expectedDone": true,
+      "actualDone": false
+    },
+    "postPromotionPayloadDecoded": false,
+    "missingSqlExplanation": "New helper is absent in baseline068; six later cases fail at that missing contract. ACL explicitly reports SQLSTATE42883; other calls are wrapped by Drizzle/assertions. These are not six independent security REDs."
+  },
+  "fixedSse": {
+    "preparedSha256": "dfffa47b8a4e86ce33a17ab20f6c3c9b44afb2cdc41203323e26b6fb38fe49cf",
+    "resultSha256": "b635c1af82ee0ff9cc3cc3f4f5abbfb394e5d6b27429b9adb63afa47d5455e75",
+    "postchecksSha256": "1b503c11a7d2ebb8536cf866e876d318c991d8279329d6af8430f48ba81a05f5",
+    "tests": [
+      {
+        "name": "platform-mfa-feature-events",
+        "exitCode": 0,
+        "tap": {
+          "tests": 7.0,
+          "suites": 1.0,
+          "pass": 7.0,
+          "fail": 0.0,
+          "cancelled": 0.0,
+          "skipped": 0.0,
+          "todo": 0.0,
+          "duration_ms": 4741.6463
+        },
+        "logSha256": "85f46639d00d694f94159498929ac387a8874f336e5e15b30eb31e5953149b52",
+        "timedOut": false,
+        "sourceBeforeAfterPass": true
+      }
+    ],
+    "cleanupPass": true,
+    "sourceBeforeAfterPass": true,
+    "cleanup": {
+      "roles": 6,
+      "rolesRestoredIncludingPrivateCredentials": true,
+      "settingsRestored": true,
+      "basePublicTables": 0,
+      "temporaryDatabases": 0,
+      "otherDatabases": 0,
+      "otherClients": 0
+    }
+  },
+  "fixedRegressions": {
+    "preparedSha256": "dfffa47b8a4e86ce33a17ab20f6c3c9b44afb2cdc41203323e26b6fb38fe49cf",
+    "resultSha256": "5bf7e4f40430269a8cfe05488e4200a6d1588fed5bfbfdc1e9665c42759565bc",
+    "postchecksSha256": "f0564e39992d97acef0656899cc9651f3aa1d5eb82e674fb4b82c9c3873e3a78",
+    "tests": [
+      {
+        "name": "platform-mfa-disable-snapshot",
+        "exitCode": 0,
+        "tap": {
+          "tests": 5.0,
+          "suites": 1.0,
+          "pass": 5.0,
+          "fail": 0.0,
+          "cancelled": 0.0,
+          "skipped": 0.0,
+          "todo": 0.0,
+          "duration_ms": 5378.2459
+        },
+        "logSha256": "49c84bb69896b7e7cc8fbb5c6294702057555c7d80384dd8d8f6727f90a4d004",
+        "timedOut": false,
+        "sourceBeforeAfterPass": true
+      },
+      {
+        "name": "platform-mfa-sql-envelopes",
+        "exitCode": 0,
+        "tap": {
+          "tests": 11.0,
+          "suites": 1.0,
+          "pass": 11.0,
+          "fail": 0.0,
+          "cancelled": 0.0,
+          "skipped": 0.0,
+          "todo": 0.0,
+          "duration_ms": 4819.3649
+        },
+        "logSha256": "bb2178a3ff3d36d76218c13a3576f53b8a3645db484267d80b214971a6382528",
+        "timedOut": false,
+        "sourceBeforeAfterPass": true
+      }
+    ],
+    "cleanupPass": true,
+    "sourceBeforeAfterPass": true,
+    "cleanup": {
+      "roles": 6,
+      "rolesRestoredIncludingPrivateCredentials": true,
+      "settingsRestored": true,
+      "basePublicTables": 0,
+      "temporaryDatabases": 0,
+      "otherDatabases": 0,
+      "otherClients": 0
+    }
+  },
+  "regressionExecution": "P0 and SQL11 ran serially as two separate selected test processes in one fresh official UUID fixture, separate from the fixed SSE fixture.",
+  "preservedHistory": [
+    "V1 SSE typecheck failed TS7022 on two part initializers; V2 adds only two explicit type annotations, original bytes/logs preserved.",
+    "Initial V2 baseline preparation failed because the harness expected an array manifest instead of the scalar V2 shape; no DB tests ran in that preparation. Corrected preparation used a new output directory.",
+    "Earlier P0 type timeout and baseline seed timing failure remain separate historical records with unknown causes; later PASS does not explain them."
+  ],
+  "limits": [
+    "Only the global promotion race is exercised over a real SSE connection; local authorization and satisfied proof controls use SQL/projector calls.",
+    "SQL factor/current-family proof fixtures are synthetic owner rows, not TOTP/recovery ceremony evidence.",
+    "The initial HTTP status is200; post-header rejection closes the stream. No second HTTP403 is claimed.",
+    "A same-statement guard does not claim protection against promotion committed after its snapshot, other SSE projectors or all mutations.",
+    "Candidate068 ran only in disposable UUID fixtures; no production deployment or broad MFA completion is claimed."
+  ],
+  "credentialsPublished": false
+}

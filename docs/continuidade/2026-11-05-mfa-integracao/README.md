@@ -1,31 +1,29 @@
 # Retomada MFA — checkpoint candidato atualizado em 05/11/2026
 
-**A montagem e a restauração canônicas do conjunto V5 foram aprovadas.**
-A base é `53c4c70dcd24f1045fad420fbce36757fd3753a2`: 1.011 arquivos compostos
-e cinco suportes conferidos por hash. A prova conserva também a execução anterior
-do pacote `22713a4`/SQL11 V2. Os onze testes SQL V5 e seus tipos passaram em QA
-isolada. A política MFA permanece candidata, sem ativação no runtime da main.
-[Prova da restauração](../../evidencias/mfa-canonical-restore-2026-11-05.json) e
-[SQL11 V5, tipos e unidades](../../evidencias/mfa-complement11-v5-2026-11-05.json).
+**Checkpoint composto: desativação de MFA e eventos de funcionalidades.**
+A base continua `53c4c70dcd24f1045fad420fbce36757fd3753a2`. O conjunto contém
+1.013 arquivos compostos e cinco suportes; montagem/restauração aprovadas, com todos os hashes iguais aos da QA.
+[Prova da composição restaurada](../../evidencias/mfa-merged-restore-2026-11-05.json).
+A política obrigatória permanece candidata, sem ativação no runtime da main.
 
-A correção da desativação concorrente está preservada em um
-[checkpoint separado](../2026-11-05-mfa-disable/README.md), com comparação
-anterior/corrigido. Ela não está incluída nos 47 arquivos deste conjunto.
+Na mesma composição passaram três processos separados: **SSE 7/7**, **desativação
+5/5** e **complemento SQL 11/11**. Tipos dos três testes e imports também passaram.
+[Prova, fontes, comparadores e limites](../../evidencias/mfa-feature-events-2026-11-05.json).
+As restaurações anteriores permanecem [documentadas](../../evidencias/mfa-canonical-restore-2026-11-05.json).
 
 ## Conteúdo recuperável
 
-O inventário tem 51 payloads. Dois são helper/teste de query já publicados e serão
-excluídos do delta pelos hashes exatos. O pacote final continua com 47 arquivos de
-implementação/testes pendentes, dois testes explícitos de renderer e cinco suportes
-do renderer. O transporte publicado também é dependência da base; não reaplicá-lo.
+O inventário tem 54 payloads. Dois são helper/teste de query já publicados e serão
+excluídos do delta pelos hashes exatos. O pacote contém **50 arquivos de implementação
+e testes candidatos**, dois testes explícitos de renderer e cinco suportes do renderer.
+O transporte publicado também é dependência da base; não reaplicá-lo.
 
-A única mudança de payload nesta atualização é
-`apps/api/test/platform-mfa-sql-envelopes.test.ts` V5, SHA
-`2c8a7bc400bd7b8055922f11a06239026db9dce7e9c4195cba696c67c5cd6710`.
-Inclui o escopo local legítimo do ator positivo e parâmetros ISO/JSON explícitos,
-sem mudar as onze assertivas de segurança, permissões do produto ou SQL V3.
-A fonte `mfa.ts` ainda é a anterior ao recorte P0 de desativação: esse novo draft
-não integra estes payloads nem recebe o PASS do complemento.
+Esta composição integra a correção da desativação concorrente, seu teste de cinco
+casos, o envelope SQL e o projector de `features-changed`, além dos sete novos casos.
+O [checkpoint separado de desativação](../2026-11-05-mfa-disable/README.md) preserva
+o antes/depois histórico; não reaplicar seu patch sobre esta composição.
+O complemento SQL V5 conserva exatamente seu teste `2c8a7bc4…` e foi repetido
+contra a SQL e a API compostas. Os demais consumidores mantêm seus bytes anteriores.
 
 `MANIFEST.json` e `PACKAGE-HASHES.json` são produzidos no pacote final; não são
 arquivos ausentes de autoria. O inventário, todos os payloads e os scripts de
@@ -48,14 +46,14 @@ node --max-old-space-size=128 predioON-mfa-pacote/restore-checkpoint.mjs --base-
    Confira o manifesto, hashes e `MFA-RESTORE-RECEIPT.json`. Se já recebeu um pacote
    final com manifesto, basta seu `restore-checkpoint.mjs`; não há gerador ausente
    a executar nesse pacote. Registre uma nova restauração antes de afirmar que o
-   payload V5 inteiro foi reconstruído nesse computador.
+   conjunto composto inteiro foi reconstruído nesse computador.
 4. Prepare dependências pelo README da base e pelo lockfile. Não copie env,
    credenciais, node_modules, junctions ou IDs de containers de outra máquina.
 5. Tipos e testes devem usar a composição isolada e fixture oficial UUID nova,
    com owner somente no arranjo/provas e seis conexões de runtime restritas.
    Não executar seed/reset/migration em instalação existente. SQL 068 restaurada
    é somente fonte candidata; não deve ser aplicada à instalação publicada 067.
-6. Feche P0 de desativação, demais domínios, SD/SSE, mutações sem correspondência,
+6. Conclua os demais domínios, SD/SSE, mutações sem correspondência,
    expiração/locks/triggers e regressões antes de ativar a política. Depois valide
    navegador real, builds e jornadas Android/iOS em aparelhos.
 
@@ -66,25 +64,30 @@ não instalam dependências, executam testes, iniciam serviços ou aplicam migra
 
 ## O que foi observado
 
-O builder/restorer V2 do checkpoint 227 terminou com exit 0 em duas fases seriais,
-verificando 994 arquivos base canônicos, 1011 arquivos da composição e cinco suportes.
-A prova diferencia essa execução da montagem/restauração V5 posterior, também aprovada.
+O SSE real entregou um marcador global válido para a conta comum. Na mesma
+conexão, o teste promoveu a conta a ADMIN depois da resolução de identidade e
+antes do projector. A versão anterior retornou dados onde se esperava EOF;
+a versão corrigida fechou sem emitir o evento. As seis outras falhas do comparador
+eram o contrato SQL novo ausente, não seis falhas independentes de segurança.
 
-SQL11 V5: **11/11, zero falhas/cancelamentos/skips**, 9130,9248 ms. Tipos do teste exato
-e seus imports passaram em 15,80 s relatados pelo compilador. As unidades UI 143/143 e
-mobile 242/242 pertencem a processos anteriores da V3; seus fontes são iguais aos
-V5, que só alterou o teste SQL. Esses resultados são separados e não formam uma
-integral única. Cleanup verificou zero tabelas públicas na base original, bases
-temporárias/outras e clientes, com seis papéis/credenciais/configurações restaurados.
+Os sete casos corrigidos passaram em 4,742 s. Na composição final, os cinco casos
+de desativação passaram em 5,378 s e os onze SQL em 4,819 s, em processos separados.
+As duas versões passaram nos tipos: 10,160 s na anterior e 11,921 s na corrigida.
+Cleanup conferiu seis roles/configurações/credenciais restauradas e zero bases ou
+clientes temporários. O teste SSE global é real; os controles locais são SQL/projector.
+Fatores e provas dos controles SQL são sintéticos, não cerimônias TOTP.
 
-As tentativas V3/V4 anteriores cancelaram onze casos cada por erro no before hook
-(encoding de Date/Object); não foram REDs de produto. A correção de fixture foi
-versionada. O guard de 560 MiB antes do primeiro preparo também permanece histórico:
-a execução aprovada posterior cumpriu os guards, sem reinício ou afrouxamento.
+As unidades UI 143/143 e mobile 242/242 pertencem à rodada anterior, com os mesmos
+bytes desses consumidores. As provas históricas mantêm suas fontes e não se somam
+como uma suíte integral. O primeiro teste SSE tinha dois erros de tipagem TS7022;
+foram corrigidas somente duas anotações, preservando expressões e assertivas.
+A tentativa seguinte de preparação teve uma incompatibilidade no formato de
+manifesto, corrigida no preparador antes de executar os testes. Ambos os registros
+permanecem separados e não são falhas de produto.
 
-Não houve aceite global, nova integral da API, nova execução de navegador, nativo
-ou produção neste complemento. O owner prepara as provas SQL sintéticas de fator;
-esses onze casos não são uma cerimônia TOTP/recovery real.
+Não houve nova integral da API, execução de navegador, build nativo ou aceite de
+produção nesta fatia. Telemetria, alertas, equipamentos e heartbeat do SSE ainda
+precisam de análise/integração própria, assim como os demais domínios e mutações.
 
 ## Bytes canônicos e receita renderer
 

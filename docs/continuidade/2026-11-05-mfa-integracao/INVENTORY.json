@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "status": "CANONICAL_V2_WITH_SQL11_V5_TESTED_AS_OVERLAY",
+  "status": "CANONICAL_MERGED_P0_FEATURE_SSE_VALIDATED_RESTORED_CANDIDATE",
   "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
   "plannedBase": "Approved published source base53c4c70; current documentation may be newer.",
   "sourceBaseline": "2676a74216b012dcab6fa2fb9735dc1b6ef8e9d8",
@@ -53,10 +53,10 @@
       "path": "apps/api/src/auth/mfa.ts",
       "payload": "payload/runtime/apps/api/src/auth/mfa.ts.txt",
       "beforeSha256": "8430c78d4946da6b22162c19cf7b63da3ae56217896d3983b6741e6ef38d1ab5",
-      "afterSha256": "3ffe785e821a708e7254abb21d88ac29b4e9ebbdc3398a85970295154962988b",
-      "component": "backend",
+      "afterSha256": "7e8eabbf250ed010daa5c496b5ca2ae14a7d4a08333484b9f6e1a7816977babd",
+      "component": "backend-p0-disable",
       "kind": "runtime",
-      "bytes": 7703,
+      "bytes": 8587,
       "beforeGitSha256": "8430c78d4946da6b22162c19cf7b63da3ae56217896d3983b6741e6ef38d1ab5",
       "beforeGitObject": "780a04f0f3456404b76c6c01acb2ebe0c1c840ce"
     },
@@ -295,10 +295,10 @@
       "path": "infrastructure/068-platform-mfa-required.sql",
       "payload": "payload/runtime/infrastructure/068-platform-mfa-required.sql.txt",
       "beforeSha256": null,
-      "afterSha256": "61bda99d24219a630d0a7ec3d754ff306ad4b0ed8317b3ebcbc8f59caab8bb7a",
-      "component": "sql-v3",
+      "afterSha256": "b653775cebe33ec0cd58619b3094e874bc310222a9333c68e8c0d08db57ad794",
+      "component": "sql-v3-feature-events",
       "kind": "migration-candidate",
-      "bytes": 23198,
+      "bytes": 23904,
       "beforeGitSha256": null,
       "beforeGitObject": null
     },
@@ -565,11 +565,43 @@
       "bytes": 16760,
       "beforeGitSha256": null,
       "beforeGitObject": null
+    },
+    {
+      "path": "apps/api/src/modules/events/features.ts",
+      "payload": "payload/runtime/apps/api/src/modules/events/features.ts.txt",
+      "beforeSha256": "5dc09a5c7d032c20b97ba0820f0966ff35bab2a5c8a9a8a63bcc667b35c2f47e",
+      "beforeGitSha256": "5dc09a5c7d032c20b97ba0820f0966ff35bab2a5c8a9a8a63bcc667b35c2f47e",
+      "beforeGitObject": "042d8aa6ea6c539226421d1fb7cd0b87f7419414",
+      "afterSha256": "aae3618096414d30613976db4cf53ef14ac41b42f5b2d91137cf9334ed8d0460",
+      "bytes": 660,
+      "component": "sse-feature-events",
+      "kind": "runtime"
+    },
+    {
+      "path": "apps/api/test/platform-mfa-disable-snapshot.test.ts",
+      "payload": "payload/runtime/apps/api/test/platform-mfa-disable-snapshot.test.ts.txt",
+      "beforeSha256": null,
+      "beforeGitSha256": null,
+      "beforeGitObject": null,
+      "afterSha256": "3306d7a8e703c996ba62f51814017e5b5576021e1251511aa3af5e706ca8d19e",
+      "bytes": 14968,
+      "component": "p0-disable-test",
+      "kind": "database-test"
+    },
+    {
+      "path": "apps/api/test/platform-mfa-feature-events.test.ts",
+      "payload": "payload/runtime/apps/api/test/platform-mfa-feature-events.test.ts.txt",
+      "beforeSha256": null,
+      "beforeGitSha256": null,
+      "beforeGitObject": null,
+      "afterSha256": "8cf0331de1417ba7c606e9cb94b2158f2f1db6e0691e8d59a239796f286a1d98",
+      "bytes": 16939,
+      "component": "sse-feature-events-test",
+      "kind": "database-test"
     }
   ],
   "pending": [
-    "Assemble and restore the updated V5 payload set; prior successful restoration used published227/V2 and testd6ad, followed by a tested V5 overlay.",
-    "Complete P0 disable promotion, remaining SQL/SD/SSE/mutations/locks/triggers and relevant original regressions.",
+    "Complete remaining SQL/SD/SSE/projectors, no-match mutations, heartbeat, locks/triggers and relevant original regressions; P0 disable and feature-invalidation coverage is finite.",
     "Renderer staging recipe remains authored and not executed; do not transfer its earlier separate harness PASS."
   ],
   "excluded": [
@@ -590,5 +622,12 @@
     "databasePassed": 11,
     "evidence": "../../evidencias/mfa-complement11-v5-2026-11-05.json",
     "validatedAsOverlayOnCanonicalRestoration": true
+  },
+  "mergedValidation": {
+    "evidence": "../../evidencias/mfa-feature-events-2026-11-05.json",
+    "evidenceSha256": "d494fa629cef25ad2ee3dc4f8091c877e033657b36417c13e8c929b9de176776",
+    "sourceManifestSha256": "dfffa47b8a4e86ce33a17ab20f6c3c9b44afb2cdc41203323e26b6fb38fe49cf",
+    "scope": "P0 disable + feature invalidation + historical SQL11; not global rollout",
+    "restorationEvidence": "../../evidencias/mfa-merged-restore-2026-11-05.json"
   }
 }

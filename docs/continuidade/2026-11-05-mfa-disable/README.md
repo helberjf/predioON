@@ -1,6 +1,6 @@
 # MFA: checkpoint separado da proteção ao desativar o fator
 
-Este diretório preserva um **candidato P0**, ainda não aplicado ao produto. Não substitui nem altera o conjunto ativo de 47 arquivos do checkpoint de integração. O patch depende da composição candidata restaurada com SQL 068; não deve ser aplicado isoladamente à API publicada com SQL 067.
+Este diretório preserva um **candidato P0**, ainda não aplicado ao produto. O recorte já está incluído no conjunto ativo de 50 arquivos candidatos do [checkpoint de integração](../2026-11-05-mfa-integracao/README.md); este diretório conserva o antes/depois histórico, e seu patch não deve ser reaplicado ao conjunto atual. O patch depende da composição candidata restaurada com SQL 068; não deve ser aplicado isoladamente à API publicada com SQL 067.
 
 ## Estado das verificações
 

@@ -352,6 +352,20 @@ BEGIN
  RETURN result;
 END $$;
 
+-- Finite SSE feature-invalidation slice. Always enter the MFA guard, including
+-- global markers and nonexistent/NULL buildings; do not infer MFA from no rows.
+-- Keep the existing app-only SD capability helper and all its 001-067 branches.
+CREATE FUNCTION public.app_mfa_feature_event_allowed(target_building_id text)
+RETURNS boolean LANGUAGE plpgsql STABLE SECURITY INVOKER
+SET search_path = pg_catalog, public, pg_temp AS $$
+BEGIN
+ PERFORM public.app_require_session_mfa();
+ IF target_building_id='*' THEN
+  RETURN true;
+ END IF;
+ RETURN public.app_can_read_feature_event(target_building_id);
+END $$;
+
 -- Close every touched/new entrypoint, including installation-specific default
 -- function grants. No identity-only helper is granted to app or service roles.
 DO $mfa_v3_acl$
@@ -366,7 +380,8 @@ DECLARE controlled_owner name; signature text; grant_row record;
    'public.app_mfa_platform_authorization(text[])',
    'public.app_mfa_scope_authorization(text,text,text,text[])',
    'public.app_overview_platform_health()',
-   'public.app_platform_service_health()'
+   'public.app_platform_service_health()',
+   'public.app_mfa_feature_event_allowed(text)'
  ];
 BEGIN
  SELECT pg_catalog.pg_get_userbyid(p.proowner) INTO STRICT controlled_owner
@@ -399,8 +414,9 @@ GRANT EXECUTE ON FUNCTION public.app_require_session_mfa(),
  public.app_list_mfa_organizations(),public.app_list_mfa_devices(text),
  public.app_list_mfa_gateways(),public.app_mfa_platform_authorization(text[]),
  public.app_mfa_scope_authorization(text,text,text,text[]),
- public.app_overview_platform_health(),public.app_platform_service_health() TO predioon_app;
+ public.app_overview_platform_health(),public.app_platform_service_health(),
+ public.app_mfa_feature_event_allowed(text) TO predioon_app;
 
 -- No new table SELECT/UPDATE grants, no changes to001-067, no global enforcement
 -- claim. Metrics point/empty reads, zero-match writes, other domain projections,
--- SSE projectors and VOLATILE mutators still need coordinated SQL/API work.
+-- Other SSE projectors and VOLATILE mutators still need coordinated SQL/API work.

@@ -103,8 +103,8 @@ mfaRouter.post("/disable", requireOperationalSession, validateBody(Disable), adm
   await db.transaction(async tx => {
     await lockAccount(tx, userId, account.passwordHash);
     await lockMfaFamily(tx, userId, currentAuth(req).sessionId);
-    // Current union of legacy flag and021 authority. Concurrent promotion at
-    // the operation snapshot remains a separate authorization-boundary task.
+    // Retain the early refusal and account -> family -> factor lock order.
+    // The actual deletion below also observes current authority in its snapshot.
     const current = await lockCurrentFactor(tx, userId);
     await denyRequiredMfaDisable(tx, userId);
     if (!current && !factor) return;
@@ -112,7 +112,22 @@ mfaRouter.post("/disable", requireOperationalSession, validateBody(Disable), adm
       || (current.confirmed_at && proof?.generation !== current.generation)) {
       throw conflict("O fator foi alterado. Confirme o fator atual.");
     }
-    await tx.execute(sql`delete from mfa_factors where user_id=${userId} and generation=${current.generation}`);
+    const [deletion] = await tx.execute<{ required: boolean; deleted: boolean }>(sql`
+      with authority as materialized (
+        select public.identity_platform_mfa_required(${userId}) as required
+      ), deleted as (
+        delete from public.mfa_factors as factor
+        where factor.user_id=${userId} and factor.generation=${current.generation}
+          and (select required from authority) is false
+        returning factor.user_id
+      )
+      select authority.required, exists(select 1 from deleted) as deleted from authority`);
+    // The returned decision belongs to the deletion statement, including zero
+    // deleted rows. A later recheck could miss a transient grant then revocation.
+    if (!deletion || deletion.required !== false) {
+      throw new HttpError(403, "A administração da plataforma exige verificação em duas etapas.", { reason: "MFA_REQUIRED" });
+    }
+    if (deletion.deleted !== true) throw conflict("O fator foi alterado. Confirme o fator atual.");
   });
   res.status(204).end();
 });
