@@ -1,6 +1,6 @@
 # Estudo de hardware: menor custo total com monitoramento robusto
 
-Revisão de **04/11/2026**. Escopo confirmado: **somente monitoramento**, incluindo caixa
+Revisão de **05/11/2026**. Escopo confirmado: **somente monitoramento**, incluindo caixa
 d'água, cisterna, consumo de água e energia, fases, estado da bomba, temperatura,
 vazamentos de água/esgoto, gás e sinal da central de incêndio. Portões e vagas não fazem
 parte desta compra. O piloto será instalado em um condomínio. Tensão, dimensões,
@@ -12,6 +12,13 @@ preços, links, condições e alternativas desta revisão.
 fisicamente por este estudo. Documentação de fabricante, preço anunciado e teste de
 software não substituem o teste com o equipamento e o firmware que serão instalados.
 
+**Abrangência da pesquisa:** a seleção anterior não esgotava o mercado brasileiro.
+A seção 5 foi ampliada com HI Tecnologia, Contemp, Seneca, ICP DAS, FieldLogger e WEG.
+O PUSR é uma referência econômica orçada, não um vencedor comprovado de custo ou
+confiabilidade no Brasil. Os valores da lista de compras permanecem os pesquisados
+em **04/11/2026**; esta ampliação não substitui seus itens por produtos ainda sem
+proposta completa equivalente.
+
 ## 1. Decisão recomendada
 
 **Validar um piloto PUSR USR-M100-HM-GL + USR-IO8000, com cartão, contador de água,
@@ -20,7 +27,7 @@ opção para reduzir interrupções dos alertas remotos sem o custo de um rotead
 separado. Sua troca de conexão precisa funcionar também quando a internet cai e
 o cabo Ethernet continua conectado.
 
-A versão **HM-ETH** continua sendo a opção de menor gasto quando há conexão
+A versão **HM-ETH** custa menos entre as duas variantes PUSR orçadas quando há conexão
 alternativa existente ou é aceitável receber os dados somente após a internet
 voltar. O armazenamento local e a alimentação de reserva precisam ser aprovados
 nas duas versões. O piloto contempla instalação em campo, com preparação e teste
@@ -243,11 +250,84 @@ sem somar canais remotos/eventos. Não comprova 72 h de histórico para este pil
 As interfaces não isoladas e a cadência alternativa de registro também precisam
 entrar na avaliação. A [lista de compras](COMPRAS_PILOTO.md) detalha as condições.
 
-As opções WEG PLC410, Siemens S7-1200, Unitronics, Haiwell e Schneider M200 permanecem
-fora da primeira compra por não haver, nesta revisão, proposta completa comparável
-que demonstre menor custo atendendo aos requisitos. Isso não é uma classificação
-geral de qualidade dessas marcas. Reabrir a comparação se um integrador apresentar
-kit equivalente com fornecimento, suporte, software e homologação incluídos.
+### 5.1 Outras opções comercializadas no Brasil
+
+**Há alternativas nacionais e importadas com canal de venda brasileiro.** Isso não
+significa estoque imediato nem que todas tenham o melhor custo para este prédio.
+Os modelos abaixo entram na comparação técnica; os preços sob cotação não foram
+substituídos por valores estrangeiros convertidos ou estimativas sem fornecedor.
+
+| Alternativa adicional | O que a documentação sustenta | O que falta para comparar com o piloto |
+|---|---|---|
+| **[HI Tecnologia NEON 5][mercado-neon] + módulos de I/O** | Fabricante nacional; até dois módulos internos, expansão remota e MQTT. Há variantes de comunicação Ethernet, RS485 e 4G | Cotar composição exata e coexistência das interfaces; selecionar AI 4–20 mA, DI e contador. Entregar aplicação, fila persistente, reenvio e comprovar TLS no equipamento, não apenas no portal |
+| **[Contemp X502][mercado-contemp] + módulos Modbus** | Fornecedor nacional; publica em broker MQTT de terceiros, oferece versão Ethernet + 4G e parametrização de fábrica. Duas DI isoladas | Precisa de AI, DI e contagem adicionais. O manual rev. 0 não especifica TLS nem funcionamento de fila/reenvio offline; exigir comprovação. DI de 24 V não recebe diretamente o contato RISCO limitado a 16 V |
+| **[Seneca R-KEY-LT-C / Z-KEY-C][mercado-seneca-ficha] + módulos Modbus** | Ficha especifica MQTTs, TLS 1.2, certificados X.509, até 300 tags e cache de aproximadamente 59 mil amostras. Há [canal brasileiro LRI][mercado-seneca-br] | Não inclui as entradas dos sensores nem 4G. Cotar módulos, contador e conexão alternativa; medir retenção após corte, formato e reenvio. Número de amostras não comprova sozinho 72 h para todas as métricas |
+| **[ICP DAS WISE-5231][mercado-icpdas] + I/O** | MQTT com SSL, regras configuráveis, registro em microSD de 32 GB, RS485 COM4 isolada em 2.500 VDC e faixa de −25 a 75 °C. [Oferta sob consulta no Brasil][mercado-icpdas-br] | Cotar placas/módulos e 4G se necessário. Registro em arquivo e publicação MQTT são recursos distintos: demonstrar recuperação ordenada no Prédio ON e retenção dos pulsos |
+| **[NOVUS FieldLogger, versão MQTT][mercado-fieldlogger] + expansão/ponte segura** | O manual V1.9x documenta 8 AI, 8 I/O digitais e armazenamento interno com envio posterior dos dados | O MQTT documentado **não tem TLS** e dados do SD não são enviados por MQTT. Precisa de solução segura adicional para a nuvem e de mais DI; não tratar como troca direta do M100 |
+| **[WEG PLC410][mercado-weg-manual] + módulos** | CLP industrial com CODESYS, 8 DI/8 DO, contadores rápidos e expansão analógica; MQTT documentado | [Anúncio de R$ 6.800][mercado-weg-preco] para a CPU, SKU 16974024, consultado em 05/11. Somar AI/DI necessárias, comunicação alternativa, armazenamento e desenvolvimento. Não é o menor investimento nessa oferta |
+
+**HI Tecnologia:** o [manual NEON 5][mercado-neon-manual], seção 11, descreve sistema
+de arquivos em SD operado por blocos de programação. Isso permite desenvolver o
+histórico, mas não significa fila pronta ou MQTT seguro homologado. A versão
+[RION 5][mercado-rion] também merece cotação para conjuntos menores ou como expansão;
+seu único módulo de I/O não deve ser confundido com cobertura automática do piloto.
+Selecionar gerações atuais, evitando misturar recursos de NEON/RION antigos.
+
+**Contemp:** a parametrização de fábrica pode reduzir horas de integração, uma
+hipótese de economia a confirmar na proposta. Pedir amostra real do relatório,
+configuração de broker próprio, exportação/backup e procedimento de troca. Não
+contabilizar a licença Contemp Cloud como obrigatória para uso de broker terceiro;
+o fabricante a apresenta separadamente. No [manual X502][mercado-contemp-manual],
+memória interna declarada não define capacidade de fila de telemetria.
+
+**FieldLogger:** o [manual, seção 6.8.6][mercado-fieldlogger-manual], é explícito sobre
+ausência de TLS e uso da memória interna para MQTT. O contrato do projeto exige
+[MQTT seguro em produção](HARDWARE_SOFTWARE.md). Uma ponte local com TLS ou outra
+arquitetura protegida pode viabilizar o equipamento, mas acrescenta componentes,
+configuração e manutenção que entram no custo. Não liberar tráfego aberto na internet
+para acomodar a limitação do equipamento.
+
+Siemens S7-1200, Unitronics, Haiwell e Schneider M200 continuam como famílias a
+avaliar mediante configuração e proposta equivalentes, sem classificação geral de
+qualidade. A existência de um CLP da marca não comprova MQTT/TLS, histórico ou o
+conjunto de entradas necessário na versão ofertada. Esta lista ampliada também não
+pretende enumerar todo o mercado.
+
+### 5.2 Como essas opções podem superar a referência atual
+
+A comparação deve usar **o conjunto de aquisição e comunicação**, não apenas o
+preço da CPU. Pelas referências de 04/11/2026:
+
+| Referência atual, sem sensores/fontes/nobreak/instalação | Custo em reais |
+|---|---:|
+| M100-HM-GL + IO8000 + TDI340 + microSD | **3.597,26** |
+| M100-HM-ETH + IO8000 + TDI340 + microSD | **2.916,23** |
+
+Um concorrente pode custar mais que o gateway isolado e ainda ser econômico se
+substituir o contador, expansões ou trabalho de desenvolvimento. Para uma comparação
+válida, a proposta precisa cobrir **duas entradas 4–20 mA, doze estados digitais
+(incluindo os dois diagnósticos de 12 V), um canal de pulsos, leitura dos medidores
+Modbus, comunicação segura e histórico**. Contagem pode compartilhar uma DI, mas
+essa DI não fica simultaneamente livre para outro sensor. Se retirar o TDI340,
+substituir também as entradas compatíveis com os contatos RISCO, além da contagem.
+
+Acrescentar 4G à proposta que for comparada ao GL, sem cobrar novamente recursos
+que já estejam incluídos. Esses valores são referências de comparação, não limites
+universais nem totais instalados; integração e manutenção em 36 meses podem inverter
+a escolha. Não foi obtida proposta nacional completa das novas alternativas nem
+foram solicitadas cotações aos fabricantes nesta revisão.
+
+**Prioridade sugerida para fechar a escolha:** manter PUSR como referência de preço;
+comparar primeiro **NEON 5**, **X502** e **Seneca com I/O**, junto do **Altus XP315**
+já estudado. Levar ICP DAS, FieldLogger e PLC410 à rodada conforme necessidade de
+registro, ambiente, suporte existente e orçamento. Essa ordem é uma avaliação de
+adequação ao piloto, não um ranking de taxa de falhas.
+
+Separar três evidências na decisão: **robustez elétrica/ambiental documentada**,
+**funcionamento completo demonstrado** e **custo de manter/repor**. Para confiabilidade
+comparativa, faltam dados de campo equivalentes. Exigir garantia, prazo real de
+reposição e resultados dos mesmos testes da seção 7; prestígio da marca e quantidade
+de protocolos não substituem essas evidências.
 
 ## 6. Trabalho de integração ainda necessário
 
@@ -348,8 +428,8 @@ monitoramento que funciona e pode ser mantido, e não o menor preço isolado do 
 
 ## 9. Fontes e limites da revisão
 
-Documentação técnica consultada em 04/11/2026; conferir a revisão correspondente ao
-equipamento efetivamente entregue:
+Documentação da base consultada em 04/11/2026 e ampliação de mercado em 05/11/2026;
+conferir a revisão correspondente ao equipamento efetivamente entregue:
 
 - [PUSR M100-HM: MQTT/TLS, SD e variantes](https://www.pusr.com/uploads/20241205/285a4d714f715d1ad8a693f499136208.pdf).
 - [PUSR M100: modelo de JSON](https://www.pusr.com/download/USR-M100%20User-Manual_V1.0.1.pdf).
@@ -382,3 +462,17 @@ como base de produção. A lista detalhada mantém quatro boias, modelos identif
 fonte e interfaces necessárias, sem declarar equivalência de proteção ou durabilidade
 não demonstrada. Mantém o M100 como candidato econômico, com integração, alimentação
 de reserva e critérios de aprovação explícitos.
+
+[mercado-neon]: https://www.hitecnologia.com.br/produto/clp-neon5/
+[mercado-neon-manual]: https://materiais.hitecnologia.com.br/media/private_uploads/manuais-pet/Plc/NEON/pmu11105000.pdf
+[mercado-rion]: https://www.hitecnologia.com.br/produto/rion/
+[mercado-contemp]: https://contemp.com.br/produto/central-iot-x502-contemp
+[mercado-contemp-manual]: https://contemp.com.br/api/arquivos/x502_rev.00_enma.pdf
+[mercado-seneca-ficha]: https://www.seneca.it/media/6850577/25_0592p01_seneca_z-key_r-key-eng-r1.pdf
+[mercado-seneca-br]: https://seneca.lri.com.br/gateways-protocolo/
+[mercado-icpdas]: https://www.icpdas.com/en/product/WISE-5231
+[mercado-icpdas-br]: https://icpdas.lri.com.br/iiot-edge-vibracao/wise-5231/
+[mercado-fieldlogger]: https://www.novus.com.br/pt/produto/data-loggers/fieldlogger/downloads
+[mercado-fieldlogger-manual]: https://cdn.novusautomation.com/downloads/manual_fieldlogger_v19x_a_pt.pdf
+[mercado-weg-manual]: https://static.weg.net/medias/downloadcenter/hab/h88/WEG-PLC410-manual-do-usuario-10010696216-PT.pdf
+[mercado-weg-preco]: https://loja.csaautomacao.com.br/produto/controlador-logico-programavel-weg-plc500-5/
