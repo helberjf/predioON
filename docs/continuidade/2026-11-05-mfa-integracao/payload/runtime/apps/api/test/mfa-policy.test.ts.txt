@@ -1,0 +1,36 @@
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { assertOperationalMfa, mfaDatabaseError } from "../src/auth/mfa-policy.ts";
+import { HttpError } from "../src/http/errors.ts";
+
+for (const state of ["not-required", "satisfied"] as const) {
+  test(`${state} does not require another MFA ceremony`, () => {
+    assert.doesNotThrow(() => assertOperationalMfa({ mfaRequirement: state }));
+  });
+}
+for (const [state, reason] of [["enrollment-required", "MFA_ENROLLMENT_REQUIRED"], ["verification-required", "MFA_VERIFICATION_REQUIRED"]] as const) {
+  test(`${state} refuses with a precise403 without triggering401 or055 replay`, () => {
+    assert.throws(() => assertOperationalMfa({ mfaRequirement: state }), (error: unknown) =>
+      error instanceof HttpError && error.status === 403 && (error.details as { reason: string }).reason === reason);
+  });
+}
+test("missing or unknown requirement never defaults to an operational session", () => {
+  for (const state of [undefined, null, true, "", "verified", "SATISFIED"]) {
+    assert.throws(() => assertOperationalMfa({ mfaRequirement: state } as never), (error: unknown) => error instanceof HttpError && error.status === 503);
+  }
+});
+test("dedicated SQL denials survive driver wrappers without exposing database messages", () => {
+  for (const [code, reason] of [["PMF01", "MFA_ENROLLMENT_REQUIRED"], ["PMF02", "MFA_VERIFICATION_REQUIRED"]]) {
+    const error = mfaDatabaseError({ cause: { cause: { code, message: "PRIVATE SQL VALUE" } } });
+    assert.ok(error instanceof HttpError);
+    assert.equal(error.status, 403);
+    assert.deepEqual(error.details, { reason });
+    assert.ok(!JSON.stringify(error).includes("PRIVATE SQL VALUE"));
+  }
+});
+test("ordinary SQL failures and cyclic causes cannot be classified as MFA denials", () => {
+  const cycle: { cause?: unknown } = {}; cycle.cause = cycle;
+  for (const error of [null, undefined, {}, { code: "42501" }, { code: "23505" }, { code: "PMF03" }, cycle]) {
+    assert.equal(mfaDatabaseError(error), undefined);
+  }
+});

@@ -1,0 +1,15 @@
+import { createAccessIntentStore } from "./access-intents.ts";
+
+/** Every authorization/identity boundary retires the old commands permanently. */
+export function createAccessIntentLifecycle(newRequestId: () => string) {
+  let current = createAccessIntentStore(newRequestId);
+  return {
+    get current() { return current; },
+    reset() {
+      current.invalidate();
+      current = createAccessIntentStore(newRequestId);
+      return current;
+    },
+    invalidate() { current.invalidate(); },
+  };
+}

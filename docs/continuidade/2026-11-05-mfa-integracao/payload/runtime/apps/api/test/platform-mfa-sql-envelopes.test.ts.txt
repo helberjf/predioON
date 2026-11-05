@@ -1,0 +1,223 @@
+import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
+import { after, before, describe, it } from "node:test";
+import postgres from "postgres";
+import { sql, type SQL } from "drizzle-orm";
+import { sqlClient } from "@predioon/db";
+import { withUserContext, closeAppDb, devices, gateways, organizations } from "@predioon/db/runtime";
+import { mfaQueryProjection } from "../src/auth/mfa-query.js";
+import { hashPassword } from "../src/auth/passwords.js";
+import { startTestServer, call, type TestServer } from "./helpers.js";
+
+// External candidate: run only in a fresh official UUID fixture with canonical068.
+// Owner is used for synthetic setup/cleanup only. Proof rows below deliberately
+// bypass the ceremony to isolate SQL policy; these are NOT TOTP/recovery tests.
+type Actor = { id: string; sid: string; generation: string };
+const roleVariables = {
+  predioon_app: "DATABASE_URL_APP", predioon_identity: "DATABASE_URL_IDENTITY",
+  predioon_broker_auth: "DATABASE_URL_BROKER_AUTH", predioon_notifications: "DATABASE_URL_NOTIFICATIONS",
+  predioon_ingest: "DATABASE_URL_INGEST", predioon_access_service: "DATABASE_URL_ACCESS_SERVICE",
+} as const;
+const signatures = [
+  "public.identity_platform_mfa_required(text)", "public.identity_session_mfa_requirement(text,uuid)",
+  "public.app_require_session_mfa()", "public.app_list_mfa_organizations()",
+  "public.app_list_mfa_devices(text)", "public.app_list_mfa_gateways()",
+  "public.app_mfa_platform_authorization(text[])", "public.app_mfa_scope_authorization(text,text,text,text[])",
+  "public.app_overview_platform_health()", "public.app_platform_service_health()",
+];
+function errorCode(error: unknown): string | undefined {
+  if (!error || typeof error !== "object") return undefined;
+  if ("code" in error && typeof error.code === "string") return error.code;
+  return "cause" in error ? errorCode(error.cause) : undefined;
+}
+async function denied(action: () => Promise<unknown>, code: string, label: string) {
+  await assert.rejects(action, error => errorCode(error) === code, label);
+}
+
+describe("MFA SQL envelopes, role ACLs and mapped DTOs", { concurrency: false }, () => {
+  const suffix = randomUUID();
+  const org = `mfa-envelope-org-${suffix}`, building = `mfa-envelope-building-${suffix}`;
+  const emptyBuilding = `mfa-envelope-empty-${suffix}`, forbiddenBuilding = `mfa-envelope-forbidden-${suffix}`;
+  const device = `mfa-envelope-device-${suffix}`, gateway = `mfa-envelope-gateway-${suffix}`;
+  const actors: Actor[] = [];
+  const pools = new Map<string, postgres.Sql>();
+  let enrolling: Actor, verifying: Actor, satisfied: Actor, local: Actor, promoted: Actor;
+  let server: TestServer | undefined, token = "";
+  const password = "mfa-envelope-fictitious-password";
+  const stamp = new Date("2026-01-02T03:04:05.000Z");
+  function context<T>(actor: Actor, fn: Parameters<typeof withUserContext<T>>[1], sid: string | undefined = actor.sid) {
+    return withUserContext({ userId: actor.id, role: "RESIDENT", sessionId: sid }, fn);
+  }
+  const entries = (): Array<[string, SQL]> => [
+    ["organizations", sql`select * from public.app_list_mfa_organizations()`],
+    ["devices-null", sql`select * from public.app_list_mfa_devices(NULL)`],
+    ["devices-empty", sql`select * from public.app_list_mfa_devices(${emptyBuilding})`],
+    ["gateways", sql`select * from public.app_list_mfa_gateways()`],
+    ["platform-empty", sql`select public.app_mfa_platform_authorization(ARRAY[]::text[]) as value`],
+    ["platform-null", sql`select public.app_mfa_platform_authorization(NULL::text[]) as value`],
+    ["scope-empty", sql`select public.app_mfa_scope_authorization(${emptyBuilding},NULL,NULL,ARRAY[]::text[]) as value`],
+    ["scope-null", sql`select public.app_mfa_scope_authorization(NULL,NULL,NULL,NULL::text[]) as value`],
+    ["overview-health", sql`select public.app_overview_platform_health()`],
+    ["service-health", sql`select public.app_platform_service_health()`],
+  ];
+  async function actor(hash: string): Promise<Actor> {
+    const a = { id: `mfa-envelope-user-${randomUUID()}`, sid: randomUUID(), generation: randomUUID() };
+    actors.push(a);
+    await sqlClient`insert into users(id,name,email,password_hash) values(${a.id},'Envelope fixture',${a.id+'@example.invalid'},${hash})`;
+    await sqlClient`insert into sessions(id,user_id,expires_at) values(${a.sid},${a.id},now()+interval '1 hour')`;
+    return a;
+  }
+  async function factor(a: Actor, proof: boolean) {
+    await sqlClient`insert into mfa_factors(user_id,secret_ciphertext,confirmed_at,generation)
+      values(${a.id},decode(repeat('00',40),'hex'),now(),${a.generation})`;
+    if (proof) await sqlClient`update sessions set mfa_verified_at=now(),mfa_factor_generation=${a.generation} where id=${a.sid}`;
+  }
+  before(async () => {
+    const [ledger] = await sqlClient`select count(*)::int as count from schema_migrations`;
+    assert.equal(ledger?.count, 68, "explicit canonical068 fixture required, no skips");
+    const hash = await hashPassword(password);
+    enrolling = await actor(hash); verifying = await actor(hash); satisfied = await actor(hash);
+    local = await actor(hash); promoted = await actor(hash);
+    // Real HTTP sign-in happens before synthetic factor setup; no MFA bypass endpoint.
+    server = await startTestServer();
+    const response = await call(server.url, "/auth/login", { method: "POST", body: { email: satisfied.id+'@example.invalid', password } });
+    assert.equal(response.status, 200, "single fixture login must be admitted, no hidden retry");
+    const body = await response.json() as { accessToken: string };
+    assert.ok(body.accessToken); token = body.accessToken;
+    const sessions = await sqlClient`select id from sessions where user_id=${satisfied.id} and id<>${satisfied.sid}::uuid`;
+    assert.equal(sessions.length, 1); satisfied.sid = String(sessions[0]!.id);
+    await factor(verifying, false); await factor(satisfied, true); await factor(local, true);
+    for (const a of [enrolling, verifying, satisfied]) await sqlClient`update users set is_platform_admin=true where id=${a.id}`;
+    await sqlClient`insert into organizations(id,name,slug) values(${org},'Envelope fixture',${org})`;
+    for (const id of [building, emptyBuilding, forbiddenBuilding]) await sqlClient`insert into buildings(id,organization_id,name,code) values(${id},${org},'Envelope fixture',${id})`;
+    await sqlClient`insert into memberships(user_id,building_id,role) values(${local.id},${building},'BUILDING_ADMIN'),(${local.id},${emptyBuilding},'BUILDING_ADMIN')`;
+    await sqlClient`insert into gateways(id,building_id,name,serial_number,last_seen_at,metadata)
+      values(${gateway},${building},'Envelope gateway',${gateway},${stamp},${sqlClient.json({ mqttUsername: 'private-fixture-user', mqttPasswordHash: 'private-fixture-hash', publicMarker: suffix })})`;
+    await sqlClient`insert into devices(id,building_id,gateway_id,name,type,last_seen_at)
+      values(${device},${building},${gateway},'Envelope device','WATER_LEVEL_SENSOR',${stamp})`;
+    const [ownerDb] = await sqlClient`select current_database() as name`;
+    for (const [role, variable] of Object.entries(roleVariables)) {
+      const url = process.env[variable]; assert.ok(url, `required restricted DSN ${variable}`);
+      const parsed = new URL(url); assert.equal(parsed.username, role); assert.equal(decodeURIComponent(parsed.pathname.slice(1)), ownerDb?.name);
+      const pool = postgres(url, { max: 1, onnotice: () => {} }); pools.set(role, pool);
+      const [identity] = await pool`select current_user as name`; assert.equal(identity?.name, role);
+    }
+  });
+  after(async () => {
+    try { await server?.close(); }
+    finally {
+      const closedPools = await Promise.allSettled([...pools.values()].map(pool => pool.end({ timeout: 5 })));
+      try {
+        await sqlClient.begin(async owner => {
+          await owner`set local lock_timeout='2s'`; await owner`set local statement_timeout='3s'`;
+          for (const a of actors) await owner`delete from users where id=${a.id}`;
+          for (const id of [building, emptyBuilding, forbiddenBuilding]) await owner`delete from buildings where id=${id}`;
+          await owner`delete from organizations where id=${org}`;
+        });
+      } finally { await closeAppDb(); await sqlClient.end(); }
+      const rejectedPool = closedPools.find(result => result.status === "rejected");
+      if (rejectedPool?.status === "rejected") throw rejectedPool.reason;
+    }
+  });
+
+  it("all seven entrypoints reject enrollment before empty/null projections", async () => {
+    for (const [label, query] of entries()) await denied(() => context(enrolling, tx => tx.execute(query)), "PMF01", label);
+  });
+  it("all seven entrypoints reject a confirmed factor without family proof", async () => {
+    for (const [label, query] of entries()) await denied(() => context(verifying, tx => tx.execute(query)), "PMF02", label);
+  });
+  it("promotion committed after a successful context guard is observed by each next projection", async () => {
+    for (const [label, query] of entries()) {
+      await sqlClient`update users set is_platform_admin=false where id=${promoted.id}`;
+      try {
+        await denied(() => context(promoted, async tx => {
+          const prior = await tx.execute(sql`select public.app_require_session_mfa() as allowed`);
+          assert.equal(prior[0]?.allowed, true, `${label}: ordinary actor reached barrier`);
+          await sqlClient`update users set is_platform_admin=true where id=${promoted.id}`;
+          return tx.execute(query);
+        }), "PMF01", label);
+      } finally { await sqlClient`update users set is_platform_admin=false where id=${promoted.id}`; }
+    }
+  });
+  it("current family proof permits seven projections but preserves empty and unknown capabilities", async () => {
+    for (const [label, query] of entries()) await context(satisfied, tx => tx.execute(query)).catch(error => { throw new Error(`${label}: unexpected denial`, { cause: error }); });
+    const rows = await context(satisfied, tx => tx.execute(sql`select public.app_mfa_platform_authorization(ARRAY['fixture:unknown']::text[]) as value`));
+    assert.deepEqual(rows[0]?.value, []);
+    const empty = await context(satisfied, tx => tx.execute(sql`select * from public.app_list_mfa_devices(${emptyBuilding})`));
+    assert.equal(empty.length, 0);
+  });
+  it("foreign, absent and malformed family IDs cannot borrow current proof", async () => {
+    for (const [label, sid] of [["foreign", local.sid], ["absent", ""], ["malformed", "invalid-uuid"]]) {
+      await denied(() => context(satisfied, async tx => {
+        await tx.execute(sql`select set_config('app.session_id',${sid!},true)`);
+        return tx.execute(sql`select public.app_mfa_platform_authorization(ARRAY[]::text[])`);
+      }), "PMF02", label!);
+    }
+  });
+  it("a verified local family still cannot read another building or gain a global capability", async () => {
+    await denied(() => context(local, tx => tx.execute(sql`select * from public.app_list_mfa_devices(${forbiddenBuilding})`)), "42501", "foreign building");
+    const allowed = await context(local, tx => tx.execute(sql`select id from public.app_list_mfa_devices(${building})`));
+    assert.ok(allowed.some(row => row.id === device), "real positive local scope");
+    const caps = await context(local, tx => tx.execute(sql`select public.app_mfa_platform_authorization(ARRAY['organizations:read']::text[]) as value`));
+    assert.deepEqual(caps[0]?.value, []);
+  });
+  it("SQL envelope mapping preserves camelCase keys and timestamp decoders", async () => {
+    await context(satisfied, async tx => {
+      const ds = await tx.select(mfaQueryProjection(devices)).from(sql`public.app_list_mfa_devices(${building}) AS devices`);
+      const d = ds.find(row => row.id === device); assert.ok(d);
+      assert.equal(d.buildingId, building); assert.equal(d.gatewayId, gateway);
+      assert.ok(d.lastSeenAt instanceof Date); assert.equal(d.lastSeenAt.toISOString(), stamp.toISOString());
+      assert.equal('building_id' in d, false);
+      const gs = await tx.select(mfaQueryProjection(gateways)).from(sql`public.app_list_mfa_gateways() AS gateways`);
+      const g = gs.find(row => row.id === gateway); assert.ok(g);
+      assert.equal(g.serialNumber, gateway); assert.ok(g.createdAt instanceof Date);
+      const os = await tx.select(mfaQueryProjection(organizations)).from(sql`public.app_list_mfa_organizations() AS organizations`);
+      assert.ok(os.some(row => row.id === org));
+    });
+  });
+  it("real gateway HTTP response redacts both MQTT metadata keys and preserves public DTO", async () => {
+    assert.ok(server);
+    const response = await call(server.url, '/gateways', { token }); assert.equal(response.status, 200);
+    const body = await response.json() as { items: Array<{ id: string; buildingId: string; lastSeenAt: string; metadata: Record<string, unknown> }> };
+    const row = body.items.find(item => item.id === gateway); assert.ok(row);
+    assert.equal(row.buildingId, building); assert.equal(row.lastSeenAt, stamp.toISOString());
+    assert.equal(row.metadata.publicMarker, suffix);
+    assert.equal('mqttUsername' in row.metadata, false); assert.equal('mqttPasswordHash' in row.metadata, false);
+    assert.equal(JSON.stringify(body).includes('private-fixture-'), false);
+  });
+  it("ten signatures expose exactly identity2/app8 to six effective roles, with no grant option or PUBLIC", async () => {
+    for (const [role, pool] of pools) for (const [i, signature] of signatures.entries()) {
+      const [row] = await pool`select has_function_privilege(current_user,${signature},'EXECUTE') as allowed,
+        has_function_privilege(current_user,${signature},'EXECUTE WITH GRANT OPTION') as grantable`;
+      assert.equal(row?.allowed, i < 2 ? role === 'predioon_identity' : role === 'predioon_app', `${role}:${signature}`);
+      assert.equal(row?.grantable, false, `${role}:${signature}:grant option`);
+    }
+    const app = pools.get('predioon_app')!;
+    for (const signature of signatures) {
+      const rows = await app`select a.grantee from pg_proc p cross join lateral aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a
+        where p.oid=${signature}::regprocedure and a.grantee=0 and a.privilege_type='EXECUTE'`;
+      assert.equal(rows.length, 0, `${signature}:PUBLIC`);
+    }
+  });
+  it("business app cannot read or mutate factor secrets, and service roles cannot call human envelopes", async () => {
+    const app = pools.get('predioon_app')!;
+    await denied(() => app`select secret_ciphertext from mfa_factors limit 1`, '42501', 'app factor SELECT');
+    await denied(() => app`update mfa_factors set confirmed_at=confirmed_at where user_id=${satisfied.id}`, '42501', 'app factor UPDATE');
+    for (const role of ['predioon_broker_auth','predioon_notifications','predioon_ingest','predioon_access_service']) {
+      await denied(() => pools.get(role)!`select public.app_require_session_mfa()`, '42501', `${role}:human helper`);
+    }
+  });
+  it("equipment restrictive policies apply only to app; ingest heartbeat works without SID even with an admin GUC", async () => {
+    const app = pools.get('predioon_app')!;
+    const rows = await app`select p.polname,p.polpermissive,p.polroles=ARRAY[(select oid from pg_roles where rolname='predioon_app')]::oid[] as app_only
+      from pg_policy p where p.polname in ('devices_session_mfa','gateways_session_mfa','device_metrics_session_mfa') order by p.polname`;
+    assert.equal(rows.length, 3); for (const row of rows) { assert.equal(row.polpermissive, false); assert.equal(row.app_only, true); }
+    const ingest = pools.get('predioon_ingest')!;
+    await ingest.begin(async service => {
+      await service`select set_config('app.user_id',${enrolling.id},true),set_config('app.session_id','',true)`;
+      const changed = await service`update devices set last_seen_at=${stamp},updated_at=now() where id=${device} returning id`;
+      assert.equal(changed.length, 1); assert.equal(changed[0]?.id, device);
+      const visible = await service`select id from gateways where id=${gateway}`; assert.equal(visible[0]?.id, gateway);
+    });
+  });
+});

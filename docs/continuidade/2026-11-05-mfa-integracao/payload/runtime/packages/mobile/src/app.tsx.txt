@@ -1,0 +1,562 @@
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  ActivityIndicator,
+  AppState,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StatusBar,
+  Text,
+  View,
+} from "react-native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import {
+  acceptInvitation,
+  ApiError,
+  createApiClient,
+  previewInvitation,
+  requestPasswordRecovery,
+  type ApiClient,
+} from "@predioon/api-client";
+import type { AuthUser } from "@predioon/contracts/auth";
+import { nativeTokenStorage } from "./keychain.ts";
+import { createBoundedFetch } from "./bounded-fetch.ts";
+import { createSessionActionScope } from "./session-actions.ts";
+import {
+  type Feature,
+  type Product,
+  type Screen,
+  consumptionItems,
+  screensFor,
+  validateApiUrl,
+} from "./scope.ts";
+import type { Building, List } from "./models.ts";
+import { useReadResource, useResource } from "./resource.ts";
+import { BuildingScreen } from "./building-screen.tsx";
+import {
+  readResidentConsumption,
+  residentConsumptionKey,
+} from "./resident-consumption.ts";
+import { ResidentConsumptionScreen } from "./resident-consumption-screen.tsx";
+import { readOperationsAccess, readResidentAccess } from "./authorization.ts";
+import { Alerts, Overview, Readings } from "./operations.tsx";
+import { WorkOrders } from "./work-orders-screen.tsx";
+import { Events, Notices, Reservations, Tickets, Transparency } from "./resident.tsx";
+import { Access, type GateScannerComponent } from "./access.tsx";
+import { Account } from "./account.tsx";
+import { Login } from "./login.tsx";
+import { NativeMfaSessionGate } from "./mfa-session-gate.tsx";
+import { createMfaProfileRecheck } from "./mfa-profile-recheck.ts";
+import {
+  type AccessIntentStore,
+} from "./access-intents.ts";
+import { createAccessIntentLifecycle } from "./access-intent-lifecycle.ts";
+import { createNativeRequestId } from "./secure-request-id.ts";
+import {
+  Button,
+  Card,
+  colors,
+  ErrorMessage,
+  Feedback,
+  Refresh,
+  styles,
+} from "./ui.tsx";
+
+const titles: Record<Screen, string> = {
+  notices: "Avisos",
+  tickets: "Solicitações",
+  reservations: "Reservas",
+  events: "Eventos",
+  transparency: "Transparência",
+  access: "Acessos",
+  consumption: "Consumo",
+  overview: "Resumo",
+  alerts: "Alertas",
+  readings: "Sensores",
+  workOrders: "Ordens de serviço",
+};
+const productTitles: Record<Product, string> = {
+  resident: "Prédio ON Morador",
+  operations: "Prédio ON Operação",
+};
+
+const boundedFetch = createBoundedFetch((input, init) => fetch(input, init));
+
+export function PredioApp({
+  product,
+  apiUrl,
+  mfaPortalUrl,
+  gateScanner,
+}: {
+  product: Product;
+  apiUrl: string;
+  /** Static release configuration; never read from an API response or deep link. */
+  mfaPortalUrl?: string;
+  /** Only the resident app passes the camera reader (see gate-scanner.tsx). */
+  gateScanner?: GateScannerComponent;
+}) {
+  let normalized = "";
+  try {
+    normalized = validateApiUrl(apiUrl, __DEV__);
+  } catch {
+    /* An unconfigured release must not submit credentials anywhere. */
+  }
+  return (
+    <SafeAreaProvider>
+      <StatusBar barStyle="dark-content" />
+      <SafeAreaView style={styles.root}>
+        {normalized ? (
+          <ConnectedApp
+            key={`${product}:${normalized}`}
+            product={product}
+            baseUrl={normalized}
+            mfaPortalUrl={mfaPortalUrl}
+            gateScanner={gateScanner}
+          />
+        ) : (
+          <View style={styles.page}>
+            <Text style={styles.title}>{productTitles[product]}</Text>
+            <ErrorMessage message="A API deste aplicativo ainda não foi configurada. Informe um endereço HTTPS em config.ts antes de gerar a versão de distribuição." />
+          </View>
+        )}
+      </SafeAreaView>
+    </SafeAreaProvider>
+  );
+}
+
+function ConnectedApp({
+  product,
+  baseUrl,
+  mfaPortalUrl,
+  gateScanner,
+}: {
+  product: Product;
+  baseUrl: string;
+  mfaPortalUrl?: string;
+  gateScanner?: GateScannerComponent;
+}) {
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [booting, setBooting] = useState(true);
+  const [bootError, setBootError] = useState<string | null>(null);
+  const [retry, setRetry] = useState(0);
+  const [selected, setSelected] = useState<Building | null>(null);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const accessLifecycle = useMemo(() => createAccessIntentLifecycle(createNativeRequestId), []);
+  const [accessIntents, setAccessIntents] = useState(() => accessLifecycle.current);
+  const resetAccessIntents = useCallback(() => {
+    setAccessIntents(accessLifecycle.reset());
+  }, [accessLifecycle]);
+  const actions = useMemo(createSessionActionScope, []);
+  const mfaRecheck = useMemo(createMfaProfileRecheck, []);
+  const userRef = useRef(user);
+  userRef.current = user;
+  const storage = useMemo(
+    () => nativeTokenStorage(product, baseUrl),
+    [product, baseUrl],
+  );
+  const api = useMemo(
+    () =>
+      createApiClient({
+        baseUrl,
+        storage,
+        fetch: boundedFetch,
+        onAuthLost: () => {
+          actions.begin();
+          setBooting(false);
+          resetAccessIntents();
+          setUser(null);
+          setSelected(null);
+          setAccountOpen(false);
+        },
+        onMfaRequired: requirement => {
+          actions.begin();
+          resetAccessIntents();
+          setSelected(null); setAccountOpen(false);
+          setUser(current => current ? { ...current, memberships: [], mfaRequirement: requirement } : null);
+          if (mfaRecheck.request()) setRetry(value => value + 1);
+          else setBooting(false);
+        },
+      }),
+    [baseUrl, storage, actions, mfaRecheck, resetAccessIntents],
+  );
+  // Identity fence only on real client lifetime end, never on an MFA reread.
+  useEffect(() => () => {
+    actions.begin();
+    accessLifecycle.invalidate();
+    api.invalidateSession();
+  }, [api, actions, accessLifecycle]);
+  const recoverPassword = useCallback((email: string, signal?: AbortSignal) =>
+    requestPasswordRecovery({ baseUrl: api.baseUrl, fetch: boundedFetch }, email, signal), [api]);
+  // Invitations are for residents; the operations app has no such entry.
+  const invitationRequests = useMemo(() => product === "resident" ? {
+    preview: (code: string, signal?: AbortSignal) => previewInvitation({ baseUrl: api.baseUrl, fetch: boundedFetch }, code, signal),
+    accept: (code: string, password: string, signal?: AbortSignal) => acceptInvitation({ baseUrl: api.baseUrl, fetch: boundedFetch }, code, password, signal),
+  } : undefined, [api, product]);
+  useEffect(() => {
+    let live = true;
+    const action = actions.begin();
+    const check = mfaRecheck.begin();
+    resetAccessIntents();
+    setBooting(true);
+    setBootError(null);
+    void (async () => {
+      if (!(await storage.getTokens())) {
+        if (live && actions.isCurrent(action)) setUser(null);
+        return;
+      }
+      const profile = await api.get<AuthUser>("/auth/me");
+      if (live && actions.isCurrent(action)) {
+        setUser(profile);
+        if (profile.mfaRequirement !== "not-required" && profile.mfaRequirement !== "satisfied") {
+          setSelected(null); setAccountOpen(false);
+        }
+      }
+    })()
+      .catch((error) => {
+        if (
+          live && actions.isCurrent(action)
+        )
+          setBootError(
+            error instanceof Error
+              ? error.message
+              : "Não foi possível restaurar a sessão.",
+          );
+      })
+      .finally(() => {
+        mfaRecheck.finish(check);
+        if (live && actions.isCurrent(action)) setBooting(false);
+      });
+    return () => {
+      live = false;
+      mfaRecheck.finish(check);
+      api.invalidateAuthorization();
+    };
+  }, [api, storage, retry, actions, mfaRecheck, resetAccessIntents]);
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", state => {
+      if (state === "active" && userRef.current) {
+        api.invalidateAuthorization();
+        resetAccessIntents();
+        setBooting(true);
+        setRetry(value => value + 1);
+      }
+    });
+    return () => subscription.remove();
+  }, [api, resetAccessIntents]);
+  async function signOut() {
+    const action = actions.begin();
+    setBooting(false);
+    resetAccessIntents();
+    setUser(null);
+    setSelected(null);
+    setAccountOpen(false);
+    setBootError(null);
+    try {
+      await api.logout();
+    } catch (error) {
+      if (
+        !actions.isCurrent(action) ||
+        (error instanceof ApiError && error.code === "SESSION_CHANGED")
+      )
+        return;
+      setBootError(
+        error instanceof Error
+          ? error.message
+          : "Falha ao apagar a sessão deste dispositivo.",
+      );
+    }
+  }
+  if (booting)
+    return (
+      <View style={styles.page}>
+        <ActivityIndicator
+          accessibilityLabel="Restaurando sessão"
+          color={colors.green}
+        />
+      </View>
+    );
+  if (bootError)
+    return (
+      <View style={styles.page}>
+        <Text style={styles.title}>{productTitles[product]}</Text>
+        <ErrorMessage
+          message={bootError}
+          retry={() => setRetry((value) => value + 1)}
+        />
+        <Button
+          secondary
+          label="Encerrar sessão neste aparelho"
+          onPress={() => void signOut()}
+        />
+      </View>
+    );
+  if (!user)
+    return (
+      <Login
+        key={product}
+        api={api}
+        product={product}
+        requestPasswordRecovery={recoverPassword}
+        invitationRequests={invitationRequests}
+        beginSignIn={() => {
+          actions.begin();
+          resetAccessIntents();
+          setBootError(null);
+        }}
+        signedIn={(profile) => {
+          setSelected(null);
+          setAccountOpen(false);
+          setUser(profile);
+        }}
+      />
+    );
+  if (user.mfaRequirement !== "not-required" && user.mfaRequirement !== "satisfied") {
+    return <NativeMfaSessionGate requirement={user.mfaRequirement} portalUrl={mfaPortalUrl}
+      refresh={() => { setBooting(true); setRetry(value => value + 1); }}
+      signOut={() => void signOut()} />;
+  }
+  return (
+    <>
+      <View
+        style={{
+          paddingHorizontal: 20,
+          paddingTop: 12,
+          paddingBottom: 8,
+          gap: 10,
+        }}
+      >
+        <Text style={styles.subtitle}>{productTitles[product]}</Text>
+        <View style={styles.row}>
+          <Text numberOfLines={1} style={[styles.muted, { flex: 1 }]}>
+            {user.name}
+          </Text>
+          <Button label="Minha conta" secondary onPress={() => setAccountOpen(true)} />
+          <Button label="Sair" secondary onPress={() => void signOut()} />
+        </View>
+        <Text numberOfLines={1} style={styles.muted}>
+          {user.email}
+        </Text>
+      </View>
+      {accountOpen ? (
+        <Account
+          key={user.id}
+          api={api}
+          user={user}
+          close={() => setAccountOpen(false)}
+        />
+      ) : selected ? (
+        <BuildingApp
+          key={`${user.id}:${selected.id}`}
+          {...{ api, product, user, accessIntents, gateScanner }}
+          building={selected}
+          chooseBuilding={() => setSelected(null)}
+        />
+      ) : (
+        <BuildingPicker {...{ api }} choose={setSelected} />
+      )}
+    </>
+  );
+}
+
+function BuildingPicker({
+  api,
+  choose,
+}: {
+  api: ApiClient;
+  choose(building: Building): void;
+}) {
+  const resource = useResource<List<Building>>(api, "/buildings");
+  return (
+    <ScrollView contentContainerStyle={styles.page}>
+      <Text style={styles.title}>Escolha o condomínio</Text>
+      <Refresh resource={resource} />
+      <Feedback
+        resource={resource}
+        empty={resource.data?.items.length === 0}
+        emptyMessage="Sua conta não possui condomínios disponíveis. Solicite acesso à administração."
+      />
+      {resource.data?.items.map((building) => (
+        <Card key={building.id}>
+          <Text style={styles.subtitle}>{building.name}</Text>
+          <Text style={styles.muted}>{building.code}</Text>
+          <Button label="Acessar condomínio" onPress={() => choose(building)} />
+        </Card>
+      ))}
+    </ScrollView>
+  );
+}
+
+function BuildingApp({
+  api,
+  product,
+  user,
+  building,
+  chooseBuilding,
+  accessIntents,
+  gateScanner,
+}: {
+  api: ApiClient;
+  product: Product;
+  user: AuthUser;
+  building: Building;
+  chooseBuilding(): void;
+  accessIntents: AccessIntentStore;
+  gateScanner?: GateScannerComponent;
+}) {
+  const readResident = useCallback(
+    () => readResidentAccess(api, building.id),
+    [api, building.id],
+  );
+  const authorization = useReadResource(
+    product === "resident" ? `resident:${building.id}` : null,
+    readResident,
+  );
+  const readAccess = useCallback(
+    () => readOperationsAccess(api, building.id),
+    [api, building.id],
+  );
+  const operationsAccess = useReadResource(
+    product === "operations" ? `operations:${building.id}` : null,
+    readAccess,
+  );
+  const features = useResource<List<Feature>>(
+    api,
+    `/features/buildings/${encodeURIComponent(building.id)}`,
+  );
+  const [selected, setSelected] = useState<Screen | null>(null);
+  const authority = {
+    buildingId: building.id,
+    capabilities:
+      (product === "operations" ? operationsAccess.data : authorization.data)
+        ?.capabilities ?? [],
+    features: features.data?.items ?? [],
+    ...(product === "operations"
+      ? { overview: operationsAccess.data?.overview ?? null }
+      : { access: authorization.data?.access ?? null }),
+  };
+  const readConsumption = useCallback(
+    () => readResidentConsumption(api, building.id),
+    [api, building.id],
+  );
+  const consumption = useReadResource(
+    residentConsumptionKey(product, user.id, authority),
+    readConsumption,
+  );
+  const scope = { ...authority, consumption: consumption.data };
+  const screens = screensFor(product, scope);
+  const ready = Boolean(
+    (product === "operations" ? operationsAccess.data : authorization.data) &&
+      features.data,
+  );
+  const current =
+    selected && screens.includes(selected) ? selected : screens[0];
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <View style={{ paddingHorizontal: 20, gap: 10 }}>
+        <View style={styles.row}>
+          <Text numberOfLines={2} style={[styles.subtitle, { flex: 1 }]}>
+            {building.name}
+          </Text>
+          <Button label="Trocar" secondary onPress={chooseBuilding} />
+        </View>
+        {ready && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 8, paddingVertical: 8 }}
+          >
+            {screens.map((screen) => (
+              <Button
+                key={screen}
+                label={titles[screen]}
+                secondary={screen !== current}
+                onPress={() => setSelected(screen)}
+              />
+            ))}
+          </ScrollView>
+        )}
+      </View>
+      <BuildingScreen screen={current ?? null}>
+        <Feedback<unknown>
+          resource={product === "operations" ? operationsAccess : authorization}
+        />
+        <Feedback resource={features} />
+        {consumption.error && (
+          <ErrorMessage message={consumption.error} retry={consumption.reload} />
+        )}
+        {ready && !current && (
+          <Card>
+            <Text style={styles.subtitle}>Sem módulos disponíveis</Text>
+            <Text style={styles.text}>
+              Este perfil não possui acesso aos módulos deste aplicativo neste
+              condomínio. A administração pode verificar suas permissões.
+            </Text>
+          </Card>
+        )}
+        {ready && current && (
+          <>
+            <Text style={styles.title}>
+              {current === "consumption" ? "Consumo do condomínio" : titles[current]}
+            </Text>
+            {current === "consumption" && (
+              <ResidentConsumptionScreen
+                resource={consumption}
+                items={consumptionItems(scope)}
+              />
+            )}
+            {current === "notices" && (
+              <Notices api={api} buildingId={building.id} />
+            )}
+            {current === "tickets" && (
+              <Tickets
+                api={api}
+                buildingId={building.id}
+                product={product}
+                userId={user.id}
+                scope={scope}
+              />
+            )}
+            {current === "reservations" && (
+              <Reservations api={api} buildingId={building.id} scope={scope} />
+            )}
+            {current === "events" && (
+              <Events api={api} buildingId={building.id} scope={scope} />
+            )}
+            {current === "transparency" && (
+              <Transparency api={api} buildingId={building.id} scope={scope} />
+            )}
+            {current === "access" && (
+              <Access
+                api={api}
+                scope={scope}
+                intents={accessIntents}
+                scanner={product === "resident" ? gateScanner : undefined}
+              />
+            )}
+            {current === "overview" && (
+              <Overview api={api} buildingId={building.id} />
+            )}
+            {current === "alerts" && (
+              <Alerts api={api} buildingId={building.id} scope={scope} />
+            )}
+            {current === "readings" && (
+              <Readings api={api} buildingId={building.id} />
+            )}
+            {current === "workOrders" && (
+              <WorkOrders api={api} buildingId={building.id} userId={user.id} scope={scope} />
+            )}
+          </>
+        )}
+      </BuildingScreen>
+    </KeyboardAvoidingView>
+  );
+}

@@ -1,0 +1,167 @@
+import assert from "node:assert/strict";
+import { it } from "node:test";
+import { ApiError } from "@predioon/api-client";
+import type { AuthUser } from "@predioon/contracts/auth";
+import { createAuthActions, createMfaRecheck } from "../src/auth-state.ts";
+
+// DRAFT, NOT EXECUTED. Same real action factory, no React/HTTP/database runtime.
+function deferred<T>() {
+  let resolve!: (value: T) => void, reject!: (error: unknown) => void;
+  const promise = new Promise<T>((done, fail) => { resolve = done; reject = fail; });
+  return { promise, resolve, reject };
+}
+function profile(requirement: AuthUser["mfaRequirement"]): AuthUser {
+  return { id: "fixture", name: "Fixture", email: "fixture@example.invalid",
+    role: "PLATFORM_ADMIN", memberships: [], mfaRequirement: requirement };
+}
+function harness() {
+  const pending = deferred<AuthUser>();
+  let user: AuthUser | null = profile("enrollment-required");
+  let error: string | null = null;
+  let updates = 0;
+  let identityResets = 0;
+  const actions = createAuthActions({
+    api: {
+      get: async <T>(path: string) => { assert.equal(path, "/auth/me"); return pending.promise as Promise<T>; },
+      restore: async () => null,
+      login: async () => ({ accessToken: "synthetic", user: profile("satisfied") }),
+      logout: async () => undefined,
+      clearMemory: () => undefined,
+    },
+    onIdentityReset: () => { identityResets++; },
+    onUserChange: next => { user = next; updates++; },
+    onLoadingChange: () => undefined,
+    onErrorChange: next => { error = next; },
+    onMfaRequirementChange: requirement => { user = profile(requirement); },
+  });
+  return { actions, pending, state: () => ({ user, error, updates, identityResets }) };
+}
+const changed = (error: unknown) => error instanceof ApiError && error.code === "SESSION_CHANGED";
+
+it("rejects stale profile success so explicit recovery acknowledgment cannot release its hold", async () => {
+  const f = harness();
+  let pendingCodes = true;
+  const acknowledgment = f.actions.refreshProfile().then(() => { pendingCodes = false; });
+  const rejection = assert.rejects(acknowledgment, changed);
+  f.actions.mfaRequired("verification-required");
+  const before = f.state();
+  f.pending.resolve(profile("satisfied"));
+  await rejection;
+  assert.equal(pendingCodes, true);
+  assert.deepEqual(f.state(), before);
+});
+
+it("rejects stale profile failure without overwriting newer identity or error state", async () => {
+  const f = harness();
+  const reading = f.actions.refreshProfile();
+  const rejection = assert.rejects(reading, changed);
+  f.actions.authLost();
+  const before = f.state();
+  f.pending.reject(new Error("old request failed"));
+  await rejection;
+  assert.deepEqual(f.state(), before);
+});
+
+it("accepts the current profile before an acknowledgment caller releases its hold", async () => {
+  const f = harness();
+  let pendingCodes = true;
+  const acknowledgment = f.actions.refreshProfile().then(() => { pendingCodes = false; });
+  f.pending.resolve(profile("satisfied"));
+  await acknowledgment;
+  assert.equal(pendingCodes, false);
+  assert.equal(f.state().user?.mfaRequirement, "satisfied");
+  assert.equal(f.state().updates, 1);
+});
+
+it("keeps a current failed reread rejected and records its retryable error", async () => {
+  const f = harness();
+  const reading = f.actions.refreshProfile();
+  const rejection = assert.rejects(reading, /current request failed/);
+  f.pending.reject(new Error("current request failed"));
+  await rejection;
+  assert.equal(f.state().user?.mfaRequirement, "enrollment-required");
+  assert.equal(f.state().updates, 0);
+  assert.equal(f.state().error, "current request failed");
+});
+
+it("bounds /me403 callback recursion to one reread and allows a later explicit notification", async () => {
+  let reads = 0, notifications = 0;
+  const recheck = createMfaRecheck(() => { notifications++; }, async () => {
+    reads++;
+    // Same synchronous callback behavior as the shared transport, followed by
+    // the original rejected request; the callback must not start another GET.
+    void recheck.request("verification-required");
+    throw new ApiError(403, "MFA needed", "HTTP_ERROR", "MFA_VERIFICATION_REQUIRED");
+  });
+  await recheck.request("enrollment-required");
+  assert.equal(reads, 1);
+  assert.equal(notifications, 2);
+  await recheck.request("verification-required");
+  assert.equal(reads, 2);
+});
+
+it("coalesces concurrent restrictions and cancels a not-yet-started reread on unmount", async () => {
+  const read = deferred<void>();
+  let reads = 0;
+  const recheck = createMfaRecheck(() => undefined, async () => { reads++; await read.promise; });
+  const first = recheck.request("enrollment-required");
+  const second = recheck.request("verification-required");
+  recheck.cancel();
+  read.resolve();
+  await Promise.all([first, second]);
+  assert.equal(reads, 0);
+});
+
+it("authorization hints retain ceremony identity; logout/login/restore replace it", async () => {
+  const f = harness();
+  f.actions.mfaRequired("verification-required");
+  assert.equal(f.state().identityResets, 0);
+  await f.actions.signOut();
+  assert.equal(f.state().identityResets, 1);
+  await f.actions.signIn("fixture@example.invalid", "synthetic");
+  assert.equal(f.state().identityResets, 2);
+  await f.actions.restore();
+  assert.equal(f.state().identityResets, 3);
+});
+
+for (const requirement of ["enrollment-required", "verification-required"] as const) {
+  it(`SSE rejects restricted 200 ${requirement} after publishing the restricted profile`, async () => {
+    const f = harness();
+    const reading = f.actions.validateOperationalProfile();
+    const rejection = assert.rejects(reading, cause => cause instanceof ApiError && cause.status === 403
+      && cause.reason === (requirement === "enrollment-required" ? "MFA_ENROLLMENT_REQUIRED" : "MFA_VERIFICATION_REQUIRED"));
+    f.pending.resolve(profile(requirement));
+    await rejection;
+    assert.equal(f.state().user?.mfaRequirement, requirement);
+    assert.equal(f.state().updates, 1);
+  });
+}
+it("SSE rejects unknown/missing requirement with 503 after publishing fail-closed state", async () => {
+  const f = harness();
+  const reading = f.actions.validateOperationalProfile();
+  const rejection = assert.rejects(reading, cause => cause instanceof ApiError && cause.status === 503);
+  // Malformed wire DTO: intentional runtime-contract negative, not production typing.
+  f.pending.resolve({ ...profile("satisfied"), mfaRequirement: undefined } as unknown as AuthUser);
+  await rejection;
+  assert.equal(f.state().user?.mfaRequirement, undefined);
+  assert.equal(f.state().updates, 1);
+});
+for (const requirement of ["not-required", "satisfied"] as const) {
+  it(`SSE permits current operational profile ${requirement}`, async () => {
+    const f = harness();
+    const reading = f.actions.validateOperationalProfile();
+    f.pending.resolve(profile(requirement));
+    await reading;
+    assert.equal(f.state().user?.mfaRequirement, requirement);
+  });
+}
+it("SSE rejects a late old-identity profile without publishing it", async () => {
+  const f = harness();
+  const reading = f.actions.validateOperationalProfile();
+  const rejection = assert.rejects(reading, changed);
+  f.actions.authLost();
+  const before = f.state();
+  f.pending.resolve(profile("satisfied"));
+  await rejection;
+  assert.deepEqual(f.state(), before);
+});

@@ -1,0 +1,41 @@
+import assert from "node:assert/strict";
+import { it } from "node:test";
+import { createAccessIntentLifecycle } from "../src/access-intent-lifecycle.ts";
+
+// AUTHORED ONLY: pure lifecycle model, not a React/AppState render test.
+for (const boundary of ["foreground reread", "MFA authorization hint", "new identity"] as const) {
+  it(`${boundary} retires old commands and accepts only a new explicit gesture`, async () => {
+    let requests = 0;
+    const lifecycle = createAccessIntentLifecycle(() => `synthetic-${++requests}`);
+    const old = lifecycle.current;
+    let rejectOld!: (cause: Error) => void;
+    let posts = 0;
+    const pending = old.submit("building", "gate", () => {
+      posts++;
+      return new Promise((_, reject) => { rejectOld = reject; });
+    });
+    assert.equal(posts, 1);
+    const next = lifecycle.reset();
+    assert.notEqual(next, old);
+    assert.deepEqual(next.getSnapshot(), {});
+    assert.equal(posts, 1, "reset must not replay the physical command");
+    await old.submit("building", "gate", async () => { posts++; throw new Error("must never run"); });
+    assert.equal(posts, 1);
+    rejectOld(new Error("late old failure"));
+    await pending;
+    assert.deepEqual(old.getSnapshot(), {});
+    assert.deepEqual(next.getSnapshot(), {});
+    await next.submit("building", "gate", async () => { posts++; throw new Error("synthetic response"); });
+    assert.equal(posts, 2);
+    assert.equal(requests, 2);
+  });
+}
+it("real unmount retires current commands without creating a replacement", async () => {
+  const lifecycle = createAccessIntentLifecycle(() => "synthetic");
+  const old = lifecycle.current;
+  lifecycle.invalidate();
+  assert.equal(lifecycle.current, old);
+  let posts = 0;
+  await old.submit("building", "gate", async () => { posts++; throw new Error("must never run"); });
+  assert.equal(posts, 0);
+});

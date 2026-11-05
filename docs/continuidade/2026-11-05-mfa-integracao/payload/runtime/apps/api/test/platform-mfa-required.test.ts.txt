@@ -1,0 +1,206 @@
+import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
+import { after, before, describe, it } from "node:test";
+import { sqlClient } from "@predioon/db";
+import { closeAppDb } from "@predioon/db/runtime";
+import { hashPassword } from "../src/auth/passwords.js";
+import { base32Decode, totpCode, totpStep } from "../src/auth/totp.js";
+import { call, startTestServer, type TestServer } from "./helpers.js";
+
+// Draft REDs against 14e30084366578fe883c80aa0c3f9a8ddda854ed; NOT EXECUTED.
+// Run serially in a fresh official runtime-services UUID fixture only. The
+// owner client below prepares/observes fixtures; HTTP still uses restricted
+// app/identity connections. No proposed 068 columns/helpers are imported.
+type Requirement = "not-required" | "enrollment-required" | "verification-required" | "satisfied";
+type User = { id: string; role: string; memberships: unknown[]; mfaRequirement: Requirement };
+type Session = { accessToken: string; refreshToken: string; user: User };
+type Account = { id: string; email: string };
+
+describe("platform administration requires MFA in the current session family", { concurrency: false }, () => {
+  const password = "mfa-required-fixture-password";
+  let server: TestServer, passwordHash: string;
+  const accounts: Account[] = [];
+
+  before(async () => {
+    passwordHash = await hashPassword(password);
+    server = await startTestServer();
+  });
+  after(async () => {
+    try {
+      await server?.close();
+      for (const account of accounts) await sqlClient`delete from users where id=${account.id}`;
+    } finally {
+      await closeAppDb();
+      await sqlClient.end();
+    }
+  });
+
+  async function account(admin = false): Promise<Account> {
+    const id = `required-mfa-${randomUUID()}`, email = `${id}@example.invalid`;
+    const result = { id, email };
+    accounts.push(result);
+    await sqlClient`insert into users(id,name,email,password_hash,is_platform_admin)
+      values(${id},'Required MFA fixture',${email},${passwordHash},${admin})`;
+    return result;
+  }
+  async function signIn(account: Account): Promise<Session> {
+    // Raw HTTP: do not auto-enroll, retry 429, or fabricate session proof.
+    const response = await call(server.url, "/auth/login", {
+      method: "POST", body: { email: account.email, password },
+    });
+    assert.equal(response.status, 200, "password login must create a session");
+    assert.equal(response.headers.get("cache-control"), "no-store");
+    const session = await response.json() as Session;
+    assert.equal(session.user.id, account.id);
+    assert.ok(session.accessToken && session.refreshToken);
+    return session;
+  }
+  const request = (session: Session, path: string, method = "GET", body?: unknown) =>
+    call(server.url, path, { token: session.accessToken, method, body });
+  async function me(session: Session): Promise<User> {
+    const response = await request(session, "/auth/me");
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("cache-control"), "no-store");
+    return await response.json() as User;
+  }
+  async function denied(session: Session, path: string, reason: string) {
+    const response = await request(session, path);
+    assert.equal(response.status, 403, `${path} must reject the restricted family`);
+    const body = await response.json() as { details?: { reason?: string } };
+    assert.equal(body.details?.reason, reason);
+  }
+  async function authority(account: Account, expected: boolean) {
+    const [row] = await sqlClient`select public.app_rbac_platform_role_at(
+      ${account.id},'PLATFORM_ADMIN',statement_timestamp()) as required`;
+    assert.equal(row!.required, expected, "021 is the authority oracle, not Identity.role");
+  }
+  async function enroll(session: Session): Promise<Buffer> {
+    const response = await request(session, "/auth/mfa/enroll", "POST", { currentPassword: password });
+    assert.equal(response.status, 200, "restricted family must retain enrollment access");
+    const body = await response.json() as { secret: string };
+    const secret = base32Decode(body.secret);
+    assert.ok(secret);
+    return secret;
+  }
+  async function confirm(session: Session): Promise<string[]> {
+    const secret = await enroll(session);
+    const response = await request(session, "/auth/mfa/confirm", "POST", {
+      code: totpCode(secret, totpStep(Date.now())),
+    });
+    assert.equal(response.status, 200);
+    const { recoveryCodes } = await response.json() as { recoveryCodes: string[] };
+    assert.equal(recoveryCodes.length, 10);
+    return recoveryCodes;
+  }
+
+  it("RED 1: password-only flag administrator receives enrollment-required despite recent verification", async () => {
+    const user = await account(true);
+    await authority(user, true);
+    const session = await signIn(user);
+    const [stored] = await sqlClient`select verified_at is not null as recently_verified
+      from sessions where user_id=${user.id} and revoked_at is null`;
+    assert.equal(stored!.recently_verified, true, "055 password clock is present but is not MFA proof");
+    assert.equal((await sqlClient`select 1 from mfa_factors where user_id=${user.id}`).length, 0);
+    assert.equal(session.user.mfaRequirement, "enrollment-required");
+    assert.deepEqual(session.user.memberships, []);
+    assert.equal((await me(session)).mfaRequirement, "enrollment-required");
+  });
+
+  it("RED 2: current global binding requires enrollment even without the legacy admin flag", async () => {
+    const user = await account();
+    await sqlClient`insert into role_bindings(user_id,role_key) values(${user.id},'PLATFORM_ADMIN')`;
+    await authority(user, true);
+    const session = await signIn(user);
+    assert.notEqual(session.user.role, "PLATFORM_ADMIN", "legacy DTO role must not define the obligation");
+    assert.equal(session.user.mfaRequirement, "enrollment-required");
+    assert.equal((await me(session)).mfaRequirement, "enrollment-required");
+  });
+
+  it("RED 3: restricted admin cannot read domains but can start setup and log out", async () => {
+    const user = await account(true), session = await signIn(user);
+    // These assertions precede the new DTO check so this RED observes HTTP access.
+    await denied(session, "/organizations", "MFA_ENROLLMENT_REQUIRED");
+    await denied(session, "/v1/authorization/platform", "MFA_ENROLLMENT_REQUIRED");
+    assert.equal((await request(session, "/auth/mfa")).status, 200);
+    await enroll(session);
+    assert.equal((await me(session)).mfaRequirement, "enrollment-required", "pending is not confirmed");
+    assert.equal((await request(session, "/auth/logout", "POST", { refreshToken: session.refreshToken })).status, 204);
+    const [row] = await sqlClient`select count(*)::int as active from sessions
+      where user_id=${user.id} and revoked_at is null`;
+    assert.equal(row!.active, 0);
+    assert.equal((await request(session, "/auth/me")).status, 401);
+  });
+
+  it("RED 4: confirmation in A never approves B, including after B refreshes", async () => {
+    const user = await account(true), a = await signIn(user), b = await signIn(user);
+    const before = await sqlClient`select id,verified_at from sessions where user_id=${user.id} order by id`;
+    assert.equal(before.length, 2, "two independently issued families");
+    await confirm(a);
+    // Test B first: an account-level enabled bit must never make it operational.
+    await denied(b, "/organizations", "MFA_VERIFICATION_REQUIRED");
+    assert.equal((await me(a)).mfaRequirement, "satisfied");
+    assert.equal((await request(a, "/organizations")).status, 200);
+    assert.equal((await me(b)).mfaRequirement, "verification-required");
+    const refreshed = await request(b, "/auth/refresh", "POST", { refreshToken: b.refreshToken });
+    assert.equal(refreshed.status, 200);
+    const next = await refreshed.json() as Session;
+    assert.equal(next.user.mfaRequirement, "verification-required");
+    await denied(next, "/organizations", "MFA_VERIFICATION_REQUIRED");
+    assert.deepEqual(await sqlClient`select id,verified_at from sessions where user_id=${user.id} order by id`, before,
+      "confirmation and refresh preserve family identity and the existing 055 password clock");
+  });
+
+  it("RED 5: optional disable succeeds, but a verified administrator cannot remove factor or codes", async () => {
+    const ordinary = await account(), optional = await signIn(ordinary);
+    const optionalCodes = await confirm(optional);
+    assert.equal((await request(optional, "/auth/mfa/disable", "POST", {
+      currentPassword: password, code: optionalCodes[0],
+    })).status, 204);
+    assert.equal((await sqlClient`select 1 from mfa_factors where user_id=${ordinary.id}`).length, 0);
+    assert.equal((await sqlClient`select 1 from mfa_recovery_codes where user_id=${ordinary.id}`).length, 0);
+
+    const admin = await account(true), required = await signIn(admin), codes = await confirm(required);
+    const factors = await sqlClient`select to_jsonb(f) as row from mfa_factors f where user_id=${admin.id}`;
+    const recoveries = await sqlClient`select to_jsonb(r) as row from mfa_recovery_codes r
+      where user_id=${admin.id} order by code_hash`;
+    const response = await request(required, "/auth/mfa/disable", "POST", { currentPassword: password, code: codes[0] });
+    assert.equal(response.status, 403);
+    // The plan does not freeze a distinct reason for mandatory-disable refusal.
+    assert.deepEqual(await sqlClient`select to_jsonb(f) as row from mfa_factors f where user_id=${admin.id}`, factors);
+    assert.deepEqual(await sqlClient`select to_jsonb(r) as row from mfa_recovery_codes r
+      where user_id=${admin.id} order by code_hash`, recoveries);
+  });
+
+  it("controls: inactive bindings/catalog without flag are optional; legacy flag still requires MFA", async () => {
+    const user = await account(), session = await signIn(user), binding = randomUUID();
+    await authority(user, false);
+    assert.equal((await me(session)).mfaRequirement, "not-required");
+    await sqlClient`insert into role_bindings(id,user_id,role_key,starts_at)
+      values(${binding},${user.id},'PLATFORM_ADMIN',clock_timestamp()+interval '1 hour')`;
+    for (const mutation of [
+      () => sqlClient`update role_bindings set starts_at=clock_timestamp()+interval '1 hour',ends_at=null,active=true where id=${binding}`,
+      () => sqlClient`update role_bindings set starts_at=null,ends_at=clock_timestamp()-interval '1 hour',active=true where id=${binding}`,
+      () => sqlClient`update role_bindings set starts_at=null,ends_at=null,active=false where id=${binding}`,
+    ]) {
+      await mutation();
+      await authority(user, false);
+      assert.equal((await me(session)).mfaRequirement, "not-required");
+    }
+    const [prior] = await sqlClient`select active from roles where key='PLATFORM_ADMIN'`;
+    assert.ok(prior);
+    try {
+      await sqlClient`update role_bindings set active=true,starts_at=null,ends_at=null where id=${binding}`;
+      await sqlClient`update roles set active=false where key='PLATFORM_ADMIN'`;
+      await authority(user, false);
+      assert.equal((await me(session)).mfaRequirement, "not-required");
+      // 021 alone is false with an inactive catalog, but010 legacy support
+      // still accepts an active account with the flag. Obligation is the union.
+      await sqlClient`update users set is_platform_admin=true where id=${user.id}`;
+      await authority(user, false);
+      assert.equal((await me(session)).mfaRequirement, "enrollment-required");
+      await denied(session, "/organizations", "MFA_ENROLLMENT_REQUIRED");
+    } finally {
+      await sqlClient`update roles set active=${prior.active} where key='PLATFORM_ADMIN'`;
+    }
+  });
+});

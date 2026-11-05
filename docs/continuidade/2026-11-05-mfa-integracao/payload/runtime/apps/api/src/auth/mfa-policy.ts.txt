@@ -1,0 +1,24 @@
+import type { MfaRequirement } from "@predioon/contracts/auth";
+import { HttpError, pgErrorCode } from "../http/errors.js";
+
+/** Bootstrap validity alone does not authorize a private operation. */
+export function assertOperationalMfa(identity: { mfaRequirement: MfaRequirement }): void {
+  switch (identity.mfaRequirement) {
+    case "not-required":
+    case "satisfied": return;
+    case "enrollment-required":
+      throw new HttpError(403, "Cadastre a verificação em duas etapas para continuar.", { reason: "MFA_ENROLLMENT_REQUIRED" });
+    case "verification-required":
+      throw new HttpError(403, "Confirme a verificação em duas etapas para continuar.", { reason: "MFA_VERIFICATION_REQUIRED" });
+    default:
+      throw new HttpError(503, "Estado de verificação indisponível. Tente novamente em instantes.");
+  }
+}
+
+/** Translate only the dedicated068 states, never an empty result or generic denial. */
+export function mfaDatabaseError(error: unknown): HttpError | undefined {
+  const code = pgErrorCode(error);
+  if (code === "PMF01") return new HttpError(403, "Cadastre a verificação em duas etapas para continuar.", { reason: "MFA_ENROLLMENT_REQUIRED" });
+  if (code === "PMF02") return new HttpError(403, "Confirme a verificação em duas etapas para continuar.", { reason: "MFA_VERIFICATION_REQUIRED" });
+  return undefined;
+}

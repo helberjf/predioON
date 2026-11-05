@@ -1,0 +1,82 @@
+{
+  "status": "AUTHORING_REVIEWED_CANONICAL_RESTORE_NOT_EXECUTED",
+  "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+  "metadata": [
+    {
+      "path": ".gitattributes",
+      "sha256": "3ea877fb35ba4d2ec4929fb893f063c54eb227eea5d83b1b6e4edd6be152a8d4"
+    },
+    {
+      "path": "INVENTORY.json",
+      "sha256": "db8ee344181366e23113bc0ea97bb004740dc6682ad980e422bc0d3d3769ae21"
+    },
+    {
+      "path": "git-blobs.mjs",
+      "sha256": "ad8f95f6e6b013b3d74e0974ac05e5a86b61a923f9035d082d34fbd29b8d12c1"
+    },
+    {
+      "path": "finalize-checkpoint.mjs",
+      "sha256": "ae83f4782428ac084df8599be3958de83f1540117d038726621e20ea3ae4a25c"
+    },
+    {
+      "path": "restore-checkpoint.mjs",
+      "sha256": "b6607446946d915b9e7f12a3b14cb1f7a1cbfe1232c75d4ac6a6a0adfa6d1e4e"
+    },
+    {
+      "path": "README.md",
+      "sha256": "55f6c4fb6b2820a39c514606364b47108f2a7a5d30a95a5de95281f24ca41667"
+    },
+    {
+      "path": "qaSupport/renderer/package.json",
+      "sha256": "a90fc33418afa2b9cbf4768524b021135b965ecdf993457505bfae3ac44a8428"
+    },
+    {
+      "path": "qaSupport/renderer/tsconfig.json",
+      "sha256": "67683e3cf895ac7b4a4ba893c2f1c9e0e96128c1e6c0f0c499491d06c85b597d"
+    },
+    {
+      "path": "qaSupport/renderer/DEPENDENCIES.json",
+      "sha256": "3f2641c87f7bac7916f6598d026dd7e9e1c95c10bddf1ce20bc807f4e5b6bdf7"
+    },
+    {
+      "path": "qaSupport/renderer/prepare-renderer.mjs",
+      "sha256": "c40fe12888575a8dafbb07aa29552fad486fba3fe34bb076ed633303c899f610"
+    },
+    {
+      "path": "qaSupport/renderer/README.md",
+      "sha256": "cab9d8393b345aa0d90ea6f7662cd38100b9433f9c16a7e7eed035b18da4e876"
+    }
+  ],
+  "inventoryPayloads": 51,
+  "alreadyPublishedQueryPayloads": 2,
+  "pendingRuntimeAndTestFiles": 47,
+  "explicitRendererTestFiles": 2,
+  "rendererSupportFiles": 5,
+  "canonicalSourceFiles": 994,
+  "rawVsCanonicalEolDifferences": 12,
+  "builderAndRestoreExecuted": false,
+  "staticPeerReview": "No blocker for builder/restore; renderer recipe authored, not executed.",
+  "guardRefusal": {
+    "minimumMiB": 1536,
+    "at": "2026-11-05T03:53:51.9727239Z",
+    "phase": "builder",
+    "freeMiB": 560.0
+  },
+  "olderV1RawPackage": "Not published as a portable verified package; Windows raw bytes differ from canonical Git at12 paths.",
+  "computerRestarted": false,
+  "productionAccepted": false,
+  "metadataLineEndingNormalization": [
+    {
+      "path": "INVENTORY.json",
+      "beforeSha256": "082cd81496dac0f7201b60821a2fb574b2bdd83fd1ae2dc5e811c3fd96fb8ce6",
+      "afterSha256": "db8ee344181366e23113bc0ea97bb004740dc6682ad980e422bc0d3d3769ae21",
+      "jsonMeaningUnchanged": true
+    },
+    {
+      "path": "qaSupport/renderer/DEPENDENCIES.json",
+      "beforeSha256": "976acbdaff63178bbe25e4e3b170b64046340f2ca1f742968d378460a9dbe1e3",
+      "afterSha256": "3f2641c87f7bac7916f6598d026dd7e9e1c95c10bddf1ce20bc807f4e5b6bdf7",
+      "jsonMeaningUnchanged": true
+    }
+  ]
+}

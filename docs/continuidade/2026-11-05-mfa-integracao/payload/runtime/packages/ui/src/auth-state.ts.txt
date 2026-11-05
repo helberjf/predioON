@@ -1,0 +1,147 @@
+import { ApiError, type WebApiClient } from "@predioon/api-client";
+import type { AuthUser, MfaRequirement } from "@predioon/contracts/auth";
+
+type Options = {
+  api: Pick<WebApiClient, "restore" | "login" | "logout" | "clearMemory" | "get">;
+  onUserChange(user: AuthUser | null): void;
+  onLoadingChange(loading: boolean): void;
+  onErrorChange(error: string | null): void;
+  /** Invalidate memory owned by an identity before asynchronous work can finish. */
+  onSessionReset?(): void;
+  /** Actual identity/family change; authorization-only MFA hints must not call it. */
+  onIdentityReset?(): void;
+  onMfaRequirementChange?(requirement: MfaRequirement): void;
+};
+
+/** Coalesce mandatory-factor notifications, including a403 from /me itself. */
+export function createMfaRecheck(
+  markRequired: (requirement: MfaRequirement) => void,
+  refreshProfile: () => Promise<void>,
+) {
+  let pending: Promise<void> | null = null;
+  let cancelled = false;
+  return {
+    request(requirement: MfaRequirement): Promise<void> {
+      if (cancelled) return Promise.resolve();
+      markRequired(requirement);
+      if (pending) return pending;
+      pending = Promise.resolve().then(() => cancelled ? undefined : refreshProfile())
+        .catch(() => undefined).finally(() => { pending = null; });
+      return pending;
+    },
+    cancel(): void { cancelled = true; },
+  };
+}
+
+/** Keep React identity updates in the same order as explicit authentication actions. */
+export function createAuthActions(options: Options) {
+  let generation = 0;
+
+  function clearIdentity() {
+    generation++;
+    options.onIdentityReset?.();
+    options.onSessionReset?.();
+    options.onUserChange(null);
+    options.onLoadingChange(false);
+  }
+
+  async function signOut(): Promise<void> {
+    clearIdentity();
+    options.onErrorChange(null);
+    const expected = generation;
+    try { await options.api.logout(); }
+    catch (error) {
+      if (generation === expected && !(error instanceof ApiError && error.code === "SESSION_CHANGED")) {
+        options.onErrorChange("Você saiu deste portal. Não foi possível confirmar a revogação no servidor; ao entrar novamente, vamos concluir essa etapa primeiro.");
+      }
+    }
+  }
+
+  async function readProfile(): Promise<AuthUser> {
+      const expected = ++generation;
+      options.onErrorChange(null);
+      try {
+        const user = await options.api.get<AuthUser>("/auth/me");
+        if (generation !== expected) throw new ApiError(0, "A sessão mudou. Confira novamente.", "SESSION_CHANGED");
+        options.onUserChange(user);
+        return user;
+      } catch (error) {
+        if (generation !== expected || (error instanceof ApiError && error.code === "SESSION_CHANGED"))
+          throw new ApiError(0, "A sessão mudou. Confira novamente.", "SESSION_CHANGED");
+        options.onErrorChange(error instanceof Error ? error.message : "Não foi possível conferir a sessão.");
+        throw error;
+      }
+  }
+
+  return {
+    /** Same-family recheck; rejects stale responses without releasing recovery codes. */
+    async refreshProfile(): Promise<void> {
+      const expected = generation + 1;
+      await readProfile();
+      if (generation !== expected) throw new ApiError(0, "A sessão mudou. Confira novamente.", "SESSION_CHANGED");
+    },
+
+    /** Publish restricted/unknown identity state, then synchronously block reconnect. */
+    async validateOperationalProfile(): Promise<void> {
+      const expected = generation + 1;
+      const user = await readProfile();
+      if (generation !== expected) throw new ApiError(0, "A sessão mudou. Confira novamente.", "SESSION_CHANGED");
+      if (user.mfaRequirement === "not-required" || user.mfaRequirement === "satisfied") return;
+      const reason = user.mfaRequirement === "enrollment-required" ? "MFA_ENROLLMENT_REQUIRED"
+        : user.mfaRequirement === "verification-required" ? "MFA_VERIFICATION_REQUIRED" : null;
+      if (reason) throw new ApiError(403, "Conclua a verificação desta sessão.", "HTTP_ERROR", reason);
+      throw new ApiError(503, "Não foi possível confirmar a proteção desta sessão.");
+    },
+    /** A new mandatory-factor denial invalidates all outstanding identity work. */
+    mfaRequired(requirement: MfaRequirement): void {
+      generation++;
+      options.onSessionReset?.();
+      options.onMfaRequirementChange?.(requirement);
+      options.onLoadingChange(false);
+      options.onErrorChange(null);
+    },
+
+    async restore(): Promise<void> {
+      const expected = ++generation;
+      options.onIdentityReset?.();
+      options.onSessionReset?.();
+      options.onLoadingChange(true);
+      options.onErrorChange(null);
+      try {
+        const session = await options.api.restore();
+        if (generation === expected) options.onUserChange(session?.user ?? null);
+      } catch (error) {
+        if (generation === expected && !(error instanceof ApiError && error.code === "SESSION_CHANGED")) {
+          options.api.clearMemory();
+          options.onUserChange(null);
+          if (!(error instanceof ApiError && error.status === 401)) {
+            options.onErrorChange(error instanceof Error ? error.message : "Não foi possível recuperar a sessão. Tente novamente.");
+          }
+        }
+      } finally {
+        if (generation === expected) options.onLoadingChange(false);
+      }
+    },
+
+    async signIn(email: string, password: string, code?: string): Promise<void> {
+      clearIdentity();
+      options.onErrorChange(null);
+      const expected = generation;
+      const session = await options.api.login(email, password, code);
+      if (generation === expected) options.onUserChange(session.user);
+    },
+
+    signOut,
+
+    /** Completion belongs to the provider, even if its initiating view unmounts.
+     * A later login/restore always supersedes this captured identity. */
+    async signOutAfter(operation: () => Promise<void>): Promise<void> {
+      const expected = generation;
+      await operation();
+      if (generation === expected) await signOut();
+    },
+
+    authLost: clearIdentity,
+    cancel(): void { generation++; options.onSessionReset?.(); options.onIdentityReset?.(); },
+  };
+}

@@ -1,0 +1,30 @@
+// Narrow browser primitives only: production coordinator/transport stay real.
+const values = new Map<string, string>();
+export const browser = new EventTarget();
+export const storage = {
+  getItem: (key: string) => values.get(key) ?? null,
+  setItem: (key: string, value: string) => { values.set(key, value); },
+  removeItem: (key: string) => { values.delete(key); },
+};
+let tail: Promise<unknown> = Promise.resolve();
+Object.defineProperties(globalThis, {
+  window: { configurable: true, value: browser },
+  location: { configurable: true, value: { origin: "https://portal.example.invalid" } },
+  localStorage: { configurable: true, value: storage },
+  navigator: { configurable: true, value: { locks: { request: (_name: string, callback: () => Promise<unknown>) => {
+    const next = tail.then(callback, callback);
+    tail = next.catch(() => undefined);
+    return next;
+  } } } },
+  BroadcastChannel: { configurable: true, value: undefined },
+  IS_REACT_ACT_ENVIRONMENT: { configurable: true, value: true },
+});
+export function foreignMfaHint(restriction: "enrollment-required" | "verification-required") {
+  const key = [...values.keys()].find(value => value.startsWith("predioon.web-session."));
+  if (!key) throw new Error("No real coordinator state was created");
+  const current = JSON.parse(values.get(key)!);
+  storage.setItem(key, JSON.stringify({ ...current, authorizationEpoch: crypto.randomUUID(), restriction }));
+  const event = new Event("storage");
+  Object.defineProperty(event, "key", { value: key });
+  browser.dispatchEvent(event);
+}

@@ -1,0 +1,36 @@
+import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
+
+type Mode = "settings" | "enrollment" | "verification";
+type Ceremony = {
+  open: boolean;
+  activated: boolean;
+  mode: Mode;
+  held: boolean;
+  show(mode: Mode): void;
+  close(): void;
+  complete(): void;
+  setConfirming(value: boolean): void;
+  setPendingCodes(value: boolean): void;
+};
+const Context = createContext<Ceremony | null>(null);
+
+/** Identity-keyed owner of display/hold state only. Secrets stay in ONE host panel. */
+export function MfaCeremonyProvider({ children }: { children: ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const [activated, setActivated] = useState(false);
+  const [mode, setMode] = useState<Mode>("settings");
+  const [confirming, setConfirming] = useState(false);
+  const [pendingCodes, setPendingCodes] = useState(false);
+  const held = confirming || pendingCodes;
+  const show = useCallback((next: Mode) => { setActivated(true); setMode(next); setOpen(true); }, []);
+  const close = useCallback(() => { if (!held) setOpen(false); }, [held]);
+  const complete = useCallback(() => { setPendingCodes(false); setOpen(false); }, []);
+  const value = useMemo(() => ({ open, activated, mode, held, show, close, complete,
+    setConfirming, setPendingCodes }), [open, activated, mode, held, show, close, complete]);
+  return <Context.Provider value={value}>{children}</Context.Provider>;
+}
+export function useMfaCeremony(): Ceremony {
+  const value = useContext(Context);
+  if (!value) throw new Error("MFA ceremony requires AuthProvider");
+  return value;
+}

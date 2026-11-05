@@ -1,0 +1,13 @@
+/** A notification during /me must update the gate without recursively rereading. */
+export function createMfaProfileRecheck() {
+  let busy = false, generation = 0;
+  return {
+    request(): boolean {
+      if (busy) return false;
+      busy = true; // Reserve before scheduling React's effect.
+      return true;
+    },
+    begin(): number { busy = true; return ++generation; },
+    finish(expected: number): void { if (generation === expected) busy = false; },
+  };
+}

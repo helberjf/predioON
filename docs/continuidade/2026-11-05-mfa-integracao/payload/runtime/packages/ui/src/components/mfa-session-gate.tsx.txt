@@ -1,0 +1,24 @@
+import { useEffect, type ReactNode } from "react";
+import { useAuth } from "../auth.js";
+import { useMfaCeremony } from "../mfa-ceremony.js";
+import { Button, ErrorBanner } from "./primitives.js";
+
+/** Closes private providers while the identity-owned ceremony remains mounted. */
+export function MfaSessionGate({ children }: { children: ReactNode }) {
+  const { user, signOut, refreshProfile, error } = useAuth();
+  const ceremony = useMfaCeremony();
+  const requirement = user?.mfaRequirement;
+  const mode = requirement === "enrollment-required" ? "enrollment"
+    : requirement === "verification-required" ? "verification" : null;
+  useEffect(() => { if (mode) ceremony.show(mode); }, [mode, ceremony.show]);
+  if (!user) return null;
+  if (!ceremony.held && (requirement === "not-required" || requirement === "satisfied")) return children;
+  return <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-4 p-6" aria-label="Verificação obrigatória da sessão">
+    <h1 className="text-xl font-semibold text-slate-900">Proteja seu acesso administrativo</h1>
+    <p className="text-sm text-slate-600">Conclua a verificação e guarde os códigos de recuperação antes de continuar.</p>
+    {error && <ErrorBanner message={error} />}
+    {mode ? <Button onClick={() => ceremony.show(mode)}>Abrir verificação</Button>
+      : !ceremony.held && <Button onClick={() => void refreshProfile().catch(() => undefined)}>Conferir sessão novamente</Button>}
+    <Button variant="secondary" onClick={() => void signOut()}>Sair</Button>
+  </main>;
+}

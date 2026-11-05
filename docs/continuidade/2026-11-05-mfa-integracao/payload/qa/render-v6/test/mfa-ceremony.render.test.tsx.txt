@@ -1,0 +1,174 @@
+import "./browser-fixture.ts";
+import assert from "node:assert/strict";
+import { afterEach, it } from "node:test";
+import React, { useEffect } from "react";
+import { act, create, type ReactTestInstance, type ReactTestRenderer } from "react-test-renderer";
+import type { AuthUser } from "@predioon/contracts/auth";
+import { foreignMfaHint } from "./browser-fixture.ts";
+import { AuthProvider, useAuth } from "../packages/ui/src/auth.tsx";
+import { MfaSessionGate } from "../packages/ui/src/components/mfa-session-gate.tsx";
+import { MfaPanel } from "../packages/ui/src/components/mfa-panel.tsx";
+import { SessionsPanel } from "../packages/ui/src/components/sessions-panel.tsx";
+import { api } from "../packages/ui/src/api.ts";
+
+// Real components, hooks, coordinator and HTTP client. Only HTTP/browser/host
+// primitives are synthetic; no auth-context or MFA-component implementation mock.
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>(done => { resolve = done; });
+  return { promise, resolve };
+}
+const codes = ["fixture-recovery-1", "fixture-recovery-2"];
+const profile = (requirement: AuthUser["mfaRequirement"], id = "fixture-a"): AuthUser => ({
+  id, name: "Fixture", email: `${id}@example.invalid`, role: "PLATFORM_ADMIN", memberships: [], mfaRequirement: requirement,
+});
+const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
+  status, headers: { "Content-Type": "application/json" },
+});
+let tree: ReactTestRenderer | undefined;
+let auth: ReturnType<typeof useAuth>;
+let current: AuthUser;
+let confirm: ReturnType<typeof deferred<Response>>;
+let me: (() => Promise<Response>) | undefined;
+let confirms = 0, reads = 0, mounts = 0, unmounts = 0;
+let enabled = false;
+const unresolved = new Set<ReturnType<typeof deferred<Response>>>();
+const originalFetch = globalThis.fetch;
+
+function Probe() { auth = useAuth(); return null; }
+function PrivateArea() {
+  useEffect(() => { mounts++; return () => { unmounts++; }; }, []);
+  return <section data-private="true"><SessionsPanel /></section>;
+}
+async function mount(requirement: AuthUser["mfaRequirement"] = "not-required") {
+  current = profile(requirement); confirms = 0; reads = 0; mounts = 0; unmounts = 0; enabled = false; me = undefined;
+  confirm = deferred<Response>(); unresolved.add(confirm);
+  globalThis.fetch = async (input, init) => {
+    const path = new URL(String(input)).pathname;
+    const method = init?.method ?? "GET";
+    if (path === "/auth/web/logout") return new Response(null, { status: 204 });
+    if (path === "/auth/web/login" || path === "/auth/web/refresh") return json({ accessToken: "fixture-token", user: current });
+    if (path === "/auth/me") { reads++; return me ? me() : json(current); }
+    if (path === "/auth/mfa" && method === "GET") return json({ enabled, pending: false, recoveryCodesRemaining: enabled ? 2 : 0, available: true });
+    if (path === "/auth/mfa/enroll") return json({ secret: "SYNTHETICSECRET", otpauthUri: "otpauth://totp/fixture" });
+    if (path === "/auth/mfa/confirm") { confirms++; return confirm.promise; }
+    if (path === "/auth/sessions") return json({ items: [] });
+    if (path === "/fixture/private") return json({ error: "MFA required", details: { reason: "MFA_ENROLLMENT_REQUIRED" } }, 403);
+    throw new Error(`Unexpected fixture HTTP ${method} ${path}`);
+  };
+  await act(async () => {
+    tree = create(<AuthProvider><Probe /><MfaSessionGate><PrivateArea /></MfaSessionGate></AuthProvider>, {
+      createNodeMock: element => element.type === "dialog" ? {
+        open: false,
+        showModal() { this.open = true; },
+        close() { this.open = false; },
+      } : null,
+    });
+  });
+  // Explicit login makes each test independent of the previous logout tombstone.
+  await act(async () => { await auth.signIn("fixture@example.invalid", "synthetic-password"); });
+}
+function text(node: ReactTestInstance | string): string {
+  return typeof node === "string" ? node : node.children.map(text).join("");
+}
+function button(label: string) {
+  const found = tree!.root.findAllByType("button").filter(node => text(node) === label);
+  assert.equal(found.length, 1, `unique button ${label}`);
+  return found[0]!;
+}
+async function click(label: string) {
+  await act(async () => { const node = button(label); assert.notEqual(node.props.disabled, true); node.props.onClick(); });
+}
+async function fill(type: "password" | "code", value: string) {
+  await act(async () => {
+    const input = tree!.root.findAllByType("input").find(node => type === "password" ? node.props.type === "password" : node.props.inputMode === "numeric");
+    assert.ok(input); input.props.onChange({ target: { value } });
+  });
+}
+async function submit(label: string) {
+  await act(async () => { tree!.root.findByProps({ "aria-label": label }).props.onSubmit({ preventDefault() {} }); });
+}
+async function startConfirmation(optional = true) {
+  if (optional) await click("Gerenciar verificação");
+  await click("Ativar verificação");
+  await fill("password", "synthetic-password");
+  await submit("Ativar verificação em duas etapas");
+  await fill("code", "123456");
+  const panel = tree!.root.findByType(MfaPanel);
+  await submit("Confirmar código do autenticador");
+  assert.equal(confirms, 1);
+  return panel;
+}
+async function completeConfirmation() {
+  enabled = true;
+  await act(async () => { confirm.resolve(json({ recoveryCodes: codes })); });
+}
+function hasCodes() { return tree!.root.findAllByProps({ "aria-label": "Códigos de recuperação" }).length === 1; }
+function assertClosed() { assert.equal(tree!.root.findAllByProps({ "data-private": "true" }).length, 0); }
+function assertOpen() { assert.equal(tree!.root.findAllByProps({ "data-private": "true" }).length, 1); }
+afterEach(async () => {
+  await act(async () => { tree?.unmount(); tree = undefined; });
+  // Settle synthetic HTTP owned by this test; never leave auth timeout handles.
+  for (const pending of unresolved) pending.resolve(json({ recoveryCodes: codes }));
+  unresolved.clear();
+  api.clearMemory();
+  globalThis.fetch = originalFetch;
+});
+
+it("optional confirmation survives real MFA403, private-provider removal and satisfied reread until explicit acknowledgment", async () => {
+  await mount();
+  const panel = await startConfirmation();
+  current = profile("enrollment-required");
+  await act(async () => { await assert.rejects(api.get("/fixture/private")); });
+  assertClosed(); assert.ok(unmounts >= 1);
+  assert.equal(tree!.root.findByType(MfaPanel), panel);
+  const readsBeforeConfirm = reads;
+  await completeConfirmation();
+  assert.equal(reads, readsBeforeConfirm, "confirm must not automatically acknowledge by rereading /me");
+  assert.ok(hasCodes());
+  current = profile("satisfied");
+  await act(async () => { await auth.refreshProfile(); });
+  assertClosed(); assert.ok(hasCodes());
+  assert.equal(tree!.root.findByType(MfaPanel), panel);
+  await click("Já guardei os códigos");
+  assertOpen(); assert.equal(hasCodes(), false); assert.equal(confirms, 1);
+});
+
+it("optional displayed codes survive foreign same-family authorization hint and cannot be dismissed with Escape", async () => {
+  await mount(); await startConfirmation(); await completeConfirmation();
+  const panel = tree!.root.findByType(MfaPanel);
+  current = profile("verification-required");
+  await act(async () => { foreignMfaHint("verification-required"); });
+  assertClosed(); assert.ok(hasCodes()); assert.equal(tree!.root.findByType(MfaPanel), panel);
+  let prevented = false;
+  await act(async () => { tree!.root.findByType("dialog").props.onCancel({ preventDefault() { prevented = true; } }); });
+  assert.equal(prevented, true); assert.ok(hasCodes()); assert.equal(button("Fechar").props.disabled, true);
+  current = profile("satisfied"); await click("Já guardei os códigos"); assertOpen();
+});
+
+it("stale acknowledgment /me never clears rendered codes after a newer same-family requirement", async () => {
+  await mount("enrollment-required"); await startConfirmation(false); await completeConfirmation();
+  const oldRead = deferred<Response>(); unresolved.add(oldRead);
+  let first = true;
+  me = async () => first ? (first = false, oldRead.promise) : json(current);
+  current = profile("satisfied");
+  await click("Já guardei os códigos");
+  current = profile("verification-required");
+  await act(async () => { foreignMfaHint("verification-required"); });
+  await act(async () => { oldRead.resolve(json(profile("satisfied"))); });
+  assertClosed(); assert.ok(hasCodes()); assert.equal(confirms, 1);
+  me = undefined; current = profile("satisfied");
+  await click("Já guardei os códigos"); assertOpen(); assert.equal(hasCodes(), false);
+});
+
+it("real identity replacement destroys old ceremony and discards late confirmation codes", async () => {
+  await mount(); await startConfirmation();
+  await act(async () => { await auth.signOut(); });
+  assert.equal(tree!.root.findAllByType(MfaPanel).length, 0);
+  current = profile("not-required", "fixture-b");
+  await act(async () => { await auth.signIn("fixture-b@example.invalid", "synthetic-password"); });
+  await completeConfirmation();
+  assertOpen(); assert.equal(hasCodes(), false);
+  assert.equal(tree!.root.findAllByType(MfaPanel).length, 0);
+  assert.equal(auth.user?.id, "fixture-b");
+});

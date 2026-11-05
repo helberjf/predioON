@@ -1,0 +1,41 @@
+import { Router } from "express";
+import { z } from "zod";
+import { sql } from "drizzle-orm";
+import { CAPABILITIES, ResourceTypeSchema } from "@predioon/shared";
+import type { PlatformAuthorizationResponse } from "@predioon/contracts/tenancy";
+import { inTenantContext } from "../../auth/middleware.js";
+import { forbidden } from "../../http/errors.js";
+import { query, validateQuery } from "../../http/validate.js";
+
+export const authorizationRouter = Router();
+const COMMERCIAL_CAPABILITIES = ["organizations:read", "organizations:manage"] as const;
+
+authorizationRouter.get("/platform", async (req, res) => {
+  const capabilities = await inTenantContext(req, async tx => {
+    const [row] = await tx.execute<{ capabilities: PlatformAuthorizationResponse["capabilities"] }>(sql`
+      select public.app_mfa_platform_authorization(
+        array[${sql.join(COMMERCIAL_CAPABILITIES.map(key => sql`${key}`), sql`, `)}]::text[]
+      ) as capabilities`);
+    return row?.capabilities ?? [];
+  });
+  res.setHeader("Cache-Control", "no-store");
+  res.json({ capabilities } satisfies PlatformAuthorizationResponse);
+});
+
+const Scope = z.object({ buildingId: z.string().min(1).max(128), resourceType: ResourceTypeSchema.optional(), resourceId: z.string().min(1).max(128).optional() })
+  .refine(value => Boolean(value.resourceType) === Boolean(value.resourceId), "Informe tipo e identificador do recurso juntos");
+
+authorizationRouter.get("/", validateQuery(Scope), async (req, res) => {
+  const scope = query<z.infer<typeof Scope>>(req);
+  const capabilities = await inTenantContext(req, async tx => {
+    const [row] = await tx.execute<{ capabilities: string[] }>(sql`
+      select public.app_mfa_scope_authorization(
+        ${scope.buildingId}, ${scope.resourceType ?? null}, ${scope.resourceId ?? null},
+        array[${sql.join(CAPABILITIES.map(key => sql`${key}`), sql`, `)}]::text[]
+      ) as capabilities`);
+    return row?.capabilities ?? [];
+  });
+  if (!capabilities.length) throw forbidden("Condomínio ou recurso fora do seu escopo");
+  res.setHeader("Cache-Control", "no-store");
+  res.json({ ...scope, capabilities });
+});

@@ -1,0 +1,27 @@
+import assert from "node:assert/strict";
+import { it } from "node:test";
+import { createMfaProfileRecheck } from "../src/mfa-profile-recheck.ts";
+
+// DRAFT NOT EXECUTED: no React Native, network or device runtime is imported.
+it("does not schedule another /me when that read emits mandatory403 callbacks", () => {
+  const gate = createMfaProfileRecheck();
+  let scheduledReads = 0;
+  const notify = () => { if (gate.request()) scheduledReads++; };
+  notify(); notify();
+  assert.equal(scheduledReads, 1);
+  const read = gate.begin();
+  notify(); notify(); // /me itself failed with the mandatory-MFA reason.
+  assert.equal(scheduledReads, 1);
+  gate.finish(read);
+  notify();
+  assert.equal(scheduledReads, 2, "a later user/server event can retry once");
+});
+
+it("completion of an older foreground check does not unlock a newer one", () => {
+  const gate = createMfaProfileRecheck();
+  const older = gate.begin(), newer = gate.begin();
+  gate.finish(older);
+  assert.equal(gate.request(), false);
+  gate.finish(newer);
+  assert.equal(gate.request(), true);
+});

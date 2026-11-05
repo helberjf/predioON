@@ -1,0 +1,49 @@
+import React, { useState } from "react";
+import { Linking, Text, View } from "react-native";
+import type { MfaRequirement } from "@predioon/contracts/auth";
+import { Button, ErrorMessage, styles } from "./ui.tsx";
+
+/** Only a static application configuration can select this destination. */
+export function configuredMfaPortal(value: string | undefined): string | null {
+  if (!value || value.trim() !== value) return null;
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "https:" || !url.hostname || url.username || url.password
+      || url.search || url.hash || url.pathname !== "/") return null;
+    return url.origin;
+  } catch { return null; }
+}
+
+export function NativeMfaSessionGate({ requirement, portalUrl, refresh, signOut }: {
+  requirement: MfaRequirement;
+  portalUrl?: string;
+  refresh: () => void;
+  signOut: () => void;
+}) {
+  const [error, setError] = useState<string | null>(null);
+  const [opening, setOpening] = useState(false);
+  const portal = configuredMfaPortal(portalUrl);
+  const enrollment = requirement === "enrollment-required";
+  const verification = requirement === "verification-required";
+  async function openPortal() {
+    if (!portal || opening) return;
+    setOpening(true); setError(null);
+    try { await Linking.openURL(portal); }
+    catch { setError("Não foi possível abrir o portal. Tente novamente."); }
+    finally { setOpening(false); }
+  }
+  return <View style={styles.page}>
+    <Text style={styles.title}>Proteja seu acesso administrativo</Text>
+    <Text style={styles.muted}>{enrollment
+      ? "Cadastre seu autenticador no portal configurado. Depois, volte e entre novamente neste aplicativo usando sua senha e o código."
+      : verification
+        ? "Este aparelho ainda precisa de verificação. Saia e entre novamente com sua senha e um código do autenticador ou de recuperação."
+        : "Não foi possível confirmar a proteção desta sessão. Confira novamente antes de continuar."}</Text>
+    {error && <ErrorMessage message={error} />}
+    {enrollment && (portal
+      ? <><Text selectable style={styles.muted}>{portal}</Text><Button label={opening ? "Abrindo…" : "Abrir portal configurado"} disabled={opening} onPress={() => void openPortal()} /></>
+      : <Text style={styles.muted}>O portal seguro ainda não foi configurado neste aplicativo. Consulte a administração para obter acesso.</Text>)}
+    <Button secondary label="Conferir sessão novamente" onPress={refresh} />
+    <Button secondary label={verification ? "Sair e entrar com código" : "Sair"} onPress={signOut} />
+  </View>;
+}

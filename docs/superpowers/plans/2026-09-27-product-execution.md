@@ -485,3 +485,7 @@ O [resumo do run 41842973688](https://github.com/helberjf/predioON/actions/runs/
 ## 05/11 — avanço dirigido da MFA
 
 Correção de recuperação publicada com dois cenários Playwright e capturas reais; helper SQL com sete testes puros e tipos da API aprovados. Na composição candidata separada, nove casos PostgreSQL passaram após seus nove REDs de base067. A068 e integração obrigatória ainda não estão no runtime; os11 casos SQL complementares V2 aguardam execução. Não marcar a etapa de identidade, os apps ou produção como concluídos. [Continuidade](../../CONTINUIDADE.md) e [prova SQL](../../evidencias/mfa-sql-envelopes-candidate-2026-11-05.json).
+
+### Checkpoint de05/11 preservado
+
+[Autoria e retomada](../../continuidade/2026-11-05-mfa-integracao/README.md):47 candidatos, dois testes renderizados e cinco suportes. Blobs Git canônicos corrigem o desenho de portabilidade; montagem/restauração V2 não executadas por guard de memória. Próximo: validar restauração, tipos/11SQLV2 e fechar a política obrigatória antes de regressões e rollout.

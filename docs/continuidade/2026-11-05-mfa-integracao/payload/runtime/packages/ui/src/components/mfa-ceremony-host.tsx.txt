@@ -1,0 +1,82 @@
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import type { MfaStatus } from "@predioon/contracts/auth";
+import { api } from "../api.js";
+import { useAuth } from "../auth.js";
+import { useMfaCeremony } from "../mfa-ceremony.js";
+import { useResource } from "../use-resource.js";
+import { Field, Input } from "./fields.js";
+import { MfaPanel } from "./mfa-panel.js";
+import { Button, Card, ErrorBanner, ResourceFeedback } from "./primitives.js";
+
+/** Outside private providers; one panel owns secrets for this identity epoch. */
+export function MfaCeremonyHost() {
+  const { user, refreshProfile, signOut } = useAuth();
+  const ceremony = useMfaCeremony();
+  const dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const element = dialog.current;
+    if (!element) return;
+    if (ceremony.open && !element.open) element.showModal();
+    if (!ceremony.open && element.open) element.close();
+  }, [ceremony.open, ceremony.activated, user?.id]);
+  if (!user || !ceremony.activated) return null;
+  const verify = ceremony.mode === "verification" && !ceremony.held;
+  const complete = async () => {
+    // Rejects stale /me: neither codes nor the hold are cleared on that path.
+    await refreshProfile();
+    ceremony.complete();
+  };
+  return <dialog ref={dialog} aria-label="Verificação em duas etapas" className="w-full max-w-xl rounded-xl p-5 backdrop:bg-slate-900/50"
+    onCancel={event => { event.preventDefault(); ceremony.close(); }}>
+    <div className="space-y-4">
+      {/* Never conditionally replace this owner while the identity is alive. */}
+      <div hidden={verify}><MfaPanel required={user.mfaRequirement !== "not-required"}
+        onConfirmationPendingChange={ceremony.setConfirming}
+        onRecoveryCodesReady={() => ceremony.setPendingCodes(true)} onComplete={complete} /></div>
+      {verify && <VerifyCurrentFamily onComplete={complete} />}
+      <div className="flex gap-2">
+        <Button variant="secondary" disabled={ceremony.held} onClick={ceremony.close}>Fechar</Button>
+        <Button variant="secondary" onClick={() => void signOut()}>Sair</Button>
+      </div>
+    </div>
+  </dialog>;
+}
+function VerifyCurrentFamily({ onComplete }: { onComplete: () => Promise<void> }) {
+  const status = useResource<MfaStatus>("/auth/mfa");
+  const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+  const [verified, setVerified] = useState(false);
+  const busy = useRef(false);
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (busy.current || !status.data?.available) return;
+    busy.current = true; setPending(true); setError(null);
+    try {
+      await api.post("/auth/verify", { currentPassword: password, code: code.trim() });
+      setVerified(true);
+      setPassword(""); setCode("");
+      await onComplete();
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "Não foi possível confirmar esta sessão."); }
+    finally { busy.current = false; setPending(false); }
+  }
+  return <Card title="Confirme esta sessão" subtitle="Use sua senha e um código do autenticador ou de recuperação.">
+    {error && <ErrorBanner message={error} />}
+    {!status.data ? <ResourceFeedback resource={status} emptyText="Verificação indisponível." />
+      : !status.data.available ? <p role="status" className="text-sm text-slate-600">A verificação está indisponível neste ambiente. Tente novamente mais tarde ou saia.</p>
+        : verified ? <Button disabled={pending} onClick={() => {
+          if (busy.current) return;
+          busy.current = true; setPending(true); setError(null);
+          void onComplete().catch(cause => setError(cause instanceof Error ? cause.message : "Não foi possível conferir a sessão."))
+            .finally(() => { busy.current = false; setPending(false); });
+        }}>{pending ? "Conferindo…" : "Conferir acesso"}</Button>
+        : <form onSubmit={submit} aria-label="Confirmar sessão administrativa" className="space-y-3">
+          <fieldset disabled={pending} className="space-y-3">
+            <Field label="Senha atual"><Input type="password" required autoComplete="current-password" value={password} onChange={setPassword} /></Field>
+            <Field label="Código de verificação"><Input required minLength={6} maxLength={16} autoComplete="one-time-code" value={code} onChange={setCode} /></Field>
+            <Button type="submit" disabled={pending}>{pending ? "Conferindo…" : "Confirmar e continuar"}</Button>
+          </fieldset>
+        </form>}
+  </Card>;
+}
