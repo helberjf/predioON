@@ -1,0 +1,603 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-11-05",
+  "scope": "Lote B: três GETs de vínculos guardados; DTO completo, datas/null e paginação preservados",
+  "sources": {
+    "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+    "baselinePreparedSha256": "d8febba19ebb70913c465203ec17d3643b87b2387ec2d2b4660af4f1b265a1c8",
+    "fixedPreparedSha256": "8def4d4dea2dc68120672a2fd720ead350aea460eed640efdfc6c308c24d413f",
+    "rootFiles": 994,
+    "composedFilesByVariant": {
+      "baseline": 1022,
+      "fixed": 1022
+    },
+    "workspaceJunctions": 23,
+    "productManifest": {
+      "id": "mfa-tenancy-binding-read-candidate-20261105/manifest.json",
+      "sha256": "02fdc851d43146fa26d54323df75b5657a6e707e195298a9a94ca244feff41bc",
+      "bytes": 4002
+    },
+    "testManifest": {
+      "id": "mfa-tenancy-links-tests-20261105/manifest.json",
+      "sha256": "94db292cfaeb7cdf4efff8ac1700b6ce8e06a297f46dc35db2fb88ea34419d8b",
+      "bytes": 244
+    }
+  },
+  "typeChecks": [
+    {
+      "variant": "baseline",
+      "phase": "resolve",
+      "exitCode": 0,
+      "durationMs": 1174,
+      "freeMiB": 2359,
+      "sourceCandidateConfigPreparedJunctionsAfter": true,
+      "result": {
+        "id": "mfa-tenancy-binding-baseline-qa-20261105/checks/resolve/result.json",
+        "sha256": "a1e2b254857bd7eec771d0fcf30e523650aa7cdd2ef2bcf8a360ee9a0116281b",
+        "bytes": 1178
+      }
+    },
+    {
+      "variant": "baseline",
+      "phase": "types",
+      "exitCode": 0,
+      "durationMs": 11311,
+      "freeMiB": 2358,
+      "sourceCandidateConfigPreparedJunctionsAfter": true,
+      "result": {
+        "id": "mfa-tenancy-binding-baseline-qa-20261105/checks/types/result.json",
+        "sha256": "3634ea1b7a1b91ac0038ead7607c138095d72f98f9ebd04a09c4a881673f5dd6",
+        "bytes": 1025
+      }
+    },
+    {
+      "variant": "fixed",
+      "phase": "resolve",
+      "exitCode": 0,
+      "durationMs": 1250,
+      "freeMiB": 2373,
+      "sourceCandidateConfigPreparedJunctionsAfter": true,
+      "result": {
+        "id": "mfa-tenancy-binding-fixed-qa-20261105/checks/resolve/result.json",
+        "sha256": "e29c83b33b2e7436c426a2450f3bc3f0ff36ce3dab45213b23517b55316a9883",
+        "bytes": 1175
+      }
+    },
+    {
+      "variant": "fixed",
+      "phase": "types",
+      "exitCode": 0,
+      "durationMs": 10751,
+      "freeMiB": 2435,
+      "sourceCandidateConfigPreparedJunctionsAfter": true,
+      "result": {
+        "id": "mfa-tenancy-binding-fixed-qa-20261105/checks/types/result.json",
+        "sha256": "99bb7d10ee1807bed7c4448cd0e2dd0e8264bf3b4b036287045792577cbc91fb",
+        "bytes": 1022
+      }
+    }
+  ],
+  "runs": {
+    "baseline": {
+      "startedUtc": "2026-11-05T09:10:02.231Z",
+      "endedUtc": "2026-11-05T09:10:14.170Z",
+      "observedHeadBefore": "c883da92b0bd265ca2f4820ca5bbe1163e3e9b0e",
+      "observedHeadAfter": "c883da92b0bd265ca2f4820ca5bbe1163e3e9b0e",
+      "processes": [
+        {
+          "file": "platform-mfa-tenancy-links.test.ts",
+          "tap": {
+            "tests": 12,
+            "suites": 1,
+            "pass": 4,
+            "fail": 8,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 4904.5992
+          },
+          "exitCode": 1,
+          "childDurationMs": 5071.0118,
+          "log": {
+            "id": "mfa-tenancy-binding-baseline-qa-20261105/platform-mfa-tenancy-links.log",
+            "sha256": "abaa7e9474a4fe67a7eb443a55f1452a119477dee9ba3875c8b717b30bbf13d7",
+            "bytes": 13811
+          }
+        }
+      ],
+      "result": {
+        "id": "mfa-tenancy-binding-baseline-qa-20261105/mfa-directed-result.json",
+        "sha256": "5743a2ab13f8fb6032b6d21342d1163b03875b0822ea3304ce041944297e061f",
+        "bytes": 311842
+      },
+      "postchecks": {
+        "id": "mfa-tenancy-binding-baseline-qa-20261105/mfa-directed-postchecks.json",
+        "sha256": "3fdfca80ab7bc094dc94e6c2bc34833edfe43c9326e23aea62ca94a843664eed",
+        "bytes": 390
+      },
+      "cleanupPassed": true,
+      "sourceHashesAfterMatch": true,
+      "rolesRestoredIncludingPrivateCredentials": true,
+      "settingsRestored": true,
+      "baseTablesTemporaryOtherDatabasesAndOtherClients": 0,
+      "roles": 6,
+      "freeMiBAtStart": 2462.0
+    },
+    "fixed": {
+      "startedUtc": "2026-11-05T09:10:52.286Z",
+      "endedUtc": "2026-11-05T09:11:04.697Z",
+      "observedHeadBefore": "c883da92b0bd265ca2f4820ca5bbe1163e3e9b0e",
+      "observedHeadAfter": "c883da92b0bd265ca2f4820ca5bbe1163e3e9b0e",
+      "processes": [
+        {
+          "file": "platform-mfa-tenancy-links.test.ts",
+          "tap": {
+            "tests": 12,
+            "suites": 1,
+            "pass": 12,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 4484.0099
+          },
+          "exitCode": 0,
+          "childDurationMs": 4635.837000000001,
+          "log": {
+            "id": "mfa-tenancy-binding-fixed-qa-20261105/platform-mfa-tenancy-links.log",
+            "sha256": "dd78011db97d4e783a4a7bf08a1ecd4a6bc43d85fbbc0984f427d71f3344e807",
+            "bytes": 2780
+          }
+        }
+      ],
+      "result": {
+        "id": "mfa-tenancy-binding-fixed-qa-20261105/mfa-directed-result.json",
+        "sha256": "794c36766d96f88ef74d2c32b3cd01062de2f4790883708f5d2a309ae624a683",
+        "bytes": 311838
+      },
+      "postchecks": {
+        "id": "mfa-tenancy-binding-fixed-qa-20261105/mfa-directed-postchecks.json",
+        "sha256": "9ce639ff19ba5da0e3ec7f28a6d2b2975fbdb59cc5aabe68078cde599a9e7b76",
+        "bytes": 390
+      },
+      "cleanupPassed": true,
+      "sourceHashesAfterMatch": true,
+      "rolesRestoredIncludingPrivateCredentials": true,
+      "settingsRestored": true,
+      "baseTablesTemporaryOtherDatabasesAndOtherClients": 0,
+      "roles": 6,
+      "freeMiBAtStart": 2476.0
+    },
+    "fixed-regression": {
+      "startedUtc": "2026-11-05T09:11:37.100Z",
+      "endedUtc": "2026-11-05T09:15:01.942Z",
+      "observedHeadBefore": "c883da92b0bd265ca2f4820ca5bbe1163e3e9b0e",
+      "observedHeadAfter": "c883da92b0bd265ca2f4820ca5bbe1163e3e9b0e",
+      "processes": [
+        {
+          "file": "platform-mfa-tenancy-structure.test.ts",
+          "tap": {
+            "tests": 12,
+            "suites": 1,
+            "pass": 12,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 5028.7853
+          },
+          "exitCode": 0,
+          "childDurationMs": 5693.189900000001,
+          "log": {
+            "id": "mfa-tenancy-binding-fixed-regression-qa-20261105/platform-mfa-tenancy-structure.log",
+            "sha256": "28c9fc28b87c3277c236f6e66a413549d81608a5dcf610dfec980ce192c2f801",
+            "bytes": 2623
+          }
+        },
+        {
+          "file": "platform-mfa-guarded-read.test.ts",
+          "tap": {
+            "tests": 8,
+            "suites": 1,
+            "pass": 8,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 3746.2868
+          },
+          "exitCode": 0,
+          "childDurationMs": 4396.714099999999,
+          "log": {
+            "id": "mfa-tenancy-binding-fixed-regression-qa-20261105/platform-mfa-guarded-read.log",
+            "sha256": "312be3dfb5d67ecc1c0045fdacdd113ee80e9ec4a411bd69464ccbd6d974a969",
+            "bytes": 2495
+          }
+        },
+        {
+          "file": "platform-mfa-gateway-events.test.ts",
+          "tap": {
+            "tests": 7,
+            "suites": 1,
+            "pass": 7,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 3558.3777
+          },
+          "exitCode": 0,
+          "childDurationMs": 3703.9315000000024,
+          "log": {
+            "id": "mfa-tenancy-binding-fixed-regression-qa-20261105/platform-mfa-gateway-events.log",
+            "sha256": "1dd2c76f69ec4e273eab522713ba1178e92d470bf0f74ab064aa0b0abe80f1c5",
+            "bytes": 2488
+          }
+        },
+        {
+          "file": "platform-mfa-heartbeat.test.ts",
+          "tap": {
+            "tests": 9,
+            "suites": 1,
+            "pass": 9,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 3943.7925
+          },
+          "exitCode": 0,
+          "childDurationMs": 4102.064899999998,
+          "log": {
+            "id": "mfa-tenancy-binding-fixed-regression-qa-20261105/platform-mfa-heartbeat.log",
+            "sha256": "6a172ad213fc8a8f0e94b29637b5e40a10c0d49d1957c9dabb2aae0ba86fcbad",
+            "bytes": 2784
+          }
+        },
+        {
+          "file": "platform-mfa-device-events.test.ts",
+          "tap": {
+            "tests": 9,
+            "suites": 1,
+            "pass": 9,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 4346.9953
+          },
+          "exitCode": 0,
+          "childDurationMs": 4503.214499999998,
+          "log": {
+            "id": "mfa-tenancy-binding-fixed-regression-qa-20261105/platform-mfa-device-events.log",
+            "sha256": "292a62f9d2201cd2bc4daa9235058276785efe9c9fe2b217374449989d5032a5",
+            "bytes": 2790
+          }
+        },
+        {
+          "file": "platform-mfa-telemetry-events.test.ts",
+          "tap": {
+            "tests": 9,
+            "suites": 1,
+            "pass": 9,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 4688.1524
+          },
+          "exitCode": 0,
+          "childDurationMs": 4830.5841999999975,
+          "log": {
+            "id": "mfa-tenancy-binding-fixed-regression-qa-20261105/platform-mfa-telemetry-events.log",
+            "sha256": "1232393fba7fb12d96561dc8450bc056d06884f55d46d9a4d18133367b8c6312",
+            "bytes": 2654
+          }
+        },
+        {
+          "file": "platform-mfa-feature-events.test.ts",
+          "tap": {
+            "tests": 7,
+            "suites": 1,
+            "pass": 7,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 3094.1661
+          },
+          "exitCode": 0,
+          "childDurationMs": 3253.9959000000017,
+          "log": {
+            "id": "mfa-tenancy-binding-fixed-regression-qa-20261105/platform-mfa-feature-events.log",
+            "sha256": "a968992b7c5e76b6aa1083e356c092240e16bba8f016823bd45f62210b1079d1",
+            "bytes": 2104
+          }
+        },
+        {
+          "file": "platform-mfa-disable-snapshot.test.ts",
+          "tap": {
+            "tests": 5,
+            "suites": 1,
+            "pass": 5,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 3465.9028
+          },
+          "exitCode": 0,
+          "childDurationMs": 3607.837999999996,
+          "log": {
+            "id": "mfa-tenancy-binding-fixed-regression-qa-20261105/platform-mfa-disable-snapshot.log",
+            "sha256": "9f7278573494bada0b6164c759d53c4d6d1acac58c7504070150c16c1bc7a449",
+            "bytes": 1571
+          }
+        },
+        {
+          "file": "platform-mfa-sql-envelopes.test.ts",
+          "tap": {
+            "tests": 11,
+            "suites": 1,
+            "pass": 11,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 3557.0019
+          },
+          "exitCode": 0,
+          "childDurationMs": 4234.4084,
+          "log": {
+            "id": "mfa-tenancy-binding-fixed-regression-qa-20261105/platform-mfa-sql-envelopes.log",
+            "sha256": "84d8d626562f84417c13b987e36a89328d8f9fc27d2323e012eadea07458ec0f",
+            "bytes": 3174
+          }
+        },
+        {
+          "file": "telemetry-events-capabilities.test.ts",
+          "tap": {
+            "tests": 13,
+            "suites": 1,
+            "pass": 13,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 14852.5101
+          },
+          "exitCode": 0,
+          "childDurationMs": 15014.278299999998,
+          "log": {
+            "id": "mfa-tenancy-binding-fixed-regression-qa-20261105/telemetry-events-capabilities.log",
+            "sha256": "f5e305a20d1a36c0442e3f7ce36fda024bdccc2278db3f101e2fad407473e9ed",
+            "bytes": 3406
+          }
+        },
+        {
+          "file": "alert-events-capabilities.test.ts",
+          "tap": {
+            "tests": 17,
+            "suites": 1,
+            "pass": 17,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 19696.7979
+          },
+          "exitCode": 0,
+          "childDurationMs": 20076.828800000003,
+          "log": {
+            "id": "mfa-tenancy-binding-fixed-regression-qa-20261105/alert-events-capabilities.log",
+            "sha256": "84843756e416e5fbaf963e4d967581be32ce98c91424026458ca4e64117cd6e8",
+            "bytes": 4311
+          }
+        },
+        {
+          "file": "platform-mfa-alert-events.test.ts",
+          "tap": {
+            "tests": 9,
+            "suites": 1,
+            "pass": 9,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 4654.0782
+          },
+          "exitCode": 0,
+          "childDurationMs": 4828.664199999999,
+          "log": {
+            "id": "mfa-tenancy-binding-fixed-regression-qa-20261105/platform-mfa-alert-events.log",
+            "sha256": "fa817834d6940789622e68c6d7220ce16818c2f2957dfb535421e46695c085e1",
+            "bytes": 2673
+          }
+        },
+        {
+          "file": "equipment-events-capabilities.test.ts",
+          "tap": {
+            "tests": 25,
+            "suites": 1,
+            "pass": 25,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 78356.6923
+          },
+          "exitCode": 0,
+          "childDurationMs": 79017.41390000001,
+          "log": {
+            "id": "mfa-tenancy-binding-fixed-regression-qa-20261105/equipment-events-capabilities.log",
+            "sha256": "5a623996c5e608e34e31f113dd5a120d63ce05baa25dc8685654df9e468931ef",
+            "bytes": 6887
+          }
+        },
+        {
+          "file": "tenancy-people.test.ts",
+          "tap": {
+            "tests": 9,
+            "suites": 1,
+            "pass": 9,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 8037.9715
+          },
+          "exitCode": 0,
+          "childDurationMs": 8179.573000000004,
+          "log": {
+            "id": "mfa-tenancy-binding-fixed-regression-qa-20261105/tenancy-people.log",
+            "sha256": "6c80b903f4a496a8f6e6323b7fcbb3abf8d40878800461271083012660369510",
+            "bytes": 2669
+          }
+        },
+        {
+          "file": "tenancy-http.test.ts",
+          "tap": {
+            "tests": 9,
+            "suites": 1,
+            "pass": 9,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 6081.1476
+          },
+          "exitCode": 0,
+          "childDurationMs": 6242.9712,
+          "log": {
+            "id": "mfa-tenancy-binding-fixed-regression-qa-20261105/tenancy-http.log",
+            "sha256": "529e2335df8930cb7de55f3a892a4d00ffa348a2058e403b6fa418c0d1eaf2a3",
+            "bytes": 2542
+          }
+        },
+        {
+          "file": "tenancy-edit.test.ts",
+          "tap": {
+            "tests": 11,
+            "suites": 1,
+            "pass": 11,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 6017.6279
+          },
+          "exitCode": 0,
+          "childDurationMs": 6181.113299999997,
+          "log": {
+            "id": "mfa-tenancy-binding-fixed-regression-qa-20261105/tenancy-edit.log",
+            "sha256": "656e3bb1399c67451efa29449e5bbab603b709440cff8a793f189ae516a81ab9",
+            "bytes": 2999
+          }
+        },
+        {
+          "file": "membership-lifecycle.test.ts",
+          "tap": {
+            "tests": 4,
+            "suites": 1,
+            "pass": 4,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 3548.5576
+          },
+          "exitCode": 0,
+          "childDurationMs": 3726.099199999997,
+          "log": {
+            "id": "mfa-tenancy-binding-fixed-regression-qa-20261105/membership-lifecycle.log",
+            "sha256": "2c0aaec85a6bb3bd9dd23e30d79fe64e4a74dd1fc247f0e8c6bc5bdbe8e3d4c4",
+            "bytes": 1156
+          }
+        }
+      ],
+      "result": {
+        "id": "mfa-tenancy-binding-fixed-regression-qa-20261105/mfa-directed-result.json",
+        "sha256": "b5e7c32aafb21179d53d6d736487460f1ce0a00a4399a4a41f675c833d08c6ed",
+        "bytes": 321712
+      },
+      "postchecks": {
+        "id": "mfa-tenancy-binding-fixed-regression-qa-20261105/mfa-directed-postchecks.json",
+        "sha256": "90f5bb2ba3bc19e162f4a0868d81c45c19f4dd39991de3f876a7246f070b288a",
+        "bytes": 390
+      },
+      "cleanupPassed": true,
+      "sourceHashesAfterMatch": true,
+      "rolesRestoredIncludingPrivateCredentials": true,
+      "settingsRestored": true,
+      "baseTablesTemporaryOtherDatabasesAndOtherClients": 0,
+      "roles": 6,
+      "freeMiBAtStart": 2461.0
+    }
+  },
+  "baselineClassification": {
+    "status": "OBSERVED_REVIEWED",
+    "counts": {
+      "tapTests": 12,
+      "pass": 4,
+      "fail": 8,
+      "independentScenarios": 10,
+      "independentNestedFailures": 6,
+      "aggregateParentFailures": 2
+    },
+    "groups": [
+      {
+        "parentCase": 1,
+        "paths": [
+          "unit-memberships",
+          "team-members",
+          "role-bindings"
+        ],
+        "trigger": "Administrative binding activated after final successful capability, before projection: memberships:read / teams:read / memberships:manage respectively.",
+        "observed": "Three actual HTTP200 pages of two active rows deep-equal their authorized positive pages before expected403 assertion; three decoded diagnostics present.",
+        "decodedPrivateDataAfterPromotion": true,
+        "failures": 3
+      },
+      {
+        "parentCase": 2,
+        "paths": [
+          "unit-memberships",
+          "team-members",
+          "role-bindings"
+        ],
+        "trigger": "Current family proof cleared after the final required capability, before empty-cursor projection.",
+        "observed": "Three actual HTTP200 bodies deep-equal items=[] and nextCursor=null before expected403 assertion. No private rows in these responses.",
+        "decodedPrivateDataAfterPromotion": false,
+        "failures": 3
+      }
+    ],
+    "controls": "Four top-level controls passed: full DTO/date/null, UUID pagination, active expired versus inactive listing, foreign scope and management requirement/satisfied local grants.",
+    "limits": [
+      "Eight failed TAP entries are six leaf assertions plus two aggregate group failures, not eight vulnerabilities.",
+      "Baseline MFA-reason and no-items assertions after status403 were not reached."
+    ],
+    "log": {
+      "id": "mfa-tenancy-binding-baseline-qa-20261105/platform-mfa-tenancy-links.log",
+      "sha256": "abaa7e9474a4fe67a7eb443a55f1452a119477dee9ba3875c8b717b30bbf13d7"
+    }
+  },
+  "gates": {
+    "typesExitCode": 0,
+    "bindingTapTestsPassed": 12,
+    "regressionTestsPassed": 174,
+    "failures": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "cleanupPass": true,
+    "sourceBeforeAfterPass": true
+  },
+  "limits": [
+    "TAP12 contains six top-level tests, two of them groups, plus six subtests; the two aggregate failures are not independent security failures.",
+    "Three link GET projections only; other19routerspans, shared mutation views, mfa-read helper and SQL068 unchanged.",
+    "Seventeen serial regression processes174 TAP (including two BatchA group aggregates) are a finite selected scope, not full API or global MFA acceptance.",
+    "Only observed payloads and assertions before each first failure may be classified.",
+    "Official UUID ledger68 fixture uses owner for arrangement and restricted runtime roles; no claim the test process lacks owner.",
+    "Synthetic directed proofs are not new TOTP/browser/native acceptance; original people fixture remains unchanged from BatchA.",
+    "Source restoration72/1022 remains a separate future verification; no mutation or production rollout acceptance."
+  ]
+}

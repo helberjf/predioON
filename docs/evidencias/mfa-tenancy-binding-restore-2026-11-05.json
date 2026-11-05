@@ -1,0 +1,77 @@
+{
+  "recordedOn": "2026-11-05",
+  "status": "TENANCY_BINDING_CANDIDATE_CANONICAL_SOURCE_RESTORE_PASSED",
+  "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+  "inputInventorySha256": "0a7bfcb1550d8795b988dcea30c25c9f3453da2e7ab2f8d570e3716e66de5399",
+  "testedPreparedSha256": "8def4d4dea2dc68120672a2fd720ead350aea460eed640efdfc6c308c24d413f",
+  "all1022RestoredFilesMatchTestedComposition": true,
+  "baseFiles": 994,
+  "canonicalBaseGitObjectsVerified": 994,
+  "inventoryPayloads": 72,
+  "candidateRuntimeAndTests": 68,
+  "explicitRendererTests": 2,
+  "alreadyPublishedQueryPayloads": 2,
+  "qaSupportFiles": 5,
+  "manifestCandidateFiles": 70,
+  "manifestSha256": "ccfeed7f5a6db5495ae6a636595429bdd5dc07c6730c9859b8a85ac27d54d71b",
+  "receiptSha256": "af9b5420c4d1f57763022fb7835d60bceef1df1f3f69eede92946b887ae9c78c",
+  "receipt": {
+    "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+    "sourceHeadBefore": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+    "canonicalBaseFiles": 994,
+    "candidateFiles": 70,
+    "qaSupportFiles": 5,
+    "status": "SOURCE_ONLY_NOT_TESTED_NOT_APPLIED",
+    "dependenciesInstalled": false,
+    "migrationsApplied": false,
+    "databaseStarted": false
+  },
+  "directedEvidenceSha256": "8d11d4dcfbd31180f0e2a20b1419a9dabe8a6186f68eac5235031f5c3feac74b",
+  "comparison": "Canonical994 Git blobs plus70 candidate overlays produce exactly1022 tested source files; five renderer supports and receipt are additional. All package/payload/source hashes verified.",
+  "limits": [
+    "Source restoration only; no dependency installation, database, migration or test execution by builder/restorer.",
+    "Directed12TAP contains ten independent scenarios and two aggregate groups; seventeen regressions174TAP include two BatchA groups and are not174 independent scenarios.",
+    "Three nonempty baseline projections decoded data after promotion; three empty-cursor failures did not expose data; two parents aggregate these assertions.",
+    "Only three link GETs changed; full DTO/date/null preserved, helper/SQL/mutations and BatchA unchanged.",
+    "Other readers, commands and integrated acceptance remain pending; no production acceptance.",
+    "Metadata updates preserve source payload bytes; inputInventorySha256 and package README refer to builder inputs."
+  ],
+  "computerRestarted": false,
+  "productionAccepted": false,
+  "builder": {
+    "exitCode": 0,
+    "durationMs": 2596.9227,
+    "phase": "builder",
+    "childExitedAt": "2026-11-05T09:17:17.2675746Z",
+    "ownedPid": 42812,
+    "timedOut": false,
+    "guard": {
+      "minimumMiB": 1536,
+      "phase": "builder",
+      "freeMiB": 2450.0,
+      "at": "2026-11-05T09:17:14.6268565Z"
+    },
+    "heapMiB": 128,
+    "resultSha256": "f678cbf9cc6bf378048e4b62bc7b630fbfcf757e12f38fd57720add79db8cb02",
+    "stdoutSha256": "116fc22e1737eba59f25d6fe96c55a9f6a7154a2a32044adbec98fd0f2dbb709",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "restore": {
+    "durationMs": 3609.7504,
+    "exitCode": 0,
+    "ownedPid": 21288,
+    "timedOut": false,
+    "phase": "restore",
+    "childExitedAt": "2026-11-05T09:17:28.3571492Z",
+    "guard": {
+      "minimumMiB": 1536,
+      "at": "2026-11-05T09:17:24.6935008Z",
+      "phase": "restore",
+      "freeMiB": 2424.0
+    },
+    "heapMiB": 128,
+    "resultSha256": "1c8ff5825faf4f0e686e868161f664f01a42e4ad6f5f329af42f2f87832a8481",
+    "stdoutSha256": "5d235f6a30170e2aa45149c03b8e7aaf4b605e3f66b3f1e798763b632bc34c5a",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

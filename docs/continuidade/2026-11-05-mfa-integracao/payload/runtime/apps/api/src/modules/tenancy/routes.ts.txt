@@ -12,7 +12,7 @@ import { createInvitationToken } from "../../auth/invitations.js";
 import { requireRecentVerification } from "../../auth/verification.js";
 import { config } from "../../config.js";
 import { actionMail, mailConfigured, sendMail } from "../../mail/mailer.js";
-import { readMfaRows } from "../../auth/mfa-read.js";
+import { decodeMfaReadDate, readMfaRows } from "../../auth/mfa-read.js";
 
 export const tenancyRouter = Router();
 const buildingId = z.string().trim().min(1).max(128);
@@ -69,6 +69,90 @@ const UnitReadRow = z.object({
 const TeamReadRow = z.object({
   id: z.string(), buildingId: z.string(), name: z.string(), kind: z.string(), active: z.boolean(),
 }).strict();
+
+// Keep the full existing list DTOs separate from mutation RETURNING. JSON rows
+// require explicit camelCase aliases and timestamp decoders, including NULL.
+const RequiredTenancyReadDate = z.string().transform(decodeMfaReadDate);
+const NullableTenancyReadDate = z.string().nullable().transform(value => value === null ? null : decodeMfaReadDate(value));
+const unitMembershipReadFields = {
+  id: sql`${unitMemberships.id}`.as("id"),
+  buildingId: sql`${unitMemberships.buildingId}`.as("buildingId"),
+  unitId: sql`${unitMemberships.unitId}`.as("unitId"),
+  userId: sql`${unitMemberships.userId}`.as("userId"),
+  kind: sql`${unitMemberships.kind}`.as("kind"),
+  active: sql`${unitMemberships.active}`.as("active"),
+  startsAt: sql`${unitMemberships.startsAt}`.as("startsAt"),
+  endsAt: sql`${unitMemberships.endsAt}`.as("endsAt"),
+  createdAt: sql`${unitMemberships.createdAt}`.as("createdAt"),
+  updatedAt: sql`${unitMemberships.updatedAt}`.as("updatedAt"),
+};
+const UnitMembershipReadRow = z.object({
+  id: z.string(),
+  buildingId: z.string(),
+  unitId: z.string(),
+  userId: z.string(),
+  kind: z.string(),
+  active: z.boolean(),
+  startsAt: NullableTenancyReadDate,
+  endsAt: NullableTenancyReadDate,
+  createdAt: RequiredTenancyReadDate,
+  updatedAt: RequiredTenancyReadDate,
+}).strict();
+const teamMemberReadFields = {
+  id: sql`${teamMembers.id}`.as("id"),
+  buildingId: sql`${teamMembers.buildingId}`.as("buildingId"),
+  teamId: sql`${teamMembers.teamId}`.as("teamId"),
+  userId: sql`${teamMembers.userId}`.as("userId"),
+  active: sql`${teamMembers.active}`.as("active"),
+  startsAt: sql`${teamMembers.startsAt}`.as("startsAt"),
+  endsAt: sql`${teamMembers.endsAt}`.as("endsAt"),
+  createdAt: sql`${teamMembers.createdAt}`.as("createdAt"),
+  updatedAt: sql`${teamMembers.updatedAt}`.as("updatedAt"),
+};
+const TeamMemberReadRow = z.object({
+  id: z.string(),
+  buildingId: z.string(),
+  teamId: z.string(),
+  userId: z.string(),
+  active: z.boolean(),
+  startsAt: NullableTenancyReadDate,
+  endsAt: NullableTenancyReadDate,
+  createdAt: RequiredTenancyReadDate,
+  updatedAt: RequiredTenancyReadDate,
+}).strict();
+const roleBindingReadFields = {
+  id: sql`${roleBindings.id}`.as("id"),
+  buildingId: sql`${roleBindings.buildingId}`.as("buildingId"),
+  userId: sql`${roleBindings.userId}`.as("userId"),
+  teamId: sql`${roleBindings.teamId}`.as("teamId"),
+  roleKey: sql`${roleBindings.roleKey}`.as("roleKey"),
+  resourceType: sql`${roleBindings.resourceType}`.as("resourceType"),
+  resourceId: sql`${roleBindings.resourceId}`.as("resourceId"),
+  active: sql`${roleBindings.active}`.as("active"),
+  startsAt: sql`${roleBindings.startsAt}`.as("startsAt"),
+  endsAt: sql`${roleBindings.endsAt}`.as("endsAt"),
+  grantedBy: sql`${roleBindings.grantedBy}`.as("grantedBy"),
+  reason: sql`${roleBindings.reason}`.as("reason"),
+  createdAt: sql`${roleBindings.createdAt}`.as("createdAt"),
+  updatedAt: sql`${roleBindings.updatedAt}`.as("updatedAt"),
+};
+const RoleBindingReadRow = z.object({
+  id: z.string(),
+  buildingId: z.string().nullable(),
+  userId: z.string().nullable(),
+  teamId: z.string().nullable(),
+  roleKey: z.string(),
+  resourceType: z.string().nullable(),
+  resourceId: z.string().nullable(),
+  active: z.boolean(),
+  startsAt: NullableTenancyReadDate,
+  endsAt: NullableTenancyReadDate,
+  grantedBy: z.string().nullable(),
+  reason: z.string(),
+  createdAt: RequiredTenancyReadDate,
+  updatedAt: RequiredTenancyReadDate,
+}).strict();
+
 
 /** Listing inactive records needs the management capability, not only the read one. */
 async function listScope(tx: AppTransaction, q: StructureQuery, read: "units:read" | "teams:read", manage: "units:manage" | "teams:manage"): Promise<boolean> {
@@ -189,8 +273,13 @@ tenancyRouter.get("/unit-memberships", validateQuery(ListSchema), async (req, re
   const q = query<ListQuery>(req);
   res.json(await inTenancy(req, async tx => {
     await assertCapability(tx, "memberships:read", q.buildingId);
-    return page(await tx.select().from(unitMemberships).where(and(eq(unitMemberships.buildingId, q.buildingId), eq(unitMemberships.active, true), q.after ? gt(unitMemberships.id, q.after) : undefined))
-      .orderBy(asc(unitMemberships.id)).limit(q.limit + 1), q.limit);
+    const rows = await readMfaRows(tx,
+      tx.select(unitMembershipReadFields).from(unitMemberships)
+        .where(and(eq(unitMemberships.buildingId, q.buildingId), eq(unitMemberships.active, true), q.after ? gt(unitMemberships.id, q.after) : undefined))
+        .orderBy(asc(unitMemberships.id)).limit(q.limit + 1).getSQL(),
+      value => UnitMembershipReadRow.parse(value), ["id"],
+    );
+    return page(rows, q.limit);
   }));
 });
 tenancyRouter.post("/unit-memberships", validateBody(CreateUnitMember), async (req, res) => {
@@ -208,8 +297,13 @@ tenancyRouter.get("/team-members", validateQuery(ListSchema), async (req, res) =
   const q = query<ListQuery>(req);
   res.json(await inTenancy(req, async tx => {
     await assertCapability(tx, "teams:read", q.buildingId);
-    return page(await tx.select().from(teamMembers).where(and(eq(teamMembers.buildingId, q.buildingId), eq(teamMembers.active, true), q.after ? gt(teamMembers.id, q.after) : undefined))
-      .orderBy(asc(teamMembers.id)).limit(q.limit + 1), q.limit);
+    const rows = await readMfaRows(tx,
+      tx.select(teamMemberReadFields).from(teamMembers)
+        .where(and(eq(teamMembers.buildingId, q.buildingId), eq(teamMembers.active, true), q.after ? gt(teamMembers.id, q.after) : undefined))
+        .orderBy(asc(teamMembers.id)).limit(q.limit + 1).getSQL(),
+      value => TeamMemberReadRow.parse(value), ["id"],
+    );
+    return page(rows, q.limit);
   }));
 });
 tenancyRouter.post("/team-members", validateBody(CreateTeamMember), async (req, res) => {
@@ -239,8 +333,13 @@ tenancyRouter.get("/role-bindings", validateQuery(ListSchema), async (req, res) 
   const q = query<ListQuery>(req);
   res.json(await inTenancy(req, async tx => {
     await assertCapability(tx, "memberships:manage", q.buildingId);
-    return page(await tx.select().from(roleBindings).where(and(eq(roleBindings.buildingId, q.buildingId), eq(roleBindings.active, true), q.after ? gt(roleBindings.id, q.after) : undefined))
-      .orderBy(asc(roleBindings.id)).limit(q.limit + 1), q.limit);
+    const rows = await readMfaRows(tx,
+      tx.select(roleBindingReadFields).from(roleBindings)
+        .where(and(eq(roleBindings.buildingId, q.buildingId), eq(roleBindings.active, true), q.after ? gt(roleBindings.id, q.after) : undefined))
+        .orderBy(asc(roleBindings.id)).limit(q.limit + 1).getSQL(),
+      value => RoleBindingReadRow.parse(value), ["id"],
+    );
+    return page(rows, q.limit);
   }));
 });
 tenancyRouter.post("/role-bindings", validateBody(CreateBinding), async (req, res) => {

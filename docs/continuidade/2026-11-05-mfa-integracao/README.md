@@ -1,4 +1,58 @@
-# Retomada MFA — leituras de estrutura candidatas em 05/11/2026
+# Retomada MFA — lote B de vínculos candidato em 05/11/2026
+
+**Lote B: 12 entradas TAP aprovadas; regressões: 174 entradas TAP em 17 processos.**
+O dirigido corresponde a dez cenários independentes e dois grupos. As regressões
+incluem dois grupos agregados do lote A; 174 TAP não equivale a 174 cenários independentes.
+São 18 processos aprovados nesta composição, sem somar a baseline de falhas.
+Base canônica `53c4c70dcd24f1045fad420fbce36757fd3753a2`; fonte corrigida `8def4d4d…`,
+**1.022 arquivos e cinco suportes**. [Prova específica](../../evidencias/mfa-tenancy-binding-2026-11-05.json).
+A [montagem/restauração passou](../../evidencias/mfa-tenancy-binding-restore-2026-11-05.json),
+com os 1.022 arquivos e cinco suportes idênticos à composição testada. A
+[restauração anterior do lote A](../../evidencias/mfa-tenancy-structure-restore-2026-11-05.json)
+permanece histórica. Runtime principal continua 001–067; a política completa permanece candidata.
+
+## Conteúdo recuperável
+
+72 payloads: 68 arquivos candidatos, dois testes renderer explícitos e dois arquivos
+query já publicados, excluídos do delta por hashes. Cinco suportes renderer são separados.
+A atualização substitui somente tenancy/routes.ts no inventário, preservando o before
+Git canônico, e acrescenta platform-mfa-tenancy-links.test.ts. O lote A e a fixture
+people com cerimônia do administrador global do caso 2 permanecem intactos.
+
+No produto, somente GET unit-memberships, team-members e role-bindings passam pelo
+adaptador existente. DTOs completos de 10/9/14 campos preservam camelCase, IDs nullable,
+reason, datas createdAt/updatedAt obrigatórias e startsAt/endsAt nullable. Nenhum filtro
+por vigência foi introduzido: vínculos ativos vencidos continuam listados conforme o
+contrato existente, enquanto inativos permanecem excluídos. Predicados de prédio,
+capacidade, cursor UUID, ordenação, limit+1 e paginação não mudam. Os outros 19 blocos
+de rotas, mutações, views compartilhadas, helper e SQL068 permanecem idênticos.
+
+## Rodada atual e limites
+
+Baseline: **4 PASS/8 FAIL**, TAP 4904.5992 ms,
+sem cancelamento, skip ou todo. Há seis asserções HTTP 200 versus 403 e duas agregações
+de grupos, não oito vulnerabilidades. Nos três caminhos não vazios, a resposta real
+após promoção administrativa foi decodificada e comparada com a página positiva de
+dois vínculos ativos antes da negativa. Nos três cursores vazios após remoção da prova,
+a resposta foi comparada com items=[] e nextCursor=null, sem dados privados.
+Motivos MFA e assertivas posteriores ao status 403 não foram alcançados na baseline.
+
+A corrigida passou **12/12**, TAP 4484.0099 ms. As 17 regressões somam 174
+entradas TAP: as 162 anteriores mais o lote A 12, que inclui dois grupos agregados.
+Não é API integral nem total de vulnerabilidades. Os quatro controles do dirigido
+cobrem DTO/data/null, paginação UUID, ativo vencido versus inativo, escopo estrangeiro,
+capacidade de gerenciamento de vínculos e administrador satisfeito com grant local.
+Tipos dos 18 arquivos e imports passaram: resolução/tipos 1174/11311 ms na baseline,
+1250/10751 ms na corrigida. Fontes e limpeza foram conferidas; seis roles, credenciais
+privadas e settings restaurados, zero bancos temporários e outros clientes.
+
+O processo conhece owner para arranjo/instrumentação e usa conexões runtime restritas.
+Provas dirigidas sintéticas não estabelecem nova cerimônia TOTP ou aceite web/nativo;
+as fixtures originais conservam suas cerimônias. STABLE não lineariza revogação após
+snapshot, commit ou rede. Outros leitores, comandos, integração e produção continuam
+pendentes. A receita de staging renderer não foi executada.
+
+## Rodada anterior: lote A de estrutura
 
 **O lote A passou nas 12 entradas TAP e em 162 regressões, em 17 processos separados.**
 O ensaio dirigido contém seis testes de topo, sendo dois grupos, mais seis subtestes.
@@ -9,7 +63,7 @@ com os 1.021 arquivos e cinco suportes idênticos à composição testada. A
 [restauração anterior das leituras guardadas](../../evidencias/mfa-guarded-read-restore-2026-11-05.json)
 permanece histórica. Runtime principal continua 001–067; a política completa permanece candidata.
 
-## Conteúdo recuperável
+### Conteúdo recuperável
 
 71 payloads: 67 arquivos candidatos de implementação/testes, dois testes renderer
 explícitos e dois arquivos query já publicados, excluídos do delta por hashes.
@@ -27,7 +81,7 @@ unidade com pai não-null e andar negativo. Nenhum campo de data foi acrescentad
 Filtros, cursores UUID, ordenação, limit+1, page() e listScope permanecem iguais.
 Helper mfa-read e SQL068 não mudam.
 
-## Rodada atual e limites
+### Rodada atual e limites
 
 Baseline: **4 PASS/8 FAIL**, sem cancelamento, skip ou todo, em 4,400 s de TAP.
 São seis asserções independentes HTTP 200 versus 403 e duas falhas agregadas dos grupos,
@@ -51,7 +105,7 @@ as fixtures originais preservam suas cerimônias. STABLE compartilha o snapshot
 sem linearizar revogação posterior ao statement ou rede. Outros leitores, mutações,
 integração e produção seguem pendentes. Receita de staging renderer não executada.
 
-## Rodada anterior: protótipo de leitura
+### Rodada anterior: protótipo de leitura
 
 **Oito casos dirigidos e 121 regressões passaram na composição isolada, em doze processos separados.**
 Base canônica `53c4c70dcd24f1045fad420fbce36757fd3753a2`; fonte corrigida `45449b1b…`,
@@ -61,7 +115,7 @@ com os 1.020 arquivos e cinco suportes idênticos à composição testada. A
 [restauração anterior dos gateways](../../evidencias/mfa-gateway-restore-2026-11-05.json)
 permanece histórica. Runtime principal continua 001–067; migração 068 e política completa permanecem candidatas.
 
-### Conteúdo recuperável
+#### Conteúdo recuperável
 
 Inventário de **69 payloads**: 65 arquivos candidatos de implementação/testes,
 dois testes renderer explícitos e dois arquivos query já publicados e excluídos
@@ -80,7 +134,7 @@ UTC. People conserva cursor TEXT parametrizado, filtro de residentes antes de
 limit+1, ordenação e paginação. Empates de nomes em buildings continuam sem ordem
 definida. Nenhuma alteração de SQL068, ACL, heartbeat ou projectors foi incluída.
 
-### Rodada atual e limites
+#### Rodada atual e limites
 
 A baseline terminou **5 PASS/3 FAIL**, sem cancelamento, skip ou todo, em 3,869 s
 de TAP. Caso 1: HTTP 200 com lista comprovadamente vazia, quando era esperado 403;
@@ -112,7 +166,7 @@ O heartbeat conserva seus limites: expiração JWT não exercitada nessa prova h
 e ausência de assertiva de res.end exatamente uma vez. A receita de staging do
 renderer não foi executada; não transferir aceitação de ensaios anteriores.
 
-### Retomar em outro computador
+#### Retomar em outro computador
 
 1. Clone a main atual, compare suas mudanças e leia `docs/CONTINUIDADE.md`.
 2. Para montar a composição exata, crie uma base isolada no commit indicado.
@@ -145,7 +199,7 @@ processos desconhecidos ou reiniciar computador, Docker ou WSL. Os comandos de
 restauração não instalam dependências, executam testes, iniciam serviços ou
 aplicam migrations.
 
-### Histórico anterior: 25 originais de equipamentos
+#### Histórico anterior: 25 originais de equipamentos
 
 A fixture anterior teve **23 PASS e 2 FAIL**, em **76,947 s de TAP**. Nos casos
 5 e 18, o helper de stream recebeu HTTP 403 onde esperava 200. O log não
@@ -189,7 +243,7 @@ A prova cobre este arquivo com fixture oficial isolada e cerimônias TOTP das
 contas indicadas. Não constitui aceite de navegador, aparelho, produção ou
 obrigação MFA completa de todos os domínios.
 
-### Rodada anterior: dispositivos e regressões
+#### Rodada anterior: dispositivos e regressões
 
 O comparador anterior teve **2 PASS e 7 FAIL** em 4,685 s de TAP. Um caso mostrou
 o frame real com DTO persistido de quatro campos depois da promoção: a conexão
@@ -215,7 +269,7 @@ Android/iOS ou produção. As fixtures originais de alertas/telemetria têm suas
 cerimônias administrativas próprias. Nenhuma dessas provas fecha outros callers
 SQL, gateway, heartbeat, mutações ou todos os domínios.
 
-### Rodada anterior: 17 originais de alertas
+#### Rodada anterior: 17 originais de alertas
 
 A fixture anterior teve **16 PASS e 1 FAIL**, em 28,975 s de TAP. O primeiro
 administrador do caso 6 recebeu 403 `MFA_ENROLLMENT_REQUIRED` onde a fixture
@@ -243,7 +297,7 @@ próprios. O HTTP/TOTP desta fixture não demonstra novo replay/recovery, jornad
 web/nativa, aparelho ou implantação. As provas dirigidas sintéticas anteriores
 continuam com seu escopo; não passam a ser cerimônias TOTP por associação.
 
-### Rodada dirigida anterior: alertas e regressões
+#### Rodada dirigida anterior: alertas e regressões
 
 A versão corrigida passou nos nove casos de alertas em **5,518 s de TAP**.
 Depois, na mesma fonte 77b1, cinco processos separados passaram: telemetria 9 em
@@ -276,7 +330,7 @@ específica. As regras compartilhadas permanecem intactas. Não alegar cobertura
 exaustiva de gate/parking/equipe/janelas. Naquela prova os 17 originais de alertas ainda não haviam sido executados;
 a rodada específica atual está documentada acima.
 
-### Históricos preservados
+#### Históricos preservados
 
 Os [13 originais de telemetria](../../evidencias/mfa-telemetry-original13-2026-11-05.json)
 passaram na composição anterior, com cadastro/confirmação MFA por HTTP/TOTP dos
@@ -298,7 +352,7 @@ históricas. As cinco regressões daquela rodada estão registradas acima, sobre
 UI 143/143, mobile 242/242 e o renderer V6 de quatro casos conservam as provas e
 limites de suas rodadas anteriores. Esta proposta não lhes atribui execução nova.
 
-### Contratos e pendências
+#### Contratos e pendências
 
 Alertas relêem o registro persistido: mensagem, status, gateway e instante da
 observação vêm do banco; a notificação fornece identificadores. O envelope
@@ -326,7 +380,7 @@ Device-status já está nesta fonte candidata, com o recheck final de autoridade
 após expirar suporte e o ANY de funcionalidades sem freshness preservados.
 Os demais domínios e a integração completa continuam abertos.
 
-### Bytes canônicos e receita renderer
+#### Bytes canônicos e receita renderer
 
 A base vem dos objetos Git: árvore/OIDs/modos e blobs binários por comprimento,
 sem converter payloads para UTF-8 ou normalizar CRLF/LF. A auditoria inicial de

@@ -1,6 +1,6 @@
 # Melhorias e novas implementações — Prédio ON
 
-**Avanço em 05/11:** as três listas de estrutura passaram nos seis cenários de concorrência, quatro controles e 162 regressões. O checkpoint recuperável contém 67 arquivos candidatos, dois testes renderer e cinco suportes; runtime publicado segue 001–067. Próximos: listas de vínculos/papéis, demais domínios/mutações, regressão integral, Playwright real, aparelhos e operação. Ver o estado corrente em [CONTINUIDADE.md](CONTINUIDADE.md).
+**Avanço em 05/11:** as três listas de vínculos/papéis passaram nos seis cenários de concorrência, quatro controles e 17 arquivos de regressão. O checkpoint recuperável contém 68 arquivos candidatos, dois testes renderer e cinco suportes; runtime publicado segue 001–067. Próximos: leitura de convites, comandos e demais domínios, regressão integral, Playwright real, aparelhos e operação. Ver o estado corrente em [CONTINUIDADE.md](CONTINUIDADE.md).
 
 **Atualização de CI em 04/11:** o resumo autenticado do run 41842973688 confirmou bloqueio de conta por pagamento recente que falhou ou limite de gastos insuficiente. [Evidência e limites](evidencias/ci-account-blocker-2026-11-04.json). Regularizar a condição da conta e então validar uma execução nova; o motivo exato entre as duas alternativas não foi detalhado pelo GitHub. Nenhuma cobrança ou configuração foi alterada.
 

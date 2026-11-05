@@ -1,5 +1,8 @@
 # ADMIN/CONFIG: três ações comuns, sem 174 guards individuais
 
+**Resultado do terceiro lote em 05/11:** vínculos de unidades, integrantes de equipes e papéis passaram nos seis cenários de concorrência, quatro controles e regressões de 17 arquivos. [Prova e contagens](../../evidencias/mfa-tenancy-binding-2026-11-05.json). A leitura de convites e os comandos seguem pendentes.
+
+
 **Resultado do segundo lote em 05/11:** blocos, unidades e equipes passaram nos seis cenários de concorrência e quatro controles funcionais, mais 162 regressões. [Prova, contagens TAP e limites](../../evidencias/mfa-tenancy-structure-2026-11-05.json). Seguem as três listas de vínculos/papéis; comandos e convites continuam pendentes.
 
 

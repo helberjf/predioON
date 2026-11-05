@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "status": "CANONICAL_TENANCY_STRUCTURE_VALIDATED_RESTORED_CANDIDATE",
+  "status": "CANONICAL_TENANCY_BINDING_VALIDATED_RESTORED_CANDIDATE",
   "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
   "plannedBase": "Approved published source base53c4c70; current documentation may be newer.",
   "sourceBaseline": "2676a74216b012dcab6fa2fb9735dc1b6ef8e9d8",
@@ -748,9 +748,9 @@
       "beforeSha256": "2d2fcd5eace979677565cdf1f084128ea4a735f74d2bb8824249b29922c69e60",
       "beforeGitSha256": "2d2fcd5eace979677565cdf1f084128ea4a735f74d2bb8824249b29922c69e60",
       "beforeGitObject": "62c828c1f209775f4decd7e67bd30378f74e0f55",
-      "afterSha256": "d88d31ff1a046fefc674a3b7a760dd569a401edbdb3d480c8bc3f7d8fd8dc367",
-      "bytes": 28118,
-      "component": "tenancy-structure-read-mfa",
+      "afterSha256": "6dd37623a59fb46abc698cbc32dbee2abe8b3e4570bc9c3e209441e683c03b2b",
+      "bytes": 32039,
+      "component": "tenancy-binding-read-mfa",
       "kind": "runtime"
     },
     {
@@ -785,10 +785,21 @@
       "bytes": 16179,
       "component": "tenancy-people-mfa-fixture",
       "kind": "database-test"
+    },
+    {
+      "path": "apps/api/test/platform-mfa-tenancy-links.test.ts",
+      "payload": "payload/runtime/apps/api/test/platform-mfa-tenancy-links.test.ts.txt",
+      "beforeSha256": null,
+      "beforeGitSha256": null,
+      "beforeGitObject": null,
+      "afterSha256": "99367be53a980a27a28dfee0049b9760234da9ee3afc66939327a5ac66f6f5ee",
+      "bytes": 14147,
+      "component": "tenancy-binding-read-mfa",
+      "kind": "database-test"
     }
   ],
   "pending": [
-    "Complete remaining SQL/SD/no-match mutations, locks/triggers and integrated regressions; structure12 TAP entries and sixteen regression files162 are finite isolated validations, not API integral or global rollout.",
+    "Complete remaining SQL/SD/no-match mutations, locks/triggers and integrated regressions; binding12 TAP entries and seventeen regression files174 are finite isolated validations, not API integral or global rollout.",
     "Renderer staging recipe remains authored and not executed; do not transfer its earlier separate harness PASS."
   ],
   "excluded": [
@@ -886,5 +897,12 @@
     "sourceManifestSha256": "74f0199cc300856828adc1b3f2f75b5e488c63fbdeb2b683d3622b0ff9afde2e",
     "scope": "Structure12 TAP entries plus sixteen regression files162; three GETs and local people fixture; helper and SQL unchanged",
     "restorationEvidence": "../../evidencias/mfa-tenancy-structure-restore-2026-11-05.json"
+  },
+  "tenancyBindingValidation": {
+    "evidence": "../../evidencias/mfa-tenancy-binding-2026-11-05.json",
+    "evidenceSha256": "8d11d4dcfbd31180f0e2a20b1419a9dabe8a6186f68eac5235031f5c3feac74b",
+    "sourceManifestSha256": "8def4d4dea2dc68120672a2fd720ead350aea460eed640efdfc6c308c24d413f",
+    "scope": "Binding12 TAP entries plus seventeen regression files174; three link GETs only; helper and SQL unchanged",
+    "restorationEvidence": "../../evidencias/mfa-tenancy-binding-restore-2026-11-05.json"
   }
 }
