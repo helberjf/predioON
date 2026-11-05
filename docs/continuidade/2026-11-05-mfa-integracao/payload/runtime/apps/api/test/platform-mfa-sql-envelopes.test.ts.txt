@@ -90,11 +90,15 @@ describe("MFA SQL envelopes, role ACLs and mapped DTOs", { concurrency: false },
     for (const a of [enrolling, verifying, satisfied]) await sqlClient`update users set is_platform_admin=true where id=${a.id}`;
     await sqlClient`insert into organizations(id,name,slug) values(${org},'Envelope fixture',${org})`;
     for (const id of [building, emptyBuilding, forbiddenBuilding]) await sqlClient`insert into buildings(id,organization_id,name,code) values(${id},${org},'Envelope fixture',${id})`;
-    await sqlClient`insert into memberships(user_id,building_id,role) values(${local.id},${building},'BUILDING_ADMIN'),(${local.id},${emptyBuilding},'BUILDING_ADMIN')`;
+    // Global authority and MFA proof do not grant local equipment capabilities.
+    // Both positive actors need explicit scope; forbiddenBuilding stays ungranted.
+    await sqlClient`insert into memberships(user_id,building_id,role) values
+      (${local.id},${building},'BUILDING_ADMIN'),(${local.id},${emptyBuilding},'BUILDING_ADMIN'),
+      (${satisfied.id},${building},'BUILDING_ADMIN'),(${satisfied.id},${emptyBuilding},'BUILDING_ADMIN')`;
     await sqlClient`insert into gateways(id,building_id,name,serial_number,last_seen_at,metadata)
-      values(${gateway},${building},'Envelope gateway',${gateway},${stamp},${sqlClient.json({ mqttUsername: 'private-fixture-user', mqttPasswordHash: 'private-fixture-hash', publicMarker: suffix })})`;
+      values(${gateway},${building},'Envelope gateway',${gateway},${stamp.toISOString()},${JSON.stringify({ mqttUsername: 'private-fixture-user', mqttPasswordHash: 'private-fixture-hash', publicMarker: suffix })}::jsonb)`;
     await sqlClient`insert into devices(id,building_id,gateway_id,name,type,last_seen_at)
-      values(${device},${building},${gateway},'Envelope device','WATER_LEVEL_SENSOR',${stamp})`;
+      values(${device},${building},${gateway},'Envelope device','WATER_LEVEL_SENSOR',${stamp.toISOString()})`;
     const [ownerDb] = await sqlClient`select current_database() as name`;
     for (const [role, variable] of Object.entries(roleVariables)) {
       const url = process.env[variable]; assert.ok(url, `required restricted DSN ${variable}`);
@@ -215,7 +219,7 @@ describe("MFA SQL envelopes, role ACLs and mapped DTOs", { concurrency: false },
     const ingest = pools.get('predioon_ingest')!;
     await ingest.begin(async service => {
       await service`select set_config('app.user_id',${enrolling.id},true),set_config('app.session_id','',true)`;
-      const changed = await service`update devices set last_seen_at=${stamp},updated_at=now() where id=${device} returning id`;
+      const changed = await service`update devices set last_seen_at=${stamp.toISOString()},updated_at=now() where id=${device} returning id`;
       assert.equal(changed.length, 1); assert.equal(changed[0]?.id, device);
       const visible = await service`select id from gateways where id=${gateway}`; assert.equal(visible[0]?.id, gateway);
     });

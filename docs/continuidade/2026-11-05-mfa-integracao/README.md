@@ -1,23 +1,42 @@
-# Retomada MFA — autoria preservada em 05/11/2026
+# Retomada MFA — checkpoint candidato atualizado em 05/11/2026
 
-**Estado desta entrega: fontes e scripts revisados estaticamente; montagem e
-restauração canônica V2 ainda não executadas.** O guard recusou a preparação com
-560 MiB livres, antes de iniciar Node. Uma medição posterior encontrou374 MiB.
-Não houve novo teste de banco, instalação ou reinício nesta recusa.
+**A montagem e a restauração canônicas do conjunto V5 foram aprovadas.**
+A base é `53c4c70dcd24f1045fad420fbce36757fd3753a2`: 1.011 arquivos compostos
+e cinco suportes conferidos por hash. A prova conserva também a execução anterior
+do pacote `22713a4`/SQL11 V2. Os onze testes SQL V5 e seus tipos passaram em QA
+isolada. A política MFA permanece candidata, sem ativação no runtime da main.
+[Prova da restauração](../../evidencias/mfa-canonical-restore-2026-11-05.json) e
+[SQL11 V5, tipos e unidades](../../evidencias/mfa-complement11-v5-2026-11-05.json).
 
-Este diretório contém `INVENTORY.json`,51 payloads e os scripts de montagem.
-Dois payloads são o helper de query e seu teste já publicados: o empacotador os
-reconhece pelos hashes exatos e os exclui do delta. O pacote final terá47 arquivos
-candidatos e dois de QA, além de cinco suportes do renderer. `MANIFEST.json` e
-`PACKAGE-HASHES.json` só existirão no pacote final depois da montagem bem-sucedida.
-Não confundir autoria e revisão com restauração comprovada ou aceite de produção.
+A correção da desativação concorrente está preservada em um
+[checkpoint separado](../2026-11-05-mfa-disable/README.md), com comparação
+anterior/corrigido. Ela não está incluída nos 47 arquivos deste conjunto.
 
-## Primeiros passos em outro computador
+## Conteúdo recuperável
 
-1. Clone a main atual e leia `docs/CONTINUIDADE.md`. Preserve as evidências antigas.
-2. Crie um checkout separado da base exata; mantenha o clone atual para acessar
-   este checkpoint. Os destinos abaixo devem estar livres. Exemplo no diretório
-   pai dos projetos, após clonar como `predioON`:
+O inventário tem 51 payloads. Dois são helper/teste de query já publicados e serão
+excluídos do delta pelos hashes exatos. O pacote final continua com 47 arquivos de
+implementação/testes pendentes, dois testes explícitos de renderer e cinco suportes
+do renderer. O transporte publicado também é dependência da base; não reaplicá-lo.
+
+A única mudança de payload nesta atualização é
+`apps/api/test/platform-mfa-sql-envelopes.test.ts` V5, SHA
+`2c8a7bc400bd7b8055922f11a06239026db9dce7e9c4195cba696c67c5cd6710`.
+Inclui o escopo local legítimo do ator positivo e parâmetros ISO/JSON explícitos,
+sem mudar as onze assertivas de segurança, permissões do produto ou SQL V3.
+A fonte `mfa.ts` ainda é a anterior ao recorte P0 de desativação: esse novo draft
+não integra estes payloads nem recebe o PASS do complemento.
+
+`MANIFEST.json` e `PACKAGE-HASHES.json` são produzidos no pacote final; não são
+arquivos ausentes de autoria. O inventário, todos os payloads e os scripts de
+montagem necessários estão neste diretório. Os checkpoints anteriores e suas
+provas permanecem históricos, com seus próprios hashes e limites.
+
+## Retomar em outro computador
+
+1. Clone a main atual, compare suas mudanças e leia `docs/CONTINUIDADE.md`.
+2. Para montar a composição exata, crie uma base isolada no commit indicado.
+   Exemplo no diretório pai dos projetos, com o clone chamado `predioON`:
 
 ```text
 git -C predioON worktree add --detach ../predioON-base-mfa 53c4c70dcd24f1045fad420fbce36757fd3753a2
@@ -25,97 +44,64 @@ node --max-old-space-size=128 predioON/docs/continuidade/2026-11-05-mfa-integrac
 node --max-old-space-size=128 predioON-mfa-pacote/restore-checkpoint.mjs --base-checkout predioON-base-mfa --output predioON-mfa-candidato
 ```
 
-3. Confira os recibos, manifesto e hashes; esses comandos apenas montam/copiam
-   fontes. A montagem e a restauração precisam de nova execução observada antes
-   de serem marcadas como aprovadas. Nesta máquina, conservar1536 MiB livres para
-   essa preparação,4096 MiB antes de ligar o banco e1536 MiB após readiness.
-4. Prepare as dependências usando o README da base e o lockfile. Não copie
-   `node_modules`, junctions, credenciais ou IDs de containers de outro computador.
-5. Priorize os tipos e11 casos de `platform-mfa-sql-envelopes.test.ts` V2, cujo
-   SHA é `d6ad313a57a59afc226e544b908d9e097b0c35a4bc3bbab3784c7d97af672166`.
-   Use banco UUID novo e o provisionamento oficial com seis conexões restritas;
-   nunca seed/reset/migration em instalação existente. A V1 tinha um conflito de
-   códigos de prédio detectado em revisão, não um RED funcional observado.
-6. Feche os outros domínios, projeções/SSE, mutações sem correspondência, promoção
-   durante desativação, expiração após lock e leitura após triggers. Depois rode
-   as regressões, jornadas reais de navegador e apps antes de ativar a política.
+3. Os destinos devem ser inexistentes, com pai existente, fora da base e do pacote.
+   Confira o manifesto, hashes e `MFA-RESTORE-RECEIPT.json`. Se já recebeu um pacote
+   final com manifesto, basta seu `restore-checkpoint.mjs`; não há gerador ausente
+   a executar nesse pacote. Registre uma nova restauração antes de afirmar que o
+   payload V5 inteiro foi reconstruído nesse computador.
+4. Prepare dependências pelo README da base e pelo lockfile. Não copie env,
+   credenciais, node_modules, junctions ou IDs de containers de outra máquina.
+5. Tipos e testes devem usar a composição isolada e fixture oficial UUID nova,
+   com owner somente no arranjo/provas e seis conexões de runtime restritas.
+   Não executar seed/reset/migration em instalação existente. SQL 068 restaurada
+   é somente fonte candidata; não deve ser aplicada à instalação publicada 067.
+6. Feche P0 de desativação, demais domínios, SD/SSE, mutações sem correspondência,
+   expiração/locks/triggers e regressões antes de ativar a política. Depois valide
+   navegador real, builds e jornadas Android/iOS em aparelhos.
 
-O suporte renderer é receita nova revisada, **não executada**. Os quatro PASS
-anteriores pertencem ao harness V6 original, não a esse preparador novo. Siga o
-README de `qaSupport/renderer`; dependências precisam estar instaladas conforme
-as versões e hashes indicados, separadas das dependências do produto.
+Conservar 1536 MiB para montagem/restauração, 4096 MiB antes de ligar o banco e 1536 MiB
+após readiness/antes de cada processo. Não reduzir guards, fechar processos
+desconhecidos ou reiniciar computador, Docker ou WSL. Os comandos de restauração
+não instalam dependências, executam testes, iniciam serviços ou aplicam migrations.
 
-A especificação abaixo descreve o pacote que os scripts devem gerar. Seus
-resultados continuam pendentes até uma execução registrada.
+## O que foi observado
 
----
+O builder/restorer V2 do checkpoint 227 terminou com exit 0 em duas fases seriais,
+verificando 994 arquivos base canônicos, 1011 arquivos da composição e cinco suportes.
+A prova diferencia essa execução da montagem/restauração V5 posterior, também aprovada.
 
-# MFA administrativa — checkpoint canônico de 5 de novembro
+SQL11 V5: **11/11, zero falhas/cancelamentos/skips**, 9130,9248 ms. Tipos do teste exato
+e seus imports passaram em 15,80 s relatados pelo compilador. As unidades UI 143/143 e
+mobile 242/242 pertencem a processos anteriores da V3; seus fontes são iguais aos
+V5, que só alterou o teste SQL. Esses resultados são separados e não formam uma
+integral única. Cleanup verificou zero tabelas públicas na base original, bases
+temporárias/outras e clientes, com seis papéis/credenciais/configurações restaurados.
 
-Este pacote preserva uma implementação parcial candidata, não uma implantação.
-Contém `MANIFEST.json`, `PACKAGE-HASHES.json`, payloads, restaurador, leitor de blobs
-Git e suporte explícito de renderer. Não exige arquivos externos de autoria.
+As tentativas V3/V4 anteriores cancelaram onze casos cada por erro no before hook
+(encoding de Date/Object); não foram REDs de produto. A correção de fixture foi
+versionada. O guard de 560 MiB antes do primeiro preparo também permanece histórico:
+a execução aprovada posterior cumpriu os guards, sem reinício ou afrouxamento.
 
-A base publicada é `53c4c70dcd24f1045fad420fbce36757fd3753a2`, depois da correção
-estreita dos recovery codes e da publicação do helper de query e seus sete testes.
-O manifesto contém 47 arquivos pendentes de implementação/testes, dois arquivos de
-QA renderizada e cinco arquivos de suporte do renderer. O transporte já publicado
-e os dois arquivos de query são dependências da base, não reaplicações do candidato.
+Não houve aceite global, nova integral da API, nova execução de navegador, nativo
+ou produção neste complemento. O owner prepara as provas SQL sintéticas de fator;
+esses onze casos não são uma cerimônia TOTP/recovery real.
 
-## Restaurar em diretório novo
+## Bytes canônicos e receita renderer
 
-Use um repositório local que contenha o commit da base. Seu checkout pode estar em
-outro commit: os arquivos vêm dos objetos Git da base, nunca dos arquivos atuais
-do checkout. O destino deve ser inexistente, com pai existente, fora do repositório
-e fora deste pacote:
+A base vem dos objetos Git: árvore/OIDs/modos e blobs binários por comprimento,
+sem converter payloads para UTF-8 ou normalizar CRLF/LF. A auditoria inicial de um
+checkout antigo encontrou 12 diferenças EOL; a base fresca usada no builder aprovado
+registrou somente duas, nos PS1 com EOL CRLF. A restauração usa Git LF nesses scripts,
+aceito pelo PowerShell. `observedRawSha256` é diagnóstico, nunca requisito de bytes
+locais de Windows. Payloads mantêm bytes exatos protegidos por atributos/hashes.
 
-```text
-node --max-old-space-size=128 restore-checkpoint.mjs --base-checkout REPOSITORIO_COM_COMMIT --output NOVA_COPIA_EXTERNA
-```
+Os dois testes renderer ficam em `qa/render-v6/test/`, fora dos globs automáticos.
+O suporte em `qaSupport/renderer/` guarda package/tsconfig, versões/import maps e
+preparador explícito. **Essa receita nova não foi executada.** Os quatro PASS antigos
+são do harness V6 original. Use dependências já preparadas conforme o README da base,
+com lock e versões verificadas, React/renderer 19.2.3 pareados e singleton dos ícones.
+Não transferir esses resultados para React web 19.3.0, DOM, acessibilidade ou aparelho.
 
-O restaurador verifica metadados, árvore/OIDs/modos do commit, SHA-256 dos blobs e
-before/after dos candidatos. Copia os 994 arquivos versionados não pertencentes a
-`docs/`, sobrepõe os candidatos e confere os hashes finais. Preserva o modo Git de
-execução. Rejeita symlinks, submódulos, caminhos escapando da árvore e sobrescrita.
-Não copia `.git`, `.env`, `node_modules`, junctions ou credenciais.
-
-Os bytes da base são **canônicos do Git**, lidos por comprimento binário em
-`cat-file --batch`. Não há substituição de CRLF/LF ou conversão de payload para
-UTF-8. A auditoria encontrou 12 diferenças entre o checkout Windows e os blobs:
-dez arquivos com EOL LF e dois scripts PowerShell com atributo EOL CRLF. Mesmo
-nesses scripts, a cópia restaurada usa o blob Git LF; PowerShell aceita esse formato.
-`observedRawSha256` é apenas diagnóstico e nunca condição para restaurar em Linux
-ou outro checkout. Payloads candidatos mantêm seus bytes exatos, protegidos por
-`.gitattributes` e hashes.
-
-O comando restaura **somente fonte**. Não instala dependências, executa testes,
-inicia aplicação/banco nem aplica migrações. A SQL 068 fica como arquivo candidato
-na cópia isolada; usar o runner oficial UUID continua obrigatório para qualquer
-execução futura. `MFA-RESTORE-RECEIPT.json` registra essa distinção.
-
-## Conteúdo pendente e evidência
-
-A composição inclui backend/contratos/contexto, consumidores V5, nove casos SQL/HTTP
-dirigidos em dois arquivos, SQL V3 cumulativa, rotas HTTP V4 e complemento SQL de onze
-casos com fixture V2. A SQL permanece uma fatia limitada, sem proteção global de todas
-as mutações, consultas vazias e projeções de todos os domínios.
-
-Os 19 testes puros V5 têm evidência própria. Tipos, banco, query e renderer possuem
-registros separados por fonte; empacotar/restaurar não cria nem transfere PASS.
-No complemento SQL V1, a revisão encontrou códigos de building duplicados. V2 altera
-somente esse campo para um identificador único. O TSC PASS de V1 não valida V2, que
-permanece sem prova de execução de banco até registro específico.
-
-O painel candidato mantém o delta correto: before é a correção estreita publicada
-`5baee6493cc152884fe7d9b175209833fa8ab8124b30f8b2cde9a63618513417`; after é V5,
-com a cerimônia obrigatória. O êxito do browser da correção estreita não significa
-conclusão de MFA administrativa obrigatória.
-
-## Renderer recuperável, mas explícito
-
-Os dois testes brutos ficam em `qa/render-v6/test/`, fora dos globs automáticos.
-Leia `qaSupport/renderer/README.md` para reconstruir uma QA externa com versões,
-imports, tsconfig, manifests de pacotes e React singleton conferidos. O preparador
-reutiliza dependências instaladas, sem instalação ou execução automática. O scratch
-`baseline-reproducer` de falha esperada e os launchers privados de banco não integram
-o pacote.
+A SQL cobre uma fatia finita. Projeções/SD/SSE restantes, defaults ACL adversariais,
+fluxos completos de workers, empty/no-match e mutadores VOLATILE continuam pendentes.
+O êxito de empacotar, restaurar ou testar esta fatia não a transforma em implantação.

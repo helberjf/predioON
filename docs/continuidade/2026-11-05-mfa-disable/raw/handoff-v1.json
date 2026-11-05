@@ -1,0 +1,30 @@
+{
+  "status": "FROZEN_FOR_INDEPENDENT_PEER_REVIEW_NO_EXECUTION",
+  "manifestSha256": "72f354723836f22b98ba88dd582872cd15dd02438e781f05846d246e8fbc12e6",
+  "files": 2,
+  "artifacts": [
+    {
+      "path": "delta.patch",
+      "sha256": "bf060362ebccca62576995a8b4ce112618263c877273ad768cb125a61bc6d355",
+      "bytes": 17350
+    },
+    {
+      "path": "manifest.json",
+      "sha256": "72f354723836f22b98ba88dd582872cd15dd02438e781f05846d246e8fbc12e6",
+      "bytes": 2198
+    },
+    {
+      "path": "README.md",
+      "sha256": "f99deefc2942aa343480ecfc331150c82e812c2f542a62ebf28b3bd7e0df23d3",
+      "bytes": 4934
+    }
+  ],
+  "beforeAfterSourceHashRechecked": true,
+  "pending": [
+    "Independent static review",
+    "Controlled RED baseline on isolated before composition",
+    "Controlled GREEN on isolated after composition",
+    "Types and relevant regression checks",
+    "Separate broader MFA/SSE/SQL acceptance"
+  ]
+}

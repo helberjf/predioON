@@ -1,0 +1,103 @@
+{
+  "status": "OBSERVED_DIRECTED_RED_GREEN_CANDIDATE_NOT_DEPLOYED",
+  "scope": "Disable MFA: authority snapshot and deletion of the current factor generation",
+  "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+  "beforeSha256": "3ffe785e821a708e7254abb21d88ac29b4e9ebbdc3398a85970295154962988b",
+  "afterSha256": "7e8eabbf250ed010daa5c496b5ca2ae14a7d4a08333484b9f6e1a7816977babd",
+  "testSha256": "3306d7a8e703c996ba62f51814017e5b5576021e1251511aa3af5e706ca8d19e",
+  "baseline": {
+    "pass": 4,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "suites": 1,
+    "tapDurationMs": 10263.5642,
+    "testExitCode": 1,
+    "timedOut": false,
+    "logSha256": "1066c366dbc4642370b08be7c59e57f4b0af9b3a7d27525af7bdf20344039f4e",
+    "resultSha256": "b6e1438f249d271478fc3f386703fbd19e787bbbeef8cfd86294a1bbb6bffce9",
+    "postchecksSha256": "4b704247bef958b04822bcf5b0a1c7ee91b77ba22b0230b86d79a74cbdf56d49",
+    "preparedSha256": "e907aa78e3442739dfcb5e8e74bda1e6041bc329f3e5d0f4889f4694a792c3b4",
+    "sourceHashesAfterMatch": true,
+    "fixtureCleanupPassed": true,
+    "cleanup": {
+      "roles": 6,
+      "basePublicTables": 0,
+      "temporaryDatabases": 0,
+      "otherDatabases": 0,
+      "otherClients": 0,
+      "rolesRestoredIncludingPrivateCredentials": true,
+      "settingsRestored": true,
+      "containerAttestationMatches": true
+    }
+  },
+  "fixed": {
+    "pass": 5,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "suites": 1,
+    "tapDurationMs": 10535.618,
+    "testExitCode": 0,
+    "timedOut": false,
+    "logSha256": "d322416f99378a726f54fb376dbed06111ce2e4e8799670dbf802f6978c57e6d",
+    "resultSha256": "3f39cf18cf0592bf828e7fede63956fd688a09d61c485b600ae8ead184f75393",
+    "postchecksSha256": "b43fe656d397ccce57b17362aa9510be02f2eecd88228b161ff9e843ab359c4f",
+    "preparedSha256": "bf2f059fe62568999fb6c52512c38ada82aefe4a34d1ad193333585a8d12c332",
+    "sourceHashesAfterMatch": true,
+    "fixtureCleanupPassed": true,
+    "cleanup": {
+      "roles": 6,
+      "basePublicTables": 0,
+      "temporaryDatabases": 0,
+      "otherDatabases": 0,
+      "otherClients": 0,
+      "rolesRestoredIncludingPrivateCredentials": true,
+      "settingsRestored": true,
+      "containerAttestationMatches": true
+    }
+  },
+  "baselineFailure": {
+    "case": "ADMIN binding activated after last gate before DELETE",
+    "classification": "ERR_ASSERTION",
+    "expectedHttpStatus": 403,
+    "actualHttpStatus": 204,
+    "testLine": 203,
+    "postDenialFactorAssertionsReached": false
+  },
+  "types": {
+    "baselinePass": true,
+    "baselineDurationMs": 17878,
+    "fixedPass": true,
+    "fixedDurationMs": 18707
+  },
+  "preservedAttempts": [
+    {
+      "phase": "fixed first typecheck",
+      "classification": "timeout",
+      "durationMs": 378934,
+      "signal": "SIGTERM",
+      "output": "empty",
+      "cause": "UNKNOWN"
+    },
+    {
+      "phase": "baseline first DB preparation",
+      "classification": "seed preparation failure",
+      "testsExecuted": 0,
+      "seedExitCode": 0,
+      "timedOut": true,
+      "treeKillFailed": true,
+      "cleanupPassed": true,
+      "cause": "UNKNOWN"
+    }
+  ],
+  "harnessDifference": "Baseline attempt2 separates process exit from bounded pipe drain and records lifecycle telemetry. Test/source pins and 60s provision/seed, 300s test, guard1536, heap384 remain unchanged.",
+  "limits": [
+    "Isolated official UUID fixture with candidate068, not deployment",
+    "Same five test assertions for baseline and fixed",
+    "Fixed checks preservation after earlier recovery consumption; baseline fails at HTTP status before those preservation assertions",
+    "No guarantee for promotion committed after statement snapshot, no-factor branch, lock-expiry, adversarial triggers or other mutators",
+    "No broad MFA rollout or production claim"
+  ],
+  "credentialsPublished": false
+}

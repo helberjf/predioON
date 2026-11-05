@@ -1,5 +1,7 @@
 # Melhorias e novas implementações — Prédio ON
 
+**Atualização de 05/11 — complemento MFA:** restauração canônica aprovada e SQL V5 **11/11**; UI **143/143** e mobile compartilhado **242/242** em execuções separadas. [Prova e escopo](evidencias/mfa-complement11-v5-2026-11-05.json). O [checkpoint ativo](continuidade/2026-11-05-mfa-integracao/README.md) permanece candidato. A [desativação concorrente](continuidade/2026-11-05-mfa-disable/README.md) passou a comparação anterior/corrigido (4/1 e 5/0), preservada separadamente; seguem pendentes os demais domínios/SSE/mutações, regressão integrada, aparelhos, implantação e novos vídeos. As narrativas anteriores abaixo conservam suas fontes e datas; a prioridade corrente está em [CONTINUIDADE](CONTINUIDADE.md).
+
 **Atualização de CI em 04/11:** o resumo autenticado do run 41842973688 confirmou bloqueio de conta por pagamento recente que falhou ou limite de gastos insuficiente. [Evidência e limites](evidencias/ci-account-blocker-2026-11-04.json). Regularizar a condição da conta e então validar uma execução nova; o motivo exato entre as duas alternativas não foi detalhado pelo GitHub. Nenhuma cobrança ou configuração foi alterada.
 
 Revisão: 04/11/2026. Documento vivo de priorização; não é uma declaração de conclusão nem substitui o [PRD](PRD.md), o [TDD](TDD.md) e o [plano de execução](superpowers/plans/2026-09-27-product-execution.md).

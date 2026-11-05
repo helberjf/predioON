@@ -1,0 +1,284 @@
+--- a/apps/api/src/auth/mfa.ts
++++ b/apps/api/src/auth/mfa.ts
+@@ -103,8 +103,8 @@
+   await db.transaction(async tx => {
+     await lockAccount(tx, userId, account.passwordHash);
+     await lockMfaFamily(tx, userId, currentAuth(req).sessionId);
+-    // Current union of legacy flag and021 authority. Concurrent promotion at
+-    // the operation snapshot remains a separate authorization-boundary task.
++    // Retain the early refusal and account -> family -> factor lock order.
++    // The actual deletion below also observes current authority in its snapshot.
+     const current = await lockCurrentFactor(tx, userId);
+     await denyRequiredMfaDisable(tx, userId);
+     if (!current && !factor) return;
+@@ -112,7 +112,22 @@
+       || (current.confirmed_at && proof?.generation !== current.generation)) {
+       throw conflict("O fator foi alterado. Confirme o fator atual.");
+     }
+-    await tx.execute(sql`delete from mfa_factors where user_id=${userId} and generation=${current.generation}`);
++    const [deletion] = await tx.execute<{ required: boolean; deleted: boolean }>(sql`
++      with authority as materialized (
++        select public.identity_platform_mfa_required(${userId}) as required
++      ), deleted as (
++        delete from public.mfa_factors as factor
++        where factor.user_id=${userId} and factor.generation=${current.generation}
++          and (select required from authority) is false
++        returning factor.user_id
++      )
++      select authority.required, exists(select 1 from deleted) as deleted from authority`);
++    // The returned decision belongs to the deletion statement, including zero
++    // deleted rows. A later recheck could miss a transient grant then revocation.
++    if (!deletion || deletion.required !== false) {
++      throw new HttpError(403, "A administração da plataforma exige verificação em duas etapas.", { reason: "MFA_REQUIRED" });
++    }
++    if (deletion.deleted !== true) throw conflict("O fator foi alterado. Confirme o fator atual.");
+   });
+   res.status(204).end();
+ });
+--- /dev/null
++++ b/apps/api/test/platform-mfa-disable-snapshot.test.ts
+@@ -0,0 +1,244 @@
++import assert from "node:assert/strict";
++import { createHash, randomUUID } from "node:crypto";
++import type { Server } from "node:http";
++import { after, before, describe, it } from "node:test";
++import { PgDialect } from "drizzle-orm/pg-core";
++import { sqlClient } from "@predioon/db";
++import { identityDb } from "@predioon/db/identity";
++import { closeAppDb } from "@predioon/db/runtime";
++import { app } from "../src/app.js";
++import { hashPassword } from "../src/auth/passwords.js";
++import { base32Decode, totpCode, totpStep } from "../src/auth/totp.js";
++// Existing shared cleanup for the real identity/broker pools; no implementation mock.
++import "./helpers.js";
++
++// External draft, NOT EXECUTED. Fresh canonical068 UUID fixture only, serially.
++// Owner arranges/observes synthetic accounts and bindings. All HTTP operations use
++// the real app and its restricted pools. No product hook, retry, sleep or fake proof.
++type Mode = "promote-admin" | "inactive-admin" | "ordinary" | "active-admin" | "promote-support";
++type Session = { accessToken: string; user: { id: string; mfaRequirement: string } };
++type IdentityTransaction = Parameters<Parameters<typeof identityDb.transaction>[0]>[0];
++type ExecuteInput = Parameters<IdentityTransaction["execute"]>[0];
++type Snapshot = { factorCount: number; recoveryCount: number; used: number; factorDigest: string; recoveryDigest: string };
++
++function signal() {
++  let resolve!: () => void;
++  const promise = new Promise<void>(done => { resolve = done; });
++  return { promise, resolve };
++}
++async function bounded<T>(promise: Promise<T>, label: string): Promise<T> {
++  let timer: ReturnType<typeof setTimeout> | undefined;
++  try {
++    return await Promise.race([promise, new Promise<never>((_, reject) => {
++      timer = setTimeout(() => reject(new Error(`Fixture deadline: ${label}`)), 5000);
++    })]);
++  } finally { clearTimeout(timer); }
++}
++
++/** Change only dispatch timing; execute the real statement once after release. */
++function beforeFactorDelete() {
++  const reached = signal(), release = signal(), finished = signal();
++  const state = { deletes: 0, gateReads: 0, lastGateOptional: undefined as boolean | undefined };
++  const original = identityDb.transaction, runOriginal = original.bind(identityDb);
++  const dialect = new PgDialect();
++  const intercepted: typeof identityDb.transaction = (callback, config) => runOriginal(tx => callback(new Proxy(tx, {
++    get(target, key) {
++      if (key === "execute") {
++        const execute = target.execute.bind(target);
++        return async (query: ExecuteInput) => {
++          const statement = typeof query === "string" ? query : dialect.sqlToQuery(query.getSQL()).sql;
++          const standaloneGate = /^\s*select\b/i.test(statement) && statement.includes("identity_platform_mfa_required(");
++          const deletingFactor = /\bdelete\s+from\s+(?:"?public"?\.)?"?mfa_factors\b/i.test(statement);
++          if (!deletingFactor) {
++            const rows = await execute(query);
++            if (standaloneGate) {
++              state.gateReads++;
++              state.lastGateOptional = rows[0]?.required === false;
++              assert.equal(state.lastGateOptional, true, "real transaction gate admitted an optional actor");
++            }
++            return rows;
++          }
++          state.deletes++;
++          assert.equal(state.deletes, 1, "one physical factor-delete dispatch, no automatic replay");
++          reached.resolve();
++          try {
++            await bounded(release.promise, "release before factor delete");
++            return await execute(query);
++          } finally { finished.resolve(); }
++        };
++      }
++      const value = Reflect.get(target, key, target);
++      return typeof value === "function" ? value.bind(target) : value;
++    },
++  })), config);
++  identityDb.transaction = intercepted;
++  return { reached, release, finished, state, restore() { identityDb.transaction = original; } };
++}
++
++describe("MFA disable uses the authority snapshot of its factor deletion", { concurrency: false }, () => {
++  const password = "mfa-disable-snapshot-fictitious-password";
++  let passwordHash: string, server: Server | undefined, url = "";
++
++  before(async () => {
++    const [ledger] = await sqlClient`select count(*)::int as count from schema_migrations`;
++    assert.equal(ledger?.count, 68, "official canonical068 fixture required, no skip or deployed database");
++    passwordHash = await hashPassword(password);
++    server = await new Promise<Server>(resolve => {
++      const instance = app.listen(0, "127.0.0.1", () => resolve(instance));
++    });
++    const address = server.address();
++    assert.ok(address && typeof address !== "string");
++    url = `http://127.0.0.1:${address.port}`;
++  });
++  after(async () => {
++    try {
++      if (server) {
++        const closing = new Promise<void>((resolve, reject) => server!.close(error => error ? reject(error) : resolve()));
++        server.closeAllConnections();
++        await bounded(closing, "owned HTTP listener close");
++      }
++    } finally { await closeAppDb(); await sqlClient.end(); }
++  });
++
++  async function stateOf(user: string): Promise<Snapshot> {
++    // Sensitive fixture rows stay in memory. Compare boolean digest equality so
++    // an assertion never prints ciphertext, recovery hashes, codes or digests.
++    const factors = await sqlClient`select to_jsonb(f) as row from mfa_factors f where user_id=${user}`;
++    const recoveries = await sqlClient`select to_jsonb(r) as row,used_at is not null as used
++      from mfa_recovery_codes r where user_id=${user} order by code_hash`;
++    const fingerprint = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
++    return { factorCount: factors.length, recoveryCount: recoveries.length,
++      used: recoveries.filter(row => row.used === true).length,
++      factorDigest: fingerprint(factors.map(row => row.row)), recoveryDigest: fingerprint(recoveries.map(row => row.row)) };
++  }
++  async function required(user: string): Promise<boolean> {
++    const [row] = await sqlClient`select public.identity_platform_mfa_required(${user}) as required`;
++    assert.equal(typeof row?.required, "boolean");
++    return row!.required;
++  }
++  async function changeBinding(binding: string): Promise<void> {
++    await bounded(sqlClient.begin(async owner => {
++      await owner`set local lock_timeout='2s'`; await owner`set local statement_timeout='3s'`;
++      const rows = await owner`update role_bindings set active=true where id=${binding} and active=false returning id`;
++      assert.equal(rows.length, 1, "activate the pre-existing binding; do not INSERT behind the account lock");
++    }), "commit pre-existing binding activation");
++  }
++
++  async function scenario(mode: Mode) {
++    const user = `mfa-disable-snapshot-${randomUUID()}`, email = `${user}@example.invalid`, binding = randomUUID();
++    const cancellation = new AbortController();
++    let pending: Promise<Response> | undefined, barrier: ReturnType<typeof beforeFactorDelete> | undefined;
++    let failed = false;
++    const request = (path: string, body: object, token?: string) => bounded(fetch(`${url}${path}`, {
++      method: "POST", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
++      body: JSON.stringify(body), signal: cancellation.signal,
++    }), `HTTP ${path}`);
++    try {
++      await sqlClient`insert into users(id,name,email,password_hash) values(${user},'Disable snapshot fixture',${email},${passwordHash})`;
++      if (mode !== "ordinary") await sqlClient`insert into role_bindings(id,user_id,role_key,active)
++        values(${binding},${user},${mode === "promote-support" ? "PLATFORM_SUPPORT" : "PLATFORM_ADMIN"},false)`;
++      assert.equal(await required(user), false);
++
++      const login = await request("/auth/login", { email, password });
++      assert.equal(login.status, 200, "single raw login, no automatic enrollment or retry");
++      const session = await bounded(login.json(), "login body") as Session;
++      assert.ok(session.accessToken); assert.equal(session.user.id, user);
++      assert.equal(session.user.mfaRequirement, "not-required");
++      const enrollment = await request("/auth/mfa/enroll", { currentPassword: password }, session.accessToken);
++      assert.equal(enrollment.status, 200);
++      const setup = await bounded(enrollment.json(), "enrollment body") as { secret: string };
++      const secret = base32Decode(setup.secret); assert.ok(secret);
++      const confirmation = await request("/auth/mfa/confirm", { code: totpCode(secret, totpStep(Date.now())) }, session.accessToken);
++      assert.equal(confirmation.status, 200);
++      const confirmed = await bounded(confirmation.json(), "confirmation body") as { recoveryCodes: string[] };
++      assert.equal(confirmed.recoveryCodes.length, 10);
++      const code = confirmed.recoveryCodes[0]!;
++      const initial = await stateOf(user);
++      assert.equal(initial.factorCount, 1); assert.equal(initial.recoveryCount, 10); assert.equal(initial.used, 0);
++
++      if (mode === "active-admin") {
++        await changeBinding(binding);
++        assert.equal(await required(user), true);
++        const response = await request("/auth/mfa/disable", { currentPassword: password, code }, session.accessToken);
++        assert.equal(response.status, 403);
++        const body = await bounded(response.json(), "mandatory-disable body") as { details?: { reason?: string } };
++        assert.equal(body.details?.reason, "MFA_REQUIRED");
++        const after = await stateOf(user);
++        assert.equal(after.factorDigest === initial.factorDigest, true, "early refusal preserves factor");
++        assert.equal(after.recoveryDigest === initial.recoveryDigest, true, "early refusal consumes no recovery code");
++        assert.equal(after.used, 0);
++        return;
++      }
++
++      barrier = beforeFactorDelete();
++      pending = fetch(`${url}/auth/mfa/disable`, {
++        method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.accessToken}` },
++        body: JSON.stringify({ currentPassword: password, code }), signal: cancellation.signal,
++      });
++      void pending.catch(() => undefined);
++      const first = await bounded(Promise.race([
++        barrier.reached.promise.then(() => "boundary" as const), pending.then(() => "response" as const),
++      ]), "reach real factor-delete dispatch or early response");
++      if (first === "response") {
++        const early = await bounded(pending, "early disable result");
++        await bounded(early.body?.cancel() ?? Promise.resolve(), "early disable response drain");
++        throw new Error(`Fixture early disable response before DELETE: status ${early.status}`);
++      }
++      assert.equal(first, "boundary", "optional request must reach its actual protected write");
++      assert.equal(barrier.state.deletes, 1);
++      // Current source has a standalone final guard; if a later coherent fix
++      // consolidates it, the delete barrier and owner authority oracle still apply.
++      if (barrier.state.gateReads) assert.equal(barrier.state.lastGateOptional, true);
++      assert.equal(await required(user), false, "actor was optional before the controlled promotion");
++      const consumed = await stateOf(user);
++      assert.equal(consumed.factorCount, 1); assert.equal(consumed.recoveryCount, 10);
++      assert.equal(consumed.used, 1, "recovery consumption committed before the account/family/factor transaction");
++
++      if (mode === "promote-admin" || mode === "promote-support") await changeBinding(binding);
++      assert.equal(await required(user), mode === "promote-admin", "SUPPORT and inactive ADMIN do not imply ADMIN obligation");
++      barrier.release.resolve();
++      const response = await bounded(pending, "disable response after barrier");
++      const responseText = await bounded(response.text(), "disable response body");
++      if (mode === "promote-admin") {
++        assert.equal(response.status, 403, "authority committed before DELETE prevents factor removal");
++        const body = JSON.parse(responseText) as { details?: { reason?: string } };
++        assert.equal(body.details?.reason, "MFA_REQUIRED");
++        const after = await stateOf(user);
++        assert.equal(after.factorDigest === consumed.factorDigest, true, "factor equals the post-consumption snapshot");
++        assert.equal(after.recoveryDigest === consumed.recoveryDigest, true, "failed disable must not restore or delete consumed recovery rows");
++        assert.equal(after.factorCount, 1); assert.equal(after.recoveryCount, 10); assert.equal(after.used, 1);
++        const replay = await request("/auth/verify", { currentPassword: password, code }, session.accessToken);
++        assert.equal(replay.status, 400, "the recovery code spent before promotion cannot be used again");
++        await bounded(replay.body?.cancel() ?? Promise.resolve(), "spent-code response drain");
++      } else {
++        assert.equal(response.status, 204, "optional factor removal retains ordinary behavior");
++        assert.equal(responseText, "");
++        const after = await stateOf(user);
++        assert.equal(after.factorCount, 0); assert.equal(after.recoveryCount, 0);
++      }
++      assert.equal(barrier.state.deletes, 1, "the rejected/accepted write is never replayed");
++    } catch (error) { failed = true; throw error; }
++    finally {
++      barrier?.release.resolve();
++      cancellation.abort();
++      const drain = pending ? pending.then(response => response.bodyUsed ? undefined : response.body?.cancel(), () => undefined) : Promise.resolve();
++      const outcomes = await Promise.allSettled([
++        bounded(Promise.resolve(drain), "owned HTTP request settlement"),
++        ...(barrier?.state.deletes ? [bounded(barrier.finished.promise, "owned delete dispatch settlement")] : []),
++      ]);
++      barrier?.restore();
++      const dataOutcomes = await Promise.allSettled([bounded(sqlClient.begin(async owner => {
++        await owner`set local lock_timeout='2s'`; await owner`set local statement_timeout='3s'`;
++        await owner`delete from users where id=${user}`;
++      }), "synthetic user cleanup")]);
++      const cleanupFailure = [...outcomes, ...dataOutcomes].find(result => result.status === "rejected");
++      if (!failed && cleanupFailure?.status === "rejected") throw cleanupFailure.reason;
++    }
++  }
++
++  it("rejects ADMIN binding promotion after the last gate and keeps post-consumption factor state", async () => { await scenario("promote-admin"); });
++  it("allows an inactive ADMIN binding to keep optional-disable behavior", async () => { await scenario("inactive-admin"); });
++  it("allows an ordinary account to remove its optional factor and recovery rows", async () => { await scenario("ordinary"); });
++  it("rejects an already-required administrator before consuming a recovery code", async () => { await scenario("active-admin"); });
++  it("SUPPORT-only promotion at the delete boundary does not become an ADMIN obligation", async () => { await scenario("promote-support"); });
++});

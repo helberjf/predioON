@@ -1,0 +1,52 @@
+{
+  "status": "EXTERNAL_P0_CANDIDATE_AUTHORED_NOT_EXECUTED",
+  "version": 1,
+  "beforeSource": "mfa-portable-published-restored-20261105",
+  "observedMainForContextOnly": "22713a428eea58d881b8686d9eba0e0fd879c0d5",
+  "files": [
+    {
+      "path": "apps/api/src/auth/mfa.ts",
+      "beforeSha256": "3ffe785e821a708e7254abb21d88ac29b4e9ebbdc3398a85970295154962988b",
+      "afterSha256": "7e8eabbf250ed010daa5c496b5ca2ae14a7d4a08333484b9f6e1a7816977babd",
+      "bytes": 8587
+    },
+    {
+      "path": "apps/api/test/platform-mfa-disable-snapshot.test.ts",
+      "beforeSha256": null,
+      "afterSha256": "3306d7a8e703c996ba62f51814017e5b5576021e1251511aa3af5e706ca8d19e",
+      "bytes": 14968
+    }
+  ],
+  "patchSha256": "bf060362ebccca62576995a8b4ce112618263c877273ad768cb125a61bc6d355",
+  "canonicalFixtureMigrationCount": 68,
+  "sqlMigrationCandidateUnchanged": "61bda99d24219a630d0a7ec3d754ff306ad4b0ed8317b3ebcbc8f59caab8bb7a",
+  "scope": [
+    "Existing factor-generation DELETE only",
+    "Authority boolean and DELETE result in one DML CTE statement",
+    "Existing MFA_REQUIRED403 and factor-changed409 results",
+    "Account/family/factor lock order and earlier recovery consumption preserved"
+  ],
+  "testCases": 5,
+  "proposedBaselineExpectation": {
+    "source": "Exact before API in the restored068 composition, not published067",
+    "pass": 4,
+    "assertionFail": 1,
+    "observed": false
+  },
+  "proposedFixedExpectation": {
+    "pass": 5,
+    "observed": false
+  },
+  "barrier": "Test-only identityDb.transaction/execute proxy before the real factor DELETE; existing inactive binding activated and committed before release",
+  "noFactorBranch": "Unchanged idempotent no-mutation return; no new same-statement guarantee claimed",
+  "secretHandling": "Private synthetic rows are fingerprinted only in memory; assertions compare booleans, no ciphertext/code/hash values are emitted",
+  "nodeExecuted": false,
+  "typecheckExecuted": false,
+  "databaseExecuted": false,
+  "testsExecuted": false,
+  "repositoryChangedByAuthor": false,
+  "restoredSourceChangedByAuthor": false,
+  "references": [
+    "https://www.postgresql.org/docs/16/queries-with.html#QUERIES-WITH-MODIFYING"
+  ]
+}

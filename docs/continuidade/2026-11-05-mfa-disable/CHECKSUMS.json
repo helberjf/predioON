@@ -1,0 +1,58 @@
+[
+  {
+    "path": ".gitattributes",
+    "sha256": "b446a8c7d59c2c07676b72edd1a2da9e238a9836f9fc7eeb8bf656a7cbf0c5a3"
+  },
+  {
+    "path": "README.md",
+    "sha256": "9347f8398401a61645d0b0c9a79c8dccdc4bc32e47bad50ed6653890968b3057"
+  },
+  {
+    "path": "evidence/baseline-resolve.json",
+    "sha256": "69b968d7de465c5ace149e5ee40ad7b3b7c5459b6cd3635b71f1e1d2af673ef1"
+  },
+  {
+    "path": "evidence/baseline-types-attempt2.json",
+    "sha256": "83405cabd43a62d90c41caaadb672fc7c2666268121613bdd3b384d044a690a9"
+  },
+  {
+    "path": "evidence/directed-red-green.json",
+    "sha256": "7b0cae29baecda392fe15265379dadba8ef02fcb5b519d7c2442d7cf2d5bc744"
+  },
+  {
+    "path": "evidence/fixed-types-attempt2.json",
+    "sha256": "d65bd7146c9f055393c7d5a1c08440094806d675e3a9120b10674a7986166103"
+  },
+  {
+    "path": "evidence/fixed-types-original-timeout.json",
+    "sha256": "39e35689b2628ffae87564f08049181c8c6e4e3878ee9db616d67c04509d70c2"
+  },
+  {
+    "path": "raw/delta.patch",
+    "sha256": "bf060362ebccca62576995a8b4ce112618263c877273ad768cb125a61bc6d355"
+  },
+  {
+    "path": "raw/handoff-v1.json",
+    "sha256": "777cb83084cf56dcf8a3baab8a85dcddbd5d2bfe1e022551c688038aa007f192"
+  },
+  {
+    "path": "raw/manifest.json",
+    "sha256": "72f354723836f22b98ba88dd582872cd15dd02438e781f05846d246e8fbc12e6"
+  },
+  {
+    "path": "raw/README-original.md",
+    "sha256": "f99deefc2942aa343480ecfc331150c82e812c2f542a62ebf28b3bd7e0df23d3"
+  },
+  {
+    "path": "raw/after/apps/api/src/auth/mfa.ts.txt",
+    "sha256": "7e8eabbf250ed010daa5c496b5ca2ae14a7d4a08333484b9f6e1a7816977babd"
+  },
+  {
+    "path": "raw/after/apps/api/test/platform-mfa-disable-snapshot.test.ts.txt",
+    "sha256": "3306d7a8e703c996ba62f51814017e5b5576021e1251511aa3af5e706ca8d19e"
+  },
+  {
+    "path": "raw/before/apps/api/src/auth/mfa.ts.txt",
+    "sha256": "3ffe785e821a708e7254abb21d88ac29b4e9ebbdc3398a85970295154962988b"
+  }
+]

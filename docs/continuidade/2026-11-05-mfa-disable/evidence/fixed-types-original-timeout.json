@@ -1,0 +1,43 @@
+{
+  "phase": "types-test",
+  "label": "types-test",
+  "kind": "types",
+  "command": [
+    "C:\\Program Files\\nodejs\\node.exe",
+    "--max-old-space-size=640",
+    "C:\\Users\\Mai Tonheim\\Documents\\Codex\\2026-10-01\\https-github-com-helberjf-predioon-https-2\\work\\mfa-disable-fixed-qa-20261105\\source\\apps\\api\\node_modules\\typescript\\bin\\tsc",
+    "--noEmit",
+    "--extendedDiagnostics",
+    "-p",
+    "C:\\Users\\Mai Tonheim\\Documents\\Codex\\2026-10-01\\https-github-com-helberjf-predioon-https-2\\work\\mfa-disable-fixed-qa-20261105\\tsconfig.test.json"
+  ],
+  "cwd": "C:\\Users\\Mai Tonheim\\Documents\\Codex\\2026-10-01\\https-github-com-helberjf-predioon-https-2\\work\\mfa-disable-fixed-qa-20261105\\source\\apps\\api",
+  "freeMiB": 2362,
+  "heapMiB": 640,
+  "deadlineMs": 300000,
+  "sourcePin": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+  "preparedSha256": "bf2f059fe62568999fb6c52512c38ada82aefe4a34d1ad193333585a8d12c332",
+  "startedUtc": "2026-11-05T04:36:33.138Z",
+  "childExitedUtc": "2026-11-05T04:42:52.074Z",
+  "childDurationMs": 378934,
+  "timedOut": true,
+  "exitCode": null,
+  "signal": "SIGTERM",
+  "errorCode": null,
+  "before": {
+    "source": true,
+    "candidate": true
+  },
+  "after": {
+    "source": true,
+    "candidate": true
+  },
+  "resolved": null,
+  "counters": {},
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "harnessFinishedUtc": "2026-11-05T04:42:56.921Z",
+  "database": false,
+  "browser": false,
+  "native": false
+}

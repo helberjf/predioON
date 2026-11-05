@@ -1,8 +1,8 @@
 {
   "version": 1,
-  "status": "CANONICAL_V2_AUTHORING",
-  "baseCommit": null,
-  "plannedBase": "public main AFTER frontend fix6d05e523 and reviewed mfa-query helper/test increment",
+  "status": "CANONICAL_V2_WITH_SQL11_V5_TESTED_AS_OVERLAY",
+  "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+  "plannedBase": "Approved published source base53c4c70; current documentation may be newer.",
   "sourceBaseline": "2676a74216b012dcab6fa2fb9735dc1b6ef8e9d8",
   "files": [
     {
@@ -559,18 +559,18 @@
       "path": "apps/api/test/platform-mfa-sql-envelopes.test.ts",
       "payload": "payload/runtime/apps/api/test/platform-mfa-sql-envelopes.test.ts.txt",
       "beforeSha256": null,
-      "afterSha256": "d6ad313a57a59afc226e544b908d9e097b0c35a4bc3bbab3784c7d97af672166",
-      "component": "sql-envelope-tests-v2",
+      "afterSha256": "2c8a7bc400bd7b8055922f11a06239026db9dce7e9c4195cba696c67c5cd6710",
+      "component": "sql-envelope-tests-v5",
       "kind": "database-test",
-      "bytes": 16206,
+      "bytes": 16760,
       "beforeGitSha256": null,
       "beforeGitObject": null
     }
   ],
   "pending": [
-    "Exact new public query increment commit; verify all before hashes",
-    "SQL11 fixtureV2 d6ad authored, not types/DB executed; V1TSC does not transfer",
-    "Record root rendererV6 evidence explicitly"
+    "Assemble and restore the updated V5 payload set; prior successful restoration used published227/V2 and testd6ad, followed by a tested V5 overlay.",
+    "Complete P0 disable promotion, remaining SQL/SD/SSE/mutations/locks/triggers and relevant original regressions.",
+    "Renderer staging recipe remains authored and not executed; do not transfer its earlier separate harness PASS."
   ],
   "excluded": [
     "already-published client transport5",
@@ -580,5 +580,15 @@
     "heavy QA launcher state and raw process dumps"
   ],
   "limits": "Partial MFA implementation candidate, not rollout; SQL candidate must only be restored explicitly, not applied",
-  "approvedBaseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2"
+  "approvedBaseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+  "historicalPlannedBase": "public main AFTER frontend fix6d05e523 and reviewed mfa-query helper/test increment",
+  "sqlEnvelopeTest": {
+    "version": 5,
+    "afterSha256": "2c8a7bc400bd7b8055922f11a06239026db9dce7e9c4195cba696c67c5cd6710",
+    "cases": 11,
+    "typesPassed": true,
+    "databasePassed": 11,
+    "evidence": "../../evidencias/mfa-complement11-v5-2026-11-05.json",
+    "validatedAsOverlayOnCanonicalRestoration": true
+  }
 }

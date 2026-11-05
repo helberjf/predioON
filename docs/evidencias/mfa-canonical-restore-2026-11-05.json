@@ -1,0 +1,206 @@
+{
+  "recordedOn": "2026-11-05",
+  "status": "CANONICAL_SOURCE_RESTORE_PASSED_FOR_HISTORICAL_V2_AND_CURRENT_V5_PAYLOAD_SETS",
+  "checkpointSourceCommit": "22713a428eea58d881b8686d9eba0e0fd879c0d5",
+  "sourceBaseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+  "verifiedSql11Payload": {
+    "version": 2,
+    "sha256": "d6ad313a57a59afc226e544b908d9e097b0c35a4bc3bbab3784c7d97af672166"
+  },
+  "canonicalRepresentation": "Exact Git blob bytes/OIDs/modes; binary size-delimited cat-file, no payload normalization or checkout-byte prerequisite.",
+  "builder": {
+    "childExitedAt": "2026-11-05T04:13:13.0722479Z",
+    "phase": "builder",
+    "ownedPid": 46940,
+    "timedOut": false,
+    "durationMs": 2633.4022,
+    "exitCode": 0,
+    "guard": {
+      "minimumMiB": 1536,
+      "at": "2026-11-05T04:13:10.3813600Z",
+      "freeMiB": 6358.0,
+      "phase": "builder"
+    },
+    "heapMiB": 128
+  },
+  "restore": {
+    "durationMs": 2660.9362,
+    "exitCode": 0,
+    "phase": "restore",
+    "ownedPid": 46680,
+    "timedOut": false,
+    "childExitedAt": "2026-11-05T04:13:24.5373710Z",
+    "guard": {
+      "freeMiB": 6367.0,
+      "phase": "restore",
+      "minimumMiB": 1536,
+      "at": "2026-11-05T04:13:21.8318265Z"
+    },
+    "heapMiB": 128
+  },
+  "verification": {
+    "canonicalBaseFiles": 994,
+    "candidateFiles": 49,
+    "runtimeAndDatabaseTestFiles": 47,
+    "explicitRendererQaFiles": 2,
+    "rendererSupportFiles": 5,
+    "verifiedComposedFiles": 1011,
+    "verifiedQaSupportFiles": 5,
+    "packageIntegrityHashesMatch": true,
+    "postRestorationVerified": true,
+    "manifestSha256": "ffd18bf6642acd49e7c105b6d9e0fc0efce457625f0f75fd08317ee6835b9fe5",
+    "receiptSha256": "2c89a5b69badbb500b6ad53291d13d4a697931cff2d5958a183b1b1da2746c9c",
+    "publishedQueryFilesExcluded": 2
+  },
+  "rawEolDiagnostics": {
+    "initialOlderCheckoutAuditDifferences": 12,
+    "verifiedBuilderFreshBaseDifferences": 2,
+    "verifiedBuilderPaths": [
+      "scripts/start-local.ps1",
+      "scripts/test-start-local.ps1"
+    ],
+    "diagnosticOnly": true,
+    "powerShellFilesRestoredFromCanonicalGitLf": true
+  },
+  "receipt": {
+    "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+    "sourceHeadBefore": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+    "canonicalBaseFiles": 994,
+    "candidateFiles": 49,
+    "qaSupportFiles": 5,
+    "status": "SOURCE_ONLY_NOT_TESTED_NOT_APPLIED",
+    "dependenciesInstalled": false,
+    "migrationsApplied": false,
+    "databaseStarted": false
+  },
+  "subsequentV5": {
+    "testSha256": "2c8a7bc400bd7b8055922f11a06239026db9dce7e9c4195cba696c67c5cd6710",
+    "testedByOverlayInIsolatedQa": true,
+    "complementaryDatabaseCasesPassed": 11,
+    "exactTestTypecheckPassed": true,
+    "evidence": "mfa-complement11-v5-2026-11-05.json",
+    "updatedPayloadSetAssemblyAndRestoreExecuted": true
+  },
+  "limits": [
+    "Restoration copied source only; it did not install dependencies, execute tests or start/apply a database.",
+    "Source restoration and directed tests are not deployment or global MFA acceptance; published migrations remain001-067.",
+    "The new renderer staging recipe was not executed; preserve its explicit scope and dependency checks.",
+    "The earlier low-memory guard refusal remains historical; no restart or guard weakening was used.",
+    "The current V5 payload set was assembled/restored in a later separate run; the original fields above retain the historical227/V2 execution. Documentation status text was updated after the current verification; inventory and payload bytes remained identical."
+  ],
+  "artifacts": [
+    {
+      "localRelativePath": "mfa-portable-published-verification-20261105/builder-guard.json",
+      "sha256": "bd62b499c99306817feb097929038c871b34947d867c20a28fd27f8f3cedac09",
+      "bytes": 114
+    },
+    {
+      "localRelativePath": "mfa-portable-published-verification-20261105/builder-result.json",
+      "sha256": "006a7687900febfefad2590c0a7da7bbd34525b691982be4dfcf4abd8f57a8c6",
+      "bytes": 170
+    },
+    {
+      "localRelativePath": "mfa-portable-published-verification-20261105/builder.stdout.txt",
+      "sha256": "1ec598d663316e80bc484f4ce2b06be59f7dd92299864a9158821d9dfe8b723d",
+      "bytes": 508
+    },
+    {
+      "localRelativePath": "mfa-portable-published-verification-20261105/builder.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "localRelativePath": "mfa-portable-published-verification-20261105/restore-guard.json",
+      "sha256": "90f820eb0998b4557484ef4da8a324ac19e3ffdb00120f4a9b8360e627a01b1b",
+      "bytes": 114
+    },
+    {
+      "localRelativePath": "mfa-portable-published-verification-20261105/restore-result.json",
+      "sha256": "10e5cd54e3edd453031c7409132fb8932d420a9f059315deffb79b5697bf7bf0",
+      "bytes": 170
+    },
+    {
+      "localRelativePath": "mfa-portable-published-verification-20261105/restore.stdout.txt",
+      "sha256": "5d235f6a30170e2aa45149c03b8e7aaf4b605e3f66b3f1e798763b632bc34c5a",
+      "bytes": 106
+    },
+    {
+      "localRelativePath": "mfa-portable-published-verification-20261105/restore.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "localRelativePath": "mfa-portable-published-verification-20261105/postchecks.json",
+      "sha256": "228974f921655e65d471a3e4f2a1774d00029c96b1682a3e50b133d062e77fc8",
+      "bytes": 664
+    },
+    {
+      "localRelativePath": "mfa-portable-published-final-20261105/MANIFEST.json",
+      "sha256": "ffd18bf6642acd49e7c105b6d9e0fc0efce457625f0f75fd08317ee6835b9fe5",
+      "bytes": 357415
+    },
+    {
+      "localRelativePath": "mfa-portable-published-final-20261105/PACKAGE-HASHES.json",
+      "sha256": "9af631511a7db80a132d430a0797b28bad973c09d7067836dde0dd1910c9aca6",
+      "bytes": 444
+    },
+    {
+      "localRelativePath": "mfa-portable-published-restored-20261105/MFA-RESTORE-RECEIPT.json",
+      "sha256": "2c89a5b69badbb500b6ad53291d13d4a697931cff2d5958a183b1b1da2746c9c",
+      "bytes": 347
+    }
+  ],
+  "reviewerReadOnlyVerification": true,
+  "testsRerunByReviewer": false,
+  "productionAccepted": false,
+  "updatedV5AssemblyAndRestoration": {
+    "inputInventorySha256": "69706ef234a44e2b69db089387856bb0c6665e0a557922161ff849f3f2cb0f4b",
+    "testSha256": "2c8a7bc400bd7b8055922f11a06239026db9dce7e9c4195cba696c67c5cd6710",
+    "verifiedComposedFiles": 1011,
+    "verifiedQaSupportFiles": 5,
+    "allHashesMatch": true,
+    "manifestSha256": "59038d25e84e11d674028a4c0fab960a0812103d05045e564a88674412ecc68f",
+    "receiptSha256": "2c89a5b69badbb500b6ad53291d13d4a697931cff2d5958a183b1b1da2746c9c",
+    "receipt": {
+      "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+      "sourceHeadBefore": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+      "canonicalBaseFiles": 994,
+      "candidateFiles": 49,
+      "qaSupportFiles": 5,
+      "status": "SOURCE_ONLY_NOT_TESTED_NOT_APPLIED",
+      "dependenciesInstalled": false,
+      "migrationsApplied": false,
+      "databaseStarted": false
+    },
+    "builder": {
+      "phase": "builder",
+      "childExitedAt": "2026-11-05T05:24:25.4361495Z",
+      "timedOut": false,
+      "durationMs": 5778.4338,
+      "ownedPid": 43880,
+      "exitCode": 0,
+      "guard": {
+        "at": "2026-11-05T05:24:19.5201729Z",
+        "phase": "builder",
+        "minimumMiB": 1536,
+        "freeMiB": 2761.0
+      },
+      "heapMiB": 128
+    },
+    "restore": {
+      "durationMs": 3538.0762,
+      "timedOut": false,
+      "ownedPid": 41608,
+      "exitCode": 0,
+      "childExitedAt": "2026-11-05T05:24:34.7152428Z",
+      "phase": "restore",
+      "guard": {
+        "freeMiB": 2759.0,
+        "phase": "restore",
+        "at": "2026-11-05T05:24:31.1232578Z",
+        "minimumMiB": 1536
+      },
+      "heapMiB": 128
+    }
+  }
+}

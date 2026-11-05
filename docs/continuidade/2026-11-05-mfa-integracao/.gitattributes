@@ -7,3 +7,6 @@ qaSupport/** -text
 
 # Frozen historical payload: preserve its exact final blank line.
 payload/runtime/packages/contracts/src/auth.ts.txt whitespace=-blank-at-eof
+
+# Frozen SQL11 V5 payload: preserve CRLF while checking other whitespace.
+payload/runtime/apps/api/test/platform-mfa-sql-envelopes.test.ts.txt whitespace=cr-at-eol

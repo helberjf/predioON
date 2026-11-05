@@ -1,0 +1,5 @@
+raw/** -text
+evidence/** -text
+# Preserve frozen CRLF artifacts while checking actual trailing spaces.
+raw/** whitespace=cr-at-eol
+evidence/** whitespace=cr-at-eol

@@ -1,0 +1,37 @@
+{
+  "variant": "baseline",
+  "phase": "types-attempt2",
+  "startedUtc": "2026-11-05T05:11:48.119Z",
+  "childExitedUtc": "2026-11-05T05:12:05.997Z",
+  "childDurationMs": 17878,
+  "exitCode": 0,
+  "signal": null,
+  "errorCode": null,
+  "timedOut": false,
+  "deadlineMs": 300000,
+  "freeMiB": 2279,
+  "preparedSha256": "e907aa78e3442739dfcb5e8e74bda1e6041bc329f3e5d0f4889f4694a792c3b4",
+  "before": {
+    "source": true,
+    "candidate": true,
+    "config": true,
+    "prepared": true,
+    "junctions": true
+  },
+  "after": {
+    "source": true,
+    "candidate": true,
+    "config": true,
+    "prepared": true,
+    "junctions": true
+  },
+  "resolved": null,
+  "passed": true,
+  "heartbeatCount": 3,
+  "maxTickGapMs": 5029,
+  "stdoutSha256": "ce29d2ca6e78ef62e2a03284349e100f5ca5cf610535a159286dd7d2c7a90b6c",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "harnessFinishedUtc": "2026-11-05T05:12:07.326Z",
+  "database": false,
+  "tests": false
+}

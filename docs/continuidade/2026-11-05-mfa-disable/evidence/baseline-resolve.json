@@ -1,0 +1,41 @@
+{
+  "variant": "baseline",
+  "phase": "resolve",
+  "startedUtc": "2026-11-05T05:06:06.317Z",
+  "childExitedUtc": "2026-11-05T05:06:08.869Z",
+  "childDurationMs": 2553,
+  "exitCode": 0,
+  "signal": null,
+  "errorCode": null,
+  "timedOut": false,
+  "deadlineMs": 60000,
+  "freeMiB": 2321,
+  "preparedSha256": "e907aa78e3442739dfcb5e8e74bda1e6041bc329f3e5d0f4889f4694a792c3b4",
+  "before": {
+    "source": true,
+    "candidate": true,
+    "config": true,
+    "prepared": true,
+    "junctions": true
+  },
+  "after": {
+    "source": true,
+    "candidate": true,
+    "config": true,
+    "prepared": true,
+    "junctions": true
+  },
+  "resolved": {
+    "mfaSourceListed": true,
+    "testListed": true,
+    "originalWorkspacePaths": []
+  },
+  "passed": true,
+  "heartbeatCount": 0,
+  "maxTickGapMs": 0,
+  "stdoutSha256": "dee610650c5fa28bbd7e5d0c98184e8285395901042cb382c340bc8a5ce49dab",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "harnessFinishedUtc": "2026-11-05T05:06:09.592Z",
+  "database": false,
+  "tests": false
+}

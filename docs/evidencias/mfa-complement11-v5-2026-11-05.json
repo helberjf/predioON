@@ -1,0 +1,241 @@
+{
+  "recordedOn": "2026-11-05",
+  "status": "COMPLEMENTARY_CANDIDATE_SQL11_V5_PASSED_NOT_GLOBAL_MFA_ACCEPTANCE",
+  "source": {
+    "publishedBase": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+    "observedHeadDuringRun": "4bd9b0e877eeb476ca90f33c364d452355a2a08c",
+    "headDifferenceReadmeAndDocsOnly": true,
+    "preparedSha256": "230c14906a74ccaa2d69bf5fb14af74cac3a35621b0bfa667412558caace8f3a",
+    "testSha256": "2c8a7bc400bd7b8055922f11a06239026db9dce7e9c4195cba696c67c5cd6710",
+    "sqlV3Sha256": "61bda99d24219a630d0a7ec3d754ff306ad4b0ed8317b3ebcbc8f59caab8bb7a",
+    "composedFiles": 1011,
+    "selectedPayloadsRehashedByReviewer": 49,
+    "selectedHashMismatches": 0,
+    "sourceHashesAfterMatch": true,
+    "mfaTsSha256": "3ffe785e821a708e7254abb21d88ac29b4e9ebbdc3398a85970295154962988b",
+    "p0DisablePatchIncluded": false
+  },
+  "sql11": {
+    "counts": {
+      "tests": 11,
+      "suites": 1,
+      "pass": 11,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "durationMs": 9130.9248
+    },
+    "childExitCode": 0,
+    "timedOut": false,
+    "freshOfficialUuidFixtures": 1,
+    "canonicalMigrations": 68,
+    "candidateMigrationOnlyInTemporaryFixture": true,
+    "coverage": [
+      "Seven human SQL entrypoints: enrollment/family-proof denials, NULL/empty arguments and later flag promotion.",
+      "Current proof permits only actual local/global capabilities; foreign or malformed family cannot borrow proof.",
+      "Actual PostgreSQL Date/camelCase mapping and HTTP gateway metadata redaction.",
+      "Effective EXECUTE matrix identity2/app8 for ten signatures on six runtime-role connections; no PUBLIC/grant option.",
+      "App cannot read/update factor secrets; four service roles cannot execute human guard.",
+      "Three equipment policies restrictive/app-only; ingest device heartbeat and gateway read work without SID despite an admin actor GUC."
+    ],
+    "proofArrangement": "Owner inserts synthetic confirmed factor/proof to isolate SQL; this is not real TOTP enrollment or recovery ceremony evidence. Application pools remain restricted; owner exists for fixture arrangement/proofs."
+  },
+  "typesV5": {
+    "exitCode": 0,
+    "timedOut": false,
+    "childDurationMs": 16368,
+    "compilerReportedSeconds": 15.8,
+    "heapMiB": 640,
+    "guardFreeMiB": 2359,
+    "noEmit": true,
+    "scope": "Explicit V5 complementary test file and transitive imports, via tsconfig.test.json extending API settings with include empty. Not a full original API include or consumer typecheck."
+  },
+  "sharedUnits": [
+    {
+      "package": "ui",
+      "sourceAttempt": 3,
+      "counts": {
+        "tests": 143,
+        "suites": 2,
+        "pass": 143,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "durationMs": 4856.1442
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "heapMiB": 384,
+      "guardFreeMiB": 2166,
+      "sourceAndCandidateHashesBeforeAfter": true,
+      "preparedSha256": "93057ba681b2fcc2049bcbed8d90b93a7663bfca31fbec7f792bb88755a2ec4d",
+      "stdoutSha256": "f743dacd3fa00a594844fa4d030fdd530793651df39e7fd5b0ebb9e1fd00efcd"
+    },
+    {
+      "package": "mobile",
+      "sourceAttempt": 3,
+      "counts": {
+        "tests": 242,
+        "suites": 0,
+        "pass": 242,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "durationMs": 9425.9276
+      },
+      "exitCode": 0,
+      "timedOut": false,
+      "heapMiB": 384,
+      "guardFreeMiB": 2159,
+      "sourceAndCandidateHashesBeforeAfter": true,
+      "preparedSha256": "93057ba681b2fcc2049bcbed8d90b93a7663bfca31fbec7f792bb88755a2ec4d",
+      "stdoutSha256": "dabb9ef06b3d0700acb8369b602fbfd99a64af3ce4f4450f302ab2b930bd83c7"
+    }
+  ],
+  "sharedSourceAssociation": {
+    "v3ToV5OnlyChangedPath": "apps/api/test/platform-mfa-sql-envelopes.test.ts",
+    "uiAndMobileSourceAndTestsUnchanged": true,
+    "unitResultsNotRerunOnV5": true
+  },
+  "fixtureHistory": [
+    {
+      "attempt": "V3",
+      "classification": "FIXTURE_BEFORE_HOOK_SERIALIZATION_ERROR_NOT_PRODUCT_RED",
+      "valueKind": "Date",
+      "errorCode": "ERR_INVALID_ARG_TYPE",
+      "counts": {
+        "tests": 11,
+        "suites": 1,
+        "pass": 0,
+        "fail": 0,
+        "cancelled": 11,
+        "skipped": 0,
+        "todo": 0,
+        "durationMs": 7280.7292
+      },
+      "cleanupPassed": true,
+      "sourceHashesAfterMatch": true,
+      "logSha256": "2cf934bab1ba4593590d31ee38f35e21240896116b5ab85b30313f9c571daea1"
+    },
+    {
+      "attempt": "V4",
+      "classification": "FIXTURE_BEFORE_HOOK_SERIALIZATION_ERROR_NOT_PRODUCT_RED",
+      "valueKind": "Object",
+      "errorCode": "ERR_INVALID_ARG_TYPE",
+      "counts": {
+        "tests": 11,
+        "suites": 1,
+        "pass": 0,
+        "fail": 0,
+        "cancelled": 11,
+        "skipped": 0,
+        "todo": 0,
+        "durationMs": 8107.8321
+      },
+      "cleanupPassed": true,
+      "sourceHashesAfterMatch": true,
+      "logSha256": "fa2000dc0b07315c3501dc1e57bc262ba54826765808417cb82b9f3ec87f7fef"
+    }
+  ],
+  "fixtureOnlyCorrections": "V5 grants the satisfied actor its own positive local memberships, passes timestamp parameters as unchanged ISO instants and metadata as JSON text cast to jsonb. Assertions, eleven cases, role separation and negative controls are retained; no product SQL/authority was weakened.",
+  "cleanup": {
+    "exitCode": 0,
+    "basePublicTables": 0,
+    "temporaryDatabases": 0,
+    "otherDatabases": 0,
+    "otherClients": 0,
+    "roles": 6,
+    "rolesRestoredIncludingPrivateCredentials": true,
+    "settingsRestored": true,
+    "systemIdentifierMatches": true,
+    "containerAttestationMatches": true,
+    "computerRestarted": false,
+    "credentialsPublished": false
+  },
+  "limits": [
+    "SQL11, prior GREEN9, query7, UI143 and mobile242 are distinct runs and scopes; do not add them into a whole-product result.",
+    "No adversarial default-grant contamination, full owner/search_path audit, all worker workflows, every absent-ID/no-match mutation, SD/SSE projection or VOLATILE mutator coverage is established.",
+    "No new browser, React/native rendering, native build/device or production acceptance follows from these proofs.",
+    "P0 factor-disable promotion fix remains separate; this source still uses the earlier mfa.ts. Expiry/lock/trigger and broader same-statement races remain pending."
+  ],
+  "reviewer": {
+    "readOnly": true,
+    "reranTests": false,
+    "startedDatabase": false,
+    "editedRepository": false,
+    "checkedLogHashesExitCountersAndSelectedSources": true
+  },
+  "historicalMetadata": "Authoring/preparation handoffs remain unchanged. This later proof records actual completed runs and classifies earlier hook cancellations without transferring PASS to other bytes.",
+  "artifacts": [
+    {
+      "path": "mfa-complement11-portable-v5-qa-20261105/prepared.json",
+      "sha256": "230c14906a74ccaa2d69bf5fb14af74cac3a35621b0bfa667412558caace8f3a"
+    },
+    {
+      "path": "mfa-complement11-portable-v5-qa-20261105/preparation-handoff.json",
+      "sha256": "ef668fbf353664fd4a505631da9c2bbad5978d32f254b8739354f15bdd925b30"
+    },
+    {
+      "path": "mfa-complement11-portable-v5-qa-20261105/mfa-directed-result.json",
+      "sha256": "df8bd8f81d354e1ca64a6c0c762d6a24d449ac4f66331fda5e43bdc9db340064"
+    },
+    {
+      "path": "mfa-complement11-portable-v5-qa-20261105/mfa-directed-postchecks.json",
+      "sha256": "412657b1eb2ff66efc00d1a1ddea9c7a023a285badc7328b56f86509623f4f78"
+    },
+    {
+      "path": "mfa-complement11-portable-v5-qa-20261105/platform-mfa-sql-envelopes.log",
+      "sha256": "0b9fbfbec9a1ff0ec2e7a6aebe8e40f6f4b101b713c1b543a92aecb7531baeb5"
+    },
+    {
+      "path": "mfa-complement11-portable-v5-qa-20261105/tsconfig.test.json",
+      "sha256": "223ac64086105cfd477f6669a14ea9788f8b03c8d642a7654b1ab1c7bee18b88"
+    },
+    {
+      "path": "mfa-complement11-portable-v5-qa-20261105/checks/types-test/result.json",
+      "sha256": "3c2eeba3dfa2cc5a6100f9bd3c934a3e8be32cb9d5d4e5f9ffde231a386c979c"
+    },
+    {
+      "path": "mfa-complement11-portable-v5-qa-20261105/checks/types-test/child-exit.json",
+      "sha256": "b30d45e9ba905b4cb94598b22072bae98dd723599535b8054ef8e4fade9d3357"
+    },
+    {
+      "path": "mfa-complement11-portable-v5-qa-20261105/checks/types-test/stdout.log",
+      "sha256": "be9a856380af17d900357bb19e6a8b5dfa6555c606361e10c3821c48642375ba"
+    },
+    {
+      "path": "mfa-complement11-portable-v5-qa-20261105/checks/types-test/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "mfa-complement11-portable-v3-qa-20261105/checks/units-ui/result.json",
+      "sha256": "8a90b57592aca4145b8966d13e92bc8e5336ca26e7875f19dabb210905c34391"
+    },
+    {
+      "path": "mfa-complement11-portable-v3-qa-20261105/checks/units-ui/stdout.log",
+      "sha256": "f743dacd3fa00a594844fa4d030fdd530793651df39e7fd5b0ebb9e1fd00efcd"
+    },
+    {
+      "path": "mfa-complement11-portable-v3-qa-20261105/checks/units-mobile/result.json",
+      "sha256": "03e407a0704638b7781771c01269cae83cd7082a22500b09cada49914670a801"
+    },
+    {
+      "path": "mfa-complement11-portable-v3-qa-20261105/checks/units-mobile/stdout.log",
+      "sha256": "dabb9ef06b3d0700acb8369b602fbfd99a64af3ce4f4450f302ab2b930bd83c7"
+    },
+    {
+      "path": "mfa-complement11-portable-v3-qa-20261105/platform-mfa-sql-envelopes.log",
+      "sha256": "2cf934bab1ba4593590d31ee38f35e21240896116b5ab85b30313f9c571daea1"
+    },
+    {
+      "path": "mfa-complement11-portable-v4-qa-20261105/platform-mfa-sql-envelopes.log",
+      "sha256": "fa2000dc0b07315c3501dc1e57bc262ba54826765808417cb82b9f3ec87f7fef"
+    }
+  ],
+  "migrationsAppliedToPublishedInstallation": false,
+  "integratedMfaAccepted": false,
+  "productionAccepted": false
+}
