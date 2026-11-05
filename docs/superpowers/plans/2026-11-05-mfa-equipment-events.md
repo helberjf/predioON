@@ -1,6 +1,6 @@
 # MFA: equipamentos e coordenação do SSE
 
-**Atualização:** device-status passou nos nove testes dirigidos e nas sete regressões separadas (71 casos). [Prova](../../evidencias/mfa-device-events-2026-11-05.json). Os dois envelopes propostos foram implementados no candidato, com ACL15, preservando a rechecagem final e ANY sem freshness. O desenho inicial abaixo fica como histórico; original25, gateway e heartbeat continuam como próximas etapas. Não houve ativação no runtime da main.
+**Atualização:** device-status passou nos nove testes dirigidos e nas sete regressões separadas (71 casos). [Prova](../../evidencias/mfa-device-events-2026-11-05.json). Depois, os [25 testes originais de equipamentos passaram](../../evidencias/mfa-equipment-original25-2026-11-05.json), com MFA real nas duas fixtures administrativas e produto idêntico. Os dois envelopes propostos estão no candidato, com ACL15, rechecagem final e ANY sem freshness preservados. O desenho inicial abaixo fica como histórico; gateway e heartbeat continuam pendentes. Não houve ativação no runtime da main.
 
 Registro do desenho inicial de 05/11/2026: na ocasião era **análise estática,
 sem autoria ou execução**. Fonte consultada: composição preparada original17

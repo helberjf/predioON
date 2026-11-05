@@ -1,0 +1,75 @@
+{
+  "recordedOn": "2026-11-05",
+  "status": "EQUIPMENT_ORIGINAL25_CANDIDATE_CANONICAL_SOURCE_RESTORE_PASSED",
+  "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+  "inputInventorySha256": "375ad5d662fdfc9a2e38427330a63d15e336a5946b50f3660f1ef893f0c51008",
+  "testedPreparedSha256": "f2d3055b792c5db6ba5bac5bd699574a064b74d2a3a78b91f1cf1f6d0caeef38",
+  "all1016RestoredFilesMatchTestedComposition": true,
+  "baseFiles": 994,
+  "canonicalBaseGitObjectsVerified": 994,
+  "inventoryPayloads": 63,
+  "candidateRuntimeAndTests": 59,
+  "explicitRendererTests": 2,
+  "alreadyPublishedQueryPayloads": 2,
+  "qaSupportFiles": 5,
+  "manifestCandidateFiles": 61,
+  "manifestSha256": "73c95cb8537fa3c1b49bf7bbc4de9c78e433f6a8fa8c9becbfc64fad7543507b",
+  "receiptSha256": "3967dd0d7a678af80d308eb744fb80be297645c1623d017d09892cb54078c999",
+  "receipt": {
+    "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+    "sourceHeadBefore": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+    "canonicalBaseFiles": 994,
+    "candidateFiles": 61,
+    "qaSupportFiles": 5,
+    "status": "SOURCE_ONLY_NOT_TESTED_NOT_APPLIED",
+    "dependenciesInstalled": false,
+    "migrationsApplied": false,
+    "databaseStarted": false
+  },
+  "original25EvidenceSha256": "27a3321636fd7eb803197cf79d6be272eeb4c6b39b93fc299dd23bc376c59d63",
+  "comparison": "The canonical994 Git blobs plus61 candidate overlays produce exactly the tested1016 composed files, with no extra files except5 renderer support files and the restore receipt. All source/support/payload/package hashes were compared independently; historical raw sourceFreeze EOL differences are not used as canonical input.",
+  "limits": [
+    "Source restore only: builder/restorer did not install dependencies, start services, apply migrations or execute tests.",
+    "Original equipment25 passed on the exact compositionf2d. Product bytes match preceding80-test composition7b53; only the equipment fixture differs and80 tests were not rerun.",
+    "Renderer staging, gateway/heartbeat, other MFA domains, integrated browser/native and production remain outside this proof.",
+    "README/status metadata and inventory pending notes are updated after verification without changing source payloads; inputInventorySha256 and package README hashes describe the inputs at build time."
+  ],
+  "computerRestarted": false,
+  "productionAccepted": false,
+  "builder": {
+    "timedOut": false,
+    "durationMs": 3464.9256,
+    "phase": "builder",
+    "ownedPid": 35728,
+    "exitCode": 0,
+    "childExitedAt": "2026-11-05T07:47:55.8040734Z",
+    "guard": {
+      "minimumMiB": 1536,
+      "freeMiB": 2780.0,
+      "at": "2026-11-05T07:47:52.2461448Z",
+      "phase": "builder"
+    },
+    "heapMiB": 128,
+    "resultSha256": "2c69ac5fa9796a5eda90593ea7c78695d90b3fc7a24948cf01ca2d198edeefbf",
+    "stdoutSha256": "c07b26da83c3489f7e4f11de9488073575dd444d667159c34043deb59b7aa8e8",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "restore": {
+    "timedOut": false,
+    "durationMs": 3186.7571,
+    "phase": "restore",
+    "ownedPid": 44508,
+    "exitCode": 0,
+    "childExitedAt": "2026-11-05T07:47:59.2498500Z",
+    "guard": {
+      "minimumMiB": 1536,
+      "freeMiB": 2755.0,
+      "at": "2026-11-05T07:47:56.0589393Z",
+      "phase": "restore"
+    },
+    "heapMiB": 128,
+    "resultSha256": "301250d8c5271e103ee04dd23b914efa47446e55d1ba5b6aa53d44e62909409d",
+    "stdoutSha256": "5d235f6a30170e2aa45149c03b8e7aaf4b605e3f66b3f1e798763b632bc34c5a",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

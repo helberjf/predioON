@@ -1,0 +1,304 @@
+{
+  "version": 1,
+  "status": "OBSERVED_AND_REVIEWED",
+  "date": "2026-11-05",
+  "scope": "Regressão original25 de equipamentos com adaptação exclusiva de duas fixtures MFA; produto idêntico entre baseline e corrigida.",
+  "sources": {
+    "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+    "sourceFiles": 994,
+    "composedFiles": 1016,
+    "priorPreparedSha256": "7b53ab4e47a4bf7f2fc480d2ce2f9f6a013c206da10367a895bab35c2894dbfb",
+    "baselinePreparedSha256": "0ef040a80c99e23a38270f69322b686a4657d9bdf7943c37e06228bbd357969e",
+    "fixedPreparedSha256": "f2d3055b792c5db6ba5bac5bd699574a064b74d2a3a78b91f1cf1f6d0caeef38",
+    "onlyChangedPath": "apps/api/test/equipment-events-capabilities.test.ts",
+    "testBeforeSha256": "b42e2af946b3dc6886bb5923a0627a8b026aa5cd39b4245b52fd4fcdabf3beb7",
+    "testAfterSha256": "adca4cd46d2c9b4e0d2855cc60fcfb28572f67d3d5bffd100d9021a5ae795239",
+    "productSourceUnchanged": true,
+    "overlayManifestSha256": "8508172d9e8aa79bf72365e3849f5234dfc1533cfbe5ba9112d43d7d57e229e4",
+    "harnessHandoffSha256": "0dc39f990047df91c0a3f14a04bee313af63d46e63bf3351aedb83cef71ecd37",
+    "sourcePinSha256": "3229f7e5df9c2b75f7efd40fe0e793fd3a7de74ae3e57d641a7775531b47cba3",
+    "typeConfigSha256": "ec6d3181183cb862cc6e4fdc56f16e807904b2b729b20ed9034708829fef3c30",
+    "sqlSha256": "7838dcbc01d9bdf741f293e1afe1645dd0daff546760197c991e2b2ddb7f61bb",
+    "equipmentProjectorSha256": "34a7275d9fdcaac7ce787e8451c51a43c1c65f26acf4015da077c853e8730d5d"
+  },
+  "gates": {
+    "typesExitCode": 0,
+    "originalEquipmentTestsPassed": 25,
+    "failures": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "cleanupPass": true,
+    "sourceBeforeAfterPass": true,
+    "productSourceUnchanged": true
+  },
+  "gatesScope": "Somente a execução corrigida original25, seus tipos, limpeza e fontes. Baseline23PASS/2FAIL e as80 provas anteriores são registros separados.",
+  "types": [
+    {
+      "variant": "baseline",
+      "phase": "resolve",
+      "preparedSha256": "0ef040a80c99e23a38270f69322b686a4657d9bdf7943c37e06228bbd357969e",
+      "exitCode": 0,
+      "passed": true,
+      "durationMs": 1645,
+      "before": {
+        "source": true,
+        "candidate": true,
+        "config": true,
+        "prepared": true,
+        "junctions": true
+      },
+      "after": {
+        "source": true,
+        "candidate": true,
+        "config": true,
+        "prepared": true,
+        "junctions": true
+      },
+      "resolved": {
+        "requiredSourcesListed": true,
+        "allTestsListed": true,
+        "originalWorkspacePaths": []
+      },
+      "resultSha256": "d1a25d7bc46a979457e683f5acb73898ce2345f360e10c465f3363a43dadae19",
+      "commandSha256": "4f9e3520db096c604244ec14f1a2b59dab277a6f47b58814c4a808198eee52cb",
+      "stdoutSha256": "789c6609b1296624037e6f08ebb49cef2c6b61ff36a4c484c26be9217afbf306",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "variant": "baseline",
+      "phase": "types",
+      "preparedSha256": "0ef040a80c99e23a38270f69322b686a4657d9bdf7943c37e06228bbd357969e",
+      "exitCode": 0,
+      "passed": true,
+      "durationMs": 8134,
+      "before": {
+        "source": true,
+        "candidate": true,
+        "config": true,
+        "prepared": true,
+        "junctions": true
+      },
+      "after": {
+        "source": true,
+        "candidate": true,
+        "config": true,
+        "prepared": true,
+        "junctions": true
+      },
+      "resolved": null,
+      "resultSha256": "64c53b69f14a08e7c2ec7bfbdc1b5cb7cb2e5498f4e4fd3b040ed62d772d2168",
+      "commandSha256": "66f10e8ab88acc3e61eebdda6d458123618447d7dcef6999fd8a758041d12fb4",
+      "stdoutSha256": "bf6c7c45963fb7df21de75d8f6584ffe93162cd6cabdaf106d0e063ae065db0b",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "variant": "fixed",
+      "phase": "resolve",
+      "preparedSha256": "f2d3055b792c5db6ba5bac5bd699574a064b74d2a3a78b91f1cf1f6d0caeef38",
+      "exitCode": 0,
+      "passed": true,
+      "durationMs": 1122,
+      "before": {
+        "source": true,
+        "candidate": true,
+        "config": true,
+        "prepared": true,
+        "junctions": true
+      },
+      "after": {
+        "source": true,
+        "candidate": true,
+        "config": true,
+        "prepared": true,
+        "junctions": true
+      },
+      "resolved": {
+        "requiredSourcesListed": true,
+        "allTestsListed": true,
+        "originalWorkspacePaths": []
+      },
+      "resultSha256": "f65db08dec5926ad51946ee673c4c0b4a07fc90396f5df16dd88ed52cf8ab66b",
+      "commandSha256": "d43f85a354374c417285f7444daba2e5b350183ee5027a37b5f82ec55ff4417b",
+      "stdoutSha256": "72f372065ea827ee23a48368ee7ca60b61f38f72cddc0cf3fc6c1949ea4f5a11",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "variant": "fixed",
+      "phase": "types",
+      "preparedSha256": "f2d3055b792c5db6ba5bac5bd699574a064b74d2a3a78b91f1cf1f6d0caeef38",
+      "exitCode": 0,
+      "passed": true,
+      "durationMs": 7755,
+      "before": {
+        "source": true,
+        "candidate": true,
+        "config": true,
+        "prepared": true,
+        "junctions": true
+      },
+      "after": {
+        "source": true,
+        "candidate": true,
+        "config": true,
+        "prepared": true,
+        "junctions": true
+      },
+      "resolved": null,
+      "resultSha256": "6574ee94e5ef246289c0c13e9583f51af7cd2123a802b4d1d5cdc2aafc9221ed",
+      "commandSha256": "48d7c12b58f0ffd6c66e6ea51e94c4caf7cd21680e3ce3ecab1e2beb6f3481a0",
+      "stdoutSha256": "faa31bb0f90e874e60e14bfa221c7764945e76fe9af353de2633eeeb251e9416",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "runs": {
+    "baseline": {
+      "preparedSha256": "0ef040a80c99e23a38270f69322b686a4657d9bdf7943c37e06228bbd357969e",
+      "startedUtc": "2026-11-05T07:30:21.721Z",
+      "endedUtc": "2026-11-05T07:31:46.656Z",
+      "observedHeadBefore": "0d7706b29afade37c45db5e6acaf0091a3f7ec99",
+      "observedHeadAfter": "0d7706b29afade37c45db5e6acaf0091a3f7ec99",
+      "process": {
+        "label": "equipment-events-capabilities",
+        "pid": 46168,
+        "exitCode": 1,
+        "signal": null,
+        "spawnError": false,
+        "timedOut": false,
+        "overflow": false,
+        "treeKillFailed": false,
+        "exitObserved": true,
+        "drainTimedOut": false,
+        "maxHeartbeatGapMs": 5022.7096,
+        "elapsedMs": 77133.0509,
+        "logSha256": "2283ef18a5e011c1d3c77beef833de778c3f7f455520cad95d1a711db3bb9b49"
+      },
+      "tap": {
+        "tests": 25,
+        "suites": 1,
+        "pass": 23,
+        "fail": 2,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 76947.3919
+      },
+      "fixtureCleanupPassed": true,
+      "sourceHashesAfterMatch": true,
+      "postchecks": {
+        "exitCode": 0,
+        "systemIdentifierMatches": true,
+        "basePublicTables": 0,
+        "temporaryDatabases": 0,
+        "otherDatabases": 0,
+        "rolesRestoredIncludingPrivateCredentials": true,
+        "settingsRestored": true,
+        "roles": 6,
+        "otherClients": 0,
+        "containerAttestationMatches": true,
+        "freeMiBAtStart": 2523.0,
+        "computerRestarted": false,
+        "credentialsPublished": false
+      },
+      "resultSha256": "7b62253c9805b4f20e639103fcff6e8cd722de32136366075a477a6b60e11357",
+      "postchecksSha256": "412657b1eb2ff66efc00d1a1ddea9c7a023a285badc7328b56f86509623f4f78",
+      "eventsSha256": "cde6835a979f2fa5ebd7b4afdf8ff505022d836e695a1df40a206438ecdea9c0"
+    },
+    "fixed": {
+      "preparedSha256": "f2d3055b792c5db6ba5bac5bd699574a064b74d2a3a78b91f1cf1f6d0caeef38",
+      "startedUtc": "2026-11-05T07:33:38.309Z",
+      "endedUtc": "2026-11-05T07:35:07.208Z",
+      "observedHeadBefore": "0d7706b29afade37c45db5e6acaf0091a3f7ec99",
+      "observedHeadAfter": "0d7706b29afade37c45db5e6acaf0091a3f7ec99",
+      "process": {
+        "label": "equipment-events-capabilities",
+        "pid": 43448,
+        "exitCode": 0,
+        "signal": null,
+        "spawnError": false,
+        "timedOut": false,
+        "overflow": false,
+        "treeKillFailed": false,
+        "exitObserved": true,
+        "drainTimedOut": false,
+        "maxHeartbeatGapMs": 5015.7091,
+        "elapsedMs": 81434.4355,
+        "logSha256": "bb014506436482a064c5c94391c99ea7989b26f1584db9368f682ee3b915365a"
+      },
+      "tap": {
+        "tests": 25,
+        "suites": 1,
+        "pass": 25,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 80785.5818
+      },
+      "fixtureCleanupPassed": true,
+      "sourceHashesAfterMatch": true,
+      "postchecks": {
+        "exitCode": 0,
+        "systemIdentifierMatches": true,
+        "basePublicTables": 0,
+        "temporaryDatabases": 0,
+        "otherDatabases": 0,
+        "rolesRestoredIncludingPrivateCredentials": true,
+        "settingsRestored": true,
+        "roles": 6,
+        "otherClients": 0,
+        "containerAttestationMatches": true,
+        "freeMiBAtStart": 2743.0,
+        "computerRestarted": false,
+        "credentialsPublished": false
+      },
+      "resultSha256": "f3109fec2ffaa60abac77441597aeaec74ea610b8bf18c3ff8eb5e127eb97c3d",
+      "postchecksSha256": "0ae6e52c2a267a97851f5bf7afab54bf6d94f8bd3d60e6ad668107e5a7bc5429",
+      "eventsSha256": "3a9190b481a2dda8db3a0be68d48331bffe780da9262ecaddd3b20b449e27e5f"
+    }
+  },
+  "classification": {
+    "baseline": "Casos5 e18 receberam HTTP403 contra200 esperado; as respostas não tiveram corpo/reason decodificado no log. A atribuição à fixture MFA incompleta é uma inferência do código e do delta exclusivo de preparo administrativo, não um reason observado. Não é uma reprodução de vulnerabilidade.",
+    "fixed": "Somente f.platform e f.flag nos casos5 e18 completam HTTPenroll/TOTPconfirm com10 códigos e /me satisfied no mesmo bearer/sid antes das observações. Os25 casos passam; os23 outros corpos, assertivas e prazos originais permanecem intactos."
+  },
+  "actualPlans": {
+    "retained": true,
+    "scope": "Caso25 original: classificação legada app_equipment_device_classification e RLS das tabelas de features; não é EXPLAIN do novo wrapper app_mfa_device_event_context.",
+    "arrangement": "A conexão autenticada como owner carrega auto_explain e então SET LOCAL ROLE predioon_app + app.user_id para executar as consultas medidas sob RLS. O processo de teste possui credencial owner para arranjo e instrumentação; pools runtime permanecem restritos. Não se afirma autenticação restrita em todas as conexões do teste.",
+    "artifacts": {
+      "baseline": {
+        "path": "work/mfa-equipment-original25-baseline-qa-20261105/source/.local/022-equipment-actual-plans.json",
+        "sha256": "3a44d63fa5a8f0d84b6ac976195a143df0649620ee12f28b2c426f2faedb4f0a",
+        "bytes": 1739,
+        "entries": 5,
+        "purposes": {
+          "classification": 1,
+          "equipment-scope": 2,
+          "feature-state": 2
+        },
+        "historyScans": 0
+      },
+      "fixed": {
+        "path": "work/mfa-equipment-original25-fixed-qa-20261105/source/.local/022-equipment-actual-plans.json",
+        "sha256": "3a44d63fa5a8f0d84b6ac976195a143df0649620ee12f28b2c426f2faedb4f0a",
+        "bytes": 1739,
+        "entries": 5,
+        "purposes": {
+          "classification": 1,
+          "equipment-scope": 2,
+          "feature-state": 2
+        },
+        "historyScans": 0
+      }
+    }
+  },
+  "limits": [
+    "Os80 casos dirigidos e de regressão da rodada device anterior são históricos na fonte7b53; não foram reexecutados nesta rodada original25.",
+    "Não houve alteração de SQL/API, relaxamento de políticas, skip, seleção parcial dos25 casos ou ampliação de deadline.",
+    "O teste original de expiração mantém50ms, pg_sleep(0.1) e duas consultas; os streams preservam20s.",
+    "A fixture usa TOTP HTTP real para suas contas administrativas. Não prova aparelhos, navegador, layout, fluxo integrado ou autorização MFA global de todos os domínios.",
+    "Os planos naturais retidos exercem classificação/RLS legadas e não demonstram custo ou plano dos novos envelopes.",
+    "A migração068 e a integração MFA permanecem candidatas, sem rollout no banco principal nem aceite de produção."
+  ],
+  "credentialsPublished": false
+}

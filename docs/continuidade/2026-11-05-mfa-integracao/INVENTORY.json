@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "status": "CANONICAL_DEVICE_EVENTS_VALIDATED_RESTORED_CANDIDATE",
+  "status": "CANONICAL_EQUIPMENT_ORIGINAL25_FIXTURE_VALIDATED_RESTORED_CANDIDATE",
   "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
   "plannedBase": "Approved published source base53c4c70; current documentation may be newer.",
   "sourceBaseline": "2676a74216b012dcab6fa2fb9735dc1b6ef8e9d8",
@@ -686,10 +686,21 @@
       "bytes": 29154,
       "component": "device-events-mfa",
       "kind": "database-test"
+    },
+    {
+      "path": "apps/api/test/equipment-events-capabilities.test.ts",
+      "payload": "payload/runtime/apps/api/test/equipment-events-capabilities.test.ts.txt",
+      "beforeSha256": "b42e2af946b3dc6886bb5923a0627a8b026aa5cd39b4245b52fd4fcdabf3beb7",
+      "beforeGitSha256": "b42e2af946b3dc6886bb5923a0627a8b026aa5cd39b4245b52fd4fcdabf3beb7",
+      "beforeGitObject": "b75f7969b9fd364d5c8143b923a4bcf74040a3d4",
+      "afterSha256": "adca4cd46d2c9b4e0d2855cc60fcfb28572f67d3d5bffd100d9021a5ae795239",
+      "bytes": 42018,
+      "component": "equipment-original25-mfa-fixture",
+      "kind": "database-test"
     }
   ],
   "pending": [
-    "Original equipment25 fixture adaptation is excluded and not yet accepted. Complete gateway/heartbeat coordination, other SQL/SD/SSE/no-match mutations and integrated regressions before rollout.",
+    "Complete gateway projectors, heartbeat coordination, other SQL/SD/SSE/no-match mutations, locks/triggers and integrated regressions; original equipment25 is a new fixture-scoped run, not a rerun of historical80.",
     "Renderer staging recipe remains authored and not executed; do not transfer its earlier separate harness PASS."
   ],
   "excluded": [
@@ -752,5 +763,12 @@
     "sourceManifestSha256": "7b53ab4e47a4bf7f2fc480d2ce2f9f6a013c206da10367a895bab35c2894dbfb",
     "scope": "Device-status SSE9 plus seven separate regression files71; original equipment25 excluded; no global rollout",
     "restorationEvidence": "../../evidencias/mfa-device-restore-2026-11-05.json"
+  },
+  "equipmentOriginal25Validation": {
+    "evidence": "../../evidencias/mfa-equipment-original25-2026-11-05.json",
+    "evidenceSha256": "27a3321636fd7eb803197cf79d6be272eeb4c6b39b93fc299dd23bc376c59d63",
+    "sourceManifestSha256": "f2d3055b792c5db6ba5bac5bd699574a064b74d2a3a78b91f1cf1f6d0caeef38",
+    "scope": "Original equipment25 with explicit MFA fixture adaptation; product unchanged; historical80 not rerun",
+    "restorationEvidence": "../../evidencias/mfa-equipment-original25-restore-2026-11-05.json"
   }
 }

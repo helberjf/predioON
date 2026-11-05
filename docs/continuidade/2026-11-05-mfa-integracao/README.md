@@ -1,37 +1,41 @@
 # Retomada MFA - checkpoint candidato atualizado em 05/11/2026
 
-**Status de dispositivos: nove testes dirigidos e 71 regressões passaram.**
+**Os 25 testes originais de equipamentos passaram com preparo MFA explícito.**
 A base canônica continua `53c4c70dcd24f1045fad420fbce36757fd3753a2`; a composição
-atual possui **1.016 arquivos e cinco suportes**. As sete regressões são processos
-separados, na mesma fonte candidata; não constituem a API integral.
-[Prova específica](../../evidencias/mfa-device-events-2026-11-05.json).
+atual conserva **1.016 arquivos e cinco suportes**. Nesta rodada muda somente a
+fixture de equipamentos. SQL e código do produto são byte a byte iguais entre
+as duas variantes. [Prova específica](../../evidencias/mfa-equipment-original25-2026-11-05.json).
 
-A [montagem/restauração passou](../../evidencias/mfa-device-restore-2026-11-05.json),
-com todos os 1.016 arquivos e cinco suportes conferidos. A política
-MFA permanece candidata, sem ativação no runtime da main. A composição anterior
-com os 17 testes originais de alertas conserva sua
-[prova](../../evidencias/mfa-alert-original17-2026-11-05.json) e sua
-[restauração](../../evidencias/mfa-alert-original17-restore-2026-11-05.json).
+A [montagem/restauração passou](../../evidencias/mfa-equipment-original25-restore-2026-11-05.json),
+com os 1.016 arquivos e cinco suportes idênticos à composição testada. A [restauração anterior de dispositivos](../../evidencias/mfa-device-restore-2026-11-05.json)
+permanece histórica: não prova automaticamente os bytes da fixture alterada.
+A política MFA continua candidata, sem ativação no runtime da main.
 
 ## Conteúdo recuperável
 
-O inventário tem **62 payloads**. Dois são helper/teste de
+O inventário tem **63 payloads**. Dois são helper/teste de
 query já publicados e serão excluídos do delta pelos hashes exatos. O pacote
-contém **58 arquivos de implementação/testes candidatos**, dois testes explícitos
+contém **59 arquivos de implementação/testes candidatos**, dois testes explícitos
 de renderer e cinco suportes do renderer. O transporte publicado também é
 dependência da base; não reaplicá-lo.
 
-A rodada altera a SQL068 candidata e o projector de dispositivos, além de
-acrescentar `platform-mfa-device-events.test.ts`. Os envelopes
+A rodada atual acrescenta ao delta somente a fixture
+`apps/api/test/equipment-events-capabilities.test.ts`, que já existe na base:
+o número de caminhos compostos permanece 1.016. Não inclui alterações de
+heartbeat, matriz de apresentação ou scripts de abertura.
+
+A rodada anterior alterou a SQL068 candidata e o projector de dispositivos,
+além de acrescentar `platform-mfa-device-events.test.ts`. Os envelopes
 `app_mfa_device_event_context(text,text)` e `app_mfa_device_event_allowed(text,text)`
 protegem contexto e autoridade final em statements separados. Mantêm status
 persistido, classificação, ANY das funcionalidades sem freshness, inventário
 desabilitado e a atualização da autoridade de suporte. A ACL tem 15 assinaturas,
 sem novos grants de tabelas. Gateway e heartbeat não mudaram.
 
-A adaptação MFA dos 25 testes originais de equipamentos está separada e ainda
-não integra este checkpoint. A fixture original de alertas permanece `7f240d2d…`,
-a de telemetria `e7431620…`; ambas foram reexecutadas entre as sete regressões.
+A fixture atual de equipamentos é `adca4cd4…`, antes `b42e2af9…`.
+A fixture original de alertas permanece `7f240d2d…`, a de telemetria
+`e7431620…`; ambas foram reexecutadas entre as sete regressões da rodada
+anterior de dispositivos. Não foram reexecutadas nesta rodada original25.
 
 O [checkpoint separado de desativação](../2026-11-05-mfa-disable/README.md)
 conserva seu antes/depois histórico; não reaplicar esse patch. O complemento SQL
@@ -74,7 +78,51 @@ processos desconhecidos ou reiniciar computador, Docker ou WSL. Os comandos de
 restauração não instalam dependências, executam testes, iniciam serviços ou
 aplicam migrations.
 
-## Rodada atual: dispositivos e regressões
+## Rodada atual: 25 originais de equipamentos
+
+A fixture anterior teve **23 PASS e 2 FAIL**, em **76,947 s de TAP**. Nos casos
+5 e 18, o helper de stream recebeu HTTP 403 onde esperava 200. O log não
+registrou o corpo ou `reason` dessas respostas: não se afirma que um código
+MFA específico tenha sido observado. A preparação MFA incompleta é a
+interpretação do código e do delta exclusivo de fixture, não uma evidência
+de vazamento ou de regressão da política.
+
+A fixture corrigida completa cadastro do fator, confirmação TOTP, recebimento
+de dez códigos de recuperação e `/auth/me` como `satisfied`, somente para
+`f.platform` e `f.flag` nos casos 5 e 18. Preserva bearer e família originais.
+Os outros 23 corpos de teste, as assertivas e os prazos permanecem idênticos.
+O caso original de expiração conserva 50 ms, `pg_sleep(0.1)` e duas consultas;
+os streams conservam 20 s.
+
+A versão corrigida passou **25/25 em 80,786 s de TAP**, sem falhas,
+cancelamentos, skips ou todo. Resolução/tipos do único arquivo e seus imports
+passaram nas duas variantes: **1,645/8,134 s** na anterior e **1,122/7,755 s**
+na corrigida. Isso não constitui novo typecheck de todos os workspaces.
+Fontes antes/depois e cleanup passaram, com seis roles, credenciais privadas e
+configurações restauradas, zero bases temporárias e zero outros clientes.
+Não se publicam valores privados.
+
+Os 1.016 caminhos das duas composições diferem somente na fixture. O código do
+produto é idêntico ao da rodada anterior de dispositivos. Seus 80 casos são
+históricos na fonte `7b53…`; não foram reexecutados ou somados a esta rodada
+como se fossem uma integral. A execução corrigida original25 usa `f2d3055b…`.
+
+O caso 25 preservou os planos naturais de classificação e RLS das tabelas de
+funcionalidades: cinco entradas, uma classificação, duas consultas de estados
+e duas verificações internas de escopo, sem varredura de históricos de
+telemetria/alertas. Os dois artefatos têm 1.739 bytes e SHA-256
+`3a44d63fa5a8f0d84b6ac976195a143df0649620ee12f28b2c426f2faedb4f0a`.
+A instrumentação autentica como owner para carregar `auto_explain` e usa
+`SET LOCAL ROLE predioon_app` e `app.user_id` nas consultas medidas sob RLS.
+O teste conhece owner para arranjo/instrumentação; os pools de runtime usam
+roles restritas. Os planos são do caminho legado de classificação/features,
+não do novo envelope, e não demonstram um benchmark do novo wrapper.
+
+A prova cobre este arquivo com fixture oficial isolada e cerimônias TOTP das
+contas indicadas. Não constitui aceite de navegador, aparelho, produção ou
+obrigação MFA completa de todos os domínios.
+
+## Rodada anterior: dispositivos e regressões
 
 O comparador anterior teve **2 PASS e 7 FAIL** em 4,685 s de TAP. Um caso mostrou
 o frame real com DTO persistido de quatro campos depois da promoção: a conexão
@@ -196,13 +244,16 @@ releitura de amostra nem ID único da observação persistida. Não atribuir ao 
 envelope de alertas uma mudança desse protocolo de telemetria.
 
 A observação SQL não estabelece linearização com promoções posteriores ao
-snapshot ou escrita na rede. Equipamentos, heartbeat/headers iniciais, outros
-callers HTTP/SD, mutações sem correspondência, funções VOLATILE e expiração
-após locks continuam pendentes, assim como a regressão integrada. Não houve novo aceite de navegador, aparelhos ou produção.
+snapshot ou escrita na rede. Gateway, heartbeat/headers iniciais, outros callers
+HTTP/SD, mutações sem correspondência, funções VOLATILE e expiração após locks
+continuam pendentes, assim como a regressão integrada. Não houve novo aceite
+de navegador, aparelhos ou produção.
 
-O próximo recorte proposto e [device-status e coordenação do SSE](../../superpowers/plans/2026-11-05-mfa-equipment-events.md).
-O desenho preserva o recheck de autoridade após expirar suporte e o ANY de
-funcionalidades sem freshness; não representa implementacao de equipamentos.
+O [plano de equipamentos e coordenação do SSE](../../superpowers/plans/2026-11-05-mfa-equipment-events.md)
+conserva os próximos recortes de gateway e heartbeat. Device-status já está
+nesta fonte candidata, com o recheck final de autoridade após expirar suporte
+e o ANY de funcionalidades sem freshness preservados. Isso não encerra os
+demais projectors ou a coordenação concorrente do stream.
 
 ## Bytes canônicos e receita renderer
 
