@@ -1,385 +1,95 @@
-# Prédio ON — gestão condominial e monitoramento IoT
+# Prédio ON — Property Operations and IoT Monitoring
 
-Plataforma para monitoramento e operação de condomínios, casas e imóveis comerciais. Reúne API, ingestão MQTT, worker de notificações, PostgreSQL/TimescaleDB, apps Morador/Operação e três interfaces web: **administrador da plataforma**, **síndico** e **morador**.
+A modular platform that connects property telemetry with daily condominium operations. It combines an Express API, MQTT ingestion, durable notification delivery, PostgreSQL/TimescaleDB, three web portals and resident/operations mobile apps.
 
-Para retomar o desenvolvimento nesta ou em outra máquina, leia [CONTINUIDADE.md](docs/CONTINUIDADE.md): estado atual, entregas verificadas, falhas abertas, próximos passos e recuperação dos rascunhos preservados. O plano de evolução ainda está em execução.
+**Start with:** [visual gallery](docs/IMAGENS_DOS_SISTEMAS.md) · [demonstration videos](docs/videos/README.md) · [product requirements](docs/PRD.md) · [technical design](docs/TDD.md) · [current delivery record](docs/CONTINUIDADE.md).
 
-As [imagens reais de Android, iOS e web](docs/IMAGENS_DOS_SISTEMAS.md) acompanham o clone, com commit de origem e hashes. A galeria HTML permite filtrar e ampliar as capturas.
+## Product walkthrough
 
-Para uma instalação real, comece pelo [manual de implantação e operação](docs/IMPLANTACAO_CONDOMINIO.md). Para executar a demonstração local, siga a seção [Instalação local](#instalação-local).
+1. A gateway or simulator publishes telemetry such as tank level, electrical readings, pump state or environmental signals.
+2. Ingestion validates and stores the readings, evaluates configured rules and records alert-delivery work.
+3. A manager investigates alerts, acknowledges issues and handles notices, reservations, maintenance and resident requests.
+4. Residents see the information and actions granted to their account, including published notices, their own requests, reservations and authorized access operations.
 
-O escopo do produto está no [PRD](docs/PRD.md) e o desenho técnico no [TDD](docs/TDD.md). A [arquitetura de produto aprovada em 27/09/2026](docs/superpowers/specs/2026-09-27-arquitetura-produto-design.md) define a evolução para quatro produtos — aplicativos **Morador** e **Operação** em React Native sem Expo, painel web do síndico e painel web administrativo — sobre a mesma plataforma modular e banco central. O andamento por etapa fica no [tracker de execução](docs/superpowers/plans/2026-09-27-product-execution.md). Este README descreve o que já está commitado nesta linha de código; ver [Evolução em andamento](#evolução-em-andamento).
+The broader platform also covers parking availability, financial transparency, assets, work orders and recorded remote-support requests. Visibility and permitted operations depend on property configuration and capabilities.
 
-## Funcionalidades
-
-| Área | Recursos implementados |
-|---|---|
-| Monitoramento | Nível, volume e distância da caixa d'água; tensão, corrente e frequência das fases; estado da bomba; temperatura, gás, fumaça e vazamentos de água/esgoto. |
-| Consumo e análise | Consumo de água e energia, custo estimado por tarifa, tempo diário/contínuo de bomba, limites e análise estatística baseada no histórico válido. |
-| Alertas | Regras configuráveis, histórico, reconhecimento e acompanhamento de equipamentos sem comunicação. |
-| Entrega de alertas | Outbox atômica e worker restrito de webhook, recuperação por lease e chave de idempotência estável; [contrato, implantação e limites](docs/NOTIFICACOES_DURAVEIS.md). |
-| Portões e acessos | Cadastro de garagem e entrada de pedestres, permissões, solicitação de abertura, comando MQTT, confirmação do controlador e auditoria. |
-| Vagas | Capacidade, ocupação e disponibilidade separadas para carros e motos, com atualização manual ou por sensor e indicação de leitura antiga/desconhecida. |
-| Rotina | Avisos com programação e repetição semanal, reservas de áreas comuns, aprovação e tratamento de conflitos de horário. |
-| Ocorrências | Chamados de síndicos e moradores, três níveis de gravidade, respostas, histórico e agrupamento de problemas repetidos. |
-| Transparência e contas | Atualizações da gestão e relatórios financeiros mensais com receitas, despesas, saldo, comprovantes por link e revisões publicadas. |
-| Suporte remoto | Cadastro do computador do condomínio, preparação do acesso pelo AnyDesk e registro manual do resultado do atendimento. |
-| Acesso de suporte | A plataforma mantém sua equipe de suporte e concede a uma pessoa, por até 7 dias e com motivo, a leitura de sensores, alertas, equipamentos, ordens atribuídas ou concessões de um condomínio. Revogação imediata, histórico preservado e consulta pelo síndico. |
-| Ordens de serviço e ativos | Ordens com distribuição para equipes, execução, anotações e conclusão (web e app Operação); cadastro de ativos do condomínio ligado às ordens. |
-| Automações | Abrir ordens de serviço automaticamente quando chega um alerta ou **em datas programadas** (manutenção preventiva), com versões, simulação e histórico; nada aciona equipamentos. [Detalhes](docs/AUTOMACOES.md). |
-| Identidade e segurança | Cookies HttpOnly com CSRF na web, verificação em duas etapas (TOTP), convites de moradores, recuperação de senha por e-mail, confirmação recente da senha para ações privilegiadas e RBAC por capacidade com RLS em todo o banco. [Autenticação](docs/AUTENTICACAO.md) · [Autorização](docs/AUTORIZACAO.md). |
-| Operação da plataforma | Saúde dos serviços (leituras recebidas, fila de avisos, comandos, tarefas agendadas, tamanho do banco), healthcheck em todos os serviços de produção, retenção opcional das leituras e auditoria. |
-| Apps Morador e Operação | React Native para Android e iOS: avisos, solicitações, reservas, transparência, acessos, consumo, aceite de convite; resumo, alertas, sensores e ordens de serviço. |
-| Controle de funcionalidades | 23 recursos ativados ou desativados globalmente e por condomínio, com justificativa, dependências e auditoria. |
-
-A disponibilidade nos portais segue as permissões do usuário e os controles de funcionalidades. Ao pausar um sensor, novas leituras correspondentes são descartadas, seu processamento e seus alertas ficam suspensos e o histórico é preservado. A comunicação dos gateways continua ativa. Consulte os efeitos e o procedimento de retomada em [Funcionalidades](docs/FUNCIONALIDADES.md).
-
-A [matriz de funcionalidades e validações](docs/REVISAO_FUNCIONALIDADES.md) registra o escopo implementado e as verificações anteriores. A integração física depende da configuração e dos testes dos equipamentos instalados. Disjuntor/extintor permanece fora do escopo.
-
-## Painéis e serviços locais
-
-| Serviço | Endereço | Finalidade |
-|---|---|---|
-| Administrador da plataforma | [localhost:5173](http://localhost:5173) | Clientes, condomínios, comunicação, equipamentos, operação dos imóveis, suporte remoto, acesso de suporte, alertas, usuários, funcionalidades e histórico de atividades. |
-| Painel do síndico | [localhost:5174](http://localhost:5174) | Água, energia, consumo, sensores, acessos, vagas, alertas, ocorrências, transparência, contas, avisos, áreas comuns e acessos de suporte concedidos ao condomínio. |
-| Portal do morador | [localhost:5175](http://localhost:5175) | Consultas autorizadas, avisos, reservas, ocorrências, transparência, contas e abertura de acessos quando permitida. |
-| API | [localhost:3000](http://localhost:3000) | Backend Express. |
-| Saúde da API | [localhost:3000/health](http://localhost:3000/health) | Confirma que a API responde. |
-| Prontidão da API | [localhost:3000/health/ready](http://localhost:3000/health/ready) | Confirma também a conexão com o banco. |
-| EMQX Dashboard | [localhost:18083](http://localhost:18083) | Administração do broker MQTT. |
-
-No administrador, **Operação dos imóveis** reúne consumo/análise, portões/acessos e vagas para o imóvel selecionado. **Funcionalidades** e **Suporte remoto** têm telas próprias.
-
-Os painéis precisam do servidor Vite; não abra os arquivos `index.html` diretamente.
-
-Sem sessão, a página inicial dos três portais oferece **Login** e **Conheça a plataforma** no celular. No desktop, o formulário continua na entrada, com acesso à apresentação pública em `/conheca`. A versão de gestão apresenta os recursos e a rotina do síndico com base no [material comercial](docs/marketing/APRESENTACAO_COMERCIAL.md); `/login` abre o formulário diretamente em qualquer tamanho de tela.
-
-O morador tem uma apresentação própria em `/conheca`, com visual de celular e foco em avisos, reservas, chamados próprios, contas publicadas, acessos autorizados e consumo quando disponibilizado. A entrada mobile do morador também usa conteúdo próprio e a apresentação oferece acesso por convite. A versão do síndico apresenta monitoramento e gestão.
-
-Para subir a plataforma numa VPS, use os [Dockerfiles, Compose de produção e roteiro de instalação](docs/DEPLOY.md). A [verificação de 24/10](docs/VERIFICACAO_2026-10-24.md) registra os testes e as correções desta entrega.
-
-A [demonstração dos três portais na Vercel com banco Neon](docs/VERCEL_NEON.md) foi publicada e verificada em 25/10. O documento contém os endereços, o perfil de instalação e os limites dos serviços contínuos nesse ambiente.
-
-## Stack e arquitetura
-
-- **API:** Node.js, Express 5 e TypeScript, com módulos por domínio.
-- **Contratos e validação:** Zod compartilhado entre API, ingestão e interfaces.
-- **Banco:** PostgreSQL 16 com TimescaleDB, Drizzle ORM e políticas de acesso por linha (RLS).
-- **IoT:** EMQX e serviço de ingestão Node.js com mqtt.js.
-- **Interfaces:** React 19, Vite 7, Tailwind CSS e componentes compartilhados em `packages/ui`.
-- **Autenticação:** JWT Ed25519, senhas com Argon2, famílias de refresh rotativas e limites persistentes por conta/rede. A [troca da própria senha](docs/TROCA_DE_SENHA.md) confirma a senha atual e encerra todas as sessões da conta atomicamente.
+## Architecture and reading guide
 
 ```text
-Sensores / gateway / simulador
-              ↓ MQTT
-             EMQX
-              ↓
-      Serviço de ingestão
-              ↓
-    PostgreSQL + TimescaleDB
-              ↓
-          API Express
-              ↓
-    Admin · Síndico · Morador
+Sensors / simulator → MQTT / EMQX → ingestion → PostgreSQL + TimescaleDB
+                                              ↕
+                                         Express API
+                                   ↙          ↓          ↘
+                           Admin web   Building web   Resident web/apps
+                                              ↓
+                                  durable outbox → notification worker
 ```
 
-Para abertura de portões, a API registra o pedido, a ingestão publica o comando e o controlador devolve uma confirmação (ACK). O fluxo completo está em [Acessos](docs/ACESSOS.md).
+| Location | Responsibility |
+| --- | --- |
+| [apps/api](apps/api) | Authentication, authorization and domain endpoints. |
+| [services/ingest](services/ingest) | MQTT telemetry, rules, access commands and simulators. |
+| [services/notifications](services/notifications) | Restricted webhook-delivery worker. |
+| [packages/db](packages/db) | Drizzle schema, migrations, restricted roles and RLS context. |
+| [packages/contracts](packages/contracts), [packages/shared](packages/shared), [packages/api-client](packages/api-client) | Shared contracts, validation and authenticated clients. |
+| [packages/mobile](packages/mobile) | Shared React Native UI/session behavior for the resident and operations apps. |
 
-O portal do morador permanece disponível por compatibilidade. Os aplicativos **Morador** e **Operação**, em React Native **sem Expo SDK**, estão em `apps/resident-mobile` e `apps/operations-mobile`, com sessão segura e fluxos conectados à API. Veja [execução, requisitos e limites dos apps](packages/mobile/README.md). Não há aplicativo móvel administrativo da plataforma.
+The web applications use React/Vite; the mobile apps use React Native without the Expo SDK. EAS is an optional build/distribution service, not a change to that application architecture. The resident web portal remains available. There is no platform-administrator mobile app.
 
-Distribuição iOS sem Mac próprio: o **EAS Build** é usado só como serviço de build, assinatura e envio ao TestFlight (perfil `production`) ou ao Appetize.io (perfil `simulator`, sem conta Apple); os apps continuam React Native puro. Num Mac emprestado, [`scripts/ios-mac/verify.sh`](scripts/ios-mac/README.md) confere pré-requisitos, roda os testes, abre os apps no simulador, instala no iPhone por cabo e envia ao TestFlight. Os workflows iOS do GitHub rodam só por disparo manual. Nenhum build iOS assinado foi feito ainda.
+## Local demonstration
 
-## Instalação local
-
-### Pré-requisitos
-
-- Node.js compatível com os apps e ferramentas do monorepo: `^22.13.0`, `^24.3.0` ou `>=26`.
-- pnpm **10.17.1**, conforme `packageManager` no `package.json`.
-- Docker Desktop com o engine ativo e Docker Compose disponível.
-
-Os exemplos abaixo usam PowerShell na raiz do repositório, onde estão este README e o `package.json` principal.
-
-```powershell
-node --version
-docker compose version
-corepack enable
-pnpm --version
-```
-
-Se o Corepack não estiver disponível, instale a versão usada pelo projeto:
-
-```powershell
-npm install -g pnpm@10.17.1
-```
-
-### 1. Instalar dependências e preparar o ambiente
+Use a Node.js version compatible with the monorepo (`^22.13.0`, `^24.3.0` or `>=26`), **pnpm 10.17.1** and Docker Compose. The following commands are for a disposable local demonstration, not an update of a real installation.
 
 ```powershell
 pnpm install --frozen-lockfile
 if (-not (Test-Path .env)) { Copy-Item .env.example .env }
-```
-
-O [`.env.example`](.env.example) contém os valores do Docker Compose local. O comando acima preserva um `.env` existente.
-
-Ao atualizar uma instalação local anterior à 038, acrescente `DATABASE_URL_NOTIFICATIONS` ao `.env` existente conforme o exemplo, com a role `predioon_notifications` no mesmo banco. O provisionamento exige a conexão administrativa e seis URLs restritas: app, identity, broker_auth, notifications e, desde a 052, ingest e access_service. Depois de acrescentá-las ao `.env`, gere `services/ingest/.env.runtime` com `pnpm ingest:env`: a ingestão lê somente esse arquivo e recusa a conexão dona. Encerrar produtores antigos antes de aplicar 038 e iniciar somente a versão compatível; seguir [o guia de notificações](docs/NOTIFICACOES_DURAVEIS.md#implantação-e-rollback). Um destino vazio termina as entregas em `no_destination`; configurar webhook depois não reenvia esses alertas automaticamente.
-
-### 2. Preparar infraestrutura e banco
-
-Com o Docker Desktop ativo:
-
-```powershell
 pnpm setup:local
-```
-
-Esse comando prepara a demonstração: sobe PostgreSQL/TimescaleDB e EMQX, aguarda o banco, aplica o SQL inicial versionado somente em banco vazio, executa as migrations pendentes e provisiona credenciais. O seed da demonstração redefine senhas locais. Não use `setup:local` nem seed para atualizar dados reais. Para preparar sem dados demonstrativos, use `scripts/start-local.ps1 -Setup`.
-
-As migrations têm histórico em `public.schema_migrations`, checksum e exclusão mútua. Uma nova execução confere o histórico e aplica somente arquivos ainda pendentes. Schema parcial, arquivo histórico alterado ou banco legado com dados/políticas mas sem histórico válido interrompem a preparação. A adoção automática de instalações legadas **não está implementada**; consulte [Migrações e recuperação](docs/MIGRATIONS.md).
-
-O banco fica em `localhost:5434`, o MQTT em `localhost:1883` e o dashboard EMQX em `localhost:18083`. O Compose local publica essas portas somente em `127.0.0.1`.
-
-### 3. Iniciar a plataforma
-
-```powershell
 pnpm dev
 ```
 
-Mantenha o terminal aberto. O comando inicia API, ingestão MQTT e os três painéis. Acesse os endereços da tabela de [painéis e serviços](#painéis-e-serviços-locais).
+`setup:local` starts TimescaleDB/PostgreSQL and EMQX, bootstraps an empty database, applies pending versioned SQL, provisions restricted connections and seeds demonstration data. **The seed resets local demonstration passwords.** Obtain demonstration account details from the local seed configuration; do not reuse those credentials outside the lab.
 
-Como alternativa às etapas manuais, o script abaixo instala dependências, cria o `.env` se necessário, prepara o banco e inicia a plataforma:
+The local database is on `127.0.0.1:5434`, MQTT on `127.0.0.1:1883`, EMQX dashboard on `127.0.0.1:18083`, API on port 3000 and web portals on 5173–5175. Open the Vite-served applications, not their HTML files directly. Use `pnpm simulate:hardware` to explore telemetry without a physical device.
 
-```powershell
-.\scripts\start-local.ps1 -Setup -SeedDemo
-# Nas próximas execuções: retoma banco/broker e confere o histórico, sem migrar:
-.\scripts\start-local.ps1
-# Diagnóstico somente leitura:
-node scripts/check-environment.mjs
-```
+For subsequent starts, `.\scripts\start-local.ps1` checks the environment and migration history without applying migrations. After reviewing an update, use `-Setup` without `-SeedDemo` to apply preparation steps while preserving demonstration-independent data. `pnpm dev` alone does not start infrastructure or validate migrations. `pnpm infra:reset` deletes local database volumes and is not a normal upgrade step.
 
-O script padrão verifica ferramentas e `.env`, sobe os serviços locais do Compose, espera o PostgreSQL e executa `pnpm db:infra --check`. Só então inicia API, ingestão e painéis. Migrations pendentes ou histórico incompatível interrompem a inicialização com diagnóstico. Após revisar uma atualização, execute `scripts/start-local.ps1 -Setup` **sem `-SeedDemo`** para instalar dependências, aplicar migrations e provisionar as credenciais configuradas. Nenhum desses caminhos executa reset ou reinicia o computador. `pnpm dev` sozinho não sobe a infraestrutura nem verifica migrations.
+## Decisions and trade-offs
 
-### Contas de demonstração
+The [product architecture](docs/superpowers/specs/2026-09-27-arquitetura-produto-design.md), [notification contract](docs/NOTIFICACOES_DURAVEIS.md) and [migration guide](docs/MIGRATIONS.md) record the main decisions.
 
-Criadas por `pnpm db:seed`, também executado por `pnpm setup:local`:
+| Choice | Benefit | Cost or boundary |
+| --- | --- | --- |
+| Shared modular platform with separate role-specific interfaces | Reuses domain contracts while giving residents and operators different workflows. | Permission changes must be enforced by API/database boundaries, not only navigation. |
+| MQTT plus time-series storage | Fits continuously arriving sensor readings and historical analysis. | Requires continuously running ingestion/broker services, calibrated hardware and retention management. |
+| Restricted database roles and RLS | Narrows each service's data authority. | Provisioning, transaction context and migrations are more demanding than one owner connection. |
+| Atomic notification outbox and leased worker | Preserves delivery intent alongside the business event and supports recovery. | Remote webhook delivery can still be ambiguous or duplicate; stable idempotency and operational review remain necessary. |
+| Versioned SQL with checksums and migration history | Detects changed history and avoids silently applying an unknown database state. | Legacy databases without valid history need reviewed adoption/recovery rather than automatic repair. |
+| Explicit command/ACK access model | Separates a requested gate action from the controller's reported execution. | An ACK does not measure the gate's physical position or replace a safety system. |
 
-| E-mail | Perfil | Painel |
-|---|---|---|
-| `admin@predioon.local` | Administrador da plataforma | [Administrador](http://localhost:5173) |
-| `sindico@predioon.local` | Administrador do prédio | [Síndico](http://localhost:5174) |
-| `morador@predioon.local` | Morador | [Morador](http://localhost:5175) |
+## Verification and current scope
 
-A senha padrão local é **`predioon123`**. A variável `SEED_PASSWORD` permite defini-la durante o seed; executar o seed novamente atualiza a senha dessas contas. Os testes de integração usam a senha padrão local.
-
-O seed cria a organização `org_001`, o imóvel `bld_001`, o gateway `gw_001`, sensores, regras, perfis de consumo, áreas comuns, avisos e cadastros de acessos/vagas. Os portões começam **desativados e sem permissão para moradores**. A tarifa de energia de R$ 1/kWh é ilustrativa.
-
-No dashboard EMQX, as credenciais iniciais locais são usuário `admin` e senha `public-change-me`.
-
-## Simulação sem hardware
-
-Depois de preparar o banco e iniciar a plataforma, abra outro PowerShell na raiz:
-
-```powershell
-pnpm simulate:hardware
-```
-
-O simulador envia leituras sintéticas pelo broker MQTT a cada cinco segundos por padrão. Elas percorrem ingestão, banco, API e painéis.
-
-| Dispositivo | Dados simulados |
-|---|---|
-| `water_01` | Nível, distância e volume da caixa d'água. |
-| `water_meter_01` | Consumo acumulado de água. |
-| `energy_01` | Consumo acumulado de energia. |
-| `phase_01` | Tensões, correntes das três fases e frequência. |
-| `pump_01` | Estado da bomba. |
-| `leak_01` / `sewage_01` | Vazamentos de água e esgoto. |
-| `gas_01` / `smoke_01` | Detecção de gás, concentração em ppm e sinal de fumaça. |
-| `temp_01` | Temperatura. |
-
-A caixa d'água usa o contrato compacto no tópico `predio/bld_001/caixa_agua/water_01/telemetria`. O simulador não lê portas RS485 nem aciona equipamentos físicos.
-
-Para selecionar outro cenário, encerre o simulador com `Ctrl+C` e execute, por exemplo:
-
-```powershell
-pnpm simulate:hardware --scenario=low-water
-```
-
-Cenários disponíveis: `normal`, `low-water`, `power-loss`, `leak`, `sewage-leak`, `gas`, `smoke`, `high-energy`, `high-water-consumption`, `pump-overrun`, `stuck-sensor` e `gateway-drop`.
-
-O simulador de portões é separado, aceita apenas broker local e exige gateway/controlador próprios. Siga [Simulação local de acessos](docs/ACESSOS.md#simulação-local-separada). As contagens de vagas podem ser atualizadas manualmente ou por integração conforme [Vagas e avisos](docs/VAGAS_AVISOS.md).
-
-## Configuração
-
-| Variável | Uso |
-|---|---|
-| `DATABASE_URL` | Conexão proprietária do banco, usada pela ingestão, migrations e seed. |
-| `DATABASE_URL_APP` | Conexão restrita `predioon_app`, usada nas operações autorizadas da API com RLS. |
-| `API_PORT` / `VITE_API_URL` | Porta da API e endereço usado pelos painéis. |
-| `DATABASE_URL_IDENTITY` / `DATABASE_URL_BROKER_AUTH` | Credenciais restritas de identidade e autorização MQTT. |
-| `JWT_ACTIVE_KID` / `JWT_PRIVATE_KEY` / `JWT_PUBLIC_KEYS` | Chaves Ed25519 persistentes e identificação da chave; obrigatórias em produção. |
-| `CORS_ORIGINS` | Origens permitidas, separadas por vírgula. |
-| `MQTT_URL` / `MQTT_USERNAME` / `MQTT_PASSWORD` | Conexão da ingestão com o broker. |
-| `MQTT_AUTH_SECRET` / `MQTT_INGEST_USERNAME` / `MQTT_INGEST_PASSWORD` | Autenticação e autorização HTTP do broker quando configuradas. |
-| `GATEWAY_OFFLINE_TIMEOUT_SECONDS` / `DEVICE_OFFLINE_TIMEOUT_SECONDS` | Prazos para considerar gateway ou dispositivo sem comunicação. |
-| `DATABASE_URL_NOTIFICATIONS` / `DATABASE_URL_INGEST` / `DATABASE_URL_ACCESS_SERVICE` | Roles restritas do worker de notificações e da ingestão (telemetria e acesso físico). |
-| `TRUST_PROXY_CIDRS` | Proxies confiáveis para o IP real do cliente (limites de login e auditoria). |
-| `VITE_RESIDENT_URL` | Endereço do portal do morador mostrado nos links de convite dos painéis. |
-| `RESEND_API_KEY` / `RESEND_FROM_EMAIL` | Envio de convites e recuperação de senha pelo Resend. Sem chave, nenhum e-mail é enviado. |
-| `PASSWORD_RESET_URL` / `RESIDENT_PORTAL_URL` | Endereços usados nos links dos e-mails de recuperação e de convite. |
-| `MFA_ENCRYPTION_KEY` | Cifra dos segredos TOTP (mínimo 32 bytes); obrigatória em produção. |
-| `GATE_QR_SECRET` | Chave do QR que o totem do portão troca a cada hora (mínimo 32 bytes). Sem ela, em produção, a abertura por QR fica indisponível. |
-| `ALERT_WEBHOOK_URL` | Opcional: encaminhamento de alertas `HIGH` e `CRITICAL` a um integrador externo. |
-
-Consulte [`.env.example`](.env.example) para os padrões locais e [DEPLOY](docs/DEPLOY.md) para produção. Mantenha API e ingestão na mesma versão ao atualizar o controle de funcionalidades.
-
-## Testes e verificações
-
-Use um banco **isolado e descartável**, separado dos dados de uso diário. A API/ingestão, worker de notificações e simuladores desse ambiente devem estar parados durante a regressão. O [guia de migrations](docs/MIGRATIONS.md#testes-em-banco-isolado) descreve uma preparação reproduzível na porta 5439. No mesmo PowerShell, configure a conexão administrativa e as seis restritas para esse banco e habilite as duas famílias de testes de integração:
-
-```powershell
-$env:RUN_ACCESS_DB_TESTS = "1"
-$env:RUN_RBAC_DB_TESTS = "1"
-$env:TEST_MIGRATIONS_DATABASE_URL = $env:DATABASE_URL
-pnpm --filter @predioon/db exec node --import tsx --test --test-concurrency=1 test/*.test.ts
-pnpm test
-```
-
-`pnpm test` executa `@predioon/api-client`, `@predioon/ui`, `@predioon/mobile`, `@predioon/api` e `@predioon/ingest` em sequência. A suíte de banco é chamada separadamente acima; sua conexão administrativa precisa poder criar/remover bancos temporários. As verificações incluem sessão, autorização HTTP/RLS, contratos MQTT, telemetria, comandos, pausa/retomada e histórico de migrations. Testes ignorados por falta de variáveis não contam como validação dessas integrações. Os testes de acesso simulam controladores e não comprovam atuação de um portão físico.
-
-SQL 038/worker e produtores têm suítes próprias, com cluster exclusivo e opt-in explícito, pois alteram roles globais. Seguir [MIGRATIONS](docs/MIGRATIONS.md#testes-em-banco-isolado) e o job `notifications` em [ci.yml](.github/workflows/ci.yml); não ligar essas variáveis no cluster da API/navegador. Backup também usa job separado, com dois clusters para restauração. `pnpm test` sozinho não executa a suíte própria do worker.
-
-Os fluxos de navegador ficam em `e2e/specs/<área>/` e rodam contra um banco próprio e descartável:
-
-```powershell
-pnpm exec playwright install chromium firefox webkit
-pnpm e2e:db up            # TimescaleDB em 127.0.0.1:5446, só contêiner criado pelo script
-pnpm test:e2e:chromium    # suíte completa num navegador; pnpm test:e2e roda os três
-pnpm test:e2e:smoke       # abre todas as páginas dos três portais (@smoke)
-pnpm e2e:record           # Codegen com o portal já logado
-```
-
-Tags, evidências de falha, gravação e agentes de IA estão no [guia E2E](e2e/README.md). O comportamento do inicializador Windows pode ser testado sem executar Docker ou alterar banco: `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/test-start-local.ps1`. O parâmetro de política vale somente para esse processo de teste.
-
-Mudanças em workflows têm [validação semântica independente](.github/workflows/workflow-validation.yml) com actionlint 1.7.12 e checksum do archive fixado. Ela confere sintaxe, expressões e contextos disponíveis; parser YAML sozinho não detecta `job.services` ou `runner.temp` usados no nível incorreto. Para a mesma verificação local com actionlint instalado: `actionlint -shellcheck= -pyflakes=`. Esse recorte não verifica shell/Python nem substitui os testes dos serviços e as execuções nativas.
-
-Para verificar tipos e compilar, execute cada etapa após a anterior terminar:
-
-```powershell
+```bash
+pnpm check:boundaries
 pnpm typecheck
-pnpm build
+pnpm test
+pnpm typecheck:e2e
+pnpm test:e2e:chromium
 ```
 
-Em máquinas com memória limitada, use um pacote por vez:
+Use [the E2E guide](e2e/README.md) for required services, isolated databases and browser installation. Some database/RBAC/access tests require explicit test-database configuration and opt-in flags; skipped tests are not successful integration evidence. Record real hardware, mobile-device and installation verification separately from simulations.
 
-```powershell
-pnpm -r --workspace-concurrency=1 typecheck
-pnpm -r --workspace-concurrency=1 build
-```
+The [continuity record](docs/CONTINUIDADE.md) and dated validation documents are authoritative for completed checks and open work. A web demonstration is documented in [Vercel/Neon deployment notes](docs/VERCEL_NEON.md); it does not establish production acceptance of continuous services or field hardware. Plans/subscriptions remain outside the delivered scope described by the current project notes. Signed iOS distribution remains a separately tracked validation step.
 
-As verificações recentes estão resumidas em [Revisão de funcionalidades](docs/REVISAO_FUNCIONALIDADES.md) e detalhadas em [Continuidade](docs/CONTINUIDADE.md). O registro de 22–23/09, com os ensaios com broker local, ficou no histórico do git: `git show 6ee13e4:docs/REVISAO_FUNCIONALIDADES.md`.
+Mandatory platform-administrator MFA is not yet a delivered end-to-end feature. The [current MFA checkpoint](docs/continuidade/2026-11-04-mfa-integracao/README.md) separates published client transport handling from candidate backend and web/mobile integration. Its isolated unit results do not establish SQL, HTTP/SSE or device acceptance.
 
-## Comandos úteis
+## Deployment and operational boundaries
 
-| Comando | Efeito |
-|---|---|
-| `pnpm infra:up` | Sobe apenas o banco e o broker. |
-| `pnpm infra:down` | Para e remove os containers, preservando o volume do banco. |
-| `pnpm db:wait` | Aguarda a disponibilidade do banco. |
-| `pnpm db:bootstrap` | Cria atomicamente o banco vazio com SQL versionado; preserva dados e rejeita estruturas parciais. |
-| `pnpm db:push` | Ferramenta de desenvolvimento para schema; não é o mecanismo de atualização de instalação com histórico. |
-| `pnpm db:infra` | Usa `DATABASE_URL` administrativa; verifica checksums e aplica somente migrations pendentes, com ledger e lock. |
-| `pnpm db:infra --check` | Consulta baseline/histórico/pendências sem DDL; saída 0 = pronto, 2 = pendente, 1 = erro ou histórico incompatível. |
-| `pnpm db:provision-runtime` | Habilita login e configura as senhas das seis roles restritas conforme as URLs do ambiente. |
-| `pnpm ingest:env` | Gera `services/ingest/.env.runtime` só com as duas URLs restritas da ingestão e as chaves MQTT; nunca sobrescreve um arquivo diferente. |
-| `pnpm db:seed` | Cadastra/complementa a demonstração e redefine a senha das contas demo. |
-| `pnpm --filter @predioon/admin-web dev` | Inicia apenas o painel administrador. |
-| `pnpm --filter @predioon/building-web dev` | Inicia apenas o painel do síndico. |
-| `pnpm --filter @predioon/resident-web dev` | Inicia apenas o portal do morador. |
-| `pnpm --filter @predioon/api dev` | Inicia apenas a API. |
-| `pnpm --filter @predioon/ingest dev` | Inicia apenas a ingestão MQTT. |
-| `pnpm --filter @predioon/notifications dev` | Inicia o worker restrito de webhook; exige SQL 038 e sua própria URL de banco. |
+Use [the current installation manual](docs/IMPLANTACAO_CONDOMINIO.md), [deployment guide](docs/DEPLOY.md), [database setup](docs/DATABASE_SETUP.md) and [backup/restore guide](docs/BACKUP_E_RESTAURACAO.md). Administrative and restricted runtime connections have distinct responsibilities. Ingestion uses its generated restricted runtime environment and must not fall back to the database-owner connection.
 
-Para recriar uma demonstração descartável, pare os processos com `Ctrl+C` e execute:
+- Sensor values and estimated costs depend on installation, calibration and configured tariffs. Statistical anomalies indicate investigation, not an automatically diagnosed cause.
+- Smoke/gas signals do not replace certified safety equipment. Gate requests and ACKs must be interpreted using [the access contract](docs/ACESSOS.md).
+- Resend handles invitations/password recovery. Alert email/WhatsApp delivery requires an external webhook integration; mobile push is not implemented.
+- Remote-support records do not prove that an AnyDesk session took place. Review [support boundaries](docs/SUPORTE_REMOTO.md).
+- An empty notification destination can finish work as `no_destination`; configuring a destination later does not retroactively resend it. Follow the notification migration/rollback guide.
 
-```powershell
-pnpm infra:reset
-pnpm setup:local
-pnpm dev
-```
-
-**`pnpm infra:reset` apaga o volume e todos os dados do banco local.** Atualizações normais usam schema/migrações, sem reset. Não execute reset nem seed de demonstração em uma instalação com dados reais.
-
-## Solução de problemas
-
-| Sintoma | O que conferir |
-|---|---|
-| `docker` não é reconhecido ou o engine não responde | Instalação e inicialização do Docker Desktop; depois reabra o PowerShell e confira `docker compose version`. |
-| Porta `5434` ocupada | Ajuste a porta externa em `infrastructure/docker-compose.yml`, `DATABASE_URL` e as seis URLs restritas no `.env`, depois remova e gere de novo `services/ingest/.env.runtime` (`pnpm ingest:env`). |
-| Portas `3000`, `5173`, `5174` ou `5175` ocupadas | Libere as portas antes de iniciar. Se alterar os endereços, ajuste também `VITE_API_URL` e `CORS_ORIGINS`. |
-| Painel mostra “API indisponível” | Confira `/health/ready`, o terminal da API e se `pnpm setup:local` terminou sem erro. |
-| Painel abre, mas não mostra leituras atuais | Confira ingestão, broker e simulador; verifique cadastro do dispositivo e disponibilidade do recurso em **Funcionalidades**. |
-| Portão não permite abertura | O seed começa desativado. Confira recurso, permissão, gateway/controlador habilitados e comunicação recente conforme [Acessos](docs/ACESSOS.md). |
-| Migrations pendentes na inicialização | Revise a release e o banco selecionado; use `scripts/start-local.ps1 -Setup` sem `-SeedDemo`. Consulte [MIGRATIONS](docs/MIGRATIONS.md) se houver checksum divergente ou histórico ausente. |
-| Testes de banco/acessos/RBAC aparecem como ignorados | Configure `TEST_MIGRATIONS_DATABASE_URL`, `RUN_ACCESS_DB_TESTS=1` e `RUN_RBAC_DB_TESTS=1` no terminal do banco isolado. |
-| Build ou testes esgotam memória | Execute verificações em sequência e use as opções de concorrência descritas acima. |
-
-## Estrutura do repositório
-
-```text
-apps/
-  api/                API, autenticação e módulos de negócio
-  admin-web/          Administração da plataforma
-  building-web/       Painel do síndico
-  resident-web/       Portal do morador
-  resident-mobile/    App Morador (React Native, Android/iOS)
-  operations-mobile/  App Operação (React Native, Android/iOS)
-services/
-  ingest/             MQTT, telemetria, alertas, análise e simuladores
-  notifications/      Worker restrito de entrega de alertas por webhook
-packages/
-  db/                 Schema, contexto RLS, migrações e seeds
-  shared/             Validações e regras compartilhadas
-  contracts/          Contratos HTTP compartilhados
-  api-client/         Cliente HTTP com sessão e rotação de tokens
-  ui/                 Componentes, autenticação e clientes dos painéis
-  mobile/             Telas e sessão compartilhadas pelos dois apps
-infrastructure/       Docker Compose, SQL, EMQX, Caddy e deploy
-e2e/                  Testes Playwright por área, suporte, gravador e planos
-scripts/              Inicialização local, smokes Android/iOS, EAS, vídeos e utilitários
-docs/                 Implantação, integração, operação, vídeos e materiais comerciais
-```
-
-## Estado atual
-
-Implementado e verificado localmente, **sem implantação e sem aceite de produção**: migrations 001–058, API 827 testes, ingestão 204, apps 224, Playwright 117 cenários no Chromium (rodada de 17/10, antes da reorganização da suíte em 20/10). Planos/assinaturas foram deixados por último e não foram feitos. Os [cinco vídeos de demonstração](docs/videos/README.md), com dados fictícios, mostram os três portais e os dois apps. O estado detalhado, o que depende do proprietário e como retomar estão em [Continuidade](docs/CONTINUIDADE.md); o histórico das etapas, no [tracker de execução](docs/superpowers/plans/2026-09-27-product-execution.md).
-
-## Implantação e limites da versão
-
-O [manual de implantação](docs/IMPLANTACAO_CONDOMINIO.md) em Markdown é a referência atualizada, na versão 3. A [versão inicial em Word](docs/Manual_de_implantacao_Predio_ON.docx) preserva a versão 1 e não inclui os complementos posteriores.
-
-Para produção, siga [DEPLOY](docs/DEPLOY.md): segredos exclusivos, conexão restrita da API, TLS, credenciais por gateway, backups e verificação da instalação. Os valores e as contas de demonstração deste README são destinados ao ambiente local.
-
-- **Acessos:** um pedido aceito pela API não confirma abertura. O ACK registra a execução informada pelo controlador; não mede a posição do portão.
-- **Consumo:** os custos são estimativas calculadas com as tarifas configuradas. Desvios estatísticos indicam necessidade de investigação, sem identificar automaticamente sua causa.
-- **Sensores:** hardware e calibração precisam de validação no imóvel; sinais de fumaça/gás não substituem sistemas certificados.
-- **Suporte remoto:** exige AnyDesk instalado e configurado. O Prédio ON registra solicitações e resultados, sem confirmar automaticamente uma sessão externa. Os complementos de heartbeat e diagnóstico estão no [plano de comunicação e suporte](docs/superpowers/plans/2026-09-23-suporte-remoto-e-heartbeat.md).
-- **Mensagens:** convites e recuperação de senha saem por e-mail pelo Resend. Alertas para WhatsApp/e-mail dependem de integração externa por webhook, e a agenda de avisos não envia lembretes por esses canais. Não há notificação push nos apps.
-
-## Documentação
-
-| Assunto | Referência |
-|---|---|
-| Produto e design técnico | [PRD](docs/PRD.md) · [TDD](docs/TDD.md) |
-| Arquitetura de produto e execução | [Arquitetura (27/09/2026)](docs/superpowers/specs/2026-09-27-arquitetura-produto-design.md) · [Tracker de execução](docs/superpowers/plans/2026-09-27-product-execution.md) · [Capacidades por domínio (29/09/2026)](docs/superpowers/plans/2026-09-29-rbac-domain-migration.md) |
-| Implantação e operação | [Manual do condomínio](docs/IMPLANTACAO_CONDOMINIO.md) · [Deploy](docs/DEPLOY.md) |
-| Escopo e validação | [Revisão de funcionalidades](docs/REVISAO_FUNCIONALIDADES.md) · [Controle de funcionalidades](docs/FUNCIONALIDADES.md) |
-| Monitoramento | [Consumo e análise](docs/CONSUMO_E_ANALISE.md) · [Sensores](docs/SENSORES.md) |
-| Operação | [Acessos](docs/ACESSOS.md) · [Vagas e avisos](docs/VAGAS_AVISOS.md) |
-| Atendimento e gestão | [Suporte remoto](docs/SUPORTE_REMOTO.md) · [Gestão transparente](docs/GESTAO_TRANSPARENTE.md) |
-| Histórico e privacidade | [Auditoria por capacidades](docs/AUDITORIA.md) |
-| Identidade e permissões | [Autenticação](docs/AUTENTICACAO.md) · [Autorização](docs/AUTORIZACAO.md) · [Troca da própria senha](docs/TROCA_DE_SENHA.md) |
-| Manutenção | [Ordens de serviço](docs/ORDENS_DE_SERVICO.md) · [Ativos](docs/ATIVOS.md) · [Automações](docs/AUTOMACOES.md) |
-| Entrega durável e banco | [Notificações duráveis](docs/NOTIFICACOES_DURAVEIS.md) · [Migrations](docs/MIGRATIONS.md) · [Backup e restauração](docs/BACKUP_E_RESTAURACAO.md) |
-| Apps e testes de navegador | [Aplicativos móveis e EAS](packages/mobile/README.md) · [iOS num Mac emprestado](scripts/ios-mac/README.md) · [Guia E2E](e2e/README.md) · [Vídeos](docs/videos/README.md) |
-| Hardware e MQTT | [Hardware/software](docs/HARDWARE_SOFTWARE.md) · [Contrato e entrega para Helber](docs/ENTREGA_HELBER.md) · [Teste MQTT](docs/TESTE_MQTT.md) |
-| Banco e arquitetura | [Modelo de dados](docs/DATABASE_MODEL.md) · [Preparação do banco](docs/DATABASE_SETUP.md) · [Plano técnico](docs/PLANO_TOTAL.md) |
-| Continuidade e evolução | [Continuidade (leia primeiro)](docs/CONTINUIDADE.md) · [Melhorias e evoluções](docs/MELHORIAS_E_EVOLUCOES.md) · [Próximos passos](docs/NEXT_STEPS.md) |
-| Material comercial | [Apresentação](docs/marketing/APRESENTACAO_COMERCIAL.md) · [Casos de uso](docs/marketing/CASOS_DE_USO_E_EVOLUCOES.md) |
+Further references: [authentication](docs/AUTENTICACAO.md) · [authorization](docs/AUTORIZACAO.md) · [password changes](docs/TROCA_DE_SENHA.md) · [audit](docs/AUDITORIA.md) · [sensors](docs/SENSORES.md) · [consumption analysis](docs/CONSUMO_E_ANALISE.md) · [mobile apps](packages/mobile/README.md) · [full documentation](docs).
