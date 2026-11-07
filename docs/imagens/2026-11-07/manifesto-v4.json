@@ -1,0 +1,43 @@
+{
+  "recordedOn": "2026-11-07",
+  "sourcePreparedSha256": "4cc08d2e503a00d14c4a1220b41ad30c7cc07072be5fc9c820bde5065c7e021b",
+  "observedHead": "f8f0a03732cde596f3fcf0dc5c994bd852f5dced",
+  "candidateFiles": 1031,
+  "backend": "real API and disposable PostgreSQL",
+  "browser": "Chromium",
+  "data": "fictitious isolated fixtures",
+  "media": [
+    {
+      "file": "mfa-jornada-corrigida.png",
+      "sha256": "b6feadc6e51a7dcb835370e3e2eed1c07d691ae2496ef1fd8cb70bf018c5aba6",
+      "bytes": 93126,
+      "width": 1280,
+      "height": 800,
+      "case": "gestor ativa a verificação em duas etapas, entra com código de recuperação e a desativa",
+      "passed": true,
+      "visuallyReviewed": true
+    },
+    {
+      "file": "estrutura-edicao-v4.png",
+      "sha256": "c999522162e946b24c75dcc6025f04572fadca4a10fbaa0a9f384fd1abdccffe",
+      "bytes": 85506,
+      "width": 1280,
+      "height": 800,
+      "case": "síndico corrige bloco, unidade e equipe; edição intacta não envia requisição e conflito preserva o rascunho",
+      "passed": true,
+      "visuallyReviewed": true
+    },
+    {
+      "file": "estrutura-status-v4.png",
+      "sha256": "8454c9fd760c8b129308941d11037bf3251b0cfaec3c897e37b4266a36754a5f",
+      "bytes": 87818,
+      "width": 1280,
+      "height": 800,
+      "case": "síndico desativa e reativa unidade e equipe com confirmação; inativos só aparecem a pedido",
+      "passed": true,
+      "visuallyReviewed": true
+    }
+  ],
+  "rawMfaVideoPublished": false,
+  "productionAccepted": false
+}

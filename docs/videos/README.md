@@ -1,5 +1,7 @@
 # Vídeos de demonstração
 
+**Novos clipes em07/11:** [edição e status de estrutura](2026-11-07/README.md), com API/banco reais e testes aprovados. São trechos rápidos de QA; as demonstrações completas atuais de todos os produtos continuam pendentes. Os cinco vídeos abaixo conservam sua data histórica.
+
 Gravados em 18/10/2026 neste computador, com **dados fictícios**: banco descartável novo, só com o seed de demonstração ("Condomínio Piloto") e quatro dias de leituras geradas pelo `demo:data` da ingestão, que passa pelo pipeline real. Nenhum hardware foi acionado e nenhuma instalação existente foi usada; a demonstração 037 não foi tocada.
 
 | Vídeo | Conteúdo | Duração |

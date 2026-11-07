@@ -1,0 +1,616 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-11-07",
+  "executedOn": "2026-11-07",
+  "reviewedOn": "2026-11-07",
+  "scope": "V4: three real Chromium building-web scenarios with one reviewed shared authentication product correction and unchanged V3 scenario definitions",
+  "sources": {
+    "preparedSha256": "4cc08d2e503a00d14c4a1220b41ad30c7cc07072be5fc9c820bde5065c7e021b",
+    "priorTenancyPreparedSha256": "b4fee359b97e9f37dd7c41ffc19f8264b4bfe1d66357b859692ddd51967cba76",
+    "rootFiles": 994,
+    "composedFiles": 1031,
+    "workspaceJunctions": 23,
+    "excludedCacheJunctions": 7,
+    "v2PreparedSha256": "9709239444569bb4545863286227d40641790fb8b592f437edab2dae6ce9834f",
+    "v3PreparedSha256": "0cdc1f5fc8259c86466d9e0a86be8a74f56ae1710236bf101ccf0aeea2d9a72c",
+    "onlyDifferenceFromV3": "packages/ui/src/auth.tsx",
+    "productManifest": {
+      "id": "mfa-anonymous-login-candidate-20261107/manifest.json",
+      "sha256": "07a0e6ad647146ccb750500fd4118ca048b8da8b14f5a2672f4553a21559e5b7",
+      "bytes": 795
+    },
+    "productAfterSha256": "53698ad7c958e5418b6861f018bf642062a74acb252a18db63d29733e02e928c",
+    "mfaSpecSha256": "ab261dd3ca39153fe0035bfea01e2bfcb1f54b958522199faba084b62bf902f9",
+    "observedHeadBefore": "f8f0a03732cde596f3fcf0dc5c994bd852f5dced",
+    "observedHeadAfter": "f8f0a03732cde596f3fcf0dc5c994bd852f5dced"
+  },
+  "preflights": [
+    {
+      "phase": "e2e",
+      "passed": true,
+      "durationMs": 8119,
+      "result": {
+        "id": "mfa-real-browser-v4-qa-20261107/checks/e2e/result.json",
+        "sha256": "97e268732e2bee0ff8744a9ae50bdaec030c867e60354359853f2eb34a4030fa",
+        "bytes": 645
+      }
+    },
+    {
+      "phase": "building",
+      "passed": true,
+      "durationMs": 6558,
+      "result": {
+        "id": "mfa-real-browser-v4-qa-20261107/checks/building/result.json",
+        "sha256": "d0656a8fd17f9c490a2189ece4161d5e6cbc26471663d65be7a5c094732d170d",
+        "bytes": 650
+      }
+    },
+    {
+      "phase": "list",
+      "passed": true,
+      "durationMs": 1748,
+      "result": {
+        "id": "mfa-real-browser-v4-qa-20261107/checks/list/result.json",
+        "sha256": "10b771f5badadcc4b5ea6022f41dfff79c43aa5dd0ca692a2830f551aeb73ebf",
+        "bytes": 643
+      }
+    }
+  ],
+  "cases": [
+    {
+      "title": "gestor ativa a verificação em duas etapas, entra com código de recuperação e a desativa",
+      "file": "auth/mfa.spec.ts",
+      "project": "chromium",
+      "passed": true,
+      "retry": 0,
+      "durationMs": 6529,
+      "media": [
+        {
+          "kind": "screenshot",
+          "id": "mfa-real-browser-v4-qa-20261107/source/.local/tenancy-candidate-results/auth-mfa-gestor-ativa-a-ve-28099-de-recuperação-e-a-desativa-chromium/test-finished-1.png",
+          "sha256": "b6feadc6e51a7dcb835370e3e2eed1c07d691ae2496ef1fd8cb70bf018c5aba6",
+          "bytes": 93126
+        },
+        {
+          "kind": "video",
+          "id": "mfa-real-browser-v4-qa-20261107/source/.local/tenancy-candidate-results/auth-mfa-gestor-ativa-a-ve-28099-de-recuperação-e-a-desativa-chromium/video.webm",
+          "sha256": "baa46dcfaacd32b5f299f6f5ed3ef24c6580d1a9a86bbd018b1cdb0adb543957",
+          "bytes": 757819
+        }
+      ]
+    },
+    {
+      "title": "síndico corrige bloco, unidade e equipe; edição intacta não envia requisição e conflito preserva o rascunho",
+      "file": "tenancy/tenancy-edit.spec.ts",
+      "project": "chromium",
+      "passed": true,
+      "retry": 0,
+      "durationMs": 6933,
+      "media": [
+        {
+          "kind": "screenshot",
+          "id": "mfa-real-browser-v4-qa-20261107/source/.local/tenancy-candidate-results/tenancy-tenancy-edit-síndi-973f5-onflito-preserva-o-rascunho-chromium/test-finished-1.png",
+          "sha256": "c999522162e946b24c75dcc6025f04572fadca4a10fbaa0a9f384fd1abdccffe",
+          "bytes": 85506
+        },
+        {
+          "kind": "video",
+          "id": "mfa-real-browser-v4-qa-20261107/source/.local/tenancy-candidate-results/tenancy-tenancy-edit-síndi-973f5-onflito-preserva-o-rascunho-chromium/video.webm",
+          "sha256": "d0ad33384cbd6968ba49006cc07510fd567284268694fbe3103f40837c67c04c",
+          "bytes": 766281
+        }
+      ]
+    },
+    {
+      "title": "síndico desativa e reativa unidade e equipe com confirmação; inativos só aparecem a pedido",
+      "file": "tenancy/tenancy-edit.spec.ts",
+      "project": "chromium",
+      "passed": true,
+      "retry": 0,
+      "durationMs": 5421,
+      "media": [
+        {
+          "kind": "screenshot",
+          "id": "mfa-real-browser-v4-qa-20261107/source/.local/tenancy-candidate-results/tenancy-tenancy-edit-síndi-c85cf-ativos-só-aparecem-a-pedido-chromium/test-finished-1.png",
+          "sha256": "8454c9fd760c8b129308941d11037bf3251b0cfaec3c897e37b4266a36754a5f",
+          "bytes": 87818
+        },
+        {
+          "kind": "video",
+          "id": "mfa-real-browser-v4-qa-20261107/source/.local/tenancy-candidate-results/tenancy-tenancy-edit-síndi-c85cf-ativos-só-aparecem-a-pedido-chromium/video.webm",
+          "sha256": "799cbaab2b5319fea09bfb1cf0300ca0cad24ee1b9125a503c1a09caf5c2ea2a",
+          "bytes": 741246
+        }
+      ]
+    }
+  ],
+  "gates": {
+    "browserCasesPassed": 3,
+    "browserFiles": 2,
+    "projects": 1,
+    "workers": 1,
+    "retries": 0,
+    "failures": 0,
+    "skipped": 0,
+    "flaky": 0,
+    "typeChecksPassed": 2,
+    "testListPassed": true,
+    "buildProductionPassed": true,
+    "buildHashesBeforeAfterPassed": true,
+    "sourceHashesPassed": true,
+    "fixtureCleanupPassed": true,
+    "ownedChildrenExited": true,
+    "dedicatedPortsClosed": true,
+    "restrictedRolesCheckedBeforeApiListen": true,
+    "screenshots": 3,
+    "videos": 3
+  },
+  "runtime": {
+    "startedUtc": "2026-11-07T14:00:15.876Z",
+    "endedUtc": "2026-11-07T14:01:09.917Z",
+    "guardMiB": 2048,
+    "phases": [
+      {
+        "phase": "before-build",
+        "freeMiB": 3391,
+        "minimumMiB": 2048
+      },
+      {
+        "phase": "before-building-build",
+        "freeMiB": 3390,
+        "minimumMiB": 2048
+      },
+      {
+        "phase": "before-fixture",
+        "freeMiB": 3380,
+        "minimumMiB": 2048
+      },
+      {
+        "phase": "before-provision",
+        "freeMiB": 3341,
+        "minimumMiB": 2048
+      },
+      {
+        "phase": "before-seed",
+        "freeMiB": 3324,
+        "minimumMiB": 2048
+      },
+      {
+        "phase": "before-playwright",
+        "freeMiB": 3315,
+        "minimumMiB": 2048
+      }
+    ],
+    "postServerMemory": {
+      "phase": "after-api-preview-before-browser",
+      "freeMiB": 2839,
+      "minimumMiB": 2048
+    },
+    "loopbackListeners": [
+      {
+        "LocalAddress": "127.0.0.1",
+        "LocalPort": 6974,
+        "OwningProcess": 23756
+      },
+      {
+        "LocalAddress": "127.0.0.1",
+        "LocalPort": 4800,
+        "OwningProcess": 45544
+      }
+    ],
+    "buildManifest": {
+      "id": "mfa-real-browser-v4-qa-20261107/building-dist-manifest.json",
+      "sha256": "273b0c3f8623b01a68078040aeaf38112bc2b87342c821da2087528e849cba93",
+      "bytes": 604
+    },
+    "cleanup": {
+      "exitCode": 0,
+      "systemIdentifierMatches": true,
+      "basePublicTables": 0,
+      "temporaryDatabases": 0,
+      "otherDatabases": 0,
+      "rolesRestoredIncludingPrivateCredentials": true,
+      "settingsRestored": true,
+      "roles": 6,
+      "otherClients": 0,
+      "containerAttestationMatches": true,
+      "freeMiBAtStart": 3448.0,
+      "freshFreeMiBBeforeController": 3464.0,
+      "dedicatedPortsClosed": true,
+      "computerRestarted": false,
+      "credentialsPublished": false
+    }
+  },
+  "mediaReview": {
+    "reviewedByRoot": true,
+    "mediaVisuallyReviewed": true,
+    "method": "screenshots and sampled video frames",
+    "allScreenshotsReviewed": true,
+    "allVideosSampled": true,
+    "framesPerVideo": 3,
+    "sampledFrames": [
+      {
+        "title": "gestor ativa a verificação em duas etapas, entra com código de recuperação e a desativa",
+        "sampledFromVideoSha256": "baa46dcfaacd32b5f299f6f5ed3ef24c6580d1a9a86bbd018b1cdb0adb543957",
+        "frames": [
+          {
+            "id": "mfa-real-browser-v4-qa-20261107/media-review/case-1-20.png",
+            "sha256": "3fb118452869cc6c572a70a2bba8d12d59dcdaa2184160f542578776458df1e0",
+            "bytes": 413141
+          },
+          {
+            "id": "mfa-real-browser-v4-qa-20261107/media-review/case-1-50.png",
+            "sha256": "102aac1ccbb516b018a5431d5d1f763c3a5e79e8b9d52bba7d30d1c11fd1678f",
+            "bytes": 341135
+          },
+          {
+            "id": "mfa-real-browser-v4-qa-20261107/media-review/case-1-85.png",
+            "sha256": "07a890eb0ba750e25a18f55ac9bd2382ee03c23223a9c04f4d1230af3c58833b",
+            "bytes": 400783
+          }
+        ]
+      },
+      {
+        "title": "síndico corrige bloco, unidade e equipe; edição intacta não envia requisição e conflito preserva o rascunho",
+        "sampledFromVideoSha256": "d0ad33384cbd6968ba49006cc07510fd567284268694fbe3103f40837c67c04c",
+        "frames": [
+          {
+            "id": "mfa-real-browser-v4-qa-20261107/media-review/case-2-20.png",
+            "sha256": "a9516d3a24669fc79331a5e7c6236958af77e44a2627acbece06c95246ae8bb9",
+            "bytes": 96112
+          },
+          {
+            "id": "mfa-real-browser-v4-qa-20261107/media-review/case-2-50.png",
+            "sha256": "d8f4df0769dd0f33a641f39620d97d5a1e2709c3aa7f340edcb2acf2ff0ea3e2",
+            "bytes": 373027
+          },
+          {
+            "id": "mfa-real-browser-v4-qa-20261107/media-review/case-2-85.png",
+            "sha256": "1c437b961e17dbaf76fdb00f55b19c5898434cabc6dc48ca6ace36661e6e60e4",
+            "bytes": 389519
+          }
+        ]
+      },
+      {
+        "title": "síndico desativa e reativa unidade e equipe com confirmação; inativos só aparecem a pedido",
+        "sampledFromVideoSha256": "799cbaab2b5319fea09bfb1cf0300ca0cad24ee1b9125a503c1a09caf5c2ea2a",
+        "frames": [
+          {
+            "id": "mfa-real-browser-v4-qa-20261107/media-review/case-3-20.png",
+            "sha256": "f0fb338796dd8ab6fe34c96b80718f49258759cc7b7dc2cd45737af82dbccc97",
+            "bytes": 416039
+          },
+          {
+            "id": "mfa-real-browser-v4-qa-20261107/media-review/case-3-50.png",
+            "sha256": "a3f0a5a9864006947367af9a99e4c8b76ce1723a07f896dfa5c768cfba9a88fb",
+            "bytes": 328189
+          },
+          {
+            "id": "mfa-real-browser-v4-qa-20261107/media-review/case-3-85.png",
+            "sha256": "b9f57dbb10346de82bdf443e7f44455f0347cdf11653ef09301c4b38bbaada8a",
+            "bytes": 392263
+          }
+        ]
+      }
+    ],
+    "fullVideosWatched": false,
+    "automaticPublication": false
+  },
+  "publicationPolicy": {
+    "rawMfaVideo": "private",
+    "automaticPublication": false,
+    "eligibleTenancyVideos": [
+      {
+        "kind": "video",
+        "id": "mfa-real-browser-v4-qa-20261107/source/.local/tenancy-candidate-results/tenancy-tenancy-edit-síndi-973f5-onflito-preserva-o-rascunho-chromium/video.webm",
+        "sha256": "d0ad33384cbd6968ba49006cc07510fd567284268694fbe3103f40837c67c04c",
+        "bytes": 766281
+      },
+      {
+        "kind": "video",
+        "id": "mfa-real-browser-v4-qa-20261107/source/.local/tenancy-candidate-results/tenancy-tenancy-edit-síndi-c85cf-ativos-só-aparecem-a-pedido-chromium/video.webm",
+        "sha256": "799cbaab2b5319fea09bfb1cf0300ca0cad24ee1b9125a503c1a09caf5c2ea2a",
+        "bytes": 741246
+      }
+    ]
+  },
+  "earlierBrowserAttempts": [
+    {
+      "version": "V2",
+      "passed": 2,
+      "failed": 1,
+      "accepted": false,
+      "evidence": {
+        "id": "mfa-real-browser-v2-proof-20261107/failed-attempt.json",
+        "sha256": "e16564635d4900caa902ef8d50446bb2715fa39cb6b64b8ac06f88376059eba5",
+        "bytes": 20447
+      }
+    },
+    {
+      "version": "V3",
+      "passed": 2,
+      "failed": 1,
+      "accepted": false,
+      "evidence": {
+        "id": "mfa-real-browser-v3-proof-20261107/failed-attempt.json",
+        "sha256": "2cc606b9efe82b6cc41ce753f12ccd110468358833e7f4ab8913fb06b74ccf39",
+        "bytes": 20574
+      }
+    }
+  ],
+  "earlierPreparation": {
+    "version": "V1",
+    "classification": "preparation failure on a stale external Vite cache link",
+    "productTestFailure": false,
+    "databaseStarted": false,
+    "browserStarted": false,
+    "evidence": {
+      "id": "mfa-tenancy-browser-recipe-20261107/prepare-result.json",
+      "sha256": "7adc417719b186d3e4b82b5b16584682b1b6e2cc192b079d2f4c0814d24ac8ce",
+      "bytes": 293
+    }
+  },
+  "limits": [
+    "Only building-web is exercised, with two tenancy edit/status scenarios and one MFA enrollment/recovery/disable scenario; not the full website or all portals.",
+    "One Chromium worker and zero retries. All three scenario definitions are byte-identical to V3; only shared auth.tsx product source differs. No Firefox/WebKit matrix, Android, iOS, device, Codegen or load acceptance.",
+    "MFA setup for the isolated administrator alias uses real enrollment/confirmation HTTP and TOTP; the UI manager performs the original full MFA scenario.",
+    "A QA-only ESM startup entrypoint invokes the same application, restricted-role checks and event bus, then binds127.0.0.1; the product server.ts is preserved.",
+    "The frontend consumer is freshly built in production mode; API and fixture execute with NODE_ENV=test on a disposable UUID database.",
+    "Visual review means three screenshots and three sampled frames from each of three videos, not watching every frame or asserting exhaustive UX coverage.",
+    "The raw MFA video remains private because the real scenario displays ephemeral recovery material. Only the two tenancy clips are eligible for reviewed public sharing; these are QA clips, not a complete product presentation.",
+    "V1 preparation failure preceded database/browser execution and is preserved separately; it is not a failed product case or part of the three passing browser cases.",
+    "V2 and V3 real2-pass/1-fail results remain preserved separately; V4 does not overwrite or reclassify either failed attempt as passing.",
+    "Any separate authentication-renderer regression run has its own evidence and is not claimed or added to these three browser cases by this proof.",
+    "No performance conclusion, production readiness, deployment, migration publication, commit or push is performed by this verifier."
+  ],
+  "inputs": [
+    {
+      "id": "mfa-real-browser-v4-pins-20261107.json",
+      "sha256": "7d74b36e1c3e3706c82dc6c99c5b31939c824c7897193d1821b2c5ceca205765",
+      "bytes": 1796
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/prepared.json",
+      "sha256": "4cc08d2e503a00d14c4a1220b41ad30c7cc07072be5fc9c820bde5065c7e021b",
+      "bytes": 902799
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/run-browser.mjs",
+      "sha256": "3b45f4c38f7a04430a6dd0c628592b30065127b577b6c9828d7a256da1302873",
+      "bytes": 17116
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/launch-browser.ps1",
+      "sha256": "452b6a69a35481919d870d6a0013a432550d85ab2c6d0698b63252f5383eec56",
+      "bytes": 12239
+    },
+    {
+      "id": "run-real-browser-v4-preflight-20261107.mjs",
+      "sha256": "47b5cf08ab2c587983eb4b427a116961005a55dbcab42360d9fb3e454765a612",
+      "bytes": 6318
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/prepared.json",
+      "sha256": "9709239444569bb4545863286227d40641790fb8b592f437edab2dae6ce9834f",
+      "bytes": 902702
+    },
+    {
+      "id": "mfa-real-browser-v3-qa-20261107/prepared.json",
+      "sha256": "0cdc1f5fc8259c86466d9e0a86be8a74f56ae1710236bf101ccf0aeea2d9a72c",
+      "bytes": 902990
+    },
+    {
+      "id": "mfa-anonymous-login-candidate-20261107/manifest.json",
+      "sha256": "07a0e6ad647146ccb750500fd4118ca048b8da8b14f5a2672f4553a21559e5b7",
+      "bytes": 795
+    },
+    {
+      "id": "mfa-real-browser-mfa-flow-v3-20261107/manifest.json",
+      "sha256": "e1935bdc0ca9b106cba337763c91ce8ddbc612ef119ead3c6ce72309668108e9",
+      "bytes": 344
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/tsconfig.browser.json",
+      "sha256": "39e0c3d798dac71c8aa3be6880da7104fb11446ed6780f6d41c002198464f5a1",
+      "bytes": 372
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/tsconfig.building-qa.json",
+      "sha256": "85b794ae5918f0911463094a65c6e5062914f1b41d5c6afeae59d64a2518d10c",
+      "bytes": 117
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/dependency-resolution.json",
+      "sha256": "3f0884864e94d5255db5ac8805daa4463b3eca48ddd869f809347c4a8a956ad7",
+      "bytes": 5894
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/source-pin.manifest.json",
+      "sha256": "3229f7e5df9c2b75f7efd40fe0e793fd3a7de74ae3e57d641a7775531b47cba3",
+      "bytes": 144503
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/checks/e2e/stdout.log",
+      "sha256": "9d2d2f101c27d9f8a1cc8532bbc95900ff6256a5faf485c78061c0281802b77e",
+      "bytes": 147439
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/checks/e2e/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/checks/e2e/result.json",
+      "sha256": "97e268732e2bee0ff8744a9ae50bdaec030c867e60354359853f2eb34a4030fa",
+      "bytes": 645
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/checks/e2e/command.json",
+      "sha256": "a7110f63856b93628f290d8f275121b2561785bfef0968830a4754eeea3ea531",
+      "bytes": 1361
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/checks/e2e/guard.json",
+      "sha256": "39dcee53c47e3f72105c4e7c4ba132590f7b86a31fa19b602b13268907fef920",
+      "bytes": 80
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/checks/e2e/spawn.json",
+      "sha256": "0bed79c13b029344a5fd243cbcbea72be8493e79dc8679e28cb4dce702b498b4",
+      "bytes": 68
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/checks/building/stdout.log",
+      "sha256": "cbcb7f7e350921dd3c513299e4a66c68a433c29f86f67681c7f6914339b8fc0f",
+      "bytes": 71001
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/checks/building/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/checks/building/result.json",
+      "sha256": "d0656a8fd17f9c490a2189ece4161d5e6cbc26471663d65be7a5c094732d170d",
+      "bytes": 650
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/checks/building/command.json",
+      "sha256": "69e407dd04cab66bb36f0e0f2e01ebed4fd8300b83045edeaadaeefe76848414",
+      "bytes": 1372
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/checks/building/guard.json",
+      "sha256": "afdcb66f3ba7e6e9b01435fa76330be6b8a5dec66cf26df3830230ca44678179",
+      "bytes": 80
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/checks/building/spawn.json",
+      "sha256": "9b14b95d5968e34745c18671a99301f2be78ae91acab2520824e78eacc0d79f2",
+      "bytes": 68
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/checks/list/stdout.log",
+      "sha256": "2b446ba53e8b27c7f9f047bc23c446db2fb6df1dfe8ed31f0b827bc8bcba1401",
+      "bytes": 494
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/checks/list/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/checks/list/result.json",
+      "sha256": "10b771f5badadcc4b5ea6022f41dfff79c43aa5dd0ca692a2830f551aeb73ebf",
+      "bytes": 643
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/checks/list/command.json",
+      "sha256": "e7e344b69c7b735160e24586dd8e296bbf9e46a03bd4026b6fba1c876bd2a4f2",
+      "bytes": 1440
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/checks/list/guard.json",
+      "sha256": "6f042b7a4e3fa0111b56390298cb4c6e6eac553237edb0862ae2b47e4c9d5098",
+      "bytes": 80
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/checks/list/spawn.json",
+      "sha256": "0f6d788e00918af3054579c59e6000a4895db40e2406edbc50b831b7edbf34dc",
+      "bytes": 68
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/browser-result.json",
+      "sha256": "454d2c35f5c0e9748e0486cbd90121c655433b44dacc140f13a6cdd525acb2be",
+      "bytes": 5542
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/browser-postchecks.json",
+      "sha256": "4f00b40e101e44bc60a7463a8265b8680460c2b5a6cd6171e5db7c5dc2487257",
+      "bytes": 466
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/controller-start.json",
+      "sha256": "097dd8c0d145de161f35931bb693fc56a4aa82c784c854effa499128e83b5676",
+      "bytes": 284
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/owned-database.json",
+      "sha256": "5f30189a2b2adbf68508db94c0b4bcbcdeab8877f32485299c7562e2917e6e3d",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/building-build.log",
+      "sha256": "04bb8d3959081bc988c37bded0ddeaf17e5291651a31507cc2240cdcf6ad79d9",
+      "bytes": 1911
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/building-build.events.jsonl",
+      "sha256": "80873e4b999f7e17ae2aa99d19f31d789158930556605bdd367e4d2cbb4f3217",
+      "bytes": 1620
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/provision.events.jsonl",
+      "sha256": "52c46632ffc8fad350f68263b0326ff2820d95f3d7a866b5165cd5fe90693d48",
+      "bytes": 670
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/seed.events.jsonl",
+      "sha256": "b2ec3d57be0b54f2246fd5741d164ad79126631cacab32a90120078c3aa19142",
+      "bytes": 773
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/playwright.log",
+      "sha256": "31741bd3aa90fc58be1ab34e68c342b71c089bb86361f75afe75b42d9bf9f035",
+      "bytes": 1380
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/playwright.events.jsonl",
+      "sha256": "9a4ac85da3c34bcdd9555d640b91e23b4d42483c6eca9d2b418d480baa153aed",
+      "bytes": 2552
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/building-dist-manifest.json",
+      "sha256": "273b0c3f8623b01a68078040aeaf38112bc2b87342c821da2087528e849cba93",
+      "bytes": 604
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/source/.local/tenancy-candidate-results.json",
+      "sha256": "f6c21db932a23002b8398b92f2ac41f334b374349ef93eecd1b2a304b9a79539",
+      "bytes": 9156
+    },
+    {
+      "id": "mfa-real-browser-v2-proof-20261107/failed-attempt.json",
+      "sha256": "e16564635d4900caa902ef8d50446bb2715fa39cb6b64b8ac06f88376059eba5",
+      "bytes": 20447
+    },
+    {
+      "id": "mfa-real-browser-v3-proof-20261107/failed-attempt.json",
+      "sha256": "2cc606b9efe82b6cc41ce753f12ccd110468358833e7f4ab8913fb06b74ccf39",
+      "bytes": 20574
+    },
+    {
+      "id": "mfa-tenancy-browser-recipe-20261107/prepare-result.json",
+      "sha256": "7adc417719b186d3e4b82b5b16584682b1b6e2cc192b079d2f4c0814d24ac8ce",
+      "bytes": 293
+    }
+  ],
+  "authorScript": {
+    "id": "verify-real-browser-v4-results-20261107.py",
+    "sha256": "d56a8b8f7f0324298629662ab5c52fdad5f3dd502cebe18e6547761f2972552b",
+    "bytes": 25535
+  },
+  "computerRestarted": false,
+  "performanceAssessed": false,
+  "productionAccepted": false
+}

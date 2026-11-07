@@ -1,0 +1,18 @@
+// Test-only explicit-ESM entrypoint. Same app, restricted-role check and event-bus startup;
+// explicit loopback binding is the sole startup difference from server.ts.
+import { config } from "../apps/api/src/config.js";
+import { app } from "../apps/api/src/app.js";
+import { startRealtimeBus } from "../apps/api/src/modules/events/bus.js";
+import { assertApiDatabaseRoles, closeApiDatabases } from "../apps/api/src/database.js";
+
+try {
+  await assertApiDatabaseRoles();
+  await startRealtimeBus();
+  app.listen(config.API_PORT, "127.0.0.1", () => {
+    console.log(`Prédio ON QA API: http://127.0.0.1:${config.API_PORT}`);
+  });
+} catch {
+  console.error("Inicialização recusada: verifique as credenciais restritas do banco da API.");
+  await closeApiDatabases();
+  process.exitCode = 1;
+}

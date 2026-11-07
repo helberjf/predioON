@@ -1,0 +1,89 @@
+{
+  "recordedOn": "2026-11-07",
+  "startedUtc": "2026-11-07T14:01:19.017Z",
+  "endedUtc": "2026-11-07T14:01:19.962Z",
+  "passed": true,
+  "counts": {
+    "tests": 4,
+    "suites": 0,
+    "pass": 4,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "cases": [
+    "optional confirmation survives real MFA403, private-provider removal and satisfied reread until explicit acknowledgment",
+    "optional displayed codes survive foreign same-family authorization hint and cannot be dismissed with Escape",
+    "stale acknowledgment /me never clears rendered codes after a newer same-family requirement",
+    "real identity replacement destroys old ceremony and discards late confirmation codes"
+  ],
+  "preparedSha256": "4cc08d2e503a00d14c4a1220b41ad30c7cc07072be5fc9c820bde5065c7e021b",
+  "sourceHashesVerified": true,
+  "runtime": "real React components/hooks/client, synthetic HTTP and browser primitives",
+  "versions": [
+    {
+      "name": "react",
+      "version": "19.2.3"
+    },
+    {
+      "name": "react-test-renderer",
+      "version": "19.2.3"
+    },
+    {
+      "name": "react-is",
+      "version": "19.3.0"
+    },
+    {
+      "name": "scheduler",
+      "version": "0.27.0"
+    },
+    {
+      "name": "tsx",
+      "version": "4.23.13"
+    },
+    {
+      "name": "esbuild",
+      "version": "0.28.2"
+    },
+    {
+      "name": "@esbuild/win32-x64",
+      "version": "0.28.2"
+    },
+    {
+      "name": "lucide-react",
+      "version": "0.468.0"
+    }
+  ],
+  "limit": "Renderer19.2.3 is not production webReact19.3.0; no DOM/browser/AppState guarantee",
+  "parserCorrection": {
+    "originalResultSha256": "8713738ec23539da50ccd8d9ddb429a568f22e4d58300c092ad8a7cc8d9c06a6",
+    "originalRunnerPassed": false,
+    "cause": "Runner expected TAP but native Node reporter emitted the spec format; exitCode was0 and four named tests passed. Original evidence retained; verified without rerunning."
+  },
+  "inputs": [
+    {
+      "file": "result.json",
+      "sha256": "8713738ec23539da50ccd8d9ddb429a568f22e4d58300c092ad8a7cc8d9c06a6"
+    },
+    {
+      "file": "RENDER-STAGING.json",
+      "sha256": "9664abf556bc492357c9f25a251a9967e8b9825bd04a6e25257009fbf3aa21da"
+    },
+    {
+      "file": "stdout.log",
+      "sha256": "bbdebad781b69fdfe38265a8270914b2108c7d415c4e91620274c2feee0c0c65"
+    },
+    {
+      "file": "stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "verify-browser-v4-renderer-20261107.py",
+      "sha256": "ecf7eacea5e64826aa748d7242b8a9ca1c656883f16f0bb1e56ac3540c3cf656"
+    }
+  ],
+  "databaseStarted": false,
+  "browserStarted": false,
+  "productionAccepted": false
+}

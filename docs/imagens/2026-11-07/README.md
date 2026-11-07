@@ -1,5 +1,15 @@
 # Capturas reais de QA — 07/11/2026
 
+## Versão corrigida V4 — três casos aprovados
+
+[Manifesto das três novas imagens](manifesto-v4.json), [prova Playwright](../../evidencias/mfa-real-browser-v4-2026-11-07.json) e [clipes de QA](../../videos/2026-11-07/README.md). Mesmas condições1280×800/API real/PostgreSQL isolado; as capturas finais foram revisadas e copiadas sem edição.
+
+- [MFA depois da jornada completa](mfa-jornada-corrigida.png): a imagem mostra o estado desativado ao final da desativação autorizada do gestor local. Inscrição, recuperação e recusa de código reutilizado passaram antes dela.
+- [Edição de estrutura na V4](estrutura-edicao-v4.png).
+- [Status de estrutura na V4](estrutura-status-v4.png).
+
+As imagens das falhas anteriores permanecem abaixo com sua origem original. Nenhuma é captura nativa Android/iOS.
+
 A [captura posterior V3](mfa-login-desafio-ausente.png), também revisada sem edição, registra o formulário vazio após uma resposta que exigiu MFA. SHA256: `44a57006bb11d958c0ab99b98ada282c5b122fc6b753fd260ab435f94b4b871a`. [Prova V3](../../evidencias/mfa-real-browser-v3-2026-11-07.json). A inscrição já havia passado; o login com recuperação ainda não passou nessa tentativa.
 
 Três capturas de Chromium, 1280×800, revisadas visualmente e copiadas sem edição. [Manifesto com hashes](manifesto.json) e [resultado da rodada](../../evidencias/mfa-real-browser-v2-2026-11-07.json).

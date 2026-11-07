@@ -1,0 +1,28 @@
+{
+  "recordedOn": "2026-11-07",
+  "sourcePreparedSha256": "4cc08d2e503a00d14c4a1220b41ad30c7cc07072be5fc9c820bde5065c7e021b",
+  "videos": [
+    {
+      "file": "estrutura-edicao.webm",
+      "sha256": "d0ad33384cbd6968ba49006cc07510fd567284268694fbe3103f40837c67c04c",
+      "bytes": 766281,
+      "durationSeconds": 7.68,
+      "case": "síndico corrige bloco, unidade e equipe; edição intacta não envia requisição e conflito preserva o rascunho",
+      "reviewMethod": "three sampled video frames",
+      "fullVideoWatched": false
+    },
+    {
+      "file": "estrutura-status.webm",
+      "sha256": "799cbaab2b5319fea09bfb1cf0300ca0cad24ee1b9125a503c1a09caf5c2ea2a",
+      "bytes": 741246,
+      "durationSeconds": 5.76,
+      "case": "síndico desativa e reativa unidade e equipe com confirmação; inativos só aparecem a pedido",
+      "reviewMethod": "three sampled video frames",
+      "fullVideoWatched": false
+    }
+  ],
+  "data": "fictitious isolated fixtures",
+  "completeProductDemo": false,
+  "rawMfaVideoPublished": false,
+  "productionAccepted": false
+}

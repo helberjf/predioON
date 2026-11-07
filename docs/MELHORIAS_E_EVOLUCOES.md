@@ -1,5 +1,9 @@
 # Melhorias e novas implementações — Prédio ON
 
+**Correção validada no candidato V4:** o desafio de login permanece visível após a resposta MFA. [Três casos reais aprovados](evidencias/mfa-real-browser-v4-2026-11-07.json) e quatro regressões renderer passaram. O P0 de perda do formulário descrito abaixo foi corrigido nessa composição; integrar o conjunto completo continua pendente. [Fontes recuperáveis e próximo cenário obrigatório](continuidade/2026-11-07-browser-v4/RESULTADO.md).
+
+**Melhoria de carregamento a medir:** o build V4 gerou JavaScript principal de aproximadamente1,16MB (338kB gzip) e imagem de fundo de2,29MB. Avaliar carregamento por rota e otimização da imagem após medir em rede/dispositivo representativos; esses tamanhos não comprovam lentidão nem regressão de desempenho.
+
 **P0 — formulário MFA perde o desafio:** a rodada V3 reproduziu a perda do campo de código após o servidor exigir MFA no novo login. A inscrição e o acknowledgment anteriores passaram. [Falha e fontes recuperáveis](evidencias/mfa-real-browser-v3-2026-11-07.json). Corrigir a remontagem do formulário quando ainda não há identidade, manter a limpeza na troca real de usuário e repetir a jornada sem enfraquecer suas expectativas.
 
 **QA real em 07/11:** edição/status de estrutura aprovados em dois casos; MFA parou antes da ativação porque o teste ainda esperava controles inline. [Resultado e limpeza](evidencias/mfa-real-browser-v2-2026-11-07.json). Atualizar a navegação para o diálogo e revalidar senha, recuperação e desativação. Avaliar depois a mensagem “Nenhuma equipe cadastrada” quando todas as equipes estão apenas ocultas pelo filtro de inativos.

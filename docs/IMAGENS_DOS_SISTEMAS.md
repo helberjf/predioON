@@ -1,8 +1,16 @@
 # Imagens reais dos aplicativos e portais
 
-Índice atualizado em **05/11/2026**. A galeria histórica foi publicada em **03/10/2026** e atualizada em **05/10/2026**. Estas capturas foram conferidas em execuções reais e usam dados fictícios. Cada imagem mantém a origem comprovada, inclusive commit nulo quando o runtime não foi atestado; a data de publicação não altera a versão demonstrada. Os cinco vídeos de 18/10 são históricos; o plano completo e demonstrações finais da versão atual continuam pendentes, conforme [CONTINUIDADE.md](CONTINUIDADE.md).
+Índice atualizado em **07/11/2026**. A galeria histórica foi publicada em **03/10/2026** e atualizada em **05/10/2026**. Estas capturas foram conferidas em execuções reais e usam dados fictícios. Cada imagem mantém a origem comprovada, inclusive commit nulo quando o runtime não foi atestado; a data de publicação não altera a versão demonstrada. Os cinco vídeos de 18/10 são históricos; o plano completo e demonstrações finais da versão atual continuam pendentes, conforme [CONTINUIDADE.md](CONTINUIDADE.md).
 
 A [galeriaHTML histórica](IMAGENS_DOS_SISTEMAS.html) reúne **38 imagens —9Android,20web e9iOS—**; as capturas posteriores são registradas nas seções próprias deste índice. Todas acompanham o clone. Todas as iOS mostram somente entrada; as duas novas de cf9b927 foram conferidas no startup aprovado dos dois produtos. Authcf9 parou no guardATS; Keychain/14POST/produção continuam pendentes. Duas novas JPEGs comerciais mostram QA manual em banco próprio039, com fonte ainda não publicada anterior ao ajuste finalShell; hashes e limites na [prova manual](evidencias/web-organizations039-manual.json). O [manifesto](imagens/2026-10-03/manifesto.json) registra dimensões, SHA e origem. Referências estáticas conferidas; acesso8765 continua bloqueado, sem bypass nem novo aceite de controles da galeria.
+
+## Web — MFA e estrutura corrigidas em 07/11/2026
+
+Três casos reais passaram na V4. [Fonte e hashes](imagens/2026-11-07/manifesto-v4.json), [resultado e limites](continuidade/2026-11-07-browser-v4/RESULTADO.md), [dois clipes de estrutura](videos/2026-11-07/README.md). A imagem MFA é o fim da jornada opcional, depois da desativação autorizada.
+
+![MFA ao final da jornada aprovada](imagens/2026-11-07/mfa-jornada-corrigida.png)
+
+![Estrutura após edição — V4](imagens/2026-11-07/estrutura-edicao-v4.png)
 
 ## Web — estrutura e tentativa MFA em 07/11/2026
 
