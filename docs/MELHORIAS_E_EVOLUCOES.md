@@ -1,5 +1,7 @@
 # Melhorias e novas implementações — Prédio ON
 
+**P0 — formulário MFA perde o desafio:** a rodada V3 reproduziu a perda do campo de código após o servidor exigir MFA no novo login. A inscrição e o acknowledgment anteriores passaram. [Falha e fontes recuperáveis](evidencias/mfa-real-browser-v3-2026-11-07.json). Corrigir a remontagem do formulário quando ainda não há identidade, manter a limpeza na troca real de usuário e repetir a jornada sem enfraquecer suas expectativas.
+
 **QA real em 07/11:** edição/status de estrutura aprovados em dois casos; MFA parou antes da ativação porque o teste ainda esperava controles inline. [Resultado e limpeza](evidencias/mfa-real-browser-v2-2026-11-07.json). Atualizar a navegação para o diálogo e revalidar senha, recuperação e desativação. Avaliar depois a mensagem “Nenhuma equipe cadastrada” quando todas as equipes estão apenas ocultas pelo filtro de inativos.
 
 **Avanço revisado em 07/11:** os seis PATCHs de estrutura passaram em35 TAP dirigidos e57 de regressão. Checkpoint:81 candidatos, dois testes renderer e cinco suportes; runtime001–067. Restam cenários concorrentes de comandos, outros domínios, desempenho, integração, Playwright real, aparelhos e operação. [CONTINUIDADE.md](CONTINUIDADE.md).

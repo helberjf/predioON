@@ -1,0 +1,26 @@
+import { freemem } from "node:os";
+import { spawnSync } from "node:child_process";
+
+// Playwright1.63's installed runner calls web-server plugin setup before global
+// setup. This second guard therefore runs with API/preview already alive, before
+// test workers and browsers. The outer controller also guards every phase.
+export default function guard(): void {
+  if (process.platform !== "win32") throw new Error("Reviewed Windows QA fixture required");
+  const probe = spawnSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command",
+    "$ErrorActionPreference='Stop'; $rows=@(Get-NetTCPConnection -State Listen | Where-Object { $_.LocalPort -in 4800,6974 } | Select-Object LocalAddress,LocalPort,OwningProcess); ConvertTo-Json -InputObject $rows -Compress"],
+  { encoding: "utf8", windowsHide: true, timeout: 10000 });
+  if (probe.error || probe.status !== 0) throw new Error("Could not attest QA loopback listeners");
+  const listeners: unknown = JSON.parse(probe.stdout.replace(/^\uFEFF/, ""));
+  if (!Array.isArray(listeners) || listeners.length !== 2
+      || new Set(listeners.map(row => row.LocalPort)).size !== 2
+      || listeners.some(row => row.LocalAddress !== "127.0.0.1"
+        || ![4800, 6974].includes(row.LocalPort) || !Number.isInteger(row.OwningProcess) || row.OwningProcess <= 0)) {
+    throw new Error("API and preview must each listen exclusively on the reviewed loopback port");
+  }
+  console.log(JSON.stringify({ phase: "after-api-preview-listeners", listeners }));
+  const freeMiB = Math.floor(freemem() / 1024 / 1024);
+  console.log(JSON.stringify({ phase: "after-api-preview-before-browser", freeMiB, minimumMiB: 2048 }));
+  if (!Number.isFinite(freeMiB) || freeMiB < 2048) {
+    throw new Error("Browser memory guard refused; no product result");
+  }
+}

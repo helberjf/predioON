@@ -1,5 +1,7 @@
 # Capturas reais de QA — 07/11/2026
 
+A [captura posterior V3](mfa-login-desafio-ausente.png), também revisada sem edição, registra o formulário vazio após uma resposta que exigiu MFA. SHA256: `44a57006bb11d958c0ab99b98ada282c5b122fc6b753fd260ab435f94b4b871a`. [Prova V3](../../evidencias/mfa-real-browser-v3-2026-11-07.json). A inscrição já havia passado; o login com recuperação ainda não passou nessa tentativa.
+
 Três capturas de Chromium, 1280×800, revisadas visualmente e copiadas sem edição. [Manifesto com hashes](manifesto.json) e [resultado da rodada](../../evidencias/mfa-real-browser-v2-2026-11-07.json).
 
 Portal Operação/Síndico compilado em produção, API real em modo teste e PostgreSQL descartável. Fonte candidata de 1.031 arquivos sobre o checkpoint MFA de 1.028; `main` observada `0817ae0`. A composição, incluindo testes auxiliares, é identificada pelo SHA do preparo no manifesto. Os usuários e condomínios são fictícios. A execução não altera o runtime publicado 001–067.

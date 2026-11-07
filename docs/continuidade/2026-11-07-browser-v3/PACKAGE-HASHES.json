@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "recordedOn": "2026-11-07",
+  "status": "AUTHORED_NOT_EXECUTED",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+      "bytes": 8
+    },
+    {
+      "path": "MANIFEST.json",
+      "sha256": "f9a1788ad777f21a54e9bd6c4e17422755a8f2dca1d7a5285cf9970df4b209b7",
+      "bytes": 382731
+    },
+    {
+      "path": "README.md",
+      "sha256": "91bab7f115970c1b0e7fe391886d0c200209e6a473d486a49a37883256d88c16",
+      "bytes": 4699
+    },
+    {
+      "path": "apply-browser-qa.mjs",
+      "sha256": "412db82557513f50ec348859fc2f62790f104847a5f8e692fbf59a71e12290a6",
+      "bytes": 7320
+    },
+    {
+      "path": "payload/e2e/specs/auth/mfa.spec.ts.txt",
+      "sha256": "ab261dd3ca39153fe0035bfea01e2bfcb1f54b958522199faba084b62bf902f9",
+      "bytes": 6177
+    },
+    {
+      "path": "payload/e2e/support/helpers.ts.txt",
+      "sha256": "3eac82c29c23dd4850e7ec11be7e945c73b49735baf3e2c00d4b8ec607f6676c",
+      "bytes": 7630
+    },
+    {
+      "path": "payload/e2e/support/tenancy-candidate-memory.ts.txt",
+      "sha256": "71da935485063dc542b6e9d5c4f8372500305a3ef1aa6285e81c1b6a57880e32",
+      "bytes": 1795
+    },
+    {
+      "path": "payload/playwright.tenancy-candidate.config.ts.txt",
+      "sha256": "7bcf03e68e509bcebebc7a1ff320847d6252cbb4fcea13bf4a3740dd6394757d",
+      "bytes": 3035
+    },
+    {
+      "path": "payload/qa/browser-api-loopback.mts.txt",
+      "sha256": "a6aedd26c0eb4800150d521a385e27caf4a6cc11374694abdd6d54dbb86d4bc5",
+      "bytes": 794
+    }
+  ]
+}

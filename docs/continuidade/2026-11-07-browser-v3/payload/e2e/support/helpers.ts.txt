@@ -1,0 +1,127 @@
+import { randomUUID } from "node:crypto";
+import { expect, type APIRequestContext, type Page } from "@playwright/test";
+import { API_URL, DEMO_PASSWORD } from "./environment";
+import { demoAccountEmail } from "./fixtures";
+import { base32Decode, totpCode, totpStep } from "../../apps/api/src/auth/totp";
+
+export async function signIn(page: Page, origin: string, email: string) {
+  await page.goto(`${origin}/login`);
+  await enterCredentials(page, email);
+}
+
+export async function enterCredentials(page: Page, email: string) {
+  await page.getByLabel("E-mail", { exact: true }).fill(demoAccountEmail(email));
+  await page.getByLabel("Senha", { exact: true }).fill(DEMO_PASSWORD);
+  const response = page.waitForResponse(response => response.url() === `${API_URL}/auth/web/login` && response.request().method() === "POST");
+  await page.getByRole("button", { name: "Entrar", exact: true }).click();
+  expect((await response).status(), "O seed precisa fornecer contas de demonstração com a senha configurada").toBe(200);
+  await expect(page.getByLabel("Senha", { exact: true })).toHaveCount(0);
+}
+
+export async function signOut(page: Page, button = "Sair da conta") {
+  const response = page.waitForResponse(response => response.url() === `${API_URL}/auth/web/logout` && response.request().method() === "POST");
+  await page.getByRole("button", { name: button, exact: true }).click();
+  expect((await response).status()).toBe(204);
+  const login = page.getByRole("link", { name: "Login", exact: true });
+  await expect(login.or(page.getByRole("button", { name: "Entrar", exact: true }))).toBeVisible();
+  if (await login.isVisible()) await login.click();
+  await expect(page.getByLabel("E-mail", { exact: true })).toBeVisible();
+}
+
+export async function createWithForm(page: Page, endpoint: string, button: string) {
+  const response = page.waitForResponse(response => response.url() === `${API_URL}/v1/tenancy/${endpoint}` && response.request().method() === "POST");
+  await page.getByRole("button", { name: button, exact: true }).click();
+  expect((await response).status(), `O cadastro ${endpoint} deve persistir na API real`).toBe(201);
+}
+
+type Person = { id: string; name: string; email: string };
+type Building = { id: string; name: string; organizationId: string };
+
+/** Domain fixtures go through the same authenticated API and RLS used by the UI. */
+export async function authenticatedApi(request: APIRequestContext, email: string, options: { enrollAdminMfa?: boolean } = {}) {
+  const accountEmail = demoAccountEmail(email);
+  const login = await request.post(`${API_URL}/auth/login`, { data: { email: accountEmail, password: DEMO_PASSWORD } });
+  expect(login.status(), `Autenticação da fixture ${email}`).toBe(200);
+  const { accessToken } = await login.json() as { accessToken: string };
+  const headers = { Authorization: `Bearer ${accessToken}` };
+  // Candidate-only setup for adminFixtures. The per-test ADMIN alias proves MFA
+  // through the normal API before creating domain data. No token replacement,
+  // second login or owner SQL: every request below uses this same bearer/SID.
+  // The independent local manager in auth/mfa.spec.ts remains unenrolled.
+  if (options.enrollAdminMfa) {
+    expect(email, "MFA bootstrap is restricted to the ADMIN fixture").toBe("admin@predioon.local");
+    expect(accountEmail, "Enroll only the isolated test alias, never the shared seed").not.toBe(email);
+    const before = await request.get(`${API_URL}/auth/me`, { headers });
+    expect(before.status(), "Admin bootstrap profile").toBe(200);
+    const prior = await before.json() as { id: string; email: string; mfaRequirement: string };
+    expect(prior.email).toBe(accountEmail);
+    expect(prior.mfaRequirement).toBe("enrollment-required");
+    const enrollment = await request.post(`${API_URL}/auth/mfa/enroll`, {
+      headers, data: { currentPassword: DEMO_PASSWORD },
+    });
+    expect(enrollment.status(), "Admin enrolls with its real password").toBe(200);
+    const { secret: encoded } = await enrollment.json() as { secret: string };
+    expect(typeof encoded).toBe("string");
+    const secret = base32Decode(encoded);
+    expect(secret !== null, "MFA API must supply a decodable TOTP secret").toBe(true);
+    if (!secret) throw new Error("Invalid admin fixture TOTP secret");
+    const confirmation = await request.post(`${API_URL}/auth/mfa/confirm`, {
+      headers, data: { code: totpCode(secret, totpStep(Date.now())) },
+    });
+    expect(confirmation.status(), "Admin confirms a real TOTP on the original session").toBe(200);
+    const confirmationBody = await confirmation.json() as { recoveryCodes: unknown };
+    expect(Array.isArray(confirmationBody.recoveryCodes), "Confirmation returns recovery codes").toBe(true);
+    expect((confirmationBody.recoveryCodes as unknown[]).length, "Admin enrollment creates ten recovery codes").toBe(10);
+    const verified = await request.get(`${API_URL}/auth/me`, { headers });
+    expect(verified.status()).toBe(200);
+    const current = await verified.json() as { id: string; email: string; mfaRequirement: string };
+    expect(current.id).toBe(prior.id);
+    expect(current.email).toBe(accountEmail);
+    expect(current.mfaRequirement).toBe("satisfied");
+  }
+  return {
+    get: (path: string) => request.get(`${API_URL}${path}`, { headers }),
+    post: (path: string, data: object) => request.post(`${API_URL}${path}`, { headers, data }),
+    put: (path: string, data: object) => request.put(`${API_URL}${path}`, { headers, data }),
+    patch: (path: string, data: object) => request.patch(`${API_URL}${path}`, { headers, data }),
+    delete: (path: string) => request.delete(`${API_URL}${path}`, { headers }),
+    async create<T>(path: string, data: object): Promise<T> {
+      const response = await request.post(`${API_URL}${path}`, { headers, data });
+      expect(response.status(), `Fixture POST ${path}`).toBe(201);
+      return response.json() as Promise<T>;
+    },
+  };
+}
+
+export async function adminFixtures(request: APIRequestContext) {
+  const api = await authenticatedApi(request, "admin@predioon.local", { enrollAdminMfa: true });
+  const buildings = await api.get("/buildings");
+  expect(buildings.status()).toBe(200);
+  const seedBuilding = ((await buildings.json()).items as Building[]).find(building => building.id === "bld_001");
+  expect(seedBuilding, "O seed local precisa criar bld_001 para as fixtures isoladas").toBeDefined();
+  const suffix = randomUUID().slice(0, 8);
+  return {
+    suffix,
+    api,
+    person: (label: string) => api.create<Person>("/users", {
+      name: `E2E ${label} ${suffix}`, email: `${label.toLowerCase()}-${suffix}@predioon.local`, password: DEMO_PASSWORD,
+    }),
+    createBuilding: (label: string) => api.create<Building>("/buildings", {
+      organizationId: seedBuilding!.organizationId, name: `E2E ${label} ${suffix}`, code: `E2E-${label}-${suffix}`,
+    }),
+    membership: (person: Person, building: Building, role: "BUILDING_ADMIN" | "RESIDENT") => api.create("/users/memberships", {
+      userId: person.id, buildingId: building.id, role,
+    }),
+  };
+}
+
+export async function isolatedTenant(request: APIRequestContext) {
+  const fixtures = await adminFixtures(request);
+  const building = await fixtures.createBuilding("A");
+  const manager = await fixtures.person("Gestor");
+  const resident = await fixtures.person("Morador");
+  await fixtures.membership(manager, building, "BUILDING_ADMIN");
+  await fixtures.membership(resident, building, "RESIDENT");
+  const managerApi = await authenticatedApi(request, manager.email);
+  return { ...fixtures, building, manager, resident, managerApi };
+}
