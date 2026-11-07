@@ -1,5 +1,8 @@
 # ADMIN/CONFIG: três ações comuns, sem 174 guards individuais
 
+**Quinto lote, revisado em 07/11 (execuções de 05/11):** detalhe de condomínio, usuários global/local e equipe de suporte passaram nos seis cenários de concorrência, quatro controles e 22 arquivos de regressão. [Prova e contagens](../../evidencias/mfa-admin-directory-read-2026-11-05.json). Próximos: concessões de suporte e funcionalidades; comandos e demais domínios continuam pendentes.
+
+
 **Resultado do quarto lote em 05/11:** convites passaram nos quatro cenários de concorrência e quatro controles, mais 19 arquivos de regressão. [Prova e contagens](../../evidencias/mfa-invitations-read-2026-11-05.json). DTO, escopo, paginação e relógio de expiração preservados. Próximos: detalhe de condomínio, usuários e equipe de suporte; demais leituras e comandos continuam pendentes.
 
 

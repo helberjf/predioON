@@ -1,0 +1,101 @@
+import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
+import type { Server } from "node:http";
+import { after, before, describe, it } from "node:test";
+import { decodeJwt } from "jose";
+import { PgDialect } from "drizzle-orm/pg-core";
+import { sqlClient } from "@predioon/db";
+import { appDb, closeAppDb, type AppTransaction } from "@predioon/db/runtime";
+import { app } from "../src/app.js";
+import { hashPassword } from "../src/auth/passwords.js";
+import "./helpers.js";
+
+// Same test source for baseline and candidate: no import of the new helper.
+type Actor = { id: string; token: string; sid: string; binding: string; generation: string };
+type HttpResult = { status: number; body: unknown; cache: string | null };
+function signal() {
+  let resolve!: () => void;
+  const promise = new Promise<void>(done => { resolve = done; }); return { promise, resolve };
+}
+async function bounded<T>(promise: PromiseLike<T>, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try { return await Promise.race([Promise.resolve(promise), new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`Fixture deadline: ${label}`)), 5000);
+  })]); } finally { clearTimeout(timer); }
+}
+function beforeProjection(functionName:string,capability:string) {
+  const original = appDb.transaction, run = original.bind(appDb), dialect = new PgDialect();
+  const reached = signal(), release = signal(), finished = signal(); let contexts = 0;
+  type Input = Parameters<AppTransaction['execute']>[0];
+  appDb.transaction = (callback, config) => run(tx => callback(new Proxy(tx, { get(target,key) {
+    if (key === 'execute') return async (query: Input) => {
+      const compiled = typeof query === 'string' ? {sql:query,params:[]} : dialect.sqlToQuery(query.getSQL());
+      const text=compiled.sql;
+      const rows = await target.execute(query);
+      if (text.includes(functionName+"(") && compiled.params.includes(capability)) {
+        contexts++; assert.equal(contexts,1); reached.resolve(); await bounded(release.promise,'projection release');
+      }
+      return rows;
+    };
+    const value = Reflect.get(target,key,target); return typeof value === 'function' ? value.bind(target) : value;
+  }})), config).finally(() => finished.resolve());
+  return { reached,release,finished,get contexts(){return contexts;},restore(){appDb.transaction=original;} };
+}
+
+describe('MFA basic building, user directory and support staff reads',{concurrency:false},()=>{
+  const suffix=randomUUID(),org=`dir-org-${suffix}`,building=`dir-a-${suffix}`,empty=`dir-empty-${suffix}`,foreign=`dir-other-${suffix}`;
+  const password='directory-fictitious-password',stamp='2026-11-05T01:02:03.456Z',address={street:"O'Connor",extra:null};
+  const users:string[]=[],staff:Array<{id:string;userId:string;name:string;email:string;reason:string;createdAt:string}>=[];
+  let server:Server|undefined,url='',hash='',manager:Actor,satisfied:Actor,resident:Actor;const members:string[]=[];
+  const localPath=(b=building)=>'/users?buildingId='+b,staffPath='/v1/support-access/staff';
+  async function request(a:Actor,p:string,abort=new AbortController()):Promise<HttpResult>{try{const r=await bounded(fetch(url+p,{headers:{Authorization:`Bearer ${a.token}`},signal:abort.signal}),'HTTP');return{status:r.status,body:await bounded(r.json(),'JSON'),cache:r.headers.get('cache-control')};}finally{abort.abort();}}
+  async function actor(label:string,local=true):Promise<Actor>{const id=`dir-${suffix}-${label}`,binding=randomUUID(),generation=randomUUID();users.push(id);
+    await sqlClient`insert into users(id,name,email,password_hash,phone,created_at) values(${id},${label},${id+'@example.invalid'},${hash},null,${stamp}::timestamptz)`;
+    if(local)for(const b of [building,empty])await sqlClient`insert into role_bindings(user_id,building_id,role_key) values(${id},${b},'BUILDING_ADMIN')`;
+    await sqlClient`insert into role_bindings(id,user_id,role_key,active) values(${binding},${id},'PLATFORM_ADMIN',false)`;
+    const c=new AbortController();try{const r=await bounded(fetch(url+'/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:id+'@example.invalid',password}),signal:c.signal}),'login');assert.equal(r.status,200);const data=await bounded(r.json(),'loginJSON') as {accessToken:string};const sid=decodeJwt(data.accessToken).sid;assert.equal(typeof sid,'string');return{id,token:data.accessToken,sid:sid as string,binding,generation};}finally{c.abort();}}
+  const prove=(a:Actor)=>sqlClient`update sessions set mfa_verified_at=now(),mfa_factor_generation=${a.generation} where id=${a.sid}`;
+  before(async()=>{
+    const [ledger]=await sqlClient`select count(*)::int as count from schema_migrations`;assert.equal(ledger?.count,68);hash=await hashPassword(password);
+    await sqlClient`insert into organizations(id,name,slug) values(${org},'Directory',${org})`;
+    for(const b of [building,empty,foreign])await sqlClient`insert into buildings(id,organization_id,name,code,address,created_at,updated_at) values(${b},${org},${b},${b},${JSON.stringify(address)}::jsonb,${stamp}::timestamptz,${stamp}::timestamptz)`;
+    server=await new Promise<Server>(resolve=>{const s=app.listen(0,'127.0.0.1',()=>resolve(s));});const a=server.address();assert.ok(a&&typeof a!=='string');url=`http://127.0.0.1:${a.port}`;
+    manager=await actor('manager');satisfied=await actor('satisfied');resident=await actor('resident',false);
+    await sqlClient`insert into memberships(user_id,building_id,role) values(${resident.id},${building},'RESIDENT')`;members.push(resident.id);
+    const id=`dir-${suffix}-former`;users.push(id);members.push(id);await sqlClient`insert into users(id,name,email,password_hash,phone,active,created_at) values(${id},'Former',${id+'@example.invalid'},${hash},'123',false,${stamp}::timestamptz)`;
+    await sqlClient`insert into memberships(user_id,building_id,role,ends_at) values(${id},${building},'RESIDENT',now()-interval '1 day')`;
+    await sqlClient`insert into mfa_factors(user_id,secret_ciphertext,confirmed_at,generation) values(${satisfied.id},decode(repeat('00',40),'hex'),now(),${satisfied.generation})`;await prove(satisfied);await sqlClient`update role_bindings set active=true where id=${satisfied.binding}`;
+    // 201 legitimate staff records exercise the existing 200-row cap and tie order.
+    for(let i=0;i<201;i++){const userId=`dir-staff-${suffix}-${String(i).padStart(3,'0')}`,binding=randomUUID(),name=i<2?'Same staff':'Staff '+String(i).padStart(3,'0'),email=userId+'@example.invalid',reason="Fixture ' support";users.push(userId);
+      await sqlClient`insert into users(id,name,email,password_hash) values(${userId},${name},${email},${hash})`;
+      await sqlClient`insert into role_bindings(id,user_id,role_key,reason,created_at,starts_at,ends_at) values(${binding},${userId},'PLATFORM_SUPPORT',${reason},${stamp}::timestamptz,${i===0?'2000-01-01T00:00:00Z':null}::timestamptz,${i===0?'2001-01-01T00:00:00Z':null}::timestamptz)`;
+      staff.push({id:binding,userId,name,email,reason,createdAt:stamp});}
+  });
+  after(async()=>{try{await bounded(new Promise<void>((resolve,reject)=>{if(!server){resolve();return;}server.close(e=>e?reject(e):resolve());server.closeAllConnections();}),'listener');}finally{try{await bounded(sqlClient.begin(async tx=>{await tx`set local lock_timeout='2s'`;await tx`set local statement_timeout='3s'`;await tx`delete from buildings where organization_id=${org}`;await tx`delete from organizations where id=${org}`;await tx`delete from users where id in ${sqlClient(users)}`;}),'fixture cleanup');}finally{const r=await Promise.allSettled([bounded(closeAppDb(),'app close'),bounded(sqlClient.end({timeout:3}),'owner close')]);const e=r.find(x=>x.status==='rejected');if(e?.status==='rejected')throw e.reason;}}});
+  async function interleave(a:Actor,p:string,fn:string,cap:string,change:()=>Promise<unknown>){const barrier=beforeProjection(fn,cap),c=new AbortController(),pending=request(a,p,c);void pending.catch(()=>undefined);let failed=false;try{assert.equal(await bounded(Promise.race([barrier.reached.promise.then(()=>'cap'),pending.then(()=>'response')]),'reach boundary'),'cap');await bounded(change(),'commit');barrier.release.resolve();return await pending;}catch(e){failed=true;throw e;}finally{barrier.release.resolve();c.abort();const r=await Promise.allSettled([bounded(pending,'HTTP settled'),barrier.contexts?bounded(barrier.finished.promise,'tx settled'):Promise.resolve()]);barrier.restore();if(!failed){const e=r.find(x=>x.status==='rejected');if(e?.status==='rejected')throw e.reason;}}}
+  function classify(r:HttpResult,positive:HttpResult,diagnostic:(message:string)=>void){
+    if(r.status===200){const body=r.body as {items?:unknown[]};if(Array.isArray(body.items)&&body.items.length===0){diagnostic('Baseline observed 200 empty list; no full DTO delivery claimed');}else{assert.deepEqual(r.body,positive.body);diagnostic('Baseline decoded exact positive DTO after authority change');}}
+    else if(r.status===404)diagnostic('Baseline observed no-match404; no private DTO delivery claimed');
+    else diagnostic(`Observed HTTP${r.status}; exact MFA reason is asserted separately`);
+  }
+  function denied(r:HttpResult,reason:string){assert.equal(r.status,403);assert.equal((r.body as {details?:{reason:string}}).details?.reason,reason);assert.equal('items' in (r.body as object),false);}
+  for(const detail of [false,true])it(`requires enrollment after ${detail?'building discovery':'local membership capability'}`,async t=>{const p=detail?'/buildings/'+building:localPath();const positive=await request(manager,p);assert.equal(positive.status,200);try{const r=await interleave(manager,p,detail?'app_can_discover_building':'app_has_capability',detail?building:'memberships:read',()=>sqlClient`update role_bindings set active=true where id=${manager.binding}`);classify(r,positive,message=>t.diagnostic(message));denied(r,'MFA_ENROLLMENT_REQUIRED');}finally{await sqlClient`update role_bindings set active=false where id=${manager.binding}`;}});
+  it('requires proof after real global capability for user and staff lists',async t=>{for(const p of ['/users',staffPath])await t.test(p,async()=>{await prove(satisfied);try{const positive=await request(satisfied,p);assert.equal(positive.status,200);const r=await interleave(satisfied,p,'app_has_global_capability','rbac:manage',()=>sqlClient`update sessions set mfa_verified_at=null,mfa_factor_generation=null where id=${satisfied.sid}`);classify(r,positive,message=>t.diagnostic(message));denied(r,'MFA_VERIFICATION_REQUIRED');}finally{await prove(satisfied);}});});
+  it('requires MFA before empty local list or missing global-discoverable detail',async t=>{
+    await t.test('empty local list',async()=>{assert.deepEqual((await request(manager,localPath(empty))).body,{items:[]});try{const r=await interleave(manager,localPath(empty),'app_has_capability','memberships:read',()=>sqlClient`update role_bindings set active=true where id=${manager.binding}`);if(r.status===200)assert.deepEqual(r.body,{items:[]});denied(r,'MFA_ENROLLMENT_REQUIRED');}finally{await sqlClient`update role_bindings set active=false where id=${manager.binding}`;}});
+    await t.test('missing building',async()=>{const missing='missing-'+suffix;await prove(satisfied);assert.equal((await request(satisfied,'/buildings/'+missing)).status,404);try{const r=await interleave(satisfied,'/buildings/'+missing,'app_can_discover_building',missing,()=>sqlClient`update sessions set mfa_verified_at=null,mfa_factor_generation=null where id=${satisfied.sid}`);denied(r,'MFA_VERIFICATION_REQUIRED');}finally{await prove(satisfied);}});
+  });
+  it('preserves building10 and users7 DTOs, nullable fields, dates and legacy membership join',async()=>{
+    const b=await request(manager,'/buildings/'+building);assert.equal(b.status,200);assert.deepEqual(b.body,{id:building,organizationId:org,name:building,code:building,timezone:'America/Sao_Paulo',propertyType:'CONDOMINIUM',address,active:true,createdAt:stamp,updatedAt:stamp});
+    const r=await request(manager,localPath());assert.equal(r.status,200);const rows=(r.body as {items:Array<Record<string,unknown>>}).items;assert.deepEqual(rows.map(x=>x.id).sort(),members.slice().sort());assert.equal(new Set(rows.map(x=>x.id)).size,rows.length);
+    for(const row of rows){assert.deepEqual(Object.keys(row).sort(),['id','name','email','phone','isPlatformAdmin','active','createdAt'].sort());assert.equal(row.createdAt,stamp);assert.equal(row.isPlatformAdmin,false);assert.equal(row.phone,row.id===resident.id?null:'123');assert.equal(row.active,row.id===resident.id);}
+    assert.ok(!rows.some(x=>x.id===manager.id),'RBAC-only manager is not added to the legacy membership join');
+  });
+  it('preserves support staff6 fields, ascending name/id ties, limit200 and existing active-only filtering',async()=>{
+    const r=await request(satisfied,staffPath);assert.equal(r.status,200);assert.equal(r.cache,'no-store');const rows=(r.body as {items:Array<Record<string,unknown>>}).items;
+    const all=await sqlClient`select rb.id,rb.user_id as "userId",u.name,u.email,rb.reason,to_char(rb.created_at at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as "createdAt" from role_bindings rb join users u on u.id=rb.user_id where rb.role_key='PLATFORM_SUPPORT' and rb.building_id is null and rb.team_id is null and rb.resource_type is null and rb.active order by u.name,rb.id`;
+    assert.ok(all.length>=201);assert.equal(rows.length,200);assert.deepEqual(rows,all.slice(0,200).map(x=>({...x})));for(const row of rows)assert.deepEqual(Object.keys(row).sort(),['id','userId','name','email','reason','createdAt'].sort());assert.ok(rows.some(x=>x.id===staff[0]!.id),'expired but active staff binding remains listed as before');
+  });
+  it('keeps ordinary/global scope denials and does not grant private account capabilities through discovery',async()=>{assert.equal((await request(manager,'/users')).status,403);assert.equal((await request(manager,staffPath)).status,403);assert.equal((await request(resident,localPath())).status,403);assert.equal((await request(manager,localPath(foreign))).status,403);});
+  it('accepts a satisfied administrator and preserves global versus local account visibility',async()=>{const g=await request(satisfied,'/users');assert.equal(g.status,200);const rows=(g.body as {items:Array<Record<string,unknown>>}).items;assert.ok([manager.id,resident.id,satisfied.id].every(id=>rows.some(x=>x.id===id)));for(const row of rows)assert.deepEqual(Object.keys(row).sort(),['id','name','email','phone','isPlatformAdmin','active','createdAt'].sort());const a=await request(manager,localPath()),b=await request(satisfied,localPath());assert.equal(b.status,200);assert.deepEqual(b.body,a.body);});
+});

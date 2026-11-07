@@ -1,0 +1,731 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-11-07",
+  "reviewedOn": "2026-11-07",
+  "executedOn": "2026-11-05",
+  "scope": "Três GETs administrativos, quatro projeções e duas fixtures originais com MFA local",
+  "sources": {
+    "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+    "baselinePreparedSha256": "380f589f05175c794d70d8c2e35afe89082ddbd73cb86bbaa796245198859696",
+    "fixedPreparedSha256": "40b0ef06f4143d4f2ead18a59bf433136458283aab9c5402af0024a999e84758",
+    "rootFiles": 994,
+    "composedFilesByVariant": {
+      "baseline": 1024,
+      "fixed": 1024
+    },
+    "workspaceJunctions": 23,
+    "productManifest": {
+      "id": "mfa-admin-directory-read-candidate-20261105/manifest.json",
+      "sha256": "47414480e38f0b09cb0e3dd7eebfcb770e466d9db713e2b6daa4adf2a5929069",
+      "bytes": 2839
+    },
+    "testManifest": {
+      "id": "mfa-admin-directory-tests-20261105/manifest.json",
+      "sha256": "e6c2b79940c7dc6df29310abb36d1521f791369c5a2f5c90ceeb56b9d86644c9",
+      "bytes": 251
+    }
+  },
+  "typeChecks": [
+    {
+      "variant": "baseline",
+      "phase": "resolve",
+      "exitCode": 0,
+      "durationMs": 1187,
+      "freeMiB": 2284,
+      "sourceCandidateConfigPreparedJunctionsAfter": true,
+      "result": {
+        "id": "mfa-admin-directory-read-baseline-qa-20261105/checks/resolve/result.json",
+        "sha256": "9b63927b528b3b2445261d28ee61de63a74afc4ae8500a80d4edae889eebcf78",
+        "bytes": 1178
+      }
+    },
+    {
+      "variant": "baseline",
+      "phase": "types",
+      "exitCode": 0,
+      "durationMs": 12515,
+      "freeMiB": 2331,
+      "sourceCandidateConfigPreparedJunctionsAfter": true,
+      "result": {
+        "id": "mfa-admin-directory-read-baseline-qa-20261105/checks/types/result.json",
+        "sha256": "3a0e2623c1c624913f7c8d5848e63c822a8ff92fae0de813476a94344cc5815d",
+        "bytes": 1025
+      }
+    },
+    {
+      "variant": "fixed",
+      "phase": "resolve",
+      "exitCode": 0,
+      "durationMs": 1193,
+      "freeMiB": 2297,
+      "sourceCandidateConfigPreparedJunctionsAfter": true,
+      "result": {
+        "id": "mfa-admin-directory-read-fixed-qa-20261105/checks/resolve/result.json",
+        "sha256": "97fe1b563c369b21f34a290571807d6492265d1b7a382db8670f63345c709d86",
+        "bytes": 1175
+      }
+    },
+    {
+      "variant": "fixed",
+      "phase": "types",
+      "exitCode": 0,
+      "durationMs": 12482,
+      "freeMiB": 2308,
+      "sourceCandidateConfigPreparedJunctionsAfter": true,
+      "result": {
+        "id": "mfa-admin-directory-read-fixed-qa-20261105/checks/types/result.json",
+        "sha256": "cf9346159bd48bc7d6f98a96b9bc669b9a2c66cd91f952a246bc4a68fdc68bfc",
+        "bytes": 1022
+      }
+    }
+  ],
+  "runs": {
+    "baseline": {
+      "startedUtc": "2026-11-05T09:51:53.795Z",
+      "endedUtc": "2026-11-05T09:52:10.469Z",
+      "observedHeadBefore": "ea7db90bed7ef0d3f3888020a13abd52a763eb21",
+      "observedHeadAfter": "ea7db90bed7ef0d3f3888020a13abd52a763eb21",
+      "processes": [
+        {
+          "file": "platform-mfa-admin-directory-read.test.ts",
+          "tap": {
+            "tests": 12,
+            "suites": 1,
+            "pass": 4,
+            "fail": 8,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 8197.0132
+          },
+          "exitCode": 1,
+          "childDurationMs": 8867.145,
+          "log": {
+            "id": "mfa-admin-directory-read-baseline-qa-20261105/platform-mfa-admin-directory-read.log",
+            "sha256": "abdd09af478c5ada9d0574c5c0b8784246e61deeea15f8acc6ca1db875d502d9",
+            "bytes": 13258
+          }
+        }
+      ],
+      "result": {
+        "id": "mfa-admin-directory-read-baseline-qa-20261105/mfa-directed-result.json",
+        "sha256": "5ae70dc4f337476b41288995b69796341d5ffb23c8dbeefbbdeac19a02f4b8b2",
+        "bytes": 312224
+      },
+      "postchecks": {
+        "id": "mfa-admin-directory-read-baseline-qa-20261105/mfa-directed-postchecks.json",
+        "sha256": "68e7523df1a3373f54cb297c2bbccd798553f4bae667f2946578c767a775c1b0",
+        "bytes": 390
+      },
+      "cleanupPassed": true,
+      "sourceHashesAfterMatch": true,
+      "rolesRestoredIncludingPrivateCredentials": true,
+      "settingsRestored": true,
+      "baseTablesTemporaryOtherDatabasesAndOtherClients": 0,
+      "roles": 6,
+      "freeMiBAtStart": 2381.0
+    },
+    "fixed": {
+      "startedUtc": "2026-11-05T09:52:44.272Z",
+      "endedUtc": "2026-11-05T09:52:58.642Z",
+      "observedHeadBefore": "ea7db90bed7ef0d3f3888020a13abd52a763eb21",
+      "observedHeadAfter": "ea7db90bed7ef0d3f3888020a13abd52a763eb21",
+      "processes": [
+        {
+          "file": "platform-mfa-admin-directory-read.test.ts",
+          "tap": {
+            "tests": 12,
+            "suites": 1,
+            "pass": 12,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 6239.6303
+          },
+          "exitCode": 0,
+          "childDurationMs": 6402.124199999998,
+          "log": {
+            "id": "mfa-admin-directory-read-fixed-qa-20261105/platform-mfa-admin-directory-read.log",
+            "sha256": "077def7e9766894622888d844fcf44c40f9717e66e9b49f017cc67959a6fc038",
+            "bytes": 3182
+          }
+        }
+      ],
+      "result": {
+        "id": "mfa-admin-directory-read-fixed-qa-20261105/mfa-directed-result.json",
+        "sha256": "7ca578cb6db8e2d798f228e3d0f39e1b78446e69857e7b3c18adbb0aefe291cf",
+        "bytes": 312230
+      },
+      "postchecks": {
+        "id": "mfa-admin-directory-read-fixed-qa-20261105/mfa-directed-postchecks.json",
+        "sha256": "c410a99948ee4caa1da6a2462ca06552fafe3f1ac995922f053f91fcf5d71603",
+        "bytes": 390
+      },
+      "cleanupPassed": true,
+      "sourceHashesAfterMatch": true,
+      "rolesRestoredIncludingPrivateCredentials": true,
+      "settingsRestored": true,
+      "baseTablesTemporaryOtherDatabasesAndOtherClients": 0,
+      "roles": 6,
+      "freeMiBAtStart": 2349.0
+    },
+    "fixed-regression": {
+      "startedUtc": "2026-11-05T09:54:26.774Z",
+      "endedUtc": "2026-11-05T09:58:16.620Z",
+      "observedHeadBefore": "ea7db90bed7ef0d3f3888020a13abd52a763eb21",
+      "observedHeadAfter": "ea7db90bed7ef0d3f3888020a13abd52a763eb21",
+      "processes": [
+        {
+          "file": "platform-mfa-invitation-read.test.ts",
+          "tap": {
+            "tests": 10,
+            "suites": 1,
+            "pass": 10,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 3620.368
+          },
+          "exitCode": 0,
+          "childDurationMs": 3787.371799999999,
+          "log": {
+            "id": "mfa-admin-directory-read-fixed-regression-qa-20261105/platform-mfa-invitation-read.log",
+            "sha256": "626beb3121ab08df8c5e7d0887806f162de06665d57f49d7d5c72eade323dac1",
+            "bytes": 2448
+          }
+        },
+        {
+          "file": "platform-mfa-tenancy-links.test.ts",
+          "tap": {
+            "tests": 12,
+            "suites": 1,
+            "pass": 12,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 4610.6205
+          },
+          "exitCode": 0,
+          "childDurationMs": 4751.037899999999,
+          "log": {
+            "id": "mfa-admin-directory-read-fixed-regression-qa-20261105/platform-mfa-tenancy-links.log",
+            "sha256": "11fb4167c3f79d61fd3e3ac2942e55fd509cbb95f9654e9656c5615f37f66f60",
+            "bytes": 2781
+          }
+        },
+        {
+          "file": "platform-mfa-tenancy-structure.test.ts",
+          "tap": {
+            "tests": 12,
+            "suites": 1,
+            "pass": 12,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 4347.9483
+          },
+          "exitCode": 0,
+          "childDurationMs": 4494.620900000002,
+          "log": {
+            "id": "mfa-admin-directory-read-fixed-regression-qa-20261105/platform-mfa-tenancy-structure.log",
+            "sha256": "0161d2d02bf0293907bb63aef0277922a3349edbed8db06398a2a4411fc55d85",
+            "bytes": 2624
+          }
+        },
+        {
+          "file": "platform-mfa-guarded-read.test.ts",
+          "tap": {
+            "tests": 8,
+            "suites": 1,
+            "pass": 8,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 3648.5152
+          },
+          "exitCode": 0,
+          "childDurationMs": 3803.4513000000006,
+          "log": {
+            "id": "mfa-admin-directory-read-fixed-regression-qa-20261105/platform-mfa-guarded-read.log",
+            "sha256": "eff2c36e7e89d2097bd420d935de1014723191cf91b8619ff824efad65142c8e",
+            "bytes": 2496
+          }
+        },
+        {
+          "file": "platform-mfa-gateway-events.test.ts",
+          "tap": {
+            "tests": 7,
+            "suites": 1,
+            "pass": 7,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 3843.1682
+          },
+          "exitCode": 0,
+          "childDurationMs": 4029.0282000000007,
+          "log": {
+            "id": "mfa-admin-directory-read-fixed-regression-qa-20261105/platform-mfa-gateway-events.log",
+            "sha256": "71c1cc24209ba61ce1cc16b76189ec0826cdadf2e138f5b5a2fccc4b642dc81f",
+            "bytes": 2489
+          }
+        },
+        {
+          "file": "platform-mfa-heartbeat.test.ts",
+          "tap": {
+            "tests": 9,
+            "suites": 1,
+            "pass": 9,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 4978.8979
+          },
+          "exitCode": 0,
+          "childDurationMs": 5485.714199999995,
+          "log": {
+            "id": "mfa-admin-directory-read-fixed-regression-qa-20261105/platform-mfa-heartbeat.log",
+            "sha256": "202cfddb4c8afcc48fcc34fa8914057f8e0c0a9c47d37a654f8b601368e7fa41",
+            "bytes": 2785
+          }
+        },
+        {
+          "file": "platform-mfa-device-events.test.ts",
+          "tap": {
+            "tests": 9,
+            "suites": 1,
+            "pass": 9,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 5330.0703
+          },
+          "exitCode": 0,
+          "childDurationMs": 6007.3989,
+          "log": {
+            "id": "mfa-admin-directory-read-fixed-regression-qa-20261105/platform-mfa-device-events.log",
+            "sha256": "aee80c350810a851583deb727ddfc6e43538b35f288f4e921ef8fe8b3339aa5b",
+            "bytes": 2791
+          }
+        },
+        {
+          "file": "platform-mfa-telemetry-events.test.ts",
+          "tap": {
+            "tests": 9,
+            "suites": 1,
+            "pass": 9,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 5124.7622
+          },
+          "exitCode": 0,
+          "childDurationMs": 5300.9686,
+          "log": {
+            "id": "mfa-admin-directory-read-fixed-regression-qa-20261105/platform-mfa-telemetry-events.log",
+            "sha256": "8eeb99e5a6fa6c3debff3dbed7614835ff58ba1dfc07d1760dee7c11a1e28194",
+            "bytes": 2653
+          }
+        },
+        {
+          "file": "platform-mfa-feature-events.test.ts",
+          "tap": {
+            "tests": 7,
+            "suites": 1,
+            "pass": 7,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 3194.1224
+          },
+          "exitCode": 0,
+          "childDurationMs": 3370.080299999994,
+          "log": {
+            "id": "mfa-admin-directory-read-fixed-regression-qa-20261105/platform-mfa-feature-events.log",
+            "sha256": "b535294a1b495ec17ddd58b0e09500f188d9826c1ff4a76fcb08742432660cab",
+            "bytes": 2106
+          }
+        },
+        {
+          "file": "platform-mfa-disable-snapshot.test.ts",
+          "tap": {
+            "tests": 5,
+            "suites": 1,
+            "pass": 5,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 4273.713
+          },
+          "exitCode": 0,
+          "childDurationMs": 4430.422500000001,
+          "log": {
+            "id": "mfa-admin-directory-read-fixed-regression-qa-20261105/platform-mfa-disable-snapshot.log",
+            "sha256": "6e2134ffbf15304eb57e9f7b9adddc9a6ef8ed56fabb8748df79450ab44a57b1",
+            "bytes": 1569
+          }
+        },
+        {
+          "file": "platform-mfa-sql-envelopes.test.ts",
+          "tap": {
+            "tests": 11,
+            "suites": 1,
+            "pass": 11,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 3238.8342
+          },
+          "exitCode": 0,
+          "childDurationMs": 3500.073900000003,
+          "log": {
+            "id": "mfa-admin-directory-read-fixed-regression-qa-20261105/platform-mfa-sql-envelopes.log",
+            "sha256": "573a7c3732f8c2d6849eb3f0b1a898699c743e2af9b840aa9f52f611ef9689af",
+            "bytes": 3173
+          }
+        },
+        {
+          "file": "telemetry-events-capabilities.test.ts",
+          "tap": {
+            "tests": 13,
+            "suites": 1,
+            "pass": 13,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 16877.2673
+          },
+          "exitCode": 0,
+          "childDurationMs": 17030.03959999999,
+          "log": {
+            "id": "mfa-admin-directory-read-fixed-regression-qa-20261105/telemetry-events-capabilities.log",
+            "sha256": "dd6808f39cdac643acee6a46c42e617a1fe282c8e4d5c333b3d436601cf2a1b6",
+            "bytes": 3409
+          }
+        },
+        {
+          "file": "alert-events-capabilities.test.ts",
+          "tap": {
+            "tests": 17,
+            "suites": 1,
+            "pass": 17,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 20006.8568
+          },
+          "exitCode": 0,
+          "childDurationMs": 20167.280400000003,
+          "log": {
+            "id": "mfa-admin-directory-read-fixed-regression-qa-20261105/alert-events-capabilities.log",
+            "sha256": "3b84e42221db60e95861cfb2308d4d040e64891058ebb9f50237696beb86d6be",
+            "bytes": 4310
+          }
+        },
+        {
+          "file": "platform-mfa-alert-events.test.ts",
+          "tap": {
+            "tests": 9,
+            "suites": 1,
+            "pass": 9,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 4737.4785
+          },
+          "exitCode": 0,
+          "childDurationMs": 4875.449899999992,
+          "log": {
+            "id": "mfa-admin-directory-read-fixed-regression-qa-20261105/platform-mfa-alert-events.log",
+            "sha256": "125e3a8d22e93cf01e1a7adaebeb3e2e7ed2eb72d73d19c1f3e163a5bc9de2f2",
+            "bytes": 2673
+          }
+        },
+        {
+          "file": "equipment-events-capabilities.test.ts",
+          "tap": {
+            "tests": 25,
+            "suites": 1,
+            "pass": 25,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 68313.6704
+          },
+          "exitCode": 0,
+          "childDurationMs": 68459.2679,
+          "log": {
+            "id": "mfa-admin-directory-read-fixed-regression-qa-20261105/equipment-events-capabilities.log",
+            "sha256": "c01195ff5d2fda48c04b148ac5e089201f4e351e7f172c4acfc30416bf4a7656",
+            "bytes": 6885
+          }
+        },
+        {
+          "file": "tenancy-people.test.ts",
+          "tap": {
+            "tests": 9,
+            "suites": 1,
+            "pass": 9,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 7160.7612
+          },
+          "exitCode": 0,
+          "childDurationMs": 7307.400299999979,
+          "log": {
+            "id": "mfa-admin-directory-read-fixed-regression-qa-20261105/tenancy-people.log",
+            "sha256": "3f4c58934227f9788ae0bbc8565d1e78dcef7b970bf0b2e7bf3624694bf0859b",
+            "bytes": 2670
+          }
+        },
+        {
+          "file": "tenancy-http.test.ts",
+          "tap": {
+            "tests": 9,
+            "suites": 1,
+            "pass": 9,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 6078.1482
+          },
+          "exitCode": 0,
+          "childDurationMs": 6283.721900000004,
+          "log": {
+            "id": "mfa-admin-directory-read-fixed-regression-qa-20261105/tenancy-http.log",
+            "sha256": "c54264060cca55d0b953d7e297fa90abac1074b33b39f73e643baee9ae31415c",
+            "bytes": 2540
+          }
+        },
+        {
+          "file": "tenancy-edit.test.ts",
+          "tap": {
+            "tests": 11,
+            "suites": 1,
+            "pass": 11,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 5453.2569
+          },
+          "exitCode": 0,
+          "childDurationMs": 5597.213300000003,
+          "log": {
+            "id": "mfa-admin-directory-read-fixed-regression-qa-20261105/tenancy-edit.log",
+            "sha256": "8b4ded55ad7926a6a78571fc99898318c3265728f8f14ace143019ce4a4d034a",
+            "bytes": 3000
+          }
+        },
+        {
+          "file": "membership-lifecycle.test.ts",
+          "tap": {
+            "tests": 4,
+            "suites": 1,
+            "pass": 4,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 3381.9431
+          },
+          "exitCode": 0,
+          "childDurationMs": 4047.7261,
+          "log": {
+            "id": "mfa-admin-directory-read-fixed-regression-qa-20261105/membership-lifecycle.log",
+            "sha256": "8accfb1b9be25f8d3f2477c7a1f7c3f23317059fc9ce72c835cf85f9c88a45b3",
+            "bytes": 1156
+          }
+        },
+        {
+          "file": "invitations.test.ts",
+          "tap": {
+            "tests": 9,
+            "suites": 1,
+            "pass": 9,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 5919.5685
+          },
+          "exitCode": 0,
+          "childDurationMs": 6061.023300000001,
+          "log": {
+            "id": "mfa-admin-directory-read-fixed-regression-qa-20261105/invitations.log",
+            "sha256": "ca75879f6aa8b4e6341693d7354f24dfb8da9a062d17a8ad9ae3e503f1f85ad4",
+            "bytes": 2498
+          }
+        },
+        {
+          "file": "users-capabilities.test.ts",
+          "tap": {
+            "tests": 5,
+            "suites": 1,
+            "pass": 5,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 6011.8967
+          },
+          "exitCode": 0,
+          "childDurationMs": 6146.221699999995,
+          "log": {
+            "id": "mfa-admin-directory-read-fixed-regression-qa-20261105/users-capabilities.log",
+            "sha256": "6d1972fb6af4608a0d487f64056fd882c1d0462f768845a0766aee6d5027f54c",
+            "bytes": 1541
+          }
+        },
+        {
+          "file": "support-access.test.ts",
+          "tap": {
+            "tests": 4,
+            "suites": 1,
+            "pass": 4,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 6420.8948
+          },
+          "exitCode": 0,
+          "childDurationMs": 6601.678199999995,
+          "log": {
+            "id": "mfa-admin-directory-read-fixed-regression-qa-20261105/support-access.log",
+            "sha256": "64a798c9025882d4b1f917efb04a9da0d2138ef51ce1b165f44fcd166a191b2f",
+            "bytes": 1418
+          }
+        }
+      ],
+      "result": {
+        "id": "mfa-admin-directory-read-fixed-regression-qa-20261105/mfa-directed-result.json",
+        "sha256": "1d1b37c9174d5bbb069acba44687f12089441380a0f50c2d6fcc958cae30ecba",
+        "bytes": 325032
+      },
+      "postchecks": {
+        "id": "mfa-admin-directory-read-fixed-regression-qa-20261105/mfa-directed-postchecks.json",
+        "sha256": "19a4bd0e5cdb2040e573510ece86aea245ddd406b80aa5dd4ff5ffa4e0aa0538",
+        "bytes": 390
+      },
+      "cleanupPassed": true,
+      "sourceHashesAfterMatch": true,
+      "rolesRestoredIncludingPrivateCredentials": true,
+      "settingsRestored": true,
+      "baseTablesTemporaryOtherDatabasesAndOtherClients": 0,
+      "roles": 6,
+      "freeMiBAtStart": 2287.0
+    }
+  },
+  "baselineClassification": {
+    "status": "OBSERVED_REVIEWED",
+    "logSha256": "abdd09af478c5ada9d0574c5c0b8784246e61deeea15f8acc6ca1db875d502d9",
+    "testSha256": "718c3ee079459dd1f192212c99e7af50a6c91964317846ca4b2116c634f5f92b",
+    "counts": {
+      "tests": 12,
+      "passed": 4,
+      "failed": 8,
+      "independentFailedCases": 6,
+      "aggregateParentFailures": 2,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "durationMs": 8197.0132
+    },
+    "observations": [
+      {
+        "case": "local users",
+        "actualHttpStatus": 200,
+        "expectedHttpStatus": 403,
+        "error": "ERR_ASSERTION",
+        "observation": "Exact positive legacy membership user DTO list decoded and compared.",
+        "reasonAndNoItemsAssertionsReached": false
+      },
+      {
+        "case": "building detail",
+        "actualHttpStatus": 200,
+        "expectedHttpStatus": 403,
+        "error": "ERR_ASSERTION",
+        "observation": "Exact positive building DTO decoded and compared.",
+        "reasonAndNoItemsAssertionsReached": false
+      },
+      {
+        "case": "global users",
+        "actualHttpStatus": 200,
+        "expectedHttpStatus": 403,
+        "error": "ERR_ASSERTION",
+        "observation": "Exact positive global user DTO list decoded and compared.",
+        "reasonAndNoItemsAssertionsReached": false
+      },
+      {
+        "case": "support staff",
+        "actualHttpStatus": 200,
+        "expectedHttpStatus": 403,
+        "error": "ERR_ASSERTION",
+        "observation": "Exact positive 200-row staff page decoded and compared.",
+        "reasonAndNoItemsAssertionsReached": false
+      },
+      {
+        "case": "empty local users",
+        "actualHttpStatus": 200,
+        "expectedHttpStatus": 403,
+        "error": "ERR_ASSERTION",
+        "observation": "Exact items=[] body compared; no private row delivery claimed.",
+        "reasonAndNoItemsAssertionsReached": false
+      },
+      {
+        "case": "missing building",
+        "actualHttpStatus": 404,
+        "expectedHttpStatus": 403,
+        "error": "ERR_ASSERTION",
+        "observation": "HTTP404 observed; body not inspected or compared; no private DTO delivery claimed.",
+        "reasonAndNoItemsAssertionsReached": false
+      }
+    ],
+    "limits": [
+      "Six independent assertions plus two parent aggregates; not eight independent leaks.",
+      "Four actual full DTO responses, one empty response and one status-only404 require separate classifications."
+    ]
+  },
+  "gates": {
+    "typesExitCode": 0,
+    "adminDirectoryTapTestsPassed": 12,
+    "regressionTestsPassed": 214,
+    "failures": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "cleanupPass": true,
+    "sourceBeforeAfterPass": true
+  },
+  "limits": [
+    "TAP12 contains eight top-level tests including two groups and four subtests: ten independent scenarios plus two aggregate groups.",
+    "Twenty-two serial regression processes214 TAP include six aggregate groups; combined226 TAP is218 independent scenarios across23 processes, not full API acceptance.",
+    "Baseline four full DTO responses were compared; empty local list had no rows; missing building404 body was not inspected. Six leaf failures plus two parents are not eight independent leaks.",
+    "Only three GETs/four projections change; SQL068/helper/mutations remain unchanged.",
+    "Directed proof is synthetic; original users case4 and four support fixtures use real HTTP enrollment/current password/TOTP/ten recovery codes/me satisfied with unchanged bearer and SID.",
+    "Two administrative users-runtime-acl cases remain outside this scope; no added skip or acceptance claim.",
+    "Expected configV1 omitted ./ prefixes; it was preserved. Types ran only against actual pinned configV2; source and preparation unchanged.",
+    "Official UUID ledger68 fixture uses owner for arrangement and restricted runtime roles; no claim the test process lacks owner.",
+    "Source restoration78/1024 remains separate and pending; no production rollout acceptance."
+  ]
+}

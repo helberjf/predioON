@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "status": "CANONICAL_INVITATIONS_READ_VALIDATED_RESTORED_CANDIDATE",
+  "status": "CANONICAL_ADMIN_DIRECTORY_VALIDATED_RESTORED_CANDIDATE",
   "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
   "plannedBase": "Approved published source base53c4c70; current documentation may be newer.",
   "sourceBaseline": "2676a74216b012dcab6fa2fb9735dc1b6ef8e9d8",
@@ -737,9 +737,9 @@
       "beforeSha256": "50fbc74a34023b7834ead2c6e04846b57169738d051f5093c629f44598f1bf60",
       "beforeGitSha256": "50fbc74a34023b7834ead2c6e04846b57169738d051f5093c629f44598f1bf60",
       "beforeGitObject": "3b53a43d32147a99e8fba36b8706e5362ba29e8e",
-      "afterSha256": "fed0d6791c1e4607d08a7c66b0eec3fd42b7acdd9f20664a2c7d5eb3c80f0cf3",
-      "bytes": 4743,
-      "component": "guarded-read-mfa",
+      "afterSha256": "d7474891553a5c4bd580c55b804f0a137558e47164e9a666d90b3ac4a0ea7c23",
+      "bytes": 5422,
+      "component": "admin-directory-mfa",
       "kind": "runtime"
     },
     {
@@ -807,10 +807,65 @@
       "bytes": 12778,
       "component": "invitations-read-mfa",
       "kind": "database-test"
+    },
+    {
+      "path": "apps/api/src/modules/users/routes.ts",
+      "payload": "payload/runtime/apps/api/src/modules/users/routes.ts.txt",
+      "beforeSha256": "8f5a6868b6e9487410148a7a027d39fe2b91644f10aa7a999a5933eb19387d70",
+      "beforeGitSha256": "8f5a6868b6e9487410148a7a027d39fe2b91644f10aa7a999a5933eb19387d70",
+      "beforeGitObject": "1ea7671a7fb856b109d605b9e9471b2b8e0667e6",
+      "afterSha256": "18b586a50cf0851f1f7a36a7404f8f3573c0d6ff98286a83aa94d77b118a1cd0",
+      "bytes": 8398,
+      "component": "admin-directory-mfa",
+      "kind": "runtime"
+    },
+    {
+      "path": "apps/api/src/modules/support-access/routes.ts",
+      "payload": "payload/runtime/apps/api/src/modules/support-access/routes.ts.txt",
+      "beforeSha256": "ceaf7ba04db07af02b6adae5d5d7ce460e06e795ffbbf23f070ced15eeed71e8",
+      "beforeGitSha256": "ceaf7ba04db07af02b6adae5d5d7ce460e06e795ffbbf23f070ced15eeed71e8",
+      "beforeGitObject": "0bf25b0b11ea7da56d8184bd0b994539e1636a4d",
+      "afterSha256": "27198817e17c6a4acf702f804978d7033dc7235aa7e24b7f32e3d43a9617a2d1",
+      "bytes": 13232,
+      "component": "admin-directory-mfa",
+      "kind": "runtime"
+    },
+    {
+      "path": "apps/api/test/users-capabilities.test.ts",
+      "payload": "payload/runtime/apps/api/test/users-capabilities.test.ts.txt",
+      "beforeSha256": "75c467943e62512e540915ac82a0639622023b81255e9bfaa6e98b889f078bd7",
+      "beforeGitSha256": "75c467943e62512e540915ac82a0639622023b81255e9bfaa6e98b889f078bd7",
+      "beforeGitObject": "1aeff4e06205212045878a57eb714cde02ff1e4a",
+      "afterSha256": "297770d4dd97660310643d808a151ba10b048f3b2a269c67e757e1289694a938",
+      "bytes": 11493,
+      "component": "admin-directory-mfa",
+      "kind": "database-test"
+    },
+    {
+      "path": "apps/api/test/support-access.test.ts",
+      "payload": "payload/runtime/apps/api/test/support-access.test.ts.txt",
+      "beforeSha256": "ce4fa6cc8322d3be0e9386b98ba0caac4c78b8a93da72b5db36a43da98a98c3e",
+      "beforeGitSha256": "ce4fa6cc8322d3be0e9386b98ba0caac4c78b8a93da72b5db36a43da98a98c3e",
+      "beforeGitObject": "581d802d51507788b4bbf4b692450f7b3b46cd70",
+      "afterSha256": "6691c7a6b49589445bde238f7e4cf5b446309d407de616769affe5b468aa1ec4",
+      "bytes": 17089,
+      "component": "admin-directory-mfa",
+      "kind": "database-test"
+    },
+    {
+      "path": "apps/api/test/platform-mfa-admin-directory-read.test.ts",
+      "payload": "payload/runtime/apps/api/test/platform-mfa-admin-directory-read.test.ts.txt",
+      "beforeSha256": null,
+      "beforeGitSha256": null,
+      "beforeGitObject": null,
+      "afterSha256": "718c3ee079459dd1f192212c99e7af50a6c91964317846ca4b2116c634f5f92b",
+      "bytes": 14850,
+      "component": "admin-directory-mfa",
+      "kind": "database-test"
     }
   ],
   "pending": [
-    "Complete remaining SQL/SD/no-match mutations, locks/triggers and integrated regressions; invitation10 TAP entries and nineteen regression files195 are finite isolated validations, not API integral or global rollout.",
+    "Complete remaining SQL/SD/no-match mutations, locks/triggers and integrated regressions; administrative12 TAP entries and22 regression files214 are finite isolated validations, not API integral or global rollout.",
     "Renderer staging recipe remains authored and not executed; do not transfer its earlier separate harness PASS."
   ],
   "excluded": [
@@ -922,5 +977,12 @@
     "sourceManifestSha256": "cdf2002e3d3c775b6af419e2e189f56a22ebd1c543c1c6909c7a66afeb03603f",
     "scope": "Invitation10 TAP entries plus nineteen regression files195; one GET and helper JSDoc only; SQL unchanged",
     "restorationEvidence": "../../evidencias/mfa-invitations-read-restore-2026-11-05.json"
+  },
+  "adminDirectoryValidation": {
+    "evidence": "../../evidencias/mfa-admin-directory-read-2026-11-05.json",
+    "evidenceSha256": "daccb5bcdcc6655fbbab83729e293b367686876ceaa1c9158455d92cc222cf7c",
+    "sourceManifestSha256": "40b0ef06f4143d4f2ead18a59bf433136458283aab9c5402af0024a999e84758",
+    "scope": "Administrative directory12 TAP entries plus22 regression files214; three GETs/four projections and two original fixtures; helper and SQL unchanged",
+    "restorationEvidence": "../../evidencias/mfa-admin-directory-read-restore-2026-11-07.json"
   }
 }

@@ -1,0 +1,221 @@
+import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
+import { after, before, describe, it } from "node:test";
+import { sql } from "drizzle-orm";
+import { decodeJwt } from "jose";
+import { base32Decode, totpCode, totpStep } from "../src/auth/totp.js";
+import { sqlClient } from "@predioon/db";
+import { closeAppDb, withUserContext } from "@predioon/db/runtime";
+import { hashPassword } from "../src/auth/passwords.js";
+import { startTestServer, login, call } from "./helpers.js";
+
+describe("temporary platform support access (053)", () => {
+  let server: Awaited<ReturnType<typeof startTestServer>>, passwordHash: string;
+  before(async () => { passwordHash = await hashPassword("predioon123"); server = await startTestServer(); });
+  after(async () => { await server?.close(); await closeAppDb(); await sqlClient.end(); });
+
+  async function completeAdministratorMfa(f: Awaited<ReturnType<typeof create>>, user: string): Promise<void> {
+    assert.ok(user === f.admin);
+    const token = f.tokens.get(user);
+    assert.ok(token);
+    const sessionId = decodeJwt(token).sid;
+    assert.equal(typeof sessionId, "string");
+    const enrolled = await call(server.url, "/auth/mfa/enroll", {
+      token, method: "POST", body: { currentPassword: "predioon123" },
+    });
+    assert.equal(enrolled.status, 200);
+    const enrollment = await enrolled.json() as { secret: string };
+    const secret = base32Decode(enrollment.secret);
+    assert.ok(secret);
+    const confirmed = await call(server.url, "/auth/mfa/confirm", {
+      token, method: "POST", body: { code: totpCode(secret, totpStep(Date.now())) },
+    });
+    assert.equal(confirmed.status, 200);
+    const confirmation = await confirmed.json() as { recoveryCodes: string[] };
+    assert.equal(confirmation.recoveryCodes.length, 10);
+    const profile = await call(server.url, "/auth/me", { token });
+    assert.equal(profile.status, 200);
+    const current = await profile.json() as { id: string; mfaRequirement: string };
+    assert.equal(current.id, user);
+    assert.equal(current.mfaRequirement, "satisfied");
+    assert.equal(f.tokens.get(user), token, "MFA setup must retain the original access token");
+    assert.equal(decodeJwt(f.tokens.get(user)!).sid, sessionId, "MFA setup must retain the same family");
+  }
+  async function fixture(run: (f: Awaited<ReturnType<typeof create>>) => Promise<void>) {
+    const f = await create();
+    try { await completeAdministratorMfa(f, f.admin); await run(f); }
+    finally {
+      await sqlClient`delete from audit_logs where user_id in ${sqlClient(f.ids)}`;
+      await sqlClient`delete from support_grants where support_user_id in ${sqlClient(f.ids)}`;
+      await sqlClient`delete from telemetry where building_id in ${sqlClient([f.a, f.b])}`;
+      await sqlClient`delete from buildings where organization_id=${f.org}`;
+      await sqlClient`delete from organizations where id=${f.org}`;
+      await sqlClient`delete from role_bindings where user_id in ${sqlClient(f.ids)}`;
+      await sqlClient`delete from users where id in ${sqlClient(f.ids)}`;
+    }
+  }
+  async function create() {
+    const suffix = randomUUID(), org = `sup-org-${suffix}`, a = `sup-a-${suffix}`, b = `sup-b-${suffix}`, device = `sup-d-${suffix}`;
+    const admin = `sup-admin-${suffix}`, support = `sup-staff-${suffix}`, manager = `sup-manager-${suffix}`, outsider = `sup-out-${suffix}`;
+    const ids = [admin, support, manager, outsider];
+    await sqlClient`insert into organizations(id,name,slug) values(${org},'Support test',${org})`;
+    await sqlClient`insert into buildings(id,organization_id,name,code) values(${a},${org},'A','A'),(${b},${org},'B','B')`;
+    for (const user of ids) await sqlClient`insert into users(id,email,name,password_hash) values(${user},${user + "@support.test"},${user},${passwordHash})`;
+    // A platform admin as the portal knows it (users.is_platform_admin), like the seeded administrator.
+    await sqlClient`update users set is_platform_admin=true where id=${admin}`;
+    await sqlClient`insert into role_bindings(user_id,building_id,role_key) values(${manager},${a},'BUILDING_ADMIN')`;
+    await sqlClient`insert into devices(id,building_id,name,type) values(${device},${a},'Meter','ENERGY_METER')`;
+    await sqlClient`insert into telemetry(time,event_id,building_id,device_id,metric,value,numeric_value,unit,quality)
+      values(now()-interval '2 seconds',${randomUUID()},${a},${device},'energy_total_kwh','10',10,'kWh','GOOD')`;
+    const tokens = new Map<string, string>();
+    for (const user of ids) tokens.set(user, (await login(server.url, user + "@support.test")).accessToken);
+    const request = (user: string, path: string, method = "GET", body?: unknown) => call(server.url, path, { token: tokens.get(user), method, body });
+    const json = async (response: Response, status: number) => { assert.equal(response.status, status, await response.clone().text()); return response.status === 204 ? null : response.json(); };
+    const telemetry = (building: string) => request(support, `/telemetry/latest?buildingId=${building}`);
+    const audits = (action: string) => sqlClient`select building_id, scope_kind, resource_id, metadata from audit_logs where user_id=${admin} and action=${action} order by created_at, id`;
+    const grant = (body: Record<string, unknown> = {}) => request(admin, "/v1/support-access/grants", "POST",
+      { buildingId: a, supportUserId: support, capabilities: ["telemetry:read"], reason: "Diagnóstico do medidor", hours: 2, ...body });
+    return { org, a, b, admin, support, manager, outsider, ids, tokens, request, json, telemetry, audits, grant };
+  }
+  const asUser = <T>(userId: string, run: Parameters<typeof withUserContext<T>>[1]) => withUserContext({ userId, role: "PLATFORM_ADMIN" }, run);
+  const codeIs = (code: string) => (error: unknown) => {
+    const seen = (error as { code?: string; cause?: { code?: string } });
+    return seen?.code === code || seen?.cause?.code === code;
+  };
+
+  it("lets the platform admin designate staff and grant one building, effective only while the grant is open", async () => fixture(async f => {
+    for (const user of [f.outsider, f.manager, f.support]) {
+      assert.equal((await f.request(user, "/v1/support-access/staff", "POST", { userId: f.support, reason: "Equipe" })).status, 403);
+    }
+    const staff = await f.json(await f.request(f.admin, "/v1/support-access/staff", "POST", { userId: f.support, reason: "Equipe de atendimento" }), 201);
+    await f.json(await f.request(f.admin, "/v1/support-access/staff", "POST", { userId: f.support, reason: "Outra vez" }), 409);
+    const list = await f.json(await f.request(f.admin, "/v1/support-access/staff"), 200);
+    assert.ok(list.items.some((row: { id: string; userId: string }) => row.id === staff.id && row.userId === f.support));
+    const [added] = await f.audits("SUPPORT_STAFF_ADDED");
+    assert.deepEqual({ building: added!.building_id, scope: added!.scope_kind, resource: added!.resource_id }, { building: null, scope: "PLATFORM", resource: staff.id });
+
+    assert.equal((await f.telemetry(f.a)).status, 403, "staff membership alone grants no building");
+    for (const user of [f.manager, f.support, f.outsider]) {
+      assert.equal((await f.request(user, "/v1/support-access/grants", "POST",
+        { buildingId: f.a, supportUserId: f.support, capabilities: ["telemetry:read"], reason: "Sem autoridade", hours: 1 })).status, 403);
+    }
+    const created = await f.json(await f.grant({ capabilities: ["telemetry:read", "alerts:read"] }), 201);
+    assert.equal(created.items.length, 2);
+    for (const row of created.items) {
+      assert.equal(row.status, "ACTIVE");
+      const hours = (Date.parse(row.expiresAt) - Date.parse(row.createdAt)) / 3_600_000;
+      assert.ok(hours > 1.99 && hours <= 2.01, `two-hour window, got ${hours}`);
+    }
+    assert.equal((await f.telemetry(f.a)).status, 200, "granted building is readable");
+    assert.equal((await f.telemetry(f.b)).status, 403, "another building stays closed");
+    const mine = await f.json(await f.request(f.support, "/v1/support-access/mine"), 200);
+    assert.deepEqual(mine.items.map((row: { buildingId: string; capability: string }) => `${row.buildingId}:${row.capability}`).sort(), [`${f.a}:alerts:read`, `${f.a}:telemetry:read`]);
+
+    const reviewed = await f.json(await f.request(f.manager, `/v1/support-access/grants?buildingId=${f.a}`), 200);
+    assert.equal(reviewed.items.filter((row: { status: string }) => row.status === "ACTIVE").length, 2, "the building's manager reviews its grants");
+    assert.equal((await f.request(f.manager, `/v1/support-access/grants?buildingId=${f.b}`)).status, 403);
+    assert.equal((await f.request(f.outsider, `/v1/support-access/grants?buildingId=${f.a}`)).status, 403);
+    assert.equal((await f.audits("SUPPORT_GRANT_CREATED")).filter(row => row.building_id === f.a && row.scope_kind === "BUILDING").length >= 2, true);
+
+    const telemetryGrant = created.items.find((row: { capability: string }) => row.capability === "telemetry:read");
+    assert.equal((await f.request(f.manager, `/v1/support-access/grants/${telemetryGrant.id}`, "DELETE")).status, 403, "a manager cannot revoke");
+    await f.json(await f.request(f.admin, `/v1/support-access/grants/${telemetryGrant.id}`, "DELETE"), 204);
+    assert.equal((await f.telemetry(f.a)).status, 403, "revocation applies to the same session immediately");
+    const revokedAudits = (await f.audits("SUPPORT_GRANT_REVOKED")).filter(row => row.resource_id === telemetryGrant.id);
+    assert.equal(revokedAudits.length, 1);
+    await f.json(await f.request(f.admin, `/v1/support-access/grants/${telemetryGrant.id}`, "DELETE"), 204);
+    assert.equal((await f.audits("SUPPORT_GRANT_REVOKED")).filter(row => row.resource_id === telemetryGrant.id).length, 1, "repeating the revocation audits nothing");
+    const after = await f.json(await f.request(f.admin, `/v1/support-access/grants?buildingId=${f.a}`), 200);
+    assert.equal(after.items.find((row: { id: string }) => row.id === telemetryGrant.id).status, "REVOKED");
+  }));
+
+  it("rejects invalid grants before the database and enforces append-only grants in it", async () => fixture(async f => {
+    await f.json(await f.request(f.admin, "/v1/support-access/staff", "POST", { userId: f.support, reason: "Equipe de atendimento" }), 201);
+    await f.json(await f.grant({ capabilities: ["telemetry:read-published"] }), 400);
+    await f.json(await f.grant({ hours: 169 }), 400);
+    await f.json(await f.grant({ hours: 0 }), 400);
+    await f.json(await f.grant({ reason: " " }), 400);
+    await f.json(await f.grant({ capabilities: ["alerts:read", "alerts:read"] }), 400);
+    await f.json(await f.grant({ supportUserId: f.admin }), 400);
+    await f.json(await f.grant({ supportUserId: f.outsider }), 400);
+    await f.json(await f.grant({ buildingId: `missing-${randomUUID()}` }), 404);
+    const created = await f.json(await f.grant(), 201);
+    const grantId = created.items[0].id as string;
+
+    // The application role can only revoke: no deletes, no edits, no reopening, no long grants.
+    await assert.rejects(asUser(f.admin, tx => tx.execute(sql`delete from support_grants where id=${grantId}`)), codeIs("42501"));
+    await assert.rejects(asUser(f.admin, tx => tx.execute(sql`update support_grants set expires_at=expires_at+interval '1 day' where id=${grantId}`)), codeIs("42501"));
+    await assert.rejects(asUser(f.admin, tx => tx.execute(sql`insert into support_grants(building_id,support_user_id,capability,reason,expires_at,granted_by)
+      values(${f.a},${f.support},'alerts:read','Longo demais',statement_timestamp()+interval '8 days',${f.admin})`)), codeIs("42501"));
+    await f.json(await f.request(f.admin, `/v1/support-access/grants/${grantId}`, "DELETE"), 204);
+    const reopened = await asUser(f.admin, tx => tx.execute(sql`update support_grants set revoked_at=null where id=${grantId} returning id`));
+    assert.equal(reopened.length, 0, "a revoked grant is invisible to the revoke policy");
+    assert.notEqual((await sqlClient`select revoked_at from support_grants where id=${grantId}`)[0]!.revoked_at, null);
+  }));
+
+  it("replaces an open grant for the same capability and closes all grants when the staff member leaves", async () => fixture(async f => {
+    const staff = await f.json(await f.request(f.admin, "/v1/support-access/staff", "POST", { userId: f.support, reason: "Equipe de atendimento" }), 201);
+    const first = (await f.json(await f.grant(), 201)).items[0];
+    const second = (await f.json(await f.grant({ hours: 4 }), 201)).items[0];
+    const listed = (await f.json(await f.request(f.admin, `/v1/support-access/grants?buildingId=${f.a}`), 200)).items as Array<{ id: string; status: string }>;
+    assert.equal(listed.find(row => row.id === first.id)!.status, "REVOKED");
+    assert.equal(listed.find(row => row.id === second.id)!.status, "ACTIVE");
+    await f.grant({ capabilities: ["alerts:read"] }).then(response => f.json(response, 201));
+
+    await f.json(await f.request(f.admin, `/v1/support-access/staff/${staff.id}`, "DELETE"), 204);
+    const closed = (await f.json(await f.request(f.admin, `/v1/support-access/grants?buildingId=${f.a}`), 200)).items as Array<{ status: string }>;
+    assert.ok(closed.every(row => row.status === "REVOKED"), "no grant of a former staff member stays open");
+    assert.deepEqual((await f.json(await f.request(f.support, "/v1/support-access/mine"), 200)).items, []);
+    assert.equal((await f.telemetry(f.a)).status, 403);
+    const [removed] = await f.audits("SUPPORT_STAFF_REMOVED");
+    assert.deepEqual({ scope: removed!.scope_kind, resource: removed!.resource_id }, { scope: "PLATFORM", resource: staff.id });
+    assert.ok((await f.audits("SUPPORT_GRANT_REVOKED")).some(row => (row.metadata as { cause?: string }).cause === "staff_removed"));
+    assert.equal((await f.json(await f.request(f.admin, "/v1/support-access/staff"), 200)).items.some((row: { id: string }) => row.id === staff.id), false);
+  }));
+
+  it("serializes simultaneous first grants so revoking the surviving grant ends access on the same session", async () => fixture(async f => {
+    await f.json(await f.request(f.admin, "/v1/support-access/staff", "POST", { userId: f.support, reason: "Equipe de atendimento" }), 201);
+    const requests: Array<Promise<Response>> = [];
+    try {
+      // SHARE allows the empty-grant reads but holds the first INSERT. Observe
+      // both requests actually waiting before release, including a request
+      // queued behind the other request's authoritative staff-row lock.
+      await sqlClient.begin(async blocker => {
+        await blocker`lock table support_grants in share mode`;
+        const [{ pid }] = await blocker`select pg_backend_pid() as pid`;
+        requests.push(f.grant({ hours: 1 }), f.grant({ hours: 4 }));
+        const appUser = new URL(process.env.DATABASE_URL_APP!).username;
+        const deadline = Date.now() + 10_000;
+        let waiting = 0;
+        while (Date.now() < deadline) {
+          const [row] = await sqlClient`with recursive blocked(pid) as (
+            select pid from pg_stat_activity where ${pid} = any(pg_blocking_pids(pid))
+            union
+            select a.pid from pg_stat_activity a join blocked b on b.pid = any(pg_blocking_pids(a.pid))
+          ) select count(*)::int as count from blocked b join pg_stat_activity a on a.pid=b.pid
+            where a.usename=${appUser} and a.state='active'`;
+          waiting = row.count;
+          if (waiting === 2) break;
+          await sqlClient`select pg_sleep(0.02)`;
+        }
+        assert.equal(waiting, 2, "both grant requests must overlap at a real database wait");
+      });
+      for (const response of await Promise.all(requests)) await f.json(response, 201);
+      const grants = (await f.json(await f.request(f.admin, `/v1/support-access/grants?buildingId=${f.a}`), 200)).items as Array<{ id: string; status: string }>;
+      const active = grants.filter(row => row.status === "ACTIVE");
+      assert.equal(active.length, 1, "concurrent replacement must leave exactly one active grant");
+      assert.equal(grants.filter(row => row.status === "REVOKED").length, 1);
+      assert.equal((await f.telemetry(f.a)).status, 200);
+      const mine = await f.json(await f.request(f.support, "/v1/support-access/mine"), 200);
+      assert.deepEqual(mine.items.map((row: { id: string }) => row.id), [active[0]!.id]);
+      await f.json(await f.request(f.admin, `/v1/support-access/grants/${active[0]!.id}`, "DELETE"), 204);
+      assert.equal((await f.telemetry(f.a)).status, 403, "the original support JWT loses its last authority immediately");
+      assert.deepEqual((await f.json(await f.request(f.support, "/v1/support-access/mine"), 200)).items, []);
+      assert.equal((await f.audits("SUPPORT_GRANT_CREATED")).length, 2);
+      assert.equal((await f.audits("SUPPORT_GRANT_REVOKED")).length, 2);
+    } finally {
+      // Never let fixture cleanup race requests released by a failed assertion.
+      await Promise.allSettled(requests);
+    }
+  }));
+});

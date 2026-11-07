@@ -48,7 +48,19 @@ buildingsRouter.get("/:buildingId", async (req, res) => {
   const buildingId = param(req, "buildingId");
   const row = await inTenantContext(req, async tx => {
     await assertBuildingDiscovery(tx, buildingId);
-    const [found] = await tx.select().from(buildings).where(eq(buildings.id, buildingId)).limit(1);
+    const [found] = await readMfaRows(tx,
+      tx.select({
+        id: sql`${buildings.id}`.as("id"),
+        organizationId: sql`${buildings.organizationId}`.as("organizationId"),
+        name: sql`${buildings.name}`.as("name"), code: sql`${buildings.code}`.as("code"),
+        timezone: sql`${buildings.timezone}`.as("timezone"),
+        propertyType: sql`${buildings.propertyType}`.as("propertyType"),
+        address: sql`${buildings.address}`.as("address"), active: sql`${buildings.active}`.as("active"),
+        createdAt: sql`${buildings.createdAt}`.as("createdAt"),
+        updatedAt: sql`${buildings.updatedAt}`.as("updatedAt"),
+      }).from(buildings).where(eq(buildings.id, buildingId)).limit(1).getSQL(),
+      value => BuildingReadRow.parse(value), ["id"],
+    );
     if (!found) throw notFound("Prédio não encontrado");
     return found;
   });
