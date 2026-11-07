@@ -1,0 +1,560 @@
+{
+  "version": 1,
+  "status": "STATIC_DESIGN_ONLY_NOT_IMPLEMENTED_OR_EXECUTED",
+  "recordedOn": "2026-11-07",
+  "sourceRoot": "work/mfa-features-read-v2-fixed-qa-20261107/source",
+  "basePreparedSha256": "b0fe96cd2789f39ead9c90a972c4296cc7de2ba38142a8aa6f36eabd4a147685",
+  "sourceCount": 1026,
+  "composedFreezeCanonicalSha256": "47c145d807e2c040ca6caf749ce7610c6a8a32b64d7814c98f3c36cccb231b57",
+  "planSha256": "4f50234954503ac810c1b818765feaa459cd575123b23e64bfb6bef16a2bd264",
+  "planBytes": 20418,
+  "scope": [
+    "PATCH /v1/tenancy/blocks/:id",
+    "PATCH /v1/tenancy/units/:id",
+    "PATCH /v1/tenancy/teams/:id",
+    "PATCH /v1/tenancy/blocks/:id/status",
+    "PATCH /v1/tenancy/units/:id/status",
+    "PATCH /v1/tenancy/teams/:id/status"
+  ],
+  "files": [
+    {
+      "path": "apps/api/src/modules/tenancy/routes.ts",
+      "sha256": "3b215f5b55a3a23fcac4a79c30ba8750d4b59a491ddf3bf64a4e5b059acd2af1",
+      "bytes": 32424,
+      "purpose": "Six PATCH handlers, edit/setStatus, DTOs, existing error mapping."
+    },
+    {
+      "path": "apps/api/src/modules/audit/repo.ts",
+      "sha256": "39b608bf2b90dff5d515a270540e94b3373ca35bbd826201184396c7d4c7a079",
+      "bytes": 856,
+      "purpose": "Existing transactional INSERT and request metadata; preserve shared function."
+    },
+    {
+      "path": "apps/api/src/auth/middleware.ts",
+      "sha256": "328209f172194e5451c34d3e5c70f5a68c573bf1ccffaf7ada518bf59df6b0af",
+      "bytes": 4565,
+      "purpose": "Operational gate, capabilities, SID propagation, feature lock and PMF translation."
+    },
+    {
+      "path": "apps/api/src/auth/mfa-read.ts",
+      "sha256": "00f728fd564c38108c4c7d99c111ccb47e697ed6ec5f74d5f37e07dbaee045e9",
+      "bytes": 2627,
+      "purpose": "Pure read envelope and explicit decoder contract; not a DML/lock executor."
+    },
+    {
+      "path": "apps/api/src/auth/mfa-query.ts",
+      "sha256": "c183ed7864ea5b86cdebd863cefe23cd52744a8c9a474752640295afea06cb48",
+      "bytes": 856,
+      "purpose": "Projection and Drizzle decoder preservation, not an authorization guard."
+    },
+    {
+      "path": "apps/api/src/auth/mfa-policy.ts",
+      "sha256": "cad520c2ca000d5123357f0f4fcc6f18caa220b22602e110d68c8c919ac7d934",
+      "bytes": 1351,
+      "purpose": "PMF01/PMF02 HTTP error translation."
+    },
+    {
+      "path": "apps/api/src/http/errors.ts",
+      "sha256": "079c1ece1843b0b05f5432fb4f824bc4d5bb45fa2ab6bf069858788d587fc998",
+      "bytes": 1751,
+      "purpose": "404/403/409 and PostgreSQL code extraction."
+    },
+    {
+      "path": "apps/api/src/app.ts",
+      "sha256": "6636a116ab3757469b8306c641a5dc314d818ba68dc80796951866a4252e321b",
+      "bytes": 4766,
+      "purpose": "Actual /v1/tenancy mount after operational authenticate."
+    },
+    {
+      "path": "packages/db/src/context.ts",
+      "sha256": "19f2708b65f2aa3ce4e0e7c6bb4e6c53cd8464c0ed5b725b186a4e9848cb82d1",
+      "bytes": 1829,
+      "purpose": "Restricted app pool and transaction identity/SID context."
+    },
+    {
+      "path": "packages/db/src/features.ts",
+      "sha256": "4586db28cd178dc8fc6cd7d52867dc7bb06f9679ca520a1fd55a89ec69c4e92b",
+      "bytes": 1264,
+      "purpose": "Existing shared/exclusive feature advisory locks."
+    },
+    {
+      "path": "packages/db/src/schema-rbac.ts",
+      "sha256": "e2e193d745cb17ddf844785f7a42e18a6c4aef6b29b4ed2b4ca0e74435663726",
+      "bytes": 11466,
+      "purpose": "Structure table columns and relations."
+    },
+    {
+      "path": "infrastructure/014-rbac-tenancy.sql",
+      "sha256": "31dc59f66f0b5cb7d62be06708a8f94a47ffd89281e8c7104e76d1acabd6e88b",
+      "bytes": 28987,
+      "purpose": "Structure schema, capability policies, FK/unique constraints, grants."
+    },
+    {
+      "path": "infrastructure/021-authorization-time-windows.sql",
+      "sha256": "28a210101540a71d6c5136e5bd8aa45fcd0288b76aaff7f9e0b37bf00914d2de",
+      "bytes": 24557,
+      "purpose": "STABLE temporal capabilities and team membership authority."
+    },
+    {
+      "path": "infrastructure/036-audit-capabilities.sql",
+      "sha256": "085e57f736c32ced3b778fbb1df4b62bcfff5056bb9a2bf67a16bf542264118d",
+      "bytes": 16351,
+      "purpose": "Audit INSERT proof, SELECT policy and scope trigger."
+    },
+    {
+      "path": "infrastructure/041-tenancy-edit-audit.sql",
+      "sha256": "a6933d7111f8a7f4aab3883305b81971815af1884a785ec613b1ebe88328085a",
+      "bytes": 1556,
+      "purpose": "Additive edit/status audit actions and idempotent reapplication."
+    },
+    {
+      "path": "infrastructure/068-platform-mfa-required.sql",
+      "sha256": "231ba481ebed3a1867fcb0332daba3850a53a6674c4cdd4dd019984de280c5a5",
+      "bytes": 32426,
+      "purpose": "Existing STABLE MFA guard and explicit policy coverage."
+    },
+    {
+      "path": "infrastructure/docker-compose.yml",
+      "sha256": "f4201a4bf2fd50512c51f61af878945e1bf1f04a6f1bc567bc5e4f570f771a74",
+      "bytes": 799,
+      "purpose": "Declared PostgreSQL16 image family."
+    },
+    {
+      "path": "apps/api/test/tenancy-edit.test.ts",
+      "sha256": "763e7d099f3e39213142b2a83233c6e5e693ff320afbcda5625fa9cda3df9c49",
+      "bytes": 18633,
+      "purpose": "Eleven original positive/ACL/rollback/status/self-revocation/migration cases."
+    },
+    {
+      "path": "apps/api/test/tenancy-http.test.ts",
+      "sha256": "16dd4e1cc684c9053c10438ebb4843ce89a193b5b192aa53d318f134a61ee286",
+      "bytes": 11209,
+      "purpose": "Potential regression selection; actor inventory required before execution."
+    },
+    {
+      "path": "apps/api/test/tenancy-people.test.ts",
+      "sha256": "f802c095b76adc426062ea9a6c3f151b09f703ade1fa459bcc8ff8d4e08231e5",
+      "bytes": 16179,
+      "purpose": "Potential regression selection; do not blindly modify direct SQL contexts."
+    },
+    {
+      "path": "apps/api/test/building-discovery-resources.test.ts",
+      "sha256": "733cfae9f77765007cd3d7e40a3a0ceea06962102c2a32610653eecf4014c77c",
+      "bytes": 26306,
+      "purpose": "Resource discovery regression selection."
+    },
+    {
+      "path": "apps/api/test/rbac-db.integration.test.ts",
+      "sha256": "8a6e74d031406fc396cf7d9104fc628ee3b1beebe7f169e468e028b53db875d1",
+      "bytes": 17595,
+      "purpose": "Direct SQL ACL/RLS regression selection."
+    },
+    {
+      "path": "apps/api/test/platform-mfa-tenancy-structure.test.ts",
+      "sha256": "5fcf975688d297d52af9b3f9f460b2badb744b21b417090f037e5a5e8f24c3f5",
+      "bytes": 12530,
+      "purpose": "Existing guarded structure read regressions."
+    },
+    {
+      "path": "apps/api/test/platform-mfa-tenancy-links.test.ts",
+      "sha256": "99367be53a980a27a28dfee0049b9760234da9ee3afc66939327a5ac66f6f5ee",
+      "bytes": 14147,
+      "purpose": "Existing guarded binding read regressions."
+    },
+    {
+      "path": "apps/api/test/helpers.ts",
+      "sha256": "fa84a7c9afdad2618eaf42237a4339ca892ab304caaddbd67dd17f832cb254c0",
+      "bytes": 1973,
+      "purpose": "Real HTTP server and auth pool teardown."
+    },
+    {
+      "path": "apps/api/test/fixture-login.ts",
+      "sha256": "22bf37b8d5f6ba63b6f229f4cb35dca0d7912fba517852fc1f107b087bc69675",
+      "bytes": 1449,
+      "purpose": "Real login fixture admission behavior."
+    },
+    {
+      "path": "apps/api/test/platform-mfa-features-read.test.ts",
+      "sha256": "c508a2586a469d8ef890f3d90059e36602872afc424884d90e27c5cee6e7bc55",
+      "bytes": 30521,
+      "purpose": "Reference for all-transaction settlement observer V2."
+    }
+  ],
+  "migrationPins": [
+    {
+      "path": "infrastructure/001-timescale-rls.sql",
+      "sha256": "7a2f938aff77d177c61abcc4f20908e0062d1766ce6f069780a681c6400fe749",
+      "bytes": 6966
+    },
+    {
+      "path": "infrastructure/002-app-role.sql",
+      "sha256": "a51ad8b42db58e49fd89df157f1edb506e82a4bdf825bbc815cd5fbd128d292a",
+      "bytes": 3634
+    },
+    {
+      "path": "infrastructure/003-reservations.sql",
+      "sha256": "da436ee0806d93e178afc0d024b83301b76fcfd577870af6e9fba5a0c2b43f30",
+      "bytes": 1894
+    },
+    {
+      "path": "infrastructure/004-occurrences.sql",
+      "sha256": "f68114cacced1f6b2de636089649d550a3898d308ea13a6d1aa1501880b9dd4b",
+      "bytes": 420
+    },
+    {
+      "path": "infrastructure/005-audit-insert.sql",
+      "sha256": "2e39116adccec5ebb41fb2e97d364c115ca2bc0fc48fd9ff871c43253596a5be",
+      "bytes": 447
+    },
+    {
+      "path": "infrastructure/006-telemetry-read-policy.sql",
+      "sha256": "683f8d0ca09406919caf61bde08d9f58d54a80745d1adedfcd8624b23b00f70e",
+      "bytes": 604
+    },
+    {
+      "path": "infrastructure/007-monitoring.sql",
+      "sha256": "4045cb8f488881d00905de7b00452c901cf4d45b906e1db28993486d5b2adf2e",
+      "bytes": 3508
+    },
+    {
+      "path": "infrastructure/008-access.sql",
+      "sha256": "8b090b83dd66ca3f5ef0d839ee23f96ae1321769823f0ae8c47bba710b320dab",
+      "bytes": 6442
+    },
+    {
+      "path": "infrastructure/009-parking-notices.sql",
+      "sha256": "21223f031f26c784d97fe69b4c261aab301e40a33e4a5bd5026ba2cdb6f79bd6",
+      "bytes": 4630
+    },
+    {
+      "path": "infrastructure/010-support.sql",
+      "sha256": "b565e6200a03a1d53109f2b5ce66ee25dba45795a470abbd1525f76a9a38e200",
+      "bytes": 3681
+    },
+    {
+      "path": "infrastructure/011-governance.sql",
+      "sha256": "c856b13c5baa181c92dd50351b80e9f8aeb4bd420bc91f3a5ef6fb6894159a3f",
+      "bytes": 3528
+    },
+    {
+      "path": "infrastructure/012-features.sql",
+      "sha256": "1779dffc988d9f8f34d878da56a91a13046bd127565002d3dbef01774f166e8e",
+      "bytes": 6476
+    },
+    {
+      "path": "infrastructure/013-sessions.sql",
+      "sha256": "e08e37207ae8c3650426636d4c1d14e6febaa4c1160d82d6ca65afa48b41eb48",
+      "bytes": 1050
+    },
+    {
+      "path": "infrastructure/014-rbac-tenancy.sql",
+      "sha256": "31dc59f66f0b5cb7d62be06708a8f94a47ffd89281e8c7104e76d1acabd6e88b",
+      "bytes": 28987
+    },
+    {
+      "path": "infrastructure/015-api-runtime-roles.sql",
+      "sha256": "6d186c496b4835d3950694d6a2a9733612c0b4be345c88cb02ef04986790e1e2",
+      "bytes": 6884
+    },
+    {
+      "path": "infrastructure/016-building-feature-capabilities.sql",
+      "sha256": "e508ccfa806e03704751d77be88d98c4a35f48d72c0e932a9af60451e09dada4",
+      "bytes": 9570
+    },
+    {
+      "path": "infrastructure/017-telemetry-capabilities.sql",
+      "sha256": "6a8867e790a08a1f6fa7fadfc09cc7bc952fbeed5ee9320d8a525c9fb4e19718",
+      "bytes": 6664
+    },
+    {
+      "path": "infrastructure/018-alert-capabilities.sql",
+      "sha256": "8073437d6c9f60c630be2f1286a535c5e2733119c71bbbde9eaf6a7812eea0b8",
+      "bytes": 12392
+    },
+    {
+      "path": "infrastructure/019-building-discovery-resource-validation.sql",
+      "sha256": "04749c7a36d2ea68e3f43a1303d85992ab8b3833621e273a0d934e928e6fff3c",
+      "bytes": 5510
+    },
+    {
+      "path": "infrastructure/020-equipment-capabilities.sql",
+      "sha256": "67dbf80715359102676a3d68a385e1cac5958995e931eaabb7ad476910fdcad1",
+      "bytes": 15646
+    },
+    {
+      "path": "infrastructure/021-authorization-time-windows.sql",
+      "sha256": "28a210101540a71d6c5136e5bd8aa45fcd0288b76aaff7f9e0b37bf00914d2de",
+      "bytes": 24557
+    },
+    {
+      "path": "infrastructure/022-equipment-events-capabilities.sql",
+      "sha256": "82fd7acf4bf19f0d0d47abea26d52fa11f51a8678de5c68c0a20f179d1679be6",
+      "bytes": 3298
+    },
+    {
+      "path": "infrastructure/023-monitoring-capabilities.sql",
+      "sha256": "1971da3507b74d27e227528bdfed5b411a4ce146a33dc69829d4f9b07bde4e3c",
+      "bytes": 9655
+    },
+    {
+      "path": "infrastructure/024-overview-capabilities.sql",
+      "sha256": "1a9a560d4e39b8f16a1ff9a19ec0dbabfdb20e6fbac65c03e37931ebd45a6ff0",
+      "bytes": 8584
+    },
+    {
+      "path": "infrastructure/025-tenancy-directory.sql",
+      "sha256": "480a985acb7dec75e59a3cb9756608c48d6da0c93efe6d83b7a82ad55d411fe1",
+      "bytes": 3603
+    },
+    {
+      "path": "infrastructure/026-notices-capabilities.sql",
+      "sha256": "69f52a24a81b45a69c6c5334c004d07527595d521157e1aacdf851b85175122b",
+      "bytes": 10374
+    },
+    {
+      "path": "infrastructure/027-occurrences-capabilities.sql",
+      "sha256": "29f9edc29608ad6796752725295c32d34e73d78ebe30cbb84ff13c6be1dd205a",
+      "bytes": 15341
+    },
+    {
+      "path": "infrastructure/028-common-areas-capabilities.sql",
+      "sha256": "aa4e4704758a31a1f76ff0f7ca27e09725c9d7dab1b96e9ca71d8c283a9256c1",
+      "bytes": 9180
+    },
+    {
+      "path": "infrastructure/029-reservations-capabilities.sql",
+      "sha256": "cb42f0a71d696047a0e9c6c4e1834503957a491a025fea3f91180c992b554da9",
+      "bytes": 20669
+    },
+    {
+      "path": "infrastructure/030-finance-capabilities.sql",
+      "sha256": "d85ccd2b60e304bef95e7f3e7c08aa25811ef8486a013d553f8260889766d5a4",
+      "bytes": 8773
+    },
+    {
+      "path": "infrastructure/031-overview-occurrences.sql",
+      "sha256": "ea4c1deafda0fcd64bf04b709f202eb5f099f1f7f6c4c5b306a2d3246d2a977b",
+      "bytes": 2500
+    },
+    {
+      "path": "infrastructure/032-alert-rules-capabilities.sql",
+      "sha256": "eecfa9808b5c00930e7035e80cf479d5e1bad48600705e1478279cdb300c39c4",
+      "bytes": 15805
+    },
+    {
+      "path": "infrastructure/033-parking-capabilities.sql",
+      "sha256": "c42dbd4df1d8166220f3050d3d284b45fc6383d304cc76eb7b6de87936bffdd2",
+      "bytes": 15328
+    },
+    {
+      "path": "infrastructure/034-access-capabilities.sql",
+      "sha256": "eda13e5ca2479a1c0f41bb2473862134a527e4dc381776ba39e6d0ac0e2d0527",
+      "bytes": 33066
+    },
+    {
+      "path": "infrastructure/035-login-throttling.sql",
+      "sha256": "9462b53bf8037e6f6a289d7706d7cb7bb446b78286789aa7d63ba5195096e0ce",
+      "bytes": 5760
+    },
+    {
+      "path": "infrastructure/036-audit-capabilities.sql",
+      "sha256": "085e57f736c32ced3b778fbb1df4b62bcfff5056bb9a2bf67a16bf542264118d",
+      "bytes": 16351
+    },
+    {
+      "path": "infrastructure/037-password-change.sql",
+      "sha256": "a6f4f211b8af51db1157780ea2405a2db1e44be5ea9b5dda6119bdd398ac7ff0",
+      "bytes": 4178
+    },
+    {
+      "path": "infrastructure/038-durable-alert-delivery.sql",
+      "sha256": "65c1b502621ceebc82021c9c94648de55e9ff9c63907237dd81866ce44f8c3c7",
+      "bytes": 39170
+    },
+    {
+      "path": "infrastructure/039-organizations-capabilities.sql",
+      "sha256": "4aacbd0c1a8197b2593892737a54055fd11dc3c828c0b9fc07f65f841080b319",
+      "bytes": 5003
+    },
+    {
+      "path": "infrastructure/040-users-runtime-acl.sql",
+      "sha256": "96c46748f57a3bd3a8b5e92f24c37d2c79d89fe3c916fb23be50e958168e7e8a",
+      "bytes": 1075
+    },
+    {
+      "path": "infrastructure/041-tenancy-edit-audit.sql",
+      "sha256": "a6933d7111f8a7f4aab3883305b81971815af1884a785ec613b1ebe88328085a",
+      "bytes": 1556
+    },
+    {
+      "path": "infrastructure/042-resident-invitations.sql",
+      "sha256": "b66d49c15a0718c7c4c1a6c6fca9c251351ae95951ff008c1d3540af9a4913ce",
+      "bytes": 10840
+    },
+    {
+      "path": "infrastructure/043-work-orders.sql",
+      "sha256": "9eeb037284a96df04e7e104e84495b1026067fc4babd9cea4b6c7a84157c8448",
+      "bytes": 13992
+    },
+    {
+      "path": "infrastructure/044-assets.sql",
+      "sha256": "f8b7954fcef4b5b1b54ee5303a1e4319f328b9feeddf2b413a4354ed393588f3",
+      "bytes": 11708
+    },
+    {
+      "path": "infrastructure/045-automations.sql",
+      "sha256": "81296100899f768311900edef8d7c146a945624123ed1900bc21b191204a7421",
+      "bytes": 15645
+    },
+    {
+      "path": "infrastructure/046-mfa.sql",
+      "sha256": "a3b007e7a8dbd0b9f4b86c5153a753f6436b8d8006eaf57d88cc9b54a1b1f6a3",
+      "bytes": 2175
+    },
+    {
+      "path": "infrastructure/047-password-recovery.sql",
+      "sha256": "dcffc67d03c1d5732f7f33f87e54f632c0e3d05436055dff2a1120d2a962c4df",
+      "bytes": 5911
+    },
+    {
+      "path": "infrastructure/048-telemetry-receipt-scope.sql",
+      "sha256": "34a690eb851c8fa66e53d4a49893c7e8c70b01a6c163992fe2c450f1e391503a",
+      "bytes": 2579
+    },
+    {
+      "path": "infrastructure/049-physical-features-opt-in.sql",
+      "sha256": "358905e96cd489313020de9d14dcd8485199416baffa567045959748e7299376",
+      "bytes": 936
+    },
+    {
+      "path": "infrastructure/050-physical-features-off-existing.sql",
+      "sha256": "e1e776d3a6ba80ddfcf45012aa37b3a92c3edfa1aa66ebeceaa48f7d95fd5a35",
+      "bytes": 3667
+    },
+    {
+      "path": "infrastructure/051-resident-consumption-opt-in.sql",
+      "sha256": "65caae849c82a4eb542086c6e49ffec4ba2116985ec685abe0659400bef6a4f8",
+      "bytes": 6368
+    },
+    {
+      "path": "infrastructure/052-ingest-runtime-roles.sql",
+      "sha256": "95d5c8fd9a1f1268ad8c97e02ba92919d311d707deeaa3179ee9526d68683ed4",
+      "bytes": 40241
+    },
+    {
+      "path": "infrastructure/053-support-grants-management.sql",
+      "sha256": "f4e3ea34810e675d6ba5ae0f858faaf4de7a19daddb1b33bacb7123b49d1aea6",
+      "bytes": 4898
+    },
+    {
+      "path": "infrastructure/054-users-memberships-capabilities.sql",
+      "sha256": "c854377a042a7116294f14c3b385a585d7d2b4fb7185710f7bd32e089ace4484",
+      "bytes": 5733
+    },
+    {
+      "path": "infrastructure/055-session-recent-verification.sql",
+      "sha256": "0269bb7a722a6851c572291e402acebad746fc213acaeae243ed7ee4fad96e42",
+      "bytes": 873
+    },
+    {
+      "path": "infrastructure/056-telemetry-series-catalog.sql",
+      "sha256": "3ce493e83f2870d382703942b962bf474e4e69a785aa98e2f1cfecef434bc192",
+      "bytes": 3213
+    },
+    {
+      "path": "infrastructure/057-automation-schedules.sql",
+      "sha256": "08d88f99f48ac0608144c9322f4510188207a62921b1751ebd0ba2016db09cf6",
+      "bytes": 10024
+    },
+    {
+      "path": "infrastructure/058-platform-service-health.sql",
+      "sha256": "2db5d1bd3837955f218bd32161db8426b14ea272754af3ab96ed2c5dd388ec92",
+      "bytes": 3890
+    },
+    {
+      "path": "infrastructure/059-access-qr-totem.sql",
+      "sha256": "b50819446e7819073ba0858fff23913f76ecdb6f073c14be30bbd18fadf16fba",
+      "bytes": 24916
+    },
+    {
+      "path": "infrastructure/060-team-member-eligibility.sql",
+      "sha256": "db7494a1858e5cc96e7c28c856bf894c91f29d544edbca327df62a35e6e1ebbb",
+      "bytes": 5782
+    },
+    {
+      "path": "infrastructure/061-totem-pairing-clock.sql",
+      "sha256": "2d6491e0ddbd651f9558e15f50f73b5cb3728c93a30f0322c710fb90c2e7e9af",
+      "bytes": 2958
+    },
+    {
+      "path": "infrastructure/062-demo-field-scenarios.sql",
+      "sha256": "f55045c56d7f6136520d93320256e9cd04dc01da00ba1b59f2c1e8f83a90867c",
+      "bytes": 3841
+    },
+    {
+      "path": "infrastructure/063-service-guard-admin-memberships.sql",
+      "sha256": "976b7564ec540f91c4ce12bf368d13376f8357b44db78d54d58a8e4deeef059d",
+      "bytes": 1679
+    },
+    {
+      "path": "infrastructure/064-reservation-limits-events.sql",
+      "sha256": "8961756b011a4ba0416cb24cbf89e62210c334780e82b6a35210b84ca28b2a73",
+      "bytes": 27492
+    },
+    {
+      "path": "infrastructure/065-work-order-named-assignee.sql",
+      "sha256": "05c352cc27cc2948cf9750d302f68c315b71bc42269dd6f2f794a0ff46ced363",
+      "bytes": 1745
+    },
+    {
+      "path": "infrastructure/066-default-alert-rules.sql",
+      "sha256": "42db3aa0d106b4a7fd4386d67e84bbe0be912193a741517bb30b6364e90d0909",
+      "bytes": 4602
+    },
+    {
+      "path": "infrastructure/067-reservation-default-unit-limit.sql",
+      "sha256": "13dfb04045d18500fdd841ee34cb1a7f710f7a207797e555ba0d10f8b2d265ac",
+      "bytes": 311
+    },
+    {
+      "path": "infrastructure/068-platform-mfa-required.sql",
+      "sha256": "231ba481ebed3a1867fcb0332daba3850a53a6674c4cdd4dd019984de280c5a5",
+      "bytes": 32426
+    }
+  ],
+  "postgresReferences": [
+    {
+      "url": "https://www.postgresql.org/docs/16/transaction-iso.html#XACT-READ-COMMITTED",
+      "topic": "Different statements, row-lock waits and target-row re-evaluation."
+    },
+    {
+      "url": "https://www.postgresql.org/docs/16/ddl-rowsecurity.html",
+      "topic": "RLS policy subquery snapshot can remain old while FOR UPDATE returns newer target row."
+    },
+    {
+      "url": "https://www.postgresql.org/docs/16/queries-with.html#QUERIES-WITH-MODIFYING",
+      "topic": "DML CTE shared snapshot, non-textual effect ordering, RETURNING communication."
+    },
+    {
+      "url": "https://www.postgresql.org/docs/16/xfunc-volatility.html",
+      "topic": "STABLE calling snapshot versus VOLATILE internal statement snapshots."
+    }
+  ],
+  "proposedButNotCreated": [
+    "apps/api/test/platform-mfa-tenancy-commands.test.ts"
+  ],
+  "checks": {
+    "all1026FrozenHashesMatch": true,
+    "migrations068And001To067Unchanged": true,
+    "repositoryEdited": false,
+    "productAuthored": false,
+    "nodeDatabaseTypesTestsServicesExecuted": false
+  },
+  "risksRequiringRealProof": [
+    "DML CTE guard evaluated even with zero match; guard is actual dependency of UPDATE and scalar response.",
+    "No-op final SELECT checks manage with DTO under same guarded statement.",
+    "Existing RLS and target lock semantics preserved, including legitimate self-team deactivation.",
+    "Audit-side trigger proof changes observed by final MFA decision and all database effects roll back.",
+    "No network linearizability, universal identity lock, arbitrary VOLATILE trigger or external-effect guarantee."
+  ]
+}

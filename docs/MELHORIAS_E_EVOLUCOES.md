@@ -1,6 +1,6 @@
 # Melhorias e novas implementações — Prédio ON
 
-**Avanço revisado em 07/11:** as três consultas de funcionalidades passaram em19 casos dirigidos e26 arquivos de regressão. Checkpoint:79 candidatos, dois testes renderer e cinco suportes; runtime001–067. Restam precisão e desempenho do suporte, comandos/domínios, integração, Playwright real, aparelhos e operação. [CONTINUIDADE.md](CONTINUIDADE.md).
+**Avanço revisado em 07/11:** a precisão da ordenação de suporte foi corrigida com dois testes dirigidos e 18 TAP de regressão. Checkpoint:80 candidatos, dois testes renderer e cinco suportes; runtime001–067. Restam comandos/domínios, desempenho, integração, Playwright real, aparelhos e operação. [CONTINUIDADE.md](CONTINUIDADE.md).
 
 **Atualização de CI em 04/11:** o resumo autenticado do run 41842973688 confirmou bloqueio de conta por pagamento recente que falhou ou limite de gastos insuficiente. [Evidência e limites](evidencias/ci-account-blocker-2026-11-04.json). Regularizar a condição da conta e então validar uma execução nova; o motivo exato entre as duas alternativas não foi detalhado pelo GitHub. Nenhuma cobrança ou configuração foi alterada.
 
@@ -315,6 +315,6 @@ Usar o [checkpoint atual](continuidade/2026-11-05-mfa-integracao/README.md), bas
 
 Medir planos de consulta e latência das listas com 200 concessões, cache frio/quente, usuários locais/globais e volume representativo. A lista pessoal levou **11672 ms** na composição corrigida, com banco limitado a uma CPU. A primeira tentativa também excedeu cinco segundos. A [prova](evidencias/mfa-support-read-2026-11-07.json) preserva as duas observações; elas não isolam uma regressão causal nem aprovam latência de produção. Investigar custo das políticas RLS e dos LEFT JOINs antes de definir uma meta e otimizar. Preservar permissões, nomes ocultos e paginação; ampliar o prazo de um teste não encerra essa melhoria.
 
-### P1 — precisão da ordenação do suporte
+### Precisão da ordenação de suporte — resolvida no candidato em 07/11
 
-A [auditoria de 07/11](continuidade/2026-11-07-suporte-auditoria/REPORT.md) encontrou uma diferença potencial entre ordenar pelo timestamp PostgreSQL completo e reordenar pelo texto HTTP com milissegundos. Reproduzir com valores diferentes dentro do mesmo milissegundo nas listas pessoal e administrativa, preservar o limite200 e o desempate por ID, e corrigir sem expor campos internos no DTO. A cobertura anterior usou empates exatos e não encerra este caso. Nenhum novo teste funcional foi executado nesta auditoria.
+O caso de timestamps diferentes dentro do mesmo milissegundo foi reproduzido nas duas listas e corrigido, preservando o DTO público e a ordenação PostgreSQL. [Dois testes dirigidos e 18 entradas de regressão aprovados](evidencias/mfa-support-order-2026-11-07.json). A [auditoria original](continuidade/2026-11-07-suporte-auditoria/REPORT.md) permanece histórica. Isso não encerra a melhoria de desempenho acima nem ativa a política MFA em produção.

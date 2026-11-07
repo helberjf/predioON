@@ -1,14 +1,14 @@
 {
-  "status": "CANDIDATE_FEATURES_READ_VALIDATED_CANONICAL_RESTORE_PASSED",
+  "status": "CANDIDATE_SUPPORT_ORDER_VALIDATED_CANONICAL_RESTORE_PASSED",
   "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
   "metadata": [
     {
       "path": ".gitattributes",
-      "sha256": "2f9963021f93fd5f5c4395a2af256144ce4b9a3f6cbea5776428fb31352eba6a"
+      "sha256": "49adaa9489a36e58c7d311365bbb666efb3716ffcbdebbad7073d2ff6282fc83"
     },
     {
       "path": "INVENTORY.json",
-      "sha256": "6f6d2c367b5b35ebe54398651b0bf75c06f58895a5022df0630e5f13cd7bed64"
+      "sha256": "97c095b756e9476bdd0925cfbc88f2de54aeb4c7b91fd62dfde58c099fc0acc4"
     },
     {
       "path": "git-blobs.mjs",
@@ -24,7 +24,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "5c01f9925328813c343c2d543b89e21b50810d06c1710e9c4253c12c1f03829f"
+      "sha256": "9e5ab639b8a9c6543706a28c5bd1d07776fc7a77e4647557b084295ef58910f0"
     },
     {
       "path": "qaSupport/renderer/package.json",
@@ -47,9 +47,9 @@
       "sha256": "cab9d8393b345aa0d90ea6f7662cd38100b9433f9c16a7e7eed035b18da4e876"
     }
   ],
-  "inventoryPayloads": 83,
+  "inventoryPayloads": 84,
   "alreadyPublishedQueryPayloads": 2,
-  "pendingRuntimeAndTestFiles": 79,
+  "pendingRuntimeAndTestFiles": 80,
   "explicitRendererTestFiles": 2,
   "rendererSupportFiles": 5,
   "canonicalSourceFiles": 994,
@@ -64,44 +64,34 @@
     "evidence": "../../evidencias/mfa-canonical-restore-2026-11-05.json"
   },
   "currentPayloadSet": {
-    "sourceManifestSha256": "b0fe96cd2789f39ead9c90a972c4296cc7de2ba38142a8aa6f36eabd4a147685",
-    "evidence": "../../evidencias/mfa-features-read-2026-11-07.json",
-    "evidenceSha256": "443ce1f33c2d22beac630627c5bc24d6914dacb8683073eb0021b2b15c2fb273",
+    "sourceManifestSha256": "584ccec2f15290e7a80b10c63543359c9e38ca2806121c3614638f2e7a5bf328",
+    "evidence": "../../evidencias/mfa-support-order-2026-11-07.json",
+    "evidenceSha256": "69af214ed7a8dfd8e3e6c0fec9eaca0a99219f83718520f4383a4615e57bafe8",
     "composition": [
       {
-        "path": "apps/api/src/modules/features/routes.ts",
-        "sha256": "d37a9cc3caaab826cde759da83efd107e7de8a2c9343fc887526031fdb591141",
-        "bytes": 8974
+        "path": "apps/api/src/modules/support-access/routes.ts",
+        "sha256": "4178deab935e6241a63c32bf59fe66add1d921598e5ac19cdf1c26979795cd0f",
+        "bytes": 14584
       },
       {
-        "path": "apps/api/test/platform-mfa-features-read.test.ts",
-        "sha256": "c508a2586a469d8ef890f3d90059e36602872afc424884d90e27c5cee6e7bc55",
-        "bytes": 30521
-      },
-      {
-        "path": "apps/api/test/features-config.test.ts",
-        "sha256": "15f835041218d8ded3d2f605cc675828e03defa0133fd5d072e63e80d5b7c367",
-        "bytes": 9466
-      },
-      {
-        "path": "apps/api/test/building-feature-capabilities.test.ts",
-        "sha256": "1e22b102df262e261d577b6bdda8f73098285e7d0dda72a89c530e63be324f81",
-        "bytes": 19653
+        "path": "apps/api/test/platform-mfa-support-timestamp-order.test.ts",
+        "sha256": "77d067079e9bde7fbd32ba6b30bb1b59bd8aafeef7d3b4e9b8c1c732f0a7fecc",
+        "bytes": 9379
       }
     ],
     "previousSql11V5TestSha256": "2c8a7bc400bd7b8055922f11a06239026db9dce7e9c4195cba696c67c5cd6710",
-    "validatedMergedScope": "Features22 TAP entries plus26 regression files259; three GETs and two real-TOTP HTTP fixtures; shared helper, SQL and mutations unchanged",
+    "validatedMergedScope": "Support timestamp order2 TAP plus2 selected regression files18; full PostgreSQL ordering and exact public DTO13/6; previous feature validation is separate evidence",
     "assemblyAndRestoreExecutedForThisUpdatedSet": true,
-    "restorationEvidence": "../../evidencias/mfa-features-read-restore-2026-11-07.json",
-    "restoredComposedFiles": 1026,
+    "restorationEvidence": "../../evidencias/mfa-support-order-restore-2026-11-07.json",
+    "restoredComposedFiles": 1027,
     "matchesTestedComposition": true,
-    "manifestSha256": "0cb607cd6c3f6edbdc2134247737e7ba39ca6f097da0f72c6809fee5eee82e2d",
-    "receiptSha256": "0e842710f326eb5c858779b300e657511a162e1733e6c078ee36f97a15016b06"
+    "manifestSha256": "74a17253eb07a4ce4bb6936a4b46875e2886b942cc972e41a47e02f902e83759",
+    "receiptSha256": "e66b15b4641e5af2d25fb330218140dec3b478d7769172af67248aeb638ebde2"
   },
   "rendererStagingRecipeExecuted": false,
   "p0DisablePatchIncluded": true,
   "publishedApiDatabaseChanged": false,
-  "staticPeerReview": "Feature reads: canonical1026 sources plus5 supports match testedb0fe exactly. Runtime and restoration executed07Nov. Directed22TAP represents19 independent scenarios and3 groups;26 regressions259 include10 groups. Three GETs and two real-TOTP HTTP fixtures only; shared helper, SQL and mutations intact. Existing advisory lock serialization preserved; no controlled intrastatement concurrency proof. Wider rollout pending.",
+  "staticPeerReview": "Support timestamp ordering: canonical1027 sources plus5 supports match tested584c exactly. Runtime and restoration executed07Nov. Directed2 plus2 selected regressions18 total20TAP,18 independent scenarios and2 groups. Two GET projections/decoders only; shared helper, grantView, clocks, SQL and mutations intact. Previous feature259 regression results are separate evidence, not repeated here. No performance or wider rollout acceptance.",
   "historicalGuardRefusal": {
     "minimumMiB": 1536,
     "at": "2026-11-05T03:53:51.9727239Z",
@@ -260,6 +250,14 @@
     {
       "path": "../../evidencias/mfa-features-read-restore-2026-11-07.json",
       "sha256": "52fdb5a4cef446f9ea337c602410d6eb8ca40bdeb18a7a069f2fce4dece4d2ac"
+    },
+    {
+      "path": "../../evidencias/mfa-support-order-2026-11-07.json",
+      "sha256": "69af214ed7a8dfd8e3e6c0fec9eaca0a99219f83718520f4383a4615e57bafe8"
+    },
+    {
+      "path": "../../evidencias/mfa-support-order-restore-2026-11-07.json",
+      "sha256": "d27cdabdd47bcd4eed4cc91a0c8245b3d758c169a138d0cc8edab5a167375104"
     }
   ],
   "computerRestarted": false,
@@ -736,5 +734,40 @@
     "matchesTestedComposition": true,
     "manifestSha256": "ab92257089cc83a17a41f58fa5c4c775c8391ff38ad63f222d95b6dff83017c5",
     "receiptSha256": "9a149f5af596389822ac4e202fd69293e9d896f5b0bda1b1604f72e65996a61e"
+  },
+  "previousFeaturesReadPayloadSet": {
+    "sourceManifestSha256": "b0fe96cd2789f39ead9c90a972c4296cc7de2ba38142a8aa6f36eabd4a147685",
+    "evidence": "../../evidencias/mfa-features-read-2026-11-07.json",
+    "evidenceSha256": "443ce1f33c2d22beac630627c5bc24d6914dacb8683073eb0021b2b15c2fb273",
+    "composition": [
+      {
+        "path": "apps/api/src/modules/features/routes.ts",
+        "sha256": "d37a9cc3caaab826cde759da83efd107e7de8a2c9343fc887526031fdb591141",
+        "bytes": 8974
+      },
+      {
+        "path": "apps/api/test/platform-mfa-features-read.test.ts",
+        "sha256": "c508a2586a469d8ef890f3d90059e36602872afc424884d90e27c5cee6e7bc55",
+        "bytes": 30521
+      },
+      {
+        "path": "apps/api/test/features-config.test.ts",
+        "sha256": "15f835041218d8ded3d2f605cc675828e03defa0133fd5d072e63e80d5b7c367",
+        "bytes": 9466
+      },
+      {
+        "path": "apps/api/test/building-feature-capabilities.test.ts",
+        "sha256": "1e22b102df262e261d577b6bdda8f73098285e7d0dda72a89c530e63be324f81",
+        "bytes": 19653
+      }
+    ],
+    "previousSql11V5TestSha256": "2c8a7bc400bd7b8055922f11a06239026db9dce7e9c4195cba696c67c5cd6710",
+    "validatedMergedScope": "Features22 TAP entries plus26 regression files259; three GETs and two real-TOTP HTTP fixtures; shared helper, SQL and mutations unchanged",
+    "assemblyAndRestoreExecutedForThisUpdatedSet": true,
+    "restorationEvidence": "../../evidencias/mfa-features-read-restore-2026-11-07.json",
+    "restoredComposedFiles": 1026,
+    "matchesTestedComposition": true,
+    "manifestSha256": "0cb607cd6c3f6edbdc2134247737e7ba39ca6f097da0f72c6809fee5eee82e2d",
+    "receiptSha256": "0e842710f326eb5c858779b300e657511a162e1733e6c078ee36f97a15016b06"
   }
 }

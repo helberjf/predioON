@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "status": "CANONICAL_FEATURES_READ_VALIDATED_RESTORED_CANDIDATE",
+  "status": "CANONICAL_SUPPORT_ORDER_VALIDATED_RESTORED_CANDIDATE",
   "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
   "plannedBase": "Approved published source base53c4c70; current documentation may be newer.",
   "sourceBaseline": "2676a74216b012dcab6fa2fb9735dc1b6ef8e9d8",
@@ -825,9 +825,9 @@
       "beforeSha256": "ceaf7ba04db07af02b6adae5d5d7ce460e06e795ffbbf23f070ced15eeed71e8",
       "beforeGitSha256": "ceaf7ba04db07af02b6adae5d5d7ce460e06e795ffbbf23f070ced15eeed71e8",
       "beforeGitObject": "0bf25b0b11ea7da56d8184bd0b994539e1636a4d",
-      "afterSha256": "c10ed11a0beb2c345985080c33e0f7a14942478c3457662113db2bef7dc6a5fc",
-      "bytes": 14030,
-      "component": "support-read-mfa",
+      "afterSha256": "4178deab935e6241a63c32bf59fe66add1d921598e5ac19cdf1c26979795cd0f",
+      "bytes": 14584,
+      "component": "support-timestamp-order",
       "kind": "runtime"
     },
     {
@@ -917,10 +917,22 @@
       "bytes": 19653,
       "component": "features-read-mfa",
       "kind": "database-test"
+    },
+    {
+      "path": "apps/api/test/platform-mfa-support-timestamp-order.test.ts",
+      "payload": "payload/runtime/apps/api/test/platform-mfa-support-timestamp-order.test.ts.txt",
+      "beforeSha256": null,
+      "beforeGitSha256": null,
+      "beforeGitObject": null,
+      "afterSha256": "77d067079e9bde7fbd32ba6b30bb1b59bd8aafeef7d3b4e9b8c1c732f0a7fecc",
+      "bytes": 9379,
+      "component": "support-timestamp-order",
+      "kind": "database-test"
     }
   ],
   "pending": [
-    "Complete remaining SQL/SD/no-match mutations, locks/triggers and integrated regressions; features22 TAP entries and26 regression files259 are finite isolated validations, not API integral or global rollout.",
+    "Complete remaining SQL/SD/no-match mutations, locks/triggers and integrated regressions; support order2 and selected regression18 TAP entries are finite isolated validations, not API integral or global rollout.",
+    "Investigate support mine latency with controlled repeated measurements; timestamp-order validation makes no performance claim.",
     "Renderer staging recipe remains authored and not executed; do not transfer its earlier separate harness PASS."
   ],
   "excluded": [
@@ -1053,5 +1065,12 @@
     "sourceManifestSha256": "b0fe96cd2789f39ead9c90a972c4296cc7de2ba38142a8aa6f36eabd4a147685",
     "scope": "Features22 TAP entries plus26 regression files259; three GETs and two real-TOTP HTTP fixtures; shared helper, SQL and mutations unchanged",
     "restorationEvidence": "../../evidencias/mfa-features-read-restore-2026-11-07.json"
+  },
+  "supportOrderValidation": {
+    "evidence": "../../evidencias/mfa-support-order-2026-11-07.json",
+    "evidenceSha256": "69af214ed7a8dfd8e3e6c0fec9eaca0a99219f83718520f4383a4615e57bafe8",
+    "sourceManifestSha256": "584ccec2f15290e7a80b10c63543359c9e38ca2806121c3614638f2e7a5bf328",
+    "scope": "Support timestamp order2 TAP plus2 selected regression files18; full PostgreSQL ordering and exact public DTO13/6; shared helper, SQL, grantView, clocks and mutations unchanged",
+    "restorationEvidence": "../../evidencias/mfa-support-order-restore-2026-11-07.json"
   }
 }

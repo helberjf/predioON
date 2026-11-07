@@ -14,3 +14,6 @@ payload/runtime/apps/api/src/modules/events/routes.ts.txt whitespace=cr-at-eol
 
 # Frozen gateway test payload: preserve its exact tested final blank line.
 payload/runtime/apps/api/test/platform-mfa-gateway-events.test.ts.txt whitespace=-blank-at-eof
+
+# Frozen support ordering test: preserve its exact tested final blank line.
+payload/runtime/apps/api/test/platform-mfa-support-timestamp-order.test.ts.txt whitespace=-blank-at-eof

@@ -1,4 +1,39 @@
-# Retomada MFA — consultas de funcionalidades
+# Retomada MFA — ordenação das listas de suporte
+
+**Executado e revisado em 07/11/2026.** A ordenação de datas com diferenças menores
+que um milissegundo foi reproduzida e corrigida nas duas listas de suporte.
+Passaram dois testes dirigidos e 18 entradas TAP de regressão em dois arquivos.
+São 20 TAP, 18 casos independentes e dois grupos neste incremento, sem somar
+as execuções anteriores de funcionalidades.
+
+O conjunto contém 84 payloads: 80 candidatos de runtime/testes, dois testes
+renderer e dois arquivos query já publicados. São 1.027 arquivos e cinco suportes.
+A [montagem/restauração passou](../../evidencias/mfa-support-order-restore-2026-11-07.json),
+com os 1.027 arquivos e cinco suportes idênticos à composição testada. A
+restauração de funcionalidades abaixo permanece histórica.
+
+O envelope de MFA reordenava as linhas pela data já formatada com milissegundos.
+Dois timestamps diferentes, .123100 e .123900, tornavam-se um empate, permitindo
+ao ID inverter a ordem original. Agora as duas consultas ordenam pelo timestamp
+PostgreSQL completo. Campos internos de ordenação são removidos antes da resposta;
+os DTOs públicos continuam com 13 e seis campos, nas mesmas datas ISO.
+
+No comparador, as duas respostas tinham exatamente os mesmos objetos por ID,
+em ordem inversa. A revisão conferiu os objetos completos e os dois erros reais,
+além da contagem. Na versão corrigida, ambos os casos passaram, assim como as
+regressões de MFA, visibilidade, limite200, empates e fluxos de concessão.
+Tipos dos 28 arquivos e 13 fontes obrigatórias passaram nas duas composições.
+
+Helper de leitura, grantView compartilhada, mutações, relógio nativo e SQL068
+permaneceram intactos. Isto corrige ordenação; não é uma otimização medida nem
+aceite da latência. Os fatores administrativos dirigidos são sintéticos após
+login real. A política obrigatória continua candidata, com runtime main001–067.
+
+[Prova e limites](../../evidencias/mfa-support-order-2026-11-07.json).
+Próximos: comandos de estrutura, demais domínios, medições de desempenho,
+regressão integrada, Playwright real e aceites Android/iOS e operacionais.
+
+## Rodada anterior: consultas de funcionalidades
 
 **Executado e revisado em 07/11/2026.** As três consultas de funcionalidades
 passaram em 22 entradas TAP dirigidas (19 casos independentes e três grupos).

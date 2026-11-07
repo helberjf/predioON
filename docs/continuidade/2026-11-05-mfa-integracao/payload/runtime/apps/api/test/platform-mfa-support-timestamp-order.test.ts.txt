@@ -1,0 +1,176 @@
+import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
+import type { Server } from "node:http";
+import { after, before, describe, it } from "node:test";
+import { decodeJwt } from "jose";
+import { sqlClient } from "@predioon/db";
+import { appSqlClient, closeAppDb, verifyRestrictedDatabaseRole } from "@predioon/db/runtime";
+import { app } from "../src/app.js";
+import { hashPassword } from "../src/auth/passwords.js";
+import "./helpers.js";
+
+// Common source for baseline/fixed. Run only through the official disposable
+// runtime-services fixture, with the cumulative MFA migration and real HTTP login.
+// Synthetic confirmed factor/proof below matches the existing MFA SQL fixture;
+// this tests ordering with satisfied MFA, not enrollment or TOTP verification.
+type Actor = { id: string; name: string; token: string; sid: string; adminBinding: string };
+type HttpResult = { status: number; body: unknown; cache: string | null };
+
+async function bounded<T>(promise: PromiseLike<T>, label: string, deadlineMs = 5000): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([Promise.resolve(promise), new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(new Error(`Fixture deadline: ${label}`)), deadlineMs);
+    })]);
+  } finally { clearTimeout(timer); }
+}
+
+describe("support lists preserve PostgreSQL submillisecond timestamp order", { concurrency: false }, () => {
+  const suffix = randomUUID(), org = `sorder-org-${suffix}`, building = `sorder-building-${suffix}`;
+  const buildingName = "Submillisecond support building", reason = "Submillisecond support ordering";
+  // UUID first digits deliberately oppose the timestamp order in both routes.
+  const lowId = `0${randomUUID().slice(1)}`, highId = `f${randomUUID().slice(1)}`;
+  const users: string[] = [], password = "support-order-fictitious-password";
+  let server: Server | undefined, url = "", passwordHash = "";
+  let admin: Actor, staff: Actor, createdDto = "", expiresDto = "";
+
+  async function request(actor: Actor, path: string): Promise<HttpResult> {
+    const abort = new AbortController();
+    try {
+      const response = await bounded(fetch(url + path, {
+        headers: { Authorization: `Bearer ${actor.token}` }, signal: abort.signal,
+      }), "HTTP");
+      return {
+        status: response.status, cache: response.headers.get("cache-control"),
+        body: await bounded(response.json(), "JSON"),
+      };
+    } finally { abort.abort(); }
+  }
+
+  async function createActor(label: string, support: boolean): Promise<Actor> {
+    const id = `sorder-${suffix}-${label}`, name = `Support order ${label}`, adminBinding = randomUUID();
+    users.push(id);
+    await sqlClient`insert into users(id,name,email,password_hash)
+      values(${id},${name},${id + "@example.invalid"},${passwordHash})`;
+    if (support) {
+      await sqlClient`insert into role_bindings(user_id,role_key) values(${id},'PLATFORM_SUPPORT')`;
+    }
+    await sqlClient`insert into role_bindings(id,user_id,role_key,active)
+      values(${adminBinding},${id},'PLATFORM_ADMIN',false)`;
+    const abort = new AbortController();
+    try {
+      const response = await bounded(fetch(url + "/auth/login", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: id + "@example.invalid", password }), signal: abort.signal,
+      }), "login");
+      assert.equal(response.status, 200);
+      const login = await bounded(response.json(), "login JSON") as { accessToken: string };
+      const sid = decodeJwt(login.accessToken).sid;
+      assert.equal(typeof sid, "string");
+      return { id, name, token: login.accessToken, sid: sid as string, adminBinding };
+    } finally { abort.abort(); }
+  }
+
+  before(async () => {
+    const [ledger] = await sqlClient`select count(*)::int as count from schema_migrations`;
+    assert.equal(ledger?.count, 68);
+    await verifyRestrictedDatabaseRole(appSqlClient, "predioon_app");
+    passwordHash = await hashPassword(password);
+    await sqlClient`insert into organizations(id,name,slug) values(${org},'Support timestamp order',${org})`;
+    await sqlClient`insert into buildings(id,organization_id,name,code)
+      values(${building},${org},${buildingName},${building})`;
+    server = await new Promise<Server>(resolve => {
+      const instance = app.listen(0, "127.0.0.1", () => resolve(instance));
+    });
+    const address = server.address(); assert.ok(address && typeof address !== "string");
+    url = `http://127.0.0.1:${address.port}`;
+    admin = await createActor("admin", false);
+    staff = await createActor("staff", true);
+
+    const generation = randomUUID();
+    await sqlClient`insert into mfa_factors(user_id,secret_ciphertext,confirmed_at,generation)
+      values(${admin.id},decode(repeat('00',40),'hex'),now(),${generation})`;
+    await sqlClient`update sessions set mfa_verified_at=now(),mfa_factor_generation=${generation}
+      where id=${admin.sid} and user_id=${admin.id}`;
+    await sqlClient`update role_bindings set active=true where id=${admin.adminBinding}`;
+    const adminProfile = await request(admin, "/auth/me"), staffProfile = await request(staff, "/auth/me");
+    assert.equal(adminProfile.status, 200); assert.equal(staffProfile.status, 200);
+    assert.equal((adminProfile.body as { mfaRequirement: string }).mfaRequirement, "satisfied");
+    assert.equal((staffProfile.body as { mfaRequirement: string }).mfaRequirement, "not-required");
+
+    const now = Date.now();
+    const createdSecond = new Date(now - 2 * 3600000).toISOString().slice(0, 19);
+    const expiresSecond = new Date(now + 3600000).toISOString().slice(0, 19);
+    createdDto = `${createdSecond}.123Z`; expiresDto = `${expiresSecond}.123Z`;
+    for (const [id, micros] of [[lowId, "123900"], [highId, "123100"]] as const) {
+      await sqlClient`insert into support_grants
+        (id,building_id,support_user_id,capability,reason,created_at,expires_at,granted_by)
+        values(${id},${building},${staff.id},'telemetry:read',${reason},
+          ${`${createdSecond}.${micros}Z`}::timestamptz,
+          ${`${expiresSecond}.${micros}Z`}::timestamptz,${admin.id})`;
+    }
+  });
+
+  after(async () => {
+    try {
+      await bounded(new Promise<void>((resolve, reject) => {
+        if (!server) { resolve(); return; }
+        server.close(error => error ? reject(error) : resolve());
+        server.closeAllConnections();
+      }), "listener close");
+    } finally {
+      try {
+        await bounded(sqlClient.begin(async tx => {
+          await tx`set local lock_timeout='2s'`; await tx`set local statement_timeout='3s'`;
+          await tx`delete from support_grants where building_id=${building}`;
+          await tx`delete from buildings where organization_id=${org}`;
+          await tx`delete from organizations where id=${org}`;
+          if (users.length) await tx`delete from users where id in ${sqlClient(users)}`;
+        }), "fixture cleanup");
+      } finally {
+        const results = await Promise.allSettled([
+          bounded(closeAppDb(), "app close"), bounded(sqlClient.end({ timeout: 3 }), "owner close"),
+        ]);
+        const failed = results.find(result => result.status === "rejected");
+        if (failed?.status === "rejected") throw failed.reason;
+      }
+    }
+  });
+
+  function rows(response: HttpResult): Array<Record<string, unknown>> {
+    assert.equal(response.status, 200); assert.equal(response.cache, "no-store");
+    const body = response.body as { items: unknown };
+    assert.deepEqual(Object.keys(body), ["items"]); assert.ok(Array.isArray(body.items));
+    return body.items as Array<Record<string, unknown>>;
+  }
+
+  it("grants keeps full created_at DESC precision and exactly thirteen public fields", async () => {
+    // This is a fixture-order oracle only; HTTP authorization uses predioon_app.
+    const nativeOrder = await sqlClient`select id from support_grants
+      where building_id=${building} order by created_at desc,id desc`;
+    assert.deepEqual(nativeOrder.map(row => row.id), [lowId, highId]);
+    const actual = rows(await request(admin, "/v1/support-access/grants?buildingId=" + building));
+    const expected = [lowId, highId].map(id => ({
+      id, buildingId: building, supportUserId: staff.id, supportUserName: staff.name,
+      capability: "telemetry:read", resourceType: null, resourceId: null, reason,
+      createdAt: createdDto, expiresAt: expiresDto, revokedAt: null,
+      grantedByName: admin.name, status: "ACTIVE",
+    }));
+    assert.deepEqual(actual, expected);
+    assert.ok(actual.every(row => Object.keys(row).length === 13));
+  });
+
+  it("mine keeps full expires_at ASC precision and exactly six public fields", async () => {
+    const nativeOrder = await sqlClient`select id from support_grants
+      where support_user_id=${staff.id} and revoked_at is null and expires_at>clock_timestamp()
+      order by expires_at,id`;
+    assert.deepEqual(nativeOrder.map(row => row.id), [highId, lowId]);
+    const actual = rows(await request(staff, "/v1/support-access/mine"));
+    const expected = [highId, lowId].map(id => ({
+      id, buildingId: building, buildingName, capability: "telemetry:read", reason, expiresAt: expiresDto,
+    }));
+    assert.deepEqual(actual, expected);
+    assert.ok(actual.every(row => Object.keys(row).length === 6));
+  });
+});
+

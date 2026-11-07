@@ -1,0 +1,373 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-11-07",
+  "reviewedOn": "2026-11-07",
+  "scope": "Preserve full PostgreSQL timestamp ordering in GET support-access/grants and mine while retaining public millisecond ISO DTOs",
+  "sources": {
+    "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+    "priorFeaturePreparedSha256": "b0fe96cd2789f39ead9c90a972c4296cc7de2ba38142a8aa6f36eabd4a147685",
+    "baselinePreparedSha256": "b2159b40eec64c2d45feaedfbd11c549e7f2a940af3233af39fc48a7c8c70a78",
+    "fixedPreparedSha256": "584ccec2f15290e7a80b10c63543359c9e38ca2806121c3614638f2e7a5bf328",
+    "rootFiles": 994,
+    "composedFilesByVariant": {
+      "baseline": 1027,
+      "fixed": 1027
+    },
+    "workspaceJunctions": 23,
+    "productManifest": {
+      "id": "mfa-support-timestamp-order-candidate-20261107/manifest.json",
+      "sha256": "34494e63139962883e74421c233094c6cc44bfa2663f29861b04f2e8ff5f52e2",
+      "bytes": 2116
+    },
+    "testManifest": {
+      "id": "mfa-support-timestamp-order-tests-20261107/manifest.json",
+      "sha256": "23d66082e88d95b1856c072defad708e3db95b392f7c9fec0a7e7c812b4bfd75",
+      "bytes": 1564
+    }
+  },
+  "typeChecks": [
+    {
+      "variant": "baseline",
+      "phase": "resolve",
+      "exitCode": 0,
+      "durationMs": 2320,
+      "freeMiB": 3567,
+      "sourceCandidateConfigPreparedJunctionsAfter": true,
+      "result": {
+        "id": "mfa-support-order-baseline-qa-20261107/checks/resolve/result.json",
+        "sha256": "38fc5e354314c242db76791828ab86ee8ef4f560624fff3064313638f607d801",
+        "bytes": 1178
+      }
+    },
+    {
+      "variant": "baseline",
+      "phase": "types",
+      "exitCode": 0,
+      "durationMs": 24022,
+      "freeMiB": 3664,
+      "sourceCandidateConfigPreparedJunctionsAfter": true,
+      "result": {
+        "id": "mfa-support-order-baseline-qa-20261107/checks/types/result.json",
+        "sha256": "05c1ab874716feeb041d473f67734ff83269355465a6cd2eb5087f69f6c2bdda",
+        "bytes": 1025
+      }
+    },
+    {
+      "variant": "fixed",
+      "phase": "resolve",
+      "exitCode": 0,
+      "durationMs": 2604,
+      "freeMiB": 3711,
+      "sourceCandidateConfigPreparedJunctionsAfter": true,
+      "result": {
+        "id": "mfa-support-order-fixed-qa-20261107/checks/resolve/result.json",
+        "sha256": "20f435eaf2094f3e66c1ad4e253391e71f433897adc37d8398699fc1b3d99a8f",
+        "bytes": 1175
+      }
+    },
+    {
+      "variant": "fixed",
+      "phase": "types",
+      "exitCode": 0,
+      "durationMs": 21872,
+      "freeMiB": 3717,
+      "sourceCandidateConfigPreparedJunctionsAfter": true,
+      "result": {
+        "id": "mfa-support-order-fixed-qa-20261107/checks/types/result.json",
+        "sha256": "f027e5bcf3dc939f7b2b8da9652606f836f2a5aabd38e2882d424ddb09a25d2c",
+        "bytes": 1022
+      }
+    }
+  ],
+  "runs": {
+    "baseline": {
+      "startedUtc": "2026-11-07T05:24:43.204Z",
+      "endedUtc": "2026-11-07T05:25:02.758Z",
+      "observedHeadBefore": "92f0523a6152195798c035c29a908364a4a2ffca",
+      "observedHeadAfter": "92f0523a6152195798c035c29a908364a4a2ffca",
+      "processes": [
+        {
+          "file": "platform-mfa-support-timestamp-order.test.ts",
+          "tap": {
+            "tests": 2,
+            "suites": 1,
+            "pass": 0,
+            "fail": 2,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          },
+          "tapDurationMs": 5485.9643,
+          "childDurationMs": 5837.6607,
+          "exitCode": 1,
+          "log": {
+            "id": "mfa-support-order-baseline-qa-20261107/platform-mfa-support-timestamp-order.log",
+            "sha256": "89b98a43db3731fe10a2e020f6da2c2a9d805a93a696a2184ab376be6e2010dd",
+            "bytes": 8911
+          }
+        }
+      ],
+      "result": {
+        "id": "mfa-support-order-baseline-qa-20261107/mfa-directed-result.json",
+        "sha256": "76ac25a39ee6facd7ac7267ab506dd1ba0f57980a7e7853797c7cec2c95a1a6f",
+        "bytes": 312622
+      },
+      "postchecks": {
+        "id": "mfa-support-order-baseline-qa-20261107/mfa-directed-postchecks.json",
+        "sha256": "f5290548c460ea5d9e552ea2935ed287484277b76e414cf91ca23a1594bc4c5b",
+        "bytes": 390
+      },
+      "cleanup": {
+        "exitCode": 0,
+        "systemIdentifierMatches": true,
+        "basePublicTables": 0,
+        "temporaryDatabases": 0,
+        "otherDatabases": 0,
+        "rolesRestoredIncludingPrivateCredentials": true,
+        "settingsRestored": true,
+        "roles": 6,
+        "otherClients": 0,
+        "containerAttestationMatches": true,
+        "freeMiBAtStart": 4022.0,
+        "computerRestarted": false,
+        "credentialsPublished": false
+      }
+    },
+    "fixed": {
+      "startedUtc": "2026-11-07T05:28:32.833Z",
+      "endedUtc": "2026-11-07T05:28:52.787Z",
+      "observedHeadBefore": "92f0523a6152195798c035c29a908364a4a2ffca",
+      "observedHeadAfter": "92f0523a6152195798c035c29a908364a4a2ffca",
+      "processes": [
+        {
+          "file": "platform-mfa-support-timestamp-order.test.ts",
+          "tap": {
+            "tests": 2,
+            "suites": 1,
+            "pass": 2,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          },
+          "tapDurationMs": 4962.4815,
+          "childDurationMs": 5209.613700000002,
+          "exitCode": 0,
+          "log": {
+            "id": "mfa-support-order-fixed-qa-20261107/platform-mfa-support-timestamp-order.log",
+            "sha256": "62daf23380287ef213a070cfa23350f3684d91488fb076726727e39415e1bccb",
+            "bytes": 814
+          }
+        }
+      ],
+      "result": {
+        "id": "mfa-support-order-fixed-qa-20261107/mfa-directed-result.json",
+        "sha256": "3313e1231f65184d967bf2f0b5e42584b462fad5be64949df9dd89c0e1bd02a6",
+        "bytes": 312618
+      },
+      "postchecks": {
+        "id": "mfa-support-order-fixed-qa-20261107/mfa-directed-postchecks.json",
+        "sha256": "25c72f4b37ec89242fa784173c3e4dda67cc54352a7cdbbc4777363cb7d50814",
+        "bytes": 390
+      },
+      "cleanup": {
+        "exitCode": 0,
+        "systemIdentifierMatches": true,
+        "basePublicTables": 0,
+        "temporaryDatabases": 0,
+        "otherDatabases": 0,
+        "rolesRestoredIncludingPrivateCredentials": true,
+        "settingsRestored": true,
+        "roles": 6,
+        "otherClients": 0,
+        "containerAttestationMatches": true,
+        "freeMiBAtStart": 3809.0,
+        "computerRestarted": false,
+        "credentialsPublished": false
+      }
+    },
+    "fixed-regression": {
+      "startedUtc": "2026-11-07T05:29:08.486Z",
+      "endedUtc": "2026-11-07T05:29:55.972Z",
+      "observedHeadBefore": "92f0523a6152195798c035c29a908364a4a2ffca",
+      "observedHeadAfter": "92f0523a6152195798c035c29a908364a4a2ffca",
+      "processes": [
+        {
+          "file": "platform-mfa-support-read.test.ts",
+          "tap": {
+            "tests": 14,
+            "suites": 1,
+            "pass": 14,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          },
+          "tapDurationMs": 16868.3066,
+          "childDurationMs": 17161.3335,
+          "exitCode": 0,
+          "log": {
+            "id": "mfa-support-order-fixed-regression-qa-20261107/platform-mfa-support-read.log",
+            "sha256": "632dc89838a5da8d95d2331388240aade09c169b5124b7afc7cf283ba7d13fc1",
+            "bytes": 3520
+          }
+        },
+        {
+          "file": "support-access.test.ts",
+          "tap": {
+            "tests": 4,
+            "suites": 1,
+            "pass": 4,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          },
+          "tapDurationMs": 12830.7361,
+          "childDurationMs": 13070.410599999996,
+          "exitCode": 0,
+          "log": {
+            "id": "mfa-support-order-fixed-regression-qa-20261107/support-access.log",
+            "sha256": "752e7231cb14788139ff7002cba110eef3c9978225ca3372666235ba7085df19",
+            "bytes": 1421
+          }
+        }
+      ],
+      "result": {
+        "id": "mfa-support-order-fixed-regression-qa-20261107/mfa-directed-result.json",
+        "sha256": "d785d16bd2b50c6a2602fc8aa3dbee590ee04e1ba87bbef17d6896915df8fba6",
+        "bytes": 313201
+      },
+      "postchecks": {
+        "id": "mfa-support-order-fixed-regression-qa-20261107/mfa-directed-postchecks.json",
+        "sha256": "9dc8d4d1d6f73cf679a149a1a67b3c48382cc1bd1484975fa7e14d29c91d8f3d",
+        "bytes": 390
+      },
+      "cleanup": {
+        "exitCode": 0,
+        "systemIdentifierMatches": true,
+        "basePublicTables": 0,
+        "temporaryDatabases": 0,
+        "otherDatabases": 0,
+        "rolesRestoredIncludingPrivateCredentials": true,
+        "settingsRestored": true,
+        "roles": 6,
+        "otherClients": 0,
+        "containerAttestationMatches": true,
+        "freeMiBAtStart": 3822.0,
+        "computerRestarted": false,
+        "credentialsPublished": false
+      }
+    }
+  },
+  "executionDatesUtc": [
+    "2026-11-07"
+  ],
+  "executedOn": "2026-11-07",
+  "gates": {
+    "typesExitCode": 0,
+    "typeTestFiles": 28,
+    "sourceRequiredFiles": 13,
+    "directedTapTestsPassed": 2,
+    "regressionFiles": 2,
+    "regressionTestsPassed": 18,
+    "failures": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "cleanupPass": true,
+    "sourceBeforeAfterPass": true,
+    "baselineOrderingDifferencesReviewed": true
+  },
+  "baselineClassification": {
+    "tests": 2,
+    "suites": 1,
+    "pass": 0,
+    "fail": 2,
+    "independentFailures": 2,
+    "aggregateParents": 0,
+    "assertionOperator": "deepStrictEqual",
+    "observations": [
+      {
+        "endpoint": "/v1/support-access/grants",
+        "case": "grants keeps full created_at DESC precision and exactly thirteen public fields",
+        "expectedIds": [
+          "006fd1c9-f409-42a2-9abd-d101b45d8656",
+          "ffae3a61-5509-40f7-9d4b-5c6d91a46dd7"
+        ],
+        "actualIds": [
+          "ffae3a61-5509-40f7-9d4b-5c6d91a46dd7",
+          "006fd1c9-f409-42a2-9abd-d101b45d8656"
+        ],
+        "publicFieldCount": 13,
+        "sameDtoById": true,
+        "reversedOrder": true
+      },
+      {
+        "endpoint": "/v1/support-access/mine",
+        "case": "mine keeps full expires_at ASC precision and exactly six public fields",
+        "expectedIds": [
+          "ffae3a61-5509-40f7-9d4b-5c6d91a46dd7",
+          "006fd1c9-f409-42a2-9abd-d101b45d8656"
+        ],
+        "actualIds": [
+          "006fd1c9-f409-42a2-9abd-d101b45d8656",
+          "ffae3a61-5509-40f7-9d4b-5c6d91a46dd7"
+        ],
+        "publicFieldCount": 6,
+        "sameDtoById": true,
+        "reversedOrder": true
+      }
+    ],
+    "rootReviewedObservedFailureIdsAndDtos": true,
+    "reason": "Both named HTTP DTO comparisons contain exactly the same rows by ID, with the two IDs in reverse order; root review is required in addition to test counts",
+    "finalStandaloneFieldCountAssertionsReached": false
+  },
+  "acceptedCounts": {
+    "directedTap": 2,
+    "directedIndependent": 2,
+    "directedAggregateGroups": 0,
+    "directedSuites": 1,
+    "regressionFiles": 2,
+    "regressionTap": 18,
+    "regressionIndependent": 16,
+    "regressionAggregateGroups": 2,
+    "combinedTap": 20,
+    "combinedIndependent": 18,
+    "combinedAggregateGroups": 2
+  },
+  "checks": [
+    "Two distinct timestamps in the same public millisecond keep their native DESC created_at order in grants and ASC expires_at order in mine",
+    "Exact public DTO comparisons retain13 grant fields and6 mine fields, expected names/nulls/ISO values and no internal ordering key",
+    "The same new test source is used on baseline and fixed; fixture UUIDs deliberately oppose timestamp order",
+    "Real HTTP sessions are used; restricted predioon_app connection identity is verified and satisfied synthetic ADMIN MFA proof is declared",
+    "Only the two support GET projections/decoders change; shared grantView, mutations, helper, native clock filters and SQL068 remain unchanged",
+    "Selected existing support MFA and support-access regressions pass on the integrated source"
+  ],
+  "limits": [
+    "Only this isolated support increment is accepted:2 directed tests plus18 regression TAP entries; prior feature results are separate evidence and are not added to these totals.",
+    "This is functional ordering evidence, not a performance benchmark or a causal explanation of earlier latency samples.",
+    "Directed ADMIN factor/proof is synthetic after real HTTP login; this increment does not validate enrollment/TOTP ceremony.",
+    "The final standalone field-count assertions are not reached in RED; the reviewed deep comparison diagnostics must themselves contain the exact DTOs.",
+    "No whole API, Playwright, production load, Android or iOS device acceptance is asserted.",
+    "Mandatory MFA remains a cumulative candidate; this script does not publish a migration, checkpoint, commit or runtime change."
+  ],
+  "verification": {
+    "id": "mfa-support-order-root-verification-20261107.json",
+    "sha256": "799abc5a259c6a589ed69b32045d462b23f15497af24aaaa69e1558eeb992ced",
+    "bytes": 9814
+  },
+  "verificationConfig": {
+    "id": "mfa-support-order-root-config-20261107.json",
+    "sha256": "0c4b34f96eaddd4baf50c13be875b00e13ea90574fbdadd6c85ae090206479c1",
+    "bytes": 2508
+  },
+  "authorScript": {
+    "id": "author-support-order-proof-20261107.py",
+    "sha256": "2205ee1e7094976670a81e1acfc574dfb4a26cdeef66a8d8387958d24a243e92",
+    "bytes": 10740
+  },
+  "computerRestarted": false,
+  "performanceAssessed": false,
+  "productionAccepted": false
+}
