@@ -1,0 +1,488 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-11-07",
+  "executedOn": "2026-11-07",
+  "reviewedOn": "2026-11-07",
+  "status": "FAILED_BROWSER_ATTEMPT_RECORDED",
+  "scope": "Actual V2 Chromium attempt: two tenancy scenarios passed; MFA scenario failed at its first initial-status UI assertion",
+  "sources": {
+    "preparedSha256": "9709239444569bb4545863286227d40641790fb8b592f437edab2dae6ce9834f",
+    "priorTenancyPreparedSha256": "b4fee359b97e9f37dd7c41ffc19f8264b4bfe1d66357b859692ddd51967cba76",
+    "rootFiles": 994,
+    "composedFiles": 1031,
+    "workspaceJunctions": 23,
+    "excludedCacheJunctions": 7,
+    "observedHeadBefore": "0817ae036c5c31722b96d1c997e57918404f0a30",
+    "observedHeadAfter": "0817ae036c5c31722b96d1c997e57918404f0a30"
+  },
+  "preflights": [
+    {
+      "phase": "e2e",
+      "passed": true,
+      "durationMs": 14523,
+      "result": {
+        "id": "mfa-real-browser-v2-qa-20261107/checks/e2e/result.json",
+        "sha256": "42c501c19c876e3f2b9d634fdbbbcdbdf7f6e34eb8fec427b7a373b4b5b81344",
+        "bytes": 646
+      }
+    },
+    {
+      "phase": "building",
+      "passed": true,
+      "durationMs": 6569,
+      "result": {
+        "id": "mfa-real-browser-v2-qa-20261107/checks/building/result.json",
+        "sha256": "2f8fc37091b7dbdcc861f6c65e5bdaea1d159e59b063dfbf4946a25ced6b9c21",
+        "bytes": 650
+      }
+    },
+    {
+      "phase": "list",
+      "passed": true,
+      "durationMs": 1627,
+      "result": {
+        "id": "mfa-real-browser-v2-qa-20261107/checks/list/result.json",
+        "sha256": "b1bc049cc62443c26d16339c53fd80fd2011d452832d65dea2f887605bf92e81",
+        "bytes": 643
+      }
+    }
+  ],
+  "cases": [
+    {
+      "title": "gestor ativa a verificação em duas etapas, entra com código de recuperação e a desativa",
+      "file": "auth/mfa.spec.ts",
+      "project": "chromium",
+      "passed": false,
+      "retry": 0,
+      "durationMs": 20832,
+      "media": [
+        {
+          "kind": "screenshot",
+          "id": "mfa-real-browser-v2-qa-20261107/source/.local/tenancy-candidate-results/auth-mfa-gestor-ativa-a-ve-28099-de-recuperação-e-a-desativa-chromium/test-failed-1.png",
+          "sha256": "50b3261898615c782c1233d5e95e6c616338e406a042b67f24acf1c27dd52d48",
+          "bytes": 84764
+        },
+        {
+          "kind": "video",
+          "id": "mfa-real-browser-v2-qa-20261107/source/.local/tenancy-candidate-results/auth-mfa-gestor-ativa-a-ve-28099-de-recuperação-e-a-desativa-chromium/video.webm",
+          "sha256": "d2e0c08ceeab239deb228186801c4df4f882da56d04bf6c8f16c3d0b85aa4c5c",
+          "bytes": 1288244
+        },
+        {
+          "kind": "error-context",
+          "id": "mfa-real-browser-v2-qa-20261107/source/.local/tenancy-candidate-results/auth-mfa-gestor-ativa-a-ve-28099-de-recuperação-e-a-desativa-chromium/error-context.md",
+          "sha256": "bada7e6b2d51fe43ca2c8a482433c2fabbdefa6d4e35175eae122a3d900e61c2",
+          "bytes": 11368
+        }
+      ]
+    },
+    {
+      "title": "síndico corrige bloco, unidade e equipe; edição intacta não envia requisição e conflito preserva o rascunho",
+      "file": "tenancy/tenancy-edit.spec.ts",
+      "project": "chromium",
+      "passed": true,
+      "retry": 0,
+      "durationMs": 7676,
+      "media": [
+        {
+          "kind": "screenshot",
+          "id": "mfa-real-browser-v2-qa-20261107/source/.local/tenancy-candidate-results/tenancy-tenancy-edit-síndi-973f5-onflito-preserva-o-rascunho-chromium/test-finished-1.png",
+          "sha256": "0bbb325ac3fe933c666832e5ee88257437d5911e9084e30ad36f08fe180fcc65",
+          "bytes": 85182
+        },
+        {
+          "kind": "video",
+          "id": "mfa-real-browser-v2-qa-20261107/source/.local/tenancy-candidate-results/tenancy-tenancy-edit-síndi-973f5-onflito-preserva-o-rascunho-chromium/video.webm",
+          "sha256": "7cb565913099b2498d8ca2f9aa9cd5c5951b96492e8f7fd8061f9318d68da1a3",
+          "bytes": 847898
+        }
+      ]
+    },
+    {
+      "title": "síndico desativa e reativa unidade e equipe com confirmação; inativos só aparecem a pedido",
+      "file": "tenancy/tenancy-edit.spec.ts",
+      "project": "chromium",
+      "passed": true,
+      "retry": 0,
+      "durationMs": 7513,
+      "media": [
+        {
+          "kind": "screenshot",
+          "id": "mfa-real-browser-v2-qa-20261107/source/.local/tenancy-candidate-results/tenancy-tenancy-edit-síndi-c85cf-ativos-só-aparecem-a-pedido-chromium/test-finished-1.png",
+          "sha256": "bcbe676390dd32c0021d8375a24bee103504cf96deebda2f50a3f69809c670c1",
+          "bytes": 88014
+        },
+        {
+          "kind": "video",
+          "id": "mfa-real-browser-v2-qa-20261107/source/.local/tenancy-candidate-results/tenancy-tenancy-edit-síndi-c85cf-ativos-só-aparecem-a-pedido-chromium/video.webm",
+          "sha256": "d4e24564594cdb806127165fee52598fc84d7ab1ae705704e38ad7d6842aac9a",
+          "bytes": 828600
+        }
+      ]
+    }
+  ],
+  "failures": [
+    {
+      "case": "gestor ativa a verificação em duas etapas, entra com código de recuperação e a desativa",
+      "nativeFirstError": {
+        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('Desativada', { exact: true })\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByText('Desativada', { exact: true }) with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for getByText('Desativada', { exact: true })\u001b[22m\n",
+        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('Desativada', { exact: true })\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByText('Desativada', { exact: true }) with timeout 15000ms\u001b[22m\n\u001b[2m  - waiting for getByText('Desativada', { exact: true })\u001b[22m\n\n    at C:\\Users\\Mai Tonheim\\Documents\\Codex\\2026-10-01\\https-github-com-helberjf-predioon-https-2\\work\\mfa-real-browser-v2-qa-20261107\\source\\e2e\\specs\\auth\\mfa.spec.ts:13:63",
+        "location": {
+          "file": "C:\\Users\\Mai Tonheim\\Documents\\Codex\\2026-10-01\\https-github-com-helberjf-predioon-https-2\\work\\mfa-real-browser-v2-qa-20261107\\source\\e2e\\specs\\auth\\mfa.spec.ts",
+          "column": 63,
+          "line": 13
+        },
+        "snippet": "  11 |   await signIn(page, BUILDING_URL, email);\n  12 |   await page.getByRole(\"link\", { name: \"Minhas sessões\", exact: true }).click();\n> 13 |   await expect(page.getByText(\"Desativada\", { exact: true })).toBeVisible();\n     |                                                               ^\n  14 |   await page.getByRole(\"button\", { name: \"Ativar verificação\", exact: true }).click();\n  15 |   const enable = page.getByRole(\"form\", { name: \"Ativar verificação em duas etapas\", exact: true });\n  16 |   await enable.getByLabel(\"Senha atual\", { exact: true }).fill(\"senha errada\");"
+      },
+      "messageWithoutAnsi": "Error: expect(locator).toBeVisible() failed\n\nLocator: getByText('Desativada', { exact: true })\nExpected: visible\nTimeout: 15000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" getByText('Desativada', { exact: true }) with timeout 15000ms\n  - waiting for getByText('Desativada', { exact: true })\n",
+      "nativeFirstErrorCanonicalSha256": "1b61ef55d879899039c30f4d4e0ac21427948ac234635aa0a6eb76109bea2399"
+    }
+  ],
+  "observedCounts": {
+    "browserCasesPassed": 2,
+    "browserCasesFailed": 1,
+    "browserFiles": 2,
+    "projects": 1,
+    "workers": 1,
+    "retries": 0,
+    "failures": 1,
+    "skipped": 0,
+    "flaky": 0,
+    "typeChecksPassed": 2,
+    "testListPassed": true,
+    "buildProductionPassed": true,
+    "buildHashesBeforeAfterPassed": true,
+    "sourceHashesPassed": true,
+    "fixtureCleanupPassed": true,
+    "ownedChildrenExited": true,
+    "dedicatedPortsClosed": true,
+    "restrictedRolesCheckedBeforeApiListen": true,
+    "screenshots": 3,
+    "videos": 3
+  },
+  "runtime": {
+    "startedUtc": "2026-11-07T13:45:01.282Z",
+    "endedUtc": "2026-11-07T13:46:31.986Z",
+    "guardMiB": 2048,
+    "phases": [
+      {
+        "phase": "before-build",
+        "freeMiB": 3116,
+        "minimumMiB": 2048
+      },
+      {
+        "phase": "before-building-build",
+        "freeMiB": 3116,
+        "minimumMiB": 2048
+      },
+      {
+        "phase": "before-fixture",
+        "freeMiB": 3092,
+        "minimumMiB": 2048
+      },
+      {
+        "phase": "before-provision",
+        "freeMiB": 3014,
+        "minimumMiB": 2048
+      },
+      {
+        "phase": "before-seed",
+        "freeMiB": 3009,
+        "minimumMiB": 2048
+      },
+      {
+        "phase": "before-playwright",
+        "freeMiB": 3009,
+        "minimumMiB": 2048
+      }
+    ],
+    "postServerMemory": {
+      "phase": "after-api-preview-before-browser",
+      "freeMiB": 2646,
+      "minimumMiB": 2048
+    },
+    "loopbackListeners": [
+      {
+        "LocalAddress": "127.0.0.1",
+        "LocalPort": 6974,
+        "OwningProcess": 17592
+      },
+      {
+        "LocalAddress": "127.0.0.1",
+        "LocalPort": 4800,
+        "OwningProcess": 17404
+      }
+    ],
+    "buildManifest": {
+      "id": "mfa-real-browser-v2-qa-20261107/building-dist-manifest.json",
+      "sha256": "ced7091de0220f26521c971ac9b8fdb3ffd4a267d831a1aa152c2b7c80652ef3",
+      "bytes": 604
+    },
+    "cleanup": {
+      "exitCode": 1,
+      "systemIdentifierMatches": true,
+      "basePublicTables": 0,
+      "temporaryDatabases": 0,
+      "otherDatabases": 0,
+      "rolesRestoredIncludingPrivateCredentials": true,
+      "settingsRestored": true,
+      "roles": 6,
+      "otherClients": 0,
+      "containerAttestationMatches": true,
+      "freeMiBAtStart": 3193.0,
+      "freshFreeMiBBeforeController": 3186.0,
+      "dedicatedPortsClosed": true,
+      "computerRestarted": false,
+      "credentialsPublished": false
+    }
+  },
+  "mediaReview": {
+    "acceptanceClaimed": false,
+    "hashesOnly": true,
+    "automaticPublication": false
+  },
+  "earlierPreparation": {
+    "version": "V1",
+    "classification": "preparation failure on a stale external Vite cache link",
+    "productTestFailure": false,
+    "databaseStarted": false,
+    "browserStarted": false,
+    "evidence": {
+      "id": "mfa-tenancy-browser-recipe-20261107/prepare-result.json",
+      "sha256": "7adc417719b186d3e4b82b5b16584682b1b6e2cc192b079d2f4c0814d24ac8ce",
+      "bytes": 293
+    }
+  },
+  "limits": [
+    "The attempt is not accepted: two tenancy edit/status cases passed, and the MFA case stopped at auth/mfa.spec.ts13:63 before enabling MFA through the UI.",
+    "One Chromium worker, zero retries and three unchanged scenario definitions; no Firefox/WebKit matrix, Android, iOS, device, Codegen or load acceptance.",
+    "The isolated administrator setup uses real enrollment/confirmation HTTP and TOTP, but this failed attempt does not prove the manager UI enrollment/recovery/disable flow.",
+    "A QA-only ESM startup entrypoint invokes the same application, restricted-role checks and event bus, then binds127.0.0.1; the product server.ts is preserved.",
+    "The frontend consumer is freshly built in production mode; API and fixture execute with NODE_ENV=test on a disposable UUID database.",
+    "Artifact hashes preserve three screenshots, three videos and one error-context attachment. This failure record claims no visual-media acceptance or complete video review.",
+    "Raw media/report/log artifacts remain private until reviewed publication; MFA videos contain ephemeral fixture recovery material and are QA clips, not a complete product presentation.",
+    "V1 preparation failure preceded database/browser execution and is preserved separately. V2 is a real browser assertion failure, not a preflight or controller timeout.",
+    "The exact first assertion and its source location are preserved. This record does not assign a product root cause from the count alone; further UI inspection is needed.",
+    "No performance conclusion, production readiness, deployment, migration publication, commit or push is performed by this verifier."
+  ],
+  "inputs": [
+    {
+      "id": "mfa-real-browser-v2-failure-pins-20261107.json",
+      "sha256": "2c08b657f672e391a4b4377449e76c104142a832926fccfdb0ccd39035ccce39",
+      "bytes": 511
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/prepared.json",
+      "sha256": "9709239444569bb4545863286227d40641790fb8b592f437edab2dae6ce9834f",
+      "bytes": 902702
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/run-browser.mjs",
+      "sha256": "3b45f4c38f7a04430a6dd0c628592b30065127b577b6c9828d7a256da1302873",
+      "bytes": 17116
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/launch-browser.ps1",
+      "sha256": "452b6a69a35481919d870d6a0013a432550d85ab2c6d0698b63252f5383eec56",
+      "bytes": 12239
+    },
+    {
+      "id": "run-real-browser-preflight-20261107.mjs",
+      "sha256": "f187810d713d410443b7d8deeb6693e25400d02a124882e07109fe2132a3b6ba",
+      "bytes": 6318
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/tsconfig.browser.json",
+      "sha256": "39e0c3d798dac71c8aa3be6880da7104fb11446ed6780f6d41c002198464f5a1",
+      "bytes": 372
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/tsconfig.building-qa.json",
+      "sha256": "85b794ae5918f0911463094a65c6e5062914f1b41d5c6afeae59d64a2518d10c",
+      "bytes": 117
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/dependency-resolution.json",
+      "sha256": "1887fe796746b3b698485587a820dcf9b8d0f8adaae19054e0f5e6f0c145e2e3",
+      "bytes": 5894
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/source-pin.manifest.json",
+      "sha256": "3229f7e5df9c2b75f7efd40fe0e793fd3a7de74ae3e57d641a7775531b47cba3",
+      "bytes": 144503
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/checks/e2e/stdout.log",
+      "sha256": "bae78338e41516293ae47f5f0404bb82d4bda706fb71b3035313ac6f5cd0569c",
+      "bytes": 147439
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/checks/e2e/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/checks/e2e/result.json",
+      "sha256": "42c501c19c876e3f2b9d634fdbbbcdbdf7f6e34eb8fec427b7a373b4b5b81344",
+      "bytes": 646
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/checks/e2e/command.json",
+      "sha256": "56ba46db990013c8091bb46bfecc4ad04cf74cb983c952e75885aea036e2e9b7",
+      "bytes": 1361
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/checks/e2e/guard.json",
+      "sha256": "3edcf2f9e3f996d7b5a219706e599c77afbddcd9e12132ebc4882d14ab8172bd",
+      "bytes": 80
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/checks/e2e/spawn.json",
+      "sha256": "0a07926f3b93a582ead66051c6fbbef5f29c46d08d116cd1db84c452553d6333",
+      "bytes": 68
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/checks/building/stdout.log",
+      "sha256": "db445a1bd57fe6396a1435ed7b57f2360700e3ad7a9311e03c3119e5c9846377",
+      "bytes": 71001
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/checks/building/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/checks/building/result.json",
+      "sha256": "2f8fc37091b7dbdcc861f6c65e5bdaea1d159e59b063dfbf4946a25ced6b9c21",
+      "bytes": 650
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/checks/building/command.json",
+      "sha256": "c2bdbe3cefae240387ec787a87bbaecdf16dcb08da2b615534e648a4cd9c5709",
+      "bytes": 1372
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/checks/building/guard.json",
+      "sha256": "3c2dfb0ce4856ef8cf49c7d0a166920d9560793e6b4f4ec572716dd6039eed9a",
+      "bytes": 80
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/checks/building/spawn.json",
+      "sha256": "e7836ed95b9be450f25d142e9d41f27c5aa5eefc74bdef1ee35e4009d61893e6",
+      "bytes": 68
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/checks/list/stdout.log",
+      "sha256": "2b446ba53e8b27c7f9f047bc23c446db2fb6df1dfe8ed31f0b827bc8bcba1401",
+      "bytes": 494
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/checks/list/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/checks/list/result.json",
+      "sha256": "b1bc049cc62443c26d16339c53fd80fd2011d452832d65dea2f887605bf92e81",
+      "bytes": 643
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/checks/list/command.json",
+      "sha256": "8a812b38757c86518a79acdf671c967e9f9012bed6f0fed3ba479484ecb606f3",
+      "bytes": 1440
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/checks/list/guard.json",
+      "sha256": "d0db85a429bcce0ca5a7997ad90120c717511683f1aca9cb580a9f98a3fcd635",
+      "bytes": 80
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/checks/list/spawn.json",
+      "sha256": "1025c17f5774f3164b1f568c5889437fc996a0aa567376c425308dc4dc4c1f93",
+      "bytes": 68
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/browser-result.json",
+      "sha256": "a75cdccbfa7d3e86ad856d63accfdf789c6410d17af6de0370022ac677c849dd",
+      "bytes": 4176
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/browser-postchecks.json",
+      "sha256": "60f76a48066a01848236457cb447fefebbbb942b4e35afe77d5daa9560db6e13",
+      "bytes": 466
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/controller-start.json",
+      "sha256": "53d84563297a629f1474051740a487b2bdd02d17b1795e6bde7355f367a0ba36",
+      "bytes": 284
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/owned-database.json",
+      "sha256": "a34170a1fa594b16f40fee67862f94522d79fd232eaf6da8d5c17f5c17f40883",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/building-build.log",
+      "sha256": "2e422c5314cb656b650022cbd1878eb856d255511477fcde4d7d33198184526c",
+      "bytes": 1912
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/building-build.events.jsonl",
+      "sha256": "9abb5e603555725043e68595fb2e1361c406e9d877e1933c0a462701bed024a6",
+      "bytes": 1910
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/provision.events.jsonl",
+      "sha256": "631bae894069af73c30d9269b2c15a0ef78b512c95b76d03543250b531713b6f",
+      "bytes": 671
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/seed.events.jsonl",
+      "sha256": "9b1aa6604b45304319e7b0288bad080ecb21da44b25785aadb3fc5b068610833",
+      "bytes": 773
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/playwright.log",
+      "sha256": "08e811a93cf779879d39889431ad2e978b7760cd22cb7734a2805269a7d7f360",
+      "bytes": 4415
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/playwright.events.jsonl",
+      "sha256": "b78b4add3972b291273eb177cf5859da36d7a542a86e55bb65ed835904743a5f",
+      "bytes": 3396
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/building-dist-manifest.json",
+      "sha256": "ced7091de0220f26521c971ac9b8fdb3ffd4a267d831a1aa152c2b7c80652ef3",
+      "bytes": 604
+    },
+    {
+      "id": "mfa-real-browser-v2-qa-20261107/source/.local/tenancy-candidate-results.json",
+      "sha256": "7f2f8b092c6f4d0375472ef7c95c69093559c349cc7c1d214ceb4eb3eed24bed",
+      "bytes": 13843
+    },
+    {
+      "id": "mfa-tenancy-browser-recipe-20261107/prepare-result.json",
+      "sha256": "7adc417719b186d3e4b82b5b16584682b1b6e2cc192b079d2f4c0814d24ac8ce",
+      "bytes": 293
+    }
+  ],
+  "authorScript": {
+    "id": "verify-real-browser-v2-failure-20261107.py",
+    "sha256": "c97610d21f459f3b8db3ba29d1e82ef1a1294b81288fe37d7eb52198ad9f68ee",
+    "bytes": 21069
+  },
+  "computerRestarted": false,
+  "performanceAssessed": false,
+  "productionAccepted": false
+}

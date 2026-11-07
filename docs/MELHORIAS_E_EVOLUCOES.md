@@ -1,5 +1,7 @@
 # Melhorias e novas implementações — Prédio ON
 
+**QA real em 07/11:** edição/status de estrutura aprovados em dois casos; MFA parou antes da ativação porque o teste ainda esperava controles inline. [Resultado e limpeza](evidencias/mfa-real-browser-v2-2026-11-07.json). Atualizar a navegação para o diálogo e revalidar senha, recuperação e desativação. Avaliar depois a mensagem “Nenhuma equipe cadastrada” quando todas as equipes estão apenas ocultas pelo filtro de inativos.
+
 **Avanço revisado em 07/11:** os seis PATCHs de estrutura passaram em35 TAP dirigidos e57 de regressão. Checkpoint:81 candidatos, dois testes renderer e cinco suportes; runtime001–067. Restam cenários concorrentes de comandos, outros domínios, desempenho, integração, Playwright real, aparelhos e operação. [CONTINUIDADE.md](CONTINUIDADE.md).
 
 **Atualização de CI em 04/11:** o resumo autenticado do run 41842973688 confirmou bloqueio de conta por pagamento recente que falhou ou limite de gastos insuficiente. [Evidência e limites](evidencias/ci-account-blocker-2026-11-04.json). Regularizar a condição da conta e então validar uma execução nova; o motivo exato entre as duas alternativas não foi detalhado pelo GitHub. Nenhuma cobrança ou configuração foi alterada.
