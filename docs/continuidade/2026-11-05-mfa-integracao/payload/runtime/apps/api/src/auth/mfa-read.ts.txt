@@ -1,12 +1,19 @@
 import { sql, type SQL } from "drizzle-orm";
 import type { AppTransaction } from "@predioon/db/runtime";
 
+type MfaReadOrder<Row> = (keyof Row & string) | Readonly<{
+  key: keyof Row & string;
+  direction: "asc" | "desc";
+}>;
+
 /** Server-authored SELECTs only. Relation-reading SQL/SD dependencies must be
- * reviewed STABLE/IMMUTABLE reads. The sole reviewed volatile exception is the
- * existing pg_catalog.clock_timestamp() wall-clock scalar in the status of
- * GET /v1/tenancy/invitations: native clock only, with no internal SQL or effects.
- * This exception never covers VOLATILE SQL/SD/custom readers or mutators.
- * SQL fragments and sort keys must never come from a client. This is not a
+ * reviewed STABLE/IMMUTABLE reads. Reviewed volatile exceptions are the existing
+ * pg_catalog.clock_timestamp() wall-clock scalars in the status of
+ * GET /v1/tenancy/invitations and GET /v1/support-access/grants, and in the
+ * eligibility filter of GET /v1/support-access/mine. Native clock only, with no
+ * internal SQL or effects; relation snapshots do not freeze this wall clock.
+ * These exceptions never cover VOLATILE SQL/SD/custom readers or mutators.
+ * SQL fragments, sort keys and directions must never come from a client. This is not a
  * parser/sandbox for arbitrary SQL. Selected columns need explicit DTO aliases;
  * JSON bypasses Drizzle column decoders, so callers supply explicit decoders.
  * CASE/empty behavior requires real PostgreSQL regression for each read family.
@@ -15,10 +22,17 @@ export async function readMfaRows<Row>(
   tx: AppTransaction,
   query: SQL,
   decode: (value: unknown) => Row,
-  orderBy: readonly [keyof Row & string, ...(keyof Row & string)[]],
+  orderBy: readonly [MfaReadOrder<Row>, ...MfaReadOrder<Row>[]],
 ): Promise<Row[]> {
   const alias = sql.identifier("mfa_read_row");
-  const order = sql.join(orderBy.map(key => sql`${alias}.${sql.identifier(key)}`), sql`, `);
+  const order = sql.join(orderBy.map(item => {
+    // Preserve the SQL of every existing string-key ASC caller.
+    if (typeof item === "string") return sql`${alias}.${sql.identifier(item)}`;
+    const key = sql`${alias}.${sql.identifier(item.key)}`;
+    if (item.direction === "asc") return sql`${key} asc`;
+    if (item.direction === "desc") return sql`${key} desc`;
+    throw new Error("Invalid guarded read order direction");
+  }), sql`, `);
   const [result] = await tx.execute<{ rows: unknown }>(sql`
     select case when public.app_require_session_mfa() then coalesce((
       select jsonb_agg(to_jsonb(${alias}) order by ${order})

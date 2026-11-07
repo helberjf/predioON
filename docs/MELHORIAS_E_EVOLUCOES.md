@@ -1,6 +1,6 @@
 # Melhorias e novas implementações — Prédio ON
 
-**Avanço revisado em 07/11:** as quatro consultas de condomínio/usuários/equipe de suporte passaram nos seis cenários de concorrência, quatro controles e 22 arquivos de regressão executados em 05/11. O checkpoint recuperável contém 74 arquivos candidatos, dois testes renderer e cinco suportes; runtime publicado segue 001–067. Próximos: concessões de suporte, funcionalidades e demais comandos/domínios, regressão integral, Playwright real, aparelhos e operação. Ver o estado corrente em [CONTINUIDADE.md](CONTINUIDADE.md).
+**Avanço revisado em 07/11:** as consultas de suporte passaram nos oito cenários de concorrência, quatro controles e 23 arquivos de regressão. O checkpoint contém 75 arquivos candidatos, dois testes renderer e cinco suportes; runtime permanece 001–067. Próximos: funcionalidades, demais comandos/domínios, desempenho das listas, regressão integrada, Playwright real, aparelhos e operação. Ver [CONTINUIDADE.md](CONTINUIDADE.md).
 
 **Atualização de CI em 04/11:** o resumo autenticado do run 41842973688 confirmou bloqueio de conta por pagamento recente que falhou ou limite de gastos insuficiente. [Evidência e limites](evidencias/ci-account-blocker-2026-11-04.json). Regularizar a condição da conta e então validar uma execução nova; o motivo exato entre as duas alternativas não foi detalhado pelo GitHub. Nenhuma cobrança ou configuração foi alterada.
 
@@ -309,3 +309,8 @@ O helper de projeções e seus sete testes já foram publicados; a composição 
 ## Retomada preservada em05/11
 
 Usar o [checkpoint atual](continuidade/2026-11-05-mfa-integracao/README.md), base53c4c70. A restauração canônica V2 e os11 casos SQL V2 ainda precisam de execução; o guard recusou a preparação com560MiB livres. A revisão estática e a preservação não fecham essas tarefas. As provas atuais de banco9/9, queries7/7 e Playwright2/2 mantêm suas fontes e escopos.
+
+
+### P1 — desempenho das concessões de suporte, observado em 07/11
+
+Medir planos de consulta e latência das listas com 200 concessões, cache frio/quente, usuários locais/globais e volume representativo. A lista pessoal levou **11672 ms** na composição corrigida, com banco limitado a uma CPU. A primeira tentativa também excedeu cinco segundos. A [prova](evidencias/mfa-support-read-2026-11-07.json) preserva as duas observações; elas não isolam uma regressão causal nem aprovam latência de produção. Investigar custo das políticas RLS e dos LEFT JOINs antes de definir uma meta e otimizar. Preservar permissões, nomes ocultos e paginação; ampliar o prazo de um teste não encerra essa melhoria.

@@ -45,6 +45,17 @@ type GrantRow = {
   resourceType: string | null; resourceId: string | null; reason: string; createdAt: string; expiresAt: string;
   revokedAt: string | null; grantedByName: string | null; status: "ACTIVE" | "EXPIRED" | "REVOKED";
 };
+const GrantReadRow = z.object({
+  id: z.string(), buildingId: z.string(), supportUserId: z.string(),
+  supportUserName: z.string().nullable(), capability: z.string(),
+  resourceType: z.string().nullable(), resourceId: z.string().nullable(), reason: z.string(),
+  createdAt: z.string(), expiresAt: z.string(), revokedAt: z.string().nullable(),
+  grantedByName: z.string().nullable(), status: z.enum(["ACTIVE", "EXPIRED", "REVOKED"]),
+}).strict();
+const MineReadRow = z.object({
+  id: z.string(), buildingId: z.string(), buildingName: z.string().nullable(),
+  capability: z.string(), reason: z.string(), expiresAt: z.string(),
+}).strict();
 // People outside the reader's visibility (e.g. platform staff, for a manager) keep a null name.
 const grantView = sql`g.id, g.building_id as "buildingId", g.support_user_id as "supportUserId", su.name as "supportUserName",
   g.capability, g.resource_type as "resourceType", g.resource_id as "resourceId", g.reason,
@@ -134,9 +145,10 @@ supportAccessRouter.get("/grants", validateQuery(GrantList), async (req, res) =>
   const q = query<z.infer<typeof GrantList>>(req);
   res.json(await inSupport(req, async tx => {
     if (!await globalCapability(tx, "support:grant")) await assertCapability(tx, "support:read", q.buildingId);
-    const rows = await tx.execute(sql`select ${grantView} from ${grantFrom} where g.building_id=${q.buildingId}
-      order by g.created_at desc, g.id desc limit 200`);
-    return { items: rows as unknown as GrantRow[] };
+    const rows = await readMfaRows(tx, sql`select ${grantView} from ${grantFrom} where g.building_id=${q.buildingId}
+      order by g.created_at desc, g.id desc limit 200`, value => GrantReadRow.parse(value),
+      [{ key: "createdAt", direction: "desc" }, { key: "id", direction: "desc" }]);
+    return { items: rows };
   }));
 });
 
@@ -196,11 +208,11 @@ supportAccessRouter.delete("/grants/:id", async (req, res) => {
 supportAccessRouter.get("/mine", async (req, res) => {
   const user = currentAuth(req).userId;
   res.json(await inSupport(req, async tx => {
-    const rows = await tx.execute(sql`select g.id, g.building_id as "buildingId", b.name as "buildingName", g.capability, g.reason,
+    const rows = await readMfaRows(tx, sql`select g.id, g.building_id as "buildingId", b.name as "buildingName", g.capability, g.reason,
         ${isoTime(sql`g.expires_at`)} as "expiresAt"
       from support_grants g left join buildings b on b.id=g.building_id
       where g.support_user_id=${user} and g.revoked_at is null and g.expires_at>clock_timestamp()
-      order by g.expires_at, g.id limit 200`);
+      order by g.expires_at, g.id limit 200`, value => MineReadRow.parse(value), ["expiresAt", "id"]);
     return { items: rows };
   }));
 });

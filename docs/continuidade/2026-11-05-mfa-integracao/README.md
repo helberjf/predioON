@@ -1,4 +1,43 @@
-# Retomada MFA — diretório administrativo
+# Retomada MFA — consultas de suporte
+
+**Executado e revisado em 07/11/2026.** Os 14 resultados TAP dirigidos e os 226 de
+regressão passaram em 24 processos. São 12 cenários dirigidos independentes e
+dois grupos; a regressão de 23 arquivos inclui oito grupos. Total: 240 entradas
+TAP, 230 cenários independentes e dez grupos, dentro desta seleção de testes.
+
+O conjunto contém 79 payloads: 75 candidatos de runtime/testes, dois testes
+renderer e dois arquivos query já publicados. A composição tem 1.025 arquivos e
+cinco suportes separados. A [montagem/restauração passou](../../evidencias/mfa-support-read-restore-2026-11-07.json),
+com os 1.025 arquivos e cinco suportes idênticos à composição testada. A
+restauração do diretório administrativo permanece histórica.
+
+Somente GET /v1/support-access/grants e /mine foram alterados. O helper permite
+direções ASC/DESC exclusivamente definidas no servidor, mantendo o SQL dos
+callers antigos. Campos DTO13/6, LEFT JOIN e nomes nulos, datas ISO, escopos,
+ordenação, limite 200 e cálculo de expiração permanecem preservados. O relógio
+nativo existente não é congelado pelo snapshot de relações. SQL068, mutações,
+grantView compartilhada e cinco outros handlers não mudaram.
+
+O comparador reproduziu oito falhas de status: quatro respostas completas e
+quatro vazias foram comparadas ao controle correto antes da assertiva 403.
+Os cenários cobrem promoção administrativa e retirada apenas da prova de sessão
+de administrador satisfeito. Os fatores dos casos dirigidos são sintéticos;
+as regressões originais preservam sua cerimônia HTTP/TOTP. A obrigação continua
+candidata: o runtime principal permanece nas migrações 001–067.
+
+A primeira tentativa teve um timeout de cinco segundos na página grande e
+não foi aceita como RED esperado. A versão revisada mede cada requisição grande
+com contenção de 30 segundos; barreiras, requisições comuns e limpeza mantêm
+cinco segundos. Os tempos observados não são aceite de desempenho em produção.
+O primeiro ensaio de tipos também preserva uma falha da sonda externa de memória
+antes de iniciar o compilador; a medição nativa manteve o mínimo de 1.536 MiB.
+
+[Prova, tempos e limites](../../evidencias/mfa-support-read-2026-11-07.json).
+Próximo: [consultas de funcionalidades](../../superpowers/plans/2026-11-07-mfa-features-read.md),
+depois demais comandos/domínios e regressão integrada. Playwright com banco real,
+aparelhos Android/iOS, operação e demonstrações atuais continuam pendentes.
+
+## Rodada anterior: diretório administrativo
 
 **Revisão e registro em 07/11/2026; execuções realizadas em 05/11/2026.**
 Doze entradas TAP dirigidas passaram; 214 entradas TAP de regressão passaram em

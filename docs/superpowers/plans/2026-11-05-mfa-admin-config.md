@@ -1,5 +1,8 @@
 # ADMIN/CONFIG: três ações comuns, sem 174 guards individuais
 
+**Sexto lote, 07/11:** concessões de suporte e lista pessoal passaram nos oito cenários de concorrência, quatro controles e 23 arquivos de regressão. [Prova](../../evidencias/mfa-support-read-2026-11-07.json). Próximo: [funcionalidades](2026-11-07-mfa-features-read.md).
+
+
 **Quinto lote, revisado em 07/11 (execuções de 05/11):** detalhe de condomínio, usuários global/local e equipe de suporte passaram nos seis cenários de concorrência, quatro controles e 22 arquivos de regressão. [Prova e contagens](../../evidencias/mfa-admin-directory-read-2026-11-05.json). Próximos: concessões de suporte e funcionalidades; comandos e demais domínios continuam pendentes.
 
 

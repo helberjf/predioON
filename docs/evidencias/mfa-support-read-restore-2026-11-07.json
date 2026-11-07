@@ -1,0 +1,77 @@
+{
+  "recordedOn": "2026-11-07",
+  "reviewedOn": "2026-11-07",
+  "restoredOn": "2026-11-07",
+  "runtimeExecutedOn": "2026-11-07",
+  "status": "SUPPORT_READ_CANDIDATE_CANONICAL_SOURCE_RESTORE_PASSED",
+  "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+  "inputInventorySha256": "c22b620454cf28047fe27029d018ec15745a47b80957dfc07453652b431beb42",
+  "testedPreparedSha256": "72303310e31c365ef9e2b43ccde9007c53d3e85d74d33c2174d15ad95ac16fde",
+  "all1025RestoredFilesMatchTestedComposition": true,
+  "baseFiles": 994,
+  "inventoryPayloads": 79,
+  "candidateRuntimeAndTests": 75,
+  "explicitRendererTests": 2,
+  "alreadyPublishedQueryPayloads": 2,
+  "qaSupportFiles": 5,
+  "manifestCandidateFiles": 77,
+  "manifestSha256": "ab92257089cc83a17a41f58fa5c4c775c8391ff38ad63f222d95b6dff83017c5",
+  "receiptSha256": "9a149f5af596389822ac4e202fd69293e9d896f5b0bda1b1604f72e65996a61e",
+  "receipt": {
+    "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+    "sourceHeadBefore": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+    "canonicalBaseFiles": 994,
+    "candidateFiles": 77,
+    "qaSupportFiles": 5,
+    "status": "SOURCE_ONLY_NOT_TESTED_NOT_APPLIED",
+    "dependenciesInstalled": false,
+    "migrationsApplied": false,
+    "databaseStarted": false
+  },
+  "directedEvidenceSha256": "86a80f4257c3740d9fd0374ad2ad9592143ffb7afb9c7a5361a1e6c9b43769fb",
+  "comparison": "Canonical994 sources plus77 overlays equal the1025 tested sources; five renderer supports and receipt are additional. All source/payload/package hashes verified. Finalization also verifies canonical Git modes/OIDs/blobs before writing.",
+  "limits": [
+    "Restoration is source-only; it does not install dependencies, start services, apply migrations or rerun tests.",
+    "Selected runtime validation is240 TAP in24 processes, including10 aggregate groups; it is not the whole API or production acceptance.",
+    "Large-page latency, features, other commands/domains, integrated browser and native acceptance remain pending.",
+    "Input inventory/package README describe the builder inputs; later documentation metadata does not change frozen source payload bytes."
+  ],
+  "computerRestarted": false,
+  "productionAccepted": false,
+  "builder": {
+    "timedOut": false,
+    "ownedPid": 26128,
+    "phase": "builder",
+    "childExitedAt": "2026-11-07T04:45:24.9131705Z",
+    "exitCode": 0,
+    "durationMs": 6547.6211,
+    "guard": {
+      "minimumMiB": 1536,
+      "freeMiB": 3935.0,
+      "at": "2026-11-07T04:45:18.2734433Z",
+      "phase": "builder"
+    },
+    "heapMiB": 128,
+    "resultSha256": "a6788915b0d1f21a155ab7782add333fa11ef50265b688261f8b6308fffce959",
+    "stdoutSha256": "3f866c52a42c27c50e7b004b2389f1173aeb843a357363d1ae99ebd573f4fe99",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "restore": {
+    "exitCode": 0,
+    "childExitedAt": "2026-11-07T04:45:40.6504921Z",
+    "ownedPid": 25280,
+    "timedOut": false,
+    "durationMs": 10683.4916,
+    "phase": "restore",
+    "guard": {
+      "freeMiB": 4005.0,
+      "phase": "restore",
+      "minimumMiB": 1536,
+      "at": "2026-11-07T04:45:29.9210985Z"
+    },
+    "heapMiB": 128,
+    "resultSha256": "18ca968c382e7bd7d14eaa9356449568a556882e612b4e659dd66de31f2e025d",
+    "stdoutSha256": "5d235f6a30170e2aa45149c03b8e7aaf4b605e3f66b3f1e798763b632bc34c5a",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

@@ -1,0 +1,132 @@
+import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
+import type { Server } from "node:http";
+import { after, before, describe, it } from "node:test";
+import { decodeJwt } from "jose";
+import { PgDialect } from "drizzle-orm/pg-core";
+import { sqlClient } from "@predioon/db";
+import { appDb, closeAppDb, type AppTransaction } from "@predioon/db/runtime";
+import { app } from "../src/app.js";
+import { hashPassword } from "../src/auth/passwords.js";
+import "./helpers.js";
+
+// Same test source for baseline and candidate: no import of the new helper.
+type Actor = { id: string; token: string; sid: string; binding: string; generation: string };
+type HttpResult = { status: number; body: unknown; cache: string | null };
+function signal() {
+  let resolve!: () => void;
+  const promise = new Promise<void>(done => { resolve = done; }); return { promise, resolve };
+}
+async function bounded<T>(promise: PromiseLike<T>, label: string, deadlineMs = 5000): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try { return await Promise.race([Promise.resolve(promise), new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`Fixture deadline: ${label}`)), deadlineMs);
+  })]); } finally { clearTimeout(timer); }
+}
+function beforeProjection(functionName:string,capability:string) {
+  const original = appDb.transaction, run = original.bind(appDb), dialect = new PgDialect();
+  const reached = signal(), release = signal(), finished = signal(); let contexts = 0;
+  type Input = Parameters<AppTransaction['execute']>[0];
+  appDb.transaction = (callback, config) => run(tx => callback(new Proxy(tx, { get(target,key) {
+    if (key === 'execute') return async (query: Input) => {
+      const compiled = typeof query === 'string' ? {sql:query,params:[]} : dialect.sqlToQuery(query.getSQL());
+      const text=compiled.sql;
+      const rows = await target.execute(query);
+      if ((functionName === "context" && text.includes("set_config('app.session_id'") && compiled.params.includes(capability)) || (text.includes(functionName+"(") && compiled.params.includes(capability))) {
+        contexts++; assert.equal(contexts,1); reached.resolve(); await bounded(release.promise,'projection release');
+      }
+      return rows;
+    };
+    const value = Reflect.get(target,key,target); return typeof value === 'function' ? value.bind(target) : value;
+  }})), config).finally(() => finished.resolve());
+  return { reached,release,finished,get contexts(){return contexts;},restore(){appDb.transaction=original;} };
+}
+
+describe('MFA support grant and personal grant reads',{concurrency:false},()=>{
+  const suffix=randomUUID(),org=`sread-org-${suffix}`,building=`sread-a-${suffix}`,empty=`sread-empty-${suffix}`,foreign=`sread-foreign-${suffix}`;
+  const password='support-read-fictitious-password',users:string[]=[];
+  let server:Server|undefined,url='',hash='',manager:Actor,staff:Actor,emptyStaff:Actor,admin:Actor;
+  let created='',future='',expired='',revoked='';
+  const special:string[]=[],many:string[]=[];
+  const path=(mine:boolean,blank=false)=>mine?'/v1/support-access/mine':'/v1/support-access/grants?buildingId='+(blank?empty:building);
+  async function request(a:Actor,p:string,abort=new AbortController(),deadlineMs=5000):Promise<HttpResult>{try{const r=await bounded(fetch(url+p,{headers:{Authorization:`Bearer ${a.token}`},signal:abort.signal}),'HTTP',deadlineMs);return{status:r.status,body:await bounded(r.json(),'JSON'),cache:r.headers.get('cache-control')};}finally{abort.abort();}}
+  async function actor(label:string,local=false,support=false):Promise<Actor>{const id=`sread-${suffix}-${label}`,binding=randomUUID(),generation=randomUUID();users.push(id);
+    await sqlClient`insert into users(id,name,email,password_hash) values(${id},${label},${id+'@example.invalid'},${hash})`;
+    if(local)for(const b of [building,empty])await sqlClient`insert into role_bindings(user_id,building_id,role_key) values(${id},${b},'BUILDING_ADMIN')`;
+    if(support)await sqlClient`insert into role_bindings(user_id,role_key) values(${id},'PLATFORM_SUPPORT')`;
+    await sqlClient`insert into role_bindings(id,user_id,role_key,active) values(${binding},${id},'PLATFORM_ADMIN',false)`;
+    const c=new AbortController();try{const r=await bounded(fetch(url+'/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:id+'@example.invalid',password}),signal:c.signal}),'login');assert.equal(r.status,200);const data=await bounded(r.json(),'loginJSON') as {accessToken:string};const sid=decodeJwt(data.accessToken).sid;assert.equal(typeof sid,'string');return{id,token:data.accessToken,sid:sid as string,binding,generation};}finally{c.abort();}}
+  const prove=(a:Actor)=>sqlClient`update sessions set mfa_verified_at=now(),mfa_factor_generation=${a.generation} where id=${a.sid}`;
+  async function factor(a:Actor){await sqlClient`insert into mfa_factors(user_id,secret_ciphertext,confirmed_at,generation) values(${a.id},decode(repeat('00',40),'hex'),now(),${a.generation}) on conflict(user_id) do nothing`;await prove(a);}
+  async function reset(a:Actor){await sqlClient`update role_bindings set active=false where id=${a.binding}`;await sqlClient`update sessions set mfa_verified_at=null,mfa_factor_generation=null where id=${a.sid}`;await sqlClient`delete from mfa_factors where user_id=${a.id}`;}
+  async function grant(id:string,who:Actor,b:string,exp:string,rev:string|null,resource=false){await sqlClient`insert into support_grants(id,building_id,support_user_id,capability,resource_type,resource_id,reason,created_at,expires_at,revoked_at,granted_by) values(${id},${b},${who.id},'telemetry:read',${resource?'device':null},${resource?'missing-device-'+suffix:null},${"Read ' support"},${created}::timestamptz,${exp}::timestamptz,${rev}::timestamptz,${admin.id})`;}
+  before(async()=>{
+    const [ledger]=await sqlClient`select count(*)::int as count from schema_migrations`;assert.equal(ledger?.count,68);hash=await hashPassword(password);
+    const now=Date.now();created=new Date(now-2*86400000).toISOString();future=new Date(now+86400000).toISOString();expired=new Date(now-86400000).toISOString();revoked=new Date(now-3600000).toISOString();
+    await sqlClient`insert into organizations(id,name,slug) values(${org},'Support read',${org})`;
+    for(const b of [building,empty,foreign])await sqlClient`insert into buildings(id,organization_id,name,code) values(${b},${org},${b},${b})`;
+    server=await new Promise<Server>(resolve=>{const s=app.listen(0,'127.0.0.1',()=>resolve(s));});const a=server.address();assert.ok(a&&typeof a!=='string');url=`http://127.0.0.1:${a.port}`;
+    manager=await actor('manager',true);staff=await actor('staff',false,true);emptyStaff=await actor('empty-staff',false,true);admin=await actor('admin');await factor(admin);await sqlClient`update role_bindings set active=true where id=${admin.binding}`;
+    // Four valid temporal combinations, including REVOKED taking precedence over EXPIRED.
+    for(const [exp,rev] of [[future,null],[expired,null],[future,revoked],[expired,revoked]] as const){const id=randomUUID();special.push(id);await grant(id,staff,building,exp,rev);}
+    // Another user's grant proves /mine retains the user filter, even for an administrator.
+    await grant(randomUUID(),manager,foreign,future,null);
+  });
+  after(async()=>{try{await bounded(new Promise<void>((resolve,reject)=>{if(!server){resolve();return;}server.close(e=>e?reject(e):resolve());server.closeAllConnections();}),'listener');}finally{try{await bounded(sqlClient.begin(async tx=>{await tx`set local lock_timeout='2s'`;await tx`set local statement_timeout='3s'`;await tx`delete from support_grants where building_id in ${sqlClient([building,empty,foreign])}`;await tx`delete from buildings where organization_id=${org}`;await tx`delete from organizations where id=${org}`;await tx`delete from users where id in ${sqlClient(users)}`;}),'fixture cleanup');}finally{const r=await Promise.allSettled([bounded(closeAppDb(),'app close'),bounded(sqlClient.end({timeout:3}),'owner close')]);const e=r.find(x=>x.status==='rejected');if(e?.status==='rejected')throw e.reason;}}});
+  async function interleave(a:Actor,p:string,mine:boolean,verification:boolean,change:()=>Promise<unknown>){const barrier=beforeProjection(mine?'context':verification?'app_has_global_capability':'app_has_capability',mine?a.sid:verification?'support:grant':'support:read'),c=new AbortController(),pending=request(a,p,c);void pending.catch(()=>undefined);let failed=false;try{assert.equal(await bounded(Promise.race([barrier.reached.promise.then(()=>'boundary'),pending.then(()=>'response')]),'reach boundary'),'boundary');await bounded(change(),'commit');barrier.release.resolve();return await pending;}catch(e){failed=true;throw e;}finally{barrier.release.resolve();c.abort();const r=await Promise.allSettled([bounded(pending,'HTTP settled'),barrier.contexts?bounded(barrier.finished.promise,'tx settled'):Promise.resolve()]);barrier.restore();if(!failed){const e=r.find(x=>x.status==='rejected');if(e?.status==='rejected')throw e.reason;}}}
+  function rows(r:HttpResult):Array<Record<string,unknown>>{assert.equal(r.status,200);assert.equal(r.cache,'no-store');const value=r.body as {items:unknown};assert.ok(Array.isArray(value.items));return value.items as Array<Record<string,unknown>>;}
+  function denied(r:HttpResult,reason:string){assert.equal(r.status,403);assert.equal((r.body as {details?:{reason:string}}).details?.reason,reason);assert.equal('items' in (r.body as object),false);}
+  // 2 parents +8 independent children; each child restores authority/proof even on baseline failure.
+  for(const verification of [false,true])it(`guards both support lists full/empty: ${verification?'proof removed from satisfied administrator':'administrator authority activated'}`,async t=>{
+    for(const mine of [false,true])for(const blank of [false,true])await t.test(`${mine?'mine':'grants'} ${blank?'empty':'full'}`,async child=>{
+      const a=mine?(blank?emptyStaff:staff):manager,p=path(mine,blank);
+      // Post-authority oracle: same person for /mine; satisfied global admin for grants.
+      // In particular, promotion can expose LEFT JOIN user names hidden to the local reader.
+      let oracle:HttpResult;
+      try{await factor(a);await sqlClient`update role_bindings set active=true where id=${a.binding}`;oracle=await request(mine?a:admin,p);assert.equal(rows(oracle).length===0,blank);}finally{await reset(a);}
+      const ordinary=await request(a,p);assert.equal(rows(ordinary).length===0,blank);
+      if(verification){
+        await factor(a);
+        await sqlClient`update role_bindings set active=true where id=${a.binding}`;
+        const profile=await request(a,'/auth/me');
+        assert.equal(profile.status,200);
+        assert.equal((profile.body as {mfaRequirement:string}).mfaRequirement,'satisfied');
+      }
+      try{const r=await interleave(a,p,mine,verification,async()=>{
+        if(verification)await sqlClient`update sessions set mfa_verified_at=null,mfa_factor_generation=null where id=${a.sid}`;
+        else await sqlClient`update role_bindings set active=true where id=${a.binding}`;
+      });
+        if(r.status===200){assert.deepEqual(r.body,oracle!.body);child.diagnostic(blank?'Observed 200 empty list after authority/proof change':'Observed exact decoded post-authority DTO; not compared to pre-promotion local names');}
+        else child.diagnostic(`Observed HTTP${r.status}; no successful DTO delivery inferred`);
+        denied(r,verification?'MFA_VERIFICATION_REQUIRED':'MFA_ENROLLMENT_REQUIRED');
+      }finally{await reset(a);}
+    });
+  });
+  it('preserves grant13 fields, nullable hidden names and four temporal combinations',async()=>{
+    const local=rows(await request(manager,path(false))),global=rows(await request(admin,path(false)));
+    assert.equal(local.length,4);assert.equal(global.length,4);
+    for(const row of global){assert.deepEqual(Object.keys(row).sort(),['id','buildingId','supportUserId','supportUserName','capability','resourceType','resourceId','reason','createdAt','expiresAt','revokedAt','grantedByName','status'].sort());assert.equal(row.supportUserName,'staff');assert.equal(row.grantedByName,'admin');assert.equal(row.resourceType,null);assert.equal(row.resourceId,null);assert.equal(row.createdAt,created);assert.equal(row.reason,"Read ' support");}
+    for(const row of local){assert.equal(row.supportUserName,null);assert.equal(row.grantedByName,null);}
+    const byId=new Map(global.map(row=>[row.id,row]));assert.deepEqual(special.map(id=>byId.get(id)!.status),['ACTIVE','EXPIRED','REVOKED','REVOKED']);assert.equal(byId.get(special[1]!)!.expiresAt,expired);assert.equal(byId.get(special[3]!)!.revokedAt,revoked);
+  });
+  it('keeps SUPPORT without flag optional and personal list6 active-only with user isolation',async()=>{
+    const profile=await request(staff,'/auth/me');assert.equal(profile.status,200);assert.equal((profile.body as {mfaRequirement:string}).mfaRequirement,'not-required');
+    const r=rows(await request(staff,path(true)));assert.deepEqual(r,[{id:special[0],buildingId:building,buildingName:building,capability:'telemetry:read',reason:"Read ' support",expiresAt:future}]);assert.deepEqual(rows(await request(emptyStaff,path(true))),[]);
+    await factor(staff);await sqlClient`update role_bindings set active=true where id=${staff.binding}`;try{assert.deepEqual(rows(await request(staff,path(true))),r);}finally{await reset(staff);}
+  });
+  it('preserves scopes and empty lists for legitimate readers',async()=>{assert.equal((await request(manager,path(false).replace(building,foreign))).status,403);assert.equal((await request(emptyStaff,path(false))).status,403);assert.deepEqual(rows(await request(manager,path(false,true))),[]);assert.deepEqual(rows(await request(admin,path(false,true))),[]);});
+  it('preserves DESC grants and ASC mine ties, limits200 and nullable resource shape',async t=>{
+    // The isolated database is capped at one CPU. Record actual large-page latency;
+    // this bound is test containment, not a production latency acceptance.
+    const page=async(a:Actor,p:string,label:string)=>{const start=performance.now();const r=await request(a,p,new AbortController(),30000);t.diagnostic(`${label}: HTTP${r.status}, ${Math.round(performance.now()-start)}ms`);return rows(r);};
+    try{for(let i=0;i<201;i++){const id=randomUUID();many.push(id);await grant(id,staff,building,future,null,i===0);}
+      const g=await page(admin,path(false),'grants200'),m=await page(staff,path(true),'mine200');
+      const expectedGrants=await sqlClient`select id from support_grants where building_id=${building} order by created_at desc,id desc limit 200`;
+      const expectedMine=await sqlClient`select id from support_grants where support_user_id=${staff.id} and revoked_at is null and expires_at>clock_timestamp() order by expires_at,id limit 200`;
+      assert.equal(g.length,200);assert.equal(m.length,200);assert.deepEqual(g.map(x=>x.id),expectedGrants.map(x=>x.id));assert.deepEqual(m.map(x=>x.id),expectedMine.map(x=>x.id));
+      // Verify non-null resource DTO independently of whether its UUID survives the cap.
+      await sqlClient`update support_grants set created_at=created_at+interval '1 hour' where id=${many[0]!}`;
+      const first=(await page(admin,path(false),'grants200-resource'))[0]!;assert.equal(first.id,many[0]);assert.equal(first.resourceType,'device');assert.equal(first.resourceId,'missing-device-'+suffix);
+    }finally{if(many.length)await sqlClient`delete from support_grants where id in ${sqlClient(many)}`;many.length=0;}
+  });
+});
