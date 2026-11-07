@@ -1,0 +1,24 @@
+{
+  "recordedOn": "2026-11-07",
+  "status": "STATIC_REVIEW_ONLY",
+  "sourcePreparedSha256": "72303310e31c365ef9e2b43ccde9007c53d3e85d74d33c2174d15ad95ac16fde",
+  "files": [
+    {
+      "path": "REPORT.md",
+      "sha256": "4503b616af9bd784e354806330dcfd50ec347c3e04491f31fb5f0af15c18855b",
+      "bytes": 22329,
+      "originalScratchSha256": "7e47612e654fba32a43a508574ce5819bc8372856f6e658a9621395c03304f44"
+    },
+    {
+      "path": "source-inventory.json",
+      "sha256": "89379b24dc703650ac3b77944cd19abd812097f1f958eed35bebf61c52724643",
+      "bytes": 3820,
+      "originalScratchSha256": "8ade75e1ac64fd9f6fbd730bed11fed6cb114fd80797286cd67b87342ff1a0e9"
+    }
+  ],
+  "testsExecuted": false,
+  "explainExecuted": false,
+  "performanceCauseConfirmed": false,
+  "submillisecondOrderingReproduced": false,
+  "computerRestarted": false
+}

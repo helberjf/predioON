@@ -314,3 +314,7 @@ Usar o [checkpoint atual](continuidade/2026-11-05-mfa-integracao/README.md), bas
 ### P1 — desempenho das concessões de suporte, observado em 07/11
 
 Medir planos de consulta e latência das listas com 200 concessões, cache frio/quente, usuários locais/globais e volume representativo. A lista pessoal levou **11672 ms** na composição corrigida, com banco limitado a uma CPU. A primeira tentativa também excedeu cinco segundos. A [prova](evidencias/mfa-support-read-2026-11-07.json) preserva as duas observações; elas não isolam uma regressão causal nem aprovam latência de produção. Investigar custo das políticas RLS e dos LEFT JOINs antes de definir uma meta e otimizar. Preservar permissões, nomes ocultos e paginação; ampliar o prazo de um teste não encerra essa melhoria.
+
+### P1 — precisão da ordenação do suporte
+
+A [auditoria de 07/11](continuidade/2026-11-07-suporte-auditoria/REPORT.md) encontrou uma diferença potencial entre ordenar pelo timestamp PostgreSQL completo e reordenar pelo texto HTTP com milissegundos. Reproduzir com valores diferentes dentro do mesmo milissegundo nas listas pessoal e administrativa, preservar o limite200 e o desempate por ID, e corrigir sem expor campos internos no DTO. A cobertura anterior usou empates exatos e não encerra este caso. Nenhum novo teste funcional foi executado nesta auditoria.

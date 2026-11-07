@@ -1,0 +1,108 @@
+{
+  "recordedOn": "2026-11-07",
+  "scope": "static source reading only; no runtime verification",
+  "source": "work/mfa-support-read-v2-fixed-qa-20261107/source",
+  "preparedSha256FromPublishedEvidence": "72303310e31c365ef9e2b43ccde9007c53d3e85d74d33c2174d15ad95ac16fde",
+  "files": [
+    {
+      "path": "apps/api/src/auth/middleware.ts",
+      "sha256": "328209f172194e5451c34d3e5c70f5a68c573bf1ccffaf7ada518bf59df6b0af",
+      "bytes": 4565
+    },
+    {
+      "path": "apps/api/src/auth/mfa-read.ts",
+      "sha256": "00f728fd564c38108c4c7d99c111ccb47e697ed6ec5f74d5f37e07dbaee045e9",
+      "bytes": 2627
+    },
+    {
+      "path": "apps/api/src/modules/support-access/routes.ts",
+      "sha256": "c10ed11a0beb2c345985080c33e0f7a14942478c3457662113db2bef7dc6a5fc",
+      "bytes": 14030
+    },
+    {
+      "path": "apps/api/src/http/sql-time.ts",
+      "sha256": "6d8594402e78b27ec96cce7b0575d6b8f11db46cc72789a0746ea9f9c42c0e64",
+      "bytes": 414
+    },
+    {
+      "path": "packages/db/src/context.ts",
+      "sha256": "19f2708b65f2aa3ce4e0e7c6bb4e6c53cd8464c0ed5b725b186a4e9848cb82d1",
+      "bytes": 1829
+    },
+    {
+      "path": "packages/db/src/features.ts",
+      "sha256": "4586db28cd178dc8fc6cd7d52867dc7bb06f9679ca520a1fd55a89ec69c4e92b",
+      "bytes": 1264
+    },
+    {
+      "path": "packages/db/src/runtime-connection.ts",
+      "sha256": "4869e7081e26d622c5530ec4a24a221dd5c7639dbb26346f3733fb6afe72d7b7",
+      "bytes": 4582
+    },
+    {
+      "path": "packages/db/src/schema-rbac.ts",
+      "sha256": "e2e193d745cb17ddf844785f7a42e18a6c4aef6b29b4ed2b4ca0e74435663726",
+      "bytes": 11466
+    },
+    {
+      "path": "packages/db/test/fixtures/runtime-services.ts",
+      "sha256": "2433abb3592389edcfb0fbe3ac27e0b41b0595f4ea1c7670f5a1c5bb6268bbac",
+      "bytes": 31540
+    },
+    {
+      "path": "apps/api/test/platform-mfa-support-read.test.ts",
+      "sha256": "2570f7e7ade3d5fd831b631d22ac3b8a03409734cd5d5c07de1c21827573f00b",
+      "bytes": 15691
+    },
+    {
+      "path": "infrastructure/001-timescale-rls.sql",
+      "sha256": "7a2f938aff77d177c61abcc4f20908e0062d1766ce6f069780a681c6400fe749",
+      "bytes": 6966
+    },
+    {
+      "path": "infrastructure/014-rbac-tenancy.sql",
+      "sha256": "31dc59f66f0b5cb7d62be06708a8f94a47ffd89281e8c7104e76d1acabd6e88b",
+      "bytes": 28987
+    },
+    {
+      "path": "infrastructure/015-api-runtime-roles.sql",
+      "sha256": "6d186c496b4835d3950694d6a2a9733612c0b4be345c88cb02ef04986790e1e2",
+      "bytes": 6884
+    },
+    {
+      "path": "infrastructure/016-building-feature-capabilities.sql",
+      "sha256": "e508ccfa806e03704751d77be88d98c4a35f48d72c0e932a9af60451e09dada4",
+      "bytes": 9570
+    },
+    {
+      "path": "infrastructure/019-building-discovery-resource-validation.sql",
+      "sha256": "04749c7a36d2ea68e3f43a1303d85992ab8b3833621e273a0d934e928e6fff3c",
+      "bytes": 5510
+    },
+    {
+      "path": "infrastructure/021-authorization-time-windows.sql",
+      "sha256": "28a210101540a71d6c5136e5bd8aa45fcd0288b76aaff7f9e0b37bf00914d2de",
+      "bytes": 24557
+    },
+    {
+      "path": "infrastructure/024-overview-capabilities.sql",
+      "sha256": "1a9a560d4e39b8f16a1ff9a19ec0dbabfdb20e6fbac65c03e37931ebd45a6ff0",
+      "bytes": 8584
+    },
+    {
+      "path": "infrastructure/053-support-grants-management.sql",
+      "sha256": "f4e3ea34810e675d6ba5ae0f858faaf4de7a19daddb1b33bacb7123b49d1aea6",
+      "bytes": 4898
+    },
+    {
+      "path": "infrastructure/068-platform-mfa-required.sql",
+      "sha256": "231ba481ebed3a1867fcb0332daba3850a53a6674c4cdd4dd019984de280c5a5",
+      "bytes": 32426
+    }
+  ],
+  "publishedEvidence": {
+    "path": "predioON/docs/evidencias/mfa-support-read-2026-11-07.json",
+    "sha256": "86a80f4257c3740d9fd0374ad2ad9592143ffb7afb9c7a5361a1e6c9b43769fb",
+    "bytes": 25604
+  }
+}
