@@ -1,5 +1,5 @@
 {
-  "status": "CANDIDATE_SUPPORT_READ_VALIDATED_CANONICAL_RESTORE_PASSED",
+  "status": "CANDIDATE_FEATURES_READ_VALIDATED_CANONICAL_RESTORE_PASSED",
   "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
   "metadata": [
     {
@@ -8,7 +8,7 @@
     },
     {
       "path": "INVENTORY.json",
-      "sha256": "6f05c530303d397b7fe2945a94007f2aad09fecf643dd03e9e77829b43a3c04a"
+      "sha256": "6f6d2c367b5b35ebe54398651b0bf75c06f58895a5022df0630e5f13cd7bed64"
     },
     {
       "path": "git-blobs.mjs",
@@ -24,7 +24,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "cd005f2a798e25a6e2a52bed544e1b8ebaf8d752bf51ab9ab92529e126af9703"
+      "sha256": "5c01f9925328813c343c2d543b89e21b50810d06c1710e9c4253c12c1f03829f"
     },
     {
       "path": "qaSupport/renderer/package.json",
@@ -47,9 +47,9 @@
       "sha256": "cab9d8393b345aa0d90ea6f7662cd38100b9433f9c16a7e7eed035b18da4e876"
     }
   ],
-  "inventoryPayloads": 79,
+  "inventoryPayloads": 83,
   "alreadyPublishedQueryPayloads": 2,
-  "pendingRuntimeAndTestFiles": 75,
+  "pendingRuntimeAndTestFiles": 79,
   "explicitRendererTestFiles": 2,
   "rendererSupportFiles": 5,
   "canonicalSourceFiles": 994,
@@ -64,39 +64,44 @@
     "evidence": "../../evidencias/mfa-canonical-restore-2026-11-05.json"
   },
   "currentPayloadSet": {
-    "sourceManifestSha256": "72303310e31c365ef9e2b43ccde9007c53d3e85d74d33c2174d15ad95ac16fde",
-    "evidence": "../../evidencias/mfa-support-read-2026-11-07.json",
-    "evidenceSha256": "86a80f4257c3740d9fd0374ad2ad9592143ffb7afb9c7a5361a1e6c9b43769fb",
+    "sourceManifestSha256": "b0fe96cd2789f39ead9c90a972c4296cc7de2ba38142a8aa6f36eabd4a147685",
+    "evidence": "../../evidencias/mfa-features-read-2026-11-07.json",
+    "evidenceSha256": "443ce1f33c2d22beac630627c5bc24d6914dacb8683073eb0021b2b15c2fb273",
     "composition": [
       {
-        "path": "apps/api/src/auth/mfa-read.ts",
-        "sha256": "00f728fd564c38108c4c7d99c111ccb47e697ed6ec5f74d5f37e07dbaee045e9",
-        "bytes": 2627
+        "path": "apps/api/src/modules/features/routes.ts",
+        "sha256": "d37a9cc3caaab826cde759da83efd107e7de8a2c9343fc887526031fdb591141",
+        "bytes": 8974
       },
       {
-        "path": "apps/api/src/modules/support-access/routes.ts",
-        "sha256": "c10ed11a0beb2c345985080c33e0f7a14942478c3457662113db2bef7dc6a5fc",
-        "bytes": 14030
+        "path": "apps/api/test/platform-mfa-features-read.test.ts",
+        "sha256": "c508a2586a469d8ef890f3d90059e36602872afc424884d90e27c5cee6e7bc55",
+        "bytes": 30521
       },
       {
-        "path": "apps/api/test/platform-mfa-support-read.test.ts",
-        "sha256": "2570f7e7ade3d5fd831b631d22ac3b8a03409734cd5d5c07de1c21827573f00b",
-        "bytes": 15691
+        "path": "apps/api/test/features-config.test.ts",
+        "sha256": "15f835041218d8ded3d2f605cc675828e03defa0133fd5d072e63e80d5b7c367",
+        "bytes": 9466
+      },
+      {
+        "path": "apps/api/test/building-feature-capabilities.test.ts",
+        "sha256": "1e22b102df262e261d577b6bdda8f73098285e7d0dda72a89c530e63be324f81",
+        "bytes": 19653
       }
     ],
     "previousSql11V5TestSha256": "2c8a7bc400bd7b8055922f11a06239026db9dce7e9c4195cba696c67c5cd6710",
-    "validatedMergedScope": "Support14 TAP entries plus23 regression files226; two GETs and static helper ordering; SQL and mutations unchanged",
+    "validatedMergedScope": "Features22 TAP entries plus26 regression files259; three GETs and two real-TOTP HTTP fixtures; shared helper, SQL and mutations unchanged",
     "assemblyAndRestoreExecutedForThisUpdatedSet": true,
-    "restorationEvidence": "../../evidencias/mfa-support-read-restore-2026-11-07.json",
-    "restoredComposedFiles": 1025,
+    "restorationEvidence": "../../evidencias/mfa-features-read-restore-2026-11-07.json",
+    "restoredComposedFiles": 1026,
     "matchesTestedComposition": true,
-    "manifestSha256": "ab92257089cc83a17a41f58fa5c4c775c8391ff38ad63f222d95b6dff83017c5",
-    "receiptSha256": "9a149f5af596389822ac4e202fd69293e9d896f5b0bda1b1604f72e65996a61e"
+    "manifestSha256": "0cb607cd6c3f6edbdc2134247737e7ba39ca6f097da0f72c6809fee5eee82e2d",
+    "receiptSha256": "0e842710f326eb5c858779b300e657511a162e1733e6c078ee36f97a15016b06"
   },
   "rendererStagingRecipeExecuted": false,
   "p0DisablePatchIncluded": true,
   "publishedApiDatabaseChanged": false,
-  "staticPeerReview": "Support reads: canonical1025 sources plus5 supports match tested7230 exactly. Runtime and restoration executed07Nov. Directed14TAP represents12 independent scenarios and2 groups;23 regressions226 include8 groups. Two GETs and static helper ordering only; SQL and mutations intact. Large-page latency remains a production concern. Wider rollout pending.",
+  "staticPeerReview": "Feature reads: canonical1026 sources plus5 supports match testedb0fe exactly. Runtime and restoration executed07Nov. Directed22TAP represents19 independent scenarios and3 groups;26 regressions259 include10 groups. Three GETs and two real-TOTP HTTP fixtures only; shared helper, SQL and mutations intact. Existing advisory lock serialization preserved; no controlled intrastatement concurrency proof. Wider rollout pending.",
   "historicalGuardRefusal": {
     "minimumMiB": 1536,
     "at": "2026-11-05T03:53:51.9727239Z",
@@ -247,6 +252,14 @@
     {
       "path": "../../evidencias/mfa-support-read-restore-2026-11-07.json",
       "sha256": "3c554f895b1efb93642f97122c648ab48edcf486759813df8f73d7240437eab6"
+    },
+    {
+      "path": "../../evidencias/mfa-features-read-2026-11-07.json",
+      "sha256": "443ce1f33c2d22beac630627c5bc24d6914dacb8683073eb0021b2b15c2fb273"
+    },
+    {
+      "path": "../../evidencias/mfa-features-read-restore-2026-11-07.json",
+      "sha256": "52fdb5a4cef446f9ea337c602410d6eb8ca40bdeb18a7a069f2fce4dece4d2ac"
     }
   ],
   "computerRestarted": false,
@@ -693,5 +706,35 @@
     "matchesTestedComposition": true,
     "manifestSha256": "fc9e80b42b35edc6d4bc52e86e567a79d7edd76d22b3c0f3750567e1b4e10cbe",
     "receiptSha256": "2947f8215c9edce85640d9514548cb4eb45bed2666a9f5d48d17e2686c42fced"
+  },
+  "previousSupportReadPayloadSet": {
+    "sourceManifestSha256": "72303310e31c365ef9e2b43ccde9007c53d3e85d74d33c2174d15ad95ac16fde",
+    "evidence": "../../evidencias/mfa-support-read-2026-11-07.json",
+    "evidenceSha256": "86a80f4257c3740d9fd0374ad2ad9592143ffb7afb9c7a5361a1e6c9b43769fb",
+    "composition": [
+      {
+        "path": "apps/api/src/auth/mfa-read.ts",
+        "sha256": "00f728fd564c38108c4c7d99c111ccb47e697ed6ec5f74d5f37e07dbaee045e9",
+        "bytes": 2627
+      },
+      {
+        "path": "apps/api/src/modules/support-access/routes.ts",
+        "sha256": "c10ed11a0beb2c345985080c33e0f7a14942478c3457662113db2bef7dc6a5fc",
+        "bytes": 14030
+      },
+      {
+        "path": "apps/api/test/platform-mfa-support-read.test.ts",
+        "sha256": "2570f7e7ade3d5fd831b631d22ac3b8a03409734cd5d5c07de1c21827573f00b",
+        "bytes": 15691
+      }
+    ],
+    "previousSql11V5TestSha256": "2c8a7bc400bd7b8055922f11a06239026db9dce7e9c4195cba696c67c5cd6710",
+    "validatedMergedScope": "Support14 TAP entries plus23 regression files226; two GETs and static helper ordering; SQL and mutations unchanged",
+    "assemblyAndRestoreExecutedForThisUpdatedSet": true,
+    "restorationEvidence": "../../evidencias/mfa-support-read-restore-2026-11-07.json",
+    "restoredComposedFiles": 1025,
+    "matchesTestedComposition": true,
+    "manifestSha256": "ab92257089cc83a17a41f58fa5c4c775c8391ff38ad63f222d95b6dff83017c5",
+    "receiptSha256": "9a149f5af596389822ac4e202fd69293e9d896f5b0bda1b1604f72e65996a61e"
   }
 }

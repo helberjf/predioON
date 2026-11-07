@@ -1,6 +1,6 @@
 # Melhorias e novas implementações — Prédio ON
 
-**Avanço revisado em 07/11:** as consultas de suporte passaram nos oito cenários de concorrência, quatro controles e 23 arquivos de regressão. O checkpoint contém 75 arquivos candidatos, dois testes renderer e cinco suportes; runtime permanece 001–067. Próximos: funcionalidades, demais comandos/domínios, desempenho das listas, regressão integrada, Playwright real, aparelhos e operação. Ver [CONTINUIDADE.md](CONTINUIDADE.md).
+**Avanço revisado em 07/11:** as três consultas de funcionalidades passaram em19 casos dirigidos e26 arquivos de regressão. Checkpoint:79 candidatos, dois testes renderer e cinco suportes; runtime001–067. Restam precisão e desempenho do suporte, comandos/domínios, integração, Playwright real, aparelhos e operação. [CONTINUIDADE.md](CONTINUIDADE.md).
 
 **Atualização de CI em 04/11:** o resumo autenticado do run 41842973688 confirmou bloqueio de conta por pagamento recente que falhou ou limite de gastos insuficiente. [Evidência e limites](evidencias/ci-account-blocker-2026-11-04.json). Regularizar a condição da conta e então validar uma execução nova; o motivo exato entre as duas alternativas não foi detalhado pelo GitHub. Nenhuma cobrança ou configuração foi alterada.
 

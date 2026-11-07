@@ -1,6 +1,6 @@
 # MFA nas consultas de funcionalidades
 
-Plano estático de continuação, ainda sem implementação ou execução. Retomar pela [continuidade](../../CONTINUIDADE.md) e pelo checkpoint restaurável atual. O incremento de suporte está validado em seleção isolada; a obrigação MFA global continua candidata.
+**Implementado no candidato e validado em 07/11:** [22 TAP dirigidos e 259 de regressão](../../evidencias/mfa-features-read-2026-11-07.json). O plano abaixo conserva o desenho original e seus limites; não é aceite integrado de produção. Retomar pela [continuidade](../../CONTINUIDADE.md) e pelo checkpoint restaurável atual. O incremento de suporte está validado em seleção isolada; a obrigação MFA global continua candidata.
 
 ## Incremento 2: três GETs features, uma leitura de dados por resposta
 
@@ -20,7 +20,7 @@ Testes agrupados: PMF01/02 nos três GETs e no missing building, após última a
 
 features-config.test.ts e building-feature-capabilities.test.ts têm atores ADMIN/flag; antes de executar selecionar só os atores HTTP que precisam cerimônia MFA real no mesmo bearer/SID, com helpers locais. Não adaptar automaticamente SQL withUserContext sem SID nem mascarar testes de ACL. features-unit, lifecycle e enforcement exigem inventário de seus acessos antes de selecionar regressão: esta nota não promete que estejam prontos.
 
-O suporte já passou na seleção isolada, incluindo a ordenação DESC e as duas exceções do relógio nativo. A próxima família contém os três GETs de funcionalidades; não repetir a guarda para cada uma das 24 chaves. Mutações e concessões POST/DELETE continuam fora deste lote. Nenhum dos testes de funcionalidades propostos nesta nota foi executado.
+O suporte já passou na seleção isolada, incluindo a ordenação DESC e as duas exceções do relógio nativo. Os três GETs de funcionalidades foram implementados no candidato; não se repete a guarda para cada uma das 24 chaves. Mutações e concessões POST/DELETE continuam fora deste lote. A seleção executada passou nos 22 TAP dirigidos e nos 259 de regressão. A prova interna de concorrência entre subconsultas continua pendente e não foi inferida do teste HTTP.
 
 
 ## Conferência adicional em 07/11: coordenação já existente
@@ -36,4 +36,7 @@ O teste de concorrência deve distinguir o fluxo HTTP normal, que respeita esse 
 - As chamadas diretas `withUserContext`, inclusive as que fornecem um papel artificial para provar que o banco o ignora, não devem receber uma sessão inventada nem sofrer adaptação indiscriminada.
 - `users-runtime-acl.test.ts` continua separado: revisar os dois casos HTTP administrativos pendentes, mantendo intactas as provas de privilégios por coluna, papéis e reexecução de migration. A inclusão nesta lista não significa que já foi adaptado ou executado com MFA.
 
-A ordem de execução agora começa pelas três consultas de funcionalidades. O suporte foi validado no lote anterior. Investigar separadamente a latência observada na lista pessoal; não reutilizar resultados históricos como aceite das próximas alterações.
+As três consultas de funcionalidades concluíram a seleção de validação. O suporte foi validado no lote anterior, com os limites e achados posteriores registrados na continuidade. Investigar separadamente a latência observada na lista pessoal; não reutilizar resultados históricos como aceite das próximas alterações.
+
+
+A prova de concorrência executada usa o PUT HTTP normal e o advisory lock existente. Não foi executado um teste de pausa dentro do statement final. A próxima fila está no [inventário de comandos](2026-11-07-mfa-proximos-comandos.md).

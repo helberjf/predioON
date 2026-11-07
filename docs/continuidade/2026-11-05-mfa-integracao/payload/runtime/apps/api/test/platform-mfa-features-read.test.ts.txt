@@ -1,0 +1,452 @@
+import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
+import type { Server } from "node:http";
+import { after, before, describe, it } from "node:test";
+import { decodeJwt } from "jose";
+import { sql } from "drizzle-orm";
+import { PgDialect } from "drizzle-orm/pg-core";
+import { sqlClient } from "@predioon/db";
+import { appDb, closeAppDb, type AppTransaction } from "@predioon/db/runtime";
+import { FEATURE_CATALOG, type FeatureKey, type FeatureState } from "@predioon/shared";
+import { app } from "../src/app.js";
+import { hashPassword } from "../src/auth/passwords.js";
+import "./helpers.js";
+
+// Identical test source on baseline/fixed; no import of the new read helper.
+// Owner mutations only arrange fixture authority/settings. The serialization
+// control below uses a real HTTP PUT, which respects the feature advisory lock.
+type Actor = { id: string; token: string; sid: string; binding: string; generation: string };
+type HttpResult = { status: number; body: unknown; cache: string | null };
+type Compiled = { sql: string; params: unknown[] };
+type Boundary = { functionName: string; parameter: string };
+type GlobalRow = { feature_key: string; enabled: boolean; version: number; updated_at: string };
+
+function signal() {
+  let resolve!: () => void;
+  const promise = new Promise<void>(done => { resolve = done; });
+  return { promise, resolve };
+}
+async function bounded<T>(promise: PromiseLike<T>, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([Promise.resolve(promise), new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(new Error(`Fixture deadline: ${label}`)), 5000);
+    })]);
+  } finally { clearTimeout(timer); }
+}
+
+function observeTransactions(boundary?: Boundary, observeExclusive = false) {
+  const original = appDb.transaction, run = original.bind(appDb), dialect = new PgDialect();
+  const reached = signal(), release = signal(), exclusiveAttempt = signal();
+  const delegated: Compiled[] = [];
+  const transactions: Promise<unknown>[] = [];
+  let contexts = 0, exclusivePid: number | undefined, exclusiveAcquired = false;
+  type Input = Parameters<AppTransaction["execute"]>[0];
+  appDb.transaction = (callback, config) => {
+    const transaction = run(tx => callback(new Proxy(tx, { get(target, key) {
+    if (key === "execute") return async (query: Input) => {
+      const compiled: Compiled = typeof query === "string" ? { sql: query, params: [] } : dialect.sqlToQuery(query.getSQL());
+      const exclusive = observeExclusive && /pg_advisory_xact_lock\(814772,\s*1\)/.test(compiled.sql);
+      if (exclusive) {
+        const [pid] = await target.execute<{ pid: number }>(sql`select pg_backend_pid() as pid`);
+        assert.ok(pid); exclusivePid = pid.pid; exclusiveAttempt.resolve();
+      }
+      // Always execute the original operation, including real authorization,
+      // before announcing the boundary. Never synthesize an allowed row.
+      const rows = await target.execute(query);
+      delegated.push(compiled);
+      if (exclusive) exclusiveAcquired = true;
+      if (boundary && contexts === 0 && compiled.sql.includes(boundary.functionName + "(") && compiled.params.includes(boundary.parameter)) {
+        contexts++; reached.resolve(); await bounded(release.promise, "projection release");
+      }
+      return rows;
+    };
+    const value = Reflect.get(target, key, target);
+    return typeof value === "function" ? value.bind(target) : value;
+    }})), config);
+    transactions.push(transaction);
+    return transaction;
+  };
+  async function settleTransactions(): Promise<void> {
+    await bounded((async () => {
+      let completed = 0;
+      // Track every actual transaction, including a writer still running after
+      // its HTTP fetch is aborted. New transactions registered while waiting
+      // are drained in the next batch before the observer can be restored.
+      while (completed < transactions.length) {
+        const batch = transactions.slice(completed); completed += batch.length;
+        // SQL MFA refusals are expected in negative HTTP scenarios. Wait for
+        // their rollback without replacing the response/status/reason oracle.
+        await Promise.allSettled(batch);
+      }
+    })(), "all real transactions settled");
+  }
+  return {
+    reached, release, exclusiveAttempt, delegated, settleTransactions,
+    get contexts() { return contexts; }, get exclusivePid() { return exclusivePid; },
+    get exclusiveAcquired() { return exclusiveAcquired; },
+    restore() { appDb.transaction = original; },
+  };
+}
+
+describe("MFA feature catalog, global and building reads", { concurrency: false }, () => {
+  const suffix = randomUUID(), org = `mfr-org-${suffix}`, building = `mfr-main-${suffix}`;
+  const empty = `mfr-empty-${suffix}`, foreign = `mfr-foreign-${suffix}`, missing = `mfr-missing-${suffix}`;
+  const password = "features-fictitious-password", stamp = "2026-11-06T01:02:03.456Z";
+  const users: string[] = [], fields = ["key", "enabled", "globalEnabled", "localEnabled", "blockedBy", "version", "globalVersion", "resumedAt"].sort();
+  let server: Server | undefined, url = "", hash = "", globalsSaved = false;
+  let globals: GlobalRow[] = [], manager: Actor, admin: Actor, outsider: Actor;
+  const buildingPath = (id = building) => `/features/buildings/${id}`;
+  const capabilityBoundary = { functionName: "app_has_global_capability", parameter: "features:manage" };
+  const discoveryBoundary = (id = building) => ({ functionName: "app_can_discover_building", parameter: id });
+  const routes = [
+    { name: "catalog", path: "/features/catalog", boundary: capabilityBoundary },
+    { name: "global", path: "/features/global", boundary: capabilityBoundary },
+    { name: "building", path: buildingPath(), boundary: discoveryBoundary() },
+  ];
+
+  async function request(a: Actor, path: string, controller = new AbortController(), method = "GET", body?: unknown): Promise<HttpResult> {
+    try {
+      const response = await bounded(fetch(url + path, {
+        method, headers: { Authorization: `Bearer ${a.token}`, "Content-Type": "application/json" },
+        signal: controller.signal, ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      }), "HTTP");
+      return { status: response.status, body: await bounded(response.json(), "JSON"), cache: response.headers.get("cache-control") };
+    } finally { controller.abort(); }
+  }
+  async function actor(label: string, local: boolean): Promise<Actor> {
+    const id = `mfr-${suffix}-${label}`, binding = randomUUID(), generation = randomUUID(); users.push(id);
+    await sqlClient`insert into users(id,name,email,password_hash) values(${id},${label},${id + "@example.invalid"},${hash})`;
+    if (local) for (const idOfBuilding of [building, empty]) {
+      await sqlClient`insert into role_bindings(user_id,building_id,role_key) values(${id},${idOfBuilding},'BUILDING_ADMIN')`;
+    }
+    await sqlClient`insert into role_bindings(id,user_id,role_key,active) values(${binding},${id},'PLATFORM_ADMIN',false)`;
+    const controller = new AbortController();
+    try {
+      const response = await bounded(fetch(url + "/auth/login", {
+        method: "POST", headers: { "Content-Type": "application/json" }, signal: controller.signal,
+        body: JSON.stringify({ email: id + "@example.invalid", password }),
+      }), "login");
+      assert.equal(response.status, 200);
+      const data = await bounded(response.json(), "login JSON") as { accessToken: string };
+      const sid = decodeJwt(data.accessToken).sid; assert.equal(typeof sid, "string");
+      return { id, token: data.accessToken, sid: sid as string, binding, generation };
+    } finally { controller.abort(); }
+  }
+  async function prove(a: Actor) {
+    await sqlClient`update sessions set mfa_verified_at=now(),mfa_factor_generation=${a.generation} where id=${a.sid}`;
+  }
+  async function restoreFactor(a: Actor) {
+    await sqlClient`insert into mfa_factors(user_id,secret_ciphertext,confirmed_at,generation)
+      values(${a.id},decode(repeat('00',40),'hex'),now(),${a.generation})
+      on conflict(user_id) do update set confirmed_at=excluded.confirmed_at,generation=excluded.generation`;
+    await prove(a);
+  }
+  async function satisfied(a: Actor) {
+    const response = await request(a, "/auth/me");
+    assert.equal(response.status, 200);
+    assert.equal((response.body as { mfaRequirement: string }).mfaRequirement, "satisfied");
+    assert.equal(decodeJwt(a.token).sid, a.sid, "same bearer and SID, no renewed login");
+  }
+  function states(response: HttpResult): FeatureState[] {
+    assert.equal(response.status, 200, JSON.stringify(response.body));
+    assert.equal(response.cache, "no-store");
+    assert.deepEqual(Object.keys(response.body as object), ["items"]);
+    const items = (response.body as { items: FeatureState[] }).items;
+    assert.equal(items.length, 24);
+    assert.deepEqual(items.map(row => row.key), FEATURE_CATALOG.map(row => row.key));
+    for (const row of items) assert.deepEqual(Object.keys(row).sort(), fields);
+    return items;
+  }
+  function defaults(scope: "building" | "global"): FeatureState[] {
+    return FEATURE_CATALOG.map(({ key, optIn }) => ({
+      key, enabled: !(scope === "building" && optIn), globalEnabled: true, localEnabled: null,
+      blockedBy: scope === "building" && optIn ? "OPT_IN" : null,
+      version: 0, globalVersion: 0, resumedAt: null,
+    }));
+  }
+  function byKey(items: FeatureState[], key: FeatureKey) {
+    const row = items.find(item => item.key === key); assert.ok(row); return row;
+  }
+  function denied(response: HttpResult, reason: string) {
+    assert.equal(response.status, 403);
+    assert.equal((response.body as { details?: { reason?: string } }).details?.reason, reason);
+    assert.equal("items" in (response.body as object), false);
+  }
+  function classify(response: HttpResult, positive: HttpResult, diagnostic: (message: string) => void) {
+    if (response.status === 200) {
+      assert.deepEqual(response.body, positive.body);
+      diagnostic("Baseline returned the exact decoded positive DTO after the authority change");
+    } else if (response.status === 404) {
+      assert.deepEqual(response.body, positive.body);
+      diagnostic("Baseline returned the exact no-match404 body; no private DTO delivery claimed");
+    } else diagnostic(`Observed HTTP${response.status}; the exact MFA reason is asserted separately`);
+  }
+  async function interleave(a: Actor, path: string, boundary: Boundary, change: () => Promise<unknown>) {
+    const observation = observeTransactions(boundary), controller = new AbortController();
+    const pending = request(a, path, controller); void pending.catch(() => undefined); let failed = false;
+    try {
+      assert.equal(await bounded(Promise.race([
+        observation.reached.promise.then(() => "boundary"), pending.then(() => "response"),
+      ]), "reach authorization boundary"), "boundary");
+      await bounded(change(), "authority change committed");
+      observation.release.resolve();
+      return await pending;
+    } catch (error) { failed = true; throw error; }
+    finally {
+      observation.release.resolve(); controller.abort();
+      const results = await Promise.allSettled([bounded(pending, "HTTP settled")]);
+      try { await observation.settleTransactions(); }
+      finally { observation.restore(); }
+      if (!failed) { const failure = results.find(result => result.status === "rejected"); if (failure?.status === "rejected") throw failure.reason; }
+    }
+  }
+  async function observed(a: Actor, path: string, diagnostic: (message: string) => void) {
+    const observation = observeTransactions();
+    try {
+      const response = await request(a, path);
+      const guarded = observation.delegated.filter(query => query.sql.includes("app_require_session_mfa("));
+      diagnostic(JSON.stringify({ path, delegatedGuardedExecuteCount: guarded.length, tablesInGuardedExecute: guarded.map(query => [
+        "global_feature_settings", "building_feature_settings", "feature_runtime",
+      ].filter(table => query.sql.includes(table))) }));
+      // Observation only: baseline builders do not use this proxy's execute.
+      // The semantic RED tests above remain identical and mandatory on both.
+      return response;
+    } finally {
+      try { await observation.settleTransactions(); }
+      finally { observation.restore(); }
+    }
+  }
+
+  before(async () => {
+    const [ledger] = await sqlClient`select count(*)::int as count from schema_migrations`;
+    assert.equal(ledger?.count, 68, "isolated canonical068 fixture, never skip");
+    globals = await sqlClient<GlobalRow[]>`select feature_key,enabled,version,updated_at::text as updated_at from global_feature_settings`;
+    globalsSaved = true;
+    // Only this serial, isolated test database is modified. Preserve exact text
+    // timestamps, including database microseconds, for complete restoration.
+    await sqlClient`delete from global_feature_settings`;
+    hash = await hashPassword(password);
+    await sqlClient`insert into organizations(id,name,slug) values(${org},'MFA feature reads',${org})`;
+    for (const id of [building, empty, foreign]) {
+      await sqlClient`insert into buildings(id,organization_id,name,code) values(${id},${org},${id},${id})`;
+    }
+    await sqlClient`insert into building_feature_settings(building_id,feature_key,enabled,version) values
+      (${building},'GAS',false,7),(${foreign},'GAS',true,101)`;
+    await sqlClient`insert into feature_runtime(building_id,feature_key,resumed_at,generation) values
+      (${building},'GAS',${stamp}::timestamptz,3),(${foreign},'GAS','2000-01-01T00:00:00Z'::timestamptz,99)`;
+    server = await new Promise<Server>(resolve => { const instance = app.listen(0, "127.0.0.1", () => resolve(instance)); });
+    const address = server.address(); assert.ok(address && typeof address !== "string"); url = `http://127.0.0.1:${address.port}`;
+    manager = await actor("manager", true); admin = await actor("admin", false); outsider = await actor("outsider", false);
+    await restoreFactor(admin);
+    await sqlClient`update role_bindings set active=true where id=${admin.binding}`;
+  });
+  after(async () => {
+    try {
+      await bounded(new Promise<void>((resolve, reject) => {
+        if (!server) { resolve(); return; }
+        server.close(error => error ? reject(error) : resolve()); server.closeAllConnections();
+      }), "listener close");
+    } finally {
+      try {
+        await bounded(sqlClient.begin(async tx => {
+          await tx`set local lock_timeout='2s'`; await tx`set local statement_timeout='3s'`;
+          if (globalsSaved) {
+            await tx`delete from global_feature_settings`;
+            for (const row of globals) await tx`insert into global_feature_settings(feature_key,enabled,version,updated_at)
+              values(${row.feature_key},${row.enabled},${row.version},${row.updated_at}::timestamptz)`;
+          }
+          if (users.length) await tx`delete from audit_logs where user_id in ${sqlClient(users)}`;
+          await tx`delete from buildings where organization_id=${org}`;
+          await tx`delete from organizations where id=${org}`;
+          if (users.length) await tx`delete from users where id in ${sqlClient(users)}`;
+        }), "fixture cleanup");
+      } finally {
+        const results = await Promise.allSettled([bounded(closeAppDb(), "app close"), bounded(sqlClient.end({ timeout: 3 }), "owner close")]);
+        const failure = results.find(result => result.status === "rejected"); if (failure?.status === "rejected") throw failure.reason;
+      }
+    }
+  });
+
+  it("requires enrollment when a satisfied administrator loses the factor after real authorization", async t => {
+    for (const route of routes) await t.test(route.name, async child => {
+      await satisfied(admin); const positive = await request(admin, route.path); assert.equal(positive.status, 200);
+      try {
+        const response = await interleave(admin, route.path, route.boundary, () => sqlClient`delete from mfa_factors where user_id=${admin.id}`);
+        classify(response, positive, message => child.diagnostic(message)); denied(response, "MFA_ENROLLMENT_REQUIRED");
+      } finally { await restoreFactor(admin); }
+    });
+  });
+  it("requires verification when the same administrator SID loses proof after real authorization", async t => {
+    for (const route of routes) await t.test(route.name, async child => {
+      await satisfied(admin); const positive = await request(admin, route.path); assert.equal(positive.status, 200);
+      try {
+        const response = await interleave(admin, route.path, route.boundary, () => sqlClient`update sessions set mfa_verified_at=null,mfa_factor_generation=null where id=${admin.sid}`);
+        classify(response, positive, message => child.diagnostic(message)); denied(response, "MFA_VERIFICATION_REQUIRED");
+      } finally { await prove(admin); }
+    });
+  });
+  it("requires enrollment after an ordinary building manager gains global authority at discovery", async t => {
+    const positive = await request(manager, buildingPath()); assert.equal(positive.status, 200);
+    const before = await request(manager, "/auth/me"); assert.equal((before.body as { mfaRequirement: string }).mfaRequirement, "not-required");
+    try {
+      const response = await interleave(manager, buildingPath(), discoveryBoundary(), () => sqlClient`update role_bindings set active=true where id=${manager.binding}`);
+      classify(response, positive, message => t.diagnostic(message)); denied(response, "MFA_ENROLLMENT_REQUIRED");
+    } finally { await sqlClient`update role_bindings set active=false where id=${manager.binding}`; }
+  });
+  it("guards empty and globally discoverable missing buildings before defaults or404", async t => {
+    await t.test("empty arrays and manager promotion", async child => {
+      const positive = await request(manager, buildingPath(empty)); assert.deepEqual(states(positive), defaults("building"));
+      try {
+        const response = await interleave(manager, buildingPath(empty), discoveryBoundary(empty), () => sqlClient`update role_bindings set active=true where id=${manager.binding}`);
+        classify(response, positive, message => child.diagnostic(message)); denied(response, "MFA_ENROLLMENT_REQUIRED");
+      } finally { await sqlClient`update role_bindings set active=false where id=${manager.binding}`; }
+    });
+    await t.test("empty arrays and removed proof", async child => {
+      await satisfied(admin); const positive = await request(admin, buildingPath(empty)); assert.deepEqual(states(positive), defaults("building"));
+      try {
+        const response = await interleave(admin, buildingPath(empty), discoveryBoundary(empty), () => sqlClient`update sessions set mfa_verified_at=null,mfa_factor_generation=null where id=${admin.sid}`);
+        classify(response, positive, message => child.diagnostic(message)); denied(response, "MFA_VERIFICATION_REQUIRED");
+      } finally { await prove(admin); }
+    });
+    for (const enrollment of [true, false]) await t.test(enrollment ? "missing building and removed factor" : "missing building and removed proof", async child => {
+      await satisfied(admin); const positive = await request(admin, buildingPath(missing)); assert.equal(positive.status, 404);
+      try {
+        const response = await interleave(admin, buildingPath(missing), discoveryBoundary(missing), () => enrollment
+          ? sqlClient`delete from mfa_factors where user_id=${admin.id}`
+          : sqlClient`update sessions set mfa_verified_at=null,mfa_factor_generation=null where id=${admin.sid}`);
+        classify(response, positive, message => child.diagnostic(message)); denied(response, enrollment ? "MFA_ENROLLMENT_REQUIRED" : "MFA_VERIFICATION_REQUIRED");
+      } finally { await restoreFactor(admin); }
+    });
+  });
+
+  it("revalidates catalog capability after the initial real administrator assertion", async t => {
+    await satisfied(admin); const positive = await request(admin, "/features/catalog"); assert.equal(positive.status, 200);
+    try {
+      const response = await interleave(admin, "/features/catalog", capabilityBoundary, () => sqlClient`update role_bindings set active=false where id=${admin.binding}`);
+      if (response.status === 200) { assert.deepEqual(response.body, positive.body); t.diagnostic("Baseline returned exact catalog after features:manage was revoked"); }
+      assert.equal(response.status, 403); assert.equal("items" in (response.body as object), false);
+    } finally { await sqlClient`update role_bindings set active=true where id=${admin.binding}`; }
+  });
+  it("preserves the exact static catalog and its topological order", async t => {
+    const response = await observed(admin, "/features/catalog", message => t.diagnostic(message));
+    assert.equal(response.status, 200); assert.equal(response.cache, "no-store"); assert.equal(FEATURE_CATALOG.length, 24);
+    assert.deepEqual(response.body, { items: FEATURE_CATALOG });
+  });
+  it("returns all24 eight-field defaults from truly empty global/local/runtime arrays", async t => {
+    const global = await observed(admin, "/features/global", message => t.diagnostic(message));
+    const local = await observed(manager, buildingPath(empty), message => t.diagnostic(message));
+    assert.deepEqual(states(global), defaults("global")); assert.deepEqual(states(local), defaults("building"));
+    assert.equal(byKey(states(global), "GATE_QR_ACCESS").enabled, true);
+    assert.equal(byKey(states(local), "GATE_QR_ACCESS").blockedBy, "OPT_IN");
+  });
+  it("preserves global ceilings, nullable local intent, versions, dependencies and runtime ISO/null", async t => {
+    try {
+      await sqlClient`insert into global_feature_settings(feature_key,enabled,version) values('NOTICES',false,31),('SMOKE',true,32),('TICKET_PRIORITY',false,33)`;
+      await sqlClient`insert into building_feature_settings(building_id,feature_key,enabled,version) values
+        (${building},'NOTICES',true,11),(${building},'SMOKE',null,12),(${building},'TICKETS',false,13),
+        (${building},'TICKET_GROUPING',true,14),(${building},'TICKET_PRIORITY',false,15),(${building},'GATE_QR_ACCESS',true,16)`;
+      await sqlClient`insert into feature_runtime(building_id,feature_key,resumed_at,paused_at,generation) values
+        (${building},'NOTICES','2026-11-06T04:05:06.789+03:00'::timestamptz,null,2),
+        (${building},'SMOKE',null,${stamp}::timestamptz,4)`;
+      const local = states(await observed(manager, buildingPath(), message => t.diagnostic(message)));
+      const expected = defaults("building");
+      Object.assign(byKey(expected, "GAS"), { enabled: false, localEnabled: false, blockedBy: "BUILDING", version: 7, resumedAt: stamp });
+      Object.assign(byKey(expected, "NOTICES"), { enabled: false, globalEnabled: false, localEnabled: true, blockedBy: "GLOBAL", version: 11, globalVersion: 31, resumedAt: "2026-11-06T01:05:06.789Z" });
+      Object.assign(byKey(expected, "SMOKE"), { version: 12, globalVersion: 32 });
+      Object.assign(byKey(expected, "TICKETS"), { enabled: false, localEnabled: false, blockedBy: "BUILDING", version: 13 });
+      Object.assign(byKey(expected, "TICKET_GROUPING"), { enabled: false, localEnabled: true, blockedBy: "TICKETS", version: 14 });
+      Object.assign(byKey(expected, "TICKET_PRIORITY"), { enabled: false, globalEnabled: false, localEnabled: false, blockedBy: "GLOBAL", version: 15, globalVersion: 33 });
+      Object.assign(byKey(expected, "GATE_QR_ACCESS"), { enabled: true, localEnabled: true, blockedBy: null, version: 16 });
+      assert.deepEqual(local, expected);
+      const global = states(await observed(admin, "/features/global", message => t.diagnostic(message)));
+      const expectedGlobal = defaults("global");
+      Object.assign(byKey(expectedGlobal, "NOTICES"), { enabled: false, globalEnabled: false, blockedBy: "GLOBAL", version: 31, globalVersion: 31 });
+      Object.assign(byKey(expectedGlobal, "SMOKE"), { version: 32, globalVersion: 32 });
+      Object.assign(byKey(expectedGlobal, "TICKET_PRIORITY"), { enabled: false, globalEnabled: false, blockedBy: "GLOBAL", version: 33, globalVersion: 33 });
+      assert.deepEqual(global, expectedGlobal);
+    } finally {
+      await sqlClient`delete from global_feature_settings`;
+      await sqlClient`delete from building_feature_settings where building_id=${building} and feature_key<>'GAS'`;
+      await sqlClient`delete from feature_runtime where building_id=${building} and feature_key<>'GAS'`;
+    }
+  });
+  it("preserves opt-in nullable/false/true precedence without losing local versions", async () => {
+    try {
+      for (const [index, enabled] of [null, false, true].entries()) {
+        const version = 21 + index;
+        await sqlClient`insert into building_feature_settings(building_id,feature_key,enabled,version) values(${empty},'GATE_QR_ACCESS',${enabled},${version})
+          on conflict(building_id,feature_key) do update set enabled=excluded.enabled,version=excluded.version`;
+        assert.deepEqual(byKey(states(await request(manager, buildingPath(empty))), "GATE_QR_ACCESS"), {
+          key: "GATE_QR_ACCESS", enabled: enabled === true, globalEnabled: true, localEnabled: enabled,
+          blockedBy: enabled === null ? "OPT_IN" : enabled === false ? "BUILDING" : null,
+          version, globalVersion: 0, resumedAt: null,
+        });
+      }
+    } finally { await sqlClient`delete from building_feature_settings where building_id=${empty} and feature_key='GATE_QR_ACCESS'`; }
+  });
+  it("preserves discovery/administrator scope and never joins another building settings/runtime", async () => {
+    for (const path of ["/features/catalog", "/features/global", buildingPath(foreign), buildingPath(missing)]) assert.equal((await request(manager, path)).status, 403);
+    for (const path of ["/features/catalog", "/features/global", buildingPath()]) assert.equal((await request(outsider, path)).status, 403);
+    const local = states(await request(manager, buildingPath())), globalActor = states(await request(admin, buildingPath()));
+    assert.deepEqual(local, globalActor);
+    assert.deepEqual(byKey(local, "GAS"), { key: "GAS", enabled: false, globalEnabled: true, localEnabled: false, blockedBy: "BUILDING", version: 7, globalVersion: 0, resumedAt: stamp });
+    assert.equal(byKey(states(await request(admin, buildingPath(foreign))), "GAS").version, 101);
+  });
+  it("preserves missing404 only when a globally authorized session satisfies MFA", async () => {
+    await satisfied(admin); const response = await request(admin, buildingPath(missing));
+    assert.equal(response.status, 404); assert.equal("items" in (response.body as object), false);
+  });
+  it("serializes a normal HTTP feature PUT behind the reading transaction advisory lock", async t => {
+    const before = await request(manager, buildingPath(empty)); assert.deepEqual(states(before), defaults("building"));
+    const observation = observeTransactions(discoveryBoundary(empty), true), readController = new AbortController(), writeController = new AbortController();
+    const reading = request(manager, buildingPath(empty), readController); void reading.catch(() => undefined);
+    let writing: Promise<HttpResult> | undefined, failed = false;
+    try {
+      assert.equal(await bounded(Promise.race([observation.reached.promise.then(() => "boundary"), reading.then(() => "response")]), "read holds shared lock"), "boundary");
+      writing = request(admin, buildingPath(empty) + "/ENERGY_CONSUMPTION", writeController, "PUT", { enabled: false, version: 0, reason: "Prova de serialização HTTP" });
+      void writing.catch(() => undefined);
+      assert.equal(await bounded(Promise.race([observation.exclusiveAttempt.promise.then(() => "lock"), writing.then(() => "response")]), "HTTP writer reaches exclusive lock"), "lock");
+      const pid = observation.exclusivePid; assert.equal(typeof pid, "number");
+      // Observe PostgreSQL waiting, not an arbitrary sleep or guessed ordering.
+      await bounded((async () => {
+        const deadline = Date.now() + 4500;
+        while (Date.now() < deadline) {
+          const [waiting] = await sqlClient`select exists(select 1 from pg_locks
+            where pid=${pid!} and locktype='advisory' and classid=814772 and objid=1 and objsubid=2
+              and mode='ExclusiveLock' and not granted) as waiting`;
+          if (waiting?.waiting) return;
+          assert.equal(observation.exclusiveAcquired, false, "writer must not acquire while read is paused");
+          await new Promise<void>(resolve => setTimeout(resolve, 10));
+        }
+        throw new Error("PostgreSQL did not expose the expected advisory lock waiter");
+      })(), "PostgreSQL exclusive lock wait");
+      assert.equal(observation.exclusiveAcquired, false);
+      observation.release.resolve();
+      assert.deepEqual((await reading).body, before.body, "first GET retains pre-write state");
+      const written = states(await writing), next = states(await request(manager, buildingPath(empty)));
+      assert.equal(observation.exclusiveAcquired, true);
+      assert.equal(byKey(written, "ENERGY_CONSUMPTION").enabled, false);
+      assert.equal(byKey(written, "ENERGY_CONSUMPTION").version, 1);
+      assert.deepEqual(next, written);
+      t.diagnostic("Real HTTP PUT waited on the read shared advisory lock; this is not an owner bypass or an intrastatement snapshot proof");
+    } catch (error) { failed = true; throw error; }
+    finally {
+      observation.release.resolve(); readController.abort(); writeController.abort();
+      const results = await Promise.allSettled([
+        bounded(reading, "read settled"), ...(writing ? [bounded(writing, "write settled")] : []),
+      ]);
+      try { await observation.settleTransactions(); }
+      finally { observation.restore(); }
+      try {
+        await bounded(sqlClient.begin(async tx => {
+          await tx`set local lock_timeout='2s'`; await tx`set local statement_timeout='3s'`;
+          await tx`delete from building_feature_settings where building_id=${empty} and feature_key='ENERGY_CONSUMPTION'`;
+          await tx`delete from feature_runtime where building_id=${empty} and feature_key='ENERGY_CONSUMPTION'`;
+        }), "serialization fixture cleanup");
+      } finally {
+        if (!failed) { const failure = results.find(result => result.status === "rejected"); if (failure?.status === "rejected") throw failure.reason; }
+      }
+    }
+  });
+});

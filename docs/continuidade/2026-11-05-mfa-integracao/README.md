@@ -1,4 +1,45 @@
-# Retomada MFA — consultas de suporte
+# Retomada MFA — consultas de funcionalidades
+
+**Executado e revisado em 07/11/2026.** As três consultas de funcionalidades
+passaram em 22 entradas TAP dirigidas (19 casos independentes e três grupos).
+Os 26 arquivos de regressão passaram em 259 entradas, incluindo dez grupos.
+Total desta seleção: 281 entradas TAP, 268 casos independentes e 13 grupos.
+
+O conjunto contém 83 payloads: 79 candidatos de runtime/testes, dois testes
+renderer e dois arquivos query já publicados. São 1.026 arquivos e cinco suportes.
+A [montagem/restauração passou](../../evidencias/mfa-features-read-restore-2026-11-07.json),
+com os 1.026 arquivos e cinco suportes idênticos à composição testada. A
+restauração do suporte abaixo permanece histórica.
+
+GET /features/catalog revalida capacidade junto ao MFA. GET /features/global
+mantém os estados globais; GET /features/buildings/:buildingId reúne existência,
+configurações e runtime no mesmo envelope guardado, antes de decidir404.
+Preservam-se 24 funcionalidades, oito campos por estado, defaults, versões,
+valores nulos, dependências, opt-in e datas ISO. Mutações, helpers compartilhados,
+SQL068 e locks de funcionalidades permanecem intactos.
+
+O comparador reproduziu 12 falhas independentes: dez respostas200 e duas404
+onde se exigia403. Os corpos completos foram comparados aos controles positivos.
+As negativas cobrem ausência de fator, perda de prova no mesmo SID, promoção de
+gestor e revogação da capacidade do catálogo. Sete controles também passaram.
+As duas fixtures originais agora completam TOTP real somente nos atores HTTP
+administrativos; as assertivas e chamadas SQL diretas foram preservadas.
+
+O teste de PUT HTTP observou o escritor esperando o lock compartilhado da
+leitura, comparando estados anterior e posterior. Isso não é uma prova de
+interleaving dentro do statement. O diagnóstico delegado de execute também não
+conta builders select. Os fatores dos casos dirigidos são sintéticos.
+
+A revisão corrigiu a limpeza do teste concorrente antes de qualquer execução
+de banco: V2 aguarda todas as transações reais, inclusive o escritor. As quatro
+checagens de tipos V1 foram preservadas; as quatro V2 passaram separadamente.
+
+[Prova e limites](../../evidencias/mfa-features-read-2026-11-07.json).
+Próximos: precisão submilissegundo das listas de suporte, demais comandos e
+domínios, regressão integrada, Playwright real e aceites Android/iOS e operação.
+A política obrigatória continua candidata; runtime da main permanece001–067.
+
+## Rodada anterior: consultas de suporte
 
 **Executado e revisado em 07/11/2026.** Os 14 resultados TAP dirigidos e os 226 de
 regressão passaram em 24 processos. São 12 cenários dirigidos independentes e

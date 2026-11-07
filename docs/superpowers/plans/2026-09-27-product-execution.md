@@ -1,6 +1,6 @@
 # Execução da arquitetura de produto — Prédio ON
 
-**Avanço revisado em 07/11:** as consultas de suporte passaram nos oito cenários de concorrência, quatro controles e 23 arquivos de regressão. O checkpoint contém 75 arquivos candidatos, dois testes renderer e cinco suportes; runtime permanece 001–067. Próximos: funcionalidades, demais comandos/domínios, desempenho das listas, regressão integrada, Playwright real, aparelhos e operação. Ver [CONTINUIDADE.md](../../CONTINUIDADE.md).
+**Avanço revisado em 07/11:** as três consultas de funcionalidades passaram em19 casos dirigidos e26 arquivos de regressão. Checkpoint:79 candidatos, dois testes renderer e cinco suportes; runtime001–067. Restam precisão e desempenho do suporte, comandos/domínios, integração, Playwright real, aparelhos e operação. [CONTINUIDADE.md](../../CONTINUIDADE.md).
 
 Base aprovada: [arquitetura](../specs/2026-09-27-arquitetura-produto-design.md). A execução iniciada em `codex/product-platform` e continuada em `codex/continue-product-plan` já está integrada à `main`. Atualização de 04/11/2026: cliente MFA publicado em `9e79bde`, migrations 001–067; integração obrigatória ainda candidata. Commits e pushes seguem por meta verificada, conforme autorização do proprietário. Esta lista registra progresso real, sem considerar código não verificado como entregue. O ponto de retomada atualizado, inclusive em outra máquina, está em [CONTINUIDADE.md](../../CONTINUIDADE.md).
 

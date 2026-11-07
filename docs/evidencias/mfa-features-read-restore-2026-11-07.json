@@ -1,0 +1,89 @@
+{
+  "recordedOn": "2026-11-07",
+  "reviewedOn": "2026-11-07",
+  "restoredOn": "2026-11-07",
+  "runtimeExecutedOn": "2026-11-07",
+  "status": "FEATURES_READ_CANDIDATE_CANONICAL_SOURCE_RESTORE_PASSED",
+  "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+  "inputInventorySha256": "dba859711e18f1cb658761e5da90695ebd3b8abbd2df587754645213420f1522",
+  "testedPreparedSha256": "b0fe96cd2789f39ead9c90a972c4296cc7de2ba38142a8aa6f36eabd4a147685",
+  "all1026RestoredFilesMatchTestedComposition": true,
+  "baseFiles": 994,
+  "inventoryPayloads": 83,
+  "candidateRuntimeAndTests": 79,
+  "explicitRendererTests": 2,
+  "alreadyPublishedQueryPayloads": 2,
+  "qaSupportFiles": 5,
+  "manifestCandidateFiles": 81,
+  "manifestSha256": "0cb607cd6c3f6edbdc2134247737e7ba39ca6f097da0f72c6809fee5eee82e2d",
+  "receiptSha256": "0e842710f326eb5c858779b300e657511a162e1733e6c078ee36f97a15016b06",
+  "receipt": {
+    "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+    "sourceHeadBefore": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+    "canonicalBaseFiles": 994,
+    "candidateFiles": 81,
+    "qaSupportFiles": 5,
+    "status": "SOURCE_ONLY_NOT_TESTED_NOT_APPLIED",
+    "dependenciesInstalled": false,
+    "migrationsApplied": false,
+    "databaseStarted": false
+  },
+  "directedEvidenceSha256": "443ce1f33c2d22beac630627c5bc24d6914dacb8683073eb0021b2b15c2fb273",
+  "acceptedRuntimeCounts": {
+    "directedTap": 22,
+    "directedIndependent": 19,
+    "directedAggregateGroups": 3,
+    "regressionFiles": 26,
+    "regressionTap": 259,
+    "regressionAggregateGroups": 10,
+    "combinedTap": 281,
+    "combinedIndependent": 268,
+    "combinedAggregateGroups": 13
+  },
+  "comparison": "Canonical994 sources plus81 overlays equal the1026 tested sources; five renderer supports and receipt are additional. All source/payload/package hashes verified. Finalization also verifies canonical Git modes/OIDs/blobs before writing.",
+  "limits": [
+    "Restoration is source-only; it does not install dependencies, start services, apply migrations or rerun tests.",
+    "Selected runtime validation is281 TAP in27 processes, including13 aggregate groups and268 independent scenarios; it is not the whole API or production acceptance.",
+    "No controlled intrastatement snapshot proof; the normal HTTP PUT lock test is not an owner-bypass interleaving.",
+    "Support precision/latency, other commands/domains, integrated browser and native acceptance remain pending.",
+    "Input inventory/package README describe the builder inputs; later documentation metadata does not change frozen source payload bytes."
+  ],
+  "computerRestarted": false,
+  "productionAccepted": false,
+  "builder": {
+    "ownedPid": 36972,
+    "timedOut": false,
+    "exitCode": 0,
+    "childExitedAt": "2026-11-07T05:20:54.8505495Z",
+    "phase": "builder",
+    "durationMs": 4830.4018,
+    "guard": {
+      "at": "2026-11-07T05:20:49.9599049Z",
+      "minimumMiB": 1536,
+      "freeMiB": 3774.0,
+      "phase": "builder"
+    },
+    "heapMiB": 128,
+    "resultSha256": "500a4616c66f2c12f625420a3a17ef6a132b105a3711b13cc1673eb1cc4c1f38",
+    "stdoutSha256": "2630b5a6ec820f94cf6277ac1003639a57f2a054afdbdcd93485fad90933382b",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "restore": {
+    "ownedPid": 45088,
+    "timedOut": false,
+    "exitCode": 0,
+    "childExitedAt": "2026-11-07T05:21:01.7911672Z",
+    "phase": "restore",
+    "durationMs": 6477.6756,
+    "guard": {
+      "at": "2026-11-07T05:20:55.3083503Z",
+      "minimumMiB": 1536,
+      "freeMiB": 3752.0,
+      "phase": "restore"
+    },
+    "heapMiB": 128,
+    "resultSha256": "6597971ff2e7a77a6ff088663959f6093269688f1d8eb83de37f206ff3fb82b0",
+    "stdoutSha256": "5d235f6a30170e2aa45149c03b8e7aaf4b605e3f66b3f1e798763b632bc34c5a",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}
