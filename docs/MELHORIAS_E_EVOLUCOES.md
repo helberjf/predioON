@@ -1,5 +1,9 @@
 # Melhorias e novas implementações — Prédio ON
 
+**Novo aceite dirigido de MFA obrigatória:** [um cenário real do administrador passou](evidencias/mfa-mandatory-browser-2026-11-07.json): cadastro forçado, códigos retidos até confirmação, liberação do acesso e desativação recusada preservando o fator. Cobre autoridade pelo flag legado; binding global, demais domínios, concorrência e integração final continuam pendentes. [Fontes restauráveis e limites](continuidade/2026-11-07-browser-obrigatorio/RESULTADO.md).
+
+**P2 — texto do painel MFA já ativado:** a captura final ainda mostra a orientação “Cadastre seu autenticador” mesmo com o estado “Ativada”. Ajustar a orientação ao estado ativo, conservando o aviso de obrigatoriedade e os controles de segurança. Observação visual; ainda não implementada.
+
 **Correção validada no candidato V4:** o desafio de login permanece visível após a resposta MFA. [Três casos reais aprovados](evidencias/mfa-real-browser-v4-2026-11-07.json) e quatro regressões renderer passaram. O P0 de perda do formulário descrito abaixo foi corrigido nessa composição; integrar o conjunto completo continua pendente. [Fontes recuperáveis e próximo cenário obrigatório](continuidade/2026-11-07-browser-v4/RESULTADO.md).
 
 **Melhoria de carregamento a medir:** o build V4 gerou JavaScript principal de aproximadamente1,16MB (338kB gzip) e imagem de fundo de2,29MB. Avaliar carregamento por rota e otimização da imagem após medir em rede/dispositivo representativos; esses tamanhos não comprovam lentidão nem regressão de desempenho.

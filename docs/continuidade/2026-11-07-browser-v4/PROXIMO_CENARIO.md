@@ -1,3 +1,5 @@
+> Atualização posterior de07/11: o cenário obrigatório descrito como próximo nesta etapa já passou. Consulte o [resultado obrigatório e o pacote seguinte](../2026-11-07-browser-obrigatorio/RESULTADO.md). As notas abaixo preservam o estado da etapa V4.
+
 # Próximo cenário de MFA obrigatório
 
 Nota de autoria preservada abaixo. Atualização de root: os três casos V4 já passaram após corrigir o desafio de login; a proposta ADMIN abaixo continua não implementada/não executada. Use a V4 como fonte de partida e preserve o cenário opcional separado.

@@ -1,0 +1,17 @@
+# Resultado executado — MFA obrigatória no portal
+
+Em 07/11/2026, **um cenário independente passou** no Chromium, com um worker, zero retries, falhas ou skips, API real e PostgreSQL descartável. [Prova e hashes](../../evidencias/mfa-mandatory-browser-2026-11-07.json). A composição tem 1.032 arquivos e preserva todos os arquivos de produto da V4: acrescenta o teste obrigatório e altera somente o seletor de QA.
+
+O administrador da plataforma é criado pela API com o flag legado e recebe um vínculo local BUILDING_ADMIN. O login retorna `enrollment-required`, sem vínculos operacionais; a interface mostra o bloqueio e não monta a navegação. Uma leitura protegida com o mesmo bearer é recusada com `MFA_ENROLLMENT_REQUIRED`.
+
+A interface cadastra o autenticador por senha/TOTP e entrega dez códigos únicos. Fechar e Escape não descartam os códigos. Antes da confirmação de salvamento, a sessão já está satisfeita no servidor, mas a interface continua bloqueada. O observador de requisições da página não vê operações fora de autenticação antes da resposta200 de `/auth/me` iniciada após armar a confirmação; o corpo dessa resposta é verificado separadamente. Isso não mede toda montagem interna de providers nem estabelece atomicidade universal entre parsing e requisições.
+
+Após a confirmação, aparecem a navegação e o condomínio criado; leituras com o mesmo bearer comprovam o acesso e as capacidades de gestão de unidades/equipes. O diálogo mostra MFA ativa, dez códigos restantes, obrigatoriedade e nenhuma opção de desativar. Uma tentativa HTTP direta de desativação, com senha correta e código ainda válido, recebe403/`MFA_REQUIRED`; autenticador, códigos e sessão satisfeita são preservados.
+
+Passaram uma nova checagem de tipos E2E, seleção de um teste e novo build de produção do portal. A checagem de tipos do portal da V4 foi reaproveitada somente após comparar todos os arquivos de produto e a configuração; não é uma nova execução. As fontes e o build não mudaram durante o ensaio. O banco temporário foi removido, os seis papéis/credenciais/configurações restaurados, filhos diretos registrados encerrados e portas exclusivas fechadas. Não houve reinício do computador.
+
+[Restauração executada](../../evidencias/mfa-mandatory-browser-restore-2026-11-07.json): **1.032 arquivos idênticos** à composição testada. Sequência: checkpoint de85 payloads → V4 de seis arquivos → este pacote de dois arquivos de QA. O [README congelado](README.md) conserva as instruções de autoria; este resultado registra a execução posterior. Não aplicar a V3 nessa sequência. O runtime publicado continua com migrations001–067; a integração completa da política candidata segue pendente.
+
+A [imagem final](../../imagens/2026-11-07/mfa-obrigatoria-administrador.png) acompanha o Git e foi revisada. Três quadros do vídeo foram inspecionados; o vídeo bruto fica privado porque contém os códigos da fixture. Não se trata de uma demonstração completa do produto.
+
+Limites: este caso cobre o ADMIN pelo flag legado e vínculo local, não o ramo de autoridade concedida somente por binding global. Não cobre suporte, todas as combinações de autoridade, recuperação obrigatória em nova família de sessão, concorrência, demais portais, Firefox/WebKit ou apps nativos. Os três casos V4 e quatro casos renderer mantêm suas provas separadas. Ainda faltam domínios/comandos restantes, regressão integrada, matriz completa/Codegen, Android/iOS e operação; nenhuma aprovação de produção.

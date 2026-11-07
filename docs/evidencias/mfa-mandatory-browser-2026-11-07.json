@@ -1,0 +1,456 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-11-07",
+  "executedOn": "2026-11-07",
+  "reviewedOn": "2026-11-07",
+  "scope": "One real Chromium building-web scenario for mandatory MFA on a flag-based platform administrator with an explicit local building membership",
+  "sources": {
+    "preparedSha256": "2abbf1a7fa9c7d54f6f0a6fc12938b3b14a27fa8da823590e8d9acb71a09087f",
+    "priorBrowserV4PreparedSha256": "4cc08d2e503a00d14c4a1220b41ad30c7cc07072be5fc9c820bde5065c7e021b",
+    "rootFiles": 994,
+    "composedFiles": 1032,
+    "workspaceJunctions": 23,
+    "newExcludedCacheJunctions": 0,
+    "inheritedParentExcludedCacheJunctions": 7,
+    "onlyChangedExistingFile": "playwright.tenancy-candidate.config.ts",
+    "onlyNewFile": "e2e/specs/auth/platform-mfa.spec.ts",
+    "mandatorySpecSha256": "7816398e75928d853024173c10c9c804622d4c4a11bde18da566d09af8490dcb",
+    "testManifest": {
+      "id": "mfa-mandatory-browser-test-20261107/manifest.json",
+      "sha256": "1d1172ad03107baca0085c70afa58db66c04d149a6b13f9b7dd8ea66f38a82f7",
+      "bytes": 539
+    },
+    "allProductFilesMatchBrowserV4": true,
+    "observedHeadBefore": "ed00964eaf8c21cfc28a9af92c84ab19305f72ac",
+    "observedHeadAfter": "ed00964eaf8c21cfc28a9af92c84ab19305f72ac"
+  },
+  "preflights": [
+    {
+      "phase": "e2e",
+      "passed": true,
+      "durationMs": 7503,
+      "result": {
+        "id": "mfa-mandatory-browser-qa-20261107/checks/e2e/result.json",
+        "sha256": "41a2bfade86bb6e8014660efe8787315deecbd9fb94fe0abd8b764c3177640c7",
+        "bytes": 645
+      }
+    },
+    {
+      "phase": "list",
+      "passed": true,
+      "durationMs": 1519,
+      "result": {
+        "id": "mfa-mandatory-browser-qa-20261107/checks/list/result.json",
+        "sha256": "eeaa064cd6a61b5f355ad18f196f94b6937eb3158bfb55a98390a482425f08b3",
+        "bytes": 643
+      }
+    }
+  ],
+  "cases": [
+    {
+      "title": "administrador da plataforma conclui MFA obrigatória antes do acesso e não pode desativá-la",
+      "file": "auth/platform-mfa.spec.ts",
+      "project": "chromium",
+      "passed": true,
+      "retry": 0,
+      "durationMs": 5981,
+      "media": [
+        {
+          "kind": "screenshot",
+          "id": "mfa-mandatory-browser-qa-20261107/source/.local/tenancy-candidate-results/auth-platform-mfa-administ-c3acb-esso-e-não-pode-desativá-la-chromium/test-finished-1.png",
+          "sha256": "f6cdc856414dd5c39cf3c8fe1b495e35d1f22af0842b99858d58195d64991812",
+          "bytes": 93572
+        },
+        {
+          "kind": "video",
+          "id": "mfa-mandatory-browser-qa-20261107/source/.local/tenancy-candidate-results/auth-platform-mfa-administ-c3acb-esso-e-não-pode-desativá-la-chromium/video.webm",
+          "sha256": "84406c7d59ddc3089c1c10eec19d816defb567c6aa61122f629a38930651c80d",
+          "bytes": 629329
+        }
+      ]
+    }
+  ],
+  "gates": {
+    "browserCasesPassed": 1,
+    "browserFiles": 1,
+    "projects": 1,
+    "workers": 1,
+    "retries": 0,
+    "failures": 0,
+    "skipped": 0,
+    "flaky": 0,
+    "newTypeChecksPassed": 1,
+    "testListPassed": true,
+    "reusedBuildingTypeCheckPassed": true,
+    "buildProductionPassed": true,
+    "buildHashesBeforeAfterPassed": true,
+    "sourceHashesPassed": true,
+    "fixtureCleanupPassed": true,
+    "ownedChildrenExited": true,
+    "dedicatedPortsClosed": true,
+    "restrictedRolesCheckedBeforeApiListen": true,
+    "screenshots": 1,
+    "videos": 1
+  },
+  "reusedBuildingTypeCheck": {
+    "newExecutionClaimed": false,
+    "preparedSha256": "4cc08d2e503a00d14c4a1220b41ad30c7cc07072be5fc9c820bde5065c7e021b",
+    "exactProductSourceMapMatch": true,
+    "configSha256": "85b794ae5918f0911463094a65c6e5062914f1b41d5c6afeae59d64a2518d10c",
+    "result": {
+      "id": "mfa-real-browser-v4-qa-20261107/checks/building/result.json",
+      "sha256": "d0656a8fd17f9c490a2189ece4161d5e6cbc26471663d65be7a5c094732d170d",
+      "bytes": 650
+    }
+  },
+  "runtime": {
+    "startedUtc": "2026-11-07T14:15:28.443Z",
+    "endedUtc": "2026-11-07T14:52:40.933Z",
+    "guardMiB": 2048,
+    "phases": [
+      {
+        "phase": "before-build",
+        "freeMiB": 3449,
+        "minimumMiB": 2048
+      },
+      {
+        "phase": "before-building-build",
+        "freeMiB": 3449,
+        "minimumMiB": 2048
+      },
+      {
+        "phase": "before-fixture",
+        "freeMiB": 3407,
+        "minimumMiB": 2048
+      },
+      {
+        "phase": "before-provision",
+        "freeMiB": 2349,
+        "minimumMiB": 2048
+      },
+      {
+        "phase": "before-seed",
+        "freeMiB": 2364,
+        "minimumMiB": 2048
+      },
+      {
+        "phase": "before-playwright",
+        "freeMiB": 2617,
+        "minimumMiB": 2048
+      }
+    ],
+    "postServerMemory": {
+      "phase": "after-api-preview-before-browser",
+      "freeMiB": 2113,
+      "minimumMiB": 2048
+    },
+    "loopbackListeners": [
+      {
+        "LocalAddress": "127.0.0.1",
+        "LocalPort": 6974,
+        "OwningProcess": 41880
+      },
+      {
+        "LocalAddress": "127.0.0.1",
+        "LocalPort": 4800,
+        "OwningProcess": 44832
+      }
+    ],
+    "buildManifest": {
+      "id": "mfa-mandatory-browser-qa-20261107/building-dist-manifest.json",
+      "sha256": "273b0c3f8623b01a68078040aeaf38112bc2b87342c821da2087528e849cba93",
+      "bytes": 604
+    },
+    "cleanup": {
+      "exitCode": 0,
+      "systemIdentifierMatches": true,
+      "basePublicTables": 0,
+      "temporaryDatabases": 0,
+      "otherDatabases": 0,
+      "rolesRestoredIncludingPrivateCredentials": true,
+      "settingsRestored": true,
+      "roles": 6,
+      "otherClients": 0,
+      "containerAttestationMatches": true,
+      "freeMiBAtStart": 3539.0,
+      "freshFreeMiBBeforeController": 3538.0,
+      "dedicatedPortsClosed": true,
+      "computerRestarted": false,
+      "credentialsPublished": false
+    }
+  },
+  "mediaReview": {
+    "reviewedByRoot": true,
+    "mediaVisuallyReviewed": true,
+    "method": "screenshots and sampled video frames",
+    "allScreenshotsReviewed": true,
+    "allVideosSampled": true,
+    "framesPerVideo": 3,
+    "sampledFrames": [
+      {
+        "title": "administrador da plataforma conclui MFA obrigatória antes do acesso e não pode desativá-la",
+        "sampledFromVideoSha256": "84406c7d59ddc3089c1c10eec19d816defb567c6aa61122f629a38930651c80d",
+        "frames": [
+          {
+            "id": "mfa-mandatory-browser-qa-20261107/media-review/case-1-20.png",
+            "sha256": "d828f66749966c3aed40720658c963e943700a6bd83e13e1a4e764f9a47a72eb",
+            "bytes": 461674
+          },
+          {
+            "id": "mfa-mandatory-browser-qa-20261107/media-review/case-1-50.png",
+            "sha256": "4474a216d08e661eb9cdb026e9a40b8d6c48e7b4d5fed636889c9e412f7b9289",
+            "bytes": 107109
+          },
+          {
+            "id": "mfa-mandatory-browser-qa-20261107/media-review/case-1-85.png",
+            "sha256": "a4e9b3ac47c16f0b7cc5f04c887f63bc41fddf5696db0ed25dcd77ae6b107700",
+            "bytes": 313293
+          }
+        ]
+      }
+    ],
+    "fullVideosWatched": false,
+    "automaticPublication": false
+  },
+  "publicationPolicy": {
+    "rawMfaVideo": "private",
+    "automaticPublication": false,
+    "eligiblePublicVideos": []
+  },
+  "checks": [
+    "A separate platform administrator is created through the real users API and receives an explicit BUILDING_ADMIN membership; no factor or session proof is written directly by this case.",
+    "The UI login returns enrollment-required with empty operational memberships. The required gate is visible, navigation is absent and the protected building GET denies with MFA_ENROLLMENT_REQUIRED.",
+    "Real UI enrollment and TOTP confirmation return ten unique recovery codes; Close and Escape cannot dismiss the held ceremony, while its original UI bearer already reports satisfied at the server.",
+    "No page-originated non-auth API request is observed before the response event for a GET/auth/me initiated after acknowledgment is armed. That response body is then separately checked for the same identity, satisfied state and explicit membership.",
+    "After acknowledgment the page requests buildings, navigation becomes visible, saved codes leave the DOM, and direct reads using the original UI bearer prove the correct building plus units:manage and teams:manage capabilities.",
+    "The required settings UI offers no disable button. A direct real HTTP disable attempt with the same proven UI bearer denies403/MFA_REQUIRED and preserves the enabled factor, ten unused recovery codes and satisfied session state."
+  ],
+  "limits": [
+    "Exactly one independent required-MFA administrator case is accepted; prior three-case browser and renderer results remain separate evidence and are not added here.",
+    "Only the legacy flag-based ADMIN with one explicit local BUILDING_ADMIN membership is exercised. This does not cover support users, RBAC-only administrator grants, all authority combinations or new family verification-required recovery.",
+    "The network oracle is page.on(request), excluding separate APIRequestContext setup/assertion calls. Its boundary is the200 response event/headers for the post-arming acknowledgment GET/me, with body identity checked afterward; it is not internal provider-mount instrumentation or universal request/parsing linearization.",
+    "One Chromium worker and zero retries; no Firefox/WebKit matrix, Android, iOS, device, Codegen, full webapp or load acceptance.",
+    "This increment executes E2E types and one-case listing. The prior V4 building type result is reused only because all product sources and its config match exactly; no new building type execution is claimed.",
+    "A QA-only ESM startup entrypoint invokes the same application, restricted-role checks and event bus, then binds127.0.0.1; the product server.ts is preserved.",
+    "The frontend consumer is freshly built in production mode; API and fixture execute with NODE_ENV=test on a disposable UUID database.",
+    "Visual review means the final screenshot and three sampled video frames, not watching every frame or asserting exhaustive UX coverage.",
+    "The raw MFA video remains private because the scenario displays ephemeral factor/recovery material. No public video is eligible from this run; publication of a reviewed final screenshot is a separate root action.",
+    "The2048MiB memory requirement is a phase/startup guard, including the observation after API/preview startup. Heartbeats during the browser run are measurements, not a continuous2048MiB acceptance threshold.",
+    "No performance conclusion, production readiness, deployment, migration publication, commit or push is performed by this verifier."
+  ],
+  "inputs": [
+    {
+      "id": "mandatory-browser-proof-pins-20261107.json",
+      "sha256": "a63c86bab9cf501c0d3392ad8acd536a07756d1cec74daa33d2e509746b32bc1",
+      "bytes": 899
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/prepared.json",
+      "sha256": "2abbf1a7fa9c7d54f6f0a6fc12938b3b14a27fa8da823590e8d9acb71a09087f",
+      "bytes": 903580
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/run-browser.mjs",
+      "sha256": "394a3a12a0373cf0e3e4d974f04c2108704c49f75d8508c542ec338cca5733a0",
+      "bytes": 17134
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/launch-browser.ps1",
+      "sha256": "ae32def19ad95acd1d50c91989871bb4937b9fda5985198003d6adf9c3802d53",
+      "bytes": 12239
+    },
+    {
+      "id": "run-mandatory-browser-preflight-20261107.mjs",
+      "sha256": "eb1e32e2ece2df8bf3eccc4f9b656b07f533088fd451ac7b7e00978560064350",
+      "bytes": 6286
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/prepared.json",
+      "sha256": "4cc08d2e503a00d14c4a1220b41ad30c7cc07072be5fc9c820bde5065c7e021b",
+      "bytes": 902799
+    },
+    {
+      "id": "mfa-mandatory-browser-test-20261107/manifest.json",
+      "sha256": "1d1172ad03107baca0085c70afa58db66c04d149a6b13f9b7dd8ea66f38a82f7",
+      "bytes": 539
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/tsconfig.browser.json",
+      "sha256": "3e48da9729a5596b2628091dfc61690307ba9000081e2a345b6869c8f52c9691",
+      "bytes": 326
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/tsconfig.building-qa.json",
+      "sha256": "85b794ae5918f0911463094a65c6e5062914f1b41d5c6afeae59d64a2518d10c",
+      "bytes": 117
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/dependency-resolution.json",
+      "sha256": "911c25db5835c5813e79b4a35b6c9333bd5da07dd53208f5f3e4a45a4147a346",
+      "bytes": 2529
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/source-pin.manifest.json",
+      "sha256": "3229f7e5df9c2b75f7efd40fe0e793fd3a7de74ae3e57d641a7775531b47cba3",
+      "bytes": 144503
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/checks/e2e/stdout.log",
+      "sha256": "27d3752c4722a68a8142c8aac957f48d9877315a42f39da3889051ccbfbf46c5",
+      "bytes": 147559
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/checks/e2e/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/checks/e2e/result.json",
+      "sha256": "41a2bfade86bb6e8014660efe8787315deecbd9fb94fe0abd8b764c3177640c7",
+      "bytes": 645
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/checks/e2e/command.json",
+      "sha256": "3a629d6fc10927a3ca8d7dab5a892b9ea1fadec3967ecf24db6e327266eba8a9",
+      "bytes": 1367
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/checks/e2e/guard.json",
+      "sha256": "8e7ddfd948e95b98c5e64ade3f55475642df6c03ce3a909fc87b41c6bee9b267",
+      "bytes": 80
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/checks/e2e/spawn.json",
+      "sha256": "e9d17755cd85ab615e28cd3f760a7c61f7c2086732da9a6de189d85e1fff2864",
+      "bytes": 68
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/checks/list/stdout.log",
+      "sha256": "6fa979805871d980de392f7d2ab59779afe394ba66cfe5d692b062ba16419ffb",
+      "bytes": 185
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/checks/list/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/checks/list/result.json",
+      "sha256": "eeaa064cd6a61b5f355ad18f196f94b6937eb3158bfb55a98390a482425f08b3",
+      "bytes": 643
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/checks/list/command.json",
+      "sha256": "0474780356cba8284cdb95e951adc788e4952fc0713946386e89ced3bbaa9b91",
+      "bytes": 1444
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/checks/list/guard.json",
+      "sha256": "8110e8d472906e33723439623d767328cb11a82a09e9713be859cbb31bfc9f36",
+      "bytes": 80
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/checks/list/spawn.json",
+      "sha256": "7b9e3c257ecdb2b1798175ba3b1637ef10db230ed481bb76466cde8fee4f4a17",
+      "bytes": 68
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/checks/building/stdout.log",
+      "sha256": "cbcb7f7e350921dd3c513299e4a66c68a433c29f86f67681c7f6914339b8fc0f",
+      "bytes": 71001
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/checks/building/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/checks/building/result.json",
+      "sha256": "d0656a8fd17f9c490a2189ece4161d5e6cbc26471663d65be7a5c094732d170d",
+      "bytes": 650
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/checks/building/command.json",
+      "sha256": "69e407dd04cab66bb36f0e0f2e01ebed4fd8300b83045edeaadaeefe76848414",
+      "bytes": 1372
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/browser-result.json",
+      "sha256": "d8f72f84dd0c832ad858bb18c684ad838b67aa797ffad59347ee9ac57682168a",
+      "bytes": 4781
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/browser-postchecks.json",
+      "sha256": "da07822d3b36b92abe555a8afcf3861b893f5d70f6bf034553951f6921aba556",
+      "bytes": 466
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/controller-start.json",
+      "sha256": "921a155e2c812a48474dcef148592c85ee5d96e5cb8462bc95b5858f7c4c35c7",
+      "bytes": 386
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/owned-database.json",
+      "sha256": "08654dbde1fe452b03f85d78671cc1a4814ef87e67f8a314b29348bc851892b7",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/building-build.log",
+      "sha256": "7ba44f859f9fd896cd4f3b7ad42601c9506a113f2b5f86c49537b1b5fff368b4",
+      "bytes": 1912
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/building-build.events.jsonl",
+      "sha256": "c9c723547c52364e36667bb7dd468db1ec719f862769286ceb94334cb2712a71",
+      "bytes": 1741
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/provision.events.jsonl",
+      "sha256": "339eb220af15572fee87dc10a04cb1e0e718849158379c07278985427e19dede",
+      "bytes": 670
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/seed.events.jsonl",
+      "sha256": "c5ca6ef559115e4a79a13dd5021024f6387938df3d58e3574f25adae8fd3dae4",
+      "bytes": 771
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/playwright.log",
+      "sha256": "32b8a6f7ba388c480f49c52061d741118fa263fb71a2d77795b83d9ae3a3db19",
+      "bytes": 1027
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/playwright.events.jsonl",
+      "sha256": "5350fbcfda73333328a3a084c181bc94ca344e680f0a604b5bea95accbed1b62",
+      "bytes": 2255
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/building-dist-manifest.json",
+      "sha256": "273b0c3f8623b01a68078040aeaf38112bc2b87342c821da2087528e849cba93",
+      "bytes": 604
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/source/.local/tenancy-candidate-results.json",
+      "sha256": "e3e85e2ce53f40838363bb4d7e035838d1ab749ef99ea2d4b2b68db6ec806176",
+      "bytes": 4982
+    }
+  ],
+  "authorScript": {
+    "id": "verify-mandatory-browser-results-20261107.py",
+    "sha256": "74bac1f29ca68e8728fd885badbe39b7fc045a101eae20b2555637d02fb8500c",
+    "bytes": 25054
+  },
+  "computerRestarted": false,
+  "performanceAssessed": false,
+  "productionAccepted": false
+}

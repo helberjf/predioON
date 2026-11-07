@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "recordedOn": "2026-11-07",
+  "status": "AUTHORED_NOT_EXECUTED",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+      "bytes": 8
+    },
+    {
+      "path": "MANIFEST.json",
+      "sha256": "c3d18e4d551092e4d904d9beb016d0be388f037c9decbd9ca2d8feb87b8fbc65",
+      "bytes": 382579
+    },
+    {
+      "path": "README.md",
+      "sha256": "d0359d83e855a7ec994da1e802cbbeb5c8066aa262d20dc6a48546dca1aa8f5d",
+      "bytes": 4861
+    },
+    {
+      "path": "apply-browser-qa.mjs",
+      "sha256": "2050091ee450f8412e0ff8d5d602b20e28e05b6c0b7f7f69cb8b2781aac4aa7a",
+      "bytes": 7348
+    },
+    {
+      "path": "payload/e2e/specs/auth/platform-mfa.spec.ts.txt",
+      "sha256": "7816398e75928d853024173c10c9c804622d4c4a11bde18da566d09af8490dcb",
+      "bytes": 12817
+    },
+    {
+      "path": "payload/playwright.tenancy-candidate.config.ts.txt",
+      "sha256": "44a3f486e21598648ca4c0a3d7e9fd95a438143c7a6838f829b0bcf3209e7f27",
+      "bytes": 3009
+    }
+  ]
+}

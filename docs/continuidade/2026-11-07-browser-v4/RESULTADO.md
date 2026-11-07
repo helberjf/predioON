@@ -1,3 +1,5 @@
+> Atualização posterior de07/11: o cenário obrigatório descrito como próximo nesta etapa já passou. Consulte o [resultado obrigatório e o pacote seguinte](../2026-11-07-browser-obrigatorio/RESULTADO.md). As notas abaixo preservam o estado da etapa V4.
+
 # Resultado executado e revisado — V4
 
 A única mudança de produto desde V3 é a chave do provedor de cerimônia: a tela anônima permanece montada ao aguardar o desafio MFA. Login concluído, logout e troca real de identidade continuam recriando o estado privado. Os três casos e suas expectativas são idênticos aos da tentativa V3 que reproduziu o defeito.

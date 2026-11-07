@@ -1,0 +1,23 @@
+{
+  "recordedOn": "2026-11-07",
+  "preparedSha256": "2abbf1a7fa9c7d54f6f0a6fc12938b3b14a27fa8da823590e8d9acb71a09087f",
+  "observedHead": "ed00964eaf8c21cfc28a9af92c84ab19305f72ac",
+  "candidateFiles": 1032,
+  "browser": "Chromium",
+  "backend": "real API and disposable PostgreSQL",
+  "data": "fictitious isolated fixtures",
+  "media": [
+    {
+      "file": "mfa-obrigatoria-administrador.png",
+      "sha256": "f6cdc856414dd5c39cf3c8fe1b495e35d1f22af0842b99858d58195d64991812",
+      "bytes": 93572,
+      "width": 1280,
+      "height": 800,
+      "case": "administrador da plataforma conclui MFA obrigatória antes do acesso e não pode desativá-la",
+      "passed": true,
+      "visuallyReviewed": true
+    }
+  ],
+  "rawMfaVideoPublished": false,
+  "productionAccepted": false
+}

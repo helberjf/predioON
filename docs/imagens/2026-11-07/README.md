@@ -1,5 +1,9 @@
 # Capturas reais de QA — 07/11/2026
 
+## MFA obrigatória — administrador da plataforma
+
+[Imagem final ativa](mfa-obrigatoria-administrador.png), [manifesto](manifesto-obrigatorio.json), [resultado e limites](../../continuidade/2026-11-07-browser-obrigatorio/RESULTADO.md). Um novo caso real passou, com flag legado e vínculo local; preservou os dez códigos após a tentativa proibida de desativação. Não exibe o valor dos códigos. A mídia foi copiada sem edição, em1280×800; vídeo bruto MFA privado.
+
 ## Versão corrigida V4 — três casos aprovados
 
 [Manifesto das três novas imagens](manifesto-v4.json), [prova Playwright](../../evidencias/mfa-real-browser-v4-2026-11-07.json) e [clipes de QA](../../videos/2026-11-07/README.md). Mesmas condições1280×800/API real/PostgreSQL isolado; as capturas finais foram revisadas e copiadas sem edição.

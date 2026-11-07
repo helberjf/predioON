@@ -1,0 +1,43 @@
+{
+  "recordedOn": "2026-11-07T14:07:07.654Z",
+  "sourceHtmlSha256": "ddd9d408f16e0c6320cf5b8804d57c13e40b75f3f628fc45363644058e78e28e",
+  "mode": "Chromium local file gallery, no application/API/HTTP server started",
+  "imagesLoaded": 41,
+  "videos": [
+    {
+      "source": "videos/2026-11-07/estrutura-edicao.webm",
+      "duration": 7.68,
+      "readyState": 4
+    },
+    {
+      "source": "videos/2026-11-07/estrutura-status.webm",
+      "duration": 5.76,
+      "readyState": 4
+    }
+  ],
+  "filters": [
+    {
+      "key": "android",
+      "visible": 9
+    },
+    {
+      "key": "ios",
+      "visible": 9
+    },
+    {
+      "key": "web",
+      "visible": 23
+    },
+    {
+      "key": "all",
+      "visible": 41
+    }
+  ],
+  "lightboxOpenedClosed": true,
+  "failedRequests": [],
+  "pageErrors": [],
+  "screenshotSha256": "cb46d1682bd13900cd289d2a4ff5245484aa2221421ebbb22f6a4f1b9a76ce6c",
+  "productionAccepted": false,
+  "sourceCommit": "ed00964eaf8c21cfc28a9af92c84ab19305f72ac",
+  "screenshotVisuallyReviewed": true
+}

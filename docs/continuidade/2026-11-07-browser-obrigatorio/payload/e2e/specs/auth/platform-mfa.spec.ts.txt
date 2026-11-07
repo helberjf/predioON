@@ -1,0 +1,215 @@
+import { expect, test, type Request, type Response } from "../../support/fixtures";
+import { API_URL, BUILDING_URL, DEMO_PASSWORD } from "../../support/environment";
+import { adminFixtures } from "../../support/helpers";
+import { base32Decode, totpCode, totpStep } from "../../../apps/api/src/auth/totp";
+import type { AuthUser, MfaStatus, WebSession } from "../../../packages/contracts/src/auth";
+
+type Administrator = { id: string; name: string; email: string; active: boolean; isPlatformAdmin: boolean };
+type Membership = { userId: string; buildingId: string; role: string; active: boolean };
+type Refusal = { details?: { reason?: string } };
+
+test("administrador da plataforma conclui MFA obrigatória antes do acesso e não pode desativá-la", async ({ page, request }) => {
+  // The existing isolated ADMIN alias prepares data through its real MFA-proved
+  // HTTP session. A separate new flag-based platform administrator owns the UI.
+  const setup = await adminFixtures(request);
+  const building = await setup.createBuilding("MFA");
+  const actor = await setup.api.create<Administrator>("/users", {
+    name: `E2E ADMIN MFA ${setup.suffix}`,
+    email: `admin-mfa-${setup.suffix}@predioon.local`,
+    password: DEMO_PASSWORD,
+    isPlatformAdmin: true,
+  });
+  expect(actor.active).toBe(true);
+  expect(actor.isPlatformAdmin).toBe(true);
+  const membership = await setup.api.create<Membership>("/users/memberships", {
+    userId: actor.id, buildingId: building.id, role: "BUILDING_ADMIN",
+  });
+  expect(membership.userId).toBe(actor.id);
+  expect(membership.buildingId).toBe(building.id);
+  expect(membership.role).toBe("BUILDING_ADMIN");
+  expect(membership.active).toBe(true);
+
+  // Only page-originated traffic is observed. APIRequestContext setup/assertion
+  // requests are separate. Store method/path only, never headers or response bodies.
+  const apiOrigin = new URL(API_URL).origin;
+  const prematureOperationalRequests: string[] = [];
+  let acknowledgmentArmed = false;
+  let acknowledgmentProfileAccepted = false;
+  const acknowledgmentRequests = new Set<Request>();
+  const pathOf = (url: string) => {
+    const parsed = new URL(url);
+    return parsed.origin === apiOrigin ? parsed.pathname : null;
+  };
+  const observeRequest = (sent: Request) => {
+    const path = pathOf(sent.url());
+    if (acknowledgmentArmed && sent.method() === "GET" && path === "/auth/me") acknowledgmentRequests.add(sent);
+    if (path && !path.startsWith("/auth/") && !acknowledgmentProfileAccepted) {
+      prematureOperationalRequests.push(`${sent.method()} ${path}`);
+    }
+  };
+  const observeResponse = (received: Response) => {
+    // Synchronous marker: do not await JSON here and misclassify later page requests.
+    if (acknowledgmentRequests.has(received.request()) && received.request().method() === "GET"
+        && pathOf(received.url()) === "/auth/me" && received.status() === 200) {
+      acknowledgmentProfileAccepted = true;
+    }
+  };
+  const noPrematureRequests = () => {
+    expect(prematureOperationalRequests, "No operational API request from this page before acknowledgment /me succeeds").toEqual([]);
+  };
+  page.on("request", observeRequest);
+  page.on("response", observeResponse);
+  try {
+    await page.goto(`${BUILDING_URL}/login`);
+    await page.getByLabel("E-mail", { exact: true }).fill(actor.email);
+    await page.getByLabel("Senha", { exact: true }).fill(DEMO_PASSWORD);
+    const loginResponse = page.waitForResponse(received => received.request().method() === "POST"
+      && received.url() === `${API_URL}/auth/web/login`);
+    await page.getByRole("button", { name: "Entrar", exact: true }).click();
+    const loggedIn = await loginResponse;
+    expect(loggedIn.status()).toBe(200);
+    const session = await loggedIn.json() as WebSession;
+    expect(session.user.id).toBe(actor.id);
+    expect(session.user.email).toBe(actor.email);
+    expect(session.user.role).toBe("PLATFORM_ADMIN");
+    expect(session.user.mfaRequirement).toBe("enrollment-required");
+    expect(session.user.memberships).toEqual([]);
+    // Keep this original UI bearer only in memory. Every direct actor assertion
+    // below uses it; no second login or synthetic factor/session proof is created.
+    expect(typeof session.accessToken === "string" && session.accessToken.length > 0).toBe(true);
+    const headers = Object.freeze({ Authorization: `Bearer ${session.accessToken}` });
+    const protectedPath = `${API_URL}/buildings/${encodeURIComponent(building.id)}`;
+    const dialog = page.getByRole("dialog", { name: "Verificação em duas etapas", exact: true });
+    const gate = page.getByRole("main", { name: "Verificação obrigatória da sessão", exact: true, includeHidden: true });
+    const navigation = page.getByRole("navigation", { name: "Menu principal", exact: true, includeHidden: true });
+    await expect(gate).toBeVisible();
+    await expect(dialog).toBeVisible();
+    await expect(navigation).toHaveCount(0);
+    await expect(dialog.getByText("Desativada", { exact: true })).toBeVisible();
+    noPrematureRequests();
+
+    const blocked = await request.get(protectedPath, { headers });
+    expect(blocked.status()).toBe(403);
+    expect((await blocked.json() as Refusal).details?.reason).toBe("MFA_ENROLLMENT_REQUIRED");
+    const initialStatus = await request.get(`${API_URL}/auth/mfa`, { headers });
+    expect(initialStatus.status()).toBe(200);
+    expect(await initialStatus.json() as MfaStatus).toEqual({
+      enabled: false, pending: false, recoveryCodesRemaining: 0, available: true,
+    });
+    noPrematureRequests();
+
+    await dialog.getByRole("button", { name: "Ativar verificação", exact: true }).click();
+    const enroll = dialog.getByRole("form", { name: "Ativar verificação em duas etapas", exact: true });
+    await enroll.getByLabel("Senha atual", { exact: true }).fill(DEMO_PASSWORD);
+    const enrollmentResponse = page.waitForResponse(received => received.request().method() === "POST"
+      && received.url() === `${API_URL}/auth/mfa/enroll`);
+    await enroll.getByRole("button", { name: "Continuar", exact: true }).click();
+    expect((await enrollmentResponse).status()).toBe(200);
+    const confirm = dialog.getByRole("form", { name: "Confirmar código do autenticador", exact: true });
+    const encoded = await confirm.getByLabel("Chave de configuração", { exact: true }).inputValue();
+    expect(/^[A-Z2-7]{32}$/.test(encoded), "The real enrollment supplies a valid TOTP key").toBe(true);
+    const secret = base32Decode(encoded);
+    expect(secret !== null).toBe(true);
+    if (!secret) throw new Error("Invalid TOTP key from real enrollment");
+    await confirm.getByLabel("Código do aplicativo", { exact: true }).fill(totpCode(secret, totpStep(Date.now())));
+    const confirmationResponse = page.waitForResponse(received => received.request().method() === "POST"
+      && received.url() === `${API_URL}/auth/mfa/confirm`);
+    await confirm.getByRole("button", { name: "Confirmar e ativar", exact: true }).click();
+    expect((await confirmationResponse).status()).toBe(200);
+    const codeItems = dialog.getByRole("list", { name: "Códigos de recuperação", exact: true }).getByRole("listitem");
+    await expect(codeItems).toHaveCount(10);
+    const codes = await codeItems.allTextContents();
+    expect(new Set(codes).size).toBe(10);
+    expect(codes.every(code => code.trim().length >= 6)).toBe(true);
+    await expect(dialog.getByRole("button", { name: "Fechar", exact: true })).toBeDisabled();
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeVisible();
+    await expect(codeItems).toHaveCount(10);
+    await expect(gate).toBeVisible();
+    await expect(navigation).toHaveCount(0);
+    noPrematureRequests();
+
+    // Confirmation already proved this exact family at the server. The UI still
+    // must retain its codes and keep private providers closed until acknowledgment.
+    const provenBeforeAck = await request.get(`${API_URL}/auth/me`, { headers });
+    expect(provenBeforeAck.status()).toBe(200);
+    const proven = await provenBeforeAck.json() as AuthUser;
+    expect(proven.id).toBe(actor.id);
+    expect(proven.mfaRequirement).toBe("satisfied");
+    await expect(gate).toBeVisible();
+    await expect(codeItems).toHaveCount(10);
+    noPrematureRequests();
+
+    const acknowledgedProfile = page.waitForResponse(received => acknowledgmentRequests.has(received.request())
+      && received.request().method() === "GET" && received.url() === `${API_URL}/auth/me`);
+    const buildingsLoaded = page.waitForResponse(received => received.request().method() === "GET"
+      && received.url() === `${API_URL}/buildings`);
+    acknowledgmentArmed = true;
+    await dialog.getByRole("button", { name: "Já guardei os códigos", exact: true }).click();
+    const acknowledged = await acknowledgedProfile;
+    expect(acknowledged.status()).toBe(200);
+    const current = await acknowledged.json() as AuthUser;
+    expect(current.id).toBe(actor.id);
+    expect(current.mfaRequirement).toBe("satisfied");
+    expect(current.memberships).toEqual([{ buildingId: building.id, role: "BUILDING_ADMIN" }]);
+    const buildingsResponse = await buildingsLoaded;
+    expect(buildingsResponse.status()).toBe(200);
+    const discovered = await buildingsResponse.json() as { items: { id: string }[] };
+    expect(discovered.items.some(item => item.id === "bld_001"), "The legacy platform flag also discovers the seeded property").toBe(true);
+    expect(discovered.items.some(item => item.id === building.id)).toBe(true);
+    await expect(dialog).toBeHidden();
+    await expect(gate).toHaveCount(0);
+    await expect(navigation).toBeVisible();
+    expect(acknowledgmentProfileAccepted).toBe(true);
+    noPrematureRequests();
+    const pageAfterAck = await page.content();
+    expect(codes.some(code => pageAfterAck.includes(code)), "Acknowledged recovery codes leave the DOM").toBe(false);
+
+    // SQL021 accepts the legacy flag for global discovery, without a separate
+    // global binding. Select the isolated property; its local membership is explicit.
+    const selector = page.getByLabel("Condomínio em uso", { exact: true });
+    await expect(selector).toBeVisible();
+    await selector.selectOption(building.id);
+    await expect(selector).toHaveValue(building.id);
+    const allowed = await request.get(protectedPath, { headers });
+    expect(allowed.status()).toBe(200);
+    const visibleBuilding = await allowed.json() as { id: string; name: string; organizationId: string };
+    expect(visibleBuilding.id).toBe(building.id);
+    expect(visibleBuilding.name).toBe(building.name);
+    expect(visibleBuilding.organizationId).toBe(building.organizationId);
+    const permission = await request.get(`${API_URL}/v1/authorization?buildingId=${encodeURIComponent(building.id)}`, { headers });
+    expect(permission.status()).toBe(200);
+    const capabilities = (await permission.json() as { capabilities: string[] }).capabilities;
+    expect(capabilities).toContain("units:manage");
+    expect(capabilities).toContain("teams:manage");
+
+    await page.getByRole("link", { name: "Minhas sessões", exact: true }).click();
+    await page.getByRole("button", { name: "Gerenciar verificação", exact: true }).click();
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByText("Ativada", { exact: true })).toBeVisible();
+    await expect(dialog.getByText("10 código(s) de recuperação disponível(is)", { exact: true })).toBeVisible();
+    await expect(dialog.getByText("O autenticador está cadastrado. A verificação é obrigatória para o acesso administrativo.", { exact: true })).toBeVisible();
+    await expect(dialog.getByRole("button", { name: "Desativar verificação", exact: true })).toHaveCount(0);
+
+    const deniedDisable = await request.post(`${API_URL}/auth/mfa/disable`, {
+      headers, data: { currentPassword: DEMO_PASSWORD, code: codes[0]! },
+    });
+    expect(deniedDisable.status()).toBe(403);
+    expect((await deniedDisable.json() as Refusal).details?.reason).toBe("MFA_REQUIRED");
+    const afterDenial = await request.get(`${API_URL}/auth/mfa`, { headers });
+    expect(afterDenial.status()).toBe(200);
+    expect(await afterDenial.json() as MfaStatus).toEqual({
+      enabled: true, pending: false, recoveryCodesRemaining: 10, available: true,
+    });
+    const afterDenialProfile = await request.get(`${API_URL}/auth/me`, { headers });
+    expect(afterDenialProfile.status()).toBe(200);
+    const stillProven = await afterDenialProfile.json() as AuthUser;
+    expect(stillProven.id).toBe(actor.id);
+    expect(stillProven.mfaRequirement).toBe("satisfied");
+    const finalPage = await page.content();
+    expect(codes.some(code => finalPage.includes(code))).toBe(false);
+  } finally {
+    page.off("request", observeRequest);
+    page.off("response", observeResponse);
+  }
+});

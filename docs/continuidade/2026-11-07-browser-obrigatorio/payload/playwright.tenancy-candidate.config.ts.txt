@@ -1,0 +1,68 @@
+import { defineConfig } from "@playwright/test";
+import { resolve } from "node:path";
+import base from "./playwright.config";
+import { API_URL, BUILDING_URL, E2E_PORT_OFFSET } from "./e2e/support/environment";
+
+// Test-only configuration for a NEW copied tree. Never apply this file to main
+// or the frozen b4fee composition. The controller provisions the existing
+// official disposable fixture and builds only building-web before this phase.
+if (process.env.E2E_TENANCY_CANDIDATE !== "1" || E2E_PORT_OFFSET !== 1700
+    || process.env.NODE_ENV !== "test") {
+  throw new Error("Explicit isolated tenancy browser recipe required");
+}
+for (const name of ["DATABASE_URL", "DATABASE_URL_APP", "DATABASE_URL_IDENTITY", "DATABASE_URL_BROKER_AUTH"]) {
+  if (!process.env[name]) throw new Error(`Missing explicit fixture environment: ${name}`);
+}
+if (!Array.isArray(base.webServer) || base.webServer.length !== 4
+    || base.webServer[0].url !== `${API_URL}/health/ready` || base.webServer[2].url !== BUILDING_URL) {
+  throw new Error("Reviewed base server layout changed");
+}
+const [api, , building] = base.webServer;
+
+export default defineConfig({
+  ...base,
+  testMatch: ["**/auth/platform-mfa.spec.ts"],
+  fullyParallel: false,
+  workers: 1,
+  retries: 0,
+  use: {
+    ...base.use,
+    viewport: { width: 1280, height: 800 },
+    screenshot: "on",
+    video: { mode: "on", size: { width: 1280, height: 800 } },
+    trace: "off",
+  },
+  projects: [{ name: "chromium", use: { browserName: "chromium" } }],
+  outputDir: ".local/tenancy-candidate-results",
+  reporter: [["list"], ["json", { outputFile: ".local/tenancy-candidate-results.json" }],
+    ["html", { outputFolder: ".local/tenancy-candidate-report", open: "never" }]],
+  globalSetup: "./e2e/support/tenancy-candidate-memory.ts",
+  webServer: [
+    {
+      ...api,
+      command: "node --max-old-space-size=384 --import tsx ../../qa/browser-api-loopback.mts",
+      cwd: resolve(__dirname, "apps/api"),
+      env: {
+        ...api.env,
+        // The Playwright fixture owns setup; the API retains only its three
+        // restricted role URLs. Empty values override inherited owner/unused URLs.
+        DATABASE_URL: "", DATABASE_URL_NOTIFICATIONS: "", DATABASE_URL_INGEST: "",
+        DATABASE_URL_ACCESS_SERVICE: "", TEST_INGEST_DATABASE_URL: "",
+      },
+      reuseExistingServer: false,
+    },
+    {
+      ...building,
+      command: `node --max-old-space-size=384 node_modules/vite/bin/vite.js preview --host 127.0.0.1 --port ${new URL(BUILDING_URL).port} --strictPort`,
+      cwd: resolve(__dirname, "apps/building-web"),
+      env: {
+        VITE_API_URL: API_URL, VITE_RESIDENT_URL: "",
+        DATABASE_URL: "", DATABASE_URL_APP: "", DATABASE_URL_IDENTITY: "",
+        DATABASE_URL_BROKER_AUTH: "", DATABASE_URL_NOTIFICATIONS: "",
+        DATABASE_URL_INGEST: "", DATABASE_URL_ACCESS_SERVICE: "",
+        TEST_INGEST_DATABASE_URL: "", AUTH_RATE_LIMIT_KEY: "", MFA_ENCRYPTION_KEY: "",
+      },
+      reuseExistingServer: false,
+    },
+  ],
+});
