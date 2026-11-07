@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "status": "CANONICAL_SUPPORT_ORDER_VALIDATED_RESTORED_CANDIDATE",
+  "status": "CANONICAL_TENANCY_COMMANDS_VALIDATED_RESTORED_CANDIDATE",
   "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
   "plannedBase": "Approved published source base53c4c70; current documentation may be newer.",
   "sourceBaseline": "2676a74216b012dcab6fa2fb9735dc1b6ef8e9d8",
@@ -748,9 +748,9 @@
       "beforeSha256": "2d2fcd5eace979677565cdf1f084128ea4a735f74d2bb8824249b29922c69e60",
       "beforeGitSha256": "2d2fcd5eace979677565cdf1f084128ea4a735f74d2bb8824249b29922c69e60",
       "beforeGitObject": "62c828c1f209775f4decd7e67bd30378f74e0f55",
-      "afterSha256": "3b215f5b55a3a23fcac4a79c30ba8750d4b59a491ddf3bf64a4e5b059acd2af1",
-      "bytes": 32424,
-      "component": "invitations-read-mfa",
+      "afterSha256": "4089f119bb6e38367a09c7b17abeb950120e4524d9c379c49ea689ea870ef7f4",
+      "bytes": 36511,
+      "component": "tenancy-commands-mfa",
       "kind": "runtime"
     },
     {
@@ -928,11 +928,22 @@
       "bytes": 9379,
       "component": "support-timestamp-order",
       "kind": "database-test"
+    },
+    {
+      "path": "apps/api/test/platform-mfa-tenancy-commands.test.ts",
+      "payload": "payload/runtime/apps/api/test/platform-mfa-tenancy-commands.test.ts.txt",
+      "beforeSha256": null,
+      "beforeGitSha256": null,
+      "beforeGitObject": null,
+      "afterSha256": "d9ae0f7e1264dc29ae06dc9146b58839f1b21030936d9c34df6a14c1618e7ff0",
+      "bytes": 33572,
+      "component": "tenancy-commands-mfa",
+      "kind": "database-test"
     }
   ],
   "pending": [
-    "Complete remaining SQL/SD/no-match mutations, locks/triggers and integrated regressions; support order2 and selected regression18 TAP entries are finite isolated validations, not API integral or global rollout.",
-    "Investigate support mine latency with controlled repeated measurements; timestamp-order validation makes no performance claim.",
+    "Complete remaining SQL/SD/no-match mutations, locks/triggers and integrated regressions; tenancy commands35 and selected regression57 TAP entries are finite isolated validations, not API integral or global rollout.",
+    "Investigate support mine latency separately; command validation makes no performance claim.",
     "Renderer staging recipe remains authored and not executed; do not transfer its earlier separate harness PASS."
   ],
   "excluded": [
@@ -1072,5 +1083,12 @@
     "sourceManifestSha256": "584ccec2f15290e7a80b10c63543359c9e38ca2806121c3614638f2e7a5bf328",
     "scope": "Support timestamp order2 TAP plus2 selected regression files18; full PostgreSQL ordering and exact public DTO13/6; shared helper, SQL, grantView, clocks and mutations unchanged",
     "restorationEvidence": "../../evidencias/mfa-support-order-restore-2026-11-07.json"
+  },
+  "tenancyCommandsValidation": {
+    "evidence": "../../evidencias/mfa-tenancy-commands-2026-11-07.json",
+    "evidenceSha256": "20cee1aa9ded48c4bf6e0b2f42bb2bcedc31bcf96cfea82771aeb7a4f0a1c938",
+    "sourceManifestSha256": "b4fee359b97e9f37dd7c41ffc19f8264b4bfe1d66357b859692ddd51967cba76",
+    "scope": "Tenancy commands35 TAP plus6 selected regression files57; six PATCHs, exact DTO5/6/5, missing/no-op, row waits, audit rollback and self-revocation; shared helpers, SQL and other handlers unchanged",
+    "restorationEvidence": "../../evidencias/mfa-tenancy-commands-restore-2026-11-07.json"
   }
 }

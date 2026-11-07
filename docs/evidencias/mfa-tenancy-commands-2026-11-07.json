@@ -1,0 +1,613 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-11-07",
+  "reviewedOn": "2026-11-07",
+  "scope": "MFA revalidation for the six PATCH tenancy blocks/units/teams edit and status commands, preserving DTOs, authorization and transactional audit",
+  "sources": {
+    "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+    "priorSupportOrderPreparedSha256": "584ccec2f15290e7a80b10c63543359c9e38ca2806121c3614638f2e7a5bf328",
+    "baselinePreparedSha256": "7663d8634d2074bf5672f91759463ab6ffb324cbefbd71bed053f326f712689f",
+    "fixedPreparedSha256": "b4fee359b97e9f37dd7c41ffc19f8264b4bfe1d66357b859692ddd51967cba76",
+    "rootFiles": 994,
+    "composedFilesByVariant": {
+      "baseline": 1028,
+      "fixed": 1028
+    },
+    "workspaceJunctions": 23,
+    "productManifest": {
+      "id": "mfa-tenancy-command-candidate-20261107/manifest.json",
+      "sha256": "cc8e6b4d303fd92cbfa6914bfcf07ce6d00d5ef13f5ad8f558d0efada20f7ebd",
+      "bytes": 3650
+    },
+    "testManifest": {
+      "id": "mfa-tenancy-command-tests-20261107/manifest.json",
+      "sha256": "a5176ed5ad35e7c4dfc1edeb6b16db2d482264be8032557b4b2aaf3f10c9e793",
+      "bytes": 7747
+    }
+  },
+  "typeChecks": [
+    {
+      "variant": "baseline",
+      "phase": "resolve",
+      "exitCode": 0,
+      "durationMs": 2240,
+      "freeMiB": 3496,
+      "sourceCandidateConfigPreparedJunctionsAfter": true,
+      "result": {
+        "id": "mfa-tenancy-command-baseline-qa-20261107/checks/resolve/result.json",
+        "sha256": "9ff5aad518ead189421edfb8e72e0c690408e5b9fb78269c0b6b6700be401684",
+        "bytes": 1178
+      }
+    },
+    {
+      "variant": "baseline",
+      "phase": "types",
+      "exitCode": 0,
+      "durationMs": 22987,
+      "freeMiB": 3496,
+      "sourceCandidateConfigPreparedJunctionsAfter": true,
+      "result": {
+        "id": "mfa-tenancy-command-baseline-qa-20261107/checks/types/result.json",
+        "sha256": "55c92d156cc99dd7952e9a468615aed1cb35333bd1dc828247ecbb1b7bdd025c",
+        "bytes": 1025
+      }
+    },
+    {
+      "variant": "fixed",
+      "phase": "resolve",
+      "exitCode": 0,
+      "durationMs": 2583,
+      "freeMiB": 3583,
+      "sourceCandidateConfigPreparedJunctionsAfter": true,
+      "result": {
+        "id": "mfa-tenancy-command-fixed-qa-20261107/checks/resolve/result.json",
+        "sha256": "68abfe10289fea1ac086c098b89699d164cc264961915130904d0e3db45c09fd",
+        "bytes": 1175
+      }
+    },
+    {
+      "variant": "fixed",
+      "phase": "types",
+      "exitCode": 0,
+      "durationMs": 18545,
+      "freeMiB": 3578,
+      "sourceCandidateConfigPreparedJunctionsAfter": true,
+      "result": {
+        "id": "mfa-tenancy-command-fixed-qa-20261107/checks/types/result.json",
+        "sha256": "1ae4db7ede24bafbdf3de95a606437c911e771309ef138591f233669aad3ba2d",
+        "bytes": 1022
+      }
+    }
+  ],
+  "runs": {
+    "baseline": {
+      "startedUtc": "2026-11-07T05:37:50.988Z",
+      "endedUtc": "2026-11-07T05:38:20.103Z",
+      "observedHeadBefore": "423b34702fbd06031a68f2abf77d2a1ea732e8ba",
+      "observedHeadAfter": "423b34702fbd06031a68f2abf77d2a1ea732e8ba",
+      "processes": [
+        {
+          "file": "platform-mfa-tenancy-commands.test.ts",
+          "tap": {
+            "tests": 35,
+            "suites": 1,
+            "pass": 3,
+            "fail": 32,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          },
+          "tapDurationMs": 14604.4895,
+          "childDurationMs": 14889.030599999998,
+          "exitCode": 1,
+          "log": {
+            "id": "mfa-tenancy-command-baseline-qa-20261107/platform-mfa-tenancy-commands.log",
+            "sha256": "ee0d3a50207167d2e52a74fc74597fef4e5eb8771ed39d779833219094773bc0",
+            "bytes": 54349
+          }
+        }
+      ],
+      "result": {
+        "id": "mfa-tenancy-command-baseline-qa-20261107/mfa-directed-result.json",
+        "sha256": "fda8ca1636a896a4abf2cfc04c7f2e854416df6bcebc3303ac83148d21193419",
+        "bytes": 312790
+      },
+      "postchecks": {
+        "id": "mfa-tenancy-command-baseline-qa-20261107/mfa-directed-postchecks.json",
+        "sha256": "0425e1900864a270f3a8edced9c10f6cc0b0321d7fa63c35635d4a237b36dbee",
+        "bytes": 390
+      },
+      "cleanup": {
+        "exitCode": 0,
+        "systemIdentifierMatches": true,
+        "basePublicTables": 0,
+        "temporaryDatabases": 0,
+        "otherDatabases": 0,
+        "rolesRestoredIncludingPrivateCredentials": true,
+        "settingsRestored": true,
+        "roles": 6,
+        "otherClients": 0,
+        "containerAttestationMatches": true,
+        "freeMiBAtStart": 3594.0,
+        "computerRestarted": false,
+        "credentialsPublished": false
+      }
+    },
+    "fixed": {
+      "startedUtc": "2026-11-07T05:43:21.691Z",
+      "endedUtc": "2026-11-07T05:43:53.656Z",
+      "observedHeadBefore": "423b34702fbd06031a68f2abf77d2a1ea732e8ba",
+      "observedHeadAfter": "423b34702fbd06031a68f2abf77d2a1ea732e8ba",
+      "processes": [
+        {
+          "file": "platform-mfa-tenancy-commands.test.ts",
+          "tap": {
+            "tests": 35,
+            "suites": 1,
+            "pass": 35,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          },
+          "tapDurationMs": 15054.5896,
+          "childDurationMs": 15296.302099999997,
+          "exitCode": 0,
+          "log": {
+            "id": "mfa-tenancy-command-fixed-qa-20261107/platform-mfa-tenancy-commands.log",
+            "sha256": "e0689579bd064f2170387f8e1aa54813e9619bc320df494c9e18fe5fea8cf87c",
+            "bytes": 6956
+          }
+        }
+      ],
+      "result": {
+        "id": "mfa-tenancy-command-fixed-qa-20261107/mfa-directed-result.json",
+        "sha256": "89fa1ab61145c5f227ab84900b5b565ec9910a24c104f2b75b1f2ec348345e2f",
+        "bytes": 312779
+      },
+      "postchecks": {
+        "id": "mfa-tenancy-command-fixed-qa-20261107/mfa-directed-postchecks.json",
+        "sha256": "dcfcbe4abb3fe1794ba6a8c8ddc9a3b8f51b692ec9b751bae99779b1bec91d70",
+        "bytes": 390
+      },
+      "cleanup": {
+        "exitCode": 0,
+        "systemIdentifierMatches": true,
+        "basePublicTables": 0,
+        "temporaryDatabases": 0,
+        "otherDatabases": 0,
+        "rolesRestoredIncludingPrivateCredentials": true,
+        "settingsRestored": true,
+        "roles": 6,
+        "otherClients": 0,
+        "containerAttestationMatches": true,
+        "freeMiBAtStart": 3173.0,
+        "computerRestarted": false,
+        "credentialsPublished": false
+      }
+    },
+    "fixed-regression": {
+      "startedUtc": "2026-11-07T05:44:15.647Z",
+      "endedUtc": "2026-11-07T05:45:44.528Z",
+      "observedHeadBefore": "423b34702fbd06031a68f2abf77d2a1ea732e8ba",
+      "observedHeadAfter": "423b34702fbd06031a68f2abf77d2a1ea732e8ba",
+      "processes": [
+        {
+          "file": "platform-mfa-tenancy-links.test.ts",
+          "tap": {
+            "tests": 12,
+            "suites": 1,
+            "pass": 12,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          },
+          "tapDurationMs": 9838.1101,
+          "childDurationMs": 10339.4385,
+          "exitCode": 0,
+          "log": {
+            "id": "mfa-tenancy-command-fixed-regression-qa-20261107/platform-mfa-tenancy-links.log",
+            "sha256": "68ef4acf3b6381baef5b14fe5a86c6c18f81618c4f24f37d41370f042da72cc1",
+            "bytes": 2787
+          }
+        },
+        {
+          "file": "platform-mfa-tenancy-structure.test.ts",
+          "tap": {
+            "tests": 12,
+            "suites": 1,
+            "pass": 12,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          },
+          "tapDurationMs": 7985.1367,
+          "childDurationMs": 8275.836899999998,
+          "exitCode": 0,
+          "log": {
+            "id": "mfa-tenancy-command-fixed-regression-qa-20261107/platform-mfa-tenancy-structure.log",
+            "sha256": "61739f1daefef528625b72d27834a2c3ef6fa553dcd657c476bb4ffb383912b0",
+            "bytes": 2629
+          }
+        },
+        {
+          "file": "tenancy-people.test.ts",
+          "tap": {
+            "tests": 9,
+            "suites": 1,
+            "pass": 9,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          },
+          "tapDurationMs": 15635.5256,
+          "childDurationMs": 15939.881499999996,
+          "exitCode": 0,
+          "log": {
+            "id": "mfa-tenancy-command-fixed-regression-qa-20261107/tenancy-people.log",
+            "sha256": "09dd2f51a5114635d2e0cfaab37d7dee8682f2f20a6dcc07fd41708617f99eb4",
+            "bytes": 2677
+          }
+        },
+        {
+          "file": "tenancy-http.test.ts",
+          "tap": {
+            "tests": 9,
+            "suites": 1,
+            "pass": 9,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          },
+          "tapDurationMs": 12006.1425,
+          "childDurationMs": 12273.924899999998,
+          "exitCode": 0,
+          "log": {
+            "id": "mfa-tenancy-command-fixed-regression-qa-20261107/tenancy-http.log",
+            "sha256": "d8f8239e13f2672021857bac1d8f1d52834bf1dafe48c2914c350ef577007a2e",
+            "bytes": 2546
+          }
+        },
+        {
+          "file": "tenancy-edit.test.ts",
+          "tap": {
+            "tests": 11,
+            "suites": 1,
+            "pass": 11,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          },
+          "tapDurationMs": 12055.9097,
+          "childDurationMs": 12533.157200000001,
+          "exitCode": 0,
+          "log": {
+            "id": "mfa-tenancy-command-fixed-regression-qa-20261107/tenancy-edit.log",
+            "sha256": "400d053a7bd91acf10a5de490afe8da6f0cfa93dcf931e3f5ff6ee0e61fe0d7a",
+            "bytes": 3004
+          }
+        },
+        {
+          "file": "membership-lifecycle.test.ts",
+          "tap": {
+            "tests": 4,
+            "suites": 1,
+            "pass": 4,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          },
+          "tapDurationMs": 7139.1956,
+          "childDurationMs": 7378.104999999996,
+          "exitCode": 0,
+          "log": {
+            "id": "mfa-tenancy-command-fixed-regression-qa-20261107/membership-lifecycle.log",
+            "sha256": "d8f0f1b6fd6141c91de198cb488f3419deb0de08a157c102d42dac4fb450e56d",
+            "bytes": 1158
+          }
+        }
+      ],
+      "result": {
+        "id": "mfa-tenancy-command-fixed-regression-qa-20261107/mfa-directed-result.json",
+        "sha256": "88424fd8182632c821f07b305ecc47a93df91c85f8950108087d92795c96cbd1",
+        "bytes": 315802
+      },
+      "postchecks": {
+        "id": "mfa-tenancy-command-fixed-regression-qa-20261107/mfa-directed-postchecks.json",
+        "sha256": "40b3f3e8f2e383b55c6d00073791422ba8cab9996af8edafff0463a0fd6bc962",
+        "bytes": 390
+      },
+      "cleanup": {
+        "exitCode": 0,
+        "systemIdentifierMatches": true,
+        "basePublicTables": 0,
+        "temporaryDatabases": 0,
+        "otherDatabases": 0,
+        "rolesRestoredIncludingPrivateCredentials": true,
+        "settingsRestored": true,
+        "roles": 6,
+        "otherClients": 0,
+        "containerAttestationMatches": true,
+        "freeMiBAtStart": 3236.0,
+        "computerRestarted": false,
+        "credentialsPublished": false
+      }
+    }
+  },
+  "executionDatesUtc": [
+    "2026-11-07"
+  ],
+  "executedOn": "2026-11-07",
+  "gates": {
+    "typesExitCode": 0,
+    "typeTestFiles": 29,
+    "sourceRequiredFiles": 13,
+    "directedTapTestsPassed": 35,
+    "regressionFiles": 6,
+    "regressionTestsPassed": 57,
+    "failures": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "cleanupPass": true,
+    "sourceBeforeAfterPass": true,
+    "baselineTenancyFailuresReviewed": true
+  },
+  "baselineClassification": {
+    "tests": 35,
+    "suites": 1,
+    "pass": 3,
+    "fail": 32,
+    "independentFailures": 26,
+    "aggregateParents": 6,
+    "assertionOperator": "strictEqual",
+    "positive200Instead403": 20,
+    "missing404Instead403": 6,
+    "observations": [
+      {
+        "case": "requires enrollment in all six PATCHs after real manage authorization / blocks/edit",
+        "actualStatus": 200,
+        "expectedStatus": 403,
+        "exactPrecedingChecksDiagnostic": "Baseline200: exact positive DTO, persisted semantic row and audit compared; generated updated_at is not claimed identical to a prior write",
+        "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED"
+      },
+      {
+        "case": "requires enrollment in all six PATCHs after real manage authorization / blocks/status",
+        "actualStatus": 200,
+        "expectedStatus": 403,
+        "exactPrecedingChecksDiagnostic": "Baseline200: exact positive DTO, persisted semantic row and audit compared; generated updated_at is not claimed identical to a prior write",
+        "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED"
+      },
+      {
+        "case": "requires enrollment in all six PATCHs after real manage authorization / units/edit",
+        "actualStatus": 200,
+        "expectedStatus": 403,
+        "exactPrecedingChecksDiagnostic": "Baseline200: exact positive DTO, persisted semantic row and audit compared; generated updated_at is not claimed identical to a prior write",
+        "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED"
+      },
+      {
+        "case": "requires enrollment in all six PATCHs after real manage authorization / units/status",
+        "actualStatus": 200,
+        "expectedStatus": 403,
+        "exactPrecedingChecksDiagnostic": "Baseline200: exact positive DTO, persisted semantic row and audit compared; generated updated_at is not claimed identical to a prior write",
+        "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED"
+      },
+      {
+        "case": "requires enrollment in all six PATCHs after real manage authorization / teams/edit",
+        "actualStatus": 200,
+        "expectedStatus": 403,
+        "exactPrecedingChecksDiagnostic": "Baseline200: exact positive DTO, persisted semantic row and audit compared; generated updated_at is not claimed identical to a prior write",
+        "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED"
+      },
+      {
+        "case": "requires enrollment in all six PATCHs after real manage authorization / teams/status",
+        "actualStatus": 200,
+        "expectedStatus": 403,
+        "exactPrecedingChecksDiagnostic": "Baseline200: exact positive DTO, persisted semantic row and audit compared; generated updated_at is not claimed identical to a prior write",
+        "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED"
+      },
+      {
+        "case": "requires session proof in all six PATCHs after real manage authorization / blocks/edit",
+        "actualStatus": 200,
+        "expectedStatus": 403,
+        "exactPrecedingChecksDiagnostic": "Baseline200: exact positive DTO, persisted semantic row and audit compared; generated updated_at is not claimed identical to a prior write",
+        "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED"
+      },
+      {
+        "case": "requires session proof in all six PATCHs after real manage authorization / blocks/status",
+        "actualStatus": 200,
+        "expectedStatus": 403,
+        "exactPrecedingChecksDiagnostic": "Baseline200: exact positive DTO, persisted semantic row and audit compared; generated updated_at is not claimed identical to a prior write",
+        "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED"
+      },
+      {
+        "case": "requires session proof in all six PATCHs after real manage authorization / units/edit",
+        "actualStatus": 200,
+        "expectedStatus": 403,
+        "exactPrecedingChecksDiagnostic": "Baseline200: exact positive DTO, persisted semantic row and audit compared; generated updated_at is not claimed identical to a prior write",
+        "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED"
+      },
+      {
+        "case": "requires session proof in all six PATCHs after real manage authorization / units/status",
+        "actualStatus": 200,
+        "expectedStatus": 403,
+        "exactPrecedingChecksDiagnostic": "Baseline200: exact positive DTO, persisted semantic row and audit compared; generated updated_at is not claimed identical to a prior write",
+        "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED"
+      },
+      {
+        "case": "requires session proof in all six PATCHs after real manage authorization / teams/edit",
+        "actualStatus": 200,
+        "expectedStatus": 403,
+        "exactPrecedingChecksDiagnostic": "Baseline200: exact positive DTO, persisted semantic row and audit compared; generated updated_at is not claimed identical to a prior write",
+        "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED"
+      },
+      {
+        "case": "requires session proof in all six PATCHs after real manage authorization / teams/status",
+        "actualStatus": 200,
+        "expectedStatus": 403,
+        "exactPrecedingChecksDiagnostic": "Baseline200: exact positive DTO, persisted semantic row and audit compared; generated updated_at is not claimed identical to a prior write",
+        "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED"
+      },
+      {
+        "case": "guards six valid missing UUID paths before no-match404 / blocks/edit-enrollment",
+        "actualStatus": 404,
+        "expectedStatus": 403,
+        "exactPrecedingChecksDiagnostic": "Baseline404: exact positive missing body and absent row/audit; no private DTO or committed mutation claimed",
+        "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED"
+      },
+      {
+        "case": "guards six valid missing UUID paths before no-match404 / blocks/status-proof",
+        "actualStatus": 404,
+        "expectedStatus": 403,
+        "exactPrecedingChecksDiagnostic": "Baseline404: exact positive missing body and absent row/audit; no private DTO or committed mutation claimed",
+        "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED"
+      },
+      {
+        "case": "guards six valid missing UUID paths before no-match404 / units/edit-enrollment",
+        "actualStatus": 404,
+        "expectedStatus": 403,
+        "exactPrecedingChecksDiagnostic": "Baseline404: exact positive missing body and absent row/audit; no private DTO or committed mutation claimed",
+        "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED"
+      },
+      {
+        "case": "guards six valid missing UUID paths before no-match404 / units/status-proof",
+        "actualStatus": 404,
+        "expectedStatus": 403,
+        "exactPrecedingChecksDiagnostic": "Baseline404: exact positive missing body and absent row/audit; no private DTO or committed mutation claimed",
+        "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED"
+      },
+      {
+        "case": "guards six valid missing UUID paths before no-match404 / teams/edit-enrollment",
+        "actualStatus": 404,
+        "expectedStatus": 403,
+        "exactPrecedingChecksDiagnostic": "Baseline404: exact positive missing body and absent row/audit; no private DTO or committed mutation claimed",
+        "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED"
+      },
+      {
+        "case": "guards six valid missing UUID paths before no-match404 / teams/status-proof",
+        "actualStatus": 404,
+        "expectedStatus": 403,
+        "exactPrecedingChecksDiagnostic": "Baseline404: exact positive missing body and absent row/audit; no private DTO or committed mutation claimed",
+        "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED"
+      },
+      {
+        "case": "requires proof on all three status no-op responses without touching row or audit / blocks",
+        "actualStatus": 200,
+        "expectedStatus": 403,
+        "exactPrecedingChecksDiagnostic": "Baseline200: exact positive DTO, persisted semantic row and audit compared; generated updated_at is not claimed identical to a prior write",
+        "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED"
+      },
+      {
+        "case": "requires proof on all three status no-op responses without touching row or audit / units",
+        "actualStatus": 200,
+        "expectedStatus": 403,
+        "exactPrecedingChecksDiagnostic": "Baseline200: exact positive DTO, persisted semantic row and audit compared; generated updated_at is not claimed identical to a prior write",
+        "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED"
+      },
+      {
+        "case": "requires proof on all three status no-op responses without touching row or audit / teams",
+        "actualStatus": 200,
+        "expectedStatus": 403,
+        "exactPrecedingChecksDiagnostic": "Baseline200: exact positive DTO, persisted semantic row and audit compared; generated updated_at is not claimed identical to a prior write",
+        "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED"
+      },
+      {
+        "case": "rechecks MFA after a real row lock wait in edit and status / team edit",
+        "actualStatus": 200,
+        "expectedStatus": 403,
+        "exactPrecedingChecksDiagnostic": "Baseline200: exact positive DTO, persisted semantic row and audit compared; generated updated_at is not claimed identical to a prior write",
+        "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED"
+      },
+      {
+        "case": "rechecks MFA after a real row lock wait in edit and status / team status",
+        "actualStatus": 200,
+        "expectedStatus": 403,
+        "exactPrecedingChecksDiagnostic": "Baseline200: exact positive DTO, persisted semantic row and audit compared; generated updated_at is not claimed identical to a prior write",
+        "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED"
+      },
+      {
+        "case": "denies a no-op after manage is lost during the row wait even while read remains",
+        "actualStatus": 200,
+        "expectedStatus": 403,
+        "exactPrecedingChecksDiagnostic": "Baseline200: exact positive DTO, persisted semantic row and audit compared; generated updated_at is not claimed identical to a prior write",
+        "expectedReasonAfterFix": null
+      },
+      {
+        "case": "rolls mutation and audit back when the audit trigger removes this SID proof / audit after edit write",
+        "actualStatus": 200,
+        "expectedStatus": 403,
+        "exactPrecedingChecksDiagnostic": "Baseline200: exact positive DTO, persisted semantic row and audit compared; generated updated_at is not claimed identical to a prior write",
+        "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED"
+      },
+      {
+        "case": "rolls mutation and audit back when the audit trigger removes this SID proof / audit before status write",
+        "actualStatus": 200,
+        "expectedStatus": 403,
+        "exactPrecedingChecksDiagnostic": "Baseline200: exact positive DTO, persisted semantic row and audit compared; generated updated_at is not claimed identical to a prior write",
+        "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED"
+      }
+    ],
+    "rootReviewedActualFailuresAndDiagnostics": true,
+    "reason": "The 26 named leaf failures have native ERR_ASSERTION strictEqual status mismatches and preceding exact DTO/effect or no-match diagnostics; six failed parent groups are aggregates",
+    "genericFailuresCountedAsRed": false,
+    "redFailedBeforeReasonAndFinalDenialAssertions": true
+  },
+  "acceptedCounts": {
+    "directedTap": 35,
+    "directedIndependent": 29,
+    "directedAggregateGroups": 6,
+    "directedSuites": 1,
+    "regressionFiles": 6,
+    "regressionTap": 57,
+    "regressionIndependent": 53,
+    "regressionAggregateGroups": 4,
+    "combinedTap": 92,
+    "combinedIndependent": 82,
+    "combinedAggregateGroups": 10
+  },
+  "checks": [
+    "Enrollment and proof are removed after real manage authorization for all six PATCH commands; exact positive DTOs and persisted row/audit are compared before classifying RED",
+    "Six valid missing UUID cases reject with the expected MFA reason before no-match404; RED diagnostics establish only the exact missing body and absence of row/audit",
+    "All three status no-op paths require proof and preserve the row timestamp and audit absence",
+    "Two team edit/status cases observe a real PostgreSQL row-lock wait before removing proof; a separate no-op case loses manage while an independent read binding remains",
+    "Two scoped audit-trigger cases remove only the acting SID proof and prove exactly one trigger execution; fixed denial rolls row, audit and trigger session write back",
+    "Ordinary local manager DTOs and audited writes, missing/foreign/inactive404, visible reader403, input400 and audited self-revocation remain covered",
+    "The common directed test is byte-identical across baseline and fixed; only tenancy/routes.ts differs in the composed sources",
+    "The restricted application connection uses real HTTP sessions, with explicitly synthetic ADMIN factor/proof fixtures; RLS, policy068 and shared helper sources remain unchanged",
+    "Selected existing tenancy links/structure/people/http/edit and membership regressions pass on the integrated source"
+  ],
+  "limits": [
+    "Accepted evidence is isolated to35 directed plus57 regression TAP entries:82 independent cases and10 aggregate groups. Prior feature/support results remain separate evidence, not added totals.",
+    "The29 new independent cases cover finite combinations; not every role/resource/command/lock/no-match/audit interleaving is tested.",
+    "ADMIN factors and proof are synthetic after real HTTP login; enrollment, recovery and TOTP ceremony are outside this increment.",
+    "RED status assertions fail before expected MFA reason and final denial assertions. Only GREEN establishes those later assertions; preceding RED diagnostics establish the exact positive or missing behavior.",
+    "Generated updated_at is compared semantically and for actual advancement/no-op stability, not asserted identical across separate writes.",
+    "Row-lock and narrow fixture-trigger evidence does not establish universal transaction or network-delivery linearization. Isolation and future SQL trigger changes still require review.",
+    "No performance benchmark, whole API, Playwright, Android/iOS device or production acceptance is claimed.",
+    "Other tenancy mutators and remaining MFA domains are outside these six PATCH handlers. Mandatory MFA remains a cumulative candidate; no migration, checkpoint or runtime is published by this script."
+  ],
+  "verification": {
+    "id": "mfa-tenancy-command-root-verification-20261107.json",
+    "sha256": "0e78f948f162ed8e3fc456ac5cfd82c62c0bda4b43bb8207984c90cbb85341d2",
+    "bytes": 22143
+  },
+  "verificationConfig": {
+    "id": "mfa-tenancy-command-root-config-20261107.json",
+    "sha256": "2c7796808625aff1378aa2eab3f4b308fc9ee3ce179fbba89662069530e8b440",
+    "bytes": 2685
+  },
+  "authorScript": {
+    "id": "author-tenancy-command-proof-20261107.py",
+    "sha256": "5da6429296536b84098c37d7f478d83d684f473f5c96e9117f81aa428504fe3b",
+    "bytes": 11921
+  },
+  "computerRestarted": false,
+  "performanceAssessed": false,
+  "productionAccepted": false
+}

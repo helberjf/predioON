@@ -1,5 +1,7 @@
 # Plano restrito: seis PATCHs de estrutura com MFA
 
+**Execução do primeiro lote em07/11:**35 TAP dirigidos e57 de regressão passaram; [prova e limitações](../../../evidencias/mfa-tenancy-commands-2026-11-07.json). Os casos cobrem perda de fator/prova nos seis PATCHs, missing, no-op, lock real e trigger em equipe, permissões e autorrevogação. Promoção, perda/mudança de prédio do alvo após espera, conflitos concorrentes e demais combinações seguem pendentes. O desenho abaixo preserva a revisão anterior e não representa aceite de toda a matriz.
+
 Desenho estático, não implementado nem executado. Fonte candidata `work/mfa-features-read-v2-fixed-qa-20261107/source`, prepared SHA-256 `b0fe96cd2789f39ead9c90a972c4296cc7de2ba38142a8aa6f36eabd4a147685`, 1.026 arquivos. A execução das regressões dessa fonte pertence ao coordenador e não é resultado deste plano. `inventory-pins.json` fixa os arquivos examinados. Não houve alteração em produto, migrations, políticas, serviços ou banco.
 
 ## Escopo e sequência de entrega

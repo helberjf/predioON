@@ -1,4 +1,50 @@
-# Retomada MFA — ordenação das listas de suporte
+# Retomada MFA — alterações de blocos, unidades e equipes
+
+**Executado e revisado em 07/11/2026.** Os seis PATCHs de edição e status
+passaram em 35 entradas TAP dirigidas: 29 casos independentes e seis grupos.
+Seis arquivos de regressão passaram em 57 entradas: 53 casos e quatro grupos.
+São 92 TAP, 82 casos independentes e dez grupos nesta composição; os resultados
+anteriores de suporte e funcionalidades mantêm suas provas separadas.
+
+O conjunto contém 85 payloads: 81 candidatos de runtime/testes, dois testes
+renderer e dois arquivos query já publicados. São 1.028 arquivos e cinco suportes.
+A [montagem/restauração passou](../../evidencias/mfa-tenancy-commands-restore-2026-11-07.json),
+com os 1.028 arquivos e cinco suportes idênticos à composição testada. A
+restauração de suporte abaixo permanece histórica.
+
+A primeira leitura continua respeitando a visibilidade de cada usuário. Uma
+guarda de MFA participa da escrita SQL e da resposta mesmo quando não há linha
+correspondente. A edição adquire o bloqueio do alvo antes de escrever. A resposta
+de status sem alteração reavalia MFA e permissão de gestão; uma última decisão
+de MFA depois da escrita/auditoria impede confirmar a operação com prova perdida.
+
+No comparador, 26 casos independentes falharam pelo comportamento esperado:
+20 respostas200 e seis404 quando deveriam negar403. Os testes conferiram os
+DTOs, efeitos persistidos e auditorias positivos, ou o404 exato sem efeitos,
+antes da comparação. A composição corrigida devolveu as recusas esperadas e
+preservou o estado. Timeout, falha de fixture ou contagem isolada não foram
+usados como evidência de proteção.
+
+Houve espera real de bloqueio observada no PostgreSQL, perda de gestão com leitura
+preservada e trigger de auditoria restrito à fixture. O contador desse trigger
+comprovou sua execução inclusive com rollback. Edição e status conservam sua
+ordem de auditoria; desativar a própria equipe continua permitido quando era a
+fonte legítima de gestão. O teste tenancy-edit original, com11 casos, foi mantido.
+Tipos dos29 arquivos e13 fontes obrigatórias passaram em ambas as composições.
+
+A massa administrativa usa login real e prova/fator sintéticos; não valida
+novamente a cerimônia TOTP. O lote não cobre todas as combinações de concorrência:
+promoção durante comando, desaparecimento/mudança de prédio do alvo após lock,
+conflitos concorrentes e outros triggers continuam no roteiro. Políticas,
+migrations, helpers compartilhados e os demais handlers foram preservados.
+A política obrigatória segue candidata, fora do runtime main001–067.
+
+[Prova e limites](../../evidencias/mfa-tenancy-commands-2026-11-07.json).
+Próximos: completar os cenários pendentes de comandos e demais domínios,
+medir desempenho, executar regressão integrada e Playwright com backend real,
+validar Android/iOS e finalizar operação, imagens, vídeos e documentação.
+
+## Rodada anterior: ordenação das listas de suporte
 
 **Executado e revisado em 07/11/2026.** A ordenação de datas com diferenças menores
 que um milissegundo foi reproduzida e corrigida nas duas listas de suporte.

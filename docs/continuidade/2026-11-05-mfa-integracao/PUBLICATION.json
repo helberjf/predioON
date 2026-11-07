@@ -1,5 +1,5 @@
 {
-  "status": "CANDIDATE_SUPPORT_ORDER_VALIDATED_CANONICAL_RESTORE_PASSED",
+  "status": "CANDIDATE_TENANCY_COMMANDS_VALIDATED_CANONICAL_RESTORE_PASSED",
   "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
   "metadata": [
     {
@@ -8,7 +8,7 @@
     },
     {
       "path": "INVENTORY.json",
-      "sha256": "97c095b756e9476bdd0925cfbc88f2de54aeb4c7b91fd62dfde58c099fc0acc4"
+      "sha256": "9b0c48280c59b23c7e33ceeb2145806f470f6996af62893b8ed7376735779901"
     },
     {
       "path": "git-blobs.mjs",
@@ -24,7 +24,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "9e5ab639b8a9c6543706a28c5bd1d07776fc7a77e4647557b084295ef58910f0"
+      "sha256": "c16110a1826bf3dd1865aa33579afbc04e532c0539e6e325c788f20d7c91a88f"
     },
     {
       "path": "qaSupport/renderer/package.json",
@@ -47,9 +47,9 @@
       "sha256": "cab9d8393b345aa0d90ea6f7662cd38100b9433f9c16a7e7eed035b18da4e876"
     }
   ],
-  "inventoryPayloads": 84,
+  "inventoryPayloads": 85,
   "alreadyPublishedQueryPayloads": 2,
-  "pendingRuntimeAndTestFiles": 80,
+  "pendingRuntimeAndTestFiles": 81,
   "explicitRendererTestFiles": 2,
   "rendererSupportFiles": 5,
   "canonicalSourceFiles": 994,
@@ -64,34 +64,34 @@
     "evidence": "../../evidencias/mfa-canonical-restore-2026-11-05.json"
   },
   "currentPayloadSet": {
-    "sourceManifestSha256": "584ccec2f15290e7a80b10c63543359c9e38ca2806121c3614638f2e7a5bf328",
-    "evidence": "../../evidencias/mfa-support-order-2026-11-07.json",
-    "evidenceSha256": "69af214ed7a8dfd8e3e6c0fec9eaca0a99219f83718520f4383a4615e57bafe8",
+    "sourceManifestSha256": "b4fee359b97e9f37dd7c41ffc19f8264b4bfe1d66357b859692ddd51967cba76",
+    "evidence": "../../evidencias/mfa-tenancy-commands-2026-11-07.json",
+    "evidenceSha256": "20cee1aa9ded48c4bf6e0b2f42bb2bcedc31bcf96cfea82771aeb7a4f0a1c938",
     "composition": [
       {
-        "path": "apps/api/src/modules/support-access/routes.ts",
-        "sha256": "4178deab935e6241a63c32bf59fe66add1d921598e5ac19cdf1c26979795cd0f",
-        "bytes": 14584
+        "path": "apps/api/src/modules/tenancy/routes.ts",
+        "sha256": "4089f119bb6e38367a09c7b17abeb950120e4524d9c379c49ea689ea870ef7f4",
+        "bytes": 36511
       },
       {
-        "path": "apps/api/test/platform-mfa-support-timestamp-order.test.ts",
-        "sha256": "77d067079e9bde7fbd32ba6b30bb1b59bd8aafeef7d3b4e9b8c1c732f0a7fecc",
-        "bytes": 9379
+        "path": "apps/api/test/platform-mfa-tenancy-commands.test.ts",
+        "sha256": "d9ae0f7e1264dc29ae06dc9146b58839f1b21030936d9c34df6a14c1618e7ff0",
+        "bytes": 33572
       }
     ],
     "previousSql11V5TestSha256": "2c8a7bc400bd7b8055922f11a06239026db9dce7e9c4195cba696c67c5cd6710",
-    "validatedMergedScope": "Support timestamp order2 TAP plus2 selected regression files18; full PostgreSQL ordering and exact public DTO13/6; previous feature validation is separate evidence",
+    "validatedMergedScope": "Tenancy commands35 TAP plus6 selected regression files57; six PATCHs and explicit MFA/row-lock/audit boundaries; previous support and feature validations remain separate evidence",
     "assemblyAndRestoreExecutedForThisUpdatedSet": true,
-    "restorationEvidence": "../../evidencias/mfa-support-order-restore-2026-11-07.json",
-    "restoredComposedFiles": 1027,
+    "restorationEvidence": "../../evidencias/mfa-tenancy-commands-restore-2026-11-07.json",
+    "restoredComposedFiles": 1028,
     "matchesTestedComposition": true,
-    "manifestSha256": "74a17253eb07a4ce4bb6936a4b46875e2886b942cc972e41a47e02f902e83759",
-    "receiptSha256": "e66b15b4641e5af2d25fb330218140dec3b478d7769172af67248aeb638ebde2"
+    "manifestSha256": "084b74adab4846b4cb8c72ec81702fabfb78d15f92b92cf3178c84b864f31067",
+    "receiptSha256": "4a7b892e45be9ffa4a3746c2f31f8a2c14b23ec6352270664f2d177f397bf728"
   },
   "rendererStagingRecipeExecuted": false,
   "p0DisablePatchIncluded": true,
   "publishedApiDatabaseChanged": false,
-  "staticPeerReview": "Support timestamp ordering: canonical1027 sources plus5 supports match tested584c exactly. Runtime and restoration executed07Nov. Directed2 plus2 selected regressions18 total20TAP,18 independent scenarios and2 groups. Two GET projections/decoders only; shared helper, grantView, clocks, SQL and mutations intact. Previous feature259 regression results are separate evidence, not repeated here. No performance or wider rollout acceptance.",
+  "staticPeerReview": "Tenancy commands: canonical1028 sources plus5 supports match the tested preparation exactly. Runtime and restoration executed07Nov. Directed35 means29 independent scenarios and6 groups;6 regressions57 mean53 independent scenarios and4 groups. 92 accepted TAP entries total82 independent scenarios and10 groups. Six PATCH paths only; shared helpers, SQL, policies/grants and other handlers intact. Previous feature259 and support20 results remain separate evidence; no arbitrary-trigger, performance or wider rollout acceptance.",
   "historicalGuardRefusal": {
     "minimumMiB": 1536,
     "at": "2026-11-05T03:53:51.9727239Z",
@@ -258,6 +258,14 @@
     {
       "path": "../../evidencias/mfa-support-order-restore-2026-11-07.json",
       "sha256": "d27cdabdd47bcd4eed4cc91a0c8245b3d758c169a138d0cc8edab5a167375104"
+    },
+    {
+      "path": "../../evidencias/mfa-tenancy-commands-2026-11-07.json",
+      "sha256": "20cee1aa9ded48c4bf6e0b2f42bb2bcedc31bcf96cfea82771aeb7a4f0a1c938"
+    },
+    {
+      "path": "../../evidencias/mfa-tenancy-commands-restore-2026-11-07.json",
+      "sha256": "2f704fe9ac65523ddc26e12c2e2d2de1537b0f697c745578be1cb0b817efca35"
     }
   ],
   "computerRestarted": false,
@@ -769,5 +777,30 @@
     "matchesTestedComposition": true,
     "manifestSha256": "0cb607cd6c3f6edbdc2134247737e7ba39ca6f097da0f72c6809fee5eee82e2d",
     "receiptSha256": "0e842710f326eb5c858779b300e657511a162e1733e6c078ee36f97a15016b06"
+  },
+  "previousSupportOrderPayloadSet": {
+    "sourceManifestSha256": "584ccec2f15290e7a80b10c63543359c9e38ca2806121c3614638f2e7a5bf328",
+    "evidence": "../../evidencias/mfa-support-order-2026-11-07.json",
+    "evidenceSha256": "69af214ed7a8dfd8e3e6c0fec9eaca0a99219f83718520f4383a4615e57bafe8",
+    "composition": [
+      {
+        "path": "apps/api/src/modules/support-access/routes.ts",
+        "sha256": "4178deab935e6241a63c32bf59fe66add1d921598e5ac19cdf1c26979795cd0f",
+        "bytes": 14584
+      },
+      {
+        "path": "apps/api/test/platform-mfa-support-timestamp-order.test.ts",
+        "sha256": "77d067079e9bde7fbd32ba6b30bb1b59bd8aafeef7d3b4e9b8c1c732f0a7fecc",
+        "bytes": 9379
+      }
+    ],
+    "previousSql11V5TestSha256": "2c8a7bc400bd7b8055922f11a06239026db9dce7e9c4195cba696c67c5cd6710",
+    "validatedMergedScope": "Support timestamp order2 TAP plus2 selected regression files18; full PostgreSQL ordering and exact public DTO13/6; previous feature validation is separate evidence",
+    "assemblyAndRestoreExecutedForThisUpdatedSet": true,
+    "restorationEvidence": "../../evidencias/mfa-support-order-restore-2026-11-07.json",
+    "restoredComposedFiles": 1027,
+    "matchesTestedComposition": true,
+    "manifestSha256": "74a17253eb07a4ce4bb6936a4b46875e2886b942cc972e41a47e02f902e83759",
+    "receiptSha256": "e66b15b4641e5af2d25fb330218140dec3b478d7769172af67248aeb638ebde2"
   }
 }

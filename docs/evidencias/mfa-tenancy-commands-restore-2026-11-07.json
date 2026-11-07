@@ -1,0 +1,93 @@
+{
+  "recordedOn": "2026-11-07",
+  "reviewedOn": "2026-11-07",
+  "restoredOn": "2026-11-07",
+  "runtimeExecutedOn": "2026-11-07",
+  "status": "TENANCY_COMMANDS_CANDIDATE_CANONICAL_SOURCE_RESTORE_PASSED",
+  "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+  "inputInventorySha256": "758f8f8261380c66f3e46ac3df825d0d2c849cd340ee1c365890060c2de4c855",
+  "testedPreparedSha256": "b4fee359b97e9f37dd7c41ffc19f8264b4bfe1d66357b859692ddd51967cba76",
+  "all1028RestoredFilesMatchTestedComposition": true,
+  "baseFiles": 994,
+  "inventoryPayloads": 85,
+  "candidateRuntimeAndTests": 81,
+  "explicitRendererTests": 2,
+  "alreadyPublishedQueryPayloads": 2,
+  "qaSupportFiles": 5,
+  "manifestCandidateFiles": 83,
+  "manifestSha256": "084b74adab4846b4cb8c72ec81702fabfb78d15f92b92cf3178c84b864f31067",
+  "receiptSha256": "4a7b892e45be9ffa4a3746c2f31f8a2c14b23ec6352270664f2d177f397bf728",
+  "receipt": {
+    "baseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+    "sourceHeadBefore": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+    "canonicalBaseFiles": 994,
+    "candidateFiles": 83,
+    "qaSupportFiles": 5,
+    "status": "SOURCE_ONLY_NOT_TESTED_NOT_APPLIED",
+    "dependenciesInstalled": false,
+    "migrationsApplied": false,
+    "databaseStarted": false
+  },
+  "directedEvidenceSha256": "20cee1aa9ded48c4bf6e0b2f42bb2bcedc31bcf96cfea82771aeb7a4f0a1c938",
+  "acceptedRuntimeCounts": {
+    "directedTap": 35,
+    "directedIndependent": 29,
+    "directedAggregateGroups": 6,
+    "directedSuites": 1,
+    "regressionFiles": 6,
+    "regressionTap": 57,
+    "regressionIndependent": 53,
+    "regressionAggregateGroups": 4,
+    "combinedTap": 92,
+    "combinedIndependent": 82,
+    "combinedAggregateGroups": 10
+  },
+  "comparison": "Canonical994 sources plus83 overlays equal the1028 tested sources; five renderer supports and receipt are additional. All source/payload/package hashes verified. Finalization also verifies canonical Git modes/OIDs/blobs before writing.",
+  "limits": [
+    "Restoration is source-only; it does not install dependencies, start services, apply migrations or rerun tests.",
+    "Selected runtime validation is92 TAP in7 accepted processes, including10 aggregate groups and82 independent scenarios; it is not the whole API or production acceptance.",
+    "Earlier feature259 and support20 results remain separate evidence and were not repeated by this increment.",
+    "Only six tenancy PATCH paths are included. The finite missing/no-op/row-lock/audit matrix does not prove arbitrary triggers or all lock causes; other commands/domains, integrated browser and native acceptance remain pending.",
+    "No performance conclusion is derived from this functional or source-only restoration evidence.",
+    "Input inventory/package README describe the builder inputs; later documentation metadata does not change frozen source payload bytes."
+  ],
+  "computerRestarted": false,
+  "performanceAssessed": false,
+  "productionAccepted": false,
+  "builder": {
+    "phase": "builder",
+    "timedOut": false,
+    "childExitedAt": "2026-11-07T05:47:08.4580343Z",
+    "ownedPid": 49932,
+    "durationMs": 4438.4823,
+    "exitCode": 0,
+    "guard": {
+      "freeMiB": 3077.0,
+      "phase": "builder",
+      "minimumMiB": 1536,
+      "at": "2026-11-07T05:47:03.9650810Z"
+    },
+    "heapMiB": 128,
+    "resultSha256": "8a56ef9d3d1368ee8742f90da4c923c007cea532108da26a9a2242286b83592c",
+    "stdoutSha256": "db878fa7dadb201469f77e1ba5c7e54565d6f47ebb884cb0bb04123af6fe82b9",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "restore": {
+    "childExitedAt": "2026-11-07T05:47:23.0633818Z",
+    "exitCode": 0,
+    "durationMs": 6312.2239,
+    "phase": "restore",
+    "ownedPid": 9040,
+    "timedOut": false,
+    "guard": {
+      "freeMiB": 3065.0,
+      "at": "2026-11-07T05:47:16.7000862Z",
+      "phase": "restore",
+      "minimumMiB": 1536
+    },
+    "heapMiB": 128,
+    "resultSha256": "b22706d01a4ee8dc9f9d47ab4f7aacd38a54faab2eaf3914f7e3c5e0031fa6a4",
+    "stdoutSha256": "5d235f6a30170e2aa45149c03b8e7aaf4b605e3f66b3f1e798763b632bc34c5a",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

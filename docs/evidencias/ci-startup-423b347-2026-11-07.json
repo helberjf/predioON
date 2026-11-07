@@ -1,0 +1,38 @@
+{
+  "observedOn": "2026-11-07T05:31:58.231351+00:00",
+  "observedHead": "423b34702fbd06031a68f2abf77d2a1ea732e8ba",
+  "runsTotal": 1,
+  "runs": [
+    {
+      "id": 42343105598,
+      "name": "",
+      "head_sha": "423b34702fbd06031a68f2abf77d2a1ea732e8ba",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "startup_failure",
+      "created_at": "2026-11-07T05:31:44Z",
+      "updated_at": "2026-11-07T05:31:44Z",
+      "html_url": "https://github.com/helberjf/predioON/actions/runs/42343105598",
+      "jobsTotal": 0
+    }
+  ],
+  "causeConfirmed": false,
+  "readOnly": true,
+  "workflowDispatched": false,
+  "accountSettingsChanged": false,
+  "checkSuiteId": 114724824571,
+  "checkRunsTotal": 0,
+  "browserObservation": {
+    "url": "https://github.com/helberjf/predioON/actions/runs/42343105598",
+    "observedOn": "2026-11-07",
+    "pageTitle": "Page not found · GitHub · GitHub",
+    "signInLinkVisible": true,
+    "authenticated": false,
+    "runCauseVisible": false
+  },
+  "limits": [
+    "A causa desta execução não foi confirmada. A falha de cobrança/limite observada em04/11 permanece histórica.",
+    "Nenhuma configuração de conta, credencial ou workflow foi alterada.",
+    "Testes locais não substituem execução de CI ou aceite de produção."
+  ]
+}
