@@ -1,0 +1,138 @@
+{
+  "version": 1,
+  "format": "new-test-v1",
+  "recordedOn": "2026-11-07",
+  "status": "FROZEN_AUTHORED_NOT_EXECUTED",
+  "baseExaminedPreparedSha256": "c2bb641f60ff44d847f4b34cf472cddcf235e0897c93659767eab514816a3c25",
+  "baseExaminedFiles": 1034,
+  "files": [
+    {
+      "path": "apps/api/test/platform-mfa-tenancy-create.test.ts",
+      "sha256": "d36843c3459083a096ffffe1d9ac323b9e13efe3151ec2bdb36d4709d03d29ab",
+      "bytes": 25593,
+      "cases": 17
+    }
+  ],
+  "independentCases": 17,
+  "parentGroups": 0,
+  "suites": 1,
+  "expectedTapCount": 17,
+  "baselineExpectedPass": 10,
+  "baselineExpectedFail": 7,
+  "baselineExpectedIndependentFail": 7,
+  "baselineExpected201Instead403": 7,
+  "fixedExpectedPass": 17,
+  "fixedExpectedFail": 0,
+  "runtimeExecuted": false,
+  "caseDispositions": [
+    {
+      "name": "blocks: rejects factor removal after real manage authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201",
+      "boundary": "real separate assertCapability SELECT returned allowed=true"
+    },
+    {
+      "name": "blocks: rejects family proof removal after real manage authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201",
+      "boundary": "real separate assertCapability SELECT returned allowed=true"
+    },
+    {
+      "name": "blocks: preserves full201 DTO and defaults for an optional local manager",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "blocks: preserves full201 DTO and defaults for a satisfied administrator",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "units: rejects factor removal after real manage authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201",
+      "boundary": "real separate assertCapability SELECT returned allowed=true"
+    },
+    {
+      "name": "units: rejects family proof removal after real manage authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201",
+      "boundary": "real separate assertCapability SELECT returned allowed=true"
+    },
+    {
+      "name": "units: preserves full201 DTO and defaults for an optional local manager",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "units: preserves full201 DTO and defaults for a satisfied administrator",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "teams: rejects factor removal after real manage authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201",
+      "boundary": "real separate assertCapability SELECT returned allowed=true"
+    },
+    {
+      "name": "teams: rejects family proof removal after real manage authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201",
+      "boundary": "real separate assertCapability SELECT returned allowed=true"
+    },
+    {
+      "name": "teams: preserves full201 DTO and defaults for an optional local manager",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "teams: preserves full201 DTO and defaults for a satisfied administrator",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "preserves tenant scope and requires explicit local management in all three creations",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "preserves composite unit foreign keys and accepts explicit null block and floor",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "preserves block and unit duplicate409 without extra rows or audit",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "preserves strict input validation and bounded typed values",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "rolls team creation audit and this family proof back after the narrow audit trigger",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201",
+      "boundary": "narrow AFTER INSERT audit trigger; sequence witnesses exactly one execution"
+    }
+  ],
+  "limits": [
+    "No real row-lock waiter, concurrent promotion or authority loss race",
+    "No forced zero-row INSERT outcome, trigger exception or exhaustive concurrency matrix",
+    "No POST grants or invitation coverage",
+    "No browser/native/performance/production acceptance"
+  ],
+  "reviewNotes": [
+    "Root and independent static reviewer found no blocker; original proof timestamp comparison tightened before freeze",
+    "Runtime tests and type checks not executed by the author"
+  ]
+}

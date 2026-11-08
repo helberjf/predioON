@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "format": "delta-v1",
+  "status": "AUTHORED_NOT_EXECUTED_TENANCY_CREATE_REVIEW_PENDING",
+  "basePreparedSha256": "c2bb641f60ff44d847f4b34cf472cddcf235e0897c93659767eab514816a3c25",
+  "sourceRoot": "work/mfa-tenancy-revocation-fixed-qa-20261107/source",
+  "sourceCount": 1034,
+  "files": [
+    {
+      "path": "apps/api/src/modules/tenancy/routes.ts",
+      "beforeSha256": "37754d794909989eff26550ebe1a7fc549c939795961fe44fea2cc005f75967e",
+      "beforeBytes": 40987,
+      "afterSha256": "3f0f4db1d92fdb8ed991d0e173d9aa82123f17b6376f137d7d543c60797b790b",
+      "afterBytes": 44397
+    }
+  ],
+  "ownedCallers": [
+    "POST /v1/tenancy/blocks",
+    "POST /v1/tenancy/units",
+    "POST /v1/tenancy/teams"
+  ],
+  "unexpectedEmptyInsert": "Internal error500 and transaction rollback; never201 or invented404/409.",
+  "checks": {
+    "beforeSourceFileHashVerified": true,
+    "preparedFileHashVerified": true,
+    "onlyThreePostHandlersAndPrivateCreationHelpersChanged": true,
+    "originalInputSchemasUnchanged": true,
+    "originalAuditPayloadsAndOrderUnchanged": true,
+    "existingSixPatchAndThreeDeleteHandlersUnchanged": true,
+    "sharedHelpersPoliciesGrantsMigrationsUnchanged": true,
+    "repositoryEdited": false,
+    "nodeDatabaseTypesTestsServicesExecuted": false,
+    "computerRestarted": false
+  },
+  "evidenceLimits": [
+    "Static candidate only; no compilation, PostgreSQL or RED/GREEN execution.",
+    "No lock-wait, concurrent constraint, promotion, capability-loss-during-wait or universal commit linearization claim.",
+    "No migration, privilege, role, capability or RLS change; existing statement failures retain inTenancy mappings.",
+    "A separate final MFA statement follows audit; its practical rollback behavior still requires the directed PostgreSQL test."
+  ]
+}

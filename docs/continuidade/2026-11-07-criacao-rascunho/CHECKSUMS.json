@@ -1,0 +1,57 @@
+[
+  {
+    "path": ".gitattributes",
+    "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+    "bytes": 8
+  },
+  {
+    "path": "payload/apps/api/src/modules/tenancy/routes.ts.txt",
+    "sha256": "3f0f4db1d92fdb8ed991d0e173d9aa82123f17b6376f137d7d543c60797b790b",
+    "bytes": 44397
+  },
+  {
+    "path": "payload/apps/api/test/platform-mfa-tenancy-create.test.ts.txt",
+    "sha256": "d36843c3459083a096ffffe1d9ac323b9e13efe3151ec2bdb36d4709d03d29ab",
+    "bytes": 25593
+  },
+  {
+    "path": "PLANO.md",
+    "sha256": "2b5e7df441cac3bd2815930f7ec47eb95506132597c6ae57cef1b071391dcd42",
+    "bytes": 13041
+  },
+  {
+    "path": "PRODUCT-MANIFEST.json",
+    "sha256": "a4fba414ffb1ca8498462d0b60818f0810d9619164094583bf1ecb9902cf417c",
+    "bytes": 1811
+  },
+  {
+    "path": "PRODUTO.md",
+    "sha256": "9f228ed01ab344c7951787d2b82e544c2d408f09ed0cc660ea7ec60fa87667e2",
+    "bytes": 6187
+  },
+  {
+    "path": "README.md",
+    "sha256": "4322385407ff209eeb7377e05306742a8b1d72698d0627bd6248a98c0ddb72f0",
+    "bytes": 3207
+  },
+  {
+    "path": "REVISAO-PRODUTO.md",
+    "sha256": "30f7118d77809e63bff083f09d43cfa6d634005f269d4fd4b89937f721540b65",
+    "bytes": 2627
+  },
+  {
+    "path": "REVISAO-TESTE.md",
+    "sha256": "b93895d17ea58724274b21300504a5d1649afaabf5946f91e5d958b188f2348a",
+    "bytes": 5297
+  },
+  {
+    "path": "TEST-MANIFEST.json",
+    "sha256": "ebce098eb5398ab5a16f3099883e1d47b77b52f82d92dd28d2fa117323635f0b",
+    "bytes": 4826
+  },
+  {
+    "path": "TESTES.md",
+    "sha256": "e694e3852cb23ce949f117314e4c5cd05565d06f45e733abe216e5cc1dc523fa",
+    "bytes": 5467
+  }
+]
