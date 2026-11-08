@@ -19,7 +19,7 @@ Prefixo de todas as rotas: `/v1/tenancy`. Linhas em `apps/api/src/modules/tenanc
 | Endpoint | Autorização e operação | Retorno, vazio e contrato a preservar |
 | --- | --- | --- |
 | POST `/blocks` :220 | `units:manage`; INSERT blocks; auditoria BLOCK_CREATED/block | 201 com a linha ORM inteira; duplicate de código409; sem no-op normal. |
-| POST `/units` :244 | `units:manage`; INSERT units; auditoria UNIT_CREATED/unit | 201; blockId aceita ausência/null; floor é opcional, mas null explícito no input não é aceito (ausência resulta null no DTO); FK composta impede bloco estrangeiro; metadata e datas integram o retorno. |
+| POST `/units` :244 | `units:manage`; INSERT units; auditoria UNIT_CREATED/unit | 201; blockId e floor aceitam ausência ou null explícito; FK composta impede bloco estrangeiro; metadata e datas integram o retorno. |
 | POST `/teams` :268 | `teams:manage`; INSERT teams; auditoria TEAM_CREATED/team | 201; kind padrão MAINTENANCE, metadata e datas; sem renovação ou concessão automática de autoridade. |
 | POST `/unit-memberships` :292 | `memberships:manage`; INSERT vínculo; auditoria UNIT_MEMBERSHIP_CREATED/unit_membership | 201; kind OWNER/OCCUPANT/DEPENDENT, janelas e FKs de usuário/unidade/prédio. Não é upsert. |
 | POST `/team-members` :316 | `teams:manage`; INSERT ou UPDATE condicional do par teamId/userId; leitura `app_tenancy_is_resident`; auditoria TEAM_MEMBER_ADDED/team_member | 201 ao criar/renovar; zero RETURNING no conflito ativo vira409. Renova inativo/expirado sem trocar ID, limpa/substitui janelas conforme input; resultado residente vira400 e rollback. |
@@ -47,7 +47,7 @@ A decisão precisa ser dependência real da escrita: CTE declarada e não consum
 
 1. Para cada POST, ator ADMIN inicialmente satisfeito por login/enrollment/TOTP HTTP reais e vínculo local explícito. Pausar após o SELECT separado de assertCapability retornar permitido; remover fator (PMF01) ou prova do mesmo SID (PMF02). Não fabricar nem restaurar aprovação SQL. Mesmo teste nas fontes baseline/fixed.
 2. Antes de esperar403 no negativo, se o baseline responder201, comprovar DTO completo, linha real criada e auditoria exata. Identificar a criação por campos únicos da fixture/ID retornado; comparar estado e auditorias antes/depois, sem supor um UUID gerado determinístico. Falha de setup,500 ou timeout não é RED válido.
-3. Controles por rota: gestor opcional e ADMIN satisfeito criam uma linha e uma auditoria. Conferir active/defaults, trims, metadata quando existente, datas ISO e ausência de campos extras; para units cobrir ausência/presença/null de blockId e floor omitido resultando null; floor:null explícito continua input inválido.
+3. Controles por rota: gestor opcional e ADMIN satisfeito criam uma linha e uma auditoria. Conferir active/defaults, trims, metadata quando existente, datas ISO e ausência de campos extras; para units cobrir ausência/presença/null de blockId, floor omitido resultando null e floor:null explícito aceito conforme o schema original.
 4. Controles finitos de foreign/sem gestão, bloco estrangeiro, código repetido, FK inexistente e input inválido: preservar status original e zero efeitos. Não chamar todo erro de autorização de MFA.
 5. Um caso separado com trigger de auditoria estreito removendo a prova da família demonstra rollback conjunto de criação/auditoria/prova, com testemunha não transacional do trigger. Só aceitar esse caso quando fixture, limpeza e fronteira estiverem revisadas; sem trigger de produção.
 
