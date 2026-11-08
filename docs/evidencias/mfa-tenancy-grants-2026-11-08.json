@@ -1,0 +1,780 @@
+{
+  "schemaVersion": 1,
+  "status": "VERIFIED",
+  "configSha256": "1da427c437f496fd6bea4423f92f7faf94f58d35a15ccfad22c0136f671af9ad",
+  "recordedOn": "2026-11-08",
+  "recordedOnTimezone": "America/Sao_Paulo",
+  "reviewedOn": "2026-11-08",
+  "nativeExecutionTimestampsPreserved": true,
+  "verifierSha256": "4265517b6bc0ef6101006b91b801046792151a8e039800df4613aa8597a9db32",
+  "reviewedByRoot": true,
+  "baselineGrantFailuresReviewed": true,
+  "sourceFiles": 1036,
+  "typeFiles": 32,
+  "requiredResolvedSources": 14,
+  "sourceDifference": [
+    "apps/api/src/modules/tenancy/routes.ts"
+  ],
+  "typeChecks": [
+    {
+      "variant": "baseline",
+      "phase": "resolve",
+      "result": {
+        "id": "mfa-tenancy-grants-baseline-qa-20261108/checks/resolve/result.json",
+        "sha256": "db6f13b41fe76515cb79eb843ddafe677ed67c4a35dc7faa2cc3268702ee891e",
+        "bytes": 1178
+      },
+      "startedUtc": "2026-11-08T22:54:50.186Z",
+      "childExitedUtc": "2026-11-08T22:54:51.738Z",
+      "durationMs": 1552
+    },
+    {
+      "variant": "baseline",
+      "phase": "types",
+      "result": {
+        "id": "mfa-tenancy-grants-baseline-qa-20261108/checks/types/result.json",
+        "sha256": "ccda5174d709e3674bee024fb603957baf553e1b0f7f3663be62e1c781bd832e",
+        "bytes": 1024
+      },
+      "startedUtc": "2026-11-08T22:54:52.565Z",
+      "childExitedUtc": "2026-11-08T22:55:01.273Z",
+      "durationMs": 8708
+    },
+    {
+      "variant": "fixed",
+      "phase": "resolve",
+      "result": {
+        "id": "mfa-tenancy-grants-fixed-qa-20261108/checks/resolve/result.json",
+        "sha256": "548079c6c9c237acfba10dcdf48804ae6a95653c74aa021d3f4123a3b6289d77",
+        "bytes": 1175
+      },
+      "startedUtc": "2026-11-08T22:55:02.113Z",
+      "childExitedUtc": "2026-11-08T22:55:03.222Z",
+      "durationMs": 1109
+    },
+    {
+      "variant": "fixed",
+      "phase": "types",
+      "result": {
+        "id": "mfa-tenancy-grants-fixed-qa-20261108/checks/types/result.json",
+        "sha256": "0c8b1b4e35c5af0d617f6d3242c0910e6475f86a855b0aa7005c300cdc5a3837",
+        "bytes": 1021
+      },
+      "startedUtc": "2026-11-08T22:55:04.025Z",
+      "childExitedUtc": "2026-11-08T22:55:12.810Z",
+      "durationMs": 8785
+    }
+  ],
+  "preparation": {
+    "nativeResults": [
+      {
+        "variant": "baseline",
+        "nativeChildExitedUtc": "2026-11-08T22:54:34.1229866Z",
+        "durationMs": 5872.3179,
+        "nativeResult": {
+          "id": "mfa-tenancy-grants-harness-20261108/baseline-prepare-result.json",
+          "sha256": "fd451503654224b84ef8d56401c32cb6886744c3afc69c0e88f01c344596adc8",
+          "bytes": 166
+        }
+      },
+      {
+        "variant": "fixed",
+        "nativeChildExitedUtc": "2026-11-08T22:54:38.7359662Z",
+        "durationMs": 3847.41,
+        "nativeResult": {
+          "id": "mfa-tenancy-grants-harness-20261108/fixed-prepare-result.json",
+          "sha256": "78a7b4cfa08cbc7ee55aaedae4ca264b057553ab7973d02f360e2a0349e86cd4",
+          "bytes": 164
+        }
+      }
+    ],
+    "isProductTestExecution": false
+  },
+  "acceptedCounts": {
+    "directedTap": 17,
+    "directedIndependent": 17,
+    "directedAggregateGroups": 0,
+    "directedSuites": 1,
+    "regressionFiles": 9,
+    "regressionTap": 130,
+    "regressionIndependent": 120,
+    "regressionAggregateGroups": 10,
+    "combinedTap": 147,
+    "combinedIndependent": 137,
+    "combinedAggregateGroups": 10
+  },
+  "environment": {
+    "attestation": {
+      "recordedOn": "2026-11-08",
+      "recordedUtc": "2026-11-08T23:00:37.6479565Z",
+      "container": "predioon-mfa-grants-20261108",
+      "containerId": "3c0f4e5e47d3d488766eb2679ba97fabf29b12d72f9b8df41bb504205a41b4c8",
+      "systemIdentifier": "7705939420428193833",
+      "port": 5468,
+      "loopbackOnly": true,
+      "memoryLimitMiB": 384,
+      "cpuLimit": 1,
+      "basePublicTables": 0,
+      "exclusiveUse": true,
+      "computerRestarted": false,
+      "imageId": "sha256:4e459e217f00cbb09920c34d245501e63427e6767a495de57ce76823ff280f12",
+      "volume": "predioon_mfa_grants_20261108",
+      "newCluster": true,
+      "previousClusterUnavailable": true,
+      "credentialsPublished": false
+    },
+    "initialEnvironmentRefusalsAreNotRed": true
+  },
+  "scopeLimits": [
+    "Two POST grant routes only: unit-memberships and role-bindings. Team membership upsert, invitations, shared helpers, policies and migrations are unchanged.",
+    "Required actors use real HTTP login/enrollment/TOTP; recovery codes renew a second session and password verification in the recency scenario. No successful MFA proof is fabricated.",
+    "Four baseline failures occur after real separate memberships:manage authorization. Two occur after narrow audit triggers, one per route. Fixed rollback restores the exact original family proof timestamp text, generation and presence.",
+    "Full DTOs/defaults, optional dates/nulls, user/team recipient, scoped foreign keys, strict validation, repeated distinct grants, delegation RLS and session-specific password recency are checked.",
+    "Directed cases do not induce row-lock waits, promotion, capability-loss waits, concurrent constraints, a zero-row INSERT or generic audit-trigger exceptions. No universal commit-boundary guarantee is asserted.",
+    "The nine related regressions keep their own scenario limits; their PASS does not add unexecuted grant cases.",
+    "Owned child checks cover registered direct children; no universal census of other projects or descendants is claimed.",
+    "Native UTC timestamps are preserved. The two earlier environment refusals happened before tests and are not baseline reproductions.",
+    "No browser, Android/iOS, whole API, performance or production acceptance is asserted."
+  ],
+  "baselineFailureObservations": [
+    {
+      "case": "unit-memberships: rejects factor removal after real manage authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: full original DTO, persisted grant and exact actor/resource/action audit verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "real manage authorization"
+    },
+    {
+      "case": "unit-memberships: rejects family proof removal after real manage authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: full original DTO, persisted grant and exact actor/resource/action audit verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "real manage authorization"
+    },
+    {
+      "case": "role-bindings: rejects factor removal after real manage authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: full original DTO, persisted grant and exact actor/resource/action audit verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "real manage authorization"
+    },
+    {
+      "case": "role-bindings: rejects family proof removal after real manage authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: full original DTO, persisted grant and exact actor/resource/action audit verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "real manage authorization"
+    },
+    {
+      "case": "unit-memberships: rolls grant audit and family proof back after the narrow audit trigger",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: full original DTO, persisted grant and audit verified; narrow trigger executed once and removed the same family proof",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "narrow audit trigger"
+    },
+    {
+      "case": "role-bindings: rolls grant audit and family proof back after the narrow audit trigger",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: full original DTO, persisted grant and audit verified; narrow trigger executed once and removed the same family proof",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "narrow audit trigger"
+    }
+  ],
+  "runs": [
+    {
+      "variant": "baseline",
+      "tests": [
+        {
+          "test": "platform-mfa-tenancy-grants",
+          "tests": 17,
+          "suites": 1,
+          "pass": 11,
+          "fail": 6,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 13808.6111,
+          "childDurationMs": 14461.0282,
+          "logSha256": "2b631278e09e109d0975b7ff50f46a86f4d00c806317993416175437cd83074a"
+        }
+      ],
+      "cleanupPassed": true,
+      "sourceMatched": true,
+      "ownedChildrenExited": true,
+      "cleanupHeld": false,
+      "nativeStatus": "completed-awaiting-TAP-GREEN-classification",
+      "startedUtc": "2026-11-08T23:08:47.265Z",
+      "endedUtc": "2026-11-08T23:09:08.967Z",
+      "observedHeadBefore": "a42aff7422409960ecc8e0def629dc0f3769129b",
+      "observedHeadAfter": "a42aff7422409960ecc8e0def629dc0f3769129b"
+    },
+    {
+      "variant": "fixed",
+      "tests": [
+        {
+          "test": "platform-mfa-tenancy-grants",
+          "tests": 17,
+          "suites": 1,
+          "pass": 17,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 12281.9009,
+          "childDurationMs": 12952.731600000001,
+          "logSha256": "40690ae7a928b5888ab7e07e8048becab1d84c1b43f3db1a0a27a58c3a84552e"
+        }
+      ],
+      "cleanupPassed": true,
+      "sourceMatched": true,
+      "ownedChildrenExited": true,
+      "cleanupHeld": false,
+      "nativeStatus": "completed-awaiting-TAP-GREEN-classification",
+      "startedUtc": "2026-11-08T23:09:43.293Z",
+      "endedUtc": "2026-11-08T23:10:03.339Z",
+      "observedHeadBefore": "a42aff7422409960ecc8e0def629dc0f3769129b",
+      "observedHeadAfter": "a42aff7422409960ecc8e0def629dc0f3769129b"
+    },
+    {
+      "variant": "fixed-regression",
+      "tests": [
+        {
+          "test": "platform-mfa-tenancy-links",
+          "tests": 12,
+          "suites": 1,
+          "pass": 12,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 4396.3653,
+          "childDurationMs": 4535.0224,
+          "logSha256": "b537ed46a08ef2a7877aa2a78319dc8529fc81b923217ffe9c0490f364f8e1cc"
+        },
+        {
+          "test": "platform-mfa-tenancy-structure",
+          "tests": 12,
+          "suites": 1,
+          "pass": 12,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 3675.9223,
+          "childDurationMs": 3819.7267999999985,
+          "logSha256": "d44bd90a77cf9e47fa69a0a8d11ea8c04bfc8470a32b29b034daf080a38e3180"
+        },
+        {
+          "test": "tenancy-people",
+          "tests": 9,
+          "suites": 1,
+          "pass": 9,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 7098.0065,
+          "childDurationMs": 7236.523699999998,
+          "logSha256": "81b6015f0779e1de7f0377733e4195eec78c68b4856c322adb86eef3be066ebf"
+        },
+        {
+          "test": "tenancy-http",
+          "tests": 9,
+          "suites": 1,
+          "pass": 9,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 5428.1463,
+          "childDurationMs": 5564.979599999999,
+          "logSha256": "3e4f6e474bb68079dd843feb96d8b729a607786e768dd1c7c5e3041704c21250"
+        },
+        {
+          "test": "tenancy-edit",
+          "tests": 11,
+          "suites": 1,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 5570.1247,
+          "childDurationMs": 5728.743399999999,
+          "logSha256": "d148a8e0062466989123224c8f63637d204ada5aa698cf14db36273eb38580e9"
+        },
+        {
+          "test": "membership-lifecycle",
+          "tests": 4,
+          "suites": 1,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 3075.809,
+          "childDurationMs": 3741.073400000001,
+          "logSha256": "af36d1836be458320baf90767ab331566dc57a608e5f47a4e638107501f88679"
+        },
+        {
+          "test": "platform-mfa-tenancy-commands",
+          "tests": 35,
+          "suites": 1,
+          "pass": 35,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 7352.3789,
+          "childDurationMs": 8015.3125999999975,
+          "logSha256": "e64a1e1c04eb26c3bdf716716d0851de42a4480ff8d20a18c8093a2d5f187a8d"
+        },
+        {
+          "test": "platform-mfa-tenancy-revocations",
+          "tests": 21,
+          "suites": 1,
+          "pass": 21,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 20231.0014,
+          "childDurationMs": 20379.108200000002,
+          "logSha256": "19b2009d86c55d35081df8c0ed4b3a7fbd9fe702a2c505051c8a8fa445744638"
+        },
+        {
+          "test": "platform-mfa-tenancy-create",
+          "tests": 17,
+          "suites": 1,
+          "pass": 17,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 6996.0805,
+          "childDurationMs": 7593.871299999999,
+          "logSha256": "f3f681f4175f24ff1ed4aa90c0b53dad740ba5363afac74190f0c9b5548f0e1f"
+        }
+      ],
+      "cleanupPassed": true,
+      "sourceMatched": true,
+      "ownedChildrenExited": true,
+      "cleanupHeld": false,
+      "nativeStatus": "completed-awaiting-TAP-GREEN-classification",
+      "startedUtc": "2026-11-08T23:10:24.398Z",
+      "endedUtc": "2026-11-08T23:11:46.683Z",
+      "observedHeadBefore": "a42aff7422409960ecc8e0def629dc0f3769129b",
+      "observedHeadAfter": "a42aff7422409960ecc8e0def629dc0f3769129b"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "mfa-tenancy-grants-root-config-20261108.json",
+      "sha256": "1da427c437f496fd6bea4423f92f7faf94f58d35a15ccfad22c0136f671af9ad",
+      "bytes": 3588
+    },
+    {
+      "id": "mfa-tenancy-grants-harness-20261108/PLAN.json",
+      "sha256": "32daedc15f1eeacb9e544f57d09654ba5d7d93f83d69068dcf8e4f3517c6863b",
+      "bytes": 4995
+    },
+    {
+      "id": "mfa-tenancy-grants-test-20261108/manifest.json",
+      "sha256": "9b5998c27b3aa22a8330281f1ed5a3f7b8b3b808648fc15224df53ac647e490f",
+      "bytes": 3643
+    },
+    {
+      "id": "mfa-tenancy-grants-candidate-20261108/manifest.json",
+      "sha256": "c501c8217f290055363a67e8b9c3fc9b06118680dbc5ee844f74d8d6ef2c3f43",
+      "bytes": 750
+    },
+    {
+      "id": "mfa-tenancy-grants-harness-20261108/AUTHORED-PINS.json",
+      "sha256": "097923c83ac5abf6ee5600aabb03f3578f715cb1d2d8149cf388555a03dc4271",
+      "bytes": 664
+    },
+    {
+      "id": "mfa-tenancy-create-fixed-qa-20261107/prepared.json",
+      "sha256": "ce90003f2777c890195c814b6560f0ca26edb2989f1770a2c4aabea8939d54ff",
+      "bytes": 907256
+    },
+    {
+      "id": "mfa-tenancy-grants-baseline-qa-20261108/run-mfa-directed.mjs",
+      "sha256": "ffcdeb0539ec2d71b3858767c1358ea2a9eeacbb96a20bbaf506ac8b634f65b2",
+      "bytes": 13751
+    },
+    {
+      "id": "mfa-tenancy-grants-baseline-qa-20261108/launch-mfa-directed.ps1",
+      "sha256": "73a7a903e22a2ab3a40ef8bc4412e8e3204406a5400f376fb95e16b4fdd8783c",
+      "bytes": 12997
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-qa-20261108/run-mfa-directed.mjs",
+      "sha256": "014065e4d3da054a536ce10e738e15107d3359b19de4c1ed3b63b89ca21e251d",
+      "bytes": 13739
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-qa-20261108/launch-mfa-directed.ps1",
+      "sha256": "1ede94ec97ab86d8f9eb0df673cc71ff756f24f77bab6474f9a4d66cb534078c",
+      "bytes": 12988
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-regression-qa-20261108/run-mfa-directed.mjs",
+      "sha256": "136a2c0cff4a3d9be0770ee8efdeb6d32eb47d5bed9f511b6fd44bdc52a3f639",
+      "bytes": 14835
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-regression-qa-20261108/launch-mfa-directed.ps1",
+      "sha256": "9d7004073f187a6bba51df049cb2b53ead77ca65ead38d4a2f5f8f381ebb0bb4",
+      "bytes": 13058
+    },
+    {
+      "id": "mfa-tenancy-grants-baseline-db2-attempt2-qa-20261108/run-mfa-directed.mjs",
+      "sha256": "1f95630e82a8aa82feed31aa5264ba65a7be133e471f4fea66656608e7ddd5e6",
+      "bytes": 13810
+    },
+    {
+      "id": "mfa-tenancy-grants-baseline-db2-attempt2-qa-20261108/launch-mfa-directed.ps1",
+      "sha256": "dcb9b569cad57c8aa1e4ee3cce5143a0a233ac80c7ef67fb55f8dcf9bf8aba28",
+      "bytes": 13043
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-db2-qa-20261108/run-mfa-directed.mjs",
+      "sha256": "c0ebecdb42535f7b3553708b40986507684f6c064650c66fadf943f2cf651b9d",
+      "bytes": 13795
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-db2-qa-20261108/launch-mfa-directed.ps1",
+      "sha256": "842276b2a4032dfb64087faea96df196aab78c7283cfd80eb7cd5b34765ae0b2",
+      "bytes": 13031
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-regression-db2-qa-20261108/run-mfa-directed.mjs",
+      "sha256": "136a2c0cff4a3d9be0770ee8efdeb6d32eb47d5bed9f511b6fd44bdc52a3f639",
+      "bytes": 14835
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-regression-db2-qa-20261108/launch-mfa-directed.ps1",
+      "sha256": "5027fd3604625b4bf1353420802b9cb62ddf7d15ff9d5ef5689f8be9407b68bf",
+      "bytes": 13031
+    },
+    {
+      "id": "mfa-tenancy-grants-harness-20261108/executors-handoff.json",
+      "sha256": "ee326829a28e5047343fe68f912801020227b38ae027b7dba8c73ae808e73ef7",
+      "bytes": 2841
+    },
+    {
+      "id": "mfa-tenancy-grants-harness-20261108/db2-executors-handoff.json",
+      "sha256": "48cdc87b765547ed054e042df9fdb4765a10865991fc1ef2aea760695d6a1270",
+      "bytes": 4169
+    },
+    {
+      "id": "mfa-grants-root-attestation-20261108.json",
+      "sha256": "9d43fe8e98ce5e11a26e7e943fb465a96f24a4c14368bbdab5712e5282cb426e",
+      "bytes": 664
+    },
+    {
+      "id": "mfa-tenancy-grants-harness-20261108/run-types.mjs",
+      "sha256": "0dd0b68ef426850363ce93e583b5f3ce8adcb0921d48044b8bd2d726def8cd65",
+      "bytes": 12316
+    },
+    {
+      "id": "mfa-tenancy-grants-harness-20261108/baseline-prepare-result.json",
+      "sha256": "fd451503654224b84ef8d56401c32cb6886744c3afc69c0e88f01c344596adc8",
+      "bytes": 166
+    },
+    {
+      "id": "mfa-tenancy-grants-harness-20261108/baseline-prepare-guard.json",
+      "sha256": "8247f6fc3bc41d9dd98898b3cdcc049f69b0c6aac4121bba6edafd609aa9e6d6",
+      "bytes": 91
+    },
+    {
+      "id": "mfa-tenancy-grants-harness-20261108/baseline-prepare.stdout.txt",
+      "sha256": "b8f1fdc26403f8497ef7abe73819174bdf7927ffb6e4c5c860caadfbbd722e64",
+      "bytes": 246
+    },
+    {
+      "id": "mfa-tenancy-grants-harness-20261108/baseline-prepare.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-tenancy-grants-harness-20261108/fixed-prepare-result.json",
+      "sha256": "78a7b4cfa08cbc7ee55aaedae4ca264b057553ab7973d02f360e2a0349e86cd4",
+      "bytes": 164
+    },
+    {
+      "id": "mfa-tenancy-grants-harness-20261108/fixed-prepare-guard.json",
+      "sha256": "b3870206e169e6905d3a0fa5de029c9ddad8d43c72f932712b99bf956c1752a9",
+      "bytes": 91
+    },
+    {
+      "id": "mfa-tenancy-grants-harness-20261108/fixed-prepare.stdout.txt",
+      "sha256": "ba3a589f6153613b0db7d32e2812f20a8c8ed4fd2752beee28801c4a8650a454",
+      "bytes": 243
+    },
+    {
+      "id": "mfa-tenancy-grants-harness-20261108/fixed-prepare.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-tenancy-grants-baseline-qa-20261108/prepared.json",
+      "sha256": "ac768976c2a464a63fc05902ec7271ff82b09c955a238efd58880daa98418265",
+      "bytes": 908269
+    },
+    {
+      "id": "mfa-tenancy-grants-baseline-qa-20261108/tsconfig.test.json",
+      "sha256": "82b59952074f893ef7be187972ee511a5a7b59918c037d67b1bab83d139df7d6",
+      "bytes": 2116
+    },
+    {
+      "id": "mfa-tenancy-grants-baseline-qa-20261108/checks/resolve/stdout.log",
+      "sha256": "6f81ec343361569679b380a724eface32d4975ce353505530554e8cfd9092288",
+      "bytes": 148514
+    },
+    {
+      "id": "mfa-tenancy-grants-baseline-qa-20261108/checks/resolve/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-tenancy-grants-baseline-qa-20261108/checks/resolve/result.json",
+      "sha256": "db6f13b41fe76515cb79eb843ddafe677ed67c4a35dc7faa2cc3268702ee891e",
+      "bytes": 1178
+    },
+    {
+      "id": "mfa-tenancy-grants-baseline-qa-20261108/checks/resolve/command.json",
+      "sha256": "333bf6765055da2387b6ba3c745f3b77860ab603cfe0e104cb29149592001471",
+      "bytes": 942
+    },
+    {
+      "id": "mfa-tenancy-grants-baseline-qa-20261108/checks/resolve/guard.json",
+      "sha256": "e2f94139e23d4135d1f76404af204bde1f160ae734628a8aeb0bb1e1ba2a7b0c",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-tenancy-grants-baseline-qa-20261108/checks/types/stdout.log",
+      "sha256": "54576956e1e3c5956c8624d00f8288d82ef7c6d8982594ecd26df8e8198c39b6",
+      "bytes": 972
+    },
+    {
+      "id": "mfa-tenancy-grants-baseline-qa-20261108/checks/types/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-tenancy-grants-baseline-qa-20261108/checks/types/result.json",
+      "sha256": "ccda5174d709e3674bee024fb603957baf553e1b0f7f3663be62e1c781bd832e",
+      "bytes": 1024
+    },
+    {
+      "id": "mfa-tenancy-grants-baseline-qa-20261108/checks/types/command.json",
+      "sha256": "c20b3e0c0713095fa2550660ae6837cb6afbb7fefcbe15edfa4a4973dacf1b0a",
+      "bytes": 947
+    },
+    {
+      "id": "mfa-tenancy-grants-baseline-qa-20261108/checks/types/guard.json",
+      "sha256": "4c8d30555e45917d2a666a08d52876d6164ec8e7b5c780a30dc97233578a678a",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-qa-20261108/prepared.json",
+      "sha256": "f701467e1feeb849cd2eaf83aee4d4d91a15574a834bc019c6d26234d30730f9",
+      "bytes": 907726
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-qa-20261108/tsconfig.test.json",
+      "sha256": "82b59952074f893ef7be187972ee511a5a7b59918c037d67b1bab83d139df7d6",
+      "bytes": 2116
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-qa-20261108/checks/resolve/stdout.log",
+      "sha256": "9170686917a6648f5ce40d844b05d9aedd8d26165582d097c1d7cd229afe6827",
+      "bytes": 148010
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-qa-20261108/checks/resolve/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-qa-20261108/checks/resolve/result.json",
+      "sha256": "548079c6c9c237acfba10dcdf48804ae6a95653c74aa021d3f4123a3b6289d77",
+      "bytes": 1175
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-qa-20261108/checks/resolve/command.json",
+      "sha256": "0a9667849514a5b8deacc1d706ad045f920d20f3f8626061cdbe24bb0fa6c24f",
+      "bytes": 930
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-qa-20261108/checks/resolve/guard.json",
+      "sha256": "a76099f406cfc98084f6b948da87c970eb39c1c1290da2a274ce33b394d3a6a2",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-qa-20261108/checks/types/stdout.log",
+      "sha256": "efaa1e744750015e0f3cf21e98fa730d54a0b69d006b6fce933d5ae7b20f246e",
+      "bytes": 972
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-qa-20261108/checks/types/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-qa-20261108/checks/types/result.json",
+      "sha256": "0c8b1b4e35c5af0d617f6d3242c0910e6475f86a855b0aa7005c300cdc5a3837",
+      "bytes": 1021
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-qa-20261108/checks/types/command.json",
+      "sha256": "5f4d3c90937af08339974f774201599afd98c32ab09946884fb8fea5292d53b4",
+      "bytes": 935
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-qa-20261108/checks/types/guard.json",
+      "sha256": "dac7c5ebc2124c3f4f337fa5d1931a643dbd8da82512d050698c51699f219406",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-tenancy-grants-baseline-db2-attempt2-qa-20261108/owned-database.json",
+      "sha256": "cbdbab0ad96237c243b1366cb72f511fea934d64f0dcfe2c566bdc7a3c4dc72c",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-tenancy-grants-baseline-db2-attempt2-qa-20261108/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-tenancy-grants-baseline-db2-attempt2-qa-20261108/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-tenancy-grants-baseline-db2-attempt2-qa-20261108/platform-mfa-tenancy-grants.log",
+      "sha256": "2b631278e09e109d0975b7ff50f46a86f4d00c806317993416175437cd83074a",
+      "bytes": 12915
+    },
+    {
+      "id": "mfa-tenancy-grants-baseline-db2-attempt2-qa-20261108/mfa-directed-result.json",
+      "sha256": "08b5d0237388121d434bb5e91fefb945d55abebf209d857fcf31be3d7989b555",
+      "bytes": 314089
+    },
+    {
+      "id": "mfa-tenancy-grants-baseline-db2-attempt2-qa-20261108/mfa-directed-postchecks.json",
+      "sha256": "278f22dc33144ddeed4b96916a064955158249bc21a7f859ef8d219eda2d8fa1",
+      "bytes": 390
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-db2-qa-20261108/owned-database.json",
+      "sha256": "0d2bcaf97478e652f3a0305d74cff62c2361fe70ed924a04fc2701929efde85f",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-db2-qa-20261108/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-db2-qa-20261108/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-db2-qa-20261108/platform-mfa-tenancy-grants.log",
+      "sha256": "40690ae7a928b5888ab7e07e8048becab1d84c1b43f3db1a0a27a58c3a84552e",
+      "bytes": 4553
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-db2-qa-20261108/mfa-directed-result.json",
+      "sha256": "9935be660394e46479a1bd7b0ff276baefeeb180f66d60726f7796864a4ab78a",
+      "bytes": 314092
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-db2-qa-20261108/mfa-directed-postchecks.json",
+      "sha256": "4b88d788f77bba1c6cc497a8ef59541fa0b56da233ecb7522686b96327808abe",
+      "bytes": 390
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-regression-db2-qa-20261108/owned-database.json",
+      "sha256": "4da1ce39861d703b47078bd13e73ea763fe24b5c3febcc0ded2e3e8deaaaeb13",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-regression-db2-qa-20261108/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-regression-db2-qa-20261108/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-regression-db2-qa-20261108/platform-mfa-tenancy-links.log",
+      "sha256": "b537ed46a08ef2a7877aa2a78319dc8529fc81b923217ffe9c0490f364f8e1cc",
+      "bytes": 2781
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-regression-db2-qa-20261108/platform-mfa-tenancy-structure.log",
+      "sha256": "d44bd90a77cf9e47fa69a0a8d11ea8c04bfc8470a32b29b034daf080a38e3180",
+      "bytes": 2624
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-regression-db2-qa-20261108/tenancy-people.log",
+      "sha256": "81b6015f0779e1de7f0377733e4195eec78c68b4856c322adb86eef3be066ebf",
+      "bytes": 2668
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-regression-db2-qa-20261108/tenancy-http.log",
+      "sha256": "3e4f6e474bb68079dd843feb96d8b729a607786e768dd1c7c5e3041704c21250",
+      "bytes": 2542
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-regression-db2-qa-20261108/tenancy-edit.log",
+      "sha256": "d148a8e0062466989123224c8f63637d204ada5aa698cf14db36273eb38580e9",
+      "bytes": 3001
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-regression-db2-qa-20261108/membership-lifecycle.log",
+      "sha256": "af36d1836be458320baf90767ab331566dc57a608e5f47a4e638107501f88679",
+      "bytes": 1156
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-regression-db2-qa-20261108/platform-mfa-tenancy-commands.log",
+      "sha256": "e64a1e1c04eb26c3bdf716716d0851de42a4480ff8d20a18c8093a2d5f187a8d",
+      "bytes": 6945
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-regression-db2-qa-20261108/platform-mfa-tenancy-revocations.log",
+      "sha256": "19b2009d86c55d35081df8c0ed4b3a7fbd9fe702a2c505051c8a8fa445744638",
+      "bytes": 5522
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-regression-db2-qa-20261108/platform-mfa-tenancy-create.log",
+      "sha256": "f3f681f4175f24ff1ed4aa90c0b53dad740ba5363afac74190f0c9b5548f0e1f",
+      "bytes": 4293
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-regression-db2-qa-20261108/mfa-directed-result.json",
+      "sha256": "a25752756ee37d73579ecb50df2242cfb9cb133c3090d4d61f4642b45b29b7cf",
+      "bytes": 318940
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-regression-db2-qa-20261108/mfa-directed-postchecks.json",
+      "sha256": "69d9856862b6538edd71bf8f60ed32e4e2c0b612fb4e2aa544341ea0a4e766f7",
+      "bytes": 390
+    }
+  ],
+  "performanceAssessed": false,
+  "productionAccepted": false
+}
