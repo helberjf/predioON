@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-11-07",
+  "recordedTimeZone": "America/Sao_Paulo",
+  "executedUtcDates": [
+    "2026-11-08"
+  ],
+  "scope": "Two TypeScript compilations and two dependency resolution checks for the three revocation commands, not test execution",
+  "candidateFilesPerVariant": 1034,
+  "testFilesIncludedPerConfig": 30,
+  "requiredApplicationSources": 13,
+  "phases": [
+    {
+      "variant": "baseline",
+      "phase": "resolve",
+      "passed": true,
+      "preparedSha256": "2457485be50acdc4fe2a13e6f42a0a0b03171da5839b31cc80804abd6af1b1a2",
+      "startedUtc": "2026-11-08T01:08:13.409Z",
+      "childExitedUtc": "2026-11-08T01:08:15.293Z",
+      "durationMs": 1884,
+      "sourceAndConfigBeforeAfterVerified": true,
+      "result": {
+        "id": "mfa-tenancy-revocation-baseline-qa-20261107/checks/resolve/result.json",
+        "sha256": "ce89b71a6f8bb909f915c045ca20bd5e7bd39699ee15f7b1f3330962e0787fe5",
+        "bytes": 1178
+      },
+      "stdout": {
+        "id": "mfa-tenancy-revocation-baseline-qa-20261107/checks/resolve/stdout.log",
+        "sha256": "baa7f21107f6953580db3c6c3f40ac74d0f737fefee96d0c8c35f4b4a7391a14",
+        "bytes": 148790
+      },
+      "stderr": {
+        "id": "mfa-tenancy-revocation-baseline-qa-20261107/checks/resolve/stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    },
+    {
+      "variant": "baseline",
+      "phase": "types",
+      "passed": true,
+      "preparedSha256": "2457485be50acdc4fe2a13e6f42a0a0b03171da5839b31cc80804abd6af1b1a2",
+      "startedUtc": "2026-11-08T01:08:16.183Z",
+      "childExitedUtc": "2026-11-08T01:08:28.939Z",
+      "durationMs": 12756,
+      "sourceAndConfigBeforeAfterVerified": true,
+      "result": {
+        "id": "mfa-tenancy-revocation-baseline-qa-20261107/checks/types/result.json",
+        "sha256": "a11a544df7f04239da1bc3827334b5b6c999abe3e3a92406004cc74560f476c5",
+        "bytes": 1025
+      },
+      "stdout": {
+        "id": "mfa-tenancy-revocation-baseline-qa-20261107/checks/types/stdout.log",
+        "sha256": "5583f2cae26cf47109f38cd62ec51b9023552a9bd12ec5c8b8cc14d6d202ccea",
+        "bytes": 972
+      },
+      "stderr": {
+        "id": "mfa-tenancy-revocation-baseline-qa-20261107/checks/types/stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    },
+    {
+      "variant": "fixed",
+      "phase": "resolve",
+      "passed": true,
+      "preparedSha256": "c2bb641f60ff44d847f4b34cf472cddcf235e0897c93659767eab514816a3c25",
+      "startedUtc": "2026-11-08T01:08:29.947Z",
+      "childExitedUtc": "2026-11-08T01:08:31.083Z",
+      "durationMs": 1136,
+      "sourceAndConfigBeforeAfterVerified": true,
+      "result": {
+        "id": "mfa-tenancy-revocation-fixed-qa-20261107/checks/resolve/result.json",
+        "sha256": "10ca21e966b22e5bac04dfc9e55ff67aae2213c8bed5ce3c6fe8ff739718ac1e",
+        "bytes": 1175
+      },
+      "stdout": {
+        "id": "mfa-tenancy-revocation-fixed-qa-20261107/checks/resolve/stdout.log",
+        "sha256": "7c2b99b4dfd1efe59165b8f476cccaec45b4dc58b4c772cab3bbbf8f971a32e8",
+        "bytes": 148292
+      },
+      "stderr": {
+        "id": "mfa-tenancy-revocation-fixed-qa-20261107/checks/resolve/stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    },
+    {
+      "variant": "fixed",
+      "phase": "types",
+      "passed": true,
+      "preparedSha256": "c2bb641f60ff44d847f4b34cf472cddcf235e0897c93659767eab514816a3c25",
+      "startedUtc": "2026-11-08T01:08:31.943Z",
+      "childExitedUtc": "2026-11-08T01:08:43.427Z",
+      "durationMs": 11484,
+      "sourceAndConfigBeforeAfterVerified": true,
+      "result": {
+        "id": "mfa-tenancy-revocation-fixed-qa-20261107/checks/types/result.json",
+        "sha256": "ad674051dc1ff5525d73ff9ce982d63016adac63a4ed3e1200bd40f625f10613",
+        "bytes": 1022
+      },
+      "stdout": {
+        "id": "mfa-tenancy-revocation-fixed-qa-20261107/checks/types/stdout.log",
+        "sha256": "fb4f37868eda637fdef4fcadd5ae09144f3b921907526c48eaed0d22caff7334",
+        "bytes": 972
+      },
+      "stderr": {
+        "id": "mfa-tenancy-revocation-fixed-qa-20261107/checks/types/stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    }
+  ],
+  "runner": {
+    "id": "mfa-tenancy-revocation-harness-20261107/run-types.mjs",
+    "sha256": "136bb66b939f51386d80990894578d75b47a5b3701c250536c58cae448a7a4ce",
+    "bytes": 8991
+  },
+  "typesPassed": 2,
+  "resolutionChecksPassed": 2,
+  "testsExecuted": false,
+  "databaseStarted": false,
+  "computerRestarted": false,
+  "productionAccepted": false,
+  "limits": [
+    "The 21 directed cases and seven regression files remain unexecuted at this checkpoint.",
+    "A successful compilation does not validate SQL, RLS, locking, HTTP behavior, browsers or native applications.",
+    "Prepared runtime sources remain isolated candidates; main still uses migrations001–067."
+  ]
+}
