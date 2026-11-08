@@ -1,0 +1,27 @@
+{
+  "recordedOn": "2026-11-07",
+  "preparedSha256": "36e5b4a28d0c9b24d2b7420b9401366dad4d1842c7597238a84e283c958c902e",
+  "observedHead": "1fe02f904ad4daf00fcf4f000984829007a611de",
+  "candidateFiles": 1033,
+  "browser": "Chromium",
+  "backend": "real API and disposable PostgreSQL",
+  "data": "fictitious isolated fixtures",
+  "authorityFixture": "one global binding via scoped owner SQL; no factor or session proof fabricated",
+  "legacyFlag": false,
+  "legacyIdentityDtoRole": "BUILDING_ADMIN",
+  "media": [
+    {
+      "file": "mfa-binding-global-administrador.png",
+      "sha256": "61672a2849c35c6804778f4864bbc2bef6a97c61191c7095bad7aa8a95b14ac7",
+      "bytes": 94053,
+      "width": 1280,
+      "height": 800,
+      "case": "administrador por vínculo global exige MFA sem flag legado e não pode desativá-la",
+      "passed": true,
+      "visuallyReviewed": true
+    }
+  ],
+  "rawMfaVideoPublished": false,
+  "htmlGalleryChanged": false,
+  "productionAccepted": false
+}

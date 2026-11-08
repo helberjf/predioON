@@ -1,0 +1,23 @@
+{
+  "observedOn": "2026-11-07T15:15:55.246660+00:00",
+  "observedHead": "1fe02f904ad4daf00fcf4f000984829007a611de",
+  "runsTotal": 1,
+  "runs": [
+    {
+      "id": 42385418861,
+      "name": "",
+      "head_sha": "1fe02f904ad4daf00fcf4f000984829007a611de",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "startup_failure",
+      "created_at": "2026-11-07T15:14:37Z",
+      "updated_at": "2026-11-07T15:14:37Z",
+      "html_url": "https://github.com/helberjf/predioON/actions/runs/42385418861",
+      "jobsTotal": 0
+    }
+  ],
+  "causeConfirmed": false,
+  "readOnly": true,
+  "workflowDispatched": false,
+  "accountSettingsChanged": false
+}

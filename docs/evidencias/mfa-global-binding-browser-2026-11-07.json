@@ -1,0 +1,493 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-11-07",
+  "executedOn": "2026-11-07",
+  "reviewedOn": "2026-11-07",
+  "verificationHistory": {
+    "initialVerifier": {
+      "id": "verify-global-binding-browser-results-20261107.py",
+      "sha256": "2127d7f968ac8071a926c98533360c809225a6f5c50df910f8d59aa84e9f3429",
+      "bytes": 27609
+    },
+    "pathObservation": {
+      "id": "global-binding-media-path-observation-20261107.json",
+      "sha256": "5f7b825582741d8ef56280762da01ba37c41110208ca9b8bbd0245bd56e4fe1a",
+      "bytes": 812
+    },
+    "initialBlockedBy": "Windows normal-path resolution of the 264-character final screenshot path",
+    "correction": "Use extended Windows paths for metadata IO; canonical logical paths retain containment and artifact IDs",
+    "runtimeEvidenceChanged": false,
+    "testsRerunForCorrection": false
+  },
+  "scope": "One real Chromium building-web scenario for mandatory MFA through an explicit active global PLATFORM_ADMIN binding with legacy flag false and local BUILDING_ADMIN identity DTO",
+  "sources": {
+    "preparedSha256": "36e5b4a28d0c9b24d2b7420b9401366dad4d1842c7597238a84e283c958c902e",
+    "priorMandatoryPreparedSha256": "2abbf1a7fa9c7d54f6f0a6fc12938b3b14a27fa8da823590e8d9acb71a09087f",
+    "buildingTypeSourcePreparedSha256": "4cc08d2e503a00d14c4a1220b41ad30c7cc07072be5fc9c820bde5065c7e021b",
+    "rootFiles": 994,
+    "composedFiles": 1033,
+    "workspaceJunctions": 23,
+    "newExcludedCacheJunctions": 0,
+    "parentExcludedCacheJunctions": 0,
+    "historicalV4ExcludedCacheJunctions": 7,
+    "onlyChangedExistingFile": "playwright.tenancy-candidate.config.ts",
+    "onlyNewFile": "e2e/specs/auth/platform-mfa-binding.spec.ts",
+    "globalBindingSpecSha256": "12e23604c012e759c3c29ee3a66c7ccdd2781dd8597bee569f3f60db055197de",
+    "testManifest": {
+      "id": "mfa-global-binding-browser-test-20261107/manifest.json",
+      "sha256": "828b8a7104739c78c9b11dbdaacbffed728a01e6bffec1f33bccb95053daf14f",
+      "bytes": 547
+    },
+    "allProductFilesMatchMandatoryParent": true,
+    "allProductFilesMatchBrowserV4": true,
+    "observedHeadBefore": "1fe02f904ad4daf00fcf4f000984829007a611de",
+    "observedHeadAfter": "1fe02f904ad4daf00fcf4f000984829007a611de"
+  },
+  "preflights": [
+    {
+      "phase": "e2e",
+      "passed": true,
+      "durationMs": 19183,
+      "result": {
+        "id": "mfa-global-binding-browser-qa-20261107/checks/e2e/result.json",
+        "sha256": "5eaca56a4a6c41f8062d256ba74530af62bdc27c8e6d2e4949105834e1743a26",
+        "bytes": 646
+      }
+    },
+    {
+      "phase": "list",
+      "passed": true,
+      "durationMs": 4158,
+      "result": {
+        "id": "mfa-global-binding-browser-qa-20261107/checks/list/result.json",
+        "sha256": "11176c6135d87abf5c5e0bc2225a9dad0dd3ca00bac290857bc6f8f97d684ac7",
+        "bytes": 643
+      }
+    }
+  ],
+  "cases": [
+    {
+      "title": "administrador por vínculo global exige MFA sem flag legado e não pode desativá-la",
+      "file": "auth/platform-mfa-binding.spec.ts",
+      "project": "chromium",
+      "passed": true,
+      "retry": 0,
+      "durationMs": 9149,
+      "media": [
+        {
+          "kind": "screenshot",
+          "id": "mfa-global-binding-browser-qa-20261107/source/.local/tenancy-candidate-results/auth-platform-mfa-binding--03596-gado-e-não-pode-desativá-la-chromium/test-finished-1.png",
+          "sha256": "61672a2849c35c6804778f4864bbc2bef6a97c61191c7095bad7aa8a95b14ac7",
+          "bytes": 94053
+        },
+        {
+          "kind": "video",
+          "id": "mfa-global-binding-browser-qa-20261107/source/.local/tenancy-candidate-results/auth-platform-mfa-binding--03596-gado-e-não-pode-desativá-la-chromium/video.webm",
+          "sha256": "8b735ace6936ea7d8d84caadc5aa254d9d96d05a86e6c344d3b6e025f3a10908",
+          "bytes": 663121
+        }
+      ]
+    }
+  ],
+  "gates": {
+    "browserCasesPassed": 1,
+    "browserFiles": 1,
+    "projects": 1,
+    "workers": 1,
+    "retries": 0,
+    "failures": 0,
+    "skipped": 0,
+    "flaky": 0,
+    "newTypeChecksPassed": 1,
+    "testListPassed": true,
+    "reusedBuildingTypeCheckPassed": true,
+    "buildProductionPassed": true,
+    "buildHashesBeforeAfterPassed": true,
+    "sourceHashesPassed": true,
+    "fixtureCleanupPassed": true,
+    "ownedChildrenExited": true,
+    "dedicatedPortsClosed": true,
+    "restrictedRolesCheckedBeforeApiListen": true,
+    "screenshots": 1,
+    "videos": 1
+  },
+  "reusedBuildingTypeCheck": {
+    "newExecutionClaimed": false,
+    "preparedSha256": "4cc08d2e503a00d14c4a1220b41ad30c7cc07072be5fc9c820bde5065c7e021b",
+    "exactProductSourceMapMatch": true,
+    "configSha256": "85b794ae5918f0911463094a65c6e5062914f1b41d5c6afeae59d64a2518d10c",
+    "result": {
+      "id": "mfa-real-browser-v4-qa-20261107/checks/building/result.json",
+      "sha256": "d0656a8fd17f9c490a2189ece4161d5e6cbc26471663d65be7a5c094732d170d",
+      "bytes": 650
+    }
+  },
+  "runtime": {
+    "startedUtc": "2026-11-07T15:20:55.267Z",
+    "endedUtc": "2026-11-07T15:22:37.034Z",
+    "guardMiB": 2048,
+    "phases": [
+      {
+        "phase": "before-build",
+        "freeMiB": 2198,
+        "minimumMiB": 2048
+      },
+      {
+        "phase": "before-building-build",
+        "freeMiB": 2194,
+        "minimumMiB": 2048
+      },
+      {
+        "phase": "before-fixture",
+        "freeMiB": 2658,
+        "minimumMiB": 2048
+      },
+      {
+        "phase": "before-provision",
+        "freeMiB": 2572,
+        "minimumMiB": 2048
+      },
+      {
+        "phase": "before-seed",
+        "freeMiB": 2565,
+        "minimumMiB": 2048
+      },
+      {
+        "phase": "before-playwright",
+        "freeMiB": 2648,
+        "minimumMiB": 2048
+      }
+    ],
+    "postServerMemory": {
+      "phase": "after-api-preview-before-browser",
+      "freeMiB": 2393,
+      "minimumMiB": 2048
+    },
+    "loopbackListeners": [
+      {
+        "LocalAddress": "127.0.0.1",
+        "LocalPort": 6974,
+        "OwningProcess": 1788
+      },
+      {
+        "LocalAddress": "127.0.0.1",
+        "LocalPort": 4800,
+        "OwningProcess": 13960
+      }
+    ],
+    "buildManifest": {
+      "id": "mfa-global-binding-browser-qa-20261107/building-dist-manifest.json",
+      "sha256": "273b0c3f8623b01a68078040aeaf38112bc2b87342c821da2087528e849cba93",
+      "bytes": 604
+    },
+    "cleanup": {
+      "exitCode": 0,
+      "systemIdentifierMatches": true,
+      "basePublicTables": 0,
+      "temporaryDatabases": 0,
+      "otherDatabases": 0,
+      "rolesRestoredIncludingPrivateCredentials": true,
+      "settingsRestored": true,
+      "roles": 6,
+      "otherClients": 0,
+      "containerAttestationMatches": true,
+      "freeMiBAtStart": 2496.0,
+      "freshFreeMiBBeforeController": 2476.0,
+      "dedicatedPortsClosed": true,
+      "computerRestarted": false,
+      "credentialsPublished": false
+    }
+  },
+  "mediaReview": {
+    "reviewedByRoot": true,
+    "mediaVisuallyReviewed": true,
+    "method": "screenshots and sampled video frames",
+    "allScreenshotsReviewed": true,
+    "allVideosSampled": true,
+    "framesPerVideo": 3,
+    "sampledFrames": [
+      {
+        "title": "administrador por vínculo global exige MFA sem flag legado e não pode desativá-la",
+        "sampledFromVideoSha256": "8b735ace6936ea7d8d84caadc5aa254d9d96d05a86e6c344d3b6e025f3a10908",
+        "frames": [
+          {
+            "id": "mfa-global-binding-browser-qa-20261107/media-review/case-1-20.png",
+            "sha256": "2e96b39a3e1841819ca51422a126961a75245530e2ade7d0f5e6fda21d5fda1c",
+            "bytes": 449435
+          },
+          {
+            "id": "mfa-global-binding-browser-qa-20261107/media-review/case-1-50.png",
+            "sha256": "ed7e1e3b56dc652191a9be10e608349df78f492cb29567078cc390d6a87bfde0",
+            "bytes": 110967
+          },
+          {
+            "id": "mfa-global-binding-browser-qa-20261107/media-review/case-1-85.png",
+            "sha256": "12a099f9125303d383950bb6bcc2aea1e99f9f21abfbbc0bfd3044fefe076fb1",
+            "bytes": 379451
+          }
+        ]
+      }
+    ],
+    "fullVideosWatched": false,
+    "automaticPublication": false
+  },
+  "publicationPolicy": {
+    "rawMfaVideo": "private",
+    "automaticPublication": false,
+    "eligiblePublicVideos": []
+  },
+  "checks": [
+    "The real users API creates a separate account with isPlatformAdmin:false and an explicit local BUILDING_ADMIN membership. One exact-ID owner fixture INSERT grants its global PLATFORM_ADMIN binding with 2s lock and 3s statement limits; readback confirms flag false, local role and effective global/MFA authority. No account flag, factor or session proof is written by the fixture.",
+    "The UI login retains the legacy BUILDING_ADMIN role while returning enrollment-required and empty operational memberships. The required gate is visible, navigation is absent and the protected building GET denies with MFA_ENROLLMENT_REQUIRED.",
+    "Real UI enrollment and TOTP confirmation return ten unique recovery codes; Close and Escape cannot dismiss the held ceremony, while its original UI bearer already reports satisfied at the server.",
+    "No page-originated non-auth API request is observed before the response event for a GET/auth/me initiated after acknowledgment is armed. That response body is then separately checked for the same identity, satisfied state and explicit membership.",
+    "After acknowledgment the page requests buildings, navigation becomes visible, saved codes leave the DOM, and direct reads using the original UI bearer prove the correct building plus units:manage and teams:manage capabilities.",
+    "The required settings UI offers no disable button. A direct real HTTP disable attempt with the same proven UI bearer denies 403/MFA_REQUIRED and preserves the enabled factor, ten unused recovery codes and satisfied session state."
+  ],
+  "limits": [
+    "The initial proof verifier was blocked by the long Windows screenshot path after runtime success. This V2 changes only evidence-path IO; it preserves the prior verifier and all runtime/media metadata and does not rerun any test.",
+    "Exactly one independent global-binding required-MFA administrator case is accepted; the prior flag-based case, three-case browser and renderer results remain separate evidence and are not added here.",
+    "Only an active global PLATFORM_ADMIN binding with legacy flag false and one explicit local BUILDING_ADMIN membership is exercised. This does not cover inactive/expired/catalog-disabled bindings, support users, live promotion/revocation races, all authority combinations or a second family requiring verification.",
+    "Account and local membership setup use real HTTP; global authority setup is one authorized owner-SQL fixture INSERT because this source has no public route for global PLATFORM_ADMIN grants. It is not a 100 percent HTTP setup, an authorization mock or a direct MFA/session-proof write. The official UUID lifecycle owns final cleanup.",
+    "The network oracle is page.on(request), excluding separate APIRequestContext setup/assertion calls. Its boundary is the 200 response event/headers for the post-arming acknowledgment GET/me, with body identity checked afterward; it is not internal provider-mount instrumentation or universal request/parsing linearization.",
+    "One Chromium worker and zero retries; no Firefox/WebKit matrix, Android, iOS, device, Codegen, full webapp or load acceptance.",
+    "This increment executes E2E types and one-case listing. The prior V4 building type result is reused only because all product sources and its config match exactly; no new building type execution is claimed.",
+    "A QA-only ESM startup entrypoint invokes the same application, restricted-role checks and event bus, then binds 127.0.0.1; the product server.ts is preserved.",
+    "The frontend consumer is freshly built in production mode; API and fixture execute with NODE_ENV=test on a disposable UUID database.",
+    "Visual review means the final screenshot and three sampled video frames, not watching every frame or asserting exhaustive UX coverage.",
+    "The raw MFA video remains private because the scenario displays ephemeral factor/recovery material. No public video is eligible from this run; publication of a reviewed final screenshot is a separate root action.",
+    "The 2048 MiB memory requirement is a phase/startup guard, including the observation after API/preview startup. Heartbeats during the browser run are measurements, not a continuous 2048 MiB acceptance threshold.",
+    "No performance conclusion, production readiness, deployment, migration publication, commit or push is performed by this verifier."
+  ],
+  "inputs": [
+    {
+      "id": "global-binding-browser-proof-pins-20261107.json",
+      "sha256": "8b4ac9dbd23bc86635435b7b38187f416c74cb288eeed0145177f5d6aca058fd",
+      "bytes": 894
+    },
+    {
+      "id": "mfa-global-binding-browser-qa-20261107/prepared.json",
+      "sha256": "36e5b4a28d0c9b24d2b7420b9401366dad4d1842c7597238a84e283c958c902e",
+      "bytes": 904904
+    },
+    {
+      "id": "verify-global-binding-browser-results-20261107.py",
+      "sha256": "2127d7f968ac8071a926c98533360c809225a6f5c50df910f8d59aa84e9f3429",
+      "bytes": 27609
+    },
+    {
+      "id": "global-binding-media-path-observation-20261107.json",
+      "sha256": "5f7b825582741d8ef56280762da01ba37c41110208ca9b8bbd0245bd56e4fe1a",
+      "bytes": 812
+    },
+    {
+      "id": "mfa-global-binding-browser-qa-20261107/run-browser.mjs",
+      "sha256": "95c6e4a2df0b4d1667476aae7fd767ddbc40740479970d1f813b44a45d82c990",
+      "bytes": 17293
+    },
+    {
+      "id": "mfa-global-binding-browser-qa-20261107/launch-browser.ps1",
+      "sha256": "583cf8e372db0242c0df523097285bd0dc25f3dff15362e8d02964a3909c4cf4",
+      "bytes": 12249
+    },
+    {
+      "id": "run-global-binding-browser-preflight-20261107.mjs",
+      "sha256": "dfe18f5703c5ffec9aae298b113255b1e624d01bcb95fd4a84cf3c53991e3dc7",
+      "bytes": 6299
+    },
+    {
+      "id": "mfa-mandatory-browser-qa-20261107/prepared.json",
+      "sha256": "2abbf1a7fa9c7d54f6f0a6fc12938b3b14a27fa8da823590e8d9acb71a09087f",
+      "bytes": 903580
+    },
+    {
+      "id": "mfa-global-binding-browser-test-20261107/manifest.json",
+      "sha256": "828b8a7104739c78c9b11dbdaacbffed728a01e6bffec1f33bccb95053daf14f",
+      "bytes": 547
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/prepared.json",
+      "sha256": "4cc08d2e503a00d14c4a1220b41ad30c7cc07072be5fc9c820bde5065c7e021b",
+      "bytes": 902799
+    },
+    {
+      "id": "mfa-global-binding-browser-qa-20261107/tsconfig.browser.json",
+      "sha256": "cefada205a65a531c501b8abd4b5f736fa1993a97dbec5bda75425c5bb49a326",
+      "bytes": 334
+    },
+    {
+      "id": "mfa-global-binding-browser-qa-20261107/tsconfig.building-qa.json",
+      "sha256": "85b794ae5918f0911463094a65c6e5062914f1b41d5c6afeae59d64a2518d10c",
+      "bytes": 117
+    },
+    {
+      "id": "mfa-global-binding-browser-qa-20261107/dependency-resolution.json",
+      "sha256": "7579760438a2bf343e540792b5701b894b6bcd8848b2c016d5828f4209b7bff9",
+      "bytes": 2559
+    },
+    {
+      "id": "mfa-global-binding-browser-qa-20261107/source-pin.manifest.json",
+      "sha256": "3229f7e5df9c2b75f7efd40fe0e793fd3a7de74ae3e57d641a7775531b47cba3",
+      "bytes": 144503
+    },
+    {
+      "id": "mfa-global-binding-browser-qa-20261107/checks/e2e/stdout.log",
+      "sha256": "f1c210b3574fc41e5f46f06e0d8420cfdea99d31328461d5b905ae6a3190681b",
+      "bytes": 148282
+    },
+    {
+      "id": "mfa-global-binding-browser-qa-20261107/checks/e2e/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-global-binding-browser-qa-20261107/checks/e2e/result.json",
+      "sha256": "5eaca56a4a6c41f8062d256ba74530af62bdc27c8e6d2e4949105834e1743a26",
+      "bytes": 646
+    },
+    {
+      "id": "mfa-global-binding-browser-qa-20261107/checks/e2e/command.json",
+      "sha256": "f0c15e15771cc2674c065e5eeb2c751255badf1feee046d938cdb908358a145f",
+      "bytes": 1382
+    },
+    {
+      "id": "mfa-global-binding-browser-qa-20261107/checks/e2e/guard.json",
+      "sha256": "b2fa4ee77fec51a939456b9526a39ff6f29a72cc3bca04d516128768410bda5c",
+      "bytes": 80
+    },
+    {
+      "id": "mfa-global-binding-browser-qa-20261107/checks/e2e/spawn.json",
+      "sha256": "bae547df2065354d3da6358747baa3d69b5e42267beacaf795833d3747ff0f7d",
+      "bytes": 68
+    },
+    {
+      "id": "mfa-global-binding-browser-qa-20261107/checks/list/stdout.log",
+      "sha256": "1364606ebf1276774311d6ef32dfe35bd6e64151a351dc3f5698df39c2999564",
+      "bytes": 184
+    },
+    {
+      "id": "mfa-global-binding-browser-qa-20261107/checks/list/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-global-binding-browser-qa-20261107/checks/list/result.json",
+      "sha256": "11176c6135d87abf5c5e0bc2225a9dad0dd3ca00bac290857bc6f8f97d684ac7",
+      "bytes": 643
+    },
+    {
+      "id": "mfa-global-binding-browser-qa-20261107/checks/list/command.json",
+      "sha256": "4a062d5e8be9850d11b94847a956b611de7dd3ba7e71860a0ab20af1a0db65ea",
+      "bytes": 1454
+    },
+    {
+      "id": "mfa-global-binding-browser-qa-20261107/checks/list/guard.json",
+      "sha256": "26e1b8af3c6ffcf7398042b60714247360fc89a06262279e87bd94d19da63550",
+      "bytes": 80
+    },
+    {
+      "id": "mfa-global-binding-browser-qa-20261107/checks/list/spawn.json",
+      "sha256": "f2a689b6c0f7c1654084ffa08401175e6fe34bc4e62ed9474564d7ab171bb176",
+      "bytes": 68
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/checks/building/stdout.log",
+      "sha256": "cbcb7f7e350921dd3c513299e4a66c68a433c29f86f67681c7f6914339b8fc0f",
+      "bytes": 71001
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/checks/building/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/checks/building/result.json",
+      "sha256": "d0656a8fd17f9c490a2189ece4161d5e6cbc26471663d65be7a5c094732d170d",
+      "bytes": 650
+    },
+    {
+      "id": "mfa-real-browser-v4-qa-20261107/checks/building/command.json",
+      "sha256": "69e407dd04cab66bb36f0e0f2e01ebed4fd8300b83045edeaadaeefe76848414",
+      "bytes": 1372
+    },
+    {
+      "id": "mfa-global-binding-browser-qa-20261107/browser-result.json",
+      "sha256": "8664b79a2aa24d1cd421aa450aa5daef9c1a6dc77696ff81ac5479d38752740c",
+      "bytes": 4781
+    },
+    {
+      "id": "mfa-global-binding-browser-qa-20261107/browser-postchecks.json",
+      "sha256": "1018b32239c7dae750f9b938ee4758cf02a9e9dc1073dd0ee054e423e85d41dc",
+      "bytes": 466
+    },
+    {
+      "id": "mfa-global-binding-browser-qa-20261107/controller-start.json",
+      "sha256": "f809069d8ca63d7145f9e1a2bf42eec279337ae173644339d7dfec58b15430b0",
+      "bytes": 283
+    },
+    {
+      "id": "mfa-global-binding-browser-qa-20261107/owned-database.json",
+      "sha256": "01a4c9a099b182911ab4dc45b1629ab4d49680d7f50850b7af760ec896286c04",
+      "bytes": 88
+    },
+    {
+      "id": "mfa-global-binding-browser-qa-20261107/building-build.log",
+      "sha256": "22b30f20f10ab42d9857280cdcdd77628c862809ac9b52449a80f2828ee1da4a",
+      "bytes": 1912
+    },
+    {
+      "id": "mfa-global-binding-browser-qa-20261107/building-build.events.jsonl",
+      "sha256": "b6471b64d13640988c7fbd274237f81f2b739a0c6a4f4562b9dad569cfb826ee",
+      "bytes": 2120
+    },
+    {
+      "id": "mfa-global-binding-browser-qa-20261107/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-global-binding-browser-qa-20261107/provision.events.jsonl",
+      "sha256": "1d4d99284e58c7e3203bc0e5bee41ea00f0ba27db33a7174381f661c0dc543e3",
+      "bytes": 674
+    },
+    {
+      "id": "mfa-global-binding-browser-qa-20261107/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-global-binding-browser-qa-20261107/seed.events.jsonl",
+      "sha256": "9f1b6e8d2f8b9fcef1bb57e30fe96ae0e66974c13340b020fa7d021fd87e0d06",
+      "bytes": 758
+    },
+    {
+      "id": "mfa-global-binding-browser-qa-20261107/playwright.log",
+      "sha256": "22ced7fc8ec078ff6f8f17d5ee07e7bd12b6328c88cffa16437c23aaf1edd847",
+      "bytes": 1025
+    },
+    {
+      "id": "mfa-global-binding-browser-qa-20261107/playwright.events.jsonl",
+      "sha256": "b791d7eba86c9f484dca320a0bfd3c58ab7ac735666619dadedd194ce6bf944f",
+      "bytes": 2927
+    },
+    {
+      "id": "mfa-global-binding-browser-qa-20261107/building-dist-manifest.json",
+      "sha256": "273b0c3f8623b01a68078040aeaf38112bc2b87342c821da2087528e849cba93",
+      "bytes": 604
+    },
+    {
+      "id": "mfa-global-binding-browser-qa-20261107/source/.local/tenancy-candidate-results.json",
+      "sha256": "a89d183b47232cdd9a0c3a8df7ee02bddda0e0104a0264416780f02fb989fa54",
+      "bytes": 5036
+    }
+  ],
+  "authorScript": {
+    "id": "verify-global-binding-browser-results-v2-20261107.py",
+    "sha256": "12a848ede2d92746dba708bbf45676bcfead81baa504a9d5a8606ce4e72ca948",
+    "bytes": 29972
+  },
+  "runtimeMetadataReadOnly": true,
+  "computerRestarted": false,
+  "performanceAssessed": false,
+  "productionAccepted": false
+}

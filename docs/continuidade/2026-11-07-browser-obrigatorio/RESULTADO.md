@@ -1,3 +1,5 @@
+> Etapa posterior de07/11: o ramo por vínculo global sem flag legado também passou em execução separada. Consulte o [resultado e pacote seguinte](../2026-11-07-browser-binding-global/RESULTADO.md). As afirmações abaixo descrevem exclusivamente o caso anterior por flag.
+
 # Resultado executado — MFA obrigatória no portal
 
 Em 07/11/2026, **um cenário independente passou** no Chromium, com um worker, zero retries, falhas ou skips, API real e PostgreSQL descartável. [Prova e hashes](../../evidencias/mfa-mandatory-browser-2026-11-07.json). A composição tem 1.032 arquivos e preserva todos os arquivos de produto da V4: acrescenta o teste obrigatório e altera somente o seletor de QA.

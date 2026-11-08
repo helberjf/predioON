@@ -1,5 +1,9 @@
 # Capturas reais de QA — 07/11/2026
 
+## MFA por vínculo global — sem flag legado
+
+[Imagem final](mfa-binding-global-administrador.png), [manifesto](manifesto-binding-global.json), [resultado e limites](../../continuidade/2026-11-07-browser-binding-global/RESULTADO.md). Um novo caso passou com `isPlatformAdmin: false`, DTO local `BUILDING_ADMIN` e obrigação derivada do binding global preparado por SQL na fixture. API real, PostgreSQL descartável e códigos intactos após recusa de desativação. Captura1280×800 copiada sem edição; nenhum valor de código é exibido. Vídeo bruto MFA privado. Somente os índices Markdown recebem esta captura; galeria HTML preservada.
+
 ## MFA obrigatória — administrador da plataforma
 
 [Imagem final ativa](mfa-obrigatoria-administrador.png), [manifesto](manifesto-obrigatorio.json), [resultado e limites](../../continuidade/2026-11-07-browser-obrigatorio/RESULTADO.md). Um novo caso real passou, com flag legado e vínculo local; preservou os dez códigos após a tentativa proibida de desativação. Não exibe o valor dos códigos. A mídia foi copiada sem edição, em1280×800; vídeo bruto MFA privado.

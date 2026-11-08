@@ -4,6 +4,14 @@
 
 A [galeria HTML](IMAGENS_DOS_SISTEMAS.html) reúne **38 imagens históricas —9 Android,20 web e9 iOS— e três novas capturas web da V4**; as demais capturas posteriores são registradas nas seções próprias deste índice. Todas acompanham o clone. Todas as iOS mostram somente entrada; as duas novas de cf9b927 foram conferidas no startup aprovado dos dois produtos. Authcf9 parou no guardATS; Keychain/14POST/produção continuam pendentes. Duas novas JPEGs comerciais mostram QA manual em banco próprio039, com fonte ainda não publicada anterior ao ajuste finalShell; hashes e limites na [prova manual](evidencias/web-organizations039-manual.json). O [manifesto](imagens/2026-10-03/manifesto.json) registra dimensões, SHA e origem. A galeria foi [conferida no Chromium como arquivo local](evidencias/gallery-browser-2026-11-07.json):41 imagens e dois vídeos carregados, filtros e ampliação funcionando, sem erro de página ou requisição. A origem HTTP8765 não foi retestada nessa conferência.
 
+## Web — MFA por vínculo global sem flag em 07/11/2026
+
+[Um cenário real aprovado](continuidade/2026-11-07-browser-binding-global/RESULTADO.md), [origem e SHA256](imagens/2026-11-07/manifesto-binding-global.json). O usuário não tem flag legado, mantém DTO local `BUILDING_ADMIN` e é obrigado a usar MFA pelo vínculo global da fixture. A imagem mostra o estado ativo e dez códigos restantes, sem expor seus valores. Vídeo bruto privado.
+
+![MFA obrigatória por vínculo global](imagens/2026-11-07/mfa-binding-global-administrador.png)
+
+O diretório de imagens passa a **75 arquivos de imagem versionados**. Esta captura e a anterior por flag são adicionais à galeria HTML de41 imagens; o HTML não foi alterado nem revalidado neste incremento.
+
 ## Web — administrador com MFA obrigatória em 07/11/2026
 
 [Um cenário real aprovado e seus limites](continuidade/2026-11-07-browser-obrigatorio/RESULTADO.md), [origem e SHA256](imagens/2026-11-07/manifesto-obrigatorio.json). A imagem mostra o estado final ativo, dez códigos restantes e nenhuma opção de desativação; os valores secretos não aparecem. Este caso usa o flag legado de administrador e um vínculo local. A captura é adicional ao conteúdo da galeria HTML conferida acima.

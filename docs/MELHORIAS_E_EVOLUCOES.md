@@ -1,6 +1,12 @@
 # Melhorias e novas implementações — Prédio ON
 
-**Novo aceite dirigido de MFA obrigatória:** [um cenário real do administrador passou](evidencias/mfa-mandatory-browser-2026-11-07.json): cadastro forçado, códigos retidos até confirmação, liberação do acesso e desativação recusada preservando o fator. Cobre autoridade pelo flag legado; binding global, demais domínios, concorrência e integração final continuam pendentes. [Fontes restauráveis e limites](continuidade/2026-11-07-browser-obrigatorio/RESULTADO.md).
+**Novo aceite dirigido por vínculo global:** [um caso real passou](evidencias/mfa-global-binding-browser-2026-11-07.json) com flag legado falso e DTO `BUILDING_ADMIN`, mesmo sob obrigação MFA global. Só a concessão do binding usa SQL da fixture; login/TOTP, domínio e recusa de desativação são reais. [Fontes restauráveis e limites](continuidade/2026-11-07-browser-binding-global/RESULTADO.md).
+
+**Próximo lote — três DELETEs de tenancy:** candidato separado em elaboração, fora da composição1.033 e do runtime publicado; testes dirigidos e regressões ainda pendentes. Também faltam autoridades inativas/expiradas, promoção/revogação concorrente, demais domínios e integração final.
+
+**CI atual:** [commit1fe02f9](evidencias/ci-current-1fe02f9-2026-11-07.json) apresenta `startup_failure` com zero jobs; causa não confirmada nesta consulta. Não transformar o estado de inicialização em falha dos testes nem presumir a causa histórica da conta.
+
+**Etapa anterior — aceite dirigido por flag legado:** [um cenário real do administrador passou](evidencias/mfa-mandatory-browser-2026-11-07.json): cadastro forçado, códigos retidos até confirmação, liberação do acesso e desativação recusada preservando o fator. Cobre autoridade pelo flag legado; o vínculo global foi validado depois, conforme a etapa acima. Demais domínios, concorrência e integração final continuam pendentes. [Fontes restauráveis e limites](continuidade/2026-11-07-browser-obrigatorio/RESULTADO.md).
 
 **P2 — texto do painel MFA já ativado:** a captura final ainda mostra a orientação “Cadastre seu autenticador” mesmo com o estado “Ativada”. Ajustar a orientação ao estado ativo, conservando o aviso de obrigatoriedade e os controles de segurança. Observação visual; ainda não implementada.
 
