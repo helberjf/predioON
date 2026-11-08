@@ -1,0 +1,386 @@
+import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
+import type { Server } from "node:http";
+import { after, before, describe, it } from "node:test";
+import { decodeJwt } from "jose";
+import { sql } from "drizzle-orm";
+import { PgDialect } from "drizzle-orm/pg-core";
+import { sqlClient } from "@predioon/db";
+import { appDb, appSqlClient, closeAppDb, verifyRestrictedDatabaseRole, type AppTransaction } from "@predioon/db/runtime";
+import { app } from "../src/app.js";
+import { hashPassword } from "../src/auth/passwords.js";
+import { base32Decode, totpCode, totpStep } from "../src/auth/totp.js";
+import "./helpers.js";
+
+// SAME SOURCE baseline/fixed. Required actors enroll through real HTTP/TOTP.
+// Owner SQL constructs fixtures or removes a factor/proof at a real boundary;
+// it never fabricates or restores positive MFA proof. No authorization mocks.
+type Kind = "team-members";
+type Mode = "create" | "renew";
+type Actor = { id: string; token: string; sid: string; local: string | null; codes: string[] };
+type Row = Record<string, unknown>;
+type Operation = { kind: Kind; mode: Mode; buildingId: string; marker: string; body: Row; previous: Row | null };
+type HttpResult = { status: number; body: unknown; cache: string | null };
+const kinds: Kind[] = ["team-members"];
+const capabilities = { "team-members": "teams:manage" } as const;
+const actions = { "team-members": "TEAM_MEMBER_ADDED" } as const;
+const resourceTypes = { "team-members": "team_member" } as const;
+const tables = { "team-members": "team_members" } as const;
+function signal() { let resolve!: () => void; const promise = new Promise<void>(done => { resolve = done; }); return { promise, resolve }; }
+async function bounded<T>(promise: PromiseLike<T>, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try { return await Promise.race([Promise.resolve(promise), new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`Fixture deadline: ${label}`)), 5000);
+  })]); } finally { clearTimeout(timer); }
+}
+async function settleAll(transactions: Promise<unknown>[]) {
+  await bounded((async () => {
+    let completed = 0;
+    while (completed < transactions.length) {
+      const batch = transactions.slice(completed); completed += batch.length;
+      await Promise.allSettled(batch);
+    }
+  })(), "all actual app transactions settled");
+}
+function trackAllTransactions() {
+  const original = appDb.transaction, run = original.bind(appDb), transactions: Promise<unknown>[] = [];
+  appDb.transaction = (callback, config) => { const pending = run(callback, config); transactions.push(pending); return pending; };
+  return { settle: () => settleAll(transactions), restore() { appDb.transaction = original; } };
+}
+function observe(targetRow: Operation) {
+  const original = appDb.transaction, run = original.bind(appDb), dialect = new PgDialect();
+  const reached = signal(), release = signal(), transactions: Promise<unknown>[] = [];
+  let matched = false;
+  type Input = Parameters<AppTransaction["execute"]>[0];
+  appDb.transaction = (callback, config) => {
+    const pending = run(tx => callback(new Proxy(tx, { get(target, key) {
+      if (key === "execute") return async (query: Input) => {
+        const compiled = typeof query === "string" ? { sql: query, params: [] } : dialect.sqlToQuery(query.getSQL());
+        const rows = await target.execute(query);
+        // Only the original stand-alone SELECT is the real assertCapability
+        // call; a candidate statement containing the same helper is insufficient.
+        const matches = compiled.sql.trim().startsWith("select app_has_capability(")
+            && compiled.params.includes(capabilities[targetRow.kind]) && compiled.params.includes(targetRow.buildingId);
+        if (!matched && matches) {
+          assert.equal((rows[0] as { allowed?: unknown } | undefined)?.allowed, true);
+          matched = true; reached.resolve(); await bounded(release.promise, "real boundary release");
+        }
+        return rows;
+      };
+      const value = Reflect.get(target, key, target); return typeof value === "function" ? value.bind(target) : value;
+    }})), config);
+    transactions.push(pending); return pending;
+  };
+  return { reached, release, settle: () => settleAll(transactions), restore() { appDb.transaction = original; } };
+}
+
+
+describe("MFA team creation and renewal with real enrollment", { concurrency: false }, () => {
+  const suffix = randomUUID(), org = `tteam-org-${suffix}`, building = `tteam-a-${suffix}`, foreign = `tteam-b-${suffix}`;
+  const password = "team-renewal-fictitious-password", users: string[] = [], triggers = new Set<string>();
+  const anchors = new Map<string, { unit: string; team: string }>();
+  let server: Server | undefined, url = "", hash = "", serial = 0;
+  let tracking: ReturnType<typeof trackAllTransactions> | undefined;
+  async function http(token: string | undefined, path: string, method = "GET", body?: Row, controller = new AbortController()): Promise<HttpResult> {
+    try {
+      const response = await bounded(fetch(url + path, { method, signal: controller.signal,
+        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        ...(body ? { body: JSON.stringify(body) } : {}) }), "HTTP");
+      const text = await bounded(response.text(), "HTTP body");
+      return { status: response.status, body: text ? JSON.parse(text) as unknown : null, cache: response.headers.get("cache-control") };
+    } finally { controller.abort(); }
+  }
+  const request = (actor: Actor, operation: Operation, controller?: AbortController) =>
+    http(actor.token, `/v1/tenancy/${operation.kind}`, "POST", operation.body, controller);
+  async function user(label: string, admin = false): Promise<string> {
+    const id = `tteam-${suffix}-${++serial}-${label}`; users.push(id);
+    await sqlClient`insert into users(id,name,email,password_hash,is_platform_admin) values(${id},${label},${id + "@example.invalid"},${hash},${admin})`;
+    return id;
+  }
+  async function actor(label: string, admin = false, local = true): Promise<Actor> {
+    const id = await user(label, admin), binding = local ? randomUUID() : null;
+    if (binding) await sqlClient`insert into role_bindings(id,user_id,building_id,role_key) values(${binding},${id},${building},'BUILDING_ADMIN')`;
+    const login = await http(undefined, "/auth/login", "POST", { email: id + "@example.invalid", password });
+    assert.equal(login.status, 200, "raw real login; no admission retry or fabricated proof");
+    const body = login.body as { accessToken: string; user: { id: string; mfaRequirement: string } };
+    assert.equal(body.user.id, id); assert.equal(body.user.mfaRequirement, admin ? "enrollment-required" : "not-required");
+    const sid = decodeJwt(body.accessToken).sid; assert.equal(typeof sid, "string");
+    const result = { id, token: body.accessToken, sid: sid as string, local: binding, codes: [] as string[] };
+    if (admin) {
+      const enrollment = await http(result.token, "/auth/mfa/enroll", "POST", { currentPassword: password });
+      assert.equal(enrollment.status, 200);
+      const secret = base32Decode((enrollment.body as { secret: string }).secret); assert.ok(secret);
+      const confirmation = await http(result.token, "/auth/mfa/confirm", "POST", { code: totpCode(secret, totpStep(Date.now())) });
+      assert.equal(confirmation.status, 200);
+      const codes = (confirmation.body as { recoveryCodes: string[] }).recoveryCodes;
+      result.codes = codes; assert.equal(codes.length, 10); assert.equal(new Set(codes).size, 10);
+      const [proof] = await sqlClient`select s.mfa_verified_at is not null as verified,s.mfa_factor_generation=f.generation as same_generation,
+        f.confirmed_at is not null as confirmed from sessions s join mfa_factors f on f.user_id=s.user_id where s.id=${result.sid}::uuid and s.user_id=${id}`;
+      assert.equal(proof?.verified, true); assert.equal(proof?.same_generation, true); assert.equal(proof?.confirmed, true);
+    }
+    const me = await http(result.token, "/auth/me"); assert.equal(me.status, 200);
+    assert.equal((me.body as { id: string }).id, id);
+    assert.equal((me.body as { mfaRequirement: string }).mfaRequirement, admin ? "satisfied" : "not-required");
+    assert.equal(decodeJwt(result.token).sid, result.sid, "same bearer and family across login/enrollment/confirmation");
+    return result;
+  }
+
+
+  async function operation(mode: Mode, targetBuilding = building, rich = false): Promise<Operation> {
+    const recipient = await user("recipient");
+    const body: Row = { buildingId: targetBuilding, teamId: anchors.get(targetBuilding)!.team, userId: recipient };
+    if (rich) { body.startsAt = "2040-01-02T12:34:56.789Z"; body.endsAt = "2041-02-03T10:20:30.123Z"; }
+    const input: Operation = { kind: "team-members", mode, buildingId: targetBuilding, marker: recipient, body, previous: null };
+    if (mode === "renew") {
+      await sqlClient`insert into team_members(building_id,team_id,user_id,active,starts_at,ends_at,created_at,updated_at)
+        values(${targetBuilding},${String(body.teamId)}::uuid,${recipient},false,'2010-01-01','2011-01-01','2010-01-01','2011-01-01')`;
+      await refreshPrevious(input);
+    }
+    return input;
+  }
+  async function refreshPrevious(input: Operation) {
+    const [row] = await sqlClient`select to_jsonb(t) as row from team_members t where team_id=${String(input.body.teamId)}::uuid and user_id=${input.marker}`;
+    assert.ok(row); input.previous = row.row as Row;
+  }
+  async function activeConflict(): Promise<Operation> {
+    const input = await operation("renew");
+    await sqlClient`update team_members set active=true,starts_at=null,ends_at=null where id=${String(input.previous!.id)}::uuid`;
+    await refreshPrevious(input);return input;
+  }
+  async function snapshot(actor: Actor) {
+    return { members: (await sqlClient`select to_jsonb(t) as row from team_members t where building_id in (${building},${foreign}) order by id`).map(r=>r.row),
+      audit: (await sqlClient`select to_jsonb(a) as row from audit_logs a where user_id=${actor.id} order by id`).map(r=>r.row) };
+  }
+  function iso(value: unknown): string { assert.equal(typeof value, "string"); return new Date(value as string).toISOString(); }
+  async function effects(actor: Actor, operation: Operation, response: HttpResult): Promise<Row> {
+    assert.equal(response.status,201);assert.equal(response.cache,"no-store");
+    const id=(response.body as {id:string}).id;assert.match(id,/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+    const rows=await sqlClient`select to_jsonb(t) as row from team_members t where team_id=${String(operation.body.teamId)}::uuid and user_id=${operation.marker}`;
+    assert.equal(rows.length,1);const row=rows[0]!.row as Row;
+    assert.deepEqual(row,{id,building_id:operation.buildingId,team_id:operation.body.teamId,user_id:operation.marker,
+      active:true,starts_at:row.starts_at,ends_at:row.ends_at,created_at:row.created_at,updated_at:row.updated_at});
+    assert.equal(row.starts_at===null?null:iso(row.starts_at),operation.body.startsAt??null);
+    assert.equal(row.ends_at===null?null:iso(row.ends_at),operation.body.endsAt??null);
+    if(operation.previous){assert.equal(id,operation.previous.id);assert.equal(row.created_at,operation.previous.created_at);
+      assert.ok(Date.parse(String(row.updated_at))>Date.parse(String(operation.previous.updated_at)));}
+    else assert.equal(row.created_at,row.updated_at);
+    const expected={id,buildingId:operation.buildingId,teamId:operation.body.teamId,userId:operation.marker,active:true,
+      startsAt:row.starts_at===null?null:iso(row.starts_at),endsAt:row.ends_at===null?null:iso(row.ends_at),createdAt:iso(row.created_at),updatedAt:iso(row.updated_at)};
+    assert.equal(Object.keys(expected).length,9);assert.deepEqual(response.body,expected,"full team-member DTO and preserved renewal identity");
+    const audit=await sqlClient`select user_id,building_id,actor_type,resource_type,resource_id,action,metadata from audit_logs where resource_id=${id} order by id`;
+    assert.deepEqual(audit.map(r=>({...r})),[{user_id:actor.id,building_id:operation.buildingId,actor_type:"USER",resource_type:"team_member",resource_id:id,
+      action:"TEAM_MEMBER_ADDED",metadata:{startsAt:expected.startsAt,endsAt:expected.endsAt}}]);return row;
+  }
+  const removeProof = (actor: Actor) => sqlClient`update sessions set mfa_verified_at=null,mfa_factor_generation=null where id=${actor.sid}::uuid and user_id=${actor.id}`;
+  async function proof(actor: Actor) {
+    const [row] = await sqlClient`select mfa_verified_at is not null as verified,mfa_verified_at::text as verified_at,mfa_factor_generation::text as generation
+      from sessions where id=${actor.sid}::uuid and user_id=${actor.id}`;
+    assert.ok(row); return { ...row };
+  }
+  function denied(response: HttpResult, reason: string) {
+    assert.equal(response.status, 403); assert.equal(response.cache, "no-store");
+    assert.equal((response.body as { details?: { reason?: string } }).details?.reason, reason);
+    assert.equal("id" in (response.body as object), false);
+  }
+  async function interleave(actor: Actor, operation: Operation, change: () => PromiseLike<unknown>): Promise<HttpResult> {
+    const observation = observe(operation), controller = new AbortController();
+    const pending = request(actor, operation, controller); void pending.catch(() => undefined); let failed = false;
+    try {
+      assert.equal(await bounded(Promise.race([observation.reached.promise.then(() => "boundary"), pending.then(() => "response")]), "real capability reached"), "boundary");
+      await bounded(change(), "identity change committed"); observation.release.resolve(); return await pending;
+    } catch (error) { failed = true; throw error; }
+    finally {
+      observation.release.resolve(); controller.abort();
+      const results = await Promise.allSettled([bounded(pending, "HTTP settled"), observation.settle()]); observation.restore();
+      if (!failed) { const failure = results.find(result => result.status === "rejected"); if (failure?.status === "rejected") throw failure.reason; }
+    }
+  }
+  async function dropTrigger(name: string) {
+    assert.match(name, /^tteam_[0-9a-f]{32}$/);
+    await bounded(sqlClient.begin(async owner => {
+      await owner`set local lock_timeout='2s'`; await owner`set local statement_timeout='3s'`;
+      await owner.unsafe(`drop trigger if exists ${name} on public.audit_logs`);
+      await owner.unsafe(`drop function if exists public.${name}()`);
+      await owner.unsafe(`drop sequence if exists public.${name}_seq`);
+    }), "audit trigger cleanup");
+    const [gone] = await sqlClient`select to_regprocedure(${"public." + name + "()"}) is null as function_gone,
+      to_regclass(${"public." + name + "_seq"}) is null as sequence_gone`;
+    assert.equal(gone?.function_gone, true); assert.equal(gone?.sequence_gone, true); triggers.delete(name);
+  }
+  async function triggerCatalog() {
+    return (await sqlClient`select tgrelid::regclass::text as relation,tgname,tgenabled,tgisinternal,pg_get_triggerdef(oid) as definition
+      from pg_trigger where tgrelid in ('public.team_members'::regclass,'public.audit_logs'::regclass)
+      order by relation,tgname`).map(row => ({ ...row }));
+  }
+  before(async () => {
+    const [ledger] = await sqlClient`select count(*)::int as count from schema_migrations`; assert.equal(ledger?.count, 68, "candidate068 fixture required; no skip");
+    await bounded(verifyRestrictedDatabaseRole(appSqlClient, "predioon_app"), "actual restricted app role");
+    hash = await hashPassword(password);
+    await sqlClient`insert into organizations(id,name,slug) values(${org},'Team renewal MFA',${org})`;
+    for (const id of [building, foreign]) {
+      await sqlClient`insert into buildings(id,organization_id,name,code) values(${id},${org},${id},${id})`;
+      const unit = randomUUID(), team = randomUUID(); anchors.set(id, { unit, team });
+      await sqlClient`insert into units(id,building_id,code) values(${unit},${id},'ANCHOR')`;
+      await sqlClient`insert into teams(id,building_id,name) values(${team},${id},'Fixture anchor')`;
+    }
+    tracking = trackAllTransactions();
+    server = await new Promise<Server>(resolve => { const instance = app.listen(0, "127.0.0.1", () => resolve(instance)); });
+    const address = server.address(); assert.ok(address && typeof address !== "string"); url = `http://127.0.0.1:${address.port}`;
+  });
+  after(async () => {
+    try {
+      await bounded(new Promise<void>((resolve, reject) => {
+        if (!server) { resolve(); return; } server.close(error => error ? reject(error) : resolve()); server.closeAllConnections();
+      }), "HTTP listener close");
+    } finally {
+      try {
+        await tracking?.settle();
+        for (const name of triggers) await dropTrigger(name);
+        await bounded(sqlClient.begin(async tx => {
+          await tx`set local lock_timeout='2s'`; await tx`set local statement_timeout='3s'`;
+          await tx`delete from audit_logs where building_id in (${building},${foreign})`;
+          await tx`delete from units where building_id in (${building},${foreign})`;
+          await tx`delete from buildings where organization_id=${org}`;
+          if (users.length) await tx`delete from users where id in ${sqlClient(users)}`;
+          await tx`delete from organizations where id=${org}`;
+        }), "owned fixture cleanup");
+      } finally {
+        tracking?.restore();
+        const results = await Promise.allSettled([bounded(closeAppDb(), "app pool close"), bounded(sqlClient.end({ timeout: 3 }), "owner pool close")]);
+        const failure = results.find(result => result.status === "rejected"); if (failure?.status === "rejected") throw failure.reason;
+      }
+    }
+  });
+
+
+  for(const mode of ["create","renew"] as const){
+    for(const enrollment of [true,false]) it(`${mode}: rejects ${enrollment?"factor removal":"family proof removal"} after real team authorization`,async t=>{
+      const a=await actor("negative",true),input=await operation(mode),before=await snapshot(a);
+      const response=await interleave(a,input,()=>enrollment?sqlClient`delete from mfa_factors where user_id=${a.id}`:removeProof(a));
+      if(response.status===201){await effects(a,input,response);t.diagnostic("Baseline201: full team DTO, persisted change and exact audit verified before expected403 mismatch");}
+      else assert.deepEqual(await snapshot(a),before);
+      denied(response,enrollment?"MFA_ENROLLMENT_REQUIRED":"MFA_VERIFICATION_REQUIRED");assert.deepEqual(await snapshot(a),before);
+    });
+    for(const admin of [false,true]) it(`${mode}: preserves full DTO for ${admin?"a satisfied administrator":"an optional team manager"}`,async()=>{
+      const a=await actor("positive",admin),input=await operation(mode,building,true);await effects(a,input,await request(a,input));
+    });
+  }
+  for(const enrollment of [true,false]) it(`active conflict: rejects ${enrollment?"factor removal":"family proof removal"} with no returned row`,async t=>{
+    const a=await actor("conflict-negative",true),input=await activeConflict(),before=await snapshot(a);
+    const response=await interleave(a,input,()=>enrollment?sqlClient`delete from mfa_factors where user_id=${a.id}`:removeProof(a));
+    assert.deepEqual(await snapshot(a),before);
+    if(response.status===409)t.diagnostic("Baseline409: existing team identity and audit unchanged before expected403 mismatch");
+    denied(response,enrollment?"MFA_ENROLLMENT_REQUIRED":"MFA_VERIFICATION_REQUIRED");
+  });
+  it("preserves normal active conflict409 without changing membership or audit",async()=>{
+    const a=await actor("conflict",true),input=await activeConflict(),before=await snapshot(a);
+    const response=await request(a,input);assert.equal(response.status,409);assert.deepEqual(await snapshot(a),before);
+  });
+  it("rejects an existing resident and rolls the proposed membership back",async()=>{
+    const a=await actor("resident-guard"),input=await operation("create");
+    await sqlClient`insert into unit_memberships(building_id,unit_id,user_id,kind) values(${building},${anchors.get(building)!.unit}::uuid,${input.marker},'OCCUPANT')`;
+    const before=await snapshot(a);const response=await request(a,input);assert.equal(response.status,400);assert.deepEqual(await snapshot(a),before);
+  });
+  it("checks resident status after the upsert including the destination team role",async()=>{
+    const a=await actor("resulting-resident"),team=randomUUID();
+    await sqlClient`insert into teams(id,building_id,name) values(${team},${building},'Resident destination')`;
+    await sqlClient`insert into role_bindings(building_id,team_id,role_key) values(${building},${team},'RESIDENT')`;
+    for(const mode of ["create","renew"] as const){
+      const input=await operation(mode);input.body.teamId=team;
+      if(input.previous){await sqlClient`update team_members set team_id=${team}::uuid where id=${String(input.previous.id)}::uuid`;await refreshPrevious(input);}
+      const before=await snapshot(a);const response=await request(a,input);assert.equal(response.status,400);assert.deepEqual(await snapshot(a),before);
+    }
+  });
+  it("allows teams management without memberships management",async()=>{
+    const a=await actor("teams-only",false,false),role="TEST_TEAM_"+randomUUID().replaceAll("-","");
+    try{
+      await sqlClient`insert into roles(key,scope,label) values(${role},'BUILDING','Teams only fixture')`;
+      await sqlClient`insert into role_permissions(role_key,permission_key) values(${role},'teams:manage')`;
+      await sqlClient`insert into role_bindings(user_id,building_id,role_key) values(${a.id},${building},${role})`;
+      const input=await operation("create");await effects(a,input,await interleave(a,input,async()=>undefined));
+      const deniedGrant=await http(a.token,"/v1/tenancy/unit-memberships","POST",{buildingId:building,unitId:anchors.get(building)!.unit,userId:input.marker,kind:"DEPENDENT"});
+      assert.equal(deniedGrant.status,403);
+      const [n]=await sqlClient`select count(*)::int as count from unit_memberships where user_id=${input.marker}`;assert.equal(n?.count,0);
+    }finally{await tracking?.settle();await bounded(sqlClient.begin(async tx=>{
+      await tx`set local lock_timeout='2s'`;await tx`set local statement_timeout='3s'`;
+      await tx`delete from role_bindings where role_key=${role}`;await tx`delete from roles where key=${role}`;
+    }),"fixture role cleanup");}
+  });
+  it("preserves tenant scope and requires explicit local team management",async()=>{
+    const manager=await actor("scope"),outsider=await actor("outsider",true,false);
+    for(const [a,input] of [[manager,await operation("create",foreign)],[outsider,await operation("create")]] as const){
+      const before=await snapshot(a);assert.equal((await request(a,input)).status,403);assert.deepEqual(await snapshot(a),before);
+    }
+  });
+  it("preserves recipient and team foreign keys without exposing another building",async()=>{
+    const a=await actor("foreign-keys"),input=await operation("create");
+    for(const patch of [{userId:"missing-"+randomUUID()},{teamId:randomUUID()},{teamId:anchors.get(foreign)!.team}]){
+      const before=await snapshot(a);const response=await request(a,{...input,body:{...input.body,...patch}});
+      assert.equal(response.status,400);assert.deepEqual(await snapshot(a),before);
+    }
+  });
+  it("preserves strict team input validation and date ordering",async()=>{
+    const a=await actor("validation"),input=await operation("create");
+    for(const patch of [{active:false},{id:randomUUID()},{teamId:"invalid"},{userId:""},{startsAt:"invalid"},{startsAt:"2041-01-01",endsAt:"2040-01-01"}]){
+      const before=await snapshot(a);assert.equal((await request(a,{...input,body:{...input.body,...patch}})).status,400);assert.deepEqual(await snapshot(a),before);
+    }
+  });
+  it("renews expired active and inactive memberships preserving identity and clearing dates",async()=>{
+    const a=await actor("renew-windows");
+    for(const explicitNull of [false,true]){
+      const input=await operation("renew");
+      if(explicitNull){input.body.startsAt=null;input.body.endsAt=null;await sqlClient`update team_members set active=true where id=${String(input.previous!.id)}::uuid`;await refreshPrevious(input);}
+      await effects(a,input,await request(a,input));
+    }
+  });
+  it("returns one201 and one409 for two simultaneous membership requests",async()=>{
+    const a=await actor("concurrent"),input=await operation("create");
+    const responses=await Promise.all([request(a,input),request(a,input)]);assert.deepEqual(responses.map(r=>r.status).sort(),[201,409]);
+    await effects(a,input,responses.find(r=>r.status===201)!);
+  });
+  for (const mode of ["create","renew"] as const) it(`${mode}: rolls membership audit and family proof back after the narrow audit trigger`, async t => {
+    const kind: Kind = "team-members";
+    const a = await actor("audit-trigger", true), control = await operation(mode);
+    await effects(a, control, await request(a, control));
+    const input = await operation(mode);
+    const before = await snapshot(a), originalProof = await proof(a), catalog = await triggerCatalog();
+    assert.equal(originalProof.verified, true); assert.equal(typeof originalProof.verified_at, "string"); assert.equal(typeof originalProof.generation, "string");
+    const name = "tteam_" + randomUUID().replaceAll("-", ""); triggers.add(name);
+    try {
+      assert.match(name, /^tteam_[0-9a-f]{32}$/);
+      await bounded(sqlClient.begin(async owner => {
+        await owner`set local lock_timeout='2s'`; await owner`set local statement_timeout='3s'`;
+        await owner.unsafe(`create sequence public.${name}_seq`);
+        await owner.unsafe(`create function public.${name}() returns trigger language plpgsql security definer
+          set search_path=pg_catalog,pg_temp as $$ begin
+          if new.user_id=TG_ARGV[0] and new.building_id=TG_ARGV[1] and new.action=TG_ARGV[2]
+             and new.resource_type=TG_ARGV[5] and current_setting('app.session_id',true)=TG_ARGV[3]
+             and exists(select 1 from public.${tables[kind]} target where target.id::text=new.resource_id
+               and target.building_id=TG_ARGV[1] and target.user_id=TG_ARGV[4]) then
+            perform pg_catalog.nextval('public.${name}_seq'::regclass);
+            update public.sessions set mfa_verified_at=null,mfa_factor_generation=null
+              where id=TG_ARGV[3]::uuid and user_id=TG_ARGV[0];
+          end if; return new; end $$`);
+        await owner.unsafe(`revoke all on function public.${name}() from public`);
+        const args = [a.id, building, actions[kind], a.sid, input.marker, resourceTypes[kind]];
+        assert.ok(args.every(value => /^[A-Za-z0-9_-]+$/.test(value)));
+        await owner.unsafe(`create trigger ${name} after insert on public.audit_logs for each row execute function public.${name}(${args.map(value => "'" + value + "'").join(",")})`);
+      }), "narrow audit trigger setup");
+      const [metadata] = await sqlClient`select p.prosecdef,p.proconfig,pg_get_userbyid(p.proowner)=current_user as owner,
+        not exists(select 1 from aclexplode(p.proacl) a where a.grantee=0 and a.privilege_type='EXECUTE') as public_revoked
+        from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname=${name}`;
+      assert.equal(metadata?.prosecdef, true); assert.equal(metadata?.owner, true); assert.equal(metadata?.public_revoked, true);
+      assert.deepEqual(metadata?.proconfig, ["search_path=pg_catalog, pg_temp"]);
+      const response = await request(a, input);
+      const [witness] = await sqlClient.unsafe(`select last_value::int,is_called from public.${name}_seq`);
+      assert.equal(witness?.is_called, true); assert.equal(witness?.last_value, 1, "nontransactional witness proves exactly one trigger execution even on rollback");
+      if (response.status === 201) {
+        await effects(a, input, response); assert.deepEqual(await proof(a), { verified: false, verified_at: null, generation: null });
+        t.diagnostic("Baseline201: full team DTO, persisted change and audit verified; narrow trigger executed once and removed the same family proof");
+      } else { assert.deepEqual(await snapshot(a), before); assert.deepEqual(await proof(a), originalProof); }
+      denied(response, "MFA_VERIFICATION_REQUIRED"); assert.deepEqual(await snapshot(a), before); assert.deepEqual(await proof(a), originalProof);
+    } finally {
+      await tracking?.settle(); await dropTrigger(name); assert.deepEqual(await triggerCatalog(), catalog);
+    }
+  });
+});

@@ -1,0 +1,778 @@
+{
+  "schemaVersion": 1,
+  "status": "VERIFIED",
+  "configSha256": "390e4829d026120f427b1aa97dd478088372500cc84c9c1966e4d9bd8f8f4ee9",
+  "recordedOn": "2026-11-08",
+  "recordedOnTimezone": "America/Sao_Paulo",
+  "reviewedOn": "2026-11-08",
+  "nativeExecutionTimestampsPreserved": true,
+  "verifierSha256": "1731faf3bc3c21f016def4a24678ed3d6cdc321d129e9b4a75e9883af337fec2",
+  "reviewedByRoot": true,
+  "baselineTeamFailuresReviewed": true,
+  "sourceFiles": 1037,
+  "typeFiles": 33,
+  "requiredResolvedSources": 14,
+  "sourceDifference": [
+    "apps/api/src/modules/tenancy/routes.ts"
+  ],
+  "typeChecks": [
+    {
+      "variant": "baseline",
+      "phase": "resolve",
+      "result": {
+        "id": "mfa-team-renewal-baseline-qa-20261108/checks/resolve/result.json",
+        "sha256": "03966d352ed9b3cfb6ea3c938dee727bca920b69eaadef4231ea6f9be4d41053",
+        "bytes": 1178
+      },
+      "startedUtc": "2026-11-08T23:28:26.164Z",
+      "childExitedUtc": "2026-11-08T23:28:27.570Z",
+      "durationMs": 1407
+    },
+    {
+      "variant": "baseline",
+      "phase": "types",
+      "result": {
+        "id": "mfa-team-renewal-baseline-qa-20261108/checks/types/result.json",
+        "sha256": "6c9269a4d52036f4452c0a574338f4c4670e487438f6fa9610468005a2198a68",
+        "bytes": 1024
+      },
+      "startedUtc": "2026-11-08T23:28:29.281Z",
+      "childExitedUtc": "2026-11-08T23:28:38.345Z",
+      "durationMs": 9064
+    },
+    {
+      "variant": "fixed",
+      "phase": "resolve",
+      "result": {
+        "id": "mfa-team-renewal-fixed-qa-20261108/checks/resolve/result.json",
+        "sha256": "89173a9aafe352f47133909a4bcb2dc216a56155ab0a95f9a66c320ce2683424",
+        "bytes": 1175
+      },
+      "startedUtc": "2026-11-08T23:28:54.139Z",
+      "childExitedUtc": "2026-11-08T23:28:55.272Z",
+      "durationMs": 1133
+    },
+    {
+      "variant": "fixed",
+      "phase": "types",
+      "result": {
+        "id": "mfa-team-renewal-fixed-qa-20261108/checks/types/result.json",
+        "sha256": "43475b16011a844bcbebdd60834275e7d1c7d816ca0072bd3b2a201b706b927d",
+        "bytes": 1021
+      },
+      "startedUtc": "2026-11-08T23:28:56.636Z",
+      "childExitedUtc": "2026-11-08T23:29:05.729Z",
+      "durationMs": 9093
+    }
+  ],
+  "preparation": {
+    "nativeResults": [
+      {
+        "variant": "baseline",
+        "nativeChildExitedUtc": "2026-11-08T23:28:11.7461361Z",
+        "durationMs": 3983.802,
+        "nativeResult": {
+          "id": "mfa-team-renewal-harness-20261108/baseline-prepare-result.json",
+          "sha256": "a5abcaad165b01a8362f473eed49058e307018130e3c398b2de36e92ca4e2551",
+          "bytes": 165
+        }
+      },
+      {
+        "variant": "fixed",
+        "nativeChildExitedUtc": "2026-11-08T23:28:17.7535447Z",
+        "durationMs": 4657.3026,
+        "nativeResult": {
+          "id": "mfa-team-renewal-harness-20261108/fixed-prepare-result.json",
+          "sha256": "d1c05b0db5cfe4dbaa0b7cb624083fd1f9766d2aa1471f486f9c3cb6c2575a00",
+          "bytes": 166
+        }
+      }
+    ],
+    "isProductTestExecution": false
+  },
+  "acceptedCounts": {
+    "directedTap": 21,
+    "directedIndependent": 21,
+    "directedAggregateGroups": 0,
+    "directedSuites": 1,
+    "regressionFiles": 10,
+    "regressionTap": 147,
+    "regressionIndependent": 137,
+    "regressionAggregateGroups": 10,
+    "combinedTap": 168,
+    "combinedIndependent": 158,
+    "combinedAggregateGroups": 10
+  },
+  "environment": {
+    "attestation": {
+      "recordedOn": "2026-11-08",
+      "recordedUtc": "2026-11-08T23:00:37.6479565Z",
+      "container": "predioon-mfa-grants-20261108",
+      "containerId": "3c0f4e5e47d3d488766eb2679ba97fabf29b12d72f9b8df41bb504205a41b4c8",
+      "systemIdentifier": "7705939420428193833",
+      "port": 5468,
+      "loopbackOnly": true,
+      "memoryLimitMiB": 384,
+      "cpuLimit": 1,
+      "basePublicTables": 0,
+      "exclusiveUse": true,
+      "computerRestarted": false,
+      "imageId": "sha256:4e459e217f00cbb09920c34d245501e63427e6767a495de57ce76823ff280f12",
+      "volume": "predioon_mfa_grants_20261108",
+      "newCluster": true,
+      "previousClusterUnavailable": true,
+      "credentialsPublished": false
+    }
+  },
+  "scopeLimits": [
+    "Only POST team-members, one private decoder and an unused import removal changed. Other handlers, schemas, helpers, policies and migrations are unchanged.",
+    "Required actors enroll through real HTTP/TOTP in the same session family. Fixture SQL removes factor/proof only; no positive MFA proof is fabricated.",
+    "Four baseline201 failures follow real teams:manage authorization, two baseline409 failures follow the same authorization with an existing active membership, and two baseline201 failures follow narrow audit triggers.",
+    "The fixed trigger checks restore the exact original family proof timestamp text, generation and presence as well as membership/audit state.",
+    "DTOs, renewal identity/createdAt, clearing or replacing date windows, expired active and inactive renewal, normal409, tenant/FK/input rules, teams-only management and post-upsert resident eligibility are checked.",
+    "Two HTTP requests submitted together return201/409 with one row/audit. No observed row-lock wait, promotion or capability-loss-during-wait claim is made.",
+    "Generic trigger exceptions, concurrent role/eligibility changes and universal commit-boundary guarantees remain outside this acceptance.",
+    "Ten related regression files keep their own limits; historical counts and baseline are not added to corrected counts.",
+    "No browser, native Android/iOS, full API, performance or production acceptance is asserted."
+  ],
+  "baselineFailureObservations": [
+    {
+      "case": "create: rejects factor removal after real team authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: full team DTO, persisted change and exact audit verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "real team authorization"
+    },
+    {
+      "case": "create: rejects family proof removal after real team authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: full team DTO, persisted change and exact audit verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "real team authorization"
+    },
+    {
+      "case": "renew: rejects factor removal after real team authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: full team DTO, persisted change and exact audit verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "real team authorization"
+    },
+    {
+      "case": "renew: rejects family proof removal after real team authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: full team DTO, persisted change and exact audit verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "real team authorization"
+    },
+    {
+      "case": "active conflict: rejects factor removal with no returned row",
+      "actualStatus": 409,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline409: existing team identity and audit unchanged before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "active conflict"
+    },
+    {
+      "case": "active conflict: rejects family proof removal with no returned row",
+      "actualStatus": 409,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline409: existing team identity and audit unchanged before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "active conflict"
+    },
+    {
+      "case": "create: rolls membership audit and family proof back after the narrow audit trigger",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: full team DTO, persisted change and audit verified; narrow trigger executed once and removed the same family proof",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "narrow audit trigger"
+    },
+    {
+      "case": "renew: rolls membership audit and family proof back after the narrow audit trigger",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: full team DTO, persisted change and audit verified; narrow trigger executed once and removed the same family proof",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "narrow audit trigger"
+    }
+  ],
+  "runs": [
+    {
+      "variant": "baseline",
+      "tests": [
+        {
+          "test": "platform-mfa-team-renewal",
+          "tests": 21,
+          "suites": 1,
+          "pass": 13,
+          "fail": 8,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 7534.6809,
+          "childDurationMs": 7678.4799,
+          "logSha256": "b6761b11272cfe977c603113ce002114fea8b46dc5abbf9c600543aa621d013a"
+        }
+      ],
+      "cleanupPassed": true,
+      "sourceMatched": true,
+      "ownedChildrenExited": true,
+      "cleanupHeld": false,
+      "nativeStatus": "completed-awaiting-TAP-GREEN-classification",
+      "startedUtc": "2026-11-08T23:31:19.409Z",
+      "endedUtc": "2026-11-08T23:31:35.337Z",
+      "observedHeadBefore": "55a3665e6a8bf55f3d08df21adf8b25b1b6b6dc4",
+      "observedHeadAfter": "55a3665e6a8bf55f3d08df21adf8b25b1b6b6dc4"
+    },
+    {
+      "variant": "fixed",
+      "tests": [
+        {
+          "test": "platform-mfa-team-renewal",
+          "tests": 21,
+          "suites": 1,
+          "pass": 21,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 7386.2321,
+          "childDurationMs": 8046.037300000002,
+          "logSha256": "69ef07aca3707dbe51756f8152b665b54d7d72217af78f1e696d35060cc8bef4"
+        }
+      ],
+      "cleanupPassed": true,
+      "sourceMatched": true,
+      "ownedChildrenExited": true,
+      "cleanupHeld": false,
+      "nativeStatus": "completed-awaiting-TAP-GREEN-classification",
+      "startedUtc": "2026-11-08T23:31:56.459Z",
+      "endedUtc": "2026-11-08T23:32:11.204Z",
+      "observedHeadBefore": "55a3665e6a8bf55f3d08df21adf8b25b1b6b6dc4",
+      "observedHeadAfter": "55a3665e6a8bf55f3d08df21adf8b25b1b6b6dc4"
+    },
+    {
+      "variant": "fixed-regression",
+      "tests": [
+        {
+          "test": "platform-mfa-tenancy-links",
+          "tests": 12,
+          "suites": 1,
+          "pass": 12,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 4154.513,
+          "childDurationMs": 4295.0205000000005,
+          "logSha256": "ca82ab0cbbeae8de4286bf288346f0f184b96160f188c0cd21a525c04ed27eea"
+        },
+        {
+          "test": "platform-mfa-tenancy-structure",
+          "tests": 12,
+          "suites": 1,
+          "pass": 12,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 3339.0479,
+          "childDurationMs": 3469.313100000001,
+          "logSha256": "dea3abe23cc55227c435ff8908ec0c4cd85f4771bc0c809c97edc73edb9df3d2"
+        },
+        {
+          "test": "tenancy-people",
+          "tests": 9,
+          "suites": 1,
+          "pass": 9,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 6615.208,
+          "childDurationMs": 6752.475900000001,
+          "logSha256": "f5c9d58a73b950651d1443063541356a0e42bf18170df2e98da9513e3afb55b8"
+        },
+        {
+          "test": "tenancy-http",
+          "tests": 9,
+          "suites": 1,
+          "pass": 9,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 5711.7225,
+          "childDurationMs": 5850.862000000001,
+          "logSha256": "89e7519b355d16e7eb95b2c5e9c22c66d0514a92e067113987734e026d3cf23c"
+        },
+        {
+          "test": "tenancy-edit",
+          "tests": 11,
+          "suites": 1,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 5033.6695,
+          "childDurationMs": 5166.715299999996,
+          "logSha256": "e95fd57bbf9688e169cb37113ff22584fe47f4b63ad13752194a5eba5f7e2336"
+        },
+        {
+          "test": "membership-lifecycle",
+          "tests": 4,
+          "suites": 1,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 2945.3824,
+          "childDurationMs": 3078.2169000000067,
+          "logSha256": "8e99e6b3fb55f090e61b8e02c43ff2fdff2427b2c622fa52ac0e162e4a4f9d4a"
+        },
+        {
+          "test": "platform-mfa-tenancy-commands",
+          "tests": 35,
+          "suites": 1,
+          "pass": 35,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 6651.72,
+          "childDurationMs": 6782.515100000004,
+          "logSha256": "818b8dc796e6c211c9cec80fa64fb9c10984e96e1937674c7ada06f2b02e101f"
+        },
+        {
+          "test": "platform-mfa-tenancy-revocations",
+          "tests": 21,
+          "suites": 1,
+          "pass": 21,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 20633.972,
+          "childDurationMs": 20775.4228,
+          "logSha256": "51929dff193a3c78205e220a847ecfbdb3b8ebb307c728653a72c6ccbdbaf3b8"
+        },
+        {
+          "test": "platform-mfa-tenancy-create",
+          "tests": 17,
+          "suites": 1,
+          "pass": 17,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 6914.6805,
+          "childDurationMs": 7572.0818,
+          "logSha256": "c4b486247a528c27787867ec5901349c834b2dcb5c020665639773f684a0f6e6"
+        },
+        {
+          "test": "platform-mfa-tenancy-grants",
+          "tests": 17,
+          "suites": 1,
+          "pass": 17,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 11726.238,
+          "childDurationMs": 12374.104399999997,
+          "logSha256": "56048ebaf2899c331825e9c60d88e96d73dc29d4f1e99d53a5a1c69fdb7e7f84"
+        }
+      ],
+      "cleanupPassed": true,
+      "sourceMatched": true,
+      "ownedChildrenExited": true,
+      "cleanupHeld": false,
+      "nativeStatus": "completed-awaiting-TAP-GREEN-classification",
+      "startedUtc": "2026-11-08T23:33:50.213Z",
+      "endedUtc": "2026-11-08T23:35:22.547Z",
+      "observedHeadBefore": "55a3665e6a8bf55f3d08df21adf8b25b1b6b6dc4",
+      "observedHeadAfter": "55a3665e6a8bf55f3d08df21adf8b25b1b6b6dc4"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "mfa-team-renewal-root-config-20261108.json",
+      "sha256": "390e4829d026120f427b1aa97dd478088372500cc84c9c1966e4d9bd8f8f4ee9",
+      "bytes": 3655
+    },
+    {
+      "id": "mfa-team-renewal-harness-20261108/PLAN.json",
+      "sha256": "168cdbf5ad0592bb314f0907b5f8fe7bd98a523a76a1eae821c4e9752d48e37d",
+      "bytes": 5216
+    },
+    {
+      "id": "mfa-team-renewal-test-20261108/manifest.json",
+      "sha256": "e23784e5454d60c354639e5b08f8e9f98f3c2c52f86e2f99bbfeed1bcafd139a",
+      "bytes": 4129
+    },
+    {
+      "id": "mfa-team-renewal-candidate-20261108/manifest.json",
+      "sha256": "5ed670a3f1ddba53e81d923026252c033640fa5bb42e8bf0557db27addf17137",
+      "bytes": 708
+    },
+    {
+      "id": "mfa-team-renewal-harness-20261108/AUTHORED-PINS.json",
+      "sha256": "d5e5731997ccae30bf8f1aff899fd7e2a06aca790412fba6995e6917836d73d3",
+      "bytes": 664
+    },
+    {
+      "id": "mfa-tenancy-grants-fixed-qa-20261108/prepared.json",
+      "sha256": "f701467e1feeb849cd2eaf83aee4d4d91a15574a834bc019c6d26234d30730f9",
+      "bytes": 907726
+    },
+    {
+      "id": "mfa-team-renewal-baseline-qa-20261108/run-mfa-directed.mjs",
+      "sha256": "4764bde0aae5f6082717f320067f1f2fc805a5beb3b102feecc1d52efbd3ee66",
+      "bytes": 13803
+    },
+    {
+      "id": "mfa-team-renewal-baseline-qa-20261108/launch-mfa-directed.ps1",
+      "sha256": "d82a017b4cb5e2bcab393a637a7423f5ffea467c3af6b5f41d04a808f8a7a841",
+      "bytes": 13039
+    },
+    {
+      "id": "mfa-team-renewal-fixed-qa-20261108/run-mfa-directed.mjs",
+      "sha256": "35752d44cb7b2c9070918110938d11e7c79a394af51ba7779ce0d03368fcd751",
+      "bytes": 13788
+    },
+    {
+      "id": "mfa-team-renewal-fixed-qa-20261108/launch-mfa-directed.ps1",
+      "sha256": "b305aeb0e10c76215333892e4bd2fc7ac72d93ed81acc3f8e255ea5b29c9cda8",
+      "bytes": 13027
+    },
+    {
+      "id": "mfa-team-renewal-fixed-regression-qa-20261108/run-mfa-directed.mjs",
+      "sha256": "cde59481658d3db9296dcb5152b8173ff6a3568bf5793881d59deb0ebf937388",
+      "bytes": 14965
+    },
+    {
+      "id": "mfa-team-renewal-fixed-regression-qa-20261108/launch-mfa-directed.ps1",
+      "sha256": "07c885fd67ddd79d93a1c3b0193fadba0bfba1f629a76c7c9ac3f743694f5bfb",
+      "bytes": 13028
+    },
+    {
+      "id": "mfa-team-renewal-harness-20261108/executors-handoff.json",
+      "sha256": "0986a5eb12a3f0656042c5c83a7e8797502dd09c4adb91c3a6c04bf2c95bfac0",
+      "bytes": 3021
+    },
+    {
+      "id": "mfa-grants-root-attestation-20261108.json",
+      "sha256": "9d43fe8e98ce5e11a26e7e943fb465a96f24a4c14368bbdab5712e5282cb426e",
+      "bytes": 664
+    },
+    {
+      "id": "mfa-team-renewal-harness-20261108/run-types.mjs",
+      "sha256": "c9c736e217015b9fae2b7ca1441901d26d247ab5b4cd439f7688603dea0bf8c1",
+      "bytes": 12398
+    },
+    {
+      "id": "mfa-team-renewal-harness-20261108/baseline-prepare-result.json",
+      "sha256": "a5abcaad165b01a8362f473eed49058e307018130e3c398b2de36e92ca4e2551",
+      "bytes": 165
+    },
+    {
+      "id": "mfa-team-renewal-harness-20261108/baseline-prepare-guard.json",
+      "sha256": "a902fa052985a52c02b043c7e322821f3451ee892d8b67596a4fab6a066d4b79",
+      "bytes": 91
+    },
+    {
+      "id": "mfa-team-renewal-harness-20261108/baseline-prepare.stdout.txt",
+      "sha256": "e3028090e3e63a379710ee3f4fef472188a822f95730a1cfca8f4624786f3f91",
+      "bytes": 246
+    },
+    {
+      "id": "mfa-team-renewal-harness-20261108/baseline-prepare.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-team-renewal-harness-20261108/fixed-prepare-result.json",
+      "sha256": "d1c05b0db5cfe4dbaa0b7cb624083fd1f9766d2aa1471f486f9c3cb6c2575a00",
+      "bytes": 166
+    },
+    {
+      "id": "mfa-team-renewal-harness-20261108/fixed-prepare-guard.json",
+      "sha256": "4ffcc7165abb602814ad4114fe720f8259d830be1a1acd8eae132cef0ab46afb",
+      "bytes": 91
+    },
+    {
+      "id": "mfa-team-renewal-harness-20261108/fixed-prepare.stdout.txt",
+      "sha256": "561a753e2d383545efe845458ec15f56f6163527c2893ae715cd0d99b1d37f6c",
+      "bytes": 243
+    },
+    {
+      "id": "mfa-team-renewal-harness-20261108/fixed-prepare.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-team-renewal-baseline-qa-20261108/prepared.json",
+      "sha256": "7257c84e1a4bc14c0eb9ee5cfe2cfb8291847067fa413aa5676140677df7952b",
+      "bytes": 908371
+    },
+    {
+      "id": "mfa-team-renewal-baseline-qa-20261108/tsconfig.test.json",
+      "sha256": "7a243d5fe8f9a3f3166745003d67ee49fad962c2532531193db369ca31a1f3d6",
+      "bytes": 2180
+    },
+    {
+      "id": "mfa-team-renewal-baseline-qa-20261108/checks/resolve/stdout.log",
+      "sha256": "27657c6ecf2f5485e468ccf2f29038a2fac6d1f050708b3ed53d5be1caf37d08",
+      "bytes": 148368
+    },
+    {
+      "id": "mfa-team-renewal-baseline-qa-20261108/checks/resolve/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-team-renewal-baseline-qa-20261108/checks/resolve/result.json",
+      "sha256": "03966d352ed9b3cfb6ea3c938dee727bca920b69eaadef4231ea6f9be4d41053",
+      "bytes": 1178
+    },
+    {
+      "id": "mfa-team-renewal-baseline-qa-20261108/checks/resolve/command.json",
+      "sha256": "04b8837b3b968d38ba39044273417de4e4b3554075918942c7c885da7880495b",
+      "bytes": 936
+    },
+    {
+      "id": "mfa-team-renewal-baseline-qa-20261108/checks/resolve/guard.json",
+      "sha256": "0c6d50d3a3f42fd44cee28d78d79e4d3988be303872d63559f07a16d36970d40",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-team-renewal-baseline-qa-20261108/checks/types/stdout.log",
+      "sha256": "df99955b9cf647bae7890dccb90638b1e35bff5b8a807ae276e488d7ae24010f",
+      "bytes": 972
+    },
+    {
+      "id": "mfa-team-renewal-baseline-qa-20261108/checks/types/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-team-renewal-baseline-qa-20261108/checks/types/result.json",
+      "sha256": "6c9269a4d52036f4452c0a574338f4c4670e487438f6fa9610468005a2198a68",
+      "bytes": 1024
+    },
+    {
+      "id": "mfa-team-renewal-baseline-qa-20261108/checks/types/command.json",
+      "sha256": "2c3fc062402899d9a88f2dadaa13e3f5156081a242aa9608f49f21ab99db70b7",
+      "bytes": 941
+    },
+    {
+      "id": "mfa-team-renewal-baseline-qa-20261108/checks/types/guard.json",
+      "sha256": "11eb97457f251f98799c210a5c0e7b541b329137436a333abec2d0a95c9ea541",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-team-renewal-fixed-qa-20261108/prepared.json",
+      "sha256": "4dadcdc045378366e0fdec233e698f6f8fe8cae78bf0920c0899638829194e7b",
+      "bytes": 907828
+    },
+    {
+      "id": "mfa-team-renewal-fixed-qa-20261108/tsconfig.test.json",
+      "sha256": "7a243d5fe8f9a3f3166745003d67ee49fad962c2532531193db369ca31a1f3d6",
+      "bytes": 2180
+    },
+    {
+      "id": "mfa-team-renewal-fixed-qa-20261108/checks/resolve/stdout.log",
+      "sha256": "a93fb7b48a75044425c5016849aa8547e84e4cc26b98cace20e176e726077b4a",
+      "bytes": 147861
+    },
+    {
+      "id": "mfa-team-renewal-fixed-qa-20261108/checks/resolve/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-team-renewal-fixed-qa-20261108/checks/resolve/result.json",
+      "sha256": "89173a9aafe352f47133909a4bcb2dc216a56155ab0a95f9a66c320ce2683424",
+      "bytes": 1175
+    },
+    {
+      "id": "mfa-team-renewal-fixed-qa-20261108/checks/resolve/command.json",
+      "sha256": "ca7ad1922b3b03ff2c9a3b2236ab48d5b59b9e89b17129260ebc328c29c73398",
+      "bytes": 924
+    },
+    {
+      "id": "mfa-team-renewal-fixed-qa-20261108/checks/resolve/guard.json",
+      "sha256": "54b705e185ae03b83433b0d70702ed5ac2752e5614dcd700b320d18c2bfa85ce",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-team-renewal-fixed-qa-20261108/checks/types/stdout.log",
+      "sha256": "7c499aae97a08881b428ec356b6b1515bfee3b52a729da80177dfddb436d9880",
+      "bytes": 972
+    },
+    {
+      "id": "mfa-team-renewal-fixed-qa-20261108/checks/types/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-team-renewal-fixed-qa-20261108/checks/types/result.json",
+      "sha256": "43475b16011a844bcbebdd60834275e7d1c7d816ca0072bd3b2a201b706b927d",
+      "bytes": 1021
+    },
+    {
+      "id": "mfa-team-renewal-fixed-qa-20261108/checks/types/command.json",
+      "sha256": "0e741a9900d2acaaed09e0df9264764ec34ff99692859f149b575d4b85d19e12",
+      "bytes": 929
+    },
+    {
+      "id": "mfa-team-renewal-fixed-qa-20261108/checks/types/guard.json",
+      "sha256": "675e610375644cdac886309296b6997b9e843c245e6db9c0f03e17da71a9c86c",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-team-renewal-baseline-qa-20261108/owned-database.json",
+      "sha256": "814dffef8ab09a3097fe776b8f877a9d8a3ef22c618616c58981795792c0dd21",
+      "bytes": 88
+    },
+    {
+      "id": "mfa-team-renewal-baseline-qa-20261108/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-team-renewal-baseline-qa-20261108/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-team-renewal-baseline-qa-20261108/platform-mfa-team-renewal.log",
+      "sha256": "b6761b11272cfe977c603113ce002114fea8b46dc5abbf9c600543aa621d013a",
+      "bytes": 15782
+    },
+    {
+      "id": "mfa-team-renewal-baseline-qa-20261108/mfa-directed-result.json",
+      "sha256": "ff79b1c02bd12b71f17a3f9190b425914e959fd84f37ac470ac77037421839bc",
+      "bytes": 314239
+    },
+    {
+      "id": "mfa-team-renewal-baseline-qa-20261108/mfa-directed-postchecks.json",
+      "sha256": "5133c81d73d16a8ab74e2dfec0859cb48019b9a71427d4575ba6a1188187ea7d",
+      "bytes": 390
+    },
+    {
+      "id": "mfa-team-renewal-fixed-qa-20261108/owned-database.json",
+      "sha256": "bdd4ea3b24a193b65c0187f3e6bdec3d7e643c47ed4004389398df972d0354b2",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-team-renewal-fixed-qa-20261108/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-team-renewal-fixed-qa-20261108/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-team-renewal-fixed-qa-20261108/platform-mfa-team-renewal.log",
+      "sha256": "69ef07aca3707dbe51756f8152b665b54d7d72217af78f1e696d35060cc8bef4",
+      "bytes": 5059
+    },
+    {
+      "id": "mfa-team-renewal-fixed-qa-20261108/mfa-directed-result.json",
+      "sha256": "c4f62f49e3808a2ebec377124313fb1d70cb28df4f0aa9aff46e5129f6031a0f",
+      "bytes": 314245
+    },
+    {
+      "id": "mfa-team-renewal-fixed-qa-20261108/mfa-directed-postchecks.json",
+      "sha256": "77f5501fd595dd76f0839c009b8e71ee1918839f480993243d2e488309cd0d40",
+      "bytes": 390
+    },
+    {
+      "id": "mfa-team-renewal-fixed-regression-qa-20261108/owned-database.json",
+      "sha256": "bf29e1a48fe3385ff202794ea1ff0863f0947f3a8ecae959c6a8dae3fd14c5a2",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-team-renewal-fixed-regression-qa-20261108/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-team-renewal-fixed-regression-qa-20261108/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-team-renewal-fixed-regression-qa-20261108/platform-mfa-tenancy-links.log",
+      "sha256": "ca82ab0cbbeae8de4286bf288346f0f184b96160f188c0cd21a525c04ed27eea",
+      "bytes": 2779
+    },
+    {
+      "id": "mfa-team-renewal-fixed-regression-qa-20261108/platform-mfa-tenancy-structure.log",
+      "sha256": "dea3abe23cc55227c435ff8908ec0c4cd85f4771bc0c809c97edc73edb9df3d2",
+      "bytes": 2621
+    },
+    {
+      "id": "mfa-team-renewal-fixed-regression-qa-20261108/tenancy-people.log",
+      "sha256": "f5c9d58a73b950651d1443063541356a0e42bf18170df2e98da9513e3afb55b8",
+      "bytes": 2664
+    },
+    {
+      "id": "mfa-team-renewal-fixed-regression-qa-20261108/tenancy-http.log",
+      "sha256": "89e7519b355d16e7eb95b2c5e9c22c66d0514a92e067113987734e026d3cf23c",
+      "bytes": 2541
+    },
+    {
+      "id": "mfa-team-renewal-fixed-regression-qa-20261108/tenancy-edit.log",
+      "sha256": "e95fd57bbf9688e169cb37113ff22584fe47f4b63ad13752194a5eba5f7e2336",
+      "bytes": 3000
+    },
+    {
+      "id": "mfa-team-renewal-fixed-regression-qa-20261108/membership-lifecycle.log",
+      "sha256": "8e99e6b3fb55f090e61b8e02c43ff2fdff2427b2c622fa52ac0e162e4a4f9d4a",
+      "bytes": 1157
+    },
+    {
+      "id": "mfa-team-renewal-fixed-regression-qa-20261108/platform-mfa-tenancy-commands.log",
+      "sha256": "818b8dc796e6c211c9cec80fa64fb9c10984e96e1937674c7ada06f2b02e101f",
+      "bytes": 6940
+    },
+    {
+      "id": "mfa-team-renewal-fixed-regression-qa-20261108/platform-mfa-tenancy-revocations.log",
+      "sha256": "51929dff193a3c78205e220a847ecfbdb3b8ebb307c728653a72c6ccbdbaf3b8",
+      "bytes": 5522
+    },
+    {
+      "id": "mfa-team-renewal-fixed-regression-qa-20261108/platform-mfa-tenancy-create.log",
+      "sha256": "c4b486247a528c27787867ec5901349c834b2dcb5c020665639773f684a0f6e6",
+      "bytes": 4293
+    },
+    {
+      "id": "mfa-team-renewal-fixed-regression-qa-20261108/platform-mfa-tenancy-grants.log",
+      "sha256": "56048ebaf2899c331825e9c60d88e96d73dc29d4f1e99d53a5a1c69fdb7e7f84",
+      "bytes": 4551
+    },
+    {
+      "id": "mfa-team-renewal-fixed-regression-qa-20261108/mfa-directed-result.json",
+      "sha256": "b9f4a70ab0e314f62821c67f3f8d62022addd5c41440602e1ae77ee5894ceed1",
+      "bytes": 319734
+    },
+    {
+      "id": "mfa-team-renewal-fixed-regression-qa-20261108/mfa-directed-postchecks.json",
+      "sha256": "f048fd60510b468f5275ff7697a166a1aeed6d28aeff1ad8f1d2f713f07e3c8c",
+      "bytes": 390
+    }
+  ],
+  "performanceAssessed": false,
+  "productionAccepted": false
+}
