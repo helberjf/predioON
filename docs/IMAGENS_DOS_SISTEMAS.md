@@ -1,8 +1,12 @@
 # Imagens reais dos aplicativos e portais
 
-Índice atualizado em **07/11/2026**. A galeria histórica foi publicada em **03/10/2026** e atualizada em **05/10/2026**. Estas capturas foram conferidas em execuções reais e usam dados fictícios. Cada imagem mantém a origem comprovada, inclusive commit nulo quando o runtime não foi atestado; a data de publicação não altera a versão demonstrada. Os cinco vídeos de 18/10 são históricos; o plano completo e demonstrações finais da versão atual continuam pendentes, conforme [CONTINUIDADE.md](CONTINUIDADE.md).
+Índice atualizado em **08/11/2026**. A galeria histórica foi publicada em **03/10/2026** e atualizada em **05/10/2026**. Estas capturas foram conferidas em execuções reais e usam dados fictícios. Cada imagem mantém a origem comprovada, inclusive commit nulo quando o runtime não foi atestado; a data de publicação não altera a versão demonstrada. Os cinco vídeos de 18/10 são históricos; o plano completo e demonstrações finais da versão atual continuam pendentes, conforme [CONTINUIDADE.md](CONTINUIDADE.md).
 
-A [galeria HTML](IMAGENS_DOS_SISTEMAS.html) reúne **38 imagens históricas —9 Android,20 web e9 iOS— e três novas capturas web da V4**; as demais capturas posteriores são registradas nas seções próprias deste índice. Todas acompanham o clone. Todas as iOS mostram somente entrada; as duas novas de cf9b927 foram conferidas no startup aprovado dos dois produtos. Authcf9 parou no guardATS; Keychain/14POST/produção continuam pendentes. Duas novas JPEGs comerciais mostram QA manual em banco próprio039, com fonte ainda não publicada anterior ao ajuste finalShell; hashes e limites na [prova manual](evidencias/web-organizations039-manual.json). O [manifesto](imagens/2026-10-03/manifesto.json) registra dimensões, SHA e origem. A galeria foi [conferida no Chromium como arquivo local](evidencias/gallery-browser-2026-11-07.json):41 imagens e dois vídeos carregados, filtros e ampliação funcionando, sem erro de página ou requisição. A origem HTTP8765 não foi retestada nessa conferência.
+A [galeria HTML](IMAGENS_DOS_SISTEMAS.html) reúne **43 imagens: 9 Android, 25 web e 9 iOS**, além de dois clipes web de QA. As duas capturas de MFA obrigatória, já versionadas, agora também aparecem nela. A [conferência de 08/11](evidencias/gallery-browser-2026-11-08.json) passou em Chromium e Firefox como arquivo local, nos tamanhos 1440×1050 e 390×844: imagens, metadados dos vídeos, filtros, ampliação e fechamento por botão/Escape, sem erro de página ou requisição nos runs aceitos. Capturas da própria galeria: [desktop](imagens/2026-11-08/galeria-desktop.png) e [tela pequena](imagens/2026-11-08/galeria-movel.png).
+
+**WebKit permanece pendente:** as 43 imagens carregaram, mas os dois vídeos ficaram sem metadados tanto por arquivo local quanto por HTTP local. A tentativa separada de controles também parou na captura, aguardando fontes. A causa completa não foi confirmada. Os registros das tentativas foram preservados; não há aprovação da galeria nesse motor. Esta conferência não reexecutou os apps ou a API.
+
+Todas as imagens iOS mostram somente entrada; suas provas não encerram autenticação, Keychain ou produção. O [manifesto histórico](imagens/2026-10-03/manifesto.json) mantém dimensões, hashes e origem. As capturas de fluxos posteriores estão nas seções abaixo.
 
 ## Web — MFA por vínculo global sem flag em 07/11/2026
 
@@ -10,11 +14,11 @@ A [galeria HTML](IMAGENS_DOS_SISTEMAS.html) reúne **38 imagens históricas —9
 
 ![MFA obrigatória por vínculo global](imagens/2026-11-07/mfa-binding-global-administrador.png)
 
-O diretório de imagens passa a **75 arquivos de imagem versionados**. Esta captura e a anterior por flag são adicionais à galeria HTML de41 imagens; o HTML não foi alterado nem revalidado neste incremento.
+Na publicação de 07/11, o diretório chegou a **75 imagens versionadas**. Em 08/11, as duas capturas passaram a integrar a galeria HTML de 43 imagens. Com as duas prévias da galeria, o diretório contém 77 imagens; isso não representa 77 fluxos homologados.
 
 ## Web — administrador com MFA obrigatória em 07/11/2026
 
-[Um cenário real aprovado e seus limites](continuidade/2026-11-07-browser-obrigatorio/RESULTADO.md), [origem e SHA256](imagens/2026-11-07/manifesto-obrigatorio.json). A imagem mostra o estado final ativo, dez códigos restantes e nenhuma opção de desativação; os valores secretos não aparecem. Este caso usa o flag legado de administrador e um vínculo local. A captura é adicional ao conteúdo da galeria HTML conferida acima.
+[Um cenário real aprovado e seus limites](continuidade/2026-11-07-browser-obrigatorio/RESULTADO.md), [origem e SHA256](imagens/2026-11-07/manifesto-obrigatorio.json). A imagem mostra o estado final ativo, dez códigos restantes e nenhuma opção de desativação; os valores secretos não aparecem. Este caso usa o flag legado de administrador e um vínculo local. A captura integra a galeria HTML desde 08/11.
 
 ![Administrador com MFA obrigatória ativa](imagens/2026-11-07/mfa-obrigatoria-administrador.png)
 

@@ -1,0 +1,346 @@
+{
+  "recordedOn": "2026-11-08",
+  "recordedUtc": "2026-11-08T23:22:43.359614+00:00",
+  "status": "PARTIAL_PASS_WEBKIT_PENDING",
+  "sourceHtmlSha256": "471124c88a13555d6dce6d967fd3e606c16d51d79586b2217cb72e70787a064f",
+  "mode": "Chromium and Firefox local file; WebKit also attempted with loopback HTTP",
+  "imagesPerViewport": 43,
+  "passedEngines": [
+    "chromium",
+    "firefox"
+  ],
+  "viewportsPerPassedEngine": 2,
+  "runs": [
+    {
+      "engine": "chromium",
+      "version": "153.0.8010.12",
+      "freeMiB": 3798,
+      "views": [
+        {
+          "viewport": {
+            "width": 1440,
+            "height": 1050
+          },
+          "imagesLoaded": 43,
+          "videos": [
+            {
+              "source": "videos/2026-11-07/estrutura-edicao.webm",
+              "duration": 7.68,
+              "readyState": 4
+            },
+            {
+              "source": "videos/2026-11-07/estrutura-status.webm",
+              "duration": 5.76,
+              "readyState": 4
+            }
+          ],
+          "filters": [
+            {
+              "key": "android",
+              "visible": 9
+            },
+            {
+              "key": "ios",
+              "visible": 9
+            },
+            {
+              "key": "web",
+              "visible": 25
+            },
+            {
+              "key": "all",
+              "visible": 43
+            }
+          ],
+          "opened": [
+            "Ampliar MFA obrigatória do administrador",
+            "Ampliar MFA por vínculo global"
+          ],
+          "escapeAndClosePassed": true,
+          "screenshot": "gallery-chromium-1440.png",
+          "screenshotSha256": "289cdbe010f7657d6ccbf15d7e83b69d506aaeb3001fab0299487a9351ac86e8"
+        },
+        {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "imagesLoaded": 43,
+          "videos": [
+            {
+              "source": "videos/2026-11-07/estrutura-edicao.webm",
+              "duration": 7.68,
+              "readyState": 4
+            },
+            {
+              "source": "videos/2026-11-07/estrutura-status.webm",
+              "duration": 5.76,
+              "readyState": 4
+            }
+          ],
+          "filters": [
+            {
+              "key": "android",
+              "visible": 9
+            },
+            {
+              "key": "ios",
+              "visible": 9
+            },
+            {
+              "key": "web",
+              "visible": 25
+            },
+            {
+              "key": "all",
+              "visible": 43
+            }
+          ],
+          "opened": [
+            "Ampliar MFA obrigatória do administrador",
+            "Ampliar MFA por vínculo global"
+          ],
+          "escapeAndClosePassed": true,
+          "screenshot": "gallery-chromium-390.png",
+          "screenshotSha256": "2e727456fc8c23a04d66c4e5a3a0c079066a6df7c314d56eb3018163901c7b18"
+        }
+      ],
+      "failedRequests": [],
+      "pageErrors": []
+    },
+    {
+      "engine": "firefox",
+      "version": "155.0",
+      "freeMiB": 3769,
+      "views": [
+        {
+          "viewport": {
+            "width": 1440,
+            "height": 1050
+          },
+          "imagesLoaded": 43,
+          "videos": [
+            {
+              "source": "videos/2026-11-07/estrutura-edicao.webm",
+              "duration": 7.68,
+              "readyState": 4
+            },
+            {
+              "source": "videos/2026-11-07/estrutura-status.webm",
+              "duration": 5.76,
+              "readyState": 4
+            }
+          ],
+          "filters": [
+            {
+              "key": "android",
+              "visible": 9
+            },
+            {
+              "key": "ios",
+              "visible": 9
+            },
+            {
+              "key": "web",
+              "visible": 25
+            },
+            {
+              "key": "all",
+              "visible": 43
+            }
+          ],
+          "opened": [
+            "Ampliar MFA obrigatória do administrador",
+            "Ampliar MFA por vínculo global"
+          ],
+          "escapeAndClosePassed": true,
+          "screenshot": "gallery-firefox-1440.png",
+          "screenshotSha256": "8156405ca7bc7dbde4d9172a30a915eb0affdc2617d425543bbe19ef86f4fb66"
+        },
+        {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "imagesLoaded": 43,
+          "videos": [
+            {
+              "source": "videos/2026-11-07/estrutura-edicao.webm",
+              "duration": 7.68,
+              "readyState": 4
+            },
+            {
+              "source": "videos/2026-11-07/estrutura-status.webm",
+              "duration": 5.76,
+              "readyState": 4
+            }
+          ],
+          "filters": [
+            {
+              "key": "android",
+              "visible": 9
+            },
+            {
+              "key": "ios",
+              "visible": 9
+            },
+            {
+              "key": "web",
+              "visible": 25
+            },
+            {
+              "key": "all",
+              "visible": 43
+            }
+          ],
+          "opened": [
+            "Ampliar MFA obrigatória do administrador",
+            "Ampliar MFA por vínculo global"
+          ],
+          "escapeAndClosePassed": true,
+          "screenshot": "gallery-firefox-390.png",
+          "screenshotSha256": "9c599409b5ee13fe037078078a1d4056be61b21b99915deb59b2ca340efec221"
+        }
+      ],
+      "failedRequests": [],
+      "pageErrors": []
+    }
+  ],
+  "strictMediaChecksRetainedForAcceptedRuns": true,
+  "images": [
+    {
+      "path": "docs/imagens/2026-11-08/galeria-desktop.png",
+      "sha256": "289cdbe010f7657d6ccbf15d7e83b69d506aaeb3001fab0299487a9351ac86e8",
+      "bytes": 147910,
+      "scope": "Gallery preview, not a new application run"
+    },
+    {
+      "path": "docs/imagens/2026-11-08/galeria-movel.png",
+      "sha256": "9c599409b5ee13fe037078078a1d4056be61b21b99915deb59b2ca340efec221",
+      "bytes": 41988,
+      "scope": "Gallery preview, not a new application run"
+    }
+  ],
+  "attemptHistory": [
+    {
+      "path": "gallery-current-20261108/attempt-failure.json",
+      "sha256": "2b8f742bd5543ba07d266c482b203e3f28f2561d6b63120b25ef94f61c26f9c9",
+      "result": {
+        "recordedUtc": "2026-11-08T23:17:11.185334+00:00",
+        "status": "FAILED",
+        "exitCode": 1,
+        "engine": "chromium",
+        "allEnginesCompleted": false,
+        "assertion": "Failed requests must be empty",
+        "observedError": "net::ERR_ABORTED",
+        "resource": "docs/videos/2026-11-07/estrutura-edicao.webm",
+        "sourceScriptSha256": "4aa03c0e2d00a6211d1251b5982ed494d1b4640159e142e76ba3cb92f2179043",
+        "sourceHtmlSha256": "471124c88a13555d6dce6d967fd3e606c16d51d79586b2217cb72e70787a064f",
+        "retryChange": "Resize the existing page without navigating again during a media download; keep strict failed-request assertion",
+        "productChangedForRetry": false
+      }
+    },
+    {
+      "path": "gallery-current-attempt2-20261108/attempt-failure.json",
+      "sha256": "00a727d2fb9dab89daac6a2f6ea35614edd614a94e1e8098df08d3c629099ce0",
+      "result": {
+        "status": "PARTIAL_PASS",
+        "sourceScriptSha256": "4979423009a1676a94f5e4a0cb09fc4f1745c7ab15a704ccde960b633060b47b",
+        "passedEngines": [
+          "chromium",
+          "firefox"
+        ],
+        "incompleteEngine": "webkit",
+        "failureStage": "file URL navigation waiting for load",
+        "observedError": "Timeout 15000ms exceeded",
+        "allEnginesCompleted": false,
+        "productChangedForRetry": false,
+        "retryChange": "WebKit only, loopback HTTP static server with byte range support; retain strict media and failed-request assertions"
+      }
+    },
+    {
+      "path": "gallery-webkit-http-20261108/failure.json",
+      "sha256": "b4511d8675c455a96be289557c87b8d9fdb8ebf8fa0a7df290ccd1de301f9f0e",
+      "result": {
+        "status": "FAILED",
+        "engine": "webkit",
+        "transport": "loopback HTTP",
+        "stage": "Navigation waiting for load",
+        "timeoutMs": 15000,
+        "allChecksCompleted": false
+      }
+    },
+    {
+      "path": "gallery-webkit-diagnostic-20261108/failure.json",
+      "sha256": "8c1f3b26ef8f4b237c0927a8a386e42038ed77dfb0ce22912d397fb87ff9397c",
+      "result": {
+        "status": "FAILED",
+        "error": "page.waitForFunction: Timeout 10000ms exceeded.",
+        "failedRequests": [],
+        "pageErrors": [],
+        "diagnostic": {
+          "readyState": "interactive",
+          "missingImages": [],
+          "videos": [
+            {
+              "source": "videos/2026-11-07/estrutura-edicao.webm",
+              "readyState": 0,
+              "networkState": 1,
+              "error": null,
+              "duration": null
+            },
+            {
+              "source": "videos/2026-11-07/estrutura-status.webm",
+              "readyState": 0,
+              "networkState": 1,
+              "error": null,
+              "duration": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "gallery-webkit-images-20261108/failure.json",
+      "sha256": "af34094ef2189ca80a16f636fc8851a863a65269484c668b75224037bd76302a",
+      "result": {
+        "status": "FAILED",
+        "error": "page.screenshot: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n\u001b[2m  - waiting for fonts to load...\u001b[22m\n",
+        "failedRequests": [],
+        "pageErrors": [],
+        "diagnostic": {
+          "readyState": "interactive",
+          "missingImages": [],
+          "videos": [
+            {
+              "source": "videos/2026-11-07/estrutura-edicao.webm",
+              "readyState": 0,
+              "networkState": 1,
+              "error": null,
+              "duration": null
+            },
+            {
+              "source": "videos/2026-11-07/estrutura-status.webm",
+              "readyState": 0,
+              "networkState": 1,
+              "error": null,
+              "duration": null
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "webkit": {
+    "accepted": false,
+    "all43ImagesObservedLoaded": true,
+    "videoMetadataReady": false,
+    "durationKnown": false,
+    "screenshotCompleted": false,
+    "fontReadinessWaitTimedOut": true,
+    "rootCauseConfirmed": false
+  },
+  "applicationApiOrNativeTestsExecuted": false,
+  "httpDiagnosticServerClosed": true,
+  "productionAccepted": false
+}
