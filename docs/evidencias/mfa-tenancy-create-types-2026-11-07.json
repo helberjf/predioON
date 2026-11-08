@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-11-07",
+  "recordedTimeZone": "America/Sao_Paulo",
+  "executedUtcDates": [
+    "2026-11-08"
+  ],
+  "scope": "TypeScript and dependency resolution for the three structure creation commands; not functional test execution",
+  "candidateFilesPerVariant": 1035,
+  "testFilesIncludedPerConfig": 31,
+  "requiredApplicationSources": 13,
+  "phases": [
+    {
+      "variant": "baseline",
+      "phase": "resolve",
+      "passed": true,
+      "preparedSha256": "5c1cc7d59af253524f27b285d66f0b9b6d4059470035bb260573d333851e9b84",
+      "startedUtc": "2026-11-08T01:40:38.173Z",
+      "childExitedUtc": "2026-11-08T01:40:41.636Z",
+      "durationMs": 3463,
+      "sourceAndConfigBeforeAfterVerified": true,
+      "result": {
+        "id": "mfa-tenancy-create-baseline-qa-20261107/checks/resolve/result.json",
+        "sha256": "56b6e5f58c18a2df40a4391031d9876638a91b3b4c643397b72a1faac01ae072",
+        "bytes": 1178
+      },
+      "stdout": {
+        "id": "mfa-tenancy-create-baseline-qa-20261107/checks/resolve/stdout.log",
+        "sha256": "670830ceb1653e623e683f6f83228a21cd74a75d7796c5a4bc8ff322de66d337",
+        "bytes": 148320
+      },
+      "stderr": {
+        "id": "mfa-tenancy-create-baseline-qa-20261107/checks/resolve/stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    },
+    {
+      "variant": "baseline",
+      "phase": "types",
+      "passed": true,
+      "preparedSha256": "5c1cc7d59af253524f27b285d66f0b9b6d4059470035bb260573d333851e9b84",
+      "startedUtc": "2026-11-08T01:40:44.464Z",
+      "childExitedUtc": "2026-11-08T01:41:11.232Z",
+      "durationMs": 26768,
+      "sourceAndConfigBeforeAfterVerified": true,
+      "result": {
+        "id": "mfa-tenancy-create-baseline-qa-20261107/checks/types/result.json",
+        "sha256": "1661bbb736668f377f2d1fb62111fe6c3712bd974c6db0df9547e55d0658d833",
+        "bytes": 1025
+      },
+      "stdout": {
+        "id": "mfa-tenancy-create-baseline-qa-20261107/checks/types/stdout.log",
+        "sha256": "5e4023c6f237ddee2f4a6f0c3736e6219528ca383b8aa7f489e74a866a2b92b3",
+        "bytes": 972
+      },
+      "stderr": {
+        "id": "mfa-tenancy-create-baseline-qa-20261107/checks/types/stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    },
+    {
+      "variant": "fixed",
+      "phase": "resolve",
+      "passed": true,
+      "preparedSha256": "ce90003f2777c890195c814b6560f0ca26edb2989f1770a2c4aabea8939d54ff",
+      "startedUtc": "2026-11-08T01:41:13.816Z",
+      "childExitedUtc": "2026-11-08T01:41:17.518Z",
+      "durationMs": 3702,
+      "sourceAndConfigBeforeAfterVerified": true,
+      "result": {
+        "id": "mfa-tenancy-create-fixed-qa-20261107/checks/resolve/result.json",
+        "sha256": "e194b0559a66dc96c0d184036f651cf84ced8bbc7e3a75a4aa27f48c1b8f4e18",
+        "bytes": 1175
+      },
+      "stdout": {
+        "id": "mfa-tenancy-create-fixed-qa-20261107/checks/resolve/stdout.log",
+        "sha256": "d0f3a131da4c1272549ada526234f82d1c2cac6e19faf66adf4c980302924b75",
+        "bytes": 147819
+      },
+      "stderr": {
+        "id": "mfa-tenancy-create-fixed-qa-20261107/checks/resolve/stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    },
+    {
+      "variant": "fixed",
+      "phase": "types",
+      "passed": true,
+      "preparedSha256": "ce90003f2777c890195c814b6560f0ca26edb2989f1770a2c4aabea8939d54ff",
+      "startedUtc": "2026-11-08T01:41:20.570Z",
+      "childExitedUtc": "2026-11-08T01:41:47.506Z",
+      "durationMs": 26936,
+      "sourceAndConfigBeforeAfterVerified": true,
+      "result": {
+        "id": "mfa-tenancy-create-fixed-qa-20261107/checks/types/result.json",
+        "sha256": "3f6933e8cb08edb4ae43b9860250d35411ab2704d420e94a846c9dac2b4a9113",
+        "bytes": 1022
+      },
+      "stdout": {
+        "id": "mfa-tenancy-create-fixed-qa-20261107/checks/types/stdout.log",
+        "sha256": "4e2bd42cd519f98fd1d4fe81aff8eedc05fac67b960d0e01f1ceb339de1933cf",
+        "bytes": 972
+      },
+      "stderr": {
+        "id": "mfa-tenancy-create-fixed-qa-20261107/checks/types/stderr.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    }
+  ],
+  "runner": {
+    "id": "mfa-tenancy-create-harness-20261107/run-types.mjs",
+    "sha256": "f6d9722656734eec4b5a3e394ac06274dd8df94c5d13dfd460f3428a03ab7e00",
+    "bytes": 12200
+  },
+  "typesPassed": 2,
+  "resolutionChecksPassed": 2,
+  "testsExecuted": false,
+  "databaseStarted": false,
+  "computerRestarted": false,
+  "productionAccepted": false,
+  "limits": [
+    "Seventeen directed cases and eight regression files remain unexecuted at this checkpoint.",
+    "Compilation does not validate SQL, RLS, triggers, HTTP behavior, browsers or native applications.",
+    "Main runtime still uses migrations001–067; candidates remain isolated."
+  ]
+}
