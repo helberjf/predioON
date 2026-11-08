@@ -1,0 +1,197 @@
+{
+  "version": 1,
+  "format": "new-test-v1",
+  "status": "AUTHORED_NOT_EXECUTED",
+  "recordedOn": "2026-11-08",
+  "baseExaminedPreparedSha256": "4dadcdc045378366e0fdec233e698f6f8fe8cae78bf0920c0899638829194e7b",
+  "files": [
+    {
+      "path": "apps/api/test/platform-mfa-invitation-commands.test.ts",
+      "sha256": "92f4f25226f2e927882fcccba1f21e2814d6896860a7fe2483c8e3528e617723",
+      "bytes": 33888,
+      "cases": 31
+    }
+  ],
+  "caseDispositions": [
+    {
+      "name": "create: rejects factor removal after real invitation authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "create: rejects family proof removal after real invitation authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "create: preserves complete invitation and committed mail for an optional manager",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "create: preserves complete invitation and committed mail for a satisfied administrator",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "replace: rejects factor removal after real invitation authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "replace: rejects family proof removal after real invitation authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "replace: preserves complete invitation and committed mail for an optional manager",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "replace: preserves complete invitation and committed mail for a satisfied administrator",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "revoke open: rejects factor removal after real invitation authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "revoke open: rejects family proof removal after real invitation authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "revoke revoked: rejects factor removal after real invitation authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "revoke revoked: rejects family proof removal after real invitation authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "revoke accepted: rejects factor removal after real invitation authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "revoke accepted: rejects family proof removal after real invitation authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "revoke missing: rejects factor removal after real transaction context",
+      "baseline": "FAIL_EXPECTED_404_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline404"
+    },
+    {
+      "name": "revoke missing: rejects family proof removal after real transaction context",
+      "baseline": "FAIL_EXPECTED_404_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline404"
+    },
+    {
+      "name": "revoke hidden: rejects factor removal after real transaction context",
+      "baseline": "FAIL_EXPECTED_404_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline404"
+    },
+    {
+      "name": "revoke hidden: rejects family proof removal after real transaction context",
+      "baseline": "FAIL_EXPECTED_404_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline404"
+    },
+    {
+      "name": "accepted between read and update: preserves204 without revocation or audit",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "accepted between read and update: rejects lost family proof",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "revoke: preserves open and repeated closed204 for an optional manager",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "revoke: preserves open and repeated closed204 for a satisfied administrator",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "replaces expired open invitations while preserving accepted and revoked history",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "preserves scope, hidden404, absent404 and explicit local manager authority",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "preserves strict invitation validation before any replacement or mail",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "rolls replacement and its audit back for missing or foreign units without mail",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "does not request mail when the resident portal is absent",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "create: rolls rows audits proof and mail back after INVITATION_CREATED trigger",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "replace: rolls rows audits proof and mail back after INVITATION_REVOKED trigger",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "replace: rolls rows audits proof and mail back after INVITATION_CREATED trigger",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "revoke: rolls rows audits proof and mail back after INVITATION_REVOKED trigger",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    }
+  ],
+  "baselineExpectedPass": 12,
+  "baselineExpectedFail": 19,
+  "fixedExpectedPass": 31,
+  "independentCases": 31,
+  "parentGroups": 0,
+  "runtimeExecuted": false
+}

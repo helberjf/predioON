@@ -1,0 +1,904 @@
+import { Router, type Request } from "express";
+import { and, asc, eq, gt, sql, type SQL } from "drizzle-orm";
+import { z } from "zod";
+import { blocks, units, unitMemberships, teams, teamMembers, roleBindings, type AppTransaction } from "@predioon/db/runtime";
+import { assertCapability, currentAuth, inTenantContext } from "../../auth/middleware.js";
+import { badRequest, conflict, forbidden, notFound, pgErrorCode } from "../../http/errors.js";
+import { param } from "../../http/params.js";
+import { query, validateBody, validateQuery } from "../../http/validate.js";
+import { recordAudit } from "../audit/repo.js";
+import { isoTime } from "../../http/sql-time.js";
+import { createInvitationToken } from "../../auth/invitations.js";
+import { requireRecentVerification } from "../../auth/verification.js";
+import { config } from "../../config.js";
+import { actionMail, mailConfigured, sendMail } from "../../mail/mailer.js";
+import { decodeMfaReadDate, readMfaRows } from "../../auth/mfa-read.js";
+
+export const tenancyRouter = Router();
+const buildingId = z.string().trim().min(1).max(128);
+const id = z.string().uuid();
+const name = z.string().trim().min(1).max(120);
+const ListSchema = z.object({ buildingId, after: id.optional(), limit: z.coerce.number().int().min(1).max(100).default(50) });
+// Users have text IDs; the UUID cursor used by units/teams is not interchangeable.
+const PeopleListSchema = ListSchema.extend({ after: z.string().min(1).max(128).optional(), purpose: z.enum(["team-members"]).optional() });
+type ListQuery = z.infer<typeof ListSchema>;
+// Inactive records are a management view; the plain list stays the active structure.
+const StructureListSchema = ListSchema.extend({ includeInactive: z.enum(["true", "false"]).optional() });
+type StructureQuery = z.infer<typeof StructureListSchema>;
+const CreateBlock = z.object({ buildingId, code: z.string().trim().min(1).max(40), name }).strict();
+const CreateUnit = z.object({ buildingId, blockId: id.nullable().optional(), code: z.string().trim().min(1).max(40), floor: z.number().int().min(-10).max(300).nullable().optional() }).strict();
+const CreateTeam = z.object({ buildingId, name }).strict();
+const validity = { startsAt: z.coerce.date().nullable().optional(), endsAt: z.coerce.date().nullable().optional() };
+const validDates = (value: { startsAt?: Date | null; endsAt?: Date | null }) => !value.startsAt || !value.endsAt || value.endsAt > value.startsAt;
+const CreateUnitMember = z.object({ buildingId, unitId: id, userId: z.string().min(1).max(128), kind: z.enum(["OWNER", "OCCUPANT", "DEPENDENT"]), ...validity }).strict().refine(validDates, "Vigência inválida");
+const CreateTeamMember = z.object({ buildingId, teamId: id, userId: z.string().min(1).max(128), ...validity }).strict().refine(validDates, "Vigência inválida");
+const CreateBinding = z.object({
+  buildingId, userId: z.string().min(1).max(128).optional(), teamId: id.optional(),
+  roleKey: z.enum(["BUILDING_ADMIN", "MAINTENANCE_MANAGER", "MAINTENANCE", "RESIDENT"]),
+  reason: z.string().trim().min(3).max(500), ...validity,
+}).strict().refine(value => Boolean(value.userId) !== Boolean(value.teamId), "Informe uma pessoa ou equipe").refine(validDates, "Vigência inválida");
+
+const blockView = { id: blocks.id, buildingId: blocks.buildingId, code: blocks.code, name: blocks.name, active: blocks.active };
+const unitView = { id: units.id, buildingId: units.buildingId, blockId: units.blockId, code: units.code, floor: units.floor, active: units.active };
+const teamView = { id: teams.id, buildingId: teams.buildingId, name: teams.name, kind: teams.kind, active: teams.active };
+
+// Dedicated SELECT aliases: the existing *View objects also serve mutation
+// RETURNING/status checks and must keep their original columns and decoders.
+const blockReadFields = {
+  id: sql`${blocks.id}`.as("id"), buildingId: sql`${blocks.buildingId}`.as("buildingId"),
+  code: sql`${blocks.code}`.as("code"), name: sql`${blocks.name}`.as("name"),
+  active: sql`${blocks.active}`.as("active"),
+};
+const unitReadFields = {
+  id: sql`${units.id}`.as("id"), buildingId: sql`${units.buildingId}`.as("buildingId"),
+  blockId: sql`${units.blockId}`.as("blockId"), code: sql`${units.code}`.as("code"),
+  floor: sql`${units.floor}`.as("floor"), active: sql`${units.active}`.as("active"),
+};
+const teamReadFields = {
+  id: sql`${teams.id}`.as("id"), buildingId: sql`${teams.buildingId}`.as("buildingId"),
+  name: sql`${teams.name}`.as("name"), kind: sql`${teams.kind}`.as("kind"),
+  active: sql`${teams.active}`.as("active"),
+};
+const BlockReadRow = z.object({
+  id: z.string(), buildingId: z.string(), code: z.string(), name: z.string(), active: z.boolean(),
+}).strict();
+const UnitReadRow = z.object({
+  id: z.string(), buildingId: z.string(), blockId: z.string().nullable(), code: z.string(),
+  floor: z.number().int().nullable(), active: z.boolean(),
+}).strict();
+const TeamReadRow = z.object({
+  id: z.string(), buildingId: z.string(), name: z.string(), kind: z.string(), active: z.boolean(),
+}).strict();
+
+// Keep the full existing list DTOs separate from mutation RETURNING. JSON rows
+// require explicit camelCase aliases and timestamp decoders, including NULL.
+const RequiredTenancyReadDate = z.string().transform(decodeMfaReadDate);
+const NullableTenancyReadDate = z.string().nullable().transform(value => value === null ? null : decodeMfaReadDate(value));
+const unitMembershipReadFields = {
+  id: sql`${unitMemberships.id}`.as("id"),
+  buildingId: sql`${unitMemberships.buildingId}`.as("buildingId"),
+  unitId: sql`${unitMemberships.unitId}`.as("unitId"),
+  userId: sql`${unitMemberships.userId}`.as("userId"),
+  kind: sql`${unitMemberships.kind}`.as("kind"),
+  active: sql`${unitMemberships.active}`.as("active"),
+  startsAt: sql`${unitMemberships.startsAt}`.as("startsAt"),
+  endsAt: sql`${unitMemberships.endsAt}`.as("endsAt"),
+  createdAt: sql`${unitMemberships.createdAt}`.as("createdAt"),
+  updatedAt: sql`${unitMemberships.updatedAt}`.as("updatedAt"),
+};
+const UnitMembershipReadRow = z.object({
+  id: z.string(),
+  buildingId: z.string(),
+  unitId: z.string(),
+  userId: z.string(),
+  kind: z.string(),
+  active: z.boolean(),
+  startsAt: NullableTenancyReadDate,
+  endsAt: NullableTenancyReadDate,
+  createdAt: RequiredTenancyReadDate,
+  updatedAt: RequiredTenancyReadDate,
+}).strict();
+const teamMemberReadFields = {
+  id: sql`${teamMembers.id}`.as("id"),
+  buildingId: sql`${teamMembers.buildingId}`.as("buildingId"),
+  teamId: sql`${teamMembers.teamId}`.as("teamId"),
+  userId: sql`${teamMembers.userId}`.as("userId"),
+  active: sql`${teamMembers.active}`.as("active"),
+  startsAt: sql`${teamMembers.startsAt}`.as("startsAt"),
+  endsAt: sql`${teamMembers.endsAt}`.as("endsAt"),
+  createdAt: sql`${teamMembers.createdAt}`.as("createdAt"),
+  updatedAt: sql`${teamMembers.updatedAt}`.as("updatedAt"),
+};
+const TeamMemberReadRow = z.object({
+  id: z.string(),
+  buildingId: z.string(),
+  teamId: z.string(),
+  userId: z.string(),
+  active: z.boolean(),
+  startsAt: NullableTenancyReadDate,
+  endsAt: NullableTenancyReadDate,
+  createdAt: RequiredTenancyReadDate,
+  updatedAt: RequiredTenancyReadDate,
+}).strict();
+const roleBindingReadFields = {
+  id: sql`${roleBindings.id}`.as("id"),
+  buildingId: sql`${roleBindings.buildingId}`.as("buildingId"),
+  userId: sql`${roleBindings.userId}`.as("userId"),
+  teamId: sql`${roleBindings.teamId}`.as("teamId"),
+  roleKey: sql`${roleBindings.roleKey}`.as("roleKey"),
+  resourceType: sql`${roleBindings.resourceType}`.as("resourceType"),
+  resourceId: sql`${roleBindings.resourceId}`.as("resourceId"),
+  active: sql`${roleBindings.active}`.as("active"),
+  startsAt: sql`${roleBindings.startsAt}`.as("startsAt"),
+  endsAt: sql`${roleBindings.endsAt}`.as("endsAt"),
+  grantedBy: sql`${roleBindings.grantedBy}`.as("grantedBy"),
+  reason: sql`${roleBindings.reason}`.as("reason"),
+  createdAt: sql`${roleBindings.createdAt}`.as("createdAt"),
+  updatedAt: sql`${roleBindings.updatedAt}`.as("updatedAt"),
+};
+const RoleBindingReadRow = z.object({
+  id: z.string(),
+  buildingId: z.string().nullable(),
+  userId: z.string().nullable(),
+  teamId: z.string().nullable(),
+  roleKey: z.string(),
+  resourceType: z.string().nullable(),
+  resourceId: z.string().nullable(),
+  active: z.boolean(),
+  startsAt: NullableTenancyReadDate,
+  endsAt: NullableTenancyReadDate,
+  grantedBy: z.string().nullable(),
+  reason: z.string(),
+  createdAt: RequiredTenancyReadDate,
+  updatedAt: RequiredTenancyReadDate,
+}).strict();
+
+
+const InvitationReadRow = z.object({
+  id: z.string(), buildingId: z.string(), email: z.string(), name: z.string(),
+  unitId: z.string().nullable(), kind: z.string().nullable(), status: z.string(),
+  // isoTime already emits the existing UTC/millisecond strings; keep them text.
+  createdAt: z.string(), expiresAt: z.string(),
+}).strict();
+
+/** Listing inactive records needs the management capability, not only the read one. */
+async function listScope(tx: AppTransaction, q: StructureQuery, read: "units:read" | "teams:read", manage: "units:manage" | "teams:manage"): Promise<boolean> {
+  await assertCapability(tx, read, q.buildingId);
+  if (q.includeInactive !== "true") return false;
+  await assertCapability(tx, manage, q.buildingId);
+  return true;
+}
+
+function page<T extends { id: string }>(rows: T[], limit: number) {
+  const items = rows.slice(0, limit);
+  return { items, nextCursor: rows.length > limit ? items.at(-1)!.id : null };
+}
+
+/** RLS is enforced by the non-owner connection; constraint errors never expose foreign records. */
+async function inTenancy<T>(req: Request, run: (tx: AppTransaction) => Promise<T>): Promise<T> {
+  try { return await inTenantContext(req, run); }
+  catch (error) {
+    const code = pgErrorCode(error);
+    if (code === "23503" || code === "23514") throw badRequest("Vínculo ou vigência inválidos para este condomínio");
+    if (code === "23505") throw conflict("Este cadastro já existe no condomínio");
+    if (code === "42501") throw forbidden();
+    throw error;
+  }
+}
+
+tenancyRouter.use((_req, res, next) => { res.setHeader("Cache-Control", "no-store"); next(); });
+
+const PeopleReadRow = z.object({ id: z.string(), name: z.string(), email: z.string() }).strict();
+
+tenancyRouter.get("/people", validateQuery(PeopleListSchema), async (req, res) => {
+  const q = query<z.infer<typeof PeopleListSchema>>(req);
+  const result = await inTenancy(req, async tx => {
+    // The narrow helper authorizes memberships:manage OR teams:manage and
+    // returns only current tenant-linked people. It never grants raw users access.
+    const rows = await readMfaRows(tx,
+      sql`select id, name, email from public.app_tenancy_people(${q.buildingId}, ${q.after ?? null}, ${q.limit}, ${q.purpose === "team-members"}) order by id`,
+      value => PeopleReadRow.parse(value), ["id"],
+    );
+    return page(rows, q.limit);
+  });
+  res.json(result);
+});
+
+tenancyRouter.get("/blocks", validateQuery(StructureListSchema), async (req, res) => {
+  const q = query<StructureQuery>(req);
+  res.json(await inTenancy(req, async tx => {
+    const all = await listScope(tx, q, "units:read", "units:manage");
+    const rows = await readMfaRows(tx,
+      tx.select(blockReadFields).from(blocks)
+        .where(and(eq(blocks.buildingId, q.buildingId), all ? undefined : eq(blocks.active, true), q.after ? gt(blocks.id, q.after) : undefined))
+        .orderBy(asc(blocks.id)).limit(q.limit + 1).getSQL(),
+      value => BlockReadRow.parse(value), ["id"],
+    );
+    return page(rows, q.limit);
+  }));
+});
+// Creation returns the entire ORM row, unlike the narrow list/edit views.
+// Restore Date decoding after JSON; retain every current column and default.
+const BlockCreateRow = BlockReadRow.extend({
+  id, createdAt: RequiredTenancyReadDate, updatedAt: RequiredTenancyReadDate,
+}).strict();
+const UnitCreateRow = UnitReadRow.extend({
+  id, metadata: z.record(z.string(), z.unknown()),
+  createdAt: RequiredTenancyReadDate, updatedAt: RequiredTenancyReadDate,
+}).strict();
+const TeamCreateRow = TeamReadRow.extend({
+  id, metadata: z.record(z.string(), z.unknown()),
+  createdAt: RequiredTenancyReadDate, updatedAt: RequiredTenancyReadDate,
+}).strict();
+
+/** Only the three server-authored INSERT SELECTs below call this helper.
+ * Each INSERT consumes tenancy_create_mfa; the scalar also consumes it when
+ * RETURNING is empty. This DML must not be passed to readMfaRows.
+ */
+async function insertStructure<Row extends { id: string }>(tx: AppTransaction, statement: SQL, decode: (value: unknown) => Row): Promise<Row> {
+  const result = await tx.execute<{ rows: unknown }>(sql`
+    with tenancy_create_mfa as materialized (
+      select public.app_require_session_mfa() as allowed
+    ), created as (
+      ${statement}
+    )
+    select case when tenancy_create_mfa.allowed then coalesce((
+      select jsonb_agg(to_jsonb(created)) from created
+    ), '[]'::jsonb) else null end as rows from tenancy_create_mfa
+  `);
+  const rows = result[0]?.rows;
+  // These creates have no normal no-op. Unexpected zero/multiple RETURNING
+  // rows are an internal failure and roll back, never a successful201.
+  if (result.length !== 1 || !Array.isArray(rows) || rows.length !== 1) throw new Error("Invalid guarded structure creation");
+  return decode(rows[0]);
+}
+
+tenancyRouter.post("/blocks", validateBody(CreateBlock), async (req, res) => {
+  const input = req.body as z.infer<typeof CreateBlock>;
+  const row = await inTenancy(req, async tx => {
+    await assertCapability(tx, "units:manage", input.buildingId);
+    const created = await insertStructure(tx, sql`
+      insert into public.blocks (building_id, code, name)
+      select ${input.buildingId}, ${input.code}, ${input.name}
+      from tenancy_create_mfa where tenancy_create_mfa.allowed
+      returning id, building_id as "buildingId", code, name, active,
+        created_at as "createdAt", updated_at as "updatedAt"
+    `, value => BlockCreateRow.parse(value));
+    await recordAudit(tx, req, { userId: currentAuth(req).userId, buildingId: input.buildingId, action: "BLOCK_CREATED", resourceType: "block", resourceId: created.id });
+    // A new decision after audit also observes changes made by audit triggers.
+    await requireStructureOutcomeMfa(tx);
+    return created;
+  });
+  res.status(201).json(row);
+});
+
+tenancyRouter.get("/units", validateQuery(StructureListSchema), async (req, res) => {
+  const q = query<StructureQuery>(req);
+  res.json(await inTenancy(req, async tx => {
+    const all = await listScope(tx, q, "units:read", "units:manage");
+    const rows = await readMfaRows(tx,
+      tx.select(unitReadFields).from(units)
+        .where(and(eq(units.buildingId, q.buildingId), all ? undefined : eq(units.active, true), q.after ? gt(units.id, q.after) : undefined))
+        .orderBy(asc(units.id)).limit(q.limit + 1).getSQL(),
+      value => UnitReadRow.parse(value), ["id"],
+    );
+    return page(rows, q.limit);
+  }));
+});
+tenancyRouter.post("/units", validateBody(CreateUnit), async (req, res) => {
+  const input = req.body as z.infer<typeof CreateUnit>;
+  const row = await inTenancy(req, async tx => {
+    await assertCapability(tx, "units:manage", input.buildingId);
+    const created = await insertStructure(tx, sql`
+      insert into public.units (building_id, code
+        ${input.blockId !== undefined ? sql`, block_id` : sql``}
+        ${input.floor !== undefined ? sql`, floor` : sql``})
+      select ${input.buildingId}, ${input.code}
+        ${input.blockId !== undefined ? sql`, ${input.blockId}::uuid` : sql``}
+        ${input.floor !== undefined ? sql`, ${input.floor}::integer` : sql``}
+      from tenancy_create_mfa where tenancy_create_mfa.allowed
+      returning id, building_id as "buildingId", block_id as "blockId", code, floor, active, metadata,
+        created_at as "createdAt", updated_at as "updatedAt"
+    `, value => UnitCreateRow.parse(value));
+    await recordAudit(tx, req, { userId: currentAuth(req).userId, buildingId: input.buildingId, action: "UNIT_CREATED", resourceType: "unit", resourceId: created.id });
+    // A new decision after audit also observes changes made by audit triggers.
+    await requireStructureOutcomeMfa(tx);
+    return created;
+  });
+  res.status(201).json(row);
+});
+
+tenancyRouter.get("/teams", validateQuery(StructureListSchema), async (req, res) => {
+  const q = query<StructureQuery>(req);
+  res.json(await inTenancy(req, async tx => {
+    const all = await listScope(tx, q, "teams:read", "teams:manage");
+    const rows = await readMfaRows(tx,
+      tx.select(teamReadFields).from(teams)
+        .where(and(eq(teams.buildingId, q.buildingId), all ? undefined : eq(teams.active, true), q.after ? gt(teams.id, q.after) : undefined))
+        .orderBy(asc(teams.id)).limit(q.limit + 1).getSQL(),
+      value => TeamReadRow.parse(value), ["id"],
+    );
+    return page(rows, q.limit);
+  }));
+});
+tenancyRouter.post("/teams", validateBody(CreateTeam), async (req, res) => {
+  const input = req.body as z.infer<typeof CreateTeam>;
+  const row = await inTenancy(req, async tx => {
+    await assertCapability(tx, "teams:manage", input.buildingId);
+    const created = await insertStructure(tx, sql`
+      insert into public.teams (building_id, name)
+      select ${input.buildingId}, ${input.name}
+      from tenancy_create_mfa where tenancy_create_mfa.allowed
+      returning id, building_id as "buildingId", name, kind, active, metadata,
+        created_at as "createdAt", updated_at as "updatedAt"
+    `, value => TeamCreateRow.parse(value));
+    await recordAudit(tx, req, { userId: currentAuth(req).userId, buildingId: input.buildingId, action: "TEAM_CREATED", resourceType: "team", resourceId: created.id });
+    // A new decision after audit also observes changes made by audit triggers.
+    await requireStructureOutcomeMfa(tx);
+    return created;
+  });
+  res.status(201).json(row);
+});
+
+tenancyRouter.get("/unit-memberships", validateQuery(ListSchema), async (req, res) => {
+  const q = query<ListQuery>(req);
+  res.json(await inTenancy(req, async tx => {
+    await assertCapability(tx, "memberships:read", q.buildingId);
+    const rows = await readMfaRows(tx,
+      tx.select(unitMembershipReadFields).from(unitMemberships)
+        .where(and(eq(unitMemberships.buildingId, q.buildingId), eq(unitMemberships.active, true), q.after ? gt(unitMemberships.id, q.after) : undefined))
+        .orderBy(asc(unitMemberships.id)).limit(q.limit + 1).getSQL(),
+      value => UnitMembershipReadRow.parse(value), ["id"],
+    );
+    return page(rows, q.limit);
+  }));
+});
+const UnitMembershipCreateRow = UnitMembershipReadRow.extend({ id }).strict();
+const RoleBindingCreateRow = RoleBindingReadRow.extend({ id }).strict();
+
+/** Only these two grant INSERTs consume grant_mfa. Preserve the complete ORM
+ * rows and defaults; unlike team renewal, neither operation has a normal no-op.
+ */
+async function insertGrant<Row extends { id: string }>(tx: AppTransaction, statement: SQL, decode: (value: unknown) => Row): Promise<Row> {
+  const result = await tx.execute<{ rows: unknown }>(sql`
+    with grant_mfa as materialized (
+      select public.app_require_session_mfa() as allowed
+    ), granted as (
+      ${statement}
+    )
+    select case when grant_mfa.allowed then coalesce((
+      select jsonb_agg(to_jsonb(granted)) from granted
+    ), '[]'::jsonb) else null end as rows from grant_mfa
+  `);
+  const rows = result[0]?.rows;
+  if (result.length !== 1 || !Array.isArray(rows) || rows.length !== 1) throw new Error("Invalid guarded tenancy grant");
+  return decode(rows[0]);
+}
+
+tenancyRouter.post("/unit-memberships", validateBody(CreateUnitMember), async (req, res) => {
+  const input = req.body as z.infer<typeof CreateUnitMember>;
+  const row = await inTenancy(req, async tx => {
+    await assertCapability(tx, "memberships:manage", input.buildingId);
+    const created = await insertGrant(tx, sql`
+      insert into public.unit_memberships (building_id, unit_id, user_id, kind
+        ${input.startsAt !== undefined ? sql`, starts_at` : sql``}
+        ${input.endsAt !== undefined ? sql`, ends_at` : sql``})
+      select ${input.buildingId}, ${input.unitId}::uuid, ${input.userId}, ${input.kind}
+        ${input.startsAt !== undefined ? sql`, ${input.startsAt?.toISOString() ?? null}::timestamptz` : sql``}
+        ${input.endsAt !== undefined ? sql`, ${input.endsAt?.toISOString() ?? null}::timestamptz` : sql``}
+      from grant_mfa where grant_mfa.allowed
+      returning id, building_id as "buildingId", unit_id as "unitId", user_id as "userId", kind, active,
+        starts_at as "startsAt", ends_at as "endsAt", created_at as "createdAt", updated_at as "updatedAt"
+    `, value => UnitMembershipCreateRow.parse(value));
+    await recordAudit(tx, req, { userId: currentAuth(req).userId, buildingId: input.buildingId, action: "UNIT_MEMBERSHIP_CREATED", resourceType: "unit_membership", resourceId: created.id });
+    await requireStructureOutcomeMfa(tx);
+    return created;
+  });
+  res.status(201).json(row);
+});
+
+tenancyRouter.get("/team-members", validateQuery(ListSchema), async (req, res) => {
+  const q = query<ListQuery>(req);
+  res.json(await inTenancy(req, async tx => {
+    await assertCapability(tx, "teams:read", q.buildingId);
+    const rows = await readMfaRows(tx,
+      tx.select(teamMemberReadFields).from(teamMembers)
+        .where(and(eq(teamMembers.buildingId, q.buildingId), eq(teamMembers.active, true), q.after ? gt(teamMembers.id, q.after) : undefined))
+        .orderBy(asc(teamMembers.id)).limit(q.limit + 1).getSQL(),
+      value => TeamMemberReadRow.parse(value), ["id"],
+    );
+    return page(rows, q.limit);
+  }));
+});
+const TeamMemberCreateRow = TeamMemberReadRow.extend({ id }).strict();
+
+tenancyRouter.post("/team-members", validateBody(CreateTeamMember), async (req, res) => {
+  const input = req.body as z.infer<typeof CreateTeamMember>;
+  const row = await inTenancy(req, async tx => {
+    await assertCapability(tx, "teams:manage", input.buildingId);
+    // Consume MFA even when the active-member conflict yields no RETURNING row.
+    // Renewal preserves identity and clears omitted validity dates as before.
+    const result = await tx.execute<{ rows: unknown }>(sql`
+      with team_mfa as materialized (
+        select public.app_require_session_mfa() as allowed
+      ), changed as (
+        insert into public.team_members (building_id, team_id, user_id
+          ${input.startsAt !== undefined ? sql`, starts_at` : sql``}
+          ${input.endsAt !== undefined ? sql`, ends_at` : sql``})
+        select ${input.buildingId}, ${input.teamId}::uuid, ${input.userId}
+          ${input.startsAt !== undefined ? sql`, ${input.startsAt?.toISOString() ?? null}::timestamptz` : sql``}
+          ${input.endsAt !== undefined ? sql`, ${input.endsAt?.toISOString() ?? null}::timestamptz` : sql``}
+        from team_mfa where team_mfa.allowed
+        on conflict (team_id, user_id) do update
+          set active=true, starts_at=${input.startsAt?.toISOString() ?? null}::timestamptz,
+            ends_at=${input.endsAt?.toISOString() ?? null}::timestamptz,
+            updated_at=${new Date().toISOString()}::timestamptz
+          where team_members.building_id=${input.buildingId}
+            and (team_members.active=false or team_members.ends_at <= current_timestamp)
+        returning id, building_id as "buildingId", team_id as "teamId", user_id as "userId", active,
+          starts_at as "startsAt", ends_at as "endsAt", created_at as "createdAt", updated_at as "updatedAt"
+      )
+      select case when team_mfa.allowed then coalesce((
+        select jsonb_agg(to_jsonb(changed)) from changed
+      ), '[]'::jsonb) else null end as rows from team_mfa
+    `);
+    const rows = result[0]?.rows;
+    if (result.length !== 1 || !Array.isArray(rows) || rows.length > 1) throw new Error("Invalid guarded team membership");
+    if (rows.length === 0) {
+      await requireStructureOutcomeMfa(tx);
+      throw conflict("Este integrante já possui vínculo ativo na equipe");
+    }
+    const created = TeamMemberCreateRow.parse(rows[0]);
+    // This separate statement must see the resulting membership. A sibling
+    // SELECT inside the write CTE would not see the same post-upsert state.
+    const [person] = await tx.execute(sql`select app_tenancy_is_resident(${input.buildingId}, ${input.userId}) as resident`);
+    if (person?.resident) throw badRequest("Moradores não podem integrar equipes do condomínio.");
+    await recordAudit(tx, req, { userId: currentAuth(req).userId, buildingId: input.buildingId, action: "TEAM_MEMBER_ADDED", resourceType: "team_member", resourceId: created.id,
+      metadata: { startsAt: created.startsAt?.toISOString() ?? null, endsAt: created.endsAt?.toISOString() ?? null } });
+    await requireStructureOutcomeMfa(tx);
+    return created;
+  });
+  res.status(201).json(row);
+});
+
+tenancyRouter.get("/role-bindings", validateQuery(ListSchema), async (req, res) => {
+  const q = query<ListQuery>(req);
+  res.json(await inTenancy(req, async tx => {
+    await assertCapability(tx, "memberships:manage", q.buildingId);
+    const rows = await readMfaRows(tx,
+      tx.select(roleBindingReadFields).from(roleBindings)
+        .where(and(eq(roleBindings.buildingId, q.buildingId), eq(roleBindings.active, true), q.after ? gt(roleBindings.id, q.after) : undefined))
+        .orderBy(asc(roleBindings.id)).limit(q.limit + 1).getSQL(),
+      value => RoleBindingReadRow.parse(value), ["id"],
+    );
+    return page(rows, q.limit);
+  }));
+});
+tenancyRouter.post("/role-bindings", validateBody(CreateBinding), async (req, res) => {
+  const input = req.body as z.infer<typeof CreateBinding>;
+  const row = await inTenancy(req, async tx => {
+    await assertCapability(tx, "memberships:manage", input.buildingId);
+    await requireRecentVerification(req);
+    const created = await insertGrant(tx, sql`
+      insert into public.role_bindings (building_id, role_key, reason, granted_by
+        ${input.userId !== undefined ? sql`, user_id` : sql``}
+        ${input.teamId !== undefined ? sql`, team_id` : sql``}
+        ${input.startsAt !== undefined ? sql`, starts_at` : sql``}
+        ${input.endsAt !== undefined ? sql`, ends_at` : sql``})
+      select ${input.buildingId}, ${input.roleKey}, ${input.reason}, ${currentAuth(req).userId}
+        ${input.userId !== undefined ? sql`, ${input.userId}` : sql``}
+        ${input.teamId !== undefined ? sql`, ${input.teamId}::uuid` : sql``}
+        ${input.startsAt !== undefined ? sql`, ${input.startsAt?.toISOString() ?? null}::timestamptz` : sql``}
+        ${input.endsAt !== undefined ? sql`, ${input.endsAt?.toISOString() ?? null}::timestamptz` : sql``}
+      from grant_mfa where grant_mfa.allowed
+      returning id, building_id as "buildingId", user_id as "userId", team_id as "teamId", role_key as "roleKey",
+        resource_type as "resourceType", resource_id as "resourceId", active, starts_at as "startsAt", ends_at as "endsAt",
+        granted_by as "grantedBy", reason, created_at as "createdAt", updated_at as "updatedAt"
+    `, value => RoleBindingCreateRow.parse(value));
+    await recordAudit(tx, req, { userId: currentAuth(req).userId, buildingId: input.buildingId, action: "ROLE_BINDING_CREATED", resourceType: "role_binding", resourceId: created.id, metadata: { roleKey: input.roleKey } });
+    await requireStructureOutcomeMfa(tx);
+    return created;
+  });
+  res.status(201).json(row);
+});
+
+// Edits never move a record to another condominium nor change its active state.
+const changed = (value: object) => Object.keys(value).length > 0;
+const UpdateBlock = z.object({ code: CreateBlock.shape.code.optional(), name: name.optional() }).strict().refine(changed, "Informe ao menos um campo");
+const UpdateUnit = z.object({ code: CreateUnit.shape.code.optional(), blockId: id.nullable().optional(), floor: CreateUnit.shape.floor }).strict().refine(changed, "Informe ao menos um campo");
+const UpdateTeam = z.object({ name: name.optional() }).strict().refine(changed, "Informe ao menos um campo");
+
+// This private command family has exactly three server-authored descriptors.
+// Neither relation names, projections nor writable column names come from input.
+type StructureView = z.infer<typeof BlockReadRow> | z.infer<typeof UnitReadRow> | z.infer<typeof TeamReadRow>;
+type StructureCommand = Readonly<{
+  table: SQL; projection: SQL; decode: (value: unknown) => StructureView;
+  capability: "units:manage" | "teams:manage";
+  prefix: "BLOCK" | "UNIT" | "TEAM"; resourceType: "block" | "unit" | "team";
+  editColumns: Readonly<Record<string, string>>;
+}>;
+function structureCommandProjection(columns: Readonly<Record<string, { readonly name: string }>>): SQL {
+  return sql.join(Object.entries(columns).map(([key, column]) =>
+    sql`${sql.identifier("target")}.${sql.identifier(column.name)} as ${sql.identifier(key)}`), sql`, `);
+}
+const structureCommands = {
+  block: {
+    table: sql`public.blocks`,
+    projection: structureCommandProjection(blockView),
+    decode: (value: unknown) => BlockReadRow.parse(value),
+    capability: "units:manage", prefix: "BLOCK", resourceType: "block", editColumns: { code: "code", name: "name" },
+  },
+  unit: {
+    table: sql`public.units`,
+    projection: structureCommandProjection(unitView),
+    decode: (value: unknown) => UnitReadRow.parse(value),
+    capability: "units:manage", prefix: "UNIT", resourceType: "unit", editColumns: { code: "code", blockId: "block_id", floor: "floor" },
+  },
+  team: {
+    table: sql`public.teams`,
+    projection: structureCommandProjection(teamView),
+    decode: (value: unknown) => TeamReadRow.parse(value),
+    capability: "teams:manage", prefix: "TEAM", resourceType: "team", editColumns: { name: "name" },
+  },
+} satisfies Record<"block" | "unit" | "team", StructureCommand>;
+const StructureTargetRow = z.object({ id: z.string(), buildingId: z.string(), active: z.boolean() }).strict();
+type StructureTarget = z.infer<typeof StructureTargetRow>;
+const UnchangedStructureRow = z.object({
+  allowed: z.boolean(), item: z.record(z.string(), z.unknown()).nullable(),
+}).strict();
+
+async function findStructureTarget(tx: AppTransaction, command: StructureCommand, recordId: string, activeOnly: boolean): Promise<StructureTarget | undefined> {
+  const rows = await readMfaRows(tx, sql`
+    select target.id as "id", target.building_id as "buildingId", target.active as "active"
+    from ${command.table} as target where target.id = ${recordId}::uuid
+      ${activeOnly ? sql`and target.active` : sql``} limit 1
+  `, value => StructureTargetRow.parse(value), ["id"]);
+  return rows[0];
+}
+
+async function requireStructureOutcomeMfa(tx: AppTransaction): Promise<void> {
+  const [row] = await tx.execute<{ allowed: unknown }>(sql`select public.app_require_session_mfa() as allowed`);
+  if (row?.allowed !== true) throw new Error("Invalid guarded structure outcome");
+}
+
+async function lockStructureTarget(tx: AppTransaction, command: StructureCommand, target: StructureTarget, activeOnly: boolean): Promise<StructureTarget> {
+  // Keep the initial SELECT visibility check separate: taking this write lock
+  // first could hide a resident's visible unit instead of returning its403.
+  const rows = await tx.execute(sql`
+    select target.id as "id", target.building_id as "buildingId", target.active as "active"
+    from ${command.table} as target
+    where target.id = ${target.id}::uuid and target.building_id = ${target.buildingId}
+      ${activeOnly ? sql`and target.active` : sql``} for update
+  `);
+  if (rows.length > 1) throw new Error("Invalid locked structure result");
+  if (!rows[0]) {
+    // A lock wait can end with no visible target. Do not let404 mask MFA.
+    await requireStructureOutcomeMfa(tx);
+    throw notFound();
+  }
+  return StructureTargetRow.parse(rows[0]);
+}
+
+function structureEditAssignments(command: StructureCommand, input: Record<string, unknown>): SQL {
+  const entries = Object.entries(input).filter(([, value]) => value !== undefined);
+  if (!entries.length) throw new Error("Invalid validated structure edit");
+  const assignments = entries.map(([key, value]) => {
+    if (!Object.hasOwn(command.editColumns, key)) throw new Error("Invalid structure edit column");
+    return sql`${sql.identifier(command.editColumns[key]!)} = ${value}`;
+  });
+  // Preserve the existing API Date/millisecond timestamp semantics.
+  assignments.push(sql`updated_at = ${new Date().toISOString()}::timestamptz`);
+  return sql.join(assignments, sql`, `);
+}
+
+async function writeStructureTarget(tx: AppTransaction, command: StructureCommand, target: StructureTarget, assignments: SQL, activeOnly: boolean): Promise<StructureView> {
+  // This is a command, not a readMfaRows SELECT. Both the UPDATE and scalar
+  // result depend on the guard; zero matches still require an MFA decision.
+  // Existing target USING/WITH CHECK policies retain the capability decision.
+  const [result] = await tx.execute<{ rows: unknown }>(sql`
+    with tenancy_mfa as materialized (
+      select public.app_require_session_mfa() as allowed
+    ), changed as (
+      update ${command.table} as target set ${assignments}
+      from tenancy_mfa
+      where tenancy_mfa.allowed and target.id = ${target.id}::uuid
+        and target.building_id = ${target.buildingId} ${activeOnly ? sql`and target.active` : sql``}
+      returning ${command.projection}
+    )
+    select case when tenancy_mfa.allowed then coalesce((
+      select jsonb_agg(to_jsonb(changed)) from changed
+    ), '[]'::jsonb) else null end as rows from tenancy_mfa
+  `);
+  if (!result || !Array.isArray(result.rows) || result.rows.length > 1) throw new Error("Invalid guarded structure write");
+  if (!result.rows.length) throw notFound();
+  return command.decode(result.rows[0]);
+}
+
+async function unchangedStructure(tx: AppTransaction, command: StructureCommand, target: StructureTarget): Promise<StructureView> {
+  // A no-op must still require management in the same snapshot as its view;
+  // keeping read permission after a manage grant expires is not sufficient.
+  const rows = await readMfaRows(tx, sql`
+    select public.app_has_capability(${target.buildingId}, ${command.capability}) as allowed,
+      (select to_jsonb(structure_view) from (
+        select ${command.projection} from ${command.table} as target
+        where target.id = ${target.id}::uuid and target.building_id = ${target.buildingId} limit 1
+      ) as structure_view) as item
+  `, value => UnchangedStructureRow.parse(value), ["allowed"]);
+  const row = rows[0];
+  if (rows.length !== 1 || !row) throw new Error("Invalid guarded unchanged structure");
+  if (!row.allowed) throw forbidden("Sem a capacidade necessária para este recurso");
+  if (!row.item) throw notFound();
+  return command.decode(row.item);
+}
+
+/** Initial read keeps404/403 visibility; the explicit target lock precedes the
+ * guarded UPDATE, and audit remains after the write in the same transaction. */
+async function edit(req: Request, command: StructureCommand): Promise<StructureView> {
+  const parsed = id.safeParse(param(req, "id"));
+  if (!parsed.success) throw notFound();
+  return inTenancy(req, async tx => {
+    const visible = await findStructureTarget(tx, command, parsed.data, true);
+    if (!visible) throw notFound();
+    await assertCapability(tx, command.capability, visible.buildingId);
+    const current = await lockStructureTarget(tx, command, visible, true);
+    const updated = await writeStructureTarget(tx, command, current, structureEditAssignments(command, req.body as Record<string, unknown>), true);
+    await recordAudit(tx, req, { userId: currentAuth(req).userId, buildingId: current.buildingId, action: `${command.prefix}_UPDATED`, resourceType: command.resourceType, resourceId: parsed.data,
+      metadata: { fields: Object.keys(req.body as object).sort() } });
+    // Fresh MFA after audit/trigger execution; do not recheck a capability
+    // that a legitimate status command may itself remove.
+    await requireStructureOutcomeMfa(tx);
+    return updated;
+  });
+}
+
+tenancyRouter.patch("/blocks/:id", validateBody(UpdateBlock), async (req, res) => {
+  res.json(await edit(req, structureCommands.block));
+});
+tenancyRouter.patch("/units/:id", validateBody(UpdateUnit), async (req, res) => {
+  res.json(await edit(req, structureCommands.unit));
+});
+tenancyRouter.patch("/teams/:id", validateBody(UpdateTeam), async (req, res) => {
+  res.json(await edit(req, structureCommands.team));
+});
+
+// Deactivation keeps the record and its history. Audit before the write lets
+// an actor legitimately deactivate the team that grants their own management.
+const UpdateStatus = z.object({ active: z.boolean() }).strict();
+async function setStatus(req: Request, command: StructureCommand): Promise<StructureView> {
+  const parsed = id.safeParse(param(req, "id"));
+  if (!parsed.success) throw notFound();
+  const { active } = req.body as z.infer<typeof UpdateStatus>;
+  return inTenancy(req, async tx => {
+    const visible = await findStructureTarget(tx, command, parsed.data, false);
+    if (!visible) throw notFound();
+    await assertCapability(tx, command.capability, visible.buildingId);
+    const current = await lockStructureTarget(tx, command, visible, false);
+    if (current.active === active) return unchangedStructure(tx, command, current);
+    await recordAudit(tx, req, { userId: currentAuth(req).userId, buildingId: current.buildingId, action: `${command.prefix}_${active ? "REACTIVATED" : "DEACTIVATED"}`, resourceType: command.resourceType, resourceId: parsed.data });
+    const updated = await writeStructureTarget(tx, command, current,
+      sql`active = ${active}, updated_at = ${new Date().toISOString()}::timestamptz`, false);
+    await requireStructureOutcomeMfa(tx);
+    return updated;
+  });
+}
+
+tenancyRouter.patch("/blocks/:id/status", validateBody(UpdateStatus), async (req, res) => {
+  res.json(await setStatus(req, structureCommands.block));
+});
+tenancyRouter.patch("/units/:id/status", validateBody(UpdateStatus), async (req, res) => {
+  res.json(await setStatus(req, structureCommands.unit));
+});
+tenancyRouter.patch("/teams/:id/status", validateBody(UpdateStatus), async (req, res) => {
+  res.json(await setStatus(req, structureCommands.team));
+});
+
+// Resident invitations. The secret leaves the API once, in the creation
+// response; the row keeps only its hash, which this role cannot read back.
+const CreateInvitation = z.object({
+  buildingId, name, email: z.string().trim().toLowerCase().email().max(254),
+  unitId: id.optional(), kind: z.enum(["OWNER", "OCCUPANT", "DEPENDENT"]).optional(),
+}).strict().refine(value => Boolean(value.unitId) === Boolean(value.kind), "Informe a unidade e o tipo de vínculo juntos");
+const InvitationCreateRow = InvitationReadRow.extend({ id }).strict();
+const InvitationTargetRow = z.object({ id, buildingId: z.string(), open: z.boolean() }).strict();
+const InvitationRevokedRow = z.object({ id }).strict();
+const invitationView = sql`id, building_id as "buildingId", email, name, unit_id as "unitId", unit_kind as "kind", ${isoTime(sql`created_at`)} as "createdAt", ${isoTime(sql`expires_at`)} as "expiresAt",
+  case when accepted_at is not null then 'ACCEPTED' when revoked_at is not null then 'REVOKED'
+    when expires_at <= clock_timestamp() then 'EXPIRED' else 'PENDING' end as status`;
+
+tenancyRouter.get("/invitations", validateQuery(ListSchema), async (req, res) => {
+  const q = query<ListQuery>(req);
+  res.json(await inTenancy(req, async tx => {
+    await assertCapability(tx, "memberships:manage", q.buildingId);
+    const rows = await readMfaRows(tx,
+      sql`select ${invitationView} from invitations where building_id=${q.buildingId}
+        and (${q.after ?? null}::uuid is null or id > ${q.after ?? null}::uuid) order by id limit ${q.limit + 1}`,
+      value => InvitationReadRow.parse(value), ["id"],
+    );
+    return page(rows, q.limit);
+  }));
+});
+
+/** Only these two manager commands supply the predicate. Preserve the original
+ * SELECT visibility and closed204 semantics; a write lock would hide closed
+ * invitations under the UPDATE policy. An empty UPDATE still requires MFA. */
+async function revokeInvitationRows(tx: AppTransaction, actor: string, predicate: SQL): Promise<Array<{ id: string }>> {
+  const [result] = await tx.execute<{ rows: unknown }>(sql`
+    with invitation_mfa as materialized (
+      select public.app_require_session_mfa() as allowed
+    ), changed as (
+      update invitations set revoked_at=clock_timestamp(), revoked_by=${actor}
+      from invitation_mfa
+      where invitation_mfa.allowed and ${predicate}
+        and accepted_at is null and revoked_at is null
+      returning id
+    )
+    select case when invitation_mfa.allowed then coalesce((
+      select jsonb_agg(to_jsonb(changed)) from changed
+    ), '[]'::jsonb) else null end as rows from invitation_mfa
+  `);
+  if (!result || !Array.isArray(result.rows) || result.rows.length > 1) throw new Error("Invalid guarded invitation revocation");
+  return result.rows.map(value => InvitationRevokedRow.parse(value));
+}
+
+tenancyRouter.post("/invitations", validateBody(CreateInvitation), async (req, res) => {
+  const input = req.body as z.infer<typeof CreateInvitation>;
+  const actor = currentAuth(req).userId;
+  const { token, hash } = createInvitationToken();
+  const row = await inTenancy(req, async tx => {
+    await assertCapability(tx, "memberships:manage", input.buildingId);
+    // A new invitation for the same address replaces the open one, expired or not.
+    const replaced = await revokeInvitationRows(tx, actor, sql`building_id=${input.buildingId} and email=${input.email}`);
+    for (const previous of replaced) {
+      await recordAudit(tx, req, { userId: actor, buildingId: input.buildingId, action: "INVITATION_REVOKED", resourceType: "invitation", resourceId: previous.id });
+    }
+    // Separate statements retain replacement/audit ordering and visibility.
+    const [result] = await tx.execute<{ rows: unknown }>(sql`
+      with invitation_mfa as materialized (
+        select public.app_require_session_mfa() as allowed
+      ), created as (
+        insert into invitations(building_id,email,name,unit_id,unit_kind,token_hash,invited_by,expires_at)
+        select ${input.buildingId},${input.email},${input.name},${input.unitId ?? null}::uuid,${input.kind ?? null},${hash},${actor},clock_timestamp()+interval '7 days'
+        from invitation_mfa where invitation_mfa.allowed
+        returning ${invitationView}
+      )
+      select case when invitation_mfa.allowed then coalesce((
+        select jsonb_agg(to_jsonb(created)) from created
+      ), '[]'::jsonb) else null end as rows from invitation_mfa
+    `);
+    if (!result || !Array.isArray(result.rows) || result.rows.length !== 1) throw new Error("Invalid guarded invitation creation");
+    const created = InvitationCreateRow.parse(result.rows[0]);
+    await recordAudit(tx, req, { userId: actor, buildingId: input.buildingId, action: "INVITATION_CREATED", resourceType: "invitation", resourceId: created.id });
+    await requireStructureOutcomeMfa(tx);
+    return created;
+  });
+  // The code is still returned for hand delivery; the e-mail is a convenience and never blocks the answer.
+  const emailRequested = Boolean(config.residentPortalUrl) && mailConfigured();
+  if (emailRequested) void sendMail(actionMail(row.email, "Convite para o Prédio ON",
+    [`Olá, ${row.name}.`, "A administração do seu condomínio convidou você para o portal do morador do Prédio ON."],
+    { label: "Aceitar convite", url: `${config.residentPortalUrl}/convite#${token}` },
+    "O convite vale por 7 dias e funciona uma única vez. Você vai criar a sua própria senha.")).catch(() => { console.error("[mail] invitation e-mail failed"); });
+  res.status(201).json({ invitation: row, token, emailRequested });
+});
+tenancyRouter.delete("/invitations/:id", async (req, res) => {
+  const parsed = id.safeParse(param(req, "id"));
+  if (!parsed.success) throw notFound();
+  const actor = currentAuth(req).userId;
+  await inTenancy(req, async tx => {
+    const targets = await readMfaRows(tx,
+      sql`select id, building_id as "buildingId", accepted_at is null and revoked_at is null as open from invitations where id=${parsed.data}::uuid`,
+      value => InvitationTargetRow.parse(value), ["id"],
+    );
+    if (targets.length > 1) throw new Error("Invalid guarded invitation target");
+    const current = targets[0];
+    if (!current) throw notFound();
+    await assertCapability(tx, "memberships:manage", current.buildingId);
+    if (!current.open) { await requireStructureOutcomeMfa(tx); return; }
+    const revoked = await revokeInvitationRows(tx, actor, sql`id=${parsed.data}::uuid`);
+    // Accepted in the meantime: nothing was revoked, so nothing is audited.
+    if (revoked.length) await recordAudit(tx, req, { userId: actor, buildingId: current.buildingId, action: "INVITATION_REVOKED", resourceType: "invitation", resourceId: parsed.data });
+    await requireStructureOutcomeMfa(tx);
+  });
+  res.status(204).end();
+});
+
+// Grants are revoked rather than deleted so their audit references remain useful.
+// These three descriptors are server-authored; no relation or capability is input.
+type RevocationCommand = Readonly<{
+  path: "unit-memberships" | "team-members" | "role-bindings";
+  table: SQL; capability: "memberships:manage" | "teams:manage";
+  action: "UNIT_MEMBERSHIP_REVOKED" | "TEAM_MEMBER_REVOKED" | "ROLE_BINDING_REVOKED";
+}>;
+const revocationCommands = [
+  { path: "unit-memberships", table: sql`public.unit_memberships`, capability: "memberships:manage", action: "UNIT_MEMBERSHIP_REVOKED" },
+  { path: "team-members", table: sql`public.team_members`, capability: "teams:manage", action: "TEAM_MEMBER_REVOKED" },
+  { path: "role-bindings", table: sql`public.role_bindings`, capability: "memberships:manage", action: "ROLE_BINDING_REVOKED" },
+] as const satisfies readonly RevocationCommand[];
+const RevocationTargetRow = z.object({
+  id: z.string(), buildingId: z.string().nullable(), active: z.boolean(), allowed: z.boolean(),
+}).strict();
+type RevocationTarget = z.infer<typeof RevocationTargetRow>;
+
+async function requireRevocationOutcomeMfa(tx: AppTransaction): Promise<void> {
+  const [row] = await tx.execute<{ allowed: unknown }>(sql`select public.app_require_session_mfa() as allowed`);
+  if (row?.allowed !== true) throw new Error("Invalid guarded revocation outcome");
+}
+
+async function lockRevocationTarget(tx: AppTransaction, command: RevocationCommand, recordId: string): Promise<RevocationTarget | undefined> {
+  // Keep FOR UPDATE and its write-policy visibility. A plain SELECT here
+  // could expose a reader's row and change the original hidden-target404.
+  // Both the lock query and scalar empty result depend on the MFA decision.
+  // This statement's snapshot may predate a lock wait; callers recheck after it.
+  const [result] = await tx.execute<{ rows: unknown }>(sql`
+    with revocation_mfa as materialized (
+      select public.app_require_session_mfa() as allowed
+    ), locked as materialized (
+      select target.id as "id", target.building_id as "buildingId", target.active as "active",
+        case when target.building_id is not null
+          then public.app_has_capability(target.building_id, ${command.capability}) else false end as "allowed"
+      from ${command.table} as target cross join revocation_mfa
+      where revocation_mfa.allowed and target.id = ${recordId}::uuid
+      for update of target
+    )
+    select case when revocation_mfa.allowed then coalesce((
+      select jsonb_agg(to_jsonb(locked)) from locked
+    ), '[]'::jsonb) else null end as rows from revocation_mfa
+  `);
+  if (!result || !Array.isArray(result.rows) || result.rows.length > 1) throw new Error("Invalid guarded revocation target");
+  return result.rows.length ? RevocationTargetRow.parse(result.rows[0]) : undefined;
+}
+
+async function writeRevocation(tx: AppTransaction, command: RevocationCommand, target: RevocationTarget): Promise<void> {
+  // The same-statement guard protects the UPDATE under its existing RLS and
+  // the empty outcome. Do not pass this DML through the read-only helper.
+  const [result] = await tx.execute<{ rows: unknown }>(sql`
+    with revocation_mfa as materialized (
+      select public.app_require_session_mfa() as allowed
+    ), changed as (
+      update ${command.table} as target
+      set active = false, updated_at = ${new Date().toISOString()}::timestamptz
+      from revocation_mfa
+      where revocation_mfa.allowed and target.id = ${target.id}::uuid
+        and target.building_id = ${target.buildingId}
+      returning target.id as "id"
+    )
+    select case when revocation_mfa.allowed then coalesce((
+      select jsonb_agg(to_jsonb(changed)) from changed
+    ), '[]'::jsonb) else null end as rows from revocation_mfa
+  `);
+  if (!result || !Array.isArray(result.rows) || result.rows.length > 1) throw new Error("Invalid guarded revocation write");
+  if (!result.rows.length) throw notFound();
+  const changed = z.object({ id: z.string() }).strict().parse(result.rows[0]);
+  if (changed.id !== target.id) throw new Error("Invalid guarded revocation identity");
+}
+
+for (const command of revocationCommands) {
+  const { path, capability, action } = command;
+  tenancyRouter.delete(`/${path}/:id`, async (req, res) => {
+    const parsed = id.safeParse(param(req, "id"));
+    if (!parsed.success) throw notFound();
+    await inTenancy(req, async tx => {
+      const current = await lockRevocationTarget(tx, command, parsed.data);
+      // New snapshot after any lock wait, including no-match and global rows.
+      await requireRevocationOutcomeMfa(tx);
+      if (!current?.buildingId) throw notFound();
+      await assertCapability(tx, capability, current.buildingId);
+      if (!current.active) {
+        // We own the row lock already. Repeating the guarded locked read has
+        // a fresh snapshot and retains the exact UPDATE-policy visibility,
+        // capability and MFA decision for this otherwise empty204 response.
+        const unchanged = await lockRevocationTarget(tx, command, current.id);
+        if (!unchanged?.buildingId) throw notFound();
+        if (!unchanged.allowed) throw forbidden("Sem a capacidade necessária para este recurso");
+        return;
+      }
+      // Audit while the actor still has the grant, including self-revocation.
+      // Both statements roll back together if the update is rejected.
+      await recordAudit(tx, req, { userId: currentAuth(req).userId, buildingId: current.buildingId, action, resourceType: path, resourceId: current.id });
+      await writeRevocation(tx, command, current);
+      // Catch changes made by audit/update triggers. Rechecking the capability
+      // here would incorrectly roll back a legitimate self-revocation.
+      await requireRevocationOutcomeMfa(tx);
+    });
+    res.status(204).end();
+  });
+}

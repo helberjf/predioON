@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "format": "delta-v1",
+  "status": "AUTHORED_NOT_EXECUTED",
+  "basePreparedSha256": "4dadcdc045378366e0fdec233e698f6f8fe8cae78bf0920c0899638829194e7b",
+  "sourceCount": 1037,
+  "files": [
+    {
+      "path": "apps/api/src/modules/tenancy/routes.ts",
+      "beforeSha256": "172183eea44ba093e88b1d68553a634c2cc1ed09f1f18966db6bea42d9a4fff6",
+      "beforeBytes": 48950,
+      "afterSha256": "e9c9909630cee7a9fcfe5c46a9f1a805529cbfc107b7beadbfcfeaf8ba057963",
+      "afterBytes": 50790
+    }
+  ],
+  "ownedCallers": [
+    "POST /v1/tenancy/invitations",
+    "DELETE /v1/tenancy/invitations/:id"
+  ],
+  "otherSourceReconstructedExactly": true,
+  "sharedHelpersSchemasPoliciesMigrationsUnchanged": true,
+  "productionAccepted": false
+}

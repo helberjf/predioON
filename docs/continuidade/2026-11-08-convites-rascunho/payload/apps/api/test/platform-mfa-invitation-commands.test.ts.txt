@@ -1,0 +1,426 @@
+import assert from "node:assert/strict";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
+import type { Server } from "node:http";
+import { after, before, describe, it } from "node:test";
+import { decodeJwt } from "jose";
+import { sql } from "drizzle-orm";
+import { PgDialect } from "drizzle-orm/pg-core";
+import { sqlClient } from "@predioon/db";
+import { appDb, appSqlClient, closeAppDb, verifyRestrictedDatabaseRole, type AppTransaction } from "@predioon/db/runtime";
+import { app } from "../src/app.js";
+import { hashPassword } from "../src/auth/passwords.js";
+import { base32Decode, totpCode, totpStep } from "../src/auth/totp.js";
+import { config } from "../src/config.js";
+import { setMailTransport, type Mail } from "../src/mail/mailer.js";
+import "./helpers.js";
+
+// Common baseline/fixed test. Required administrators complete HTTP/TOTP.
+// The owner only seeds fixtures, removes MFA proof or simulates a concurrent
+// invitation acceptance. No fabricated positive MFA and no external e-mail.
+type Actor = { id: string; token: string; sid: string; local: string | null; codes: string[] };
+type Row = Record<string, unknown>;
+type Mode = "create" | "replace" | "revoke";
+type State = "open" | "expired" | "revoked" | "accepted";
+type Boundary = "capability" | "context";
+type Operation = { mode: Mode; buildingId: string; marker: string; body: Row; id: string | null; previous: Row | null };
+type HttpResult = { status: number; body: unknown; cache: string | null };
+function signal() { let resolve!: () => void; const promise = new Promise<void>(done => { resolve = done; }); return { promise, resolve }; }
+async function bounded<T>(promise: PromiseLike<T>, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try { return await Promise.race([Promise.resolve(promise), new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`Fixture deadline: ${label}`)), 5000);
+  })]); } finally { clearTimeout(timer); }
+}
+async function settleAll(transactions: Promise<unknown>[]) {
+  await bounded((async () => {
+    let completed = 0;
+    while (completed < transactions.length) {
+      const batch = transactions.slice(completed); completed += batch.length;
+      await Promise.allSettled(batch);
+    }
+  })(), "all actual app transactions settled");
+}
+function trackAllTransactions() {
+  const original = appDb.transaction, run = original.bind(appDb), transactions: Promise<unknown>[] = [];
+  appDb.transaction = (callback, config) => { const pending = run(callback, config); transactions.push(pending); return pending; };
+  return { settle: () => settleAll(transactions), restore() { appDb.transaction = original; } };
+}
+function observe(targetRow: Operation, boundary: Boundary) {
+  const original = appDb.transaction, run = original.bind(appDb), dialect = new PgDialect();
+  const reached = signal(), release = signal(), transactions: Promise<unknown>[] = [];
+  let matched = false;
+  type Input = Parameters<AppTransaction["execute"]>[0];
+  appDb.transaction = (callback, config) => {
+    const pending = run(tx => callback(new Proxy(tx, { get(target, key) {
+      if (key === "execute") return async (query: Input) => {
+        const compiled = typeof query === "string" ? { sql: query, params: [] } : dialect.sqlToQuery(query.getSQL());
+        const rows = await target.execute(query);
+        // Only the original stand-alone SELECT is the real assertCapability
+        // call; a candidate statement containing the same helper is insufficient.
+        const matches = boundary === "context" ? compiled.sql.includes("pg_advisory_xact_lock_shared(814772,")
+          : compiled.sql.trim().startsWith("select app_has_capability(")
+            && compiled.params.includes("memberships:manage") && compiled.params.includes(targetRow.buildingId);
+        if (!matched && matches) {
+          if (boundary === "capability") assert.equal((rows[0] as { allowed?: unknown } | undefined)?.allowed, true);
+          matched = true; reached.resolve(); await bounded(release.promise, "real boundary release");
+        }
+        return rows;
+      };
+      const value = Reflect.get(target, key, target); return typeof value === "function" ? value.bind(target) : value;
+    }})), config);
+    transactions.push(pending); return pending;
+  };
+  return { reached, release, settle: () => settleAll(transactions), restore() { appDb.transaction = original; } };
+}
+describe("MFA invitation manager commands with real enrollment", { concurrency: false }, () => {
+  const suffix = randomUUID(), org = `tinvite-org-${suffix}`, building = `tinvite-a-${suffix}`, foreign = `tinvite-b-${suffix}`;
+  const password = "invitation-commands-fictitious-password", users: string[] = [], triggers = new Set<string>();
+  const anchors = new Map<string, { unit: string; team: string }>();
+  const settings = config as { residentPortalUrl: string | null }, originalPortal = settings.residentPortalUrl;
+  const outbox: Array<{ mail: Mail; committed: boolean }> = [], mailJobs: Promise<unknown>[] = [];
+  let server: Server | undefined, url = "", hash = "", serial = 0;
+  let tracking: ReturnType<typeof trackAllTransactions> | undefined;
+  async function http(token: string | undefined, path: string, method = "GET", body?: Row, controller = new AbortController()): Promise<HttpResult> {
+    try {
+      const response = await bounded(fetch(url + path, { method, signal: controller.signal,
+        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        ...(body ? { body: JSON.stringify(body) } : {}) }), "HTTP");
+      const text = await bounded(response.text(), "HTTP body");
+      return { status: response.status, body: text ? JSON.parse(text) as unknown : null, cache: response.headers.get("cache-control") };
+    } finally { controller.abort(); }
+  }
+  const request = (actor: Actor, operation: Operation, controller?: AbortController) =>
+    http(actor.token, `/v1/tenancy/invitations${operation.mode === "revoke" ? "/" + operation.id : ""}`,
+      operation.mode === "revoke" ? "DELETE" : "POST", operation.mode === "revoke" ? undefined : operation.body, controller);
+  async function user(label: string, admin = false): Promise<string> {
+    const id = `tinvite-${suffix}-${++serial}-${label}`; users.push(id);
+    await sqlClient`insert into users(id,name,email,password_hash,is_platform_admin) values(${id},${label},${id + "@example.invalid"},${hash},${admin})`;
+    return id;
+  }
+  async function actor(label: string, admin = false, local = true): Promise<Actor> {
+    const id = await user(label, admin), binding = local ? randomUUID() : null;
+    if (binding) await sqlClient`insert into role_bindings(id,user_id,building_id,role_key) values(${binding},${id},${building},'BUILDING_ADMIN')`;
+    const login = await http(undefined, "/auth/login", "POST", { email: id + "@example.invalid", password });
+    assert.equal(login.status, 200, "raw real login; no admission retry or fabricated proof");
+    const body = login.body as { accessToken: string; user: { id: string; mfaRequirement: string } };
+    assert.equal(body.user.id, id); assert.equal(body.user.mfaRequirement, admin ? "enrollment-required" : "not-required");
+    const sid = decodeJwt(body.accessToken).sid; assert.equal(typeof sid, "string");
+    const result = { id, token: body.accessToken, sid: sid as string, local: binding, codes: [] as string[] };
+    if (admin) {
+      const enrollment = await http(result.token, "/auth/mfa/enroll", "POST", { currentPassword: password });
+      assert.equal(enrollment.status, 200);
+      const secret = base32Decode((enrollment.body as { secret: string }).secret); assert.ok(secret);
+      const confirmation = await http(result.token, "/auth/mfa/confirm", "POST", { code: totpCode(secret, totpStep(Date.now())) });
+      assert.equal(confirmation.status, 200);
+      const codes = (confirmation.body as { recoveryCodes: string[] }).recoveryCodes;
+      result.codes = codes; assert.equal(codes.length, 10); assert.equal(new Set(codes).size, 10);
+      const [proof] = await sqlClient`select s.mfa_verified_at is not null as verified,s.mfa_factor_generation=f.generation as same_generation,
+        f.confirmed_at is not null as confirmed from sessions s join mfa_factors f on f.user_id=s.user_id where s.id=${result.sid}::uuid and s.user_id=${id}`;
+      assert.equal(proof?.verified, true); assert.equal(proof?.same_generation, true); assert.equal(proof?.confirmed, true);
+    }
+    const me = await http(result.token, "/auth/me"); assert.equal(me.status, 200);
+    assert.equal((me.body as { id: string }).id, id);
+    assert.equal((me.body as { mfaRequirement: string }).mfaRequirement, admin ? "satisfied" : "not-required");
+    assert.equal(decodeJwt(result.token).sid, result.sid, "same bearer and family across login/enrollment/confirmation");
+    return result;
+  }
+
+
+  async function settleMail() { await settleAll(mailJobs); }
+  function captureMail(mail: Mail): Promise<{ sent: boolean }> {
+    const pending = (async () => {
+      const [row] = await sqlClient`select count(*)::int as count from invitations
+        where email=${mail.to} and building_id in (${building},${foreign}) and accepted_at is null and revoked_at is null`;
+      outbox.push({ mail, committed: row?.count === 1 }); return { sent: true };
+    })();
+    mailJobs.push(pending); return pending;
+  }
+  async function stored(id: string): Promise<Row> {
+    const [row] = await sqlClient`select to_jsonb(i)-'token_hash' || jsonb_build_object('token_digest',encode(token_hash,'hex')) as row from invitations i where id=${id}::uuid`;
+    assert.ok(row); return row.row as Row;
+  }
+  async function seed(a: Actor, email: string, targetBuilding: string, state: State): Promise<Row> {
+    const id = randomUUID();
+    await sqlClient`insert into invitations(id,building_id,email,name,token_hash,invited_by,created_at,expires_at)
+      values(${id}::uuid,${targetBuilding},${email},'Previous invitation',${randomBytes(32)},${a.id},
+        clock_timestamp()-interval '8 days',clock_timestamp()+interval '1 day')`;
+    if (state === "expired") await sqlClient`update invitations set expires_at=clock_timestamp()-interval '1 second' where id=${id}::uuid`;
+    if (state === "revoked") await sqlClient`update invitations set revoked_at=clock_timestamp(),revoked_by=${a.id} where id=${id}::uuid`;
+    if (state === "accepted") await sqlClient`update invitations set accepted_at=clock_timestamp(),accepted_user_id=${a.id} where id=${id}::uuid`;
+    return stored(id);
+  }
+  async function operation(a: Actor, mode: Mode, state: State = "open", targetBuilding = building, rich = false): Promise<Operation> {
+    const marker = `tinvite-${suffix}-${++serial}@example.invalid`;
+    const body: Row = { buildingId: targetBuilding, name: "Invited resident", email: marker };
+    if (rich) { body.unitId = anchors.get(targetBuilding)!.unit; body.kind = "OCCUPANT"; body.name = "  Invited resident  "; body.email = `  ${marker.toUpperCase()}  `; }
+    const previous = mode === "create" ? null : await seed(a,marker,targetBuilding,state);
+    return { mode, buildingId: targetBuilding, marker, body, id: previous ? String(previous.id) : null, previous };
+  }
+  async function snapshot(a: Actor) {
+    await settleMail();
+    return {
+      invitations: (await sqlClient`select to_jsonb(i)-'token_hash' || jsonb_build_object('token_digest',encode(token_hash,'hex')) as row
+        from invitations i where building_id in (${building},${foreign}) order by id`).map(r=>r.row),
+      audit: (await sqlClient`select to_jsonb(a) as row from audit_logs a where user_id=${a.id} order by id`).map(r=>r.row),
+      mailed: outbox.map(x=>({ to:x.mail.to, digest:createHash("sha256").update(x.mail.text).digest("hex"), committed:x.committed })),
+    };
+  }
+  const iso = (x: unknown): string => { assert.equal(typeof x,"string"); return new Date(x as string).toISOString(); };
+  async function audit(a: Actor, input: Operation, ids: string[], actions: string[]) {
+    const rows = await sqlClient`select user_id,building_id,actor_type,action,resource_type,resource_id,metadata
+      from audit_logs where resource_type='invitation' and resource_id in ${sqlClient(ids)} order by action,resource_id`;
+    const expected = ids.map((id,index)=>({ user_id:a.id,building_id:input.buildingId,actor_type:"USER",action:actions[index],resource_type:"invitation",resource_id:id,metadata:{} }))
+      .sort((a,b)=>a.action!.localeCompare(b.action!) || a.resource_id.localeCompare(b.resource_id));
+    assert.deepEqual(rows.map(r=>({...r})),expected);
+  }
+  async function effects(a: Actor, input: Operation, response: HttpResult) {
+    assert.equal(response.cache,"no-store"); await settleMail();
+    const ids = (await sqlClient`select id from invitations where building_id=${input.buildingId} and email=${input.marker} order by id`).map(r=>String(r.id));
+    if (input.mode === "revoke") {
+      assert.equal(response.status,204); assert.equal(response.body,null); assert.deepEqual(ids,[input.id]);
+      const row = await stored(input.id!); assert.equal(typeof row.revoked_at,"string");
+      assert.deepEqual(row,{...input.previous,revoked_at:row.revoked_at,revoked_by:a.id});
+      await audit(a,input,[input.id!],["INVITATION_REVOKED"]);
+      assert.equal(outbox.filter(x=>x.mail.to===input.marker).length,0); return;
+    }
+    assert.equal(response.status,201);
+    const result = response.body as { invitation: Row; token: string; emailRequested: boolean };
+    assert.deepEqual(Object.keys(result).sort(),["emailRequested","invitation","token"]);
+    assert.equal(result.emailRequested,true); assert.equal(typeof result.token,"string");
+    assert.equal(/^[A-Za-z0-9_-]{43}$/.test(result.token),true,"opaque canonical secret, never logged");
+    const id = String(result.invitation.id); assert.equal(/^[0-9a-f-]{36}$/.test(id),true);
+    assert.deepEqual(ids,[...(input.previous?[input.id!]:[]),id].sort());
+    const row = await stored(id);
+    assert.equal(row.token_digest===createHash("sha256").update(Buffer.from(result.token,"base64url")).digest("hex"),true,"only the issued secret's hash is stored");
+    assert.deepEqual(row,{id,building_id:input.buildingId,email:input.marker,name:"Invited resident",unit_id:input.body.unitId??null,unit_kind:input.body.kind??null,
+      token_digest:row.token_digest,invited_by:a.id,created_at:row.created_at,expires_at:row.expires_at,accepted_at:null,accepted_user_id:null,revoked_at:null,revoked_by:null});
+    const days=(Date.parse(String(row.expires_at))-Date.parse(String(row.created_at)))/86400000;assert.ok(days>6.99&&days<=7.01);
+    const expected={id,buildingId:input.buildingId,email:input.marker,name:"Invited resident",unitId:input.body.unitId??null,kind:input.body.kind??null,
+      status:"PENDING",createdAt:iso(row.created_at),expiresAt:iso(row.expires_at)};
+    assert.equal(Object.keys(expected).length,9); assert.deepEqual(result.invitation,expected,"full nine-field invitation DTO");
+    if(input.previous){
+      const prior=await stored(input.id!);assert.equal(typeof prior.revoked_at,"string");
+      assert.deepEqual(prior,{...input.previous,revoked_at:prior.revoked_at,revoked_by:a.id});
+      await audit(a,input,[id,input.id!],["INVITATION_CREATED","INVITATION_REVOKED"]);
+    }else await audit(a,input,[id],["INVITATION_CREATED"]);
+    const messages=outbox.filter(x=>x.mail.to===input.marker);assert.equal(messages.length,1);
+    assert.equal(messages[0]!.committed,true,"mail transport observes already committed invitation");
+    const link=`https://morador.example.invalid/convite#${result.token}`;
+    assert.equal(messages[0]!.mail.text.includes(link),true);assert.equal(messages[0]!.mail.html.includes(`href="${link}"`),true);
+    assert.equal(messages[0]!.mail.subject,"Convite para o Prédio ON");
+  }
+  const removeProof = (actor: Actor) => sqlClient`update sessions set mfa_verified_at=null,mfa_factor_generation=null where id=${actor.sid}::uuid and user_id=${actor.id}`;
+  async function proof(actor: Actor) {
+    const [row] = await sqlClient`select mfa_verified_at is not null as verified,mfa_verified_at::text as verified_at,mfa_factor_generation::text as generation
+      from sessions where id=${actor.sid}::uuid and user_id=${actor.id}`;
+    assert.ok(row); return { ...row };
+  }
+  function denied(response: HttpResult, reason: string) {
+    assert.equal(response.status, 403); assert.equal(response.cache, "no-store");
+    assert.equal((response.body as { details?: { reason?: string } }).details?.reason, reason);
+    assert.equal("id" in (response.body as object), false);
+    assert.equal("token" in (response.body as object), false); assert.equal("invitation" in (response.body as object), false);
+  }
+  async function interleave(actor: Actor, operation: Operation, change: () => PromiseLike<unknown>, boundary: Boundary = "capability"): Promise<HttpResult> {
+    const observation = observe(operation, boundary), controller = new AbortController();
+    const pending = request(actor, operation, controller); void pending.catch(() => undefined); let failed = false;
+    try {
+      assert.equal(await bounded(Promise.race([observation.reached.promise.then(() => "boundary"), pending.then(() => "response")]), "real capability reached"), "boundary");
+      await bounded(change(), "identity change committed"); observation.release.resolve(); return await pending;
+    } catch (error) { failed = true; throw error; }
+    finally {
+      observation.release.resolve(); controller.abort();
+      const results = await Promise.allSettled([bounded(pending, "HTTP settled"), observation.settle()]); observation.restore();
+      if (!failed) { const failure = results.find(result => result.status === "rejected"); if (failure?.status === "rejected") throw failure.reason; }
+    }
+  }
+  async function dropTrigger(name: string) {
+    assert.match(name, /^tinvite_[0-9a-f]{32}$/);
+    await bounded(sqlClient.begin(async owner => {
+      await owner`set local lock_timeout='2s'`; await owner`set local statement_timeout='3s'`;
+      await owner.unsafe(`drop trigger if exists ${name} on public.audit_logs`);
+      await owner.unsafe(`drop function if exists public.${name}()`);
+      await owner.unsafe(`drop sequence if exists public.${name}_seq`);
+    }), "audit trigger cleanup");
+    const [gone] = await sqlClient`select to_regprocedure(${"public." + name + "()"}) is null as function_gone,
+      to_regclass(${"public." + name + "_seq"}) is null as sequence_gone`;
+    assert.equal(gone?.function_gone, true); assert.equal(gone?.sequence_gone, true); triggers.delete(name);
+  }
+  async function triggerCatalog() {
+    return (await sqlClient`select tgrelid::regclass::text as relation,tgname,tgenabled,tgisinternal,pg_get_triggerdef(oid) as definition
+      from pg_trigger where tgrelid in ('public.invitations'::regclass,'public.audit_logs'::regclass)
+      order by relation,tgname`).map(row => ({ ...row }));
+  }
+  before(async () => {
+    const [ledger] = await sqlClient`select count(*)::int as count from schema_migrations`; assert.equal(ledger?.count, 68, "candidate068 fixture required; no skip");
+    await bounded(verifyRestrictedDatabaseRole(appSqlClient, "predioon_app"), "actual restricted app role");
+    hash = await hashPassword(password);
+    await sqlClient`insert into organizations(id,name,slug) values(${org},'Invitation commands MFA',${org})`;
+    for (const id of [building, foreign]) {
+      await sqlClient`insert into buildings(id,organization_id,name,code) values(${id},${org},${id},${id})`;
+      const unit = randomUUID(), team = randomUUID(); anchors.set(id, { unit, team });
+      await sqlClient`insert into units(id,building_id,code) values(${unit},${id},'ANCHOR')`;
+      await sqlClient`insert into teams(id,building_id,name) values(${team},${id},'Fixture anchor')`;
+    }
+    settings.residentPortalUrl = "https://morador.example.invalid"; setMailTransport(captureMail);
+    tracking = trackAllTransactions();
+    server = await new Promise<Server>(resolve => { const instance = app.listen(0, "127.0.0.1", () => resolve(instance)); });
+    const address = server.address(); assert.ok(address && typeof address !== "string"); url = `http://127.0.0.1:${address.port}`;
+  });
+  after(async () => {
+    try {
+      await bounded(new Promise<void>((resolve, reject) => {
+        if (!server) { resolve(); return; } server.close(error => error ? reject(error) : resolve()); server.closeAllConnections();
+      }), "HTTP listener close");
+    } finally {
+      try {
+        await tracking?.settle(); await settleMail(); setMailTransport(null); settings.residentPortalUrl = originalPortal;
+        for (const name of triggers) await dropTrigger(name);
+        await bounded(sqlClient.begin(async tx => {
+          await tx`set local lock_timeout='2s'`; await tx`set local statement_timeout='3s'`;
+          await tx`delete from audit_logs where building_id in (${building},${foreign})`;
+          await tx`delete from units where building_id in (${building},${foreign})`;
+          await tx`delete from buildings where organization_id=${org}`;
+          if (users.length) await tx`delete from users where id in ${sqlClient(users)}`;
+          await tx`delete from organizations where id=${org}`;
+        }), "owned fixture cleanup");
+      } finally {
+        tracking?.restore();
+        const results = await Promise.allSettled([bounded(closeAppDb(), "app pool close"), bounded(sqlClient.end({ timeout: 3 }), "owner pool close")]);
+        const failure = results.find(result => result.status === "rejected"); if (failure?.status === "rejected") throw failure.reason;
+      }
+    }
+  });
+
+
+  for (const mode of ["create","replace"] as const) {
+    for (const factor of [true,false]) it(`${mode}: rejects ${factor?"factor removal":"family proof removal"} after real invitation authorization`,async t=>{
+      const a=await actor("negative",true),input=await operation(a,mode),before=await snapshot(a);
+      const response=await interleave(a,input,()=>factor?sqlClient`delete from mfa_factors where user_id=${a.id}`:removeProof(a));
+      if(response.status===201){await effects(a,input,response);t.diagnostic("Baseline201: full invitation DTO, persisted rows, exact audits and committed local mail verified before expected403 mismatch");}
+      else assert.deepEqual(await snapshot(a),before);
+      denied(response,factor?"MFA_ENROLLMENT_REQUIRED":"MFA_VERIFICATION_REQUIRED");assert.deepEqual(await snapshot(a),before);
+    });
+    for(const admin of [false,true]) it(`${mode}: preserves complete invitation and committed mail for ${admin?"a satisfied administrator":"an optional manager"}`,async()=>{
+      const a=await actor("positive",admin),input=await operation(a,mode,"open",building,true);await effects(a,input,await request(a,input));
+    });
+  }
+  for(const state of ["open","revoked","accepted"] as const){
+    for(const factor of [true,false]) it(`revoke ${state}: rejects ${factor?"factor removal":"family proof removal"} after real invitation authorization`,async t=>{
+      const a=await actor("revoke-negative",true),input=await operation(a,"revoke",state),before=await snapshot(a);
+      const response=await interleave(a,input,()=>factor?sqlClient`delete from mfa_factors where user_id=${a.id}`:removeProof(a));
+      if(response.status===204){
+        if(state==="open")await effects(a,input,response);else assert.deepEqual(await snapshot(a),before);
+        t.diagnostic(`Baseline204: ${state==="open"?"persisted revocation and exact audit":"closed invitation and audit unchanged"} verified before expected403 mismatch`);
+      }else assert.deepEqual(await snapshot(a),before);
+      denied(response,factor?"MFA_ENROLLMENT_REQUIRED":"MFA_VERIFICATION_REQUIRED");assert.deepEqual(await snapshot(a),before);
+    });
+  }
+  for(const visibility of ["missing","hidden"] as const){
+    for(const factor of [true,false]) it(`revoke ${visibility}: rejects ${factor?"factor removal":"family proof removal"} after real transaction context`,async t=>{
+      const a=await actor("visibility-negative",true),input=await operation(a,"revoke","open",visibility==="hidden"?foreign:building);
+      if(visibility==="missing")input.id=randomUUID();
+      const before=await snapshot(a);
+      const response=await interleave(a,input,()=>factor?sqlClient`delete from mfa_factors where user_id=${a.id}`:removeProof(a),"context");
+      assert.deepEqual(await snapshot(a),before);
+      if(response.status===404)t.diagnostic("Baseline404: missing or hidden invitation and audit unchanged before expected403 mismatch");
+      denied(response,factor?"MFA_ENROLLMENT_REQUIRED":"MFA_VERIFICATION_REQUIRED");
+    });
+  }
+  for(const lost of [false,true]) it(`accepted between read and update: ${lost?"rejects lost family proof":"preserves204 without revocation or audit"}`,async t=>{
+    const a=await actor("concurrent-accept",true),input=await operation(a,"revoke");let expected:Awaited<ReturnType<typeof snapshot>>|undefined;
+    const response=await interleave(a,input,async()=>{
+      await sqlClient`update invitations set accepted_at=clock_timestamp(),accepted_user_id=${a.id} where id=${input.id}::uuid`;
+      if(lost)await removeProof(a);expected=await snapshot(a);
+    });
+    assert.deepEqual(await snapshot(a),expected,"no revocation or audit when a concurrent writer already accepted");
+    if(lost){if(response.status===204)t.diagnostic("Baseline204: concurrent acceptance preserved without revocation or audit before expected403 mismatch");denied(response,"MFA_VERIFICATION_REQUIRED");}
+    else{assert.equal(response.status,204);assert.equal(response.body,null);assert.equal(response.cache,"no-store");}
+  });
+  for(const admin of [false,true]) it(`revoke: preserves open and repeated closed204 for ${admin?"a satisfied administrator":"an optional manager"}`,async()=>{
+    const a=await actor("revoke-positive",admin),input=await operation(a,"revoke");await effects(a,input,await request(a,input));
+    const before=await snapshot(a);const response=await request(a,input);assert.equal(response.status,204);assert.deepEqual(await snapshot(a),before);
+    const accepted=await operation(a,"revoke","accepted"),unchanged=await snapshot(a);assert.equal((await request(a,accepted)).status,204);assert.deepEqual(await snapshot(a),unchanged);
+  });
+  it("replaces expired open invitations while preserving accepted and revoked history",async()=>{
+    const a=await actor("expired"),input=await operation(a,"replace","expired");
+    const history=await Promise.all([seed(a,input.marker,building,"accepted"),seed(a,input.marker,building,"revoked")]);
+    const response=await request(a,input);assert.equal(response.status,201);
+    const result=response.body as {invitation:{id:string};emailRequested:boolean};assert.equal(result.emailRequested,true);
+    const previous=await stored(input.id!);assert.equal(typeof previous.revoked_at,"string");assert.deepEqual(previous,{...input.previous,revoked_at:previous.revoked_at,revoked_by:a.id});
+    for(const row of history)assert.deepEqual(await stored(String(row.id)),row);
+    await audit(a,input,[result.invitation.id,input.id!],["INVITATION_CREATED","INVITATION_REVOKED"]);
+    assert.equal((await sqlClient`select count(*)::int as count from invitations where building_id=${building} and email=${input.marker} and accepted_at is null and revoked_at is null`)[0]?.count,1);
+    await settleMail();assert.equal(outbox.filter(x=>x.mail.to===input.marker&&x.committed).length,1);
+  });
+  it("preserves scope, hidden404, absent404 and explicit local manager authority",async()=>{
+    const manager=await actor("scope"),outsider=await actor("outsider",true,false);
+    for(const a of [manager,outsider]){
+      const target=a===manager?foreign:building;
+      for(const mode of ["create","revoke"] as const){const input=await operation(a,mode,"open",target),before=await snapshot(a);
+        assert.equal((await request(a,input)).status,mode==="create"?403:404);assert.deepEqual(await snapshot(a),before);}
+    }
+    const input=await operation(manager,"revoke");for(const id of [randomUUID(),"not-a-uuid"]){const before=await snapshot(manager);
+      assert.equal((await request(manager,{...input,id})).status,404);assert.deepEqual(await snapshot(manager),before);}
+  });
+  it("preserves strict invitation validation before any replacement or mail",async()=>{
+    const a=await actor("validation"),input=await operation(a,"replace");
+    for(const patch of [{email:"invalid"},{name:" "},{unitId:anchors.get(building)!.unit},{kind:"OWNER"},{roleKey:"BUILDING_ADMIN"},{token:"forged"},{id:randomUUID()},{unitId:anchors.get(building)!.unit,kind:"ADMIN"}]){
+      const before=await snapshot(a);assert.equal((await request(a,{...input,body:{...input.body,...patch}})).status,400);assert.deepEqual(await snapshot(a),before);
+    }
+  });
+  it("rolls replacement and its audit back for missing or foreign units without mail",async()=>{
+    const a=await actor("foreign-key"),input=await operation(a,"replace");
+    for(const unitId of [randomUUID(),anchors.get(foreign)!.unit]){const before=await snapshot(a);
+      assert.equal((await request(a,{...input,body:{...input.body,unitId,kind:"OWNER"}})).status,400);assert.deepEqual(await snapshot(a),before);}
+  });
+  it("does not request mail when the resident portal is absent",async()=>{
+    const a=await actor("no-portal"),input=await operation(a,"create"),before=outbox.length;
+    try{settings.residentPortalUrl=null;const response=await request(a,input);assert.equal(response.status,201);
+      assert.equal((response.body as {emailRequested:boolean}).emailRequested,false);await settleMail();assert.equal(outbox.length,before);
+      const [row]=await sqlClient`select id from invitations where building_id=${building} and email=${input.marker}`;assert.ok(row);
+      await audit(a,input,[String(row.id)],["INVITATION_CREATED"]);
+    }finally{settings.residentPortalUrl="https://morador.example.invalid";}
+  });
+  for(const spec of [
+    {mode:"create",action:"INVITATION_CREATED"},
+    {mode:"replace",action:"INVITATION_REVOKED"},
+    {mode:"replace",action:"INVITATION_CREATED"},
+    {mode:"revoke",action:"INVITATION_REVOKED"},
+  ] as const) it(`${spec.mode}: rolls rows audits proof and mail back after ${spec.action} trigger`,async t=>{
+    const a=await actor("audit-trigger",true),control=await operation(a,spec.mode);await effects(a,control,await request(a,control));
+    const input=await operation(a,spec.mode),before=await snapshot(a),originalProof=await proof(a),catalog=await triggerCatalog();
+    assert.equal(originalProof.verified,true);assert.equal(typeof originalProof.verified_at,"string");assert.equal(typeof originalProof.generation,"string");
+    const name="tinvite_"+randomUUID().replaceAll("-","");triggers.add(name);
+    try{
+      assert.match(name,/^tinvite_[0-9a-f]{32}$/);
+      await bounded(sqlClient.begin(async owner=>{
+        await owner`set local lock_timeout='2s'`;await owner`set local statement_timeout='3s'`;
+        await owner.unsafe(`create sequence public.${name}_seq`);
+        await owner.unsafe(`create function public.${name}() returns trigger language plpgsql security definer
+          set search_path=pg_catalog,pg_temp as $$ begin
+          if new.user_id=TG_ARGV[0] and new.building_id=TG_ARGV[1] and new.action=TG_ARGV[2]
+            and new.resource_type='invitation' and current_setting('app.session_id',true)=TG_ARGV[3]
+            and exists(select 1 from public.invitations target where target.id::text=new.resource_id
+              and target.building_id=TG_ARGV[1] and target.email=TG_ARGV[4]) then
+            perform pg_catalog.nextval('public.${name}_seq'::regclass);
+            update public.sessions set mfa_verified_at=null,mfa_factor_generation=null where id=TG_ARGV[3]::uuid and user_id=TG_ARGV[0];
+          end if; return new; end $$`);
+        await owner.unsafe(`revoke all on function public.${name}() from public`);
+        const args=[a.id,building,spec.action,a.sid,input.marker];assert.ok(args.every(x=>/^[A-Za-z0-9_@. -]+$/.test(x)));
+        await owner.unsafe(`create trigger ${name} after insert on public.audit_logs for each row execute function public.${name}(${args.map(x=>"'"+x+"'").join(",")})`);
+      }),"narrow audit trigger setup");
+      const [metadata]=await sqlClient`select p.prosecdef,p.proconfig,pg_get_userbyid(p.proowner)=current_user as owner,
+        not exists(select 1 from aclexplode(p.proacl) a where a.grantee=0 and a.privilege_type='EXECUTE') as public_revoked
+        from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname=${name}`;
+      assert.equal(metadata?.prosecdef,true);assert.equal(metadata?.owner,true);assert.equal(metadata?.public_revoked,true);assert.deepEqual(metadata?.proconfig,["search_path=pg_catalog, pg_temp"]);
+      const response=await request(a,input),[witness]=await sqlClient.unsafe(`select last_value::int,is_called from public.${name}_seq`);
+      assert.equal(witness?.is_called,true);assert.equal(witness?.last_value,1,"exactly one trigger executed even when rolled back");
+      if(response.status===(spec.mode==="revoke"?204:201)){
+        await effects(a,input,response);assert.deepEqual(await proof(a),{verified:false,verified_at:null,generation:null});
+        t.diagnostic(`Baseline${response.status}: invitation effects verified; narrow audit trigger executed once and removed the same family proof`);
+      }else{assert.deepEqual(await snapshot(a),before);assert.deepEqual(await proof(a),originalProof);}
+      denied(response,"MFA_VERIFICATION_REQUIRED");assert.deepEqual(await snapshot(a),before);assert.deepEqual(await proof(a),originalProof);
+    }finally{await tracking?.settle();await settleMail();await dropTrigger(name);assert.deepEqual(await triggerCatalog(),catalog);}
+  });
+});
