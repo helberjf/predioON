@@ -2,7 +2,7 @@
 
 **Novo aceite dirigido por vínculo global:** [um caso real passou](evidencias/mfa-global-binding-browser-2026-11-07.json) com flag legado falso e DTO `BUILDING_ADMIN`, mesmo sob obrigação MFA global. Só a concessão do binding usa SQL da fixture; login/TOTP, domínio e recusa de desativação são reais. [Fontes restauráveis e limites](continuidade/2026-11-07-browser-binding-global/RESULTADO.md).
 
-**Próximo lote — três DELETEs de tenancy:** candidato separado em elaboração, fora da composição1.033 e do runtime publicado; testes dirigidos e regressões ainda pendentes. Também faltam autoridades inativas/expiradas, promoção/revogação concorrente, demais domínios e integração final.
+**Três DELETEs de tenancy validados no candidato:** [21 casos dirigidos e sete regressões passaram](evidencias/mfa-tenancy-revocations-2026-11-07.json); a regressão soma 92 TAP, sendo 82 casos e dez grupos. [Composição restaurável de 1.034 arquivos](continuidade/2026-11-07-revogacoes/RESULTADO.md). Ainda faltam ensaios próprios de locks/promoção/perda de capacidade/triggers/UPDATEzero, concessões/criações/convites, demais domínios e integração final. Autoridades inativas/expiradas e aceites nativos/operacionais continuam pendentes.
 
 **CI atual:** [commit1fe02f9](evidencias/ci-current-1fe02f9-2026-11-07.json) apresenta `startup_failure` com zero jobs; causa não confirmada nesta consulta. Não transformar o estado de inicialização em falha dos testes nem presumir a causa histórica da conta.
 

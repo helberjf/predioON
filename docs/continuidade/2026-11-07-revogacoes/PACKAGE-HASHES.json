@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "recordedOn": "2026-11-07",
+  "status": "AUTHORED_NOT_EXECUTED",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+      "bytes": 8
+    },
+    {
+      "path": "MANIFEST.json",
+      "sha256": "60032448f7a212c3df8f1188197ce2897a8677c327efd991f4cc6274e972ac6f",
+      "bytes": 383735
+    },
+    {
+      "path": "README.md",
+      "sha256": "0dbfd20f3b78d56999dac55e6edafd2afad5d5c037253e563d9cdba1e190ab17",
+      "bytes": 5898
+    },
+    {
+      "path": "apply-revocations.mjs",
+      "sha256": "62f328557eb30c6f5ebba6e583ad3cb824d6c486e27c80f5735a00bd2cf82a85",
+      "bytes": 7375
+    },
+    {
+      "path": "payload/apps/api/src/modules/tenancy/routes.ts.txt",
+      "sha256": "37754d794909989eff26550ebe1a7fc549c939795961fe44fea2cc005f75967e",
+      "bytes": 40987
+    },
+    {
+      "path": "payload/apps/api/test/platform-mfa-tenancy-revocations.test.ts.txt",
+      "sha256": "62f4d7b81bf9c97f78a08fe1694f0d5c47c8f243d98d411212713f465551bfed",
+      "bytes": 22775
+    }
+  ]
+}

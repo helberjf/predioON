@@ -1,0 +1,297 @@
+import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
+import type { Server } from "node:http";
+import { after, before, describe, it } from "node:test";
+import { decodeJwt } from "jose";
+import { sql } from "drizzle-orm";
+import { PgDialect } from "drizzle-orm/pg-core";
+import { sqlClient } from "@predioon/db";
+import { appDb, appSqlClient, closeAppDb, verifyRestrictedDatabaseRole, withUserContext, type AppTransaction } from "@predioon/db/runtime";
+import { app } from "../src/app.js";
+import { hashPassword } from "../src/auth/passwords.js";
+import { base32Decode, totpCode, totpStep } from "../src/auth/totp.js";
+import "./helpers.js";
+
+// COMMON baseline/fixed source. Real HTTP login/enroll/TOTP confirm establishes
+// every required family. Owner writes only construct fixtures or REMOVE factor/
+// proof at an observed boundary; they never fabricate or restore MFA approval.
+type Kind = "unit-memberships" | "team-members" | "role-bindings";
+type Target = { id: string; kind: Kind; buildingId: string | null };
+type Actor = { id: string; token: string; sid: string; local: string | null };
+type Row = Record<string, unknown>;
+type HttpResult = { status: number; body: unknown; cache: string | null };
+type Boundary = "capability" | "context";
+const kinds: Kind[] = ["unit-memberships", "team-members", "role-bindings"];
+const tables = { "unit-memberships": "unit_memberships", "team-members": "team_members", "role-bindings": "role_bindings" } as const;
+const capabilities = { "unit-memberships": "memberships:manage", "team-members": "teams:manage", "role-bindings": "memberships:manage" } as const;
+const actions = { "unit-memberships": "UNIT_MEMBERSHIP_REVOKED", "team-members": "TEAM_MEMBER_REVOKED", "role-bindings": "ROLE_BINDING_REVOKED" } as const;
+function signal() { let resolve!: () => void; const promise = new Promise<void>(done => { resolve = done; }); return { promise, resolve }; }
+async function bounded<T>(promise: PromiseLike<T>, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try { return await Promise.race([Promise.resolve(promise), new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`Fixture deadline: ${label}`)), 5000);
+  })]); } finally { clearTimeout(timer); }
+}
+async function settleAll(transactions: Promise<unknown>[]) {
+  await bounded((async () => {
+    let completed = 0;
+    while (completed < transactions.length) {
+      const batch = transactions.slice(completed); completed += batch.length;
+      await Promise.allSettled(batch);
+    }
+  })(), "all actual app transactions settled");
+}
+function trackAllTransactions() {
+  const original = appDb.transaction, run = original.bind(appDb), transactions: Promise<unknown>[] = [];
+  appDb.transaction = (callback, config) => { const pending = run(callback, config); transactions.push(pending); return pending; };
+  return { settle: () => settleAll(transactions), restore() { appDb.transaction = original; } };
+}
+function observe(targetRow: Target, boundary: Boundary) {
+  const original = appDb.transaction, run = original.bind(appDb), dialect = new PgDialect();
+  const reached = signal(), release = signal(), transactions: Promise<unknown>[] = [];
+  let matched = false;
+  type Input = Parameters<AppTransaction["execute"]>[0];
+  appDb.transaction = (callback, config) => {
+    const pending = run(tx => callback(new Proxy(tx, { get(target, key) {
+      if (key === "execute") return async (query: Input) => {
+        const compiled = typeof query === "string" ? { sql: query, params: [] } : dialect.sqlToQuery(query.getSQL());
+        const rows = await target.execute(query);
+        // The candidate's locked CTE also contains app_has_capability. Only
+        // this original stand-alone SELECT is the real assertCapability call.
+        const matches = boundary === "context" ? compiled.sql.includes("pg_advisory_xact_lock_shared(814772,")
+          : compiled.sql.trim().startsWith("select app_has_capability(")
+            && compiled.params.includes(capabilities[targetRow.kind]) && compiled.params.includes(targetRow.buildingId);
+        if (!matched && matches) {
+          if (boundary === "capability") assert.equal((rows[0] as { allowed?: unknown } | undefined)?.allowed, true);
+          matched = true; reached.resolve(); await bounded(release.promise, "real boundary release");
+        }
+        return rows;
+      };
+      const value = Reflect.get(target, key, target); return typeof value === "function" ? value.bind(target) : value;
+    }})), config);
+    transactions.push(pending); return pending;
+  };
+  return { reached, release, settle: () => settleAll(transactions), restore() { appDb.transaction = original; } };
+}
+
+describe("MFA tenancy revocation commands with real enrollment", { concurrency: false }, () => {
+  const suffix = randomUUID(), org = `trevoke-org-${suffix}`, building = `trevoke-a-${suffix}`, foreign = `trevoke-b-${suffix}`;
+  const password = "tenancy-revocation-fictitious-password", stamp = "2026-11-07T01:02:03.456789Z";
+  const users: string[] = [], structure = new Map<string, { unit: string; team: string }>();
+  let server: Server | undefined, url = "", hash = "", serial = 0;
+  let tracking: ReturnType<typeof trackAllTransactions> | undefined;
+  const route = (target: Target) => `/v1/tenancy/${target.kind}/${target.id}`;
+
+  async function http(token: string | undefined, path: string, method = "GET", body?: Row, controller = new AbortController()): Promise<HttpResult> {
+    try {
+      const response = await bounded(fetch(url + path, { method, signal: controller.signal,
+        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        ...(body ? { body: JSON.stringify(body) } : {}) }), "HTTP");
+      const text = await bounded(response.text(), "HTTP body");
+      return { status: response.status, body: text ? JSON.parse(text) as unknown : null, cache: response.headers.get("cache-control") };
+    } finally { controller.abort(); }
+  }
+  const request = (actor: Actor, target: Target, controller?: AbortController) => http(actor.token, route(target), "DELETE", undefined, controller);
+  async function user(label: string, admin = false): Promise<string> {
+    const id = `trevoke-${suffix}-${++serial}-${label}`; users.push(id);
+    await sqlClient`insert into users(id,name,email,password_hash,is_platform_admin) values(${id},${label},${id + "@example.invalid"},${hash},${admin})`;
+    return id;
+  }
+  async function actor(label: string, admin = false, local = true): Promise<Actor> {
+    const id = await user(label, admin), binding = local ? randomUUID() : null;
+    if (binding) await sqlClient`insert into role_bindings(id,user_id,building_id,role_key) values(${binding},${id},${building},'BUILDING_ADMIN')`;
+    const login = await http(undefined, "/auth/login", "POST", { email: id + "@example.invalid", password });
+    assert.equal(login.status, 200, "raw real login; no admission retry or fabricated proof");
+    const body = login.body as { accessToken: string; user: { id: string; mfaRequirement: string } };
+    assert.equal(body.user.id, id); assert.equal(body.user.mfaRequirement, admin ? "enrollment-required" : "not-required");
+    const sid = decodeJwt(body.accessToken).sid; assert.equal(typeof sid, "string");
+    const result = { id, token: body.accessToken, sid: sid as string, local: binding };
+    if (admin) {
+      const enrollment = await http(result.token, "/auth/mfa/enroll", "POST", { currentPassword: password });
+      assert.equal(enrollment.status, 200);
+      const secret = base32Decode((enrollment.body as { secret: string }).secret); assert.ok(secret);
+      const confirmation = await http(result.token, "/auth/mfa/confirm", "POST", { code: totpCode(secret, totpStep(Date.now())) });
+      assert.equal(confirmation.status, 200);
+      const codes = (confirmation.body as { recoveryCodes: string[] }).recoveryCodes;
+      assert.equal(codes.length, 10); assert.equal(new Set(codes).size, 10);
+      const [proof] = await sqlClient`select s.mfa_verified_at is not null as verified,s.mfa_factor_generation=f.generation as same_generation,
+        f.confirmed_at is not null as confirmed from sessions s join mfa_factors f on f.user_id=s.user_id where s.id=${result.sid}::uuid and s.user_id=${id}`;
+      assert.equal(proof?.verified, true); assert.equal(proof?.same_generation, true); assert.equal(proof?.confirmed, true);
+    }
+    const me = await http(result.token, "/auth/me"); assert.equal(me.status, 200);
+    assert.equal((me.body as { id: string }).id, id);
+    assert.equal((me.body as { mfaRequirement: string }).mfaRequirement, admin ? "satisfied" : "not-required");
+    assert.equal(decodeJwt(result.token).sid, result.sid, "same bearer and family across login/enrollment/confirmation");
+    return result;
+  }
+  async function create(kind: Kind, options: { buildingId?: string; active?: boolean; userId?: string } = {}): Promise<Target> {
+    const targetBuilding = options.buildingId ?? building, active = options.active ?? true;
+    const id = randomUUID(), subject = options.userId ?? await user("subject"), parents = structure.get(targetBuilding); assert.ok(parents);
+    if (kind === "unit-memberships") await sqlClient`insert into unit_memberships(id,building_id,unit_id,user_id,kind,active,created_at,updated_at)
+      values(${id},${targetBuilding},${parents.unit},${subject},'DEPENDENT',${active},${stamp}::timestamptz,${stamp}::timestamptz)`;
+    if (kind === "team-members") await sqlClient`insert into team_members(id,building_id,team_id,user_id,active,created_at,updated_at)
+      values(${id},${targetBuilding},${parents.team},${subject},${active},${stamp}::timestamptz,${stamp}::timestamptz)`;
+    if (kind === "role-bindings") await sqlClient`insert into role_bindings(id,building_id,user_id,role_key,active,reason,created_at,updated_at)
+      values(${id},${targetBuilding},${subject},'MAINTENANCE',${active},'Fixture de revogação',${stamp}::timestamptz,${stamp}::timestamptz)`;
+    return { id, kind, buildingId: targetBuilding };
+  }
+  async function state(target: Target): Promise<Row | null> {
+    const [result] = await sqlClient`select to_jsonb(t) as row from ${sqlClient(tables[target.kind])} t where id=${target.id}::uuid`;
+    return result ? result.row as Row : null;
+  }
+  const audits = (target: Target) => sqlClient`select user_id,building_id,resource_type,resource_id,action,metadata from audit_logs where resource_id=${target.id} order by created_at,id`;
+  async function unchanged(target: Target, original: Row | null) { assert.deepEqual(await state(target), original); assert.equal((await audits(target)).length, 0); }
+  const withoutUpdated = ({ updated_at: _clock, ...rest }: Row) => rest;
+  async function effects(actor: Actor, target: Target, original: Row, response: HttpResult) {
+    assert.equal(response.status, 204); assert.equal(response.body, null); assert.equal(response.cache, "no-store");
+    const actual = await state(target); assert.ok(actual);
+    if (original.active === false) { assert.deepEqual(actual, original); assert.equal((await audits(target)).length, 0); return; }
+    assert.deepEqual(withoutUpdated(actual), { ...withoutUpdated(original), active: false });
+    assert.notEqual(actual.updated_at, original.updated_at);
+    assert.deepEqual((await audits(target)).map(row => ({ ...row })), [{ user_id: actor.id, building_id: target.buildingId,
+      resource_type: target.kind, resource_id: target.id, action: actions[target.kind], metadata: {} }]);
+  }
+  async function reset(target: Target, original: Row) {
+    await bounded(sqlClient.begin(async tx => {
+      await tx`set local lock_timeout='2s'`; await tx`set local statement_timeout='3s'`;
+      await tx`update ${sqlClient(tables[target.kind])} set active=${original.active as boolean},updated_at=${original.updated_at as string}::timestamptz where id=${target.id}::uuid`;
+      await tx`delete from audit_logs where resource_id=${target.id}`;
+    }), "restore target and audit after positive control");
+    await unchanged(target, original);
+  }
+  async function positive(actor: Actor, target: Target): Promise<Row> {
+    const original = await state(target); assert.ok(original);
+    await effects(actor, target, original, await request(actor, target)); await reset(target, original); return original;
+  }
+  const removeProof = (actor: Actor) => sqlClient`update sessions set mfa_verified_at=null,mfa_factor_generation=null where id=${actor.sid}::uuid and user_id=${actor.id}`;
+  function denied(response: HttpResult, reason: string) {
+    assert.equal(response.status, 403); assert.equal(response.cache, "no-store");
+    assert.equal((response.body as { details?: { reason?: string } }).details?.reason, reason);
+    assert.equal("id" in (response.body as object), false);
+  }
+  async function interleave(actor: Actor, target: Target, boundary: Boundary, change: () => PromiseLike<unknown>): Promise<HttpResult> {
+    const observation = observe(target, boundary), controller = new AbortController();
+    const pending = request(actor, target, controller); void pending.catch(() => undefined); let failed = false;
+    try {
+      assert.equal(await bounded(Promise.race([observation.reached.promise.then(() => "boundary"), pending.then(() => "response")]), "real boundary reached"), "boundary");
+      await bounded(change(), "identity change committed"); observation.release.resolve(); return await pending;
+    } catch (error) { failed = true; throw error; }
+    finally {
+      observation.release.resolve(); controller.abort();
+      const results = await Promise.allSettled([bounded(pending, "HTTP settled"), observation.settle()]); observation.restore();
+      if (!failed) { const failure = results.find(result => result.status === "rejected"); if (failure?.status === "rejected") throw failure.reason; }
+    }
+  }
+
+  before(async () => {
+    const [ledger] = await sqlClient`select count(*)::int as count from schema_migrations`; assert.equal(ledger?.count, 68, "candidate068 fixture required; no skip");
+    await bounded(verifyRestrictedDatabaseRole(appSqlClient, "predioon_app"), "actual restricted app role");
+    hash = await hashPassword(password);
+    await sqlClient`insert into organizations(id,name,slug) values(${org},'Tenancy revocation MFA',${org})`;
+    for (const id of [building, foreign]) {
+      await sqlClient`insert into buildings(id,organization_id,name,code) values(${id},${org},${id},${id})`;
+      const unit = randomUUID(), team = randomUUID(); structure.set(id, { unit, team });
+      await sqlClient`insert into units(id,building_id,code) values(${unit},${id},'Fixture unit')`;
+      await sqlClient`insert into teams(id,building_id,name) values(${team},${id},'Fixture team')`;
+    }
+    tracking = trackAllTransactions();
+    server = await new Promise<Server>(resolve => { const instance = app.listen(0, "127.0.0.1", () => resolve(instance)); });
+    const address = server.address(); assert.ok(address && typeof address !== "string"); url = `http://127.0.0.1:${address.port}`;
+  });
+  after(async () => {
+    try {
+      await bounded(new Promise<void>((resolve, reject) => {
+        if (!server) { resolve(); return; } server.close(error => error ? reject(error) : resolve()); server.closeAllConnections();
+      }), "HTTP listener close");
+    } finally {
+      try {
+        await tracking?.settle();
+        await bounded(sqlClient.begin(async tx => {
+          await tx`set local lock_timeout='2s'`; await tx`set local statement_timeout='3s'`;
+          await tx`delete from audit_logs where building_id in (${building},${foreign})`;
+          await tx`delete from units where building_id in (${building},${foreign})`;
+          await tx`delete from buildings where organization_id=${org}`;
+          if (users.length) await tx`delete from users where id in ${sqlClient(users)}`;
+          await tx`delete from organizations where id=${org}`;
+        }), "owned fixture cleanup");
+      } finally {
+        tracking?.restore();
+        const results = await Promise.allSettled([bounded(closeAppDb(), "app pool close"), bounded(sqlClient.end({ timeout: 3 }), "owner pool close")]);
+        const failure = results.find(result => result.status === "rejected"); if (failure?.status === "rejected") throw failure.reason;
+      }
+    }
+  });
+
+  for (const kind of kinds) {
+    for (const enrollment of [true, false]) it(`${kind}: rejects ${enrollment ? "factor removal" : "family proof removal"} after real manage authorization`, async t => {
+      const a = await actor("negative", true), target = await create(kind), original = await positive(a, target);
+      const response = await interleave(a, target, "capability", () => enrollment ? sqlClient`delete from mfa_factors where user_id=${a.id}` : removeProof(a));
+      if (response.status === 204) {
+        await effects(a, target, original, response);
+        t.diagnostic("Baseline204: exact empty response, persisted semantic row and one actor/resource/action audit compared; updated_at is generated by the actual write");
+      } else await unchanged(target, original);
+      denied(response, enrollment ? "MFA_ENROLLMENT_REQUIRED" : "MFA_VERIFICATION_REQUIRED"); await unchanged(target, original);
+    });
+    it(`${kind}: guards a valid missing UUID after the authenticated context`, async t => {
+      const a = await actor("missing", true), target: Target = { id: randomUUID(), kind, buildingId: building };
+      const control = await request(a, target); assert.equal(control.status, 404); await unchanged(target, null);
+      const response = await interleave(a, target, "context", () => removeProof(a));
+      await unchanged(target, null);
+      if (response.status === 404) { assert.deepEqual(response.body, control.body); t.diagnostic("Baseline404: exact control missing body, absent target and zero audit compared"); }
+      denied(response, "MFA_VERIFICATION_REQUIRED");
+    });
+    it(`${kind}: guards an inactive no-op after real manage authorization`, async t => {
+      const a = await actor("inactive", true), target = await create(kind, { active: false }), original = await positive(a, target);
+      const response = await interleave(a, target, "capability", () => removeProof(a));
+      await unchanged(target, original);
+      if (response.status === 204) { await effects(a, target, original, response); t.diagnostic("Baseline204Noop: exact empty response, unchanged full row including updated_at and zero audit compared"); }
+      denied(response, "MFA_VERIFICATION_REQUIRED");
+    });
+    for (const required of [false, true]) it(`${kind}: preserves audited204 and idempotence for ${required ? "a satisfied administrator" : "an optional local manager"}`, async () => {
+      const a = await actor("positive", required), target = await create(kind), original = await state(target); assert.ok(original);
+      await effects(a, target, original, await request(a, target));
+      const revoked = await state(target), log = (await audits(target)).map(row => ({ ...row }));
+      const repeat = await request(a, target); assert.equal(repeat.status, 204); assert.equal(repeat.body, null);
+      assert.deepEqual(await state(target), revoked); assert.deepEqual((await audits(target)).map(row => ({ ...row })), log);
+    });
+  }
+  it("preserves direct local administrative self-revocation and its single audit", async () => {
+    const a = await actor("self-direct"); assert.ok(a.local);
+    const target: Target = { id: a.local, kind: "role-bindings", buildingId: building }, original = await state(target); assert.ok(original);
+    await effects(a, target, original, await request(a, target));
+    const revoked = await state(target), log = (await audits(target)).map(row => ({ ...row }));
+    assert.equal((await request(a, target)).status, 404);
+    assert.equal((await http(a.token, `/v1/authorization?buildingId=${building}`)).status, 403);
+    assert.deepEqual(await state(target), revoked); assert.deepEqual((await audits(target)).map(row => ({ ...row })), log);
+  });
+  it("preserves self-revocation of the team membership that supplies all management", async () => {
+    const a = await actor("self-team", false, false), team = randomUUID(), member = randomUUID();
+    await sqlClient`insert into teams(id,building_id,name) values(${team},${building},'Sole management team')`;
+    await sqlClient`insert into team_members(id,building_id,team_id,user_id) values(${member},${building},${team},${a.id})`;
+    await sqlClient`insert into role_bindings(building_id,team_id,role_key) values(${building},${team},'BUILDING_ADMIN')`;
+    const target: Target = { id: member, kind: "team-members", buildingId: building }, original = await state(target); assert.ok(original);
+    await effects(a, target, original, await request(a, target));
+    const revoked = await state(target), log = (await audits(target)).map(row => ({ ...row }));
+    assert.equal((await request(a, target)).status, 404);
+    assert.equal((await http(a.token, `/v1/authorization?buildingId=${building}`)).status, 403);
+    assert.deepEqual(await state(target), revoked); assert.deepEqual((await audits(target)).map(row => ({ ...row })), log);
+  });
+  it("preserves write-policy hiding, foreign scope, global binding404 and malformed UUID404", async () => {
+    const manager = await actor("scope-manager"), reader = await actor("scope-reader", false, false);
+    const own = await create("unit-memberships", { userId: reader.id }), original = await state(own); assert.ok(original);
+    const visible = await withUserContext({ userId: reader.id, role: "RESIDENT", sessionId: reader.sid }, tx =>
+      tx.execute(sql`select id from unit_memberships where id=${own.id}::uuid`));
+    assert.equal(visible.length, 1, "actual reader session can SELECT its row under RLS");
+    assert.equal((await request(reader, own)).status, 404, "FOR UPDATE policy hides the same row from revocation");
+    await unchanged(own, original);
+    for (const kind of kinds) {
+      const other = await create(kind, { buildingId: foreign }), otherState = await state(other); assert.ok(otherState);
+      assert.equal((await request(manager, other)).status, 404); await unchanged(other, otherState);
+      assert.equal((await http(manager.token, `/v1/tenancy/${kind}/not-a-uuid`, "DELETE")).status, 404);
+    }
+    const a = await actor("global-target", true), id = randomUUID();
+    await sqlClient`insert into role_bindings(id,user_id,role_key) values(${id},${a.id},'PLATFORM_ADMIN')`;
+    const global: Target = { id, kind: "role-bindings", buildingId: null }, globalState = await state(global); assert.ok(globalState);
+    assert.equal((await request(a, global)).status, 404); await unchanged(global, globalState);
+  });
+});

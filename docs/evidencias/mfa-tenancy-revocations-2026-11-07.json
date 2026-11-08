@@ -1,0 +1,737 @@
+{
+  "schemaVersion": 1,
+  "status": "VERIFIED",
+  "configSha256": "6a4d909484216afbc9533d0ae74dcd989a1403b479a565874011918a3f204d70",
+  "recordedOn": "2026-11-07",
+  "recordedOnTimezone": "America/Sao_Paulo",
+  "reviewedOn": "2026-11-07",
+  "nativeExecutionTimestampsPreserved": true,
+  "verifierSha256": "35a49c1db36264550bca35c6b963b33cebb863e24fbd6d51f500fc6669499e6e",
+  "reviewedByRoot": true,
+  "baselineRevocationFailuresReviewed": true,
+  "sourceFiles": 1034,
+  "typeFiles": 30,
+  "requiredResolvedSources": 13,
+  "sourceDifference": [
+    "apps/api/src/modules/tenancy/routes.ts"
+  ],
+  "typeChecks": [
+    {
+      "variant": "baseline",
+      "phase": "resolve",
+      "result": {
+        "id": "mfa-tenancy-revocation-baseline-qa-20261107/checks/resolve/result.json",
+        "sha256": "ce89b71a6f8bb909f915c045ca20bd5e7bd39699ee15f7b1f3330962e0787fe5",
+        "bytes": 1178
+      },
+      "startedUtc": "2026-11-08T01:08:13.409Z",
+      "childExitedUtc": "2026-11-08T01:08:15.293Z",
+      "durationMs": 1884
+    },
+    {
+      "variant": "baseline",
+      "phase": "types",
+      "result": {
+        "id": "mfa-tenancy-revocation-baseline-qa-20261107/checks/types/result.json",
+        "sha256": "a11a544df7f04239da1bc3827334b5b6c999abe3e3a92406004cc74560f476c5",
+        "bytes": 1025
+      },
+      "startedUtc": "2026-11-08T01:08:16.183Z",
+      "childExitedUtc": "2026-11-08T01:08:28.939Z",
+      "durationMs": 12756
+    },
+    {
+      "variant": "fixed",
+      "phase": "resolve",
+      "result": {
+        "id": "mfa-tenancy-revocation-fixed-qa-20261107/checks/resolve/result.json",
+        "sha256": "10ca21e966b22e5bac04dfc9e55ff67aae2213c8bed5ce3c6fe8ff739718ac1e",
+        "bytes": 1175
+      },
+      "startedUtc": "2026-11-08T01:08:29.947Z",
+      "childExitedUtc": "2026-11-08T01:08:31.083Z",
+      "durationMs": 1136
+    },
+    {
+      "variant": "fixed",
+      "phase": "types",
+      "result": {
+        "id": "mfa-tenancy-revocation-fixed-qa-20261107/checks/types/result.json",
+        "sha256": "ad674051dc1ff5525d73ff9ce982d63016adac63a4ed3e1200bd40f625f10613",
+        "bytes": 1022
+      },
+      "startedUtc": "2026-11-08T01:08:31.943Z",
+      "childExitedUtc": "2026-11-08T01:08:43.427Z",
+      "durationMs": 11484
+    }
+  ],
+  "preparation": {
+    "rootObservation": {
+      "recordedOn": "2026-11-07",
+      "scope": "Source preparation orchestration only",
+      "baselineNativeChildExitCode": 0,
+      "baselinePreparedSha256": "2457485be50acdc4fe2a13e6f42a0a0b03171da5839b31cc80804abd6af1b1a2",
+      "initialOuterWrapperIssue": "Root checked LASTEXITCODE after a PowerShell script using Start-Process. The variable was unset, so the outer wrapper falsely reported failure and never invoked the fixed preparation.",
+      "resolution": "Read and verified the baseline native preparation result and prepared checksum, then invoked the fixed preparation separately with ErrorActionPreference Stop.",
+      "fixedNativeChildExitCode": 0,
+      "fixedPreparedSha256": "c2bb641f60ff44d847f4b34cf472cddcf235e0897c93659767eab514816a3c25",
+      "baselinePreparationRepeated": false,
+      "fixedPreparationRepeated": false,
+      "testsExecutedByThesePreparationCalls": false,
+      "databaseStartedByThesePreparationCalls": false
+    },
+    "nativeResults": [
+      {
+        "variant": "baseline",
+        "nativeChildExitedUtc": "2026-11-08T01:05:30.0537969Z",
+        "durationMs": 7074.993,
+        "nativeResult": {
+          "id": "mfa-tenancy-revocation-harness-20261107/baseline-prepare-result.json",
+          "sha256": "4efa847af60652570ba1a2fd7c665e33e348568960c76fd2b67e3908d76a9a25",
+          "bytes": 165
+        }
+      },
+      {
+        "variant": "fixed",
+        "nativeChildExitedUtc": "2026-11-08T01:05:49.4085409Z",
+        "durationMs": 4909.8014,
+        "nativeResult": {
+          "id": "mfa-tenancy-revocation-harness-20261107/fixed-prepare-result.json",
+          "sha256": "d86dc736caa88dd0fe4ac5238bf987526b35bac1e2a9d14aa88aa7a43b309afe",
+          "bytes": 166
+        }
+      }
+    ],
+    "isProductTestFailure": false,
+    "nativePreparationRepeated": false
+  },
+  "acceptedCounts": {
+    "directedTap": 21,
+    "directedIndependent": 21,
+    "directedAggregateGroups": 0,
+    "directedSuites": 1,
+    "regressionFiles": 7,
+    "regressionTap": 92,
+    "regressionIndependent": 82,
+    "regressionAggregateGroups": 10,
+    "combinedTap": 113,
+    "combinedIndependent": 103,
+    "combinedAggregateGroups": 10
+  },
+  "scopeLimits": [
+    "Three DELETE routes only; shared helpers, policies and migrations are unchanged.",
+    "Required administrative actors establish MFA through real HTTP login/enrollment/TOTP in the same family; optional local controls use ordinary login. Negative fixture SQL removes factor/proof only.",
+    "Directed reader SELECT-versus-DELETE control covers unit-memberships only; foreign-scope controls cover all three routes.",
+    "Directed cases do not induce real row-lock waits, promotion, capability-loss waits, audit/update triggers or UPDATEzero; those remain pending for these DELETEs.",
+    "The separate regression PATCH suite retains its own lock/trigger tests; its PASS is not DELETE lock/trigger coverage.",
+    "The preparation wrapper false alert is recorded separately from native child exit0 and is not a product/test RED or retry.",
+    "Owned process checks cover the controller's registered direct children; no universal census of other projects or descendant processes is claimed.",
+    "Native UTC timestamps are preserved even when their UTC calendar day is08 and the Sao Paulo document date is07.",
+    "No browser, Android/iOS, whole API, performance or production acceptance is asserted."
+  ],
+  "baselineFailureObservations": [
+    {
+      "case": "unit-memberships: rejects factor removal after real manage authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact empty response, persisted semantic row and one actor/resource/action audit compared; updated_at is generated by the actual write",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED"
+    },
+    {
+      "case": "unit-memberships: rejects family proof removal after real manage authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact empty response, persisted semantic row and one actor/resource/action audit compared; updated_at is generated by the actual write",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED"
+    },
+    {
+      "case": "unit-memberships: guards a valid missing UUID after the authenticated context",
+      "actualStatus": 404,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline404: exact control missing body, absent target and zero audit compared",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED"
+    },
+    {
+      "case": "unit-memberships: guards an inactive no-op after real manage authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204Noop: exact empty response, unchanged full row including updated_at and zero audit compared",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED"
+    },
+    {
+      "case": "team-members: rejects factor removal after real manage authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact empty response, persisted semantic row and one actor/resource/action audit compared; updated_at is generated by the actual write",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED"
+    },
+    {
+      "case": "team-members: rejects family proof removal after real manage authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact empty response, persisted semantic row and one actor/resource/action audit compared; updated_at is generated by the actual write",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED"
+    },
+    {
+      "case": "team-members: guards a valid missing UUID after the authenticated context",
+      "actualStatus": 404,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline404: exact control missing body, absent target and zero audit compared",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED"
+    },
+    {
+      "case": "team-members: guards an inactive no-op after real manage authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204Noop: exact empty response, unchanged full row including updated_at and zero audit compared",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED"
+    },
+    {
+      "case": "role-bindings: rejects factor removal after real manage authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact empty response, persisted semantic row and one actor/resource/action audit compared; updated_at is generated by the actual write",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED"
+    },
+    {
+      "case": "role-bindings: rejects family proof removal after real manage authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact empty response, persisted semantic row and one actor/resource/action audit compared; updated_at is generated by the actual write",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED"
+    },
+    {
+      "case": "role-bindings: guards a valid missing UUID after the authenticated context",
+      "actualStatus": 404,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline404: exact control missing body, absent target and zero audit compared",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED"
+    },
+    {
+      "case": "role-bindings: guards an inactive no-op after real manage authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204Noop: exact empty response, unchanged full row including updated_at and zero audit compared",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED"
+    }
+  ],
+  "runs": [
+    {
+      "variant": "baseline",
+      "tests": [
+        {
+          "test": "platform-mfa-tenancy-revocations",
+          "tests": 21,
+          "suites": 1,
+          "pass": 9,
+          "fail": 12,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 22459.7072,
+          "childDurationMs": 22640.133800000003,
+          "logSha256": "e1df90ee8865b36b2844b17f0dcfe4625e90267525aa3d756e4d258b3f7fb4c7"
+        }
+      ],
+      "cleanupPassed": true,
+      "sourceMatched": true,
+      "ownedChildrenExited": true,
+      "cleanupHeld": false,
+      "nativeStatus": "completed-awaiting-TAP-GREEN-classification",
+      "startedUtc": "2026-11-08T01:14:10.882Z",
+      "endedUtc": "2026-11-08T01:14:42.066Z",
+      "observedHeadBefore": "0a85a25a6d8a792509ea4bc1f6c11b88f4706e0b",
+      "observedHeadAfter": "0a85a25a6d8a792509ea4bc1f6c11b88f4706e0b"
+    },
+    {
+      "variant": "fixed",
+      "tests": [
+        {
+          "test": "platform-mfa-tenancy-revocations",
+          "tests": 21,
+          "suites": 1,
+          "pass": 21,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 24122.0905,
+          "childDurationMs": 24283.2406,
+          "logSha256": "b5e8fa781f3dbd265b92a82839c6563d79dc3fc914288c05be33d1fa4b572ba0"
+        }
+      ],
+      "cleanupPassed": true,
+      "sourceMatched": true,
+      "ownedChildrenExited": true,
+      "cleanupHeld": false,
+      "nativeStatus": "completed-awaiting-TAP-GREEN-classification",
+      "startedUtc": "2026-11-08T01:15:00.549Z",
+      "endedUtc": "2026-11-08T01:15:33.239Z",
+      "observedHeadBefore": "0a85a25a6d8a792509ea4bc1f6c11b88f4706e0b",
+      "observedHeadAfter": "0a85a25a6d8a792509ea4bc1f6c11b88f4706e0b"
+    },
+    {
+      "variant": "fixed-regression",
+      "tests": [
+        {
+          "test": "platform-mfa-tenancy-links",
+          "tests": 12,
+          "suites": 1,
+          "pass": 12,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 5147.9883,
+          "childDurationMs": 5796.643100000001,
+          "logSha256": "ad85b4b2e9a69b7fad3b017b3d01eff7f00e88b8497f114738606c526c31a247"
+        },
+        {
+          "test": "platform-mfa-tenancy-structure",
+          "tests": 12,
+          "suites": 1,
+          "pass": 12,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 4200.1096,
+          "childDurationMs": 4361.069799999999,
+          "logSha256": "08e302b21a58b10abaa215462434311bd7d55d46e3f70eaaaaee601ee2037992"
+        },
+        {
+          "test": "tenancy-people",
+          "tests": 9,
+          "suites": 1,
+          "pass": 9,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 8409.9642,
+          "childDurationMs": 8600.8377,
+          "logSha256": "444c47183e5c7146fb54348c0f8463537676f57155a52fce7c35cf6f3791db61"
+        },
+        {
+          "test": "tenancy-http",
+          "tests": 9,
+          "suites": 1,
+          "pass": 9,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 7096.0063,
+          "childDurationMs": 7258.350700000003,
+          "logSha256": "ae4d901a81d587940385abaf27d24c2d3a442a75838b07dff8ab8b17313025b3"
+        },
+        {
+          "test": "tenancy-edit",
+          "tests": 11,
+          "suites": 1,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 6051.3081,
+          "childDurationMs": 6199.872000000003,
+          "logSha256": "660150df60465e78e2869a88615e1bf666ed31272d49e2c44f2617adf0b19c2c"
+        },
+        {
+          "test": "membership-lifecycle",
+          "tests": 4,
+          "suites": 1,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 3562.3996,
+          "childDurationMs": 3715.4902999999977,
+          "logSha256": "3d9eeb68f5fe4117d847148a8dd9b68be655dbcb6357da11f48c1a31baf01fc4"
+        },
+        {
+          "test": "platform-mfa-tenancy-commands",
+          "tests": 35,
+          "suites": 1,
+          "pass": 35,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 7840.2729,
+          "childDurationMs": 7998.398500000003,
+          "logSha256": "8867bf97550f2754074df7f737f54afe7673d9b59b8dfa7b4e7492512851d303"
+        }
+      ],
+      "cleanupPassed": true,
+      "sourceMatched": true,
+      "ownedChildrenExited": true,
+      "cleanupHeld": false,
+      "nativeStatus": "completed-awaiting-TAP-GREEN-classification",
+      "startedUtc": "2026-11-08T01:15:44.385Z",
+      "endedUtc": "2026-11-08T01:16:41.536Z",
+      "observedHeadBefore": "0a85a25a6d8a792509ea4bc1f6c11b88f4706e0b",
+      "observedHeadAfter": "0a85a25a6d8a792509ea4bc1f6c11b88f4706e0b"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "mfa-tenancy-revocation-root-config-20261107.json",
+      "sha256": "6a4d909484216afbc9533d0ae74dcd989a1403b479a565874011918a3f204d70",
+      "bytes": 2861
+    },
+    {
+      "id": "mfa-tenancy-revocation-harness-20261107/PLAN.json",
+      "sha256": "7805ffa1fefa4d57ad333199785393de94f7643f09b10df9ca6fdb3a6ecdd66b",
+      "bytes": 8192
+    },
+    {
+      "id": "mfa-tenancy-revocation-test-20261107/manifest.json",
+      "sha256": "5f9bedee8a11390cc085aaad36068812c166142878ad2e92b2a14a73927d3745",
+      "bytes": 6368
+    },
+    {
+      "id": "mfa-tenancy-revocation-candidate-20261107/manifest.json",
+      "sha256": "3803853f4a01e2153b8a398c2d901f5cd4e60e1f72fcd2477f814223112b478e",
+      "bytes": 1629
+    },
+    {
+      "id": "mfa-tenancy-revocation-baseline-qa-20261107/run-mfa-directed.mjs",
+      "sha256": "1b00a7b94696988547eed93aa04b863e704ba3a954643d23a48b8c2742d51548",
+      "bytes": 13768
+    },
+    {
+      "id": "mfa-tenancy-revocation-baseline-qa-20261107/launch-mfa-directed.ps1",
+      "sha256": "324d22156ae65b6fc4daf18995d429527e3930e4150f830be004b29ccd990d80",
+      "bytes": 13001
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-qa-20261107/run-mfa-directed.mjs",
+      "sha256": "c34ef99c9f4ef349b1d0b947dba390e0dd12cd2b1796e1328f675142f2edd870",
+      "bytes": 13756
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-qa-20261107/launch-mfa-directed.ps1",
+      "sha256": "8324e6398483d61f0be019dad87dd62a6bbb35b4b4cbbb1cc3dde665078b79c4",
+      "bytes": 12992
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-regression-qa-20261107/run-mfa-directed.mjs",
+      "sha256": "9f7988e1e745b4c640a57ed4703f775d3ce170c016310d06cabfd689f39abd30",
+      "bytes": 14613
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-regression-qa-20261107/launch-mfa-directed.ps1",
+      "sha256": "f266686f60c9ce647d1d4f4560475c80aa9bdcce0c503b32008a05048958ea61",
+      "bytes": 13066
+    },
+    {
+      "id": "mfa-tenancy-revocation-harness-20261107/executors-handoff.json",
+      "sha256": "025a5680d876622d6b5fccff8933a64415e997e42cc664836ff05e76e73a5f53",
+      "bytes": 3498
+    },
+    {
+      "id": "mfa-tenancy-revocation-harness-20261107/run-types.mjs",
+      "sha256": "136bb66b939f51386d80990894578d75b47a5b3701c250536c58cae448a7a4ce",
+      "bytes": 8991
+    },
+    {
+      "id": "revocation-preparation-root-observation-20261107.json",
+      "sha256": "70f01a7be69d458b203c2ad3e5fcd05777743158a2105cc16c54038479fffc31",
+      "bytes": 915
+    },
+    {
+      "id": "mfa-tenancy-revocation-harness-20261107/baseline-prepare-result.json",
+      "sha256": "4efa847af60652570ba1a2fd7c665e33e348568960c76fd2b67e3908d76a9a25",
+      "bytes": 165
+    },
+    {
+      "id": "mfa-tenancy-revocation-harness-20261107/baseline-prepare-guard.json",
+      "sha256": "50c8a565beb5dfa0bbc7bd861364e253e89b198ab32f598faff5709bf2b3e8d9",
+      "bytes": 91
+    },
+    {
+      "id": "mfa-tenancy-revocation-harness-20261107/baseline-prepare.stdout.txt",
+      "sha256": "cd32ad1a31a955e0f86fd81bd4ebb32529e25e0579296a508a4cc14b5ebd9548",
+      "bytes": 246
+    },
+    {
+      "id": "mfa-tenancy-revocation-harness-20261107/baseline-prepare.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-tenancy-revocation-harness-20261107/fixed-prepare-result.json",
+      "sha256": "d86dc736caa88dd0fe4ac5238bf987526b35bac1e2a9d14aa88aa7a43b309afe",
+      "bytes": 166
+    },
+    {
+      "id": "mfa-tenancy-revocation-harness-20261107/fixed-prepare-guard.json",
+      "sha256": "f9c3c9ebae07098fb61da8006ac4afa2a7de5ea8f3362ae7c8f6961c8736747d",
+      "bytes": 91
+    },
+    {
+      "id": "mfa-tenancy-revocation-harness-20261107/fixed-prepare.stdout.txt",
+      "sha256": "e0dc41e53fe302861418cc0269a0a597978bbbc4ab9737ec1cdd0f756294954f",
+      "bytes": 243
+    },
+    {
+      "id": "mfa-tenancy-revocation-harness-20261107/fixed-prepare.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-tenancy-revocation-baseline-qa-20261107/prepared.json",
+      "sha256": "2457485be50acdc4fe2a13e6f42a0a0b03171da5839b31cc80804abd6af1b1a2",
+      "bytes": 908054
+    },
+    {
+      "id": "mfa-tenancy-revocation-baseline-qa-20261107/tsconfig.test.json",
+      "sha256": "c5aae089d1f7c4e26c7104830926fa396258c4d46d1fb69fe5bb5736460feeab",
+      "bytes": 1984
+    },
+    {
+      "id": "mfa-tenancy-revocation-baseline-qa-20261107/checks/resolve/stdout.log",
+      "sha256": "baa7f21107f6953580db3c6c3f40ac74d0f737fefee96d0c8c35f4b4a7391a14",
+      "bytes": 148790
+    },
+    {
+      "id": "mfa-tenancy-revocation-baseline-qa-20261107/checks/resolve/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-tenancy-revocation-baseline-qa-20261107/checks/resolve/result.json",
+      "sha256": "ce89b71a6f8bb909f915c045ca20bd5e7bd39699ee15f7b1f3330962e0787fe5",
+      "bytes": 1178
+    },
+    {
+      "id": "mfa-tenancy-revocation-baseline-qa-20261107/checks/resolve/command.json",
+      "sha256": "54b14ccdba6d750642d4986bd77cf4a16b140a49aa6abc8b14d424ef9260230c",
+      "bytes": 954
+    },
+    {
+      "id": "mfa-tenancy-revocation-baseline-qa-20261107/checks/resolve/guard.json",
+      "sha256": "055943094c2adfde458902681128ae8aea4a14083691b63fb553cc63262b0350",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-tenancy-revocation-baseline-qa-20261107/checks/types/stdout.log",
+      "sha256": "5583f2cae26cf47109f38cd62ec51b9023552a9bd12ec5c8b8cc14d6d202ccea",
+      "bytes": 972
+    },
+    {
+      "id": "mfa-tenancy-revocation-baseline-qa-20261107/checks/types/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-tenancy-revocation-baseline-qa-20261107/checks/types/result.json",
+      "sha256": "a11a544df7f04239da1bc3827334b5b6c999abe3e3a92406004cc74560f476c5",
+      "bytes": 1025
+    },
+    {
+      "id": "mfa-tenancy-revocation-baseline-qa-20261107/checks/types/command.json",
+      "sha256": "075785c095c00cdb1d27aab977e9ec57ebf2be15375121fc5374eccae1d2de08",
+      "bytes": 959
+    },
+    {
+      "id": "mfa-tenancy-revocation-baseline-qa-20261107/checks/types/guard.json",
+      "sha256": "d2bc96aa31bdbef82a66ffc55cd58c85cc66aa8c6140323d996b021786719f93",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-qa-20261107/prepared.json",
+      "sha256": "c2bb641f60ff44d847f4b34cf472cddcf235e0897c93659767eab514816a3c25",
+      "bytes": 907511
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-qa-20261107/tsconfig.test.json",
+      "sha256": "c5aae089d1f7c4e26c7104830926fa396258c4d46d1fb69fe5bb5736460feeab",
+      "bytes": 1984
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-qa-20261107/checks/resolve/stdout.log",
+      "sha256": "7c2b99b4dfd1efe59165b8f476cccaec45b4dc58b4c772cab3bbbf8f971a32e8",
+      "bytes": 148292
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-qa-20261107/checks/resolve/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-qa-20261107/checks/resolve/result.json",
+      "sha256": "10ca21e966b22e5bac04dfc9e55ff67aae2213c8bed5ce3c6fe8ff739718ac1e",
+      "bytes": 1175
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-qa-20261107/checks/resolve/command.json",
+      "sha256": "2a7480999399dcdf73c5127c8828b88720a6116747bbbc1690a83e3448b005ac",
+      "bytes": 942
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-qa-20261107/checks/resolve/guard.json",
+      "sha256": "13b10c4eea170fcfd335f2df110ad38e6acd4e2ca2551d87d688017f0019b4ec",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-qa-20261107/checks/types/stdout.log",
+      "sha256": "fb4f37868eda637fdef4fcadd5ae09144f3b921907526c48eaed0d22caff7334",
+      "bytes": 972
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-qa-20261107/checks/types/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-qa-20261107/checks/types/result.json",
+      "sha256": "ad674051dc1ff5525d73ff9ce982d63016adac63a4ed3e1200bd40f625f10613",
+      "bytes": 1022
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-qa-20261107/checks/types/command.json",
+      "sha256": "004e54c58a7b6826dc5d5ef5e660966daff6ca38e48858132f76b649800ffdef",
+      "bytes": 947
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-qa-20261107/checks/types/guard.json",
+      "sha256": "2bc07dd032924c236710bfac24ac1ed4796b871232d458d3c50316e653ba3d58",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-tenancy-revocation-baseline-qa-20261107/owned-database.json",
+      "sha256": "68265548fc92db8a06332f27f968e22d07123d99b1ed954594e51feec7bc9118",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-tenancy-revocation-baseline-qa-20261107/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-tenancy-revocation-baseline-qa-20261107/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-tenancy-revocation-baseline-qa-20261107/platform-mfa-tenancy-revocations.log",
+      "sha256": "e1df90ee8865b36b2844b17f0dcfe4625e90267525aa3d756e4d258b3f7fb4c7",
+      "bytes": 22086
+    },
+    {
+      "id": "mfa-tenancy-revocation-baseline-qa-20261107/mfa-directed-result.json",
+      "sha256": "a2861487f4982b3b554d88bc25f7511ff4a364d75e663cd8a48c71b338f755f8",
+      "bytes": 313776
+    },
+    {
+      "id": "mfa-tenancy-revocation-baseline-qa-20261107/mfa-directed-postchecks.json",
+      "sha256": "855562e269b8d7edd494e25c88e779688b4698c5e57d18b359acbbdf01bd8489",
+      "bytes": 390
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-qa-20261107/owned-database.json",
+      "sha256": "b0803bdb6ba01518bbab7f8ad92e546499681d44ddd37cd6e94fabd12eb3a901",
+      "bytes": 88
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-qa-20261107/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-qa-20261107/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-qa-20261107/platform-mfa-tenancy-revocations.log",
+      "sha256": "b5e8fa781f3dbd265b92a82839c6563d79dc3fc914288c05be33d1fa4b572ba0",
+      "bytes": 5523
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-qa-20261107/mfa-directed-result.json",
+      "sha256": "e4738b8f278ef3ea79483393e69158d505621e2c0e5352e619857b8b19f1852c",
+      "bytes": 313773
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-qa-20261107/mfa-directed-postchecks.json",
+      "sha256": "092871d5f3a460507641dc49fa129670eb58496ddb4b6fc2aed1f3903109266e",
+      "bytes": 390
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-regression-qa-20261107/owned-database.json",
+      "sha256": "8a4c340897ec2e933c3b9b2e980c9f65f1923624e99d25e32b26b9d34dc39d33",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-regression-qa-20261107/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-regression-qa-20261107/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-regression-qa-20261107/platform-mfa-tenancy-links.log",
+      "sha256": "ad85b4b2e9a69b7fad3b017b3d01eff7f00e88b8497f114738606c526c31a247",
+      "bytes": 2782
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-regression-qa-20261107/platform-mfa-tenancy-structure.log",
+      "sha256": "08e302b21a58b10abaa215462434311bd7d55d46e3f70eaaaaee601ee2037992",
+      "bytes": 2621
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-regression-qa-20261107/tenancy-people.log",
+      "sha256": "444c47183e5c7146fb54348c0f8463537676f57155a52fce7c35cf6f3791db61",
+      "bytes": 2669
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-regression-qa-20261107/tenancy-http.log",
+      "sha256": "ae4d901a81d587940385abaf27d24c2d3a442a75838b07dff8ab8b17313025b3",
+      "bytes": 2542
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-regression-qa-20261107/tenancy-edit.log",
+      "sha256": "660150df60465e78e2869a88615e1bf666ed31272d49e2c44f2617adf0b19c2c",
+      "bytes": 3001
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-regression-qa-20261107/membership-lifecycle.log",
+      "sha256": "3d9eeb68f5fe4117d847148a8dd9b68be655dbcb6357da11f48c1a31baf01fc4",
+      "bytes": 1157
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-regression-qa-20261107/platform-mfa-tenancy-commands.log",
+      "sha256": "8867bf97550f2754074df7f737f54afe7673d9b59b8dfa7b4e7492512851d303",
+      "bytes": 6945
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-regression-qa-20261107/mfa-directed-result.json",
+      "sha256": "599f8e376412fed187d7211eb80a43dfe84ff60b8c44d7cb5d944149fe268a2d",
+      "bytes": 317387
+    },
+    {
+      "id": "mfa-tenancy-revocation-fixed-regression-qa-20261107/mfa-directed-postchecks.json",
+      "sha256": "cda476645e297079f3b7145e89a092ef11272edeeb795e0cbf8539bcb7a3d39b",
+      "bytes": 390
+    }
+  ],
+  "metadataClarification": {
+    "priorProof": {
+      "id": "mfa-tenancy-revocation-root-verification-20261107.json",
+      "sha256": "6e5b7b110d291642656d78d2a946b871a68ff8404a3b86361d46a58fbc3b23e4",
+      "bytes": 29134
+    },
+    "reason": "Clarify required administrative actors versus optional local controls; native test results and checks are unchanged.",
+    "testsRepeated": false
+  },
+  "performanceAssessed": false,
+  "productionAccepted": false
+}
