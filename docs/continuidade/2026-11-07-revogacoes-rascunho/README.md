@@ -1,0 +1,15 @@
+# Checkpoint de autoria — três revogações de vínculos
+
+**Rascunho com revisão estática, sem execução de tipos ou testes deste incremento.** Este pacote preserva trabalho em andamento para outro computador; não altera o runtime da main nem compõe automaticamente uma versão aprovada.
+
+O produto muda apenas DELETE de unit-memberships, team-members e role-bindings. Acrescenta decisão MFA vinculada à leitura com lock, aos retornos sem escrita e ao UPDATE, mantendo auditoria antes de autorrevogação. UPDATE sem correspondência passa a causar404 com rollback; é uma mudança deliberada ainda sem reprodução. [Descrição de autoria](PRODUTO.md), [plano amplo](PLANO.md), [revisão estática do produto](REVISAO-PRODUTO.md) e [fundamento PostgreSQL](POSTGRESQL.md).
+
+O [teste comum](TESTES.md) prepara21 casos independentes:12 negativos e9 controles. Expectativas, não resultados: baseline9 aprovados/12 falhos; fixed21 aprovados. Falha de infraestrutura, timeout, erro500 ou fixture não satisfaz o RED. A barreira executa SQL real e a mesma sessão faz login, cadastro e confirmação TOTP por HTTP; SQL de teste remove a prova/fator, nunca fabrica aprovação. Os limites incluem ausência de espera real por lock, promoção, triggers e UPDATE-zero induzido nesta seleção.
+
+Para retomar, restaurar primeiro a [fonte global-binding aprovada de1.033 arquivos](../2026-11-07-browser-binding-global/README.md), seguindo sua cadeia desde o checkpoint85. O arquivo de rotas dessa fonte deve ter SHA256 `4089f119bb6e38367a09c7b17abeb950120e4524d9c379c49ea689ea870ef7f4`; o teste novo não deve existir. Os payloads são cópias completas, com extensão `.txt` apenas para armazenamento. Em **duas árvores novas de QA**, acrescentar o mesmo teste: baseline mantém as rotas anteriores, fixed usa o payload de rotas `37754d794909989eff26550ebe1a7fc549c939795961fe44fea2cc005f75967e`. Cada árvore terá1.034 arquivos de fonte. Não sobrescrever fontes já ensaiadas nem aplicar este arquivo isoladamente na main067, que não tem as funções candidatas068.
+
+[Manifesto de produto](PRODUCT-MANIFEST.json) conserva a base de autoria anterior2abb/1.032; o arquivo anterior de rotas foi conferido idêntico na base atual36e5/1.033. [Manifesto do teste](TEST-MANIFEST.json) e [checksums deste pacote](CHECKSUMS.json) registram os bytes. Notas congeladas que dizem “revisão pendente” preservam o instante de autoria; root e revisor independente examinaram o código e o teste sem bloqueadores estáticos. Isso não aprova SQL, tipos ou comportamento.
+
+Ordem seguinte: compor árvores novas e dependências apontando para seus próprios src; tipos API/testes; RED real e revisão dos12 erros esperados; GREEN; regressão serial selecionada (seis arquivos tenancy anteriores e os35 casos PATCH, expectativa92 TAP). Usar fixture UUID oficial, conexões runtime restritas, controle de memória, logs sem segredos e conferência de limpeza/restauração das seis roles. Somente o resultado efetivamente observado pode substituir estas expectativas.
+
+Não iniciar outra instância de banco nem reiniciar computador, Docker ou WSL. Nenhum aceite de navegador, Android/iOS, performance ou produção decorre deste pacote.

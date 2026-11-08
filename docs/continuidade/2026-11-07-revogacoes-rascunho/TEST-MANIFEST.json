@@ -1,0 +1,173 @@
+{
+  "version": 1,
+  "format": "new-test-v1",
+  "recordedOn": "2026-11-07",
+  "status": "REVIEWED_NOT_EXECUTED",
+  "baseExaminedPreparedSha256": "36e5b4a28d0c9b24d2b7420b9401366dad4d1842c7597238a84e283c958c902e",
+  "baseExaminedFiles": 1033,
+  "files": [
+    {
+      "path": "apps/api/test/platform-mfa-tenancy-revocations.test.ts",
+      "sha256": "62f4d7b81bf9c97f78a08fe1694f0d5c47c8f243d98d411212713f465551bfed",
+      "bytes": 22775,
+      "cases": 21
+    }
+  ],
+  "independentCases": 21,
+  "parentGroups": 0,
+  "suites": 1,
+  "expectedTapCount": 21,
+  "baselineExpectedPass": 9,
+  "baselineExpectedFail": 12,
+  "baselineExpectedIndependentFail": 12,
+  "baselineExpected204Instead403": 9,
+  "baselineExpected404Instead403": 3,
+  "fixedExpectedPass": 21,
+  "fixedExpectedFail": 0,
+  "limits": [
+    "Same-source test; no candidate helper import.",
+    "Every required actor establishes MFA through real HTTP login/enroll/TOTP confirmation in the same bearer/SID.",
+    "Owner writes only construct fixtures or remove factor/proof at an observed boundary; no synthetic approval/restoration.",
+    "No real row-lock wait, promotion, capacity-loss wait, audit/update trigger or UPDATEzero race is exercised in this finite suite.",
+    "No Node, database, compiler, test or service executed by author; counts are predicted, not observations.",
+    "The reader SELECT-versus-DELETE control covers only unit-memberships; foreign-scope controls cover all three routes."
+  ],
+  "caseDispositions": [
+    {
+      "name": "unit-memberships: rejects factor removal after real manage authorization",
+      "baselineExpectedStatus": 204,
+      "fixedExpectedStatus": 403,
+      "fixedReason": "MFA_ENROLLMENT_REQUIRED"
+    },
+    {
+      "name": "unit-memberships: rejects family proof removal after real manage authorization",
+      "baselineExpectedStatus": 204,
+      "fixedExpectedStatus": 403,
+      "fixedReason": "MFA_VERIFICATION_REQUIRED"
+    },
+    {
+      "name": "unit-memberships: guards a valid missing UUID after the authenticated context",
+      "baselineExpectedStatus": 404,
+      "fixedExpectedStatus": 403,
+      "fixedReason": "MFA_VERIFICATION_REQUIRED"
+    },
+    {
+      "name": "unit-memberships: guards an inactive no-op after real manage authorization",
+      "baselineExpectedStatus": 204,
+      "fixedExpectedStatus": 403,
+      "fixedReason": "MFA_VERIFICATION_REQUIRED"
+    },
+    {
+      "name": "unit-memberships: preserves audited204 and idempotence for an optional local manager",
+      "baselineExpected": "pass",
+      "fixedExpected": "pass",
+      "control": true
+    },
+    {
+      "name": "unit-memberships: preserves audited204 and idempotence for a satisfied administrator",
+      "baselineExpected": "pass",
+      "fixedExpected": "pass",
+      "control": true
+    },
+    {
+      "name": "team-members: rejects factor removal after real manage authorization",
+      "baselineExpectedStatus": 204,
+      "fixedExpectedStatus": 403,
+      "fixedReason": "MFA_ENROLLMENT_REQUIRED"
+    },
+    {
+      "name": "team-members: rejects family proof removal after real manage authorization",
+      "baselineExpectedStatus": 204,
+      "fixedExpectedStatus": 403,
+      "fixedReason": "MFA_VERIFICATION_REQUIRED"
+    },
+    {
+      "name": "team-members: guards a valid missing UUID after the authenticated context",
+      "baselineExpectedStatus": 404,
+      "fixedExpectedStatus": 403,
+      "fixedReason": "MFA_VERIFICATION_REQUIRED"
+    },
+    {
+      "name": "team-members: guards an inactive no-op after real manage authorization",
+      "baselineExpectedStatus": 204,
+      "fixedExpectedStatus": 403,
+      "fixedReason": "MFA_VERIFICATION_REQUIRED"
+    },
+    {
+      "name": "team-members: preserves audited204 and idempotence for an optional local manager",
+      "baselineExpected": "pass",
+      "fixedExpected": "pass",
+      "control": true
+    },
+    {
+      "name": "team-members: preserves audited204 and idempotence for a satisfied administrator",
+      "baselineExpected": "pass",
+      "fixedExpected": "pass",
+      "control": true
+    },
+    {
+      "name": "role-bindings: rejects factor removal after real manage authorization",
+      "baselineExpectedStatus": 204,
+      "fixedExpectedStatus": 403,
+      "fixedReason": "MFA_ENROLLMENT_REQUIRED"
+    },
+    {
+      "name": "role-bindings: rejects family proof removal after real manage authorization",
+      "baselineExpectedStatus": 204,
+      "fixedExpectedStatus": 403,
+      "fixedReason": "MFA_VERIFICATION_REQUIRED"
+    },
+    {
+      "name": "role-bindings: guards a valid missing UUID after the authenticated context",
+      "baselineExpectedStatus": 404,
+      "fixedExpectedStatus": 403,
+      "fixedReason": "MFA_VERIFICATION_REQUIRED"
+    },
+    {
+      "name": "role-bindings: guards an inactive no-op after real manage authorization",
+      "baselineExpectedStatus": 204,
+      "fixedExpectedStatus": 403,
+      "fixedReason": "MFA_VERIFICATION_REQUIRED"
+    },
+    {
+      "name": "role-bindings: preserves audited204 and idempotence for an optional local manager",
+      "baselineExpected": "pass",
+      "fixedExpected": "pass",
+      "control": true
+    },
+    {
+      "name": "role-bindings: preserves audited204 and idempotence for a satisfied administrator",
+      "baselineExpected": "pass",
+      "fixedExpected": "pass",
+      "control": true
+    },
+    {
+      "name": "preserves direct local administrative self-revocation and its single audit",
+      "baselineExpected": "pass",
+      "fixedExpected": "pass",
+      "control": true
+    },
+    {
+      "name": "preserves self-revocation of the team membership that supplies all management",
+      "baselineExpected": "pass",
+      "fixedExpected": "pass",
+      "control": true
+    },
+    {
+      "name": "preserves write-policy hiding, foreign scope, global binding404 and malformed UUID404",
+      "baselineExpected": "pass",
+      "fixedExpected": "pass",
+      "control": true
+    }
+  ],
+  "baselineExpectedMutation204": 6,
+  "baselineExpectedNoop204": 3,
+  "readerSelectDeleteCoverage": [
+    "unit-memberships"
+  ],
+  "foreignScopeCoverage": [
+    "unit-memberships",
+    "team-members",
+    "role-bindings"
+  ]
+}

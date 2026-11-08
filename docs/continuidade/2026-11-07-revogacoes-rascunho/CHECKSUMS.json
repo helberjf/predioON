@@ -1,0 +1,62 @@
+[
+  {
+    "path": ".gitattributes",
+    "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+    "bytes": 8
+  },
+  {
+    "path": "payload/apps/api/src/modules/tenancy/routes.ts.txt",
+    "sha256": "37754d794909989eff26550ebe1a7fc549c939795961fe44fea2cc005f75967e",
+    "bytes": 40987
+  },
+  {
+    "path": "payload/apps/api/test/platform-mfa-tenancy-revocations.test.ts.txt",
+    "sha256": "62f4d7b81bf9c97f78a08fe1694f0d5c47c8f243d98d411212713f465551bfed",
+    "bytes": 22775
+  },
+  {
+    "path": "PLANO.md",
+    "sha256": "75b2545f82d5a1c49976c72ab4dc25d359e841ba128762134e74f38ada77752b",
+    "bytes": 11111
+  },
+  {
+    "path": "POSTGRESQL.md",
+    "sha256": "fe36708eb3454c33651a9964dc2ec96f167806517d7be818562207f6208966bf",
+    "bytes": 956
+  },
+  {
+    "path": "PRODUCT-MANIFEST.json",
+    "sha256": "3803853f4a01e2153b8a398c2d901f5cd4e60e1f72fcd2477f814223112b478e",
+    "bytes": 1629
+  },
+  {
+    "path": "PRODUTO.md",
+    "sha256": "1789999617a2af6f53cfc3c10810725836d9bc8eb75baec3ed69d31485cbe03d",
+    "bytes": 5685
+  },
+  {
+    "path": "README.md",
+    "sha256": "1e88c668a196efc743ebdd01c3af4077d20f661b4274a07538a11e0112117c23",
+    "bytes": 3230
+  },
+  {
+    "path": "REVISAO-PRODUTO.md",
+    "sha256": "355ca89ff7a0e5d1eba99fd0e001c954e855960e3017f0bb2686d46903c4cea9",
+    "bytes": 3801
+  },
+  {
+    "path": "REVISAO-TESTE.md",
+    "sha256": "4b9e89c3044be37be8d3eabeadc6e4a3ddcd8dd26ec34a3ed1808a2998fab43f",
+    "bytes": 3854
+  },
+  {
+    "path": "TEST-MANIFEST.json",
+    "sha256": "5f9bedee8a11390cc085aaad36068812c166142878ad2e92b2a14a73927d3745",
+    "bytes": 6368
+  },
+  {
+    "path": "TESTES.md",
+    "sha256": "2f2835a835b3b3c4c77e8f57c5bd7bb6a6fe56c53f9e9730944ffbc379e8a95a",
+    "bytes": 5802
+  }
+]

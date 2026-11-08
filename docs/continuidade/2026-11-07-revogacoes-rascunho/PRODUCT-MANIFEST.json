@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "format": "delta-v1",
+  "status": "AUTHORED_NOT_EXECUTED_TENANCY_REVOCATIONS_REVIEW_PENDING",
+  "basePreparedSha256": "2abbf1a7fa9c7d54f6f0a6fc12938b3b14a27fa8da823590e8d9acb71a09087f",
+  "sourceRoot": "work/mfa-mandatory-browser-qa-20261107/source",
+  "sourceCount": 1032,
+  "files": [
+    {
+      "path": "apps/api/src/modules/tenancy/routes.ts",
+      "beforeSha256": "4089f119bb6e38367a09c7b17abeb950120e4524d9c379c49ea689ea870ef7f4",
+      "beforeBytes": 36511,
+      "afterSha256": "37754d794909989eff26550ebe1a7fc549c939795961fe44fea2cc005f75967e",
+      "afterBytes": 40987
+    }
+  ],
+  "ownedCallers": [
+    "DELETE /v1/tenancy/unit-memberships/:id",
+    "DELETE /v1/tenancy/team-members/:id",
+    "DELETE /v1/tenancy/role-bindings/:id"
+  ],
+  "checks": {
+    "beforeSourceFileHashVerified": true,
+    "preparedFileHashVerified": true,
+    "allContentBeforeDynamicRevocationSectionUnchanged": true,
+    "existingSixPatchHandlersUnchanged": true,
+    "sharedHelpersPoliciesGrantsMigrationsUnchanged": true,
+    "newTestAuthored": false,
+    "repositoryEdited": false,
+    "nodeDatabaseTypesTestsServicesExecuted": false,
+    "computerRestarted": false
+  },
+  "evidenceLimits": [
+    "Static candidate only; independent review requested, no compilation, PostgreSQL or RED/GREEN execution.",
+    "FOR UPDATE and its UPDATE-policy visibility are retained; fresh checks do not turn the first lock snapshot into a universally current snapshot.",
+    "No general linearization, performance, consumer or production acceptance is claimed.",
+    "No existing migration or shared MFA helper is modified."
+  ]
+}
