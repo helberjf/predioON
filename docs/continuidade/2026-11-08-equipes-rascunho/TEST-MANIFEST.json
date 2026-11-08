@@ -1,0 +1,136 @@
+{
+  "version": 1,
+  "format": "new-test-v1",
+  "status": "AUTHORED_NOT_EXECUTED",
+  "recordedOn": "2026-11-08",
+  "baseExaminedPreparedSha256": "f701467e1feeb849cd2eaf83aee4d4d91a15574a834bc019c6d26234d30730f9",
+  "files": [
+    {
+      "path": "apps/api/test/platform-mfa-team-renewal.test.ts",
+      "sha256": "24d79a0b20be994ffabc5f95c1aac013e626582585eb54364c49c4f04f4f4f4d",
+      "bytes": 28811,
+      "cases": 21
+    }
+  ],
+  "caseDispositions": [
+    {
+      "name": "create: rejects factor removal after real team authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "create: rejects family proof removal after real team authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "create: preserves full DTO for an optional team manager",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "create: preserves full DTO for a satisfied administrator",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "renew: rejects factor removal after real team authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "renew: rejects family proof removal after real team authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "renew: preserves full DTO for an optional team manager",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "renew: preserves full DTO for a satisfied administrator",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "active conflict: rejects factor removal with no returned row",
+      "baseline": "FAIL_EXPECTED_409_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline409"
+    },
+    {
+      "name": "active conflict: rejects family proof removal with no returned row",
+      "baseline": "FAIL_EXPECTED_409_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline409"
+    },
+    {
+      "name": "preserves normal active conflict409 without changing membership or audit",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "rejects an existing resident and rolls the proposed membership back",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "checks resident status after the upsert including the destination team role",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "allows teams management without memberships management",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "preserves tenant scope and requires explicit local team management",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "preserves recipient and team foreign keys without exposing another building",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "preserves strict team input validation and date ordering",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "renews expired active and inactive memberships preserving identity and clearing dates",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "returns one201 and one409 for two simultaneous membership requests",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "create: rolls membership audit and family proof back after the narrow audit trigger",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "renew: rolls membership audit and family proof back after the narrow audit trigger",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    }
+  ],
+  "baselineExpectedPass": 13,
+  "baselineExpectedFail": 8,
+  "fixedExpectedPass": 21,
+  "independentCases": 21,
+  "parentGroups": 0,
+  "runtimeExecuted": false
+}

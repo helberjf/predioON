@@ -1,0 +1,51 @@
+{
+  "recordedOn": "2026-11-08",
+  "status": "TYPES_PASSED_FUNCTIONAL_NOT_YET_EXECUTED",
+  "sourceFiles": 1037,
+  "typeFiles": 33,
+  "requiredSources": 14,
+  "preparedPins": {
+    "baseline": "7257c84e1a4bc14c0eb9ee5cfe2cfb8291847067fa413aa5676140677df7952b",
+    "fixed": "4dadcdc045378366e0fdec233e698f6f8fe8cae78bf0920c0899638829194e7b"
+  },
+  "phases": [
+    {
+      "variant": "baseline",
+      "phase": "resolve",
+      "resultPath": "mfa-team-renewal-baseline-qa-20261108/checks/resolve/result.json",
+      "sha256": "03966d352ed9b3cfb6ea3c938dee727bca920b69eaadef4231ea6f9be4d41053",
+      "startedUtc": "2026-11-08T23:28:26.164Z",
+      "childExitedUtc": "2026-11-08T23:28:27.570Z",
+      "durationMs": 1407
+    },
+    {
+      "variant": "baseline",
+      "phase": "types",
+      "resultPath": "mfa-team-renewal-baseline-qa-20261108/checks/types/result.json",
+      "sha256": "6c9269a4d52036f4452c0a574338f4c4670e487438f6fa9610468005a2198a68",
+      "startedUtc": "2026-11-08T23:28:29.281Z",
+      "childExitedUtc": "2026-11-08T23:28:38.345Z",
+      "durationMs": 9064
+    },
+    {
+      "variant": "fixed",
+      "phase": "resolve",
+      "resultPath": "mfa-team-renewal-fixed-qa-20261108/checks/resolve/result.json",
+      "sha256": "89173a9aafe352f47133909a4bcb2dc216a56155ab0a95f9a66c320ce2683424",
+      "startedUtc": "2026-11-08T23:28:54.139Z",
+      "childExitedUtc": "2026-11-08T23:28:55.272Z",
+      "durationMs": 1133
+    },
+    {
+      "variant": "fixed",
+      "phase": "types",
+      "resultPath": "mfa-team-renewal-fixed-qa-20261108/checks/types/result.json",
+      "sha256": "43475b16011a844bcbebdd60834275e7d1c7d816ca0072bd3b2a201b706b927d",
+      "startedUtc": "2026-11-08T23:28:56.636Z",
+      "childExitedUtc": "2026-11-08T23:29:05.729Z",
+      "durationMs": 9093
+    }
+  ],
+  "functionalTestsExecuted": false,
+  "productionAccepted": false
+}
