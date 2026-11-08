@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "recordedOn": "2026-11-07",
+  "status": "AUTHORED_NOT_EXECUTED",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+      "bytes": 8
+    },
+    {
+      "path": "MANIFEST.json",
+      "sha256": "ac64ec5ddb98b28b54c6b21b59fd61ea72148a305f25cfb487ac6a2173d4707f",
+      "bytes": 384330
+    },
+    {
+      "path": "README.md",
+      "sha256": "8b64f837deb74448e0fb34589c695f8fc4b51924bbbe4490fce01d76f2983606",
+      "bytes": 5984
+    },
+    {
+      "path": "apply-create.mjs",
+      "sha256": "2d699c57d63e2e9a31d4b66ee8d2ffa13d1c7f1f783527567690797c8aba5e0c",
+      "bytes": 7357
+    },
+    {
+      "path": "payload/apps/api/src/modules/tenancy/routes.ts.txt",
+      "sha256": "3f0f4db1d92fdb8ed991d0e173d9aa82123f17b6376f137d7d543c60797b790b",
+      "bytes": 44397
+    },
+    {
+      "path": "payload/apps/api/test/platform-mfa-tenancy-create.test.ts.txt",
+      "sha256": "d36843c3459083a096ffffe1d9ac323b9e13efe3151ec2bdb36d4709d03d29ab",
+      "bytes": 25593
+    }
+  ]
+}
