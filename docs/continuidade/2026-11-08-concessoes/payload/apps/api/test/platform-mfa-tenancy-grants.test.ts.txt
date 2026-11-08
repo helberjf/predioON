@@ -1,0 +1,414 @@
+import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
+import type { Server } from "node:http";
+import { after, before, describe, it } from "node:test";
+import { decodeJwt } from "jose";
+import { sql } from "drizzle-orm";
+import { PgDialect } from "drizzle-orm/pg-core";
+import { sqlClient } from "@predioon/db";
+import { appDb, appSqlClient, closeAppDb, verifyRestrictedDatabaseRole, type AppTransaction } from "@predioon/db/runtime";
+import { app } from "../src/app.js";
+import { hashPassword } from "../src/auth/passwords.js";
+import { base32Decode, totpCode, totpStep } from "../src/auth/totp.js";
+import "./helpers.js";
+
+// SAME SOURCE baseline/fixed. Required actors enroll through real HTTP/TOTP.
+// Owner SQL constructs fixtures or removes a factor/proof at a real boundary;
+// it never fabricates or restores positive MFA proof. No authorization mocks.
+type Kind = "unit-memberships" | "role-bindings";
+type Actor = { id: string; token: string; sid: string; local: string | null; codes: string[] };
+type Row = Record<string, unknown>;
+type Operation = { kind: Kind; buildingId: string; marker: string; body: Row };
+type HttpResult = { status: number; body: unknown; cache: string | null };
+const kinds: Kind[] = ["unit-memberships", "role-bindings"];
+const capabilities = { "unit-memberships": "memberships:manage", "role-bindings": "memberships:manage" } as const;
+const actions = { "unit-memberships": "UNIT_MEMBERSHIP_CREATED", "role-bindings": "ROLE_BINDING_CREATED" } as const;
+const resourceTypes = { "unit-memberships": "unit_membership", "role-bindings": "role_binding" } as const;
+const tables = { "unit-memberships": "unit_memberships", "role-bindings": "role_bindings" } as const;
+function signal() { let resolve!: () => void; const promise = new Promise<void>(done => { resolve = done; }); return { promise, resolve }; }
+async function bounded<T>(promise: PromiseLike<T>, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try { return await Promise.race([Promise.resolve(promise), new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`Fixture deadline: ${label}`)), 5000);
+  })]); } finally { clearTimeout(timer); }
+}
+async function settleAll(transactions: Promise<unknown>[]) {
+  await bounded((async () => {
+    let completed = 0;
+    while (completed < transactions.length) {
+      const batch = transactions.slice(completed); completed += batch.length;
+      await Promise.allSettled(batch);
+    }
+  })(), "all actual app transactions settled");
+}
+function trackAllTransactions() {
+  const original = appDb.transaction, run = original.bind(appDb), transactions: Promise<unknown>[] = [];
+  appDb.transaction = (callback, config) => { const pending = run(callback, config); transactions.push(pending); return pending; };
+  return { settle: () => settleAll(transactions), restore() { appDb.transaction = original; } };
+}
+function observe(targetRow: Operation) {
+  const original = appDb.transaction, run = original.bind(appDb), dialect = new PgDialect();
+  const reached = signal(), release = signal(), transactions: Promise<unknown>[] = [];
+  let matched = false;
+  type Input = Parameters<AppTransaction["execute"]>[0];
+  appDb.transaction = (callback, config) => {
+    const pending = run(tx => callback(new Proxy(tx, { get(target, key) {
+      if (key === "execute") return async (query: Input) => {
+        const compiled = typeof query === "string" ? { sql: query, params: [] } : dialect.sqlToQuery(query.getSQL());
+        const rows = await target.execute(query);
+        // Only the original stand-alone SELECT is the real assertCapability
+        // call; a candidate statement containing the same helper is insufficient.
+        const matches = compiled.sql.trim().startsWith("select app_has_capability(")
+            && compiled.params.includes(capabilities[targetRow.kind]) && compiled.params.includes(targetRow.buildingId);
+        if (!matched && matches) {
+          assert.equal((rows[0] as { allowed?: unknown } | undefined)?.allowed, true);
+          matched = true; reached.resolve(); await bounded(release.promise, "real boundary release");
+        }
+        return rows;
+      };
+      const value = Reflect.get(target, key, target); return typeof value === "function" ? value.bind(target) : value;
+    }})), config);
+    transactions.push(pending); return pending;
+  };
+  return { reached, release, settle: () => settleAll(transactions), restore() { appDb.transaction = original; } };
+}
+
+
+describe("MFA tenancy grants with real enrollment", { concurrency: false }, () => {
+  const suffix = randomUUID(), org = `tgrant-org-${suffix}`, building = `tgrant-a-${suffix}`, foreign = `tgrant-b-${suffix}`;
+  const password = "tenancy-grants-fictitious-password", users: string[] = [], triggers = new Set<string>();
+  const anchors = new Map<string, { unit: string; team: string }>();
+  const seenCreatedIds = new Set<string>();
+  let server: Server | undefined, url = "", hash = "", serial = 0;
+  let tracking: ReturnType<typeof trackAllTransactions> | undefined;
+  async function http(token: string | undefined, path: string, method = "GET", body?: Row, controller = new AbortController()): Promise<HttpResult> {
+    try {
+      const response = await bounded(fetch(url + path, { method, signal: controller.signal,
+        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        ...(body ? { body: JSON.stringify(body) } : {}) }), "HTTP");
+      const text = await bounded(response.text(), "HTTP body");
+      return { status: response.status, body: text ? JSON.parse(text) as unknown : null, cache: response.headers.get("cache-control") };
+    } finally { controller.abort(); }
+  }
+  const request = (actor: Actor, operation: Operation, controller?: AbortController) =>
+    http(actor.token, `/v1/tenancy/${operation.kind}`, "POST", operation.body, controller);
+  async function user(label: string, admin = false): Promise<string> {
+    const id = `tgrant-${suffix}-${++serial}-${label}`; users.push(id);
+    await sqlClient`insert into users(id,name,email,password_hash,is_platform_admin) values(${id},${label},${id + "@example.invalid"},${hash},${admin})`;
+    return id;
+  }
+  async function actor(label: string, admin = false, local = true): Promise<Actor> {
+    const id = await user(label, admin), binding = local ? randomUUID() : null;
+    if (binding) await sqlClient`insert into role_bindings(id,user_id,building_id,role_key) values(${binding},${id},${building},'BUILDING_ADMIN')`;
+    const login = await http(undefined, "/auth/login", "POST", { email: id + "@example.invalid", password });
+    assert.equal(login.status, 200, "raw real login; no admission retry or fabricated proof");
+    const body = login.body as { accessToken: string; user: { id: string; mfaRequirement: string } };
+    assert.equal(body.user.id, id); assert.equal(body.user.mfaRequirement, admin ? "enrollment-required" : "not-required");
+    const sid = decodeJwt(body.accessToken).sid; assert.equal(typeof sid, "string");
+    const result = { id, token: body.accessToken, sid: sid as string, local: binding, codes: [] as string[] };
+    if (admin) {
+      const enrollment = await http(result.token, "/auth/mfa/enroll", "POST", { currentPassword: password });
+      assert.equal(enrollment.status, 200);
+      const secret = base32Decode((enrollment.body as { secret: string }).secret); assert.ok(secret);
+      const confirmation = await http(result.token, "/auth/mfa/confirm", "POST", { code: totpCode(secret, totpStep(Date.now())) });
+      assert.equal(confirmation.status, 200);
+      const codes = (confirmation.body as { recoveryCodes: string[] }).recoveryCodes;
+      result.codes = codes; assert.equal(codes.length, 10); assert.equal(new Set(codes).size, 10);
+      const [proof] = await sqlClient`select s.mfa_verified_at is not null as verified,s.mfa_factor_generation=f.generation as same_generation,
+        f.confirmed_at is not null as confirmed from sessions s join mfa_factors f on f.user_id=s.user_id where s.id=${result.sid}::uuid and s.user_id=${id}`;
+      assert.equal(proof?.verified, true); assert.equal(proof?.same_generation, true); assert.equal(proof?.confirmed, true);
+    }
+    const me = await http(result.token, "/auth/me"); assert.equal(me.status, 200);
+    assert.equal((me.body as { id: string }).id, id);
+    assert.equal((me.body as { mfaRequirement: string }).mfaRequirement, admin ? "satisfied" : "not-required");
+    assert.equal(decodeJwt(result.token).sid, result.sid, "same bearer and family across login/enrollment/confirmation");
+    return result;
+  }
+
+  async function operation(kind: Kind, targetBuilding = building, rich = false): Promise<Operation> {
+    const recipient = await user("recipient");
+    const body: Row = kind === "unit-memberships"
+      ? { buildingId: targetBuilding, unitId: anchors.get(targetBuilding)!.unit, userId: recipient, kind: "DEPENDENT" }
+      : { buildingId: targetBuilding, userId: recipient, roleKey: "MAINTENANCE", reason: " Concessão d'Água " + recipient + " " };
+    if (rich) { body.startsAt = "2040-01-02T12:34:56.789Z"; body.endsAt = "2041-02-03T10:20:30.123Z"; }
+    return { kind, buildingId: targetBuilding, marker: recipient, body };
+  }
+  async function snapshot(actor: Actor) {
+    const rows: Row = {};
+    for (const kind of kinds) rows[kind] = (await sqlClient`select to_jsonb(t) as row from ${sqlClient(tables[kind])} t
+      where building_id in (${building},${foreign}) order by id`).map(row => row.row);
+    rows.audit = (await sqlClient`select to_jsonb(a) as row from audit_logs a where user_id=${actor.id} order by id`).map(row => row.row);
+    return rows;
+  }
+  function iso(value: unknown): string { assert.equal(typeof value, "string"); return new Date(value as string).toISOString(); }
+  async function effects(actor: Actor, operation: Operation, response: HttpResult): Promise<Row> {
+    assert.equal(response.status, 201); assert.equal(response.cache, "no-store");
+    const id = (response.body as { id: string }).id;
+    assert.equal(typeof id, "string"); assert.match(id, /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+    assert.equal(seenCreatedIds.has(id), false, "each accepted creation returns a new identity");
+    const rows = await sqlClient`select to_jsonb(t) as row from ${sqlClient(tables[operation.kind])} t where id=${id}::uuid`;
+    assert.equal(rows.length, 1); const row = rows[0]!.row as Row;
+    const common = { id, building_id: operation.buildingId, active: true, starts_at: row.starts_at, ends_at: row.ends_at,
+      created_at: row.created_at, updated_at: row.updated_at };
+    assert.equal(row.starts_at === null ? null : iso(row.starts_at), operation.body.startsAt ?? null);
+    assert.equal(row.ends_at === null ? null : iso(row.ends_at), operation.body.endsAt ?? null);
+    const persisted = operation.kind === "unit-memberships"
+      ? { ...common, user_id: operation.body.userId, unit_id: operation.body.unitId, kind: operation.body.kind }
+      : { ...common, user_id: operation.body.userId ?? null, team_id: operation.body.teamId ?? null,
+        role_key: operation.body.roleKey, resource_type: null, resource_id: null, granted_by: actor.id, reason: String(operation.body.reason).trim() };
+    assert.deepEqual(row, persisted, "complete persisted grant including original defaults and real grantor");
+    assert.equal(row.created_at, row.updated_at);
+    const view = { id, buildingId: operation.buildingId, active: true, startsAt: row.starts_at === null ? null : iso(row.starts_at),
+      endsAt: row.ends_at === null ? null : iso(row.ends_at), createdAt: iso(row.created_at), updatedAt: iso(row.updated_at) };
+    const expected = operation.kind === "unit-memberships"
+      ? { ...view, userId: operation.body.userId, unitId: operation.body.unitId, kind: operation.body.kind }
+      : { ...view, userId: operation.body.userId ?? null, teamId: operation.body.teamId ?? null, roleKey: operation.body.roleKey,
+        resourceType: null, resourceId: null, grantedBy: actor.id, reason: String(operation.body.reason).trim() };
+    assert.deepEqual(response.body, expected, "full original grant DTO with Date serialization");
+    assert.equal(Object.keys(expected).length, operation.kind === "unit-memberships" ? 10 : 14);
+    const audit = await sqlClient`select user_id,building_id,actor_type,resource_type,resource_id,action,metadata from audit_logs
+      where resource_id=${id} order by id`;
+    assert.deepEqual(audit.map(row => ({ ...row })), [{ user_id: actor.id, building_id: operation.buildingId, actor_type: "USER",
+      resource_type: resourceTypes[operation.kind], resource_id: id, action: actions[operation.kind],
+      metadata: operation.kind === "role-bindings" ? { roleKey: operation.body.roleKey } : {} }]);
+    seenCreatedIds.add(id); return row;
+  }
+  const removeProof = (actor: Actor) => sqlClient`update sessions set mfa_verified_at=null,mfa_factor_generation=null where id=${actor.sid}::uuid and user_id=${actor.id}`;
+  async function proof(actor: Actor) {
+    const [row] = await sqlClient`select mfa_verified_at is not null as verified,mfa_verified_at::text as verified_at,mfa_factor_generation::text as generation
+      from sessions where id=${actor.sid}::uuid and user_id=${actor.id}`;
+    assert.ok(row); return { ...row };
+  }
+  function denied(response: HttpResult, reason: string) {
+    assert.equal(response.status, 403); assert.equal(response.cache, "no-store");
+    assert.equal((response.body as { details?: { reason?: string } }).details?.reason, reason);
+    assert.equal("id" in (response.body as object), false);
+  }
+  async function interleave(actor: Actor, operation: Operation, change: () => PromiseLike<unknown>): Promise<HttpResult> {
+    const observation = observe(operation), controller = new AbortController();
+    const pending = request(actor, operation, controller); void pending.catch(() => undefined); let failed = false;
+    try {
+      assert.equal(await bounded(Promise.race([observation.reached.promise.then(() => "boundary"), pending.then(() => "response")]), "real capability reached"), "boundary");
+      await bounded(change(), "identity change committed"); observation.release.resolve(); return await pending;
+    } catch (error) { failed = true; throw error; }
+    finally {
+      observation.release.resolve(); controller.abort();
+      const results = await Promise.allSettled([bounded(pending, "HTTP settled"), observation.settle()]); observation.restore();
+      if (!failed) { const failure = results.find(result => result.status === "rejected"); if (failure?.status === "rejected") throw failure.reason; }
+    }
+  }
+  async function dropTrigger(name: string) {
+    assert.match(name, /^tgrant_[0-9a-f]{32}$/);
+    await bounded(sqlClient.begin(async owner => {
+      await owner`set local lock_timeout='2s'`; await owner`set local statement_timeout='3s'`;
+      await owner.unsafe(`drop trigger if exists ${name} on public.audit_logs`);
+      await owner.unsafe(`drop function if exists public.${name}()`);
+      await owner.unsafe(`drop sequence if exists public.${name}_seq`);
+    }), "audit trigger cleanup");
+    const [gone] = await sqlClient`select to_regprocedure(${"public." + name + "()"}) is null as function_gone,
+      to_regclass(${"public." + name + "_seq"}) is null as sequence_gone`;
+    assert.equal(gone?.function_gone, true); assert.equal(gone?.sequence_gone, true); triggers.delete(name);
+  }
+  async function triggerCatalog() {
+    return (await sqlClient`select tgrelid::regclass::text as relation,tgname,tgenabled,tgisinternal,pg_get_triggerdef(oid) as definition
+      from pg_trigger where tgrelid in ('public.unit_memberships'::regclass,'public.role_bindings'::regclass,'public.audit_logs'::regclass)
+      order by relation,tgname`).map(row => ({ ...row }));
+  }
+  before(async () => {
+    const [ledger] = await sqlClient`select count(*)::int as count from schema_migrations`; assert.equal(ledger?.count, 68, "candidate068 fixture required; no skip");
+    await bounded(verifyRestrictedDatabaseRole(appSqlClient, "predioon_app"), "actual restricted app role");
+    hash = await hashPassword(password);
+    await sqlClient`insert into organizations(id,name,slug) values(${org},'Tenancy grants MFA',${org})`;
+    for (const id of [building, foreign]) {
+      await sqlClient`insert into buildings(id,organization_id,name,code) values(${id},${org},${id},${id})`;
+      const unit = randomUUID(), team = randomUUID(); anchors.set(id, { unit, team });
+      await sqlClient`insert into units(id,building_id,code) values(${unit},${id},'ANCHOR')`;
+      await sqlClient`insert into teams(id,building_id,name) values(${team},${id},'Fixture anchor')`;
+    }
+    tracking = trackAllTransactions();
+    server = await new Promise<Server>(resolve => { const instance = app.listen(0, "127.0.0.1", () => resolve(instance)); });
+    const address = server.address(); assert.ok(address && typeof address !== "string"); url = `http://127.0.0.1:${address.port}`;
+  });
+  after(async () => {
+    try {
+      await bounded(new Promise<void>((resolve, reject) => {
+        if (!server) { resolve(); return; } server.close(error => error ? reject(error) : resolve()); server.closeAllConnections();
+      }), "HTTP listener close");
+    } finally {
+      try {
+        await tracking?.settle();
+        for (const name of triggers) await dropTrigger(name);
+        await bounded(sqlClient.begin(async tx => {
+          await tx`set local lock_timeout='2s'`; await tx`set local statement_timeout='3s'`;
+          await tx`delete from audit_logs where building_id in (${building},${foreign})`;
+          await tx`delete from units where building_id in (${building},${foreign})`;
+          await tx`delete from buildings where organization_id=${org}`;
+          if (users.length) await tx`delete from users where id in ${sqlClient(users)}`;
+          await tx`delete from organizations where id=${org}`;
+        }), "owned fixture cleanup");
+      } finally {
+        tracking?.restore();
+        const results = await Promise.allSettled([bounded(closeAppDb(), "app pool close"), bounded(sqlClient.end({ timeout: 3 }), "owner pool close")]);
+        const failure = results.find(result => result.status === "rejected"); if (failure?.status === "rejected") throw failure.reason;
+      }
+    }
+  });
+
+  for (const kind of kinds) {
+    for (const enrollment of [true, false]) it(`${kind}: rejects ${enrollment ? "factor removal" : "family proof removal"} after real manage authorization`, async t => {
+      const a = await actor("negative", true), control = await operation(kind);
+      await effects(a, control, await request(a, control));
+      const input = await operation(kind), before = await snapshot(a);
+      const response = await interleave(a, input, () => enrollment ? sqlClient`delete from mfa_factors where user_id=${a.id}` : removeProof(a));
+      if (response.status === 201) {
+        await effects(a, input, response);
+        t.diagnostic("Baseline201: full original DTO, persisted grant and exact actor/resource/action audit verified before expected403 mismatch");
+      } else assert.deepEqual(await snapshot(a), before);
+      denied(response, enrollment ? "MFA_ENROLLMENT_REQUIRED" : "MFA_VERIFICATION_REQUIRED");
+      assert.deepEqual(await snapshot(a), before, "denied grant leaves no row or audit");
+    });
+    for (const required of [false, true]) it(`${kind}: preserves full201 DTO and defaults for ${required ? "a satisfied administrator" : "an optional local manager"}`, async () => {
+      const a = await actor("positive", required), input = await operation(kind, building, required);
+      await effects(a, input, await request(a, input));
+    });
+  }
+
+  it("requires explicit local management and preserves tenant scope", async () => {
+    const manager = await actor("scope-manager"), reader = await actor("scope-reader", false, false), global = await actor("scope-global", true, false);
+    for (const kind of kinds) for (const [a, targetBuilding] of [[manager, foreign], [reader, building], [global, building]] as const) {
+      const input = await operation(kind, targetBuilding), before = await snapshot(a);
+      assert.equal((await request(a, input)).status, 403); assert.deepEqual(await snapshot(a), before);
+    }
+  });
+  it("preserves foreign keys for recipient and scoped unit or team", async () => {
+    const a = await actor("foreign-key");
+    for (const kind of kinds) {
+      for (const missing of [false, true]) {
+        const input = await operation(kind);
+        if (kind === "unit-memberships") input.body.unitId = missing ? randomUUID() : anchors.get(foreign)!.unit;
+        else { delete input.body.userId; input.body.teamId = missing ? randomUUID() : anchors.get(foreign)!.team; }
+        const before = await snapshot(a); assert.equal((await request(a, input)).status, 400); assert.deepEqual(await snapshot(a), before);
+      }
+      const input = await operation(kind); input.body.userId = "missing-" + randomUUID();
+      const before = await snapshot(a); assert.equal((await request(a, input)).status, 400); assert.deepEqual(await snapshot(a), before);
+    }
+  });
+  it("preserves strict grant validation without granting platform roles or accepting a forged grantor", async () => {
+    const a = await actor("invalid-input");
+    for (const kind of kinds) {
+      const input = await operation(kind);
+      const invalid: Row[] = [{ ...input.body, active: false }, { ...input.body, grantedBy: a.id }, { ...input.body, buildingId: "" },
+        { ...input.body, startsAt: "bad-date" }, { ...input.body, startsAt: "2041-01-01", endsAt: "2040-01-01" }];
+      if (kind === "unit-memberships") invalid.push({ ...input.body, kind: "ADMIN" }, { ...input.body, unitId: "invalid" });
+      else invalid.push({ ...input.body, roleKey: "PLATFORM_ADMIN" }, { ...input.body, reason: " x " },
+        { ...input.body, userId: undefined }, { ...input.body, teamId: anchors.get(building)!.team }, { ...input.body, resourceType: "unit" });
+      for (const body of invalid) {
+        const before = await snapshot(a); assert.equal((await request(a, { ...input, body })).status, 400); assert.deepEqual(await snapshot(a), before);
+      }
+    }
+  });
+  it("accepts explicit null dates and a team recipient without changing the original DTO", async () => {
+    const a = await actor("nullable-dates", true);
+    for (const kind of kinds) {
+      const input = await operation(kind); input.body.startsAt = null; input.body.endsAt = null;
+      if (kind === "role-bindings") { delete input.body.userId; input.body.teamId = anchors.get(building)!.team; }
+      await effects(a, input, await request(a, input));
+    }
+  });
+  it("preserves repeated grants as distinct rows instead of inventing uniqueness", async () => {
+    const a = await actor("repeat");
+    for (const kind of kinds) {
+      const input = await operation(kind), one = await effects(a, input, await request(a, input));
+      const two = await effects(a, input, await request(a, input)); assert.notEqual(one.id, two.id);
+    }
+  });
+  it("preserves password recency only for role grants and renews only the verified MFA session", async () => {
+    const a = await actor("recency", true);
+    const login = await http(undefined, "/auth/login", "POST", { email: a.id + "@example.invalid", password, code: a.codes[0] });
+    assert.equal(login.status, 200);
+    const token = (login.body as { accessToken: string }).accessToken;
+    const sid = decodeJwt(token).sid; assert.equal(typeof sid, "string"); assert.notEqual(sid, a.sid);
+    const other: Actor = { ...a, token, sid: sid as string };
+    await sqlClient`update sessions set verified_at=clock_timestamp()-interval '11 minutes' where id in (${a.sid}::uuid,${other.sid}::uuid)`;
+    for (const session of [a, other]) { assert.equal((await proof(session)).verified, true); }
+    const role = await operation("role-bindings"), before = await snapshot(a);
+    denied(await request(a, role), "VERIFICATION_REQUIRED"); assert.deepEqual(await snapshot(a), before);
+    const unit = await operation("unit-memberships"); await effects(a, unit, await request(a, unit));
+    assert.equal((await http(a.token, "/auth/verify", "POST", { currentPassword: "wrong" })).status, 400);
+    assert.equal((await http(a.token, "/auth/verify", "POST", { currentPassword: password })).status, 400);
+    denied(await request(a, role), "VERIFICATION_REQUIRED");
+    assert.equal((await http(a.token, "/auth/verify", "POST", { currentPassword: password, code: a.codes[1] })).status, 204);
+    await effects(a, role, await request(a, role));
+    const another = await operation("role-bindings"), unchanged = await snapshot(a);
+    denied(await request(other, another), "VERIFICATION_REQUIRED"); assert.deepEqual(await snapshot(a), unchanged);
+    const clocks = await sqlClient`select id,verified_at>clock_timestamp()-interval '1 minute' as fresh from sessions where id in (${a.sid}::uuid,${other.sid}::uuid)`;
+    assert.equal(clocks.find(row => row.id === a.sid)?.fresh, true); assert.equal(clocks.find(row => row.id === other.sid)?.fresh, false);
+    const outsider = await actor("recency-outsider", false, false);
+    await sqlClient`update sessions set verified_at=clock_timestamp()-interval '11 minutes' where id=${outsider.sid}::uuid`;
+    const deniedInput = await operation("role-bindings"), state = await snapshot(outsider), response = await request(outsider, deniedInput);
+    assert.equal(response.status, 403); assert.notEqual((response.body as { details?: { reason?: string } }).details?.reason, "VERIFICATION_REQUIRED");
+    assert.deepEqual(await snapshot(outsider), state);
+  });
+  it("preserves delegation RLS after memberships management has genuinely passed", async () => {
+    const a = await actor("limited-delegator", false, false), role = "TEST_GRANT_" + randomUUID();
+    try {
+      await sqlClient`insert into roles(key,scope,label) values(${role},'BUILDING','Fixture limited delegator')`;
+      await sqlClient`insert into role_permissions(role_key,permission_key) values(${role},'memberships:manage')`;
+      await sqlClient`insert into role_bindings(user_id,building_id,role_key) values(${a.id},${building},${role})`;
+      const input = await operation("role-bindings"), before = await snapshot(a);
+      const response = await interleave(a, input, async () => undefined);
+      assert.equal(response.status, 403); assert.deepEqual(await snapshot(a), before);
+      assert.notEqual((response.body as { details?: { reason?: string } }).details?.reason, "VERIFICATION_REQUIRED");
+    } finally {
+      await tracking?.settle();
+      await bounded(sqlClient.begin(async tx => {
+        await tx`set local lock_timeout='2s'`; await tx`set local statement_timeout='3s'`;
+        await tx`delete from role_bindings where role_key=${role}`; await tx`delete from roles where key=${role}`;
+      }), "fixture role cleanup");
+    }
+  });
+  for (const kind of kinds) it(`${kind}: rolls grant audit and family proof back after the narrow audit trigger`, async t => {
+    const a = await actor("audit-trigger", true), control = await operation(kind);
+    await effects(a, control, await request(a, control));
+    const input = await operation(kind);
+    const before = await snapshot(a), originalProof = await proof(a), catalog = await triggerCatalog();
+    assert.equal(originalProof.verified, true); assert.equal(typeof originalProof.verified_at, "string"); assert.equal(typeof originalProof.generation, "string");
+    const name = "tgrant_" + randomUUID().replaceAll("-", ""); triggers.add(name);
+    try {
+      assert.match(name, /^tgrant_[0-9a-f]{32}$/);
+      await bounded(sqlClient.begin(async owner => {
+        await owner`set local lock_timeout='2s'`; await owner`set local statement_timeout='3s'`;
+        await owner.unsafe(`create sequence public.${name}_seq`);
+        await owner.unsafe(`create function public.${name}() returns trigger language plpgsql security definer
+          set search_path=pg_catalog,pg_temp as $$ begin
+          if new.user_id=TG_ARGV[0] and new.building_id=TG_ARGV[1] and new.action=TG_ARGV[2]
+             and new.resource_type=TG_ARGV[5] and current_setting('app.session_id',true)=TG_ARGV[3]
+             and exists(select 1 from public.${tables[kind]} target where target.id::text=new.resource_id
+               and target.building_id=TG_ARGV[1] and target.user_id=TG_ARGV[4]) then
+            perform pg_catalog.nextval('public.${name}_seq'::regclass);
+            update public.sessions set mfa_verified_at=null,mfa_factor_generation=null
+              where id=TG_ARGV[3]::uuid and user_id=TG_ARGV[0];
+          end if; return new; end $$`);
+        await owner.unsafe(`revoke all on function public.${name}() from public`);
+        const args = [a.id, building, actions[kind], a.sid, input.marker, resourceTypes[kind]];
+        assert.ok(args.every(value => /^[A-Za-z0-9_-]+$/.test(value)));
+        await owner.unsafe(`create trigger ${name} after insert on public.audit_logs for each row execute function public.${name}(${args.map(value => "'" + value + "'").join(",")})`);
+      }), "narrow audit trigger setup");
+      const [metadata] = await sqlClient`select p.prosecdef,p.proconfig,pg_get_userbyid(p.proowner)=current_user as owner,
+        not exists(select 1 from aclexplode(p.proacl) a where a.grantee=0 and a.privilege_type='EXECUTE') as public_revoked
+        from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname=${name}`;
+      assert.equal(metadata?.prosecdef, true); assert.equal(metadata?.owner, true); assert.equal(metadata?.public_revoked, true);
+      assert.deepEqual(metadata?.proconfig, ["search_path=pg_catalog, pg_temp"]);
+      const response = await request(a, input);
+      const [witness] = await sqlClient.unsafe(`select last_value::int,is_called from public.${name}_seq`);
+      assert.equal(witness?.is_called, true); assert.equal(witness?.last_value, 1, "nontransactional witness proves exactly one trigger execution even on rollback");
+      if (response.status === 201) {
+        await effects(a, input, response); assert.deepEqual(await proof(a), { verified: false, verified_at: null, generation: null });
+        t.diagnostic("Baseline201: full original DTO, persisted grant and audit verified; narrow trigger executed once and removed the same family proof");
+      } else { assert.deepEqual(await snapshot(a), before); assert.deepEqual(await proof(a), originalProof); }
+      denied(response, "MFA_VERIFICATION_REQUIRED"); assert.deepEqual(await snapshot(a), before); assert.deepEqual(await proof(a), originalProof);
+    } finally {
+      await tracking?.settle(); await dropTrigger(name); assert.deepEqual(await triggerCatalog(), catalog);
+    }
+  });
+});

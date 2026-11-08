@@ -1,0 +1,55 @@
+{
+  "recordedOn": "2026-11-08",
+  "recordedUtc": "2026-11-08T23:04:53.040691+00:00",
+  "status": "ENVIRONMENT_BLOCKED_BEFORE_FUNCTIONAL_TESTS",
+  "functionalTestsStarted": false,
+  "redReproduced": false,
+  "initialAttempt": {
+    "directory": "mfa-tenancy-grants-baseline-qa-20261108",
+    "launcherExitCode": 1,
+    "stage": "Docker inspection",
+    "reason": "dockerDesktopLinuxEngine named pipe unavailable"
+  },
+  "environmentRecovery": {
+    "dockerDesktopOpenedByAgent": true,
+    "previousContainerInitiallyObservedStopped": true,
+    "previousContainerSubsequentlyUnavailable": true,
+    "causeOfOldContainerUnavailabilityConfirmed": false,
+    "newExclusiveClusterCreated": true,
+    "attestation": {
+      "recordedOn": "2026-11-08",
+      "recordedUtc": "2026-11-08T23:00:37.6479565Z",
+      "container": "predioon-mfa-grants-20261108",
+      "containerId": "3c0f4e5e47d3d488766eb2679ba97fabf29b12d72f9b8df41bb504205a41b4c8",
+      "systemIdentifier": "7705939420428193833",
+      "port": 5468,
+      "loopbackOnly": true,
+      "memoryLimitMiB": 384,
+      "cpuLimit": 1,
+      "basePublicTables": 0,
+      "exclusiveUse": true,
+      "computerRestarted": false,
+      "imageId": "sha256:4e459e217f00cbb09920c34d245501e63427e6767a495de57ce76823ff280f12",
+      "volume": "predioon_mfa_grants_20261108",
+      "newCluster": true,
+      "previousClusterUnavailable": true,
+      "credentialsPublished": false
+    },
+    "privateCredentialsPublished": false
+  },
+  "secondAttempt": {
+    "directory": "mfa-tenancy-grants-baseline-db2-qa-20261108",
+    "launcherExitCode": 1,
+    "stage": "Initial memory guard before controller/catalog/fixture",
+    "minimumMiB": 1536,
+    "observedFreeMiBAfterRefusal": 1382,
+    "laterObservedFreeMiB": 1246,
+    "neitherMeasurementClaimedAsExactGuardReading": true
+  },
+  "preparedSourcesUnchanged": true,
+  "typePhasesPassed": 4,
+  "restoredSourceFiles": 1036,
+  "nextStep": "Wait for fresh memory guard; use a new evidence directory for baseline, review exact RED, then fixed and regression serially",
+  "computerRestarted": false,
+  "productionAccepted": false
+}
