@@ -1,0 +1,74 @@
+{
+  "recordedOn": "2026-11-08",
+  "status": "HISTORICAL_ATTEMPTS_NOT_ACCEPTANCE",
+  "productionAccepted": false,
+  "v1": {
+    "testSha256": "92f4f25226f2e927882fcccba1f21e2814d6896860a7fe2483c8e3528e617723",
+    "baselineTotals": {
+      "tests": 31,
+      "suites": 1,
+      "pass": 11,
+      "fail": 20,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "mfaMismatchStatuses": {
+      "201_vs_403": 7,
+      "204_vs_403": 8,
+      "404_vs_403": 4
+    },
+    "additionalFixtureError": "23505 invitations_open_uq while seeding accepted/revoked history as transient open rows",
+    "observedHead": "01bece7abbaa5b9cc7816ff81093208209be77bd",
+    "startedUtc": "2026-11-08T23:51:10.377Z",
+    "endedUtc": "2026-11-08T23:51:29.382Z",
+    "cleanupPassed": true,
+    "sourceUnchanged": true,
+    "correctedCandidateExecuted": false,
+    "artifacts": [
+      {
+        "id": "mfa-invitation-commands-baseline-qa-20261108/platform-mfa-invitation-commands.log",
+        "sha256": "b9298289bc6b03413caddfffb5d96b03c419bf0c696dc9bc612d6ce08b2ce538",
+        "bytes": 35804
+      },
+      {
+        "id": "mfa-invitation-commands-baseline-qa-20261108/mfa-directed-result.json",
+        "sha256": "00626d8cd847ad4fd4cdd41de6671e0bb258f4e3195cbe6e46d98a49247b7d18",
+        "bytes": 314427
+      },
+      {
+        "id": "mfa-invitation-commands-baseline-qa-20261108/mfa-directed-postchecks.json",
+        "sha256": "f0db009bd15750196e3d3b1010debad52ef58b17d33f1aaab25f1854216bf67a",
+        "bytes": 390
+      }
+    ]
+  },
+  "v2": {
+    "status": "PREPARED_ONLY_REJECTED_STATIC_ENCODING_REVIEW",
+    "reason": "Default Windows text decoding changed the mail subject assertion; detected by exact source diff before types or functional execution.",
+    "testSha256": "2bc586f8f881735866ca1ea0ff359cf563157f5e7400e682660bfaac11b002f8",
+    "prepared": [
+      {
+        "variant": "baseline",
+        "preparedSha256": "1d9a612ebf3a1fc143aae3bdfe8efe3b761ebf277e478dd326cb7a0e161feece",
+        "typesExecuted": false,
+        "functionalTestsExecuted": false
+      },
+      {
+        "variant": "fixed",
+        "preparedSha256": "a2fbc4895e37f46922af4868692fa763d05a9584ff4b288a932a6d92d25ef2fa",
+        "typesExecuted": false,
+        "functionalTestsExecuted": false
+      }
+    ]
+  },
+  "v3": {
+    "statusAtThisCheckpoint": "SOURCE_CORRECTED_TYPES_PASSED_FUNCTIONAL_PENDING",
+    "testSha256": "ad15fb185ec267cf557299186821ae314ba2ed8e1eabfb47f2ea27753b878827",
+    "changeFromV1": "Only fixture seed inserts closed rows already closed; original UTF-8 subject and all31 cases/expectations preserved.",
+    "productUnchangedSha256": "e9c9909630cee7a9fcfe5c46a9f1a805529cbfc107b7beadbfcfeaf8ba057963"
+  },
+  "computerRestarted": false,
+  "externalEmailSent": false,
+  "privateCredentialsPublished": false
+}

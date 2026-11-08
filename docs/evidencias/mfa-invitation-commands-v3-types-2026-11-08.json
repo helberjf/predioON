@@ -1,0 +1,51 @@
+{
+  "recordedOn": "2026-11-08",
+  "status": "TYPES_PASSED_FUNCTIONAL_NOT_YET_EXECUTED",
+  "sourceFiles": 1038,
+  "typeFiles": 34,
+  "requiredSources": 14,
+  "preparedPins": {
+    "baseline": "3b3d9e3892c6cb940665810800ec642da55978acbbec52fef212575abcda3485",
+    "fixed": "01551b135260dc4b7adfdda4f20ace7b9dd5e1cc468a2086c0fb773a0bb83172"
+  },
+  "phases": [
+    {
+      "variant": "baseline",
+      "phase": "resolve",
+      "resultPath": "mfa-invitation-commands-v3-baseline-qa-20261108/checks/resolve/result.json",
+      "sha256": "5b07a8eeffc61c1bc80eda0085469ca5e542c4926e602a36ff3c938c4e62526a",
+      "startedUtc": "2026-11-08T23:53:40.988Z",
+      "childExitedUtc": "2026-11-08T23:53:42.027Z",
+      "durationMs": 1039
+    },
+    {
+      "variant": "baseline",
+      "phase": "types",
+      "resultPath": "mfa-invitation-commands-v3-baseline-qa-20261108/checks/types/result.json",
+      "sha256": "217a0bce2bd53af544545aedc9be9dd4a68524f4df4fd7a9495d22cd6f1df774",
+      "startedUtc": "2026-11-08T23:53:43.858Z",
+      "childExitedUtc": "2026-11-08T23:53:53.020Z",
+      "durationMs": 9162
+    },
+    {
+      "variant": "fixed",
+      "phase": "resolve",
+      "resultPath": "mfa-invitation-commands-v3-fixed-qa-20261108/checks/resolve/result.json",
+      "sha256": "7fe027f2d3c9cd2da03d2067348b65e84045bb5bb5278c576e6e410b57abc527",
+      "startedUtc": "2026-11-08T23:54:02.095Z",
+      "childExitedUtc": "2026-11-08T23:54:03.120Z",
+      "durationMs": 1025
+    },
+    {
+      "variant": "fixed",
+      "phase": "types",
+      "resultPath": "mfa-invitation-commands-v3-fixed-qa-20261108/checks/types/result.json",
+      "sha256": "dff8705857028f9a7430c3ca99019eddc37b2d6dca68810b189152c6184db800",
+      "startedUtc": "2026-11-08T23:54:04.402Z",
+      "childExitedUtc": "2026-11-08T23:54:13.637Z",
+      "durationMs": 9235
+    }
+  ],
+  "functionalTestsExecuted": false,
+  "productionAccepted": false
+}

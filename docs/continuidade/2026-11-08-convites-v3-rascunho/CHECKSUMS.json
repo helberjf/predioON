@@ -1,0 +1,37 @@
+[
+  {
+    "path": ".gitattributes",
+    "sha256": "8b9c3028d6467ff3be7c793141927841d70f47f52d0590677438f488ca154992",
+    "bytes": 9
+  },
+  {
+    "path": "payload/apps/api/src/modules/tenancy/routes.ts.txt",
+    "sha256": "e9c9909630cee7a9fcfe5c46a9f1a805529cbfc107b7beadbfcfeaf8ba057963",
+    "bytes": 50790
+  },
+  {
+    "path": "payload/apps/api/test/platform-mfa-invitation-commands.test.ts.txt",
+    "sha256": "ad15fb185ec267cf557299186821ae314ba2ed8e1eabfb47f2ea27753b878827",
+    "bytes": 34051
+  },
+  {
+    "path": "PRODUCT-MANIFEST.json",
+    "sha256": "478e9bd57bae1888f781bf2a165d04db635bc3e286cd457226f144c5e6130bdc",
+    "bytes": 749
+  },
+  {
+    "path": "QA-PLAN.json",
+    "sha256": "87c1396f908a4719a3038ae79e96a3363fe2134fd463536bb67a597a22737bca",
+    "bytes": 5604
+  },
+  {
+    "path": "README.md",
+    "sha256": "c909ceced425422092d722df721f402ddf4d71013c6a0bda3e75b81ef62521d7",
+    "bytes": 4077
+  },
+  {
+    "path": "TEST-MANIFEST.json",
+    "sha256": "20f7d45df9e509512f6919c520f34855306fd35683952c8413994c0aca8e53a8",
+    "bytes": 6502
+  }
+]
