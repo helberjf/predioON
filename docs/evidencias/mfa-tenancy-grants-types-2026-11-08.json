@@ -1,0 +1,206 @@
+{
+  "recordedOn": "2026-11-08",
+  "status": "VERIFIED_TYPES_ONLY",
+  "sourceFiles": 1036,
+  "testFiles": 32,
+  "requiredSources": 14,
+  "preparedPins": {
+    "baseline": "ac768976c2a464a63fc05902ec7271ff82b09c955a238efd58880daa98418265",
+    "fixed": "f701467e1feeb849cd2eaf83aee4d4d91a15574a834bc019c6d26234d30730f9"
+  },
+  "sourceDifference": [
+    "apps/api/src/modules/tenancy/routes.ts"
+  ],
+  "typeChecks": [
+    {
+      "variant": "baseline",
+      "phase": "resolve",
+      "nativeResult": {
+        "variant": "baseline",
+        "phase": "resolve",
+        "startedUtc": "2026-11-08T22:54:50.186Z",
+        "childExitedUtc": "2026-11-08T22:54:51.738Z",
+        "childDurationMs": 1552,
+        "exitCode": 0,
+        "signal": null,
+        "errorCode": null,
+        "timedOut": false,
+        "drainTimedOut": false,
+        "exitObserved": true,
+        "deadlineMs": 60000,
+        "freeMiB": 4981,
+        "preparedSha256": "ac768976c2a464a63fc05902ec7271ff82b09c955a238efd58880daa98418265",
+        "before": {
+          "source": true,
+          "candidate": true,
+          "config": true,
+          "prepared": true,
+          "junctions": true
+        },
+        "after": {
+          "source": true,
+          "candidate": true,
+          "config": true,
+          "prepared": true,
+          "junctions": true
+        },
+        "resolved": {
+          "requiredSourcesCount": 14,
+          "mfaReadListed": true,
+          "requiredSourcesListed": true,
+          "allTestsListed": true,
+          "originalWorkspacePaths": []
+        },
+        "passed": true,
+        "heartbeatCount": 0,
+        "maxTickGapMs": 0,
+        "stdoutSha256": "6f81ec343361569679b380a724eface32d4975ce353505530554e8cfd9092288",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "harnessFinishedUtc": "2026-11-08T22:54:52.070Z",
+        "database": false,
+        "tests": false
+      },
+      "sha256": "db6f13b41fe76515cb79eb843ddafe677ed67c4a35dc7faa2cc3268702ee891e"
+    },
+    {
+      "variant": "baseline",
+      "phase": "types",
+      "nativeResult": {
+        "variant": "baseline",
+        "phase": "types",
+        "startedUtc": "2026-11-08T22:54:52.565Z",
+        "childExitedUtc": "2026-11-08T22:55:01.273Z",
+        "childDurationMs": 8708,
+        "exitCode": 0,
+        "signal": null,
+        "errorCode": null,
+        "timedOut": false,
+        "drainTimedOut": false,
+        "exitObserved": true,
+        "deadlineMs": 300000,
+        "freeMiB": 4959,
+        "preparedSha256": "ac768976c2a464a63fc05902ec7271ff82b09c955a238efd58880daa98418265",
+        "before": {
+          "source": true,
+          "candidate": true,
+          "config": true,
+          "prepared": true,
+          "junctions": true
+        },
+        "after": {
+          "source": true,
+          "candidate": true,
+          "config": true,
+          "prepared": true,
+          "junctions": true
+        },
+        "resolved": null,
+        "passed": true,
+        "heartbeatCount": 1,
+        "maxTickGapMs": 5016,
+        "stdoutSha256": "54576956e1e3c5956c8624d00f8288d82ef7c6d8982594ecd26df8e8198c39b6",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "harnessFinishedUtc": "2026-11-08T22:55:01.612Z",
+        "database": false,
+        "tests": false
+      },
+      "sha256": "ccda5174d709e3674bee024fb603957baf553e1b0f7f3663be62e1c781bd832e"
+    },
+    {
+      "variant": "fixed",
+      "phase": "resolve",
+      "nativeResult": {
+        "variant": "fixed",
+        "phase": "resolve",
+        "startedUtc": "2026-11-08T22:55:02.113Z",
+        "childExitedUtc": "2026-11-08T22:55:03.222Z",
+        "childDurationMs": 1109,
+        "exitCode": 0,
+        "signal": null,
+        "errorCode": null,
+        "timedOut": false,
+        "drainTimedOut": false,
+        "exitObserved": true,
+        "deadlineMs": 60000,
+        "freeMiB": 4958,
+        "preparedSha256": "f701467e1feeb849cd2eaf83aee4d4d91a15574a834bc019c6d26234d30730f9",
+        "before": {
+          "source": true,
+          "candidate": true,
+          "config": true,
+          "prepared": true,
+          "junctions": true
+        },
+        "after": {
+          "source": true,
+          "candidate": true,
+          "config": true,
+          "prepared": true,
+          "junctions": true
+        },
+        "resolved": {
+          "requiredSourcesCount": 14,
+          "mfaReadListed": true,
+          "requiredSourcesListed": true,
+          "allTestsListed": true,
+          "originalWorkspacePaths": []
+        },
+        "passed": true,
+        "heartbeatCount": 0,
+        "maxTickGapMs": 0,
+        "stdoutSha256": "9170686917a6648f5ce40d844b05d9aedd8d26165582d097c1d7cd229afe6827",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "harnessFinishedUtc": "2026-11-08T22:55:03.562Z",
+        "database": false,
+        "tests": false
+      },
+      "sha256": "548079c6c9c237acfba10dcdf48804ae6a95653c74aa021d3f4123a3b6289d77"
+    },
+    {
+      "variant": "fixed",
+      "phase": "types",
+      "nativeResult": {
+        "variant": "fixed",
+        "phase": "types",
+        "startedUtc": "2026-11-08T22:55:04.025Z",
+        "childExitedUtc": "2026-11-08T22:55:12.810Z",
+        "childDurationMs": 8785,
+        "exitCode": 0,
+        "signal": null,
+        "errorCode": null,
+        "timedOut": false,
+        "drainTimedOut": false,
+        "exitObserved": true,
+        "deadlineMs": 300000,
+        "freeMiB": 5003,
+        "preparedSha256": "f701467e1feeb849cd2eaf83aee4d4d91a15574a834bc019c6d26234d30730f9",
+        "before": {
+          "source": true,
+          "candidate": true,
+          "config": true,
+          "prepared": true,
+          "junctions": true
+        },
+        "after": {
+          "source": true,
+          "candidate": true,
+          "config": true,
+          "prepared": true,
+          "junctions": true
+        },
+        "resolved": null,
+        "passed": true,
+        "heartbeatCount": 1,
+        "maxTickGapMs": 5017,
+        "stdoutSha256": "efaa1e744750015e0f3cf21e98fa730d54a0b69d006b6fce933d5ae7b20f246e",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "harnessFinishedUtc": "2026-11-08T22:55:13.179Z",
+        "database": false,
+        "tests": false
+      },
+      "sha256": "0c8b1b4e35c5af0d617f6d3242c0910e6475f86a855b0aa7005c300cdc5a3837"
+    }
+  ],
+  "functionalTestsExecuted": false,
+  "productionAccepted": false
+}

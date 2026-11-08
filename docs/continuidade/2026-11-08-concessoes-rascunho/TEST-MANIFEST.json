@@ -1,0 +1,114 @@
+{
+  "version": 1,
+  "format": "new-test-v1",
+  "status": "AUTHORED_NOT_EXECUTED",
+  "recordedOn": "2026-11-08",
+  "baseExaminedPreparedSha256": "ce90003f2777c890195c814b6560f0ca26edb2989f1770a2c4aabea8939d54ff",
+  "files": [
+    {
+      "path": "apps/api/test/platform-mfa-tenancy-grants.test.ts",
+      "sha256": "137788364b48047a2ddcb46747e06564ba05873df14e97b00435b4936326c543",
+      "bytes": 30862,
+      "cases": 17
+    }
+  ],
+  "caseDispositions": [
+    {
+      "name": "unit-memberships: rejects factor removal after real manage authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "unit-memberships: rejects family proof removal after real manage authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "unit-memberships: preserves full201 DTO and defaults for an optional local manager",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "unit-memberships: preserves full201 DTO and defaults for a satisfied administrator",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "role-bindings: rejects factor removal after real manage authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "role-bindings: rejects family proof removal after real manage authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "role-bindings: preserves full201 DTO and defaults for an optional local manager",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "role-bindings: preserves full201 DTO and defaults for a satisfied administrator",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "requires explicit local management and preserves tenant scope",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "preserves foreign keys for recipient and scoped unit or team",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "preserves strict grant validation without granting platform roles or accepting a forged grantor",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "accepts explicit null dates and a team recipient without changing the original DTO",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "preserves repeated grants as distinct rows instead of inventing uniqueness",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "preserves password recency only for role grants and renews only the verified MFA session",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "preserves delegation RLS after memberships management has genuinely passed",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "unit-memberships: rolls grant audit and family proof back after the narrow audit trigger",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "role-bindings: rolls grant audit and family proof back after the narrow audit trigger",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    }
+  ],
+  "baselineExpectedPass": 11,
+  "baselineExpectedFail": 6,
+  "fixedExpectedPass": 17,
+  "independentCases": 17,
+  "parentGroups": 0,
+  "runtimeExecuted": false
+}
