@@ -1,0 +1,295 @@
+{
+  "recordedOn": "2026-11-09",
+  "timeZone": "America/Sao_Paulo",
+  "status": "VERIFIED",
+  "verifierSha256": "a597c598251a97a0e05f5a9bcc51c6c73e4c35776ecd92106b75cd29cdde360d",
+  "reviewedByRoot": true,
+  "sourceFiles": 1051,
+  "typeFiles": 50,
+  "requiredResolvedSources": 15,
+  "runtimeProductModified": false,
+  "existingTestsChanged": false,
+  "changedSources": [
+    "apps/api/test/platform-mfa-organization-boundaries.test.ts"
+  ],
+  "parentPreparedSha256": "8d4044f0769a41e2389d4b2f60c089a48d6e17568b6d6ffcef8f129d704826f1",
+  "preparedSha256": "962cace5f3801a98a9dcc8f1eb968d0d4424ff1f3ecffe1b6e11bca8329f3688",
+  "observedHead": "d4abfd4d1b367018fbd469df6786e8620b0d946e",
+  "acceptedCounts": {
+    "tap": 36,
+    "independentCases": 36,
+    "parentGroups": 0,
+    "suites": 1
+  },
+  "totals": {
+    "tests": 36,
+    "suites": 1,
+    "pass": 36,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "cases": [
+    "POST promotion flag no-factor success: same SID requires MFA and recovers",
+    "POST promotion flag no-factor conflict: same SID requires MFA and recovers",
+    "POST promotion flag unproved-factor success: same SID requires MFA and recovers",
+    "POST promotion flag unproved-factor conflict: same SID requires MFA and recovers",
+    "POST promotion binding no-factor success: same SID requires MFA and recovers",
+    "POST promotion binding no-factor conflict: same SID requires MFA and recovers",
+    "POST promotion binding unproved-factor success: same SID requires MFA and recovers",
+    "POST promotion binding unproved-factor conflict: same SID requires MFA and recovers",
+    "PATCH promotion flag no-factor success: same SID requires MFA and recovers",
+    "PATCH promotion flag no-factor conflict: same SID requires MFA and recovers",
+    "PATCH promotion flag unproved-factor success: same SID requires MFA and recovers",
+    "PATCH promotion flag unproved-factor conflict: same SID requires MFA and recovers",
+    "PATCH promotion binding no-factor success: same SID requires MFA and recovers",
+    "PATCH promotion binding no-factor conflict: same SID requires MFA and recovers",
+    "PATCH promotion binding unproved-factor success: same SID requires MFA and recovers",
+    "PATCH promotion binding unproved-factor conflict: same SID requires MFA and recovers",
+    "POST conflict wait: external flag revocation denies access with intact MFA",
+    "POST conflict wait: external binding revocation denies access with intact MFA",
+    "PATCH conflict wait: external flag revocation denies access with intact MFA",
+    "PATCH conflict wait: external binding revocation denies access with intact MFA",
+    "POST write trigger proof: rolls back business audit and identity",
+    "POST write trigger factor: rolls back business audit and identity",
+    "POST write trigger authority: rolls back business audit and identity",
+    "POST write trigger exception: rolls back business audit and identity",
+    "POST audit trigger proof: rolls back business audit and identity",
+    "POST audit trigger factor: rolls back business audit and identity",
+    "POST audit trigger authority: rolls back business audit and identity",
+    "POST audit trigger exception: rolls back business audit and identity",
+    "PATCH write trigger proof: rolls back business audit and identity",
+    "PATCH write trigger factor: rolls back business audit and identity",
+    "PATCH write trigger authority: rolls back business audit and identity",
+    "PATCH write trigger exception: rolls back business audit and identity",
+    "PATCH audit trigger proof: rolls back business audit and identity",
+    "PATCH audit trigger factor: rolls back business audit and identity",
+    "PATCH audit trigger authority: rolls back business audit and identity",
+    "PATCH audit trigger exception: rolls back business audit and identity"
+  ],
+  "typeChecks": [
+    {
+      "phase": "resolve",
+      "result": {
+        "id": "mfa-organization-boundaries-fixed-qa-20261109/checks/resolve/result.json",
+        "sha256": "9ce172e3e247c0975e632d4da52de6dd089369c0148c434a6e18c19488c07e23",
+        "bytes": 1175
+      },
+      "startedUtc": "2026-11-09T13:59:25.545Z",
+      "childExitedUtc": "2026-11-09T13:59:28.842Z"
+    },
+    {
+      "phase": "types",
+      "result": {
+        "id": "mfa-organization-boundaries-fixed-qa-20261109/checks/types/result.json",
+        "sha256": "23700ff41674b38c5fe049609313e3c8a836599d8579e56528ac7ac8b72f28b8",
+        "bytes": 1022
+      },
+      "startedUtc": "2026-11-09T13:59:31.400Z",
+      "childExitedUtc": "2026-11-09T13:59:56.542Z"
+    }
+  ],
+  "startedUtc": "2026-11-09T14:01:14.869Z",
+  "endedUtc": "2026-11-09T14:01:50.887Z",
+  "freeMiBAtStart": 2413.0,
+  "cleanupPassed": true,
+  "temporarySystemActivityGuard": {
+    "startedUtc": "2026-11-09T14:01:06.5841252Z",
+    "endedUtc": "2026-11-09T14:01:51.9359665Z",
+    "exitCode": 0,
+    "systemRequiredSet": true,
+    "systemRequiredCleared": true,
+    "displayRequired": false,
+    "awayMode": false,
+    "permanentPowerSettingsChanged": false,
+    "computerRestarted": false
+  },
+  "inputs": [
+    {
+      "id": "mfa-organization-boundaries-harness-20261109/prepare-organization-boundaries.mjs",
+      "sha256": "46eca2c1d4b796e224e2ef2f7a82314131a99fcd6cbfca199101d3dd8f031b1e",
+      "bytes": 12639
+    },
+    {
+      "id": "mfa-organization-boundaries-harness-20261109/run-types.mjs",
+      "sha256": "acf345a7778320e3a6b599b68a4ba802a7fbada61444de30b8df5696f5ec1d84",
+      "bytes": 14163
+    },
+    {
+      "id": "mfa-organization-boundaries-harness-20261109/fixed-recipe.json",
+      "sha256": "6591fbe6c92620ca9db64f68c5ea2dc6b53508544d0e85bdd3baa616426affcf",
+      "bytes": 13475
+    },
+    {
+      "id": "mfa-organization-boundaries-harness-20261109/fixed-prepare-result.json",
+      "sha256": "c94cf0d7c82482fb4f9f03a16d6160846982eba7ded6858a58532a66090b4b60",
+      "bytes": 166
+    },
+    {
+      "id": "mfa-organization-boundaries-harness-20261109/fixed-prepare-guard.json",
+      "sha256": "9e326cb9a4a33641588109bbe327543bced638dd942c882fb6293fccdc0497ed",
+      "bytes": 91
+    },
+    {
+      "id": "mfa-organization-boundaries-harness-20261109/fixed-prepare.stdout.txt",
+      "sha256": "a3ac0faf29cc2bc5172cdd086e944eeb7e24a7f176c3683dcd41dc215c48b465",
+      "bytes": 243
+    },
+    {
+      "id": "mfa-organization-boundaries-harness-20261109/fixed-prepare.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-organization-boundaries-fixed-qa-20261109/checks/resolve/stdout.log",
+      "sha256": "af64ca77cebd6041f9a52c34ba23b2a1ad22927ca3c9458d98e7987added1d20",
+      "bytes": 168963
+    },
+    {
+      "id": "mfa-organization-boundaries-fixed-qa-20261109/checks/resolve/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-organization-boundaries-fixed-qa-20261109/checks/resolve/result.json",
+      "sha256": "9ce172e3e247c0975e632d4da52de6dd089369c0148c434a6e18c19488c07e23",
+      "bytes": 1175
+    },
+    {
+      "id": "mfa-organization-boundaries-fixed-qa-20261109/checks/resolve/command.json",
+      "sha256": "049e4c6105057affb570c8a2b9061d622e6edd7fe122bc6f5bfba90c1fd7fe0a",
+      "bytes": 957
+    },
+    {
+      "id": "mfa-organization-boundaries-fixed-qa-20261109/checks/resolve/guard.json",
+      "sha256": "7ba15aa81b8b8aa608f9cb2577839779e484d83ff38ad8c2bcf53683da31c269",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-organization-boundaries-fixed-qa-20261109/checks/types/stdout.log",
+      "sha256": "3296ea5c6982579518227a5d146cec17e1d2ead65fd924ec542b6b283edeb597",
+      "bytes": 972
+    },
+    {
+      "id": "mfa-organization-boundaries-fixed-qa-20261109/checks/types/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-organization-boundaries-fixed-qa-20261109/checks/types/result.json",
+      "sha256": "23700ff41674b38c5fe049609313e3c8a836599d8579e56528ac7ac8b72f28b8",
+      "bytes": 1022
+    },
+    {
+      "id": "mfa-organization-boundaries-fixed-qa-20261109/checks/types/command.json",
+      "sha256": "d3abb73e24e51178fb057f1676c9bbbd31be3b5756922ddefc5acae70d5767a9",
+      "bytes": 962
+    },
+    {
+      "id": "mfa-organization-boundaries-fixed-qa-20261109/checks/types/guard.json",
+      "sha256": "a82f1bcb3c32efc708f0e443236511808719811422fadb7e921e710ef406b11c",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-organization-boundaries-fixed-qa-20261109/run-mfa-directed.mjs",
+      "sha256": "5e36d643b2e207c8c9a02a9cdac0cd149c727d4f2ea5d4341176c38785bda723",
+      "bytes": 13944
+    },
+    {
+      "id": "mfa-organization-boundaries-fixed-qa-20261109/launch-mfa-directed.ps1",
+      "sha256": "83d3ecb93ae1b08f731a7e0ddae1532f154e5d8d5249c87136631ad88758aac0",
+      "bytes": 13047
+    },
+    {
+      "id": "run-organization-boundaries-awake-20261109.ps1",
+      "sha256": "67e89a4259ab6ceb729c5c4adda860d1ddf6a48c43ae1bb9b5e2ce9276517265",
+      "bytes": 1670
+    },
+    {
+      "id": "mfa-grants-root-attestation-20261108.json",
+      "sha256": "9d43fe8e98ce5e11a26e7e943fb465a96f24a4c14368bbdab5712e5282cb426e",
+      "bytes": 664
+    },
+    {
+      "id": "mfa-organization-boundaries-fixed-qa-20261109/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-organization-boundaries-fixed-qa-20261109/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-organization-boundaries-fixed-qa-20261109/platform-mfa-organization-boundaries.log",
+      "sha256": "1c7edfa766a6dc6f71e524bac12122777ed1a63577174d149cff291ea5c7b6b1",
+      "bytes": 9057
+    },
+    {
+      "id": "mfa-organization-boundaries-harness-20261109/PLAN.json",
+      "sha256": "dd3fdd9897cfa19df96b3f24bda8e890408ed126110a46dfb6ab6b59cd0f63bf",
+      "bytes": 4343
+    },
+    {
+      "id": "mfa-organization-boundaries-harness-20261109/AUTHORED-PINS.json",
+      "sha256": "22705f9e3f56b5ef6f19d86234bcb24cd432d19de5e36a6543e068521e29b549",
+      "bytes": 479
+    },
+    {
+      "id": "mfa-organization-boundaries-harness-20261109/executors-handoff.json",
+      "sha256": "44a1d97ebe6113786dde7eadbc706ae91e3e5fc39716acb55392edc20e4d7456",
+      "bytes": 1773
+    },
+    {
+      "id": "mfa-organization-boundaries-test-20261109/manifest.json",
+      "sha256": "caa91bc7e6fc1d518e781ef2aeb820035108c72e6c021956c99058db0c20c06b",
+      "bytes": 3454
+    },
+    {
+      "id": "mfa-organization-boundaries-fixed-qa-20261109/prepared.json",
+      "sha256": "962cace5f3801a98a9dcc8f1eb968d0d4424ff1f3ecffe1b6e11bca8329f3688",
+      "bytes": 917210
+    },
+    {
+      "id": "mfa-organization-waits-fixed-qa-20261109/prepared.json",
+      "sha256": "8d4044f0769a41e2389d4b2f60c089a48d6e17568b6d6ffcef8f129d704826f1",
+      "bytes": 915808
+    },
+    {
+      "id": "mfa-organization-boundaries-fixed-qa-20261109/tsconfig.test.json",
+      "sha256": "b850f49630223ed7e55332f6bb6b9ba18d50d969b44231821d0fd03a28c35538",
+      "bytes": 3368
+    },
+    {
+      "id": "mfa-organization-boundaries-fixed-qa-20261109/mfa-directed-result.json",
+      "sha256": "263adecbccca683ab8876453dcf1084e5e477662ae0e0ef806de43a6021d4a32",
+      "bytes": 316747
+    },
+    {
+      "id": "mfa-organization-boundaries-fixed-qa-20261109/mfa-directed-postchecks.json",
+      "sha256": "57cdbfd182c9f78f79d4a56d26dde8203d4fd64c0eed321657c93ed701d73504",
+      "bytes": 390
+    },
+    {
+      "id": "mfa-organization-boundaries-fixed-qa-20261109/owned-database.json",
+      "sha256": "18a4694763ed4550c2dfc92e0cd05f6ca0850ca02a9e3617050f60d72b91f183",
+      "bytes": 88
+    },
+    {
+      "id": "mfa-organization-boundaries-fixed-qa-20261109/awake-guard.json",
+      "sha256": "935d866ab59f3259bc86f0a82c0021948f83f1ea067816ef2ec1e0492f800383",
+      "bytes": 308
+    }
+  ],
+  "scopeLimits": [
+    "One new36-case file; all1050 parent sources, product and previous tests preserved. No baseline comparison claimed for this test-only layer.",
+    "Sixteen ordinary local managers promoted by flag or global binding after real context SQL; no factor or unproved factor, success/conflict intents, both POST/PATCH. Same bearer/SID recovers using real enrollment/TOTP or one-use recovery code, then full original DTO/storage/audit or409 followed by success.",
+    "Four actual unique-index waits remove flag/global binding with MFA intact. Exact blocking owner observed and negative identity commit atomic with release. Only the externally committed competitor persists; command/audit remain unchanged.",
+    "Sixteen narrow AFTER triggers run after actual organization write or audit; proof/factor/binding loss or exception. Sequence witness verifies one invocation even after rollback. All organizations, domain audits, proof and hashed full factor/recovery state, bindings/flag restored. Temporary owner functions have restricted search_path and public EXECUTE revoked; catalog restored.",
+    "Earlier81 accepted cases remain separately evidenced and are not repeated or summed. Remaining domains, private cache, complete API/ingest and browser/native/hardware/operations acceptance remain pending. MFA068 candidate, main001-067 unchanged; no production or performance acceptance."
+  ],
+  "computerRestarted": false,
+  "performanceAssessed": false,
+  "productionAccepted": false
+}

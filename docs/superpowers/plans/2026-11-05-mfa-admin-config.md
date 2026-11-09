@@ -1,5 +1,7 @@
 # ADMIN/CONFIG: três ações comuns, sem 174 guards individuais
 
+**Atualização de 09/11 — limites de organizações:** [36 verificações aprovadas](../../evidencias/mfa-organization-boundaries-2026-11-09.json), sem mudar o produto. [Resultado](../../continuidade/2026-11-09-limites-organizacoes/RESULTADO.md). Promoção, revogação durante conflito e reversão após falhas cobertas; seguir condomínios/equipamentos.
+
 **Atualização de 09/11 — organizações concorrentes:** [15 dirigidos + 66 regressões aprovados](../../evidencias/mfa-organization-waits-2026-11-09.json); conflito após espera agora exige MFA/capacidades atuais. [Resultado](../../continuidade/2026-11-09-organizacoes-concorrentes/RESULTADO.md). Seguir promoção/triggers e demais domínios.
 
 **Atualização de 09/11 — legado de organizações:** [19 verificações existentes passaram](../../evidencias/mfa-organization-legacy-2026-11-09.json) com fixture de MFA real e mesmo SID nos acessos HTTP/SQL; todo o conteúdo dos testes e produto preservados. [Resultado](../../continuidade/2026-11-09-organizacoes-legado/RESULTADO.md). Seguir esperas MFA, promoção/triggers e demais domínios.

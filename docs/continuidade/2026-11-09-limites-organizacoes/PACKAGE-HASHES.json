@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "recordedOn": "2026-11-09",
+  "status": "SOURCE_PACKAGE_NOT_RUNTIME_ACCEPTANCE",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+      "bytes": 8
+    },
+    {
+      "path": "apply-organization-boundaries.mjs",
+      "sha256": "ac419b68d6b817b2575489a08ddde0095bc4ff9bfe74a2e219c9becd5b77ec73",
+      "bytes": 7378
+    },
+    {
+      "path": "MANIFEST.json",
+      "sha256": "06ade7159227093f84850d93e8b0dbe6c3e99e8e67575c67847abe2e7a7170c4",
+      "bytes": 390416
+    },
+    {
+      "path": "payload/apps/api/test/platform-mfa-organization-boundaries.test.ts.txt",
+      "sha256": "72669c897fe8c524528088acf3ee1448e44f8fc9745e3aa3687ac51737e14b98",
+      "bytes": 28466
+    },
+    {
+      "path": "README.md",
+      "sha256": "c891df8ebe829515f6e10af5d48bdf0d6a125e9aa9c9245325723b7b1486130f",
+      "bytes": 1519
+    }
+  ]
+}

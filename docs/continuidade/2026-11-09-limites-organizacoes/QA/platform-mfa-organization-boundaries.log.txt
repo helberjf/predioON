@@ -1,0 +1,233 @@
+TAP version 13
+# Subtest: MFA organization promotion, authority conflict waits and transactional faults
+    # Subtest: POST promotion flag no-factor success: same SID requires MFA and recovers
+    ok 1 - POST promotion flag no-factor success: same SID requires MFA and recovers
+      ---
+      duration_ms: 824.4447
+      type: 'test'
+      ...
+    # Subtest: POST promotion flag no-factor conflict: same SID requires MFA and recovers
+    ok 2 - POST promotion flag no-factor conflict: same SID requires MFA and recovers
+      ---
+      duration_ms: 631.8597
+      type: 'test'
+      ...
+    # Subtest: POST promotion flag unproved-factor success: same SID requires MFA and recovers
+    ok 3 - POST promotion flag unproved-factor success: same SID requires MFA and recovers
+      ---
+      duration_ms: 660.238
+      type: 'test'
+      ...
+    # Subtest: POST promotion flag unproved-factor conflict: same SID requires MFA and recovers
+    ok 4 - POST promotion flag unproved-factor conflict: same SID requires MFA and recovers
+      ---
+      duration_ms: 728.5783
+      type: 'test'
+      ...
+    # Subtest: POST promotion binding no-factor success: same SID requires MFA and recovers
+    ok 5 - POST promotion binding no-factor success: same SID requires MFA and recovers
+      ---
+      duration_ms: 572.3503
+      type: 'test'
+      ...
+    # Subtest: POST promotion binding no-factor conflict: same SID requires MFA and recovers
+    ok 6 - POST promotion binding no-factor conflict: same SID requires MFA and recovers
+      ---
+      duration_ms: 660.5028
+      type: 'test'
+      ...
+    # Subtest: POST promotion binding unproved-factor success: same SID requires MFA and recovers
+    ok 7 - POST promotion binding unproved-factor success: same SID requires MFA and recovers
+      ---
+      duration_ms: 686.9086
+      type: 'test'
+      ...
+    # Subtest: POST promotion binding unproved-factor conflict: same SID requires MFA and recovers
+    ok 8 - POST promotion binding unproved-factor conflict: same SID requires MFA and recovers
+      ---
+      duration_ms: 763.8953
+      type: 'test'
+      ...
+    # Subtest: PATCH promotion flag no-factor success: same SID requires MFA and recovers
+    ok 9 - PATCH promotion flag no-factor success: same SID requires MFA and recovers
+      ---
+      duration_ms: 660.8089
+      type: 'test'
+      ...
+    # Subtest: PATCH promotion flag no-factor conflict: same SID requires MFA and recovers
+    ok 10 - PATCH promotion flag no-factor conflict: same SID requires MFA and recovers
+      ---
+      duration_ms: 652.159
+      type: 'test'
+      ...
+    # Subtest: PATCH promotion flag unproved-factor success: same SID requires MFA and recovers
+    ok 11 - PATCH promotion flag unproved-factor success: same SID requires MFA and recovers
+      ---
+      duration_ms: 676.9016
+      type: 'test'
+      ...
+    # Subtest: PATCH promotion flag unproved-factor conflict: same SID requires MFA and recovers
+    ok 12 - PATCH promotion flag unproved-factor conflict: same SID requires MFA and recovers
+      ---
+      duration_ms: 823.4063
+      type: 'test'
+      ...
+    # Subtest: PATCH promotion binding no-factor success: same SID requires MFA and recovers
+    ok 13 - PATCH promotion binding no-factor success: same SID requires MFA and recovers
+      ---
+      duration_ms: 612.7915
+      type: 'test'
+      ...
+    # Subtest: PATCH promotion binding no-factor conflict: same SID requires MFA and recovers
+    ok 14 - PATCH promotion binding no-factor conflict: same SID requires MFA and recovers
+      ---
+      duration_ms: 695.0049
+      type: 'test'
+      ...
+    # Subtest: PATCH promotion binding unproved-factor success: same SID requires MFA and recovers
+    ok 15 - PATCH promotion binding unproved-factor success: same SID requires MFA and recovers
+      ---
+      duration_ms: 991.6528
+      type: 'test'
+      ...
+    # Subtest: PATCH promotion binding unproved-factor conflict: same SID requires MFA and recovers
+    ok 16 - PATCH promotion binding unproved-factor conflict: same SID requires MFA and recovers
+      ---
+      duration_ms: 837.8052
+      type: 'test'
+      ...
+    # Subtest: POST conflict wait: external flag revocation denies access with intact MFA
+    ok 17 - POST conflict wait: external flag revocation denies access with intact MFA
+      ---
+      duration_ms: 429.6688
+      type: 'test'
+      ...
+    # Subtest: POST conflict wait: external binding revocation denies access with intact MFA
+    ok 18 - POST conflict wait: external binding revocation denies access with intact MFA
+      ---
+      duration_ms: 452.6045
+      type: 'test'
+      ...
+    # Subtest: PATCH conflict wait: external flag revocation denies access with intact MFA
+    ok 19 - PATCH conflict wait: external flag revocation denies access with intact MFA
+      ---
+      duration_ms: 427.2363
+      type: 'test'
+      ...
+    # Subtest: PATCH conflict wait: external binding revocation denies access with intact MFA
+    ok 20 - PATCH conflict wait: external binding revocation denies access with intact MFA
+      ---
+      duration_ms: 447.212
+      type: 'test'
+      ...
+    # Subtest: POST write trigger proof: rolls back business audit and identity
+    ok 21 - POST write trigger proof: rolls back business audit and identity
+      ---
+      duration_ms: 432.1783
+      type: 'test'
+      ...
+    # Subtest: POST write trigger factor: rolls back business audit and identity
+    ok 22 - POST write trigger factor: rolls back business audit and identity
+      ---
+      duration_ms: 486.563
+      type: 'test'
+      ...
+    # Subtest: POST write trigger authority: rolls back business audit and identity
+    ok 23 - POST write trigger authority: rolls back business audit and identity
+      ---
+      duration_ms: 464.8833
+      type: 'test'
+      ...
+    # Subtest: POST write trigger exception: rolls back business audit and identity
+    ok 24 - POST write trigger exception: rolls back business audit and identity
+      ---
+      duration_ms: 410.0918
+      type: 'test'
+      ...
+    # Subtest: POST audit trigger proof: rolls back business audit and identity
+    ok 25 - POST audit trigger proof: rolls back business audit and identity
+      ---
+      duration_ms: 473.9684
+      type: 'test'
+      ...
+    # Subtest: POST audit trigger factor: rolls back business audit and identity
+    ok 26 - POST audit trigger factor: rolls back business audit and identity
+      ---
+      duration_ms: 478.1375
+      type: 'test'
+      ...
+    # Subtest: POST audit trigger authority: rolls back business audit and identity
+    ok 27 - POST audit trigger authority: rolls back business audit and identity
+      ---
+      duration_ms: 493.2961
+      type: 'test'
+      ...
+    # Subtest: POST audit trigger exception: rolls back business audit and identity
+    ok 28 - POST audit trigger exception: rolls back business audit and identity
+      ---
+      duration_ms: 462.3466
+      type: 'test'
+      ...
+    # Subtest: PATCH write trigger proof: rolls back business audit and identity
+    ok 29 - PATCH write trigger proof: rolls back business audit and identity
+      ---
+      duration_ms: 513.659
+      type: 'test'
+      ...
+    # Subtest: PATCH write trigger factor: rolls back business audit and identity
+    ok 30 - PATCH write trigger factor: rolls back business audit and identity
+      ---
+      duration_ms: 462.8169
+      type: 'test'
+      ...
+    # Subtest: PATCH write trigger authority: rolls back business audit and identity
+    ok 31 - PATCH write trigger authority: rolls back business audit and identity
+      ---
+      duration_ms: 485.3641
+      type: 'test'
+      ...
+    # Subtest: PATCH write trigger exception: rolls back business audit and identity
+    ok 32 - PATCH write trigger exception: rolls back business audit and identity
+      ---
+      duration_ms: 515.8005
+      type: 'test'
+      ...
+    # Subtest: PATCH audit trigger proof: rolls back business audit and identity
+    ok 33 - PATCH audit trigger proof: rolls back business audit and identity
+      ---
+      duration_ms: 526.4906
+      type: 'test'
+      ...
+    # Subtest: PATCH audit trigger factor: rolls back business audit and identity
+    ok 34 - PATCH audit trigger factor: rolls back business audit and identity
+      ---
+      duration_ms: 499.6132
+      type: 'test'
+      ...
+    # Subtest: PATCH audit trigger authority: rolls back business audit and identity
+    ok 35 - PATCH audit trigger authority: rolls back business audit and identity
+      ---
+      duration_ms: 529.3441
+      type: 'test'
+      ...
+    # Subtest: PATCH audit trigger exception: rolls back business audit and identity
+    ok 36 - PATCH audit trigger exception: rolls back business audit and identity
+      ---
+      duration_ms: 543.2605
+      type: 'test'
+      ...
+    1..36
+ok 1 - MFA organization promotion, authority conflict waits and transactional faults
+  ---
+  duration_ms: 21445.3216
+  type: 'suite'
+  ...
+1..1
+# tests 36
+# suites 1
+# pass 36
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 24525.0242
