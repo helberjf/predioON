@@ -1,5 +1,7 @@
 # ADMIN/CONFIG: três ações comuns, sem 174 guards individuais
 
+**Atualização de 09/11 — revogação por outra conexão:** [24 casos de espera real passaram](../../evidencias/mfa-feature-transition-waits-2026-11-09.json), dois escopos/quatro efeitos/três retiradas de identidade. A API reverte dados e a revogação externa permanece confirmada. Produto preservado; faltam alvo ausente/promoção e demais integrações. [Resultado](../../continuidade/2026-11-09-transicoes-concorrentes/RESULTADO.md).
+
 **Atualização de 09/11 — rollback de transições aprovado:** [32 casos passaram na V3](../../evidencias/mfa-feature-transition-2026-11-09.json), com produto e testes anteriores preservados. Prova/fator/vínculo global e exceções durante consumo, portão e entrega durável; reversão integral comprovada nos dois escopos. O checkpoint pendente abaixo foi concluído; faltam alvo ausente/promoção, corridas de outro cliente e integração completa. [Resultado](../../continuidade/2026-11-09-transicoes/RESULTADO.md).
 
 **Checkpoint de 09/11 antes da pausa:** [32 testes negativos de transição preservados](../../continuidade/2026-11-09-transicoes-rascunho/README.md), sem execução funcional. Resolução passou; tipos, banco e classificação dos resultados pendentes. Retomar antes dos demais complementos.

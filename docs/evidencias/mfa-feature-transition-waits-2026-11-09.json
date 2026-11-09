@@ -1,0 +1,284 @@
+{
+  "recordedOn": "2026-11-09",
+  "timeZone": "America/Sao_Paulo",
+  "status": "VERIFIED",
+  "verifierSha256": "f62f8b6dc5f472d977d205ff40c5a190e09b6d400a43e5639c37aa69c1541e33",
+  "reviewedByRoot": true,
+  "sourceFiles": 1047,
+  "typeFiles": 44,
+  "requiredResolvedSources": 14,
+  "runtimeProductModified": false,
+  "existingTestsChanged": false,
+  "changedSources": [
+    "apps/api/test/platform-mfa-feature-transition-waits.test.ts"
+  ],
+  "parentPreparedSha256": "31fecc8ed939cb832769132ba4de417280c5f5cd38d8cbb64127d397f2cbe2e6",
+  "preparedSha256": "ed84de87c330b2a4cb0ee1140bf52cddfde2a7352e9bf204d9a71920c71a8578",
+  "observedHead": "2606d75ab1d4ba10c6a8ba6266d0a4106ecec204",
+  "acceptedCounts": {
+    "tap": 24,
+    "independentCases": 24,
+    "parentGroups": 0,
+    "suites": 1
+  },
+  "totals": {
+    "tests": 24,
+    "suites": 1,
+    "pass": 24,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "cases": [
+    "global cursor-delete: rejects external proof loss during the actual row wait",
+    "global cursor-delete: rejects external factor loss during the actual row wait",
+    "global cursor-delete: rejects external authority loss during the actual row wait",
+    "global daily-resume: rejects external proof loss during the actual row wait",
+    "global daily-resume: rejects external factor loss during the actual row wait",
+    "global daily-resume: rejects external authority loss during the actual row wait",
+    "global gate-cancel: rejects external proof loss during the actual row wait",
+    "global gate-cancel: rejects external factor loss during the actual row wait",
+    "global gate-cancel: rejects external authority loss during the actual row wait",
+    "global delivery-cancel: rejects external proof loss during the actual row wait",
+    "global delivery-cancel: rejects external factor loss during the actual row wait",
+    "global delivery-cancel: rejects external authority loss during the actual row wait",
+    "local cursor-delete: rejects external proof loss during the actual row wait",
+    "local cursor-delete: rejects external factor loss during the actual row wait",
+    "local cursor-delete: rejects external authority loss during the actual row wait",
+    "local daily-resume: rejects external proof loss during the actual row wait",
+    "local daily-resume: rejects external factor loss during the actual row wait",
+    "local daily-resume: rejects external authority loss during the actual row wait",
+    "local gate-cancel: rejects external proof loss during the actual row wait",
+    "local gate-cancel: rejects external factor loss during the actual row wait",
+    "local gate-cancel: rejects external authority loss during the actual row wait",
+    "local delivery-cancel: rejects external proof loss during the actual row wait",
+    "local delivery-cancel: rejects external factor loss during the actual row wait",
+    "local delivery-cancel: rejects external authority loss during the actual row wait"
+  ],
+  "typeChecks": [
+    {
+      "phase": "resolve",
+      "result": {
+        "id": "mfa-feature-transition-waits-fixed-qa-20261109/checks/resolve/result.json",
+        "sha256": "13fc705a2bf81fe06d05e5ba20475df164667a6791f4a6a955b05f5f892e6765",
+        "bytes": 1175
+      },
+      "startedUtc": "2026-11-09T09:57:56.994Z",
+      "childExitedUtc": "2026-11-09T09:57:58.610Z"
+    },
+    {
+      "phase": "types",
+      "result": {
+        "id": "mfa-feature-transition-waits-fixed-qa-20261109/checks/types/result.json",
+        "sha256": "9dc996738967defc2d791dded6c0edd450a82f1ef523d5858bc103db3e82efae",
+        "bytes": 1022
+      },
+      "startedUtc": "2026-11-09T09:58:05.511Z",
+      "childExitedUtc": "2026-11-09T09:58:18.968Z"
+    }
+  ],
+  "startedUtc": "2026-11-09T10:32:31.078Z",
+  "endedUtc": "2026-11-09T10:33:17.615Z",
+  "freeMiBAtStart": 2413.0,
+  "cleanupPassed": true,
+  "temporarySystemActivityGuard": {
+    "startedUtc": "2026-11-09T10:32:21.2229725Z",
+    "endedUtc": "2026-11-09T10:33:18.6468787Z",
+    "exitCode": 0,
+    "systemRequiredSet": true,
+    "systemRequiredCleared": true,
+    "displayRequired": false,
+    "awayMode": false,
+    "permanentPowerSettingsChanged": false,
+    "computerRestarted": false
+  },
+  "inputs": [
+    {
+      "id": "mfa-feature-transition-waits-harness-20261109/prepare-feature-transition-waits.mjs",
+      "sha256": "d0bb3f111f51d1e986309ef2d7f45b7347b7f68e70b45a848eca51847c2039cf",
+      "bytes": 12645
+    },
+    {
+      "id": "mfa-feature-transition-waits-harness-20261109/run-types.mjs",
+      "sha256": "1890c3e88478d745e673ad40153bd1035fc72db8708a2cd76d0e3da613b8fa2e",
+      "bytes": 13529
+    },
+    {
+      "id": "mfa-feature-transition-waits-harness-20261109/fixed-recipe.json",
+      "sha256": "4cd9a623a85efb4b0926b9bb26ffe79820ed6f32373e1e582bebef509e377fd7",
+      "bytes": 11980
+    },
+    {
+      "id": "mfa-feature-transition-waits-harness-20261109/fixed-prepare-result.json",
+      "sha256": "9a360ef4c56032fa59d7bed9b3457ea58a8f6249ec24a02fafd6231da4e3127f",
+      "bytes": 166
+    },
+    {
+      "id": "mfa-feature-transition-waits-harness-20261109/fixed-prepare-guard.json",
+      "sha256": "c192323e01dca5eba247322889e993000a5f12f96fee0be05f0295d7757f8a0f",
+      "bytes": 91
+    },
+    {
+      "id": "mfa-feature-transition-waits-harness-20261109/fixed-prepare.stdout.txt",
+      "sha256": "2f1fa8df43e968059df20c421a37526ec69fc3fe4d57ed41da59b2f509427ef8",
+      "bytes": 243
+    },
+    {
+      "id": "mfa-feature-transition-waits-harness-20261109/fixed-prepare.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-feature-transition-waits-fixed-qa-20261109/checks/resolve/stdout.log",
+      "sha256": "e39df72a5c1d39ae995b3c3673d8014548d2c7fa5af71909032cf07da250ade3",
+      "bytes": 167937
+    },
+    {
+      "id": "mfa-feature-transition-waits-fixed-qa-20261109/checks/resolve/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-feature-transition-waits-fixed-qa-20261109/checks/resolve/result.json",
+      "sha256": "13fc705a2bf81fe06d05e5ba20475df164667a6791f4a6a955b05f5f892e6765",
+      "bytes": 1175
+    },
+    {
+      "id": "mfa-feature-transition-waits-fixed-qa-20261109/checks/resolve/command.json",
+      "sha256": "1d95c846c34c1ab3cdfa3187bcdda4d385f0ea69097ae39408bb84ab24b582d6",
+      "bytes": 960
+    },
+    {
+      "id": "mfa-feature-transition-waits-fixed-qa-20261109/checks/resolve/guard.json",
+      "sha256": "a4610edeb1c70ee30ef82e6384e20f4252f9e9c42ec4d1e144d6e95c36a9d6b2",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-feature-transition-waits-fixed-qa-20261109/checks/types/stdout.log",
+      "sha256": "238c06eaa31d9dd30aff9f0f351423582d945cbc05807ee3bb1e4abd5590427f",
+      "bytes": 972
+    },
+    {
+      "id": "mfa-feature-transition-waits-fixed-qa-20261109/checks/types/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-feature-transition-waits-fixed-qa-20261109/checks/types/result.json",
+      "sha256": "9dc996738967defc2d791dded6c0edd450a82f1ef523d5858bc103db3e82efae",
+      "bytes": 1022
+    },
+    {
+      "id": "mfa-feature-transition-waits-fixed-qa-20261109/checks/types/command.json",
+      "sha256": "4ed701f27c799b487087898aa7ac1ae154fd3e1cecc6682149bd8c2b4e8a8a43",
+      "bytes": 965
+    },
+    {
+      "id": "mfa-feature-transition-waits-fixed-qa-20261109/checks/types/guard.json",
+      "sha256": "9a82610df6d900eb9a595724057fe598fd0227aad6f343d3ba5b679e97f8d3f4",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-feature-transition-waits-fixed-qa-20261109/run-mfa-directed.mjs",
+      "sha256": "b3669fa22f75a07c87e462dab3c7c508e0370ee1848e4f64e4cfa1e7166c80e6",
+      "bytes": 13920
+    },
+    {
+      "id": "mfa-feature-transition-waits-fixed-qa-20261109/launch-mfa-directed.ps1",
+      "sha256": "c356434295b2f12a3621982f116e8aaa78a1b464654f4dfb4b748f1c44a595ba",
+      "bytes": 13043
+    },
+    {
+      "id": "run-feature-transition-waits-awake-20261109.ps1",
+      "sha256": "25b40afc54b3ec07af2d2827331589d9ff46a894a34d4f730f1cbedc8d2dc6d6",
+      "bytes": 1671
+    },
+    {
+      "id": "mfa-grants-root-attestation-20261108.json",
+      "sha256": "9d43fe8e98ce5e11a26e7e943fb465a96f24a4c14368bbdab5712e5282cb426e",
+      "bytes": 664
+    },
+    {
+      "id": "mfa-feature-transition-waits-fixed-qa-20261109/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-feature-transition-waits-fixed-qa-20261109/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-feature-transition-waits-fixed-qa-20261109/platform-mfa-feature-transition-waits.log",
+      "sha256": "0caa93e93e41dc676f72f58a6d7dc23d8cfd3b3a354b3fa596e7c5214968d63f",
+      "bytes": 6304
+    },
+    {
+      "id": "mfa-feature-transition-waits-harness-20261109/PLAN.json",
+      "sha256": "fb46bc6edcc301d16b3501be9cba33d7cfa796b2ed97c14ea42f3804b42f57b4",
+      "bytes": 3925
+    },
+    {
+      "id": "mfa-feature-transition-waits-harness-20261109/AUTHORED-PINS.json",
+      "sha256": "02f53465b7aa3d9ce250d98a03de50449555d89cb74b24dfd2c1027cabd3c342",
+      "bytes": 479
+    },
+    {
+      "id": "mfa-feature-transition-waits-harness-20261109/executors-handoff.json",
+      "sha256": "0beb057a4362060a1b5b7e0f7599b3dadef5342016d810628a14ba195a4c61e6",
+      "bytes": 1815
+    },
+    {
+      "id": "mfa-feature-transition-waits-test-20261109/manifest.json",
+      "sha256": "59ab5f89c549e6c2914cea34338d734fa7aeac9c031f7305bdd0fe05306026f7",
+      "bytes": 2760
+    },
+    {
+      "id": "mfa-feature-transition-waits-fixed-qa-20261109/prepared.json",
+      "sha256": "ed84de87c330b2a4cb0ee1140bf52cddfde2a7352e9bf204d9a71920c71a8578",
+      "bytes": 915205
+    },
+    {
+      "id": "mfa-feature-transition-v3-fixed-qa-20261109/prepared.json",
+      "sha256": "31fecc8ed939cb832769132ba4de417280c5f5cd38d8cbb64127d397f2cbe2e6",
+      "bytes": 914168
+    },
+    {
+      "id": "mfa-feature-transition-waits-fixed-qa-20261109/tsconfig.test.json",
+      "sha256": "f5003b31ccaf65736f21567c23c181eb6bde9e9c91bca9a028fbfd2d3eba79af",
+      "bytes": 2947
+    },
+    {
+      "id": "mfa-feature-transition-waits-fixed-qa-20261109/mfa-directed-result.json",
+      "sha256": "1fe383c4842c27c99d97dd6547ea1da76fb1d884aaa375b6cb18c9b84f40d1ce",
+      "bytes": 316032
+    },
+    {
+      "id": "mfa-feature-transition-waits-fixed-qa-20261109/mfa-directed-postchecks.json",
+      "sha256": "57cdbfd182c9f78f79d4a56d26dde8203d4fd64c0eed321657c93ed701d73504",
+      "bytes": 390
+    },
+    {
+      "id": "mfa-feature-transition-waits-fixed-qa-20261109/owned-database.json",
+      "sha256": "43ee98a9af606a60da8304eb5fa753e2d8a514da88e204d86587c371670636c1",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-feature-transition-waits-fixed-qa-20261109/awake-guard.json",
+      "sha256": "633ca8d1060d543917570f457ffb8ee457c010200ee9d9991c1b11bb392244f0",
+      "bytes": 308
+    }
+  ],
+  "scopeLimits": [
+    "One new 24-case file only; all 1046 parent sources, runtime product and existing tests are unchanged.",
+    "Real HTTP login/enrollment/TOTP, same bearer/SID; global-binding actor without platform flag for authority withdrawal.",
+    "Two scopes and four exact effect-row waits, each followed by externally committed proof/factor/global-binding loss. pg_stat_clear_snapshot and pg_blocking_pids prove the restricted API is waiting on this exact owner connection before withdrawal.",
+    "All rows in 14 business/audit/outbox tables and all tenants revert, while only the external negative identity change remains committed. Notification absence is fenced by a committed listener barrier. No triggers are added in this suite.",
+    "The owner locks one existing row; no external hardware/dispatcher, outbound webhook, browser, app build or performance acceptance. Missing-target/promotion and other domains remain pending.",
+    "Earlier32 rollback,8 positive lifecycle and117 independent configuration results retain separate evidence and are not summed into this24-case run. MFA068 remains candidate; runtime main001-067 unchanged."
+  ],
+  "computerRestarted": false,
+  "performanceAssessed": false,
+  "productionAccepted": false
+}

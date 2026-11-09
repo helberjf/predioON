@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "recordedOn": "2026-11-09",
+  "status": "SOURCE_PACKAGE_NOT_RUNTIME_ACCEPTANCE",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+      "bytes": 8
+    },
+    {
+      "path": "apply-feature-transition-waits.mjs",
+      "sha256": "0df64473df8851237afd6816a2113770b5a0c4ac302ec726653040c9671b1597",
+      "bytes": 7382
+    },
+    {
+      "path": "MANIFEST.json",
+      "sha256": "e487f440fa9ced079c408e9afa19cc9af1ce49cbfea178c0086df0465c67f363",
+      "bytes": 388742
+    },
+    {
+      "path": "payload/apps/api/test/platform-mfa-feature-transition-waits.test.ts.txt",
+      "sha256": "4fc7265b6052f2d8ab1b08b52f5381fcad3543587d600b4849f6e99574292211",
+      "bytes": 20160
+    },
+    {
+      "path": "README.md",
+      "sha256": "f6d79be970ec044feb68f7c0846f8cdbf6fd687aba1ae110276c46125bf579be",
+      "bytes": 1302
+    }
+  ]
+}
