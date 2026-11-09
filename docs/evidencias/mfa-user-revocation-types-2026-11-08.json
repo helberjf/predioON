@@ -1,0 +1,64 @@
+{
+  "recordedOn": "2026-11-08",
+  "timeZone": "America/Sao_Paulo",
+  "status": "TYPES_PASS_FUNCTIONAL_NOT_EXECUTED",
+  "sourceFiles": 1041,
+  "typeFiles": 37,
+  "requiredResolvedSources": 14,
+  "directedPlanned": 48,
+  "baselineExpectedPass": 24,
+  "baselineExpectedFail": 24,
+  "regressionFilesPlanned": 16,
+  "regressionTapPlanned": 268,
+  "functionalExecuted": false,
+  "productionAccepted": false,
+  "productSha256": "9b06094af056226d48fba14ee212269dbf0ecf640c5947e1c037890052d2c8d2",
+  "testSha256": "65213aaa3f8c82c71dde4292d44d79029fa250cbaaaf047c11626a9fb6849e6d",
+  "planSha256": "7461064875c8777d31f5123799bff78793efac9ab6bf48983dd4f83f10082853",
+  "phases": [
+    {
+      "variant": "baseline",
+      "phase": "resolve",
+      "passed": true,
+      "nativeResultSha256": "9da48abd966280f7d6f48955fccc3a98f0d30542c4c6f600f2e336951391b7d1",
+      "nativeResultId": "mfa-user-revocation-baseline-qa-20261108/checks/resolve/result.json",
+      "startedUtc": "2026-11-09T01:03:18.142Z",
+      "childExitedUtc": "2026-11-09T01:03:19.426Z",
+      "durationMs": 1285,
+      "preparedSha256": "130a7042164fc721aab82daf58e3df6a994d26a70fc3e0ec1d9202e22ce40095"
+    },
+    {
+      "variant": "baseline",
+      "phase": "types",
+      "passed": true,
+      "nativeResultSha256": "9a6514eb9fa047256cdcddcd3a81bac07ffc751a99f53efdd8c3f19fa33a052a",
+      "nativeResultId": "mfa-user-revocation-baseline-qa-20261108/checks/types/result.json",
+      "startedUtc": "2026-11-09T01:03:28.139Z",
+      "childExitedUtc": "2026-11-09T01:03:38.458Z",
+      "durationMs": 10319,
+      "preparedSha256": "130a7042164fc721aab82daf58e3df6a994d26a70fc3e0ec1d9202e22ce40095"
+    },
+    {
+      "variant": "fixed",
+      "phase": "resolve",
+      "passed": true,
+      "nativeResultSha256": "578bdcdd17014f9ab2157c4259d7c1aca1fd14aa8b36021332992aaeb25f781d",
+      "nativeResultId": "mfa-user-revocation-fixed-qa-20261108/checks/resolve/result.json",
+      "startedUtc": "2026-11-09T01:04:18.810Z",
+      "childExitedUtc": "2026-11-09T01:04:20.082Z",
+      "durationMs": 1272,
+      "preparedSha256": "93823355255fc582df588072800b4db99edfbc6187b7d449148b38924678634b"
+    },
+    {
+      "variant": "fixed",
+      "phase": "types",
+      "passed": true,
+      "nativeResultSha256": "01cb32a82ba6873b68ee1f2bd733f4bd364b15ca4bbc94f0d849e41c672e31b9",
+      "nativeResultId": "mfa-user-revocation-fixed-qa-20261108/checks/types/result.json",
+      "startedUtc": "2026-11-09T01:04:21.645Z",
+      "childExitedUtc": "2026-11-09T01:04:32.142Z",
+      "durationMs": 10498,
+      "preparedSha256": "93823355255fc582df588072800b4db99edfbc6187b7d449148b38924678634b"
+    }
+  ]
+}

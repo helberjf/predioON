@@ -1,0 +1,9 @@
+# Revogação de vínculos: candidato com tipos aprovados
+
+Checkpoint de 08/11/2026, anterior aos testes funcionais. Sobre [vínculos de usuários/1.040 fontes](../2026-11-08-vinculos-usuarios/README.md), altera somente `DELETE /users/memberships/:membershipId` e acrescenta 48 casos. Composição: 1.041 fontes. [As quatro fases de resolução/tipos passaram](../../evidencias/mfa-user-revocation-types-2026-11-08.json), com 37 testes e 14 fontes obrigatórias. Baseline, candidato e regressões ainda não executados neste checkpoint; zero aceite funcional ou de produção.
+
+O candidato protege leitura inicial inclusive vazia, UPDATE e decisão final. Mantém auditoria antes da alteração para permitir autorrevogação legítima, capacidade/delegação, status e datas do contrato. Sem mudança de helpers, schemas, policies ou migrations. Prevê baseline com 24 PASS/24 FAIL (20 respostas204 e quatro404 versus403), candidato48 e dezesseis arquivos de regressão268 TAP (258 casos independentes e dez grupos). Esses números são expectativas, não resultados.
+
+Payloads completos, hashes e manifests permitem retomar sobre o pai verificado em outra máquina. Restaure a cadeia aceita pelo MD principal, confira hashes e aplique os dois payloads em uma cópia nova do pai; preserve baseline com só o teste e candidato com teste/router. Não aplicar parcialmente à instalação principal. Dependências, ambiente QA e atestação devem ser próprios; não copiar segredos ou node_modules.
+
+Neste host: `work/mfa-user-revocation-harness-20261108` e `work/mfa-user-revocation-{baseline,fixed,fixed-regression}-qa-20261108`. Os executores exigem contêiner exclusivo já em execução, guard de 1.536 MiB, checagem de fontes e limpeza. Não reiniciar o computador. Consulte `docs/CONTINUIDADE.md` para o aceite mais recente e possíveis resultados posteriores.

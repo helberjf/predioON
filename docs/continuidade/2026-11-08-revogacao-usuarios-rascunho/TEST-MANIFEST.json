@@ -1,0 +1,287 @@
+{
+  "version": 1,
+  "format": "new-test-v1",
+  "status": "AUTHORED_NOT_EXECUTED",
+  "recordedOn": "2026-11-08",
+  "baseExaminedPreparedSha256": "d598928b503f7b191e32ad562c19a2fceba38aa1aa4b9b58e2d1380b470b1332",
+  "files": [
+    {
+      "path": "apps/api/test/platform-mfa-user-revocation.test.ts",
+      "sha256": "65213aaa3f8c82c71dde4292d44d79029fa250cbaaaf047c11626a9fb6849e6d",
+      "bytes": 28174,
+      "cases": 48
+    }
+  ],
+  "caseDispositions": [
+    {
+      "name": "flag current: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "flag current: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "flag inactive: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "flag inactive: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "flag expired: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "flag expired: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "binding current: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "binding current: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "binding inactive: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "binding inactive: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "binding expired: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "binding expired: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "flag current: guards lookup after factor removal",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "flag current: guards lookup after family proof removal",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "flag absent: guards lookup after factor removal",
+      "baseline": "FAIL_EXPECTED_404_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline404"
+    },
+    {
+      "name": "flag absent: guards lookup after family proof removal",
+      "baseline": "FAIL_EXPECTED_404_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline404"
+    },
+    {
+      "name": "binding current: guards lookup after factor removal",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "binding current: guards lookup after family proof removal",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "binding absent: guards lookup after factor removal",
+      "baseline": "FAIL_EXPECTED_404_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline404"
+    },
+    {
+      "name": "binding absent: guards lookup after family proof removal",
+      "baseline": "FAIL_EXPECTED_404_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline404"
+    },
+    {
+      "name": "flag: revokes current membership while preserving identity and original start",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "flag: revokes inactive membership while preserving identity and original start",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "flag: revokes expired membership while preserving identity and original start",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "flag: revokes future membership while preserving identity and original start",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "binding: revokes current membership while preserving identity and original start",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "binding: revokes inactive membership while preserving identity and original start",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "binding: revokes expired membership while preserving identity and original start",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "binding: revokes future membership while preserving identity and original start",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "manager: revokes current membership while preserving identity and original start",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "manager: revokes inactive membership while preserving identity and original start",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "manager: revokes expired membership while preserving identity and original start",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "manager: revokes future membership while preserving identity and original start",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "legacy: revokes current membership while preserving identity and original start",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "legacy: revokes inactive membership while preserving identity and original start",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "legacy: revokes expired membership while preserving identity and original start",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "legacy: revokes future membership while preserving identity and original start",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "preserves sole legacy-manager self-revocation with audit before authority loss",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "preserves local scope and denies resident self-revocation and other users",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "preserves invalid missing and unauthenticated refusals without audit",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "preserves repeated revocation contract with one audit per successful request",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "denies global binding withdrawal after authorization without revocation or audit",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "rolls audit back on zero-row update conflict without losing MFA proof",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "current: rolls revocation audit and proof back after memberships trigger",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "inactive: rolls revocation audit and proof back after memberships trigger",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "current: rolls revocation audit and proof back after audit_logs trigger",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "inactive: rolls revocation audit and proof back after audit_logs trigger",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "rolls back complete operation after generic memberships trigger exception",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "rolls back complete operation after generic audit_logs trigger exception",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    }
+  ],
+  "baselineExpectedPass": 24,
+  "baselineExpectedFail": 24,
+  "fixedExpectedPass": 48,
+  "independentCases": 48,
+  "parentGroups": 0,
+  "runtimeExecuted": false
+}
