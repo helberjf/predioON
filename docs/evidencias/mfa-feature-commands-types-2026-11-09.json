@@ -1,0 +1,64 @@
+{
+  "recordedOn": "2026-11-09",
+  "timeZone": "America/Sao_Paulo",
+  "status": "TYPES_PASS_FUNCTIONAL_NOT_EXECUTED",
+  "sourceFiles": 1045,
+  "typeFiles": 41,
+  "requiredResolvedSources": 14,
+  "directedPlanned": 72,
+  "baselineExpectedPass": 26,
+  "baselineExpectedFail": 46,
+  "regressionFilesPlanned": 4,
+  "regressionTapPlanned": 48,
+  "functionalExecuted": false,
+  "productionAccepted": false,
+  "productSha256": "fe7056b9ce50aa7891147ee8f47d5b63fe73308262f701c5af0340efeabae972",
+  "testSha256": "f84d9f484796ef94bbfe2f40da42d79588a8fb31bb48584e776cf02e77744475",
+  "planSha256": "67324dab273e82d22ffcaf507b486dd7e60987489f5aaf901a8fccf1d703af0e",
+  "phases": [
+    {
+      "variant": "baseline",
+      "phase": "resolve",
+      "passed": true,
+      "nativeResultSha256": "c59c90543be59f686ee741bf12b24799f11140e7903c9c2da4cf6a3f5e2a1e11",
+      "nativeResultId": "mfa-feature-commands-baseline-qa-20261109/checks/resolve/result.json",
+      "startedUtc": "2026-11-09T04:18:33.899Z",
+      "childExitedUtc": "2026-11-09T04:18:37.849Z",
+      "durationMs": 3950,
+      "preparedSha256": "0dad4bfbd5d4fd62655c3e43698f00b2615beb4a131f842d52ae270bf0c8d5d2"
+    },
+    {
+      "variant": "baseline",
+      "phase": "types",
+      "passed": true,
+      "nativeResultSha256": "7160197d02604ccbd17bf82bffef7b65d36f4f53a00c5ea74e9dfd7d680ea248",
+      "nativeResultId": "mfa-feature-commands-baseline-qa-20261109/checks/types/result.json",
+      "startedUtc": "2026-11-09T04:18:47.961Z",
+      "childExitedUtc": "2026-11-09T04:19:20.226Z",
+      "durationMs": 32265,
+      "preparedSha256": "0dad4bfbd5d4fd62655c3e43698f00b2615beb4a131f842d52ae270bf0c8d5d2"
+    },
+    {
+      "variant": "fixed",
+      "phase": "resolve",
+      "passed": true,
+      "nativeResultSha256": "042e9ef39d29507a87cb4a1d9875d523a95088863a6b822947389d8eed425daf",
+      "nativeResultId": "mfa-feature-commands-fixed-qa-20261109/checks/resolve/result.json",
+      "startedUtc": "2026-11-09T04:19:54.193Z",
+      "childExitedUtc": "2026-11-09T04:19:57.593Z",
+      "durationMs": 3400,
+      "preparedSha256": "55370152a8e7e06f7b882fff5c45a09de492c0a7d6bb8e2e26b4b10278e3301b"
+    },
+    {
+      "variant": "fixed",
+      "phase": "types",
+      "passed": true,
+      "nativeResultSha256": "bc978ea854200276cb2db633a4455fd1761f481dbf77ccb0bcddc914e508191b",
+      "nativeResultId": "mfa-feature-commands-fixed-qa-20261109/checks/types/result.json",
+      "startedUtc": "2026-11-09T04:20:06.121Z",
+      "childExitedUtc": "2026-11-09T04:20:38.929Z",
+      "durationMs": 32808,
+      "preparedSha256": "55370152a8e7e06f7b882fff5c45a09de492c0a7d6bb8e2e26b4b10278e3301b"
+    }
+  ]
+}
