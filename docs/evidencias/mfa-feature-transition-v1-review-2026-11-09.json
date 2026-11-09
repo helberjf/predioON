@@ -1,0 +1,21 @@
+{
+  "recordedOn": "2026-11-09",
+  "status": "V1_TYPE_RUNNER_GUARD_REJECTED_BEFORE_COMPILER_SPAWN",
+  "observedExitCode": 1,
+  "phase": "resolve",
+  "preparedSourceValid": true,
+  "oldPreparedSha256": "699634b56bc603a8eef0ad9eeba7d42ddebda93e73a1ea03460cdf288f2ee9e7",
+  "oldTypeRunnerSha256": "5dd961bb704b370e788462e0006f94bf688a1df84c0f69a318ef6d4198e6ae7e",
+  "newTypeRunnerSha256": "c972a2a049f8c32a98f3da0c442aca0fb8de07d986a24cd87d5356ab8f7e7c7c",
+  "reason": "A broad count replacement also changed the literal base commit substring 1045 to 1046. Corrected only the type-runner base-commit literal; fresh paths and recipe pins updated for V2.",
+  "actualBaseCommit": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+  "incorrectV1Literal": "53c4c70dcd24f1046fad420fbce36757fd3753a2",
+  "compilerStarted": false,
+  "databaseStarted": false,
+  "testsStarted": false,
+  "productUnchanged": true,
+  "testBytesAndAssertionsUnchanged": true,
+  "testSha256": "3111360cb0499fc03c2e93e8ccc5fd888df0184e318aa2857554a6b707d5c66b",
+  "planSha256": "ff8c072458d69cb687b047831ea19a66ff9b00347ebca02ebcd1d0f3e6b81ddf",
+  "v1EvidencePreserved": true
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "path": ".gitattributes",
+    "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+    "bytes": 8
+  },
+  {
+    "path": "AUTHORED-PINS.json",
+    "sha256": "3307b89a560b399605de002a9f006ed0f01e71d436dc1760ff0c70f777068821",
+    "bytes": 479
+  },
+  {
+    "path": "payload/apps/api/test/platform-mfa-feature-transition-rollback.test.ts.txt",
+    "sha256": "3111360cb0499fc03c2e93e8ccc5fd888df0184e318aa2857554a6b707d5c66b",
+    "bytes": 21161
+  },
+  {
+    "path": "QA-PLAN.json",
+    "sha256": "ff8c072458d69cb687b047831ea19a66ff9b00347ebca02ebcd1d0f3e6b81ddf",
+    "bytes": 3861
+  },
+  {
+    "path": "README.md",
+    "sha256": "38e7a90ade6b7d00d8b585b4bfa23e4b9922b3cb26a53231a2bd4688f235e819",
+    "bytes": 3547
+  },
+  {
+    "path": "TEST-MANIFEST.json",
+    "sha256": "03b928222cca8d995ca2b47fb5e5f15844687d7dfc2513cfd29ef0041afe26d0",
+    "bytes": 3711
+  }
+]

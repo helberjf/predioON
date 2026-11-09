@@ -1,5 +1,7 @@
 # Melhorias e novas implementações — Prédio ON
 
+**Checkpoint por bateria em 09/11:** [32 cenários de reversão durante transições escritos e versionados](continuidade/2026-11-09-transicoes-rascunho/README.md). Resolução passou; tipos completos e testes com banco pendentes. Este rascunho não representa funcionalidades ou testes aprovados.
+
 **Atualização de 09/11 — pausa e retomada validadas:** [oito cenários existentes passaram com MFA HTTP real](evidencias/mfa-feature-lifecycle-2026-11-09.json). [Pacote e limites](continuidade/2026-11-09-ciclo-funcionalidades/RESULTADO.md). Produto, asserções de negócio e prazos preservados; a mudança é na fixture isolada. Não somar aos 117 casos independentes do lote anterior como se fossem uma única execução.
 
 **Atualização de 09/11 — configurações protegidas no candidato:** [72 dirigidos e quatro regressões passaram](evidencias/mfa-feature-commands-2026-11-09.json), somando 117 casos independentes e três grupos. [Pacote de 1.045 fontes e limites](continuidade/2026-11-09-configuracoes/RESULTADO.md). Versões concorrentes, herança/dependências, vagas, auditoria e notificação transacional conferidas. Sem homologação completa de produção.

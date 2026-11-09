@@ -1,0 +1,254 @@
+import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
+import type { Server } from "node:http";
+import { after, before, describe, it } from "node:test";
+import { decodeJwt } from "jose";
+import { sqlClient } from "@predioon/db";
+import { appDb, appSqlClient, closeAppDb, verifyRestrictedDatabaseRole } from "@predioon/db/runtime";
+import { app } from "../src/app.js";
+import { hashPassword } from "../src/auth/passwords.js";
+import { base32Decode, totpCode, totpStep } from "../src/auth/totp.js";
+import "./helpers.js";
+
+// Same test bytes on baseline/fixed. Positive proof comes only from real HTTP
+// enrollment/TOTP; the owner seeds fixtures and makes explicit negative changes.
+type Kind = "flag" | "binding";
+type Actor = { id: string; token: string; sid: string; binding: string | null; codes: string[] };
+type Row = Record<string, unknown>;
+type Scope = "global" | "local";
+type Relation = "usage_cursors" | "daily_usage" | "gate_commands" | "event_deliveries";
+type HttpResult = { status: number; body: unknown; cache: string | null };
+function signal() { let resolve!: () => void; const promise = new Promise<void>(done => { resolve = done; }); return { promise, resolve }; }
+async function bounded<T>(promise: PromiseLike<T>, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try { return await Promise.race([Promise.resolve(promise), new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`Fixture deadline: ${label}`)), 5000);
+  })]); } finally { clearTimeout(timer); }
+}
+async function settleAll(transactions: Promise<unknown>[]) {
+  await bounded((async () => {
+    let completed = 0;
+    while (completed < transactions.length) {
+      const batch = transactions.slice(completed); completed += batch.length; await Promise.allSettled(batch);
+    }
+  })(), "all actual app transactions settled");
+}
+function trackAllTransactions() {
+  const original = appDb.transaction, run = original.bind(appDb), transactions: Promise<unknown>[] = [];
+  appDb.transaction = (callback, config) => { const pending = run(callback, config); transactions.push(pending); return pending; };
+  return { settle: () => settleAll(transactions), restore() { appDb.transaction = original; } };
+}
+
+type Stage = "cursor-delete" | "daily-resume" | "gate-cancel" | "delivery-cancel";
+type Mode = "proof" | "factor" | "authority" | "exception";
+type Fixture = { scope: Scope; stage: Stage; key: string; enabled: boolean; building: string; profile: string; command: string; delivery: string; savedGlobal: Row[] };
+
+describe("MFA rollback inside real feature transition effects", { concurrency: false }, () => {
+  const prefix = `ttransition-${randomUUID()}`, org = `${prefix}-org`, password = "feature-transition-fictitious-password";
+  const emailPattern = `${prefix}-%@example.invalid`;
+  let hash = "", serial = 0, server: Server | undefined, url = "";
+  let tracking: ReturnType<typeof trackAllTransactions> | undefined;
+  const triggers = new Map<string, Relation>();
+  async function http(token: string | undefined, path: string, method = "GET", body?: Row, controller = new AbortController()): Promise<HttpResult> {
+    try {
+      const response = await bounded(fetch(url + path, { method, signal: controller.signal,
+        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        ...(body ? { body: JSON.stringify(body) } : {}) }), "HTTP");
+      const text = await bounded(response.text(), "HTTP body");
+      return { status: response.status, body: text ? JSON.parse(text) as unknown : null, cache: response.headers.get("cache-control") };
+    } finally { controller.abort(); }
+  }
+  async function user(label: string, admin = false) {
+    const id = `${prefix}-${++serial}-${label}`;
+    await sqlClient`insert into users(id,name,email,password_hash,is_platform_admin) values(${id},${label},${id + "@example.invalid"},${hash},${admin})`;
+    return id;
+  }
+  async function actor(kind: Kind): Promise<Actor> {
+    const id = await user(kind, kind === "flag"), required = kind === "flag" || kind === "binding";
+    const binding = kind === "binding" ? randomUUID() : null;
+    if (binding) await sqlClient`insert into role_bindings(id,user_id,building_id,role_key)
+      values(${binding},${id},${null},${"PLATFORM_ADMIN"})`;
+    const login = await http(undefined, "/auth/login", "POST", { email: id + "@example.invalid", password });
+    assert.equal(login.status, 200, "raw real login, no manufactured proof or admission helper");
+    const body = login.body as { accessToken: string; user: { id: string; mfaRequirement: string } };
+    assert.equal(body.user.id, id); assert.equal(body.user.mfaRequirement, required ? "enrollment-required" : "not-required");
+    const sid = decodeJwt(body.accessToken).sid; assert.equal(typeof sid, "string");
+    const result: Actor = { id, token: body.accessToken, sid: sid as string, binding, codes: [] };
+    if (required) {
+      const enrollment = await http(result.token, "/auth/mfa/enroll", "POST", { currentPassword: password });
+      assert.equal(enrollment.status, 200);
+      const secret = base32Decode((enrollment.body as { secret: string }).secret); assert.ok(secret);
+      const confirmation = await http(result.token, "/auth/mfa/confirm", "POST", { code: totpCode(secret, totpStep(Date.now())) });
+      assert.equal(confirmation.status, 200);
+      result.codes = (confirmation.body as { recoveryCodes: string[] }).recoveryCodes;
+      assert.equal(result.codes.length, 10); assert.equal(new Set(result.codes).size, 10);
+      const [row] = await sqlClient`select s.mfa_verified_at is not null as verified,s.mfa_factor_generation=f.generation as same_generation,
+        f.confirmed_at is not null as confirmed from sessions s join mfa_factors f on f.user_id=s.user_id where s.id=${result.sid}::uuid and s.user_id=${id}`;
+      assert.equal(row?.verified, true); assert.equal(row?.same_generation, true); assert.equal(row?.confirmed, true);
+    }
+    const me = await http(result.token, "/auth/me"); assert.equal(me.status, 200);
+    assert.equal((me.body as { id: string }).id, id);
+    assert.equal((me.body as { mfaRequirement: string }).mfaRequirement, required ? "satisfied" : "not-required");
+    assert.equal(decodeJwt(result.token).sid, result.sid, "same bearer and session family across enrollment");
+    return result;
+  }
+  let listener:Awaited<ReturnType<typeof sqlClient.listen>>|undefined;
+  const notifications:Row[]=[],barriers=new Map<string,ReturnType<typeof signal>>();
+  async function notificationBarrier(){
+    const id=randomUUID(),barrier=signal();barriers.set(id,barrier);
+    try {await sqlClient`select pg_notify('predioon_events',${JSON.stringify({kind:"qa-feature-barrier",id})})`;await bounded(barrier.promise,"committed notification barrier received");}
+    finally{barriers.delete(id);}
+  }
+  async function cursor(){await notificationBarrier();return notifications.length;}
+
+  // Full rows and every tenant are included: global commands can modify multiple
+  // buildings before the narrow trigger fires. Immutable outbox fixtures remain
+  // in this disposable database until the owned database is dropped.
+  const tables = ["global_feature_settings", "building_feature_settings", "feature_runtime", "usage_cursors", "daily_usage", "gate_commands", "parking_lots", "monitoring_profiles", "alerts", "outbox_events", "event_deliveries", "delivery_witnesses", "delivery_witness_features", "audit_logs"] as const;
+  async function snapshot(): Promise<Row[][]> {
+    const result: Row[][] = [];
+    for (const table of tables) result.push((await sqlClient.unsafe(`select to_jsonb(t) as row from public.${table} t order by to_jsonb(t)::text`)).map(x => x.row as Row));
+    return result;
+  }
+  async function identity(a: Actor) {
+    const [row] = await sqlClient`select
+      (select is_platform_admin from users where id=${a.id}) as flag,
+      (select coalesce(jsonb_agg(to_jsonb(b) order by id),'[]') from role_bindings b where user_id=${a.id}) as bindings,
+      (select jsonb_build_object('verified',mfa_verified_at,'generation',mfa_factor_generation) from sessions where id=${a.sid}::uuid and user_id=${a.id}) as proof,
+      (select md5(coalesce(jsonb_agg(to_jsonb(f) order by user_id)::text,'[]')) from mfa_factors f where user_id=${a.id}) as factor_fingerprint,
+      (select md5(coalesce(jsonb_agg(to_jsonb(c) order by id)::text,'[]')) from mfa_recovery_codes c where user_id=${a.id}) as recovery_fingerprint`;
+    assert.ok(row); return { ...row };
+  }
+  async function fixture(scope: Scope, stage: Stage, a: Actor): Promise<Fixture> {
+    const building = `${prefix}-building-${++serial}`, gateway = `${building}-gateway`, meter = `${building}-meter`, controller = `${building}-controller`;
+    const profile = randomUUID(), gate = randomUUID(), command = randomUUID();
+    const key = stage === "gate-cancel" ? "GARAGE_ACCESS" : "ENERGY_CONSUMPTION", enabled = stage === "daily-resume";
+    const savedGlobal = (await sqlClient`select to_jsonb(g) as row from global_feature_settings g where feature_key=${key}`).map(x => x.row as Row);
+    await sqlClient`insert into buildings(id,organization_id,name,code) values(${building},${org},'MFA transition fixture',${building})`;
+    await sqlClient`insert into gateways(id,building_id,name,serial_number,status) values(${gateway},${building},'Fixture',${gateway},'ONLINE')`;
+    await sqlClient`insert into devices(id,building_id,gateway_id,name,type) values(${meter},${building},${gateway},'Meter','ENERGY_METER'),(${controller},${building},${gateway},'Gate','GATE_CONTROLLER')`;
+    await sqlClient`insert into monitoring_profiles(id,building_id,device_id,kind,tariff) values(${profile}::uuid,${building},${meter},'ENERGY',2)`;
+    await sqlClient`insert into usage_cursors(profile_id,building_id,last_at,last_value,good,continuous_seconds) values(${profile}::uuid,${building},clock_timestamp()-interval '5 seconds',120,true,30)`;
+    await sqlClient`insert into daily_usage(profile_id,building_id,day,quantity,estimated_cost,covered_seconds,samples,incomplete,first_at,last_at)
+      values(${profile}::uuid,${building},to_char(clock_timestamp() at time zone 'America/Sao_Paulo','YYYY-MM-DD'),7,14,30,3,false,clock_timestamp()-interval '1 minute',clock_timestamp()-interval '5 seconds')`;
+    await sqlClient`insert into gates(id,building_id,name,kind,gateway_id,device_id,enabled) values(${gate}::uuid,${building},'Fixture gate','GARAGE',${gateway},${controller},true)`;
+    await sqlClient`insert into gate_commands(id,request_id,gate_id,building_id,gateway_id,device_id,requested_by,expires_at)
+      values(${command}::uuid,${randomUUID()}::uuid,${gate}::uuid,${building},${gateway},${controller},${a.id},clock_timestamp()+interval '15 seconds')`;
+    await sqlClient`insert into global_feature_settings(feature_key,enabled,version) values(${key},${scope === "global" ? !enabled : true},7)
+      on conflict(feature_key) do update set enabled=excluded.enabled,version=excluded.version`;
+    await sqlClient`insert into building_feature_settings(building_id,feature_key,enabled,version) values(${building},${key},${scope === "local" ? !enabled : true},3)`;
+    await sqlClient`insert into feature_runtime(building_id,feature_key,resumed_at,paused_at,generation)
+      values(${building},${key},clock_timestamp()-interval '2 minutes',${enabled ? "2026-01-01T00:00:00Z" : null}::timestamptz,4)`;
+    let delivery = "";
+    if (stage === "delivery-cancel") {
+      const [alert] = await sqlClient`insert into alerts(building_id,device_id,severity,type,message,triggered_at)
+        values(${building},${meter},'HIGH','DAILY_ENERGY_LIMIT','Local rollback fixture',clock_timestamp()) returning id`;
+      assert.equal(typeof alert?.id, "string");
+      await sqlClient`select notification_enqueue_alert(${alert!.id}::uuid)`;
+      const [row] = await sqlClient`select d.id,d.status,notification_delivery_eligible(d.id) as eligible from event_deliveries d join outbox_events e on e.id=d.event_id where e.alert_id=${alert!.id}::uuid`;
+      assert.equal(row?.status, "pending"); assert.equal(row?.eligible, true, "real enqueue creates a currently eligible delivery with feature witnesses");
+      assert.equal(typeof row?.id, "string"); delivery = row!.id as string;
+    }
+    return { scope, stage, key, enabled, building, profile, command, delivery, savedGlobal };
+  }
+  async function restore(f: Fixture) {
+    await tracking?.settle();
+    await sqlClient.begin(async tx => {
+      await tx`set local lock_timeout='2s'`; await tx`set local statement_timeout='3s'`;
+      await tx`delete from global_feature_settings where feature_key=${f.key}`;
+      if (f.savedGlobal.length) await tx`insert into global_feature_settings select * from jsonb_populate_recordset(null::global_feature_settings,${JSON.stringify(f.savedGlobal)}::jsonb)`;
+    });
+    assert.deepEqual((await sqlClient`select to_jsonb(g) as row from global_feature_settings g where feature_key=${f.key}`).map(x => x.row as Row), f.savedGlobal);
+  }
+  async function install(name: string, a: Actor, f: Fixture, mode: Mode) {
+    assert.match(name, /^ttransition_[0-9a-f]{32}$/);
+    const relation: Relation = f.stage === "cursor-delete" ? "usage_cursors" : f.stage === "daily-resume" ? "daily_usage" : f.stage === "gate-cancel" ? "gate_commands" : "event_deliveries";
+    const operation = f.stage === "cursor-delete" ? "DELETE" : "UPDATE", record = operation === "DELETE" ? "old" : "new";
+    const id = f.stage === "cursor-delete" || f.stage === "daily-resume" ? f.profile : f.stage === "gate-cancel" ? f.command : f.delivery;
+    const column = f.stage === "cursor-delete" || f.stage === "daily-resume" ? "profile_id" : "id";
+    const check = f.stage === "daily-resume" ? "if old.incomplete or not new.incomplete then raise exception 'daily effect not reached'; end if;"
+      : f.stage === "gate-cancel" ? "if old.status<>'PENDING' or new.status<>'FAILED' then raise exception 'gate effect not reached'; end if;"
+      : f.stage === "delivery-cancel" ? "if old.status<>'pending' or new.status<>'cancelled' then raise exception 'delivery effect not reached'; end if;" : "";
+    const action = mode === "proof" ? "update public.sessions set mfa_verified_at=null,mfa_factor_generation=null where id=TG_ARGV[1]::uuid and user_id=TG_ARGV[0];"
+      : mode === "factor" ? "delete from public.mfa_factors where user_id=TG_ARGV[0];"
+      : mode === "authority" ? "delete from public.role_bindings where id=TG_ARGV[3]::uuid and user_id=TG_ARGV[0];"
+      : "raise exception using errcode='P0001',message='private transition fixture detail';";
+    const args = [a.id,a.sid,id,a.binding ?? randomUUID()]; assert.ok(args.every(x => /^[A-Za-z0-9_@. :\-]+$/.test(x)));
+    triggers.set(name, relation);
+    await sqlClient.begin(async tx => {
+      await tx`set local lock_timeout='2s'`; await tx`set local statement_timeout='3s'`;
+      await tx.unsafe(`create sequence public.${name}_seq`);
+      await tx.unsafe(`create function public.${name}() returns trigger language plpgsql security definer set search_path=pg_catalog,pg_temp as $$ begin
+        if current_setting('app.user_id',true)=TG_ARGV[0] and current_setting('app.session_id',true)=TG_ARGV[1] and ${record}.${column}=TG_ARGV[2]::uuid then
+          ${check} perform pg_catalog.nextval('public.${name}_seq'::regclass); ${action}
+        end if; return ${record}; end $$`);
+      await tx.unsafe(`revoke all on function public.${name}() from public`);
+      await tx.unsafe(`create trigger ${name} after ${operation} on public.${relation} for each row execute function public.${name}(${args.map(x => "'"+x+"'").join(",")})`);
+    });
+    const [meta] = await sqlClient`select p.prosecdef,p.proconfig,pg_get_userbyid(p.proowner)=current_user as owner,
+      not exists(select 1 from aclexplode(p.proacl) a where a.grantee=0 and a.privilege_type='EXECUTE') as public_revoked
+      from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname=${name}`;
+    assert.equal(meta?.prosecdef,true); assert.equal(meta?.owner,true); assert.equal(meta?.public_revoked,true); assert.deepEqual(meta?.proconfig,["search_path=pg_catalog, pg_temp"]);
+  }
+  async function drop(name: string) {
+    assert.match(name, /^ttransition_[0-9a-f]{32}$/); const relation = triggers.get(name); assert.ok(relation);
+    await sqlClient.begin(async tx => {
+      await tx`set local lock_timeout='2s'`; await tx`set local statement_timeout='3s'`;
+      await tx.unsafe(`drop trigger if exists ${name} on public.${relation}`);
+      await tx.unsafe(`drop function if exists public.${name}()`); await tx.unsafe(`drop sequence if exists public.${name}_seq`);
+    });
+    const [gone] = await sqlClient`select to_regprocedure(${"public."+name+"()"}) is null as fn,to_regclass(${"public."+name+"_seq"}) is null as seq`;
+    assert.equal(gone?.fn,true); assert.equal(gone?.seq,true); triggers.delete(name);
+  }
+  async function catalog() {
+    return (await sqlClient`select tgrelid::regclass::text as relation,tgname,tgenabled,tgisinternal,pg_get_triggerdef(oid) as definition from pg_trigger
+      where tgrelid in ('usage_cursors'::regclass,'daily_usage'::regclass,'gate_commands'::regclass,'event_deliveries'::regclass) order by relation,tgname`).map(x => ({...x}));
+  }
+  before(async () => {
+    assert.equal((await sqlClient`select count(*)::int as n from schema_migrations`)[0]?.n,68);
+    await verifyRestrictedDatabaseRole(appSqlClient,"predioon_app"); hash = await hashPassword(password);
+    await sqlClient`insert into organizations(id,name,slug) values(${org},'Transition rollback MFA',${org})`;
+    listener = await sqlClient.listen("predioon_events", value => {
+      const event=JSON.parse(value) as Row;
+      if(event.kind === "qa-feature-barrier") barriers.get(String(event.id))?.resolve();
+      else if(event.kind === "features-changed") notifications.push(event);
+    });
+    tracking=trackAllTransactions();
+    server=await new Promise<Server>(resolve => { const instance=app.listen(0,"127.0.0.1",()=>resolve(instance)); });
+    const address=server.address(); assert.ok(address && typeof address!=="string"); url=`http://127.0.0.1:${address.port}`;
+  });
+  after(async () => {
+    try {
+      await bounded(new Promise<void>((resolve,reject)=>{if(!server){resolve();return;}server.close(error=>error?reject(error):resolve());server.closeAllConnections();}),"HTTP listener close");
+    } finally {
+      try { await tracking?.settle(); for(const name of triggers.keys())await drop(name); }
+      finally {
+        await listener?.unlisten();tracking?.restore();
+        const results=await Promise.allSettled([bounded(closeAppDb(),"app pool close"),bounded(sqlClient.end({timeout:3}),"owner pool close")]);
+        const failure=results.find(x=>x.status==="rejected");if(failure?.status==="rejected")throw failure.reason;
+      }
+    }
+  });
+  for(const scope of ["global","local"] as const)for(const stage of ["cursor-delete","daily-resume","gate-cancel","delivery-cancel"] as const)for(const mode of ["proof","factor","authority","exception"] as const) {
+    it(`${scope} ${stage}: reverses all effects after ${mode} loss inside the transition`,async()=>{
+      const a=await actor(mode==="authority"?"binding":"flag"),f=await fixture(scope,stage,a);
+      const name="ttransition_"+randomUUID().replaceAll("-",""),before=await snapshot(),beforeIdentity=await identity(a),index=await cursor(),priorCatalog=await catalog();
+      try {
+        await install(name,a,f,mode);
+        const response=await http(a.token,scope==="global"?`/features/global/${f.key}`:`/features/buildings/${f.building}/${f.key}`,"PUT",{enabled:f.enabled,version:scope==="global"?7:3,reason:"Rollback of a real feature transition"});
+        await tracking?.settle();
+        const [witness]=await sqlClient.unsafe(`select is_called,last_value::int from public.${name}_seq`);
+        assert.equal(witness?.is_called,true,"the actual effect reached its narrow AFTER trigger");
+        assert.equal(witness?.last_value,1,"exactly one targeted effect, even through rollback");
+        assert.equal(response.status,mode==="exception"?500:403);assert.equal(response.cache,"no-store");
+        assert.equal("items" in (response.body as object),false);assert.equal(JSON.stringify(response.body).includes("private transition fixture detail"),false);
+        if(mode==="proof"||mode==="factor")assert.equal((response.body as {details?:{reason?:string}}).details?.reason,mode==="proof"?"MFA_VERIFICATION_REQUIRED":"MFA_ENROLLMENT_REQUIRED");
+        assert.deepEqual(await snapshot(),before,"all business rows, all tenants, audit and durable delivery unchanged");
+        assert.deepEqual(await identity(a),beforeIdentity,"transactional factor/proof/global binding loss also rolls back");
+        await notificationBarrier();assert.deepEqual(notifications.slice(index),[],"no configuration NOTIFY committed");
+      } finally {
+        if(triggers.has(name))await drop(name);assert.deepEqual(await catalog(),priorCatalog);await restore(f);
+      }
+    });
+  }
+});

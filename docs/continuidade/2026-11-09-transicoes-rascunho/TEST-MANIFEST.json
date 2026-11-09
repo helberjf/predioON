@@ -1,0 +1,59 @@
+{
+  "format": "new-test-v1",
+  "files": [
+    {
+      "path": "apps/api/test/platform-mfa-feature-transition-rollback.test.ts",
+      "sha256": "3111360cb0499fc03c2e93e8ccc5fd888df0184e318aa2857554a6b707d5c66b",
+      "bytes": 21161,
+      "cases": 32
+    }
+  ],
+  "cases": [
+    "global cursor-delete: reverses all effects after proof loss inside the transition",
+    "global cursor-delete: reverses all effects after factor loss inside the transition",
+    "global cursor-delete: reverses all effects after authority loss inside the transition",
+    "global cursor-delete: reverses all effects after exception loss inside the transition",
+    "global daily-resume: reverses all effects after proof loss inside the transition",
+    "global daily-resume: reverses all effects after factor loss inside the transition",
+    "global daily-resume: reverses all effects after authority loss inside the transition",
+    "global daily-resume: reverses all effects after exception loss inside the transition",
+    "global gate-cancel: reverses all effects after proof loss inside the transition",
+    "global gate-cancel: reverses all effects after factor loss inside the transition",
+    "global gate-cancel: reverses all effects after authority loss inside the transition",
+    "global gate-cancel: reverses all effects after exception loss inside the transition",
+    "global delivery-cancel: reverses all effects after proof loss inside the transition",
+    "global delivery-cancel: reverses all effects after factor loss inside the transition",
+    "global delivery-cancel: reverses all effects after authority loss inside the transition",
+    "global delivery-cancel: reverses all effects after exception loss inside the transition",
+    "local cursor-delete: reverses all effects after proof loss inside the transition",
+    "local cursor-delete: reverses all effects after factor loss inside the transition",
+    "local cursor-delete: reverses all effects after authority loss inside the transition",
+    "local cursor-delete: reverses all effects after exception loss inside the transition",
+    "local daily-resume: reverses all effects after proof loss inside the transition",
+    "local daily-resume: reverses all effects after factor loss inside the transition",
+    "local daily-resume: reverses all effects after authority loss inside the transition",
+    "local daily-resume: reverses all effects after exception loss inside the transition",
+    "local gate-cancel: reverses all effects after proof loss inside the transition",
+    "local gate-cancel: reverses all effects after factor loss inside the transition",
+    "local gate-cancel: reverses all effects after authority loss inside the transition",
+    "local gate-cancel: reverses all effects after exception loss inside the transition",
+    "local delivery-cancel: reverses all effects after proof loss inside the transition",
+    "local delivery-cancel: reverses all effects after factor loss inside the transition",
+    "local delivery-cancel: reverses all effects after authority loss inside the transition",
+    "local delivery-cancel: reverses all effects after exception loss inside the transition"
+  ],
+  "runtimeProductModified": false,
+  "existingTestsChanged": false,
+  "positiveProofThroughRealHttp": true,
+  "triggerStages": [
+    "cursor-delete",
+    "daily-resume",
+    "gate-cancel",
+    "delivery-cancel"
+  ],
+  "scopeLimits": [
+    "Narrow transactional AFTER triggers, no external client races in this suite.",
+    "Real API/PostgreSQL/enqueue; no physical dispatcher, external webhook, browser or device.",
+    "Owned database contains immutable outbox witnesses and is dropped by the executor after all children exit."
+  ]
+}
