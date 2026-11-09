@@ -1,0 +1,303 @@
+{
+  "recordedOn": "2026-11-09",
+  "timeZone": "America/Sao_Paulo",
+  "status": "VERIFIED",
+  "verifierSha256": "e65ad18710e12adb930554451615309eecb23d2fe486d5bb4ebb4471afbbd3ba",
+  "reviewedByRoot": true,
+  "sourceFiles": 1046,
+  "typeFiles": 43,
+  "requiredResolvedSources": 14,
+  "runtimeProductModified": false,
+  "existingTestsChanged": false,
+  "changedSources": [
+    "apps/api/test/platform-mfa-feature-transition-rollback.test.ts"
+  ],
+  "parentPreparedSha256": "3a5f530aadbea9a098f9c27f841d8f67773b0184941fc72430809f8aabb5e786",
+  "preparedSha256": "31fecc8ed939cb832769132ba4de417280c5f5cd38d8cbb64127d397f2cbe2e6",
+  "observedHead": "6f68a550037dc27b7a9d94a785bd075efa4b7d0b",
+  "acceptedCounts": {
+    "tap": 32,
+    "independentCases": 32,
+    "parentGroups": 0,
+    "suites": 1
+  },
+  "totals": {
+    "tests": 32,
+    "suites": 1,
+    "pass": 32,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "cases": [
+    "global cursor-delete: reverses all effects after proof loss inside the transition",
+    "global cursor-delete: reverses all effects after factor loss inside the transition",
+    "global cursor-delete: reverses all effects after authority loss inside the transition",
+    "global cursor-delete: reverses all effects after exception loss inside the transition",
+    "global daily-resume: reverses all effects after proof loss inside the transition",
+    "global daily-resume: reverses all effects after factor loss inside the transition",
+    "global daily-resume: reverses all effects after authority loss inside the transition",
+    "global daily-resume: reverses all effects after exception loss inside the transition",
+    "global gate-cancel: reverses all effects after proof loss inside the transition",
+    "global gate-cancel: reverses all effects after factor loss inside the transition",
+    "global gate-cancel: reverses all effects after authority loss inside the transition",
+    "global gate-cancel: reverses all effects after exception loss inside the transition",
+    "global delivery-cancel: reverses all effects after proof loss inside the transition",
+    "global delivery-cancel: reverses all effects after factor loss inside the transition",
+    "global delivery-cancel: reverses all effects after authority loss inside the transition",
+    "global delivery-cancel: reverses all effects after exception loss inside the transition",
+    "local cursor-delete: reverses all effects after proof loss inside the transition",
+    "local cursor-delete: reverses all effects after factor loss inside the transition",
+    "local cursor-delete: reverses all effects after authority loss inside the transition",
+    "local cursor-delete: reverses all effects after exception loss inside the transition",
+    "local daily-resume: reverses all effects after proof loss inside the transition",
+    "local daily-resume: reverses all effects after factor loss inside the transition",
+    "local daily-resume: reverses all effects after authority loss inside the transition",
+    "local daily-resume: reverses all effects after exception loss inside the transition",
+    "local gate-cancel: reverses all effects after proof loss inside the transition",
+    "local gate-cancel: reverses all effects after factor loss inside the transition",
+    "local gate-cancel: reverses all effects after authority loss inside the transition",
+    "local gate-cancel: reverses all effects after exception loss inside the transition",
+    "local delivery-cancel: reverses all effects after proof loss inside the transition",
+    "local delivery-cancel: reverses all effects after factor loss inside the transition",
+    "local delivery-cancel: reverses all effects after authority loss inside the transition",
+    "local delivery-cancel: reverses all effects after exception loss inside the transition"
+  ],
+  "typeChecks": [
+    {
+      "phase": "resolve",
+      "result": {
+        "id": "mfa-feature-transition-v3-fixed-qa-20261109/checks/resolve/result.json",
+        "sha256": "d29664f251905176ad7efc28543635df5b8e85bfa0e2028221ab49728d2fba06",
+        "bytes": 1175
+      },
+      "startedUtc": "2026-11-09T05:19:57.440Z",
+      "childExitedUtc": "2026-11-09T05:20:00.966Z"
+    },
+    {
+      "phase": "types",
+      "result": {
+        "id": "mfa-feature-transition-v3-fixed-qa-20261109/checks/types/result.json",
+        "sha256": "2211d4b2f939bf37ebb4256bbda313e8e8ca67c287b5b63c0a1b6c750e8f7381",
+        "bytes": 1022
+      },
+      "startedUtc": "2026-11-09T05:20:08.888Z",
+      "childExitedUtc": "2026-11-09T05:20:43.783Z"
+    }
+  ],
+  "startedUtc": "2026-11-09T05:21:23.341Z",
+  "endedUtc": "2026-11-09T05:22:49.068Z",
+  "freeMiBAtStart": 4052.0,
+  "cleanupPassed": true,
+  "temporarySystemActivityGuard": {
+    "startedUtc": "2026-11-09T05:21:09.4009428Z",
+    "endedUtc": "2026-11-09T05:22:50.6539120Z",
+    "exitCode": 0,
+    "systemRequiredSet": true,
+    "systemRequiredCleared": true,
+    "displayRequired": false,
+    "awayMode": false,
+    "permanentPowerSettingsChanged": false,
+    "computerRestarted": false
+  },
+  "inputs": [
+    {
+      "id": "mfa-feature-transition-v3-harness-20261109/prepare-feature-transition.mjs",
+      "sha256": "1deed88f663e992d4e40aa696e9b6a2d767033238f6e1c1e6e2bf42024934bcc",
+      "bytes": 12644
+    },
+    {
+      "id": "mfa-feature-transition-v3-harness-20261109/run-types.mjs",
+      "sha256": "44cf54172a2b187fa6edd8985352a2dacb1a7577b1bc86516c20c9fe82e70841",
+      "bytes": 13420
+    },
+    {
+      "id": "mfa-feature-transition-v3-harness-20261109/fixed-recipe.json",
+      "sha256": "00532a3b98ae482000213ebab870f1851518c6b34c8c8b5e18459e07c674c817",
+      "bytes": 11708
+    },
+    {
+      "id": "mfa-feature-transition-v3-harness-20261109/fixed-prepare-result.json",
+      "sha256": "d10b5830d5ef037198293c909e1b35935c2fb27840ed0d87da7dde6a71c4798f",
+      "bytes": 166
+    },
+    {
+      "id": "mfa-feature-transition-v3-harness-20261109/fixed-prepare-guard.json",
+      "sha256": "4e5035b7c000fbf115c3470ad6f51016feddb0f0c1289454d44337f340f0e9a6",
+      "bytes": 91
+    },
+    {
+      "id": "mfa-feature-transition-v3-harness-20261109/fixed-prepare.stdout.txt",
+      "sha256": "f42d4fa9e929ca73ba5e045c7f64cfbd1b1216e7caec1f26047c1c9a8b394b99",
+      "bytes": 243
+    },
+    {
+      "id": "mfa-feature-transition-v3-harness-20261109/fixed-prepare.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-feature-transition-v3-fixed-qa-20261109/checks/resolve/stdout.log",
+      "sha256": "198196a65f0b68e1ff75490796eaf8633852ac390acfcf46134d7a29ce5c70ff",
+      "bytes": 167132
+    },
+    {
+      "id": "mfa-feature-transition-v3-fixed-qa-20261109/checks/resolve/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-feature-transition-v3-fixed-qa-20261109/checks/resolve/result.json",
+      "sha256": "d29664f251905176ad7efc28543635df5b8e85bfa0e2028221ab49728d2fba06",
+      "bytes": 1175
+    },
+    {
+      "id": "mfa-feature-transition-v3-fixed-qa-20261109/checks/resolve/command.json",
+      "sha256": "008cd4adb883a5785179ef8811806293d9d52ce13e49283848458c8a9f35265a",
+      "bytes": 951
+    },
+    {
+      "id": "mfa-feature-transition-v3-fixed-qa-20261109/checks/resolve/guard.json",
+      "sha256": "6d32e9615e92e8e459b46ce650bd6eba0fc5c0f36742fe8b97cbba8c5b85760e",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-feature-transition-v3-fixed-qa-20261109/checks/types/stdout.log",
+      "sha256": "2254e9923e4a90ac1dbc8475bf8980165a9dba3879addb422ea35bb5cfbe45fc",
+      "bytes": 972
+    },
+    {
+      "id": "mfa-feature-transition-v3-fixed-qa-20261109/checks/types/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-feature-transition-v3-fixed-qa-20261109/checks/types/result.json",
+      "sha256": "2211d4b2f939bf37ebb4256bbda313e8e8ca67c287b5b63c0a1b6c750e8f7381",
+      "bytes": 1022
+    },
+    {
+      "id": "mfa-feature-transition-v3-fixed-qa-20261109/checks/types/command.json",
+      "sha256": "d4424f3cb5a04ff1cb55ee89463ffd33a9e2a1e42075f07918f8638a3e2f866e",
+      "bytes": 956
+    },
+    {
+      "id": "mfa-feature-transition-v3-fixed-qa-20261109/checks/types/guard.json",
+      "sha256": "c5b912f32ce730a62292d981eae7668cf6feebadf433767eb1fed5bc5dd090f1",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-feature-transition-v3-fixed-qa-20261109/run-mfa-directed.mjs",
+      "sha256": "02373d3f5c53ab54e1f4fdbd706c3b6c78df4985eb25ea4b481a478b2aab9f26",
+      "bytes": 13874
+    },
+    {
+      "id": "mfa-feature-transition-v3-fixed-qa-20261109/launch-mfa-directed.ps1",
+      "sha256": "57dc4410932014494c6e972ef32294e01bca06f090cf7ab6bf7be189b930fd53",
+      "bytes": 13040
+    },
+    {
+      "id": "run-feature-transition-v3-awake-20261109.ps1",
+      "sha256": "2dccef1afde0a8f361171906872a229a4dcd7120e465fa0f92c0fa3635edebf3",
+      "bytes": 1668
+    },
+    {
+      "id": "mfa-grants-root-attestation-20261108.json",
+      "sha256": "9d43fe8e98ce5e11a26e7e943fb465a96f24a4c14368bbdab5712e5282cb426e",
+      "bytes": 664
+    },
+    {
+      "id": "mfa-feature-transition-v3-fixed-qa-20261109/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-feature-transition-v3-fixed-qa-20261109/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-feature-transition-v3-fixed-qa-20261109/platform-mfa-feature-transition-rollback.log",
+      "sha256": "eaeab558d1d6c599fe97895a6a235fd38803f97bd4bee338f44303b0496fb300",
+      "bytes": 38843
+    },
+    {
+      "id": "mfa-feature-transition-v3-harness-20261109/PLAN.json",
+      "sha256": "f4c4ac19fc092a737759986dddf9132376fa69abfc39aa761ea5f1a4872b38b7",
+      "bytes": 3861
+    },
+    {
+      "id": "mfa-feature-transition-v3-harness-20261109/AUTHORED-PINS.json",
+      "sha256": "97135dac5cc673f78eeccf1a50e9700e990bbc95915ba1f4f62fa88903f704d5",
+      "bytes": 479
+    },
+    {
+      "id": "mfa-feature-transition-v3-harness-20261109/executors-handoff.json",
+      "sha256": "2d01de9c18457cea3bd27c34b23c45d95a1e0196c67dfbc849e308b937054704",
+      "bytes": 1794
+    },
+    {
+      "id": "mfa-feature-transition-v2-test-20261109/manifest.json",
+      "sha256": "02a51caf7619aea990af5fb2c9ecf9859ebf7b5ca9ef987006ac139a4b2010b1",
+      "bytes": 3874
+    },
+    {
+      "id": "mfa-feature-transition-v3-fixed-qa-20261109/prepared.json",
+      "sha256": "31fecc8ed939cb832769132ba4de417280c5f5cd38d8cbb64127d397f2cbe2e6",
+      "bytes": 914168
+    },
+    {
+      "id": "mfa-feature-lifecycle-fixed-qa-20261109/prepared.json",
+      "sha256": "3a5f530aadbea9a098f9c27f841d8f67773b0184941fc72430809f8aabb5e786",
+      "bytes": 912917
+    },
+    {
+      "id": "mfa-feature-transition-v3-fixed-qa-20261109/tsconfig.test.json",
+      "sha256": "eaa62868672a663388736c707f4659a72bc943a2b22e6145d275bf80d69132b8",
+      "bytes": 2871
+    },
+    {
+      "id": "mfa-feature-transition-v3-fixed-qa-20261109/mfa-directed-result.json",
+      "sha256": "e112c4650d5a98bc89a9af93bfbb70b1a5e93f8a23db49d296fff57fad3a6128",
+      "bytes": 315838
+    },
+    {
+      "id": "mfa-feature-transition-v3-fixed-qa-20261109/mfa-directed-postchecks.json",
+      "sha256": "713bbaae99ffcb4508c8d5c28b71f7109ecbab7e8bcf8bd721f515f6356202b0",
+      "bytes": 390
+    },
+    {
+      "id": "mfa-feature-transition-v3-fixed-qa-20261109/owned-database.json",
+      "sha256": "61839a7735fc5c50fe195b01550752a2bfa686b721f2680b24391a254333ee3a",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-feature-transition-v3-fixed-qa-20261109/awake-guard.json",
+      "sha256": "2389b9491707e44b0f3eed9778bb289f17812eb30d9240be317a4523505420b4",
+      "bytes": 308
+    },
+    {
+      "id": "mfa-feature-transition-v2-review-20261109.json",
+      "sha256": "0c71a57d29af0cb8aa3f83b3d4a4b339197dc460b6585bca95a2477b036d86fa",
+      "bytes": 10364
+    },
+    {
+      "id": "mfa-feature-transition-v1-review-20261109.json",
+      "sha256": "0025e2bd349182f8886b55422359a1577e15f1ede58d401cd9f6aa93b9b2a0cc",
+      "bytes": 1138
+    }
+  ],
+  "scopeLimits": [
+    "One new 32-case test file only. All 1045 parent sources, runtime product and existing tests are byte-for-byte unchanged.",
+    "Real HTTP login/enrollment/TOTP; same bearer/SID. Global binding without platform flag for authority withdrawal; fictitious actors only.",
+    "Two scopes, four real effects and four failure modes. Narrow AFTER triggers and sequence witnesses prove actual cursor deletion, daily update, gate cancellation and durable delivery cancellation before complete rollback.",
+    "All rows in 14 business/audit/outbox tables, all tenants and the actor proof/factor/recovery/global binding are compared; transactional NOTIFY absence is fenced by a committed listener barrier.",
+    "This tests transactional rollback inside the helper, not separate-client races, hardware/dispatch, external webhooks, browsers, apps or performance. No new RED/GREEN product change.",
+    "V1 type-runner pin typo and V2 fixture TTL failure are preserved separately. V3 only uses the same statement timestamp for fixture creation/expiry, preserving every assertion and timeout.",
+    "Earlier eight lifecycle and 117 independent configuration results retain their own source/run evidence; no combined current-run count. MFA068 remains candidate, runtime main001-067. Remaining plan and production acceptance pending."
+  ],
+  "computerRestarted": false,
+  "performanceAssessed": false,
+  "productionAccepted": false
+}

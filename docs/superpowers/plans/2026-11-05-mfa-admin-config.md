@@ -1,5 +1,7 @@
 # ADMIN/CONFIG: três ações comuns, sem 174 guards individuais
 
+**Atualização de 09/11 — rollback de transições aprovado:** [32 casos passaram na V3](../../evidencias/mfa-feature-transition-2026-11-09.json), com produto e testes anteriores preservados. Prova/fator/vínculo global e exceções durante consumo, portão e entrega durável; reversão integral comprovada nos dois escopos. O checkpoint pendente abaixo foi concluído; faltam alvo ausente/promoção, corridas de outro cliente e integração completa. [Resultado](../../continuidade/2026-11-09-transicoes/RESULTADO.md).
+
 **Checkpoint de 09/11 antes da pausa:** [32 testes negativos de transição preservados](../../continuidade/2026-11-09-transicoes-rascunho/README.md), sem execução funcional. Resolução passou; tipos, banco e classificação dos resultados pendentes. Retomar antes dos demais complementos.
 
 **Complemento de 09/11 — pausa e retomada:** [oito casos de features-lifecycle passaram com inscrição/TOTP reais](../../evidencias/mfa-feature-lifecycle-2026-11-09.json), preservando produto e asserções/prazos. Consumo, portão, entrega de alerta, vagas e suporte receberam aceite positivo dirigido com publicador simulado e webhook local. As pendências de adaptação da fixture e execução positiva citadas abaixo foram atendidas; faltam cenários negativos adicionais e integração completa. [Resultado e fontes](../../continuidade/2026-11-09-ciclo-funcionalidades/RESULTADO.md).

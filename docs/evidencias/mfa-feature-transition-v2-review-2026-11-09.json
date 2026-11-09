@@ -1,0 +1,268 @@
+{
+  "recordedOn": "2026-11-09",
+  "status": "V2_FUNCTIONAL_ATTEMPT_REJECTED_FIXTURE_TIMESTAMP_TTL",
+  "totals": {
+    "tests": 32,
+    "suites": 1,
+    "pass": 0,
+    "fail": 32,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "observations": [
+    {
+      "case": "global cursor-delete: reverses all effects after proof loss inside the transition",
+      "sqlstate": "23514",
+      "constraint": "gate_commands_ttl_check",
+      "stage": "fixture before feature request"
+    },
+    {
+      "case": "global cursor-delete: reverses all effects after factor loss inside the transition",
+      "sqlstate": "23514",
+      "constraint": "gate_commands_ttl_check",
+      "stage": "fixture before feature request"
+    },
+    {
+      "case": "global cursor-delete: reverses all effects after authority loss inside the transition",
+      "sqlstate": "23514",
+      "constraint": "gate_commands_ttl_check",
+      "stage": "fixture before feature request"
+    },
+    {
+      "case": "global cursor-delete: reverses all effects after exception loss inside the transition",
+      "sqlstate": "23514",
+      "constraint": "gate_commands_ttl_check",
+      "stage": "fixture before feature request"
+    },
+    {
+      "case": "global daily-resume: reverses all effects after proof loss inside the transition",
+      "sqlstate": "23514",
+      "constraint": "gate_commands_ttl_check",
+      "stage": "fixture before feature request"
+    },
+    {
+      "case": "global daily-resume: reverses all effects after factor loss inside the transition",
+      "sqlstate": "23514",
+      "constraint": "gate_commands_ttl_check",
+      "stage": "fixture before feature request"
+    },
+    {
+      "case": "global daily-resume: reverses all effects after authority loss inside the transition",
+      "sqlstate": "23514",
+      "constraint": "gate_commands_ttl_check",
+      "stage": "fixture before feature request"
+    },
+    {
+      "case": "global daily-resume: reverses all effects after exception loss inside the transition",
+      "sqlstate": "23514",
+      "constraint": "gate_commands_ttl_check",
+      "stage": "fixture before feature request"
+    },
+    {
+      "case": "global gate-cancel: reverses all effects after proof loss inside the transition",
+      "sqlstate": "23514",
+      "constraint": "gate_commands_ttl_check",
+      "stage": "fixture before feature request"
+    },
+    {
+      "case": "global gate-cancel: reverses all effects after factor loss inside the transition",
+      "sqlstate": "23514",
+      "constraint": "gate_commands_ttl_check",
+      "stage": "fixture before feature request"
+    },
+    {
+      "case": "global gate-cancel: reverses all effects after authority loss inside the transition",
+      "sqlstate": "23514",
+      "constraint": "gate_commands_ttl_check",
+      "stage": "fixture before feature request"
+    },
+    {
+      "case": "global gate-cancel: reverses all effects after exception loss inside the transition",
+      "sqlstate": "23514",
+      "constraint": "gate_commands_ttl_check",
+      "stage": "fixture before feature request"
+    },
+    {
+      "case": "global delivery-cancel: reverses all effects after proof loss inside the transition",
+      "sqlstate": "23514",
+      "constraint": "gate_commands_ttl_check",
+      "stage": "fixture before feature request"
+    },
+    {
+      "case": "global delivery-cancel: reverses all effects after factor loss inside the transition",
+      "sqlstate": "23514",
+      "constraint": "gate_commands_ttl_check",
+      "stage": "fixture before feature request"
+    },
+    {
+      "case": "global delivery-cancel: reverses all effects after authority loss inside the transition",
+      "sqlstate": "23514",
+      "constraint": "gate_commands_ttl_check",
+      "stage": "fixture before feature request"
+    },
+    {
+      "case": "global delivery-cancel: reverses all effects after exception loss inside the transition",
+      "sqlstate": "23514",
+      "constraint": "gate_commands_ttl_check",
+      "stage": "fixture before feature request"
+    },
+    {
+      "case": "local cursor-delete: reverses all effects after proof loss inside the transition",
+      "sqlstate": "23514",
+      "constraint": "gate_commands_ttl_check",
+      "stage": "fixture before feature request"
+    },
+    {
+      "case": "local cursor-delete: reverses all effects after factor loss inside the transition",
+      "sqlstate": "23514",
+      "constraint": "gate_commands_ttl_check",
+      "stage": "fixture before feature request"
+    },
+    {
+      "case": "local cursor-delete: reverses all effects after authority loss inside the transition",
+      "sqlstate": "23514",
+      "constraint": "gate_commands_ttl_check",
+      "stage": "fixture before feature request"
+    },
+    {
+      "case": "local cursor-delete: reverses all effects after exception loss inside the transition",
+      "sqlstate": "23514",
+      "constraint": "gate_commands_ttl_check",
+      "stage": "fixture before feature request"
+    },
+    {
+      "case": "local daily-resume: reverses all effects after proof loss inside the transition",
+      "sqlstate": "23514",
+      "constraint": "gate_commands_ttl_check",
+      "stage": "fixture before feature request"
+    },
+    {
+      "case": "local daily-resume: reverses all effects after factor loss inside the transition",
+      "sqlstate": "23514",
+      "constraint": "gate_commands_ttl_check",
+      "stage": "fixture before feature request"
+    },
+    {
+      "case": "local daily-resume: reverses all effects after authority loss inside the transition",
+      "sqlstate": "23514",
+      "constraint": "gate_commands_ttl_check",
+      "stage": "fixture before feature request"
+    },
+    {
+      "case": "local daily-resume: reverses all effects after exception loss inside the transition",
+      "sqlstate": "23514",
+      "constraint": "gate_commands_ttl_check",
+      "stage": "fixture before feature request"
+    },
+    {
+      "case": "local gate-cancel: reverses all effects after proof loss inside the transition",
+      "sqlstate": "23514",
+      "constraint": "gate_commands_ttl_check",
+      "stage": "fixture before feature request"
+    },
+    {
+      "case": "local gate-cancel: reverses all effects after factor loss inside the transition",
+      "sqlstate": "23514",
+      "constraint": "gate_commands_ttl_check",
+      "stage": "fixture before feature request"
+    },
+    {
+      "case": "local gate-cancel: reverses all effects after authority loss inside the transition",
+      "sqlstate": "23514",
+      "constraint": "gate_commands_ttl_check",
+      "stage": "fixture before feature request"
+    },
+    {
+      "case": "local gate-cancel: reverses all effects after exception loss inside the transition",
+      "sqlstate": "23514",
+      "constraint": "gate_commands_ttl_check",
+      "stage": "fixture before feature request"
+    },
+    {
+      "case": "local delivery-cancel: reverses all effects after proof loss inside the transition",
+      "sqlstate": "23514",
+      "constraint": "gate_commands_ttl_check",
+      "stage": "fixture before feature request"
+    },
+    {
+      "case": "local delivery-cancel: reverses all effects after factor loss inside the transition",
+      "sqlstate": "23514",
+      "constraint": "gate_commands_ttl_check",
+      "stage": "fixture before feature request"
+    },
+    {
+      "case": "local delivery-cancel: reverses all effects after authority loss inside the transition",
+      "sqlstate": "23514",
+      "constraint": "gate_commands_ttl_check",
+      "stage": "fixture before feature request"
+    },
+    {
+      "case": "local delivery-cancel: reverses all effects after exception loss inside the transition",
+      "sqlstate": "23514",
+      "constraint": "gate_commands_ttl_check",
+      "stage": "fixture before feature request"
+    }
+  ],
+  "observedHead": "6f68a550037dc27b7a9d94a785bd075efa4b7d0b",
+  "startedUtc": "2026-11-09T05:16:47.134Z",
+  "endedUtc": "2026-11-09T05:17:34.337Z",
+  "oldTestSha256": "3111360cb0499fc03c2e93e8ccc5fd888df0184e318aa2857554a6b707d5c66b",
+  "newTestSha256": "8c6782b315ec6c31bc30677a3a34a595f1cf2f30b1c6ec39397b41606f823a24",
+  "testAssertionsAndTimeoutsUnchanged": true,
+  "runtimeProductUnchanged": true,
+  "existingTestsUnchanged": true,
+  "featureRequestsReached": 0,
+  "reason": "Fixture created_at used transaction-start default while expires_at used a later clock_timestamp plus 15s, violating <=created_at+15s. V3 uses the same statement timestamp for both explicit values.",
+  "cleanupPassed": true,
+  "temporarySystemActivityGuard": {
+    "startedUtc": "2026-11-09T05:16:31.0690147Z",
+    "endedUtc": "2026-11-09T05:17:36.0830790Z",
+    "exitCode": 0,
+    "systemRequiredSet": true,
+    "systemRequiredCleared": true,
+    "displayRequired": false,
+    "awayMode": false,
+    "permanentPowerSettingsChanged": false,
+    "computerRestarted": false
+  },
+  "inputs": [
+    {
+      "id": "mfa-feature-transition-v2-fixed-qa-20261109/platform-mfa-feature-transition-rollback.log",
+      "sha256": "79d344635d9fccbabdcaf5ac18fde09a9dd45c387dd0a4f7a756da18d1773dd2",
+      "bytes": 80761
+    },
+    {
+      "id": "mfa-feature-transition-v2-fixed-qa-20261109/mfa-directed-result.json",
+      "sha256": "a94a25537588b66d3ed83f18c1240ebe047fdc45363b536a84674d45e9f042de",
+      "bytes": 315846
+    },
+    {
+      "id": "mfa-feature-transition-v2-fixed-qa-20261109/mfa-directed-postchecks.json",
+      "sha256": "cf03e4cc1acd67f3a3e3bf47ec0fcc2c7a409d27eb88de58984517c746c1ccbe",
+      "bytes": 390
+    },
+    {
+      "id": "mfa-feature-transition-v2-fixed-qa-20261109/prepared.json",
+      "sha256": "3837cc9b4732a4604a1db4e970d0c002bb18178edfc8daa69873c6a75a78df9a",
+      "bytes": 914168
+    },
+    {
+      "id": "mfa-feature-transition-v2-fixed-qa-20261109/awake-guard.json",
+      "sha256": "741fe2bf302c38d88f7e4d4b4dbb78a021ff8d36c4fa2ee09508a93cad0d8982",
+      "bytes": 308
+    },
+    {
+      "id": "mfa-feature-transition-test-20261109/apps/api/test/platform-mfa-feature-transition-rollback.test.ts",
+      "sha256": "3111360cb0499fc03c2e93e8ccc5fd888df0184e318aa2857554a6b707d5c66b",
+      "bytes": 21161
+    },
+    {
+      "id": "mfa-feature-transition-test-20261109/manifest.json",
+      "sha256": "03b928222cca8d995ca2b47fb5e5f15844687d7dfc2513cfd29ef0041afe26d0",
+      "bytes": 3711
+    }
+  ],
+  "functionalAccepted": false,
+  "newRevisionExecuted": false
+}

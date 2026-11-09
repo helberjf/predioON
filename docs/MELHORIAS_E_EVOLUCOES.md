@@ -1,12 +1,14 @@
 # Melhorias e novas implementações — Prédio ON
 
+**Atualização de 09/11 — transições recusadas sem efeitos residuais:** [32/32 casos passaram](evidencias/mfa-feature-transition-2026-11-09.json), com retirada de prova/fator/vínculo ou exceção durante quatro efeitos reais, nos dois escopos. [Resultado e limites](continuidade/2026-11-09-transicoes/RESULTADO.md). O checkpoint abaixo foi superado por esta execução; produto e testes anteriores preservados.
+
 **Checkpoint por bateria em 09/11:** [32 cenários de reversão durante transições escritos e versionados](continuidade/2026-11-09-transicoes-rascunho/README.md). Resolução passou; tipos completos e testes com banco pendentes. Este rascunho não representa funcionalidades ou testes aprovados.
 
 **Atualização de 09/11 — pausa e retomada validadas:** [oito cenários existentes passaram com MFA HTTP real](evidencias/mfa-feature-lifecycle-2026-11-09.json). [Pacote e limites](continuidade/2026-11-09-ciclo-funcionalidades/RESULTADO.md). Produto, asserções de negócio e prazos preservados; a mudança é na fixture isolada. Não somar aos 117 casos independentes do lote anterior como se fossem uma única execução.
 
 **Atualização de 09/11 — configurações protegidas no candidato:** [72 dirigidos e quatro regressões passaram](evidencias/mfa-feature-commands-2026-11-09.json), somando 117 casos independentes e três grupos. [Pacote de 1.045 fontes e limites](continuidade/2026-11-09-configuracoes/RESULTADO.md). Versões concorrentes, herança/dependências, vagas, auditoria e notificação transacional conferidas. Sem homologação completa de produção.
 
-**P1 — complementar concorrências de transição:** a fixture MFA real e os oito fluxos de features-lifecycle passaram em 09/11, incluindo consumo, portões, entrega e suporte. Acrescentar alvo ausente, promoção durante operação e retirada de autoridade durante esses efeitos, nos dois escopos; depois revalidar os adjacentes de ingestão e a integração completa. Não equivale a hardware/MQTT externo.
+**P1 — complementar concorrências externas de transição:** os oito fluxos positivos e os 32 cenários negativos dentro da transação passaram em rodadas separadas. Acrescentar alvo ausente, promoção durante operação e retirada de autoridade por outro cliente; depois revalidar adjacentes de ingestão e integração completa. Não equivale a hardware/MQTT externo.
 
 **Atualização de 09/11 — concessão, substituição e revogação de suporte validadas no candidato:** [99 casos dirigidos e seis regressões passaram](evidencias/mfa-support-grant-commands-2026-11-09.json), somando198 casos independentes e quatro grupos. [Composição restaurável de1.044 fontes e limites](continuidade/2026-11-09-acessos-suporte/RESULTADO.md). Dezesseis esperas reais, rollback de múltiplas capacidades/auditorias, prazos mínimo/máximo, isolamento, idempotência e autoridade parcial exercitados. Próximos: configurações, demais domínios/concorrências, cache, integração web/mobile e operação.
 
