@@ -1,0 +1,934 @@
+{
+  "schemaVersion": 1,
+  "status": "VERIFIED",
+  "configSha256": "9ed73d6cbb9bde7ea3547577b64b668883d11d171ffee17044f4834bb405f063",
+  "recordedOn": "2026-11-08",
+  "recordedOnTimezone": "America/Sao_Paulo",
+  "reviewedOn": "2026-11-08",
+  "nativeExecutionTimestampsPreserved": true,
+  "verifierSha256": "797a9a870cf679c7d8fafd9d030b720b65d469a37623f7fa228ab187ae9448d8",
+  "reviewedByRoot": true,
+  "baselineMembershipFailuresReviewed": true,
+  "sourceFiles": 1040,
+  "typeFiles": 36,
+  "requiredResolvedSources": 14,
+  "sourceDifference": [
+    "apps/api/src/modules/users/routes.ts"
+  ],
+  "typeChecks": [
+    {
+      "variant": "baseline",
+      "phase": "resolve",
+      "result": {
+        "id": "mfa-user-membership-v2-baseline-qa-20261108/checks/resolve/result.json",
+        "sha256": "2d5324039249318adf30a980f5de1d7656c01a8441e123ddb10a3818a264d1c6",
+        "bytes": 1178
+      },
+      "startedUtc": "2026-11-09T00:44:11.919Z",
+      "childExitedUtc": "2026-11-09T00:44:12.974Z",
+      "durationMs": 1055
+    },
+    {
+      "variant": "baseline",
+      "phase": "types",
+      "result": {
+        "id": "mfa-user-membership-v2-baseline-qa-20261108/checks/types/result.json",
+        "sha256": "0db4288eb9b9b7f27b9aeb2a5c447ac0b1f542ded91934632f791e8fe814f427",
+        "bytes": 1024
+      },
+      "startedUtc": "2026-11-09T00:44:13.786Z",
+      "childExitedUtc": "2026-11-09T00:44:23.168Z",
+      "durationMs": 9382
+    },
+    {
+      "variant": "fixed",
+      "phase": "resolve",
+      "result": {
+        "id": "mfa-user-membership-v2-fixed-qa-20261108/checks/resolve/result.json",
+        "sha256": "76b5c6ce94153851490e262fe729348d2169d3e877a938b8ae295d3dbe6814d2",
+        "bytes": 1175
+      },
+      "startedUtc": "2026-11-09T00:45:02.146Z",
+      "childExitedUtc": "2026-11-09T00:45:03.161Z",
+      "durationMs": 1015
+    },
+    {
+      "variant": "fixed",
+      "phase": "types",
+      "result": {
+        "id": "mfa-user-membership-v2-fixed-qa-20261108/checks/types/result.json",
+        "sha256": "cc65b8cb0851ecdf06186d92fdd265bea7cc07164a1e3075baf9435b7a80d224",
+        "bytes": 1021
+      },
+      "startedUtc": "2026-11-09T00:45:03.946Z",
+      "childExitedUtc": "2026-11-09T00:45:13.163Z",
+      "durationMs": 9216
+    }
+  ],
+  "preparation": {
+    "nativeResults": [
+      {
+        "variant": "baseline",
+        "nativeChildExitedUtc": "2026-11-09T00:43:52.2133237Z",
+        "durationMs": 3968.9084,
+        "nativeResult": {
+          "id": "mfa-user-membership-v2-harness-20261108/baseline-prepare-result.json",
+          "sha256": "5bcd965bf3cc90686ca9ae1d65c9a93617834f9f2cf8f2fa49dd57a2c22c92cf",
+          "bytes": 166
+        }
+      },
+      {
+        "variant": "fixed",
+        "nativeChildExitedUtc": "2026-11-09T00:44:11.3528455Z",
+        "durationMs": 4405.3617,
+        "nativeResult": {
+          "id": "mfa-user-membership-v2-harness-20261108/fixed-prepare-result.json",
+          "sha256": "035282fbaca6469c1e77095282101ebfcc2842ba4eac22422cfc615a3121372b",
+          "bytes": 165
+        }
+      }
+    ],
+    "isProductTestExecution": false
+  },
+  "acceptedCounts": {
+    "directedTap": 34,
+    "directedIndependent": 34,
+    "directedAggregateGroups": 0,
+    "directedSuites": 1,
+    "regressionFiles": 15,
+    "regressionTap": 234,
+    "regressionIndependent": 224,
+    "regressionAggregateGroups": 10,
+    "combinedTap": 268,
+    "combinedIndependent": 258,
+    "combinedAggregateGroups": 10
+  },
+  "environment": {
+    "attestation": {
+      "recordedOn": "2026-11-08",
+      "recordedUtc": "2026-11-08T23:00:37.6479565Z",
+      "container": "predioon-mfa-grants-20261108",
+      "containerId": "3c0f4e5e47d3d488766eb2679ba97fabf29b12d72f9b8df41bb504205a41b4c8",
+      "systemIdentifier": "7705939420428193833",
+      "port": 5468,
+      "loopbackOnly": true,
+      "memoryLimitMiB": 384,
+      "cpuLimit": 1,
+      "basePublicTables": 0,
+      "exclusiveUse": true,
+      "computerRestarted": false,
+      "imageId": "sha256:4e459e217f00cbb09920c34d245501e63427e6767a495de57ce76823ff280f12",
+      "volume": "predioon_mfa_grants_20261108",
+      "newCluster": true,
+      "previousClusterUnavailable": true,
+      "credentialsPublished": false
+    }
+  },
+  "scopeLimits": [
+    "Only POST /users/memberships and its inline ten-field decoder changed. DELETE, other handlers, schemas, shared helpers, policies and migrations are unchanged.",
+    "Administrators by legacy flag and global binding enroll through real HTTP/TOTP in the same session family. No positive MFA proof is fabricated by SQL.",
+    "Baseline has sixteen201 versus403 failures. Twelve verify complete persisted membership DTO, audit, windows and eligibility on the target user original HTTP token; four verify the same effects with narrow proof-removing triggers.",
+    "Four narrow AFTER INSERT/UPDATE membership or AFTER INSERT audit trigger cases cover creation and readmission. Each fires once, with exact restoration of memberships, audits and original proof timestamp text/generation/presence after fixed rollback.",
+    "Positive cases preserve ten-field public DTO, IDs, createdAt, future/current windows, inactive/expired readmission and eligibility changes on the same HTTP token. Local managers are optional-MFA, constrained to their building; residents cannot admit users.",
+    "Recent password verification is required for BUILDING_ADMIN grants and recovers via real HTTP verification. Routine RESIDENT admission, schema validation and foreign-key refusals retain their contracts.",
+    "V1 was stopped at a TypeScript assertion-narrowing error; no functional V1 run occurred. V2 adds only the Row generic annotation, with identical runtime assertions, cases and product.",
+    "All preparations, types and functional runs used the unchanged1536MiB guard. User authorized pausing two other-project containers, but both were observed already exited and this task did not stop them or restart the computer.",
+    "Fifteen regression files retain their own limits. Historical runs and baseline are not added to corrected counts.",
+    "DELETE self-revocation, support/features commands, other domains, cache policy, generic trigger exceptions, promotion and actual PostgreSQL lock waits remain outside this acceptance.",
+    "No browser, native Android/iOS, full API, performance, universal commit-boundary guarantee or production acceptance is asserted."
+  ],
+  "baselineFailureObservations": [
+    {
+      "case": "flag none: rejects factor removal after real global authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: complete membership DTO, stored window, exact audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "real global authorization before membership upsert"
+    },
+    {
+      "case": "flag none: rejects family proof removal after real global authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: complete membership DTO, stored window, exact audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "real global authorization before membership upsert"
+    },
+    {
+      "case": "flag inactive: rejects factor removal after real global authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: complete membership DTO, stored window, exact audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "real global authorization before membership upsert"
+    },
+    {
+      "case": "flag inactive: rejects family proof removal after real global authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: complete membership DTO, stored window, exact audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "real global authorization before membership upsert"
+    },
+    {
+      "case": "flag expired: rejects factor removal after real global authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: complete membership DTO, stored window, exact audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "real global authorization before membership upsert"
+    },
+    {
+      "case": "flag expired: rejects family proof removal after real global authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: complete membership DTO, stored window, exact audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "real global authorization before membership upsert"
+    },
+    {
+      "case": "binding none: rejects factor removal after real global authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: complete membership DTO, stored window, exact audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "real global authorization before membership upsert"
+    },
+    {
+      "case": "binding none: rejects family proof removal after real global authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: complete membership DTO, stored window, exact audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "real global authorization before membership upsert"
+    },
+    {
+      "case": "binding inactive: rejects factor removal after real global authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: complete membership DTO, stored window, exact audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "real global authorization before membership upsert"
+    },
+    {
+      "case": "binding inactive: rejects family proof removal after real global authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: complete membership DTO, stored window, exact audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "real global authorization before membership upsert"
+    },
+    {
+      "case": "binding expired: rejects factor removal after real global authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: complete membership DTO, stored window, exact audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "real global authorization before membership upsert"
+    },
+    {
+      "case": "binding expired: rejects family proof removal after real global authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: complete membership DTO, stored window, exact audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "real global authorization before membership upsert"
+    },
+    {
+      "case": "none: rolls membership audit and proof back after memberships trigger",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: persisted membership audit and eligibility verified; narrow trigger fired once and removed the same family proof",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "narrow membership or audit AFTER INSERT/UPDATE trigger"
+    },
+    {
+      "case": "inactive: rolls membership audit and proof back after memberships trigger",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: persisted membership audit and eligibility verified; narrow trigger fired once and removed the same family proof",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "narrow membership or audit AFTER INSERT/UPDATE trigger"
+    },
+    {
+      "case": "none: rolls membership audit and proof back after audit_logs trigger",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: persisted membership audit and eligibility verified; narrow trigger fired once and removed the same family proof",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "narrow membership or audit AFTER INSERT/UPDATE trigger"
+    },
+    {
+      "case": "inactive: rolls membership audit and proof back after audit_logs trigger",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: persisted membership audit and eligibility verified; narrow trigger fired once and removed the same family proof",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "narrow membership or audit AFTER INSERT/UPDATE trigger"
+    }
+  ],
+  "runs": [
+    {
+      "variant": "baseline",
+      "tests": [
+        {
+          "test": "platform-mfa-user-memberships",
+          "tests": 34,
+          "suites": 1,
+          "pass": 18,
+          "fail": 16,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 13202.0006,
+          "childDurationMs": 13688.606500000002,
+          "logSha256": "98b7439646ea2449b395742506d9c2ea12fee592ecd301aa47ca9d668094db2c"
+        }
+      ],
+      "cleanupPassed": true,
+      "sourceMatched": true,
+      "ownedChildrenExited": true,
+      "cleanupHeld": false,
+      "nativeStatus": "completed-awaiting-TAP-GREEN-classification",
+      "startedUtc": "2026-11-09T00:46:36.593Z",
+      "endedUtc": "2026-11-09T00:46:57.271Z",
+      "observedHeadBefore": "f6631a8328eda6a342be28e85e6428d452a1482f",
+      "observedHeadAfter": "f6631a8328eda6a342be28e85e6428d452a1482f"
+    },
+    {
+      "variant": "fixed",
+      "tests": [
+        {
+          "test": "platform-mfa-user-memberships",
+          "tests": 34,
+          "suites": 1,
+          "pass": 34,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 15503.6387,
+          "childDurationMs": 15645.160100000001,
+          "logSha256": "c94c9fc26373e8e56c891547822ac671583fd31702ebb4e1a4ed08476b97b737"
+        }
+      ],
+      "cleanupPassed": true,
+      "sourceMatched": true,
+      "ownedChildrenExited": true,
+      "cleanupHeld": false,
+      "nativeStatus": "completed-awaiting-TAP-GREEN-classification",
+      "startedUtc": "2026-11-09T00:50:49.386Z",
+      "endedUtc": "2026-11-09T00:51:11.810Z",
+      "observedHeadBefore": "f6631a8328eda6a342be28e85e6428d452a1482f",
+      "observedHeadAfter": "f6631a8328eda6a342be28e85e6428d452a1482f"
+    },
+    {
+      "variant": "fixed-regression",
+      "tests": [
+        {
+          "test": "platform-mfa-tenancy-links",
+          "tests": 12,
+          "suites": 1,
+          "pass": 12,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 4890.393,
+          "childDurationMs": 5039.794600000001,
+          "logSha256": "5aa345886f71634a2e59c74418245fb0292dde94f60d171e5b7763a0757d6801"
+        },
+        {
+          "test": "platform-mfa-tenancy-structure",
+          "tests": 12,
+          "suites": 1,
+          "pass": 12,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 3926.8766,
+          "childDurationMs": 4083.674000000001,
+          "logSha256": "3c8b4585e30bb7bb3657b832ca4e8bb45e943d218a61e17e832c1928a2d261ef"
+        },
+        {
+          "test": "tenancy-people",
+          "tests": 9,
+          "suites": 1,
+          "pass": 9,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 7632.5666,
+          "childDurationMs": 7805.5615,
+          "logSha256": "7d6bc76e32bd7714ac038a22b016bfab5b60ad99c19e951b565887a3027172a2"
+        },
+        {
+          "test": "tenancy-http",
+          "tests": 9,
+          "suites": 1,
+          "pass": 9,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 5954.7862,
+          "childDurationMs": 6610.587499999998,
+          "logSha256": "2b49738078d423d5c4408b8065ba6f6cef61bb987fa0f6625f7bbccd5dae663b"
+        },
+        {
+          "test": "tenancy-edit",
+          "tests": 11,
+          "suites": 1,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 5900.3696,
+          "childDurationMs": 6573.312999999995,
+          "logSha256": "ec4c440bbc418d90edf282ebaf3451bc15c0d3069fa1dbc437f06d0ba5534550"
+        },
+        {
+          "test": "membership-lifecycle",
+          "tests": 4,
+          "suites": 1,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 3798.6211,
+          "childDurationMs": 4454.332500000004,
+          "logSha256": "e3b3a6aa3d97c527a20dc4d02e24f793198e9f57af845f92d719f1362e19739d"
+        },
+        {
+          "test": "platform-mfa-tenancy-commands",
+          "tests": 35,
+          "suites": 1,
+          "pass": 35,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 7808.3695,
+          "childDurationMs": 7954.278099999996,
+          "logSha256": "6835acb7e89b4d0efe80df00a1673bb85e822741b64e5f98733508bd5230c267"
+        },
+        {
+          "test": "platform-mfa-tenancy-revocations",
+          "tests": 21,
+          "suites": 1,
+          "pass": 21,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 20252.0585,
+          "childDurationMs": 20405.421100000007,
+          "logSha256": "256e944fe01a3654c193b5e74e7e131a5e7b91f5b6ead1195992d03e25fe00a6"
+        },
+        {
+          "test": "platform-mfa-tenancy-create",
+          "tests": 17,
+          "suites": 1,
+          "pass": 17,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 7453.8612,
+          "childDurationMs": 7604.1217999999935,
+          "logSha256": "4dc9d3b115b1666bfaf54279968bc54daddd21d1096613d4030257be57386603"
+        },
+        {
+          "test": "platform-mfa-tenancy-grants",
+          "tests": 17,
+          "suites": 1,
+          "pass": 17,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 12515.6351,
+          "childDurationMs": 12674.373600000006,
+          "logSha256": "f17180a614aae16d5441ed1abba77e11aa3be83b83f4517b6903535b26b5dd10"
+        },
+        {
+          "test": "platform-mfa-team-renewal",
+          "tests": 21,
+          "suites": 1,
+          "pass": 21,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 8589.6786,
+          "childDurationMs": 8787.993800000011,
+          "logSha256": "73856f032d2e5806c7d472c64edc637f0fccdff5363f5e7b6ea69af0d1cb311e"
+        },
+        {
+          "test": "invitations",
+          "tests": 9,
+          "suites": 1,
+          "pass": 9,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 6844.7029,
+          "childDurationMs": 7005.4042000000045,
+          "logSha256": "3426ed4ae64a339abec43d5a78700446007c31b7ac08da93a647c8772996f59a"
+        },
+        {
+          "test": "platform-mfa-invitation-commands",
+          "tests": 31,
+          "suites": 1,
+          "pass": 31,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 12222.4388,
+          "childDurationMs": 12377.968999999983,
+          "logSha256": "50ce4805a3acdfef4d3a611429ecf00a694b5d5e81aa9010061e4a9ca794c19c"
+        },
+        {
+          "test": "users-capabilities",
+          "tests": 5,
+          "suites": 1,
+          "pass": 5,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 6195.3418,
+          "childDurationMs": 6856.998099999997,
+          "logSha256": "9df818b029274affa16c733c322b0d68b9fb8880e107efcde5354d364cc72983"
+        },
+        {
+          "test": "platform-mfa-user-create",
+          "tests": 21,
+          "suites": 1,
+          "pass": 21,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 8752.7664,
+          "childDurationMs": 8934.8033,
+          "logSha256": "16d28fc83cfe88fbad510256b158dc0e19ea5a1d91e2adb62bd4b0912cb618a0"
+        }
+      ],
+      "cleanupPassed": true,
+      "sourceMatched": true,
+      "ownedChildrenExited": true,
+      "cleanupHeld": false,
+      "nativeStatus": "completed-awaiting-TAP-GREEN-classification",
+      "startedUtc": "2026-11-09T00:51:32.702Z",
+      "endedUtc": "2026-11-09T00:54:01.618Z",
+      "observedHeadBefore": "f6631a8328eda6a342be28e85e6428d452a1482f",
+      "observedHeadAfter": "f6631a8328eda6a342be28e85e6428d452a1482f"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "mfa-user-membership-root-config-20261108.json",
+      "sha256": "9ed73d6cbb9bde7ea3547577b64b668883d11d171ffee17044f4834bb405f063",
+      "bytes": 4043
+    },
+    {
+      "id": "mfa-user-membership-v2-harness-20261108/PLAN.json",
+      "sha256": "384576e5aef8f125b0fb7df4f38f7b2ce0fb4b075b3fe52c6a1ed47581bb44c5",
+      "bytes": 6209
+    },
+    {
+      "id": "mfa-user-membership-v2-test-20261108/manifest.json",
+      "sha256": "9d8b8c3bed5ad1730f949c0b6f5a2e4d3cba04856941bda18b4ea1cc3e1b8257",
+      "bytes": 6793
+    },
+    {
+      "id": "mfa-user-membership-v2-candidate-20261108/manifest.json",
+      "sha256": "86a17fa51454cd794e6785352bffab561438367cdccd005d9be87f2e55713ff4",
+      "bytes": 699
+    },
+    {
+      "id": "mfa-user-membership-v2-harness-20261108/AUTHORED-PINS.json",
+      "sha256": "18837da723936518e30b05937820512628b8298fd93c1b93d903a5b7016e43b0",
+      "bytes": 664
+    },
+    {
+      "id": "mfa-user-create-v2-fixed-qa-20261108/prepared.json",
+      "sha256": "f60aa40af6d261b638c6544890e2ad93884a73098599532ab2af0dc748cafd52",
+      "bytes": 909133
+    },
+    {
+      "id": "mfa-user-membership-v2-baseline-qa-20261108/run-mfa-directed.mjs",
+      "sha256": "c706b8b1d90c773a61fe3f987b0ecd29bcc4d66b6db73f035f5bbf55fca9b752",
+      "bytes": 13820
+    },
+    {
+      "id": "mfa-user-membership-v2-baseline-qa-20261108/launch-mfa-directed.ps1",
+      "sha256": "a132268403278334c6ba25b651a18d4220b940021ac82b9928d401af09c6852f",
+      "bytes": 13048
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-qa-20261108/run-mfa-directed.mjs",
+      "sha256": "d19f35188d605890b8adcf25085a84a50e6c593a80c5276d276756a6e0ffe594",
+      "bytes": 13805
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-qa-20261108/launch-mfa-directed.ps1",
+      "sha256": "baa8793ee74b2aa885669a20c8aa267303992ad907a978a4380d078821a2f13b",
+      "bytes": 13036
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-regression-qa-20261108/run-mfa-directed.mjs",
+      "sha256": "d551fafda92599e13c8a5fc0f271e05f64492727280cd383ff4de2dfd1cfac0a",
+      "bytes": 15621
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-regression-qa-20261108/launch-mfa-directed.ps1",
+      "sha256": "dae78fdb73f6ea010492d87c92689ca2650ccadd2c0af8e43ae85051da5bb2aa",
+      "bytes": 13037
+    },
+    {
+      "id": "mfa-user-membership-v2-harness-20261108/executors-handoff.json",
+      "sha256": "836f097a1dcad1ea09ea022a6dfe27bb405424456bd92976934d773b149bbb10",
+      "bytes": 3034
+    },
+    {
+      "id": "mfa-grants-root-attestation-20261108.json",
+      "sha256": "9d43fe8e98ce5e11a26e7e943fb465a96f24a4c14368bbdab5712e5282cb426e",
+      "bytes": 664
+    },
+    {
+      "id": "mfa-user-membership-v2-harness-20261108/run-types.mjs",
+      "sha256": "d72998751eae361760c5ed232d024814ba0b4a1c0f9e416762448d6f3e073cb2",
+      "bytes": 12694
+    },
+    {
+      "id": "mfa-user-membership-v2-harness-20261108/baseline-prepare-result.json",
+      "sha256": "5bcd965bf3cc90686ca9ae1d65c9a93617834f9f2cf8f2fa49dd57a2c22c92cf",
+      "bytes": 166
+    },
+    {
+      "id": "mfa-user-membership-v2-harness-20261108/baseline-prepare-guard.json",
+      "sha256": "933c3610c95e1d9f4d9473e195026f4fade25ec3590b331d258baf97790078e9",
+      "bytes": 91
+    },
+    {
+      "id": "mfa-user-membership-v2-harness-20261108/baseline-prepare.stdout.txt",
+      "sha256": "2051b4ea95d4f8af5701b6386986144a200b1593e1963e3d3113774941a2361e",
+      "bytes": 246
+    },
+    {
+      "id": "mfa-user-membership-v2-harness-20261108/baseline-prepare.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-user-membership-v2-harness-20261108/fixed-prepare-result.json",
+      "sha256": "035282fbaca6469c1e77095282101ebfcc2842ba4eac22422cfc615a3121372b",
+      "bytes": 165
+    },
+    {
+      "id": "mfa-user-membership-v2-harness-20261108/fixed-prepare-guard.json",
+      "sha256": "566eda35808760eecafecfeac36f11c831dc38004e28bd5bc4dec641611da529",
+      "bytes": 91
+    },
+    {
+      "id": "mfa-user-membership-v2-harness-20261108/fixed-prepare.stdout.txt",
+      "sha256": "4304e1ebf1f8e90dd1387bad5681cf1f92420da9f5142aad93e7b6f64a400cab",
+      "bytes": 243
+    },
+    {
+      "id": "mfa-user-membership-v2-harness-20261108/fixed-prepare.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-user-membership-v2-baseline-qa-20261108/prepared.json",
+      "sha256": "8c0693fb85fe2218fdce3b25ae2ceaa66d5d5604ab47dc2d404d6ed1e2975649",
+      "bytes": 910877
+    },
+    {
+      "id": "mfa-user-membership-v2-baseline-qa-20261108/tsconfig.test.json",
+      "sha256": "4b286d7b62846e03ccb61b3101fd86860e353c9b1bc6b5c176d845493740c8aa",
+      "bytes": 2382
+    },
+    {
+      "id": "mfa-user-membership-v2-baseline-qa-20261108/checks/resolve/stdout.log",
+      "sha256": "94e717f7c40197e8731901ae589bac8f42b95028ab40459106912fb7935985f3",
+      "bytes": 149980
+    },
+    {
+      "id": "mfa-user-membership-v2-baseline-qa-20261108/checks/resolve/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-user-membership-v2-baseline-qa-20261108/checks/resolve/result.json",
+      "sha256": "2d5324039249318adf30a980f5de1d7656c01a8441e123ddb10a3818a264d1c6",
+      "bytes": 1178
+    },
+    {
+      "id": "mfa-user-membership-v2-baseline-qa-20261108/checks/resolve/command.json",
+      "sha256": "50b36cbdba42b9701de281fc223c2ac29696323c28bdac4852d1330567aa3f1a",
+      "bytes": 954
+    },
+    {
+      "id": "mfa-user-membership-v2-baseline-qa-20261108/checks/resolve/guard.json",
+      "sha256": "987474e67f4ae9601834b5fae05ef46412cf2a0955ea6b1bfcd4a647bb65a25c",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-user-membership-v2-baseline-qa-20261108/checks/types/stdout.log",
+      "sha256": "10f3319f81632a8bc7402f12996388ff767444fd53d528e93655b9fff905bcf7",
+      "bytes": 972
+    },
+    {
+      "id": "mfa-user-membership-v2-baseline-qa-20261108/checks/types/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-user-membership-v2-baseline-qa-20261108/checks/types/result.json",
+      "sha256": "0db4288eb9b9b7f27b9aeb2a5c447ac0b1f542ded91934632f791e8fe814f427",
+      "bytes": 1024
+    },
+    {
+      "id": "mfa-user-membership-v2-baseline-qa-20261108/checks/types/command.json",
+      "sha256": "36c0e0ae3499e4ccda57eccba0f0b0e1c1010ac3ca5e375be009c6fefb806227",
+      "bytes": 959
+    },
+    {
+      "id": "mfa-user-membership-v2-baseline-qa-20261108/checks/types/guard.json",
+      "sha256": "24d8b8111c0d78d54c74b5ba479419ce02b6d2ebb66d09b12da51130cb47c6ee",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-qa-20261108/prepared.json",
+      "sha256": "d598928b503f7b191e32ad562c19a2fceba38aa1aa4b9b58e2d1380b470b1332",
+      "bytes": 910335
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-qa-20261108/tsconfig.test.json",
+      "sha256": "4b286d7b62846e03ccb61b3101fd86860e353c9b1bc6b5c176d845493740c8aa",
+      "bytes": 2382
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-qa-20261108/checks/resolve/stdout.log",
+      "sha256": "f92e3bc7da822895f0f1ed4f93243d932061e58c1141ea8ee1420d2ac85cc218",
+      "bytes": 149464
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-qa-20261108/checks/resolve/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-qa-20261108/checks/resolve/result.json",
+      "sha256": "76b5c6ce94153851490e262fe729348d2169d3e877a938b8ae295d3dbe6814d2",
+      "bytes": 1175
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-qa-20261108/checks/resolve/command.json",
+      "sha256": "ae32bfc778dd873ae9605e17206ee5fa06d1a39b63f5af4e8c72402ac461cd2f",
+      "bytes": 942
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-qa-20261108/checks/resolve/guard.json",
+      "sha256": "5634daefb054373b4e5970d6c2d5867434f2a202e3c4e26441adeff8d203bec8",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-qa-20261108/checks/types/stdout.log",
+      "sha256": "cac0c12aafc91d3965f2e312d59319694cb64d00616a6234fa5c264bb2a415ad",
+      "bytes": 972
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-qa-20261108/checks/types/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-qa-20261108/checks/types/result.json",
+      "sha256": "cc65b8cb0851ecdf06186d92fdd265bea7cc07164a1e3075baf9435b7a80d224",
+      "bytes": 1021
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-qa-20261108/checks/types/command.json",
+      "sha256": "b6674894e3d7652a7a4fefbce35c71a1882e86bc72b205b85e99e9bf2ea77103",
+      "bytes": 947
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-qa-20261108/checks/types/guard.json",
+      "sha256": "1f251d7cbc5a42fa959d7b89c2f10ed4d2a07c0f41fcb4c766c91ea7f2b9bf7f",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-user-membership-v2-baseline-qa-20261108/owned-database.json",
+      "sha256": "bb9e81d05defce002c5ad9850fe7a9465f1b17007cc2d793ed01594c1837167d",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-user-membership-v2-baseline-qa-20261108/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-user-membership-v2-baseline-qa-20261108/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-user-membership-v2-baseline-qa-20261108/platform-mfa-user-memberships.log",
+      "sha256": "98b7439646ea2449b395742506d9c2ea12fee592ecd301aa47ca9d668094db2c",
+      "bytes": 30519
+    },
+    {
+      "id": "mfa-user-membership-v2-baseline-qa-20261108/mfa-directed-result.json",
+      "sha256": "c564b722785f96bd3e6788bb6a19222a09f7bcda59da9c039b6836ed486bf513",
+      "bytes": 314758
+    },
+    {
+      "id": "mfa-user-membership-v2-baseline-qa-20261108/mfa-directed-postchecks.json",
+      "sha256": "854aade0e4925781ecb83370a378c80c07f50331e5ff4752782213b08676591c",
+      "bytes": 390
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-qa-20261108/owned-database.json",
+      "sha256": "bf36cb2f121dba7c65b7f6d001d89529585b3207c1c4ba645ec89bc785250983",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-qa-20261108/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-qa-20261108/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-qa-20261108/platform-mfa-user-memberships.log",
+      "sha256": "c94c9fc26373e8e56c891547822ac671583fd31702ebb4e1a4ed08476b97b737",
+      "bytes": 8627
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-qa-20261108/mfa-directed-result.json",
+      "sha256": "a6104dd00d85dca562b38a01e0c3f7baa9ae83d400c20c23e75f0e210f842778",
+      "bytes": 314737
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-qa-20261108/mfa-directed-postchecks.json",
+      "sha256": "b53e2826f00c70761162a6ab769df9505ffc8759fc49a97b37b4b90de4db321d",
+      "bytes": 390
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-regression-qa-20261108/owned-database.json",
+      "sha256": "87582bea93d010748374120463cf5e12122178f4b87ce9c064064dbad6477481",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-regression-qa-20261108/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-regression-qa-20261108/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-regression-qa-20261108/platform-mfa-tenancy-links.log",
+      "sha256": "5aa345886f71634a2e59c74418245fb0292dde94f60d171e5b7763a0757d6801",
+      "bytes": 2778
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-regression-qa-20261108/platform-mfa-tenancy-structure.log",
+      "sha256": "3c8b4585e30bb7bb3657b832ca4e8bb45e943d218a61e17e832c1928a2d261ef",
+      "bytes": 2623
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-regression-qa-20261108/tenancy-people.log",
+      "sha256": "7d6bc76e32bd7714ac038a22b016bfab5b60ad99c19e951b565887a3027172a2",
+      "bytes": 2668
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-regression-qa-20261108/tenancy-http.log",
+      "sha256": "2b49738078d423d5c4408b8065ba6f6cef61bb987fa0f6625f7bbccd5dae663b",
+      "bytes": 2541
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-regression-qa-20261108/tenancy-edit.log",
+      "sha256": "ec4c440bbc418d90edf282ebaf3451bc15c0d3069fa1dbc437f06d0ba5534550",
+      "bytes": 3002
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-regression-qa-20261108/membership-lifecycle.log",
+      "sha256": "e3b3a6aa3d97c527a20dc4d02e24f793198e9f57af845f92d719f1362e19739d",
+      "bytes": 1157
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-regression-qa-20261108/platform-mfa-tenancy-commands.log",
+      "sha256": "6835acb7e89b4d0efe80df00a1673bb85e822741b64e5f98733508bd5230c267",
+      "bytes": 6941
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-regression-qa-20261108/platform-mfa-tenancy-revocations.log",
+      "sha256": "256e944fe01a3654c193b5e74e7e131a5e7b91f5b6ead1195992d03e25fe00a6",
+      "bytes": 5522
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-regression-qa-20261108/platform-mfa-tenancy-create.log",
+      "sha256": "4dc9d3b115b1666bfaf54279968bc54daddd21d1096613d4030257be57386603",
+      "bytes": 4292
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-regression-qa-20261108/platform-mfa-tenancy-grants.log",
+      "sha256": "f17180a614aae16d5441ed1abba77e11aa3be83b83f4517b6903535b26b5dd10",
+      "bytes": 4556
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-regression-qa-20261108/platform-mfa-team-renewal.log",
+      "sha256": "73856f032d2e5806c7d472c64edc637f0fccdff5363f5e7b6ea69af0d1cb311e",
+      "bytes": 5061
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-regression-qa-20261108/invitations.log",
+      "sha256": "3426ed4ae64a339abec43d5a78700446007c31b7ac08da93a647c8772996f59a",
+      "bytes": 2500
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-regression-qa-20261108/platform-mfa-invitation-commands.log",
+      "sha256": "50ce4805a3acdfef4d3a611429ecf00a694b5d5e81aa9010061e4a9ca794c19c",
+      "bytes": 7874
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-regression-qa-20261108/users-capabilities.log",
+      "sha256": "9df818b029274affa16c733c322b0d68b9fb8880e107efcde5354d364cc72983",
+      "bytes": 1542
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-regression-qa-20261108/platform-mfa-user-create.log",
+      "sha256": "16d28fc83cfe88fbad510256b158dc0e19ea5a1d91e2adb62bd4b0912cb618a0",
+      "bytes": 5094
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-regression-qa-20261108/mfa-directed-result.json",
+      "sha256": "f92570ea6e0575b22f213a7f40410c3583fa46649e4b4a57edc32e1a1d12e7fa",
+      "bytes": 323343
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-regression-qa-20261108/mfa-directed-postchecks.json",
+      "sha256": "6df90969648d3506e786ebcf927a082d37216c4b7d28fef4d335f802e43145f9",
+      "bytes": 390
+    }
+  ],
+  "performanceAssessed": false,
+  "productionAccepted": false
+}

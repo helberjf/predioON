@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "recordedOn": "2026-11-08",
+  "status": "SOURCE_PACKAGE_NOT_RUNTIME_ACCEPTANCE",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+      "bytes": 8
+    },
+    {
+      "path": "apply-user-membership.mjs",
+      "sha256": "b4e4b17109b97401ac9c659263f7e608e412d0b6f285ef39b1069e48adfec9e7",
+      "bytes": 7384
+    },
+    {
+      "path": "MANIFEST.json",
+      "sha256": "8eaa6c07144871b32981ac684e46c8fb4485b0932fb433d0e0793cf24ab2ce10",
+      "bytes": 386354
+    },
+    {
+      "path": "payload/apps/api/src/modules/users/routes.ts.txt",
+      "sha256": "8d0658986670db8d9b206b33a1a0ffff0f4342080da38e563ee211c5cbdde241",
+      "bytes": 10985
+    },
+    {
+      "path": "payload/apps/api/test/platform-mfa-user-memberships.test.ts.txt",
+      "sha256": "6d8b5567f5d9e9a6a755ef302cb0576e6d245413f0388f4290b8a0550426a28c",
+      "bytes": 24800
+    },
+    {
+      "path": "README.md",
+      "sha256": "dfc2023cdd378ec1dfa501f2f896ef4b470524301d88967e641df0872d489587",
+      "bytes": 2464
+    }
+  ]
+}
