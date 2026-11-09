@@ -1,0 +1,37 @@
+[
+  {
+    "path": ".gitattributes",
+    "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+    "bytes": 8
+  },
+  {
+    "path": "payload/apps/api/src/modules/support-access/routes.ts.txt",
+    "sha256": "d6182caa70e1066aaa43b0da4eec530538c321243747461e5a538fc711b4de9c",
+    "bytes": 19415
+  },
+  {
+    "path": "payload/apps/api/test/platform-mfa-support-grant-commands.test.ts.txt",
+    "sha256": "cdc586505a9984c940d838662f85f25c98ae6214d92cc7dd594231b184500043",
+    "bytes": 41354
+  },
+  {
+    "path": "PRODUCT-MANIFEST.json",
+    "sha256": "f9a1744246dd573b20c28d468d25a89c795114873096efe41a14b4de52b84c2e",
+    "bytes": 880
+  },
+  {
+    "path": "QA-PLAN.json",
+    "sha256": "2c8a18decd7302bc1a0fa5d2b3fcf8cbe7386e0161ea845c1556f9969ec94abf",
+    "bytes": 5031
+  },
+  {
+    "path": "README.md",
+    "sha256": "ce3cdf4282511636149ad9221d32bb49abdd816703efaefa887d8f4d75691669",
+    "bytes": 3038
+  },
+  {
+    "path": "TEST-MANIFEST.json",
+    "sha256": "3d796c54f6d2a14ba81559e45414b6eba9b1106f4c0e82d7fb59b5945aaacde5",
+    "bytes": 20448
+  }
+]

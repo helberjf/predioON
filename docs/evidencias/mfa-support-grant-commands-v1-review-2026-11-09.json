@@ -1,0 +1,580 @@
+{
+  "recordedOn": "2026-11-09",
+  "status": "V1_BASELINE_REVIEWED_68_MFA_FAILURES_AND_ONE_FIXTURE_FAILURE",
+  "totals": {
+    "tests": 99,
+    "suites": 1,
+    "pass": 30,
+    "fail": 69,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "baselineLogSha256": "699f38facfd46e04b723d956587d68f9adf36c3f74aab63f198ce3feedc63590",
+  "baselineResultSha256": "6aab1b9581c555bcdbaa3ff75a950c72b62c45f0179271f7eeb1aafbcf31e900",
+  "baselinePostchecksSha256": "25f7ac3c85d38b00b7cba17ec29348bcde1c7a41d65b390bc1bcb8cb749d9c75",
+  "mfaFailureObservations": [
+    {
+      "case": "POST flag first: rejects factor removal after real global authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: exact grants history audit DTO and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST flag first: rejects family proof removal after real global authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: exact grants history audit DTO and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST flag replace: rejects factor removal after real global authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: exact grants history audit DTO and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST flag replace: rejects family proof removal after real global authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: exact grants history audit DTO and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST flag building-missing: rejects factor removal after real global authorization",
+      "actualStatus": 404,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline404: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST flag building-missing: rejects family proof removal after real global authorization",
+      "actualStatus": 404,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline404: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST flag building-inactive: rejects factor removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST flag building-inactive: rejects family proof removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST flag staff-missing: rejects factor removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST flag staff-missing: rejects family proof removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST flag staff-inactive: rejects factor removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST flag staff-inactive: rejects family proof removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST flag self: rejects factor removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST flag self: rejects family proof removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST binding first: rejects factor removal after real global authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: exact grants history audit DTO and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST binding first: rejects family proof removal after real global authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: exact grants history audit DTO and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST binding replace: rejects factor removal after real global authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: exact grants history audit DTO and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST binding replace: rejects family proof removal after real global authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: exact grants history audit DTO and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST binding building-missing: rejects factor removal after real global authorization",
+      "actualStatus": 404,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline404: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST binding building-missing: rejects family proof removal after real global authorization",
+      "actualStatus": 404,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline404: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST binding building-inactive: rejects factor removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST binding building-inactive: rejects family proof removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST binding staff-missing: rejects factor removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST binding staff-missing: rejects family proof removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST binding staff-inactive: rejects factor removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST binding staff-inactive: rejects family proof removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST binding self: rejects factor removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST binding self: rejects family proof removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "DELETE flag open: rejects factor removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact conditional revocation audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before existing/missing grant read"
+    },
+    {
+      "case": "DELETE flag open: rejects family proof removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact conditional revocation audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before existing/missing grant read"
+    },
+    {
+      "case": "DELETE flag expired: rejects factor removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact conditional revocation audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before existing/missing grant read"
+    },
+    {
+      "case": "DELETE flag expired: rejects family proof removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact conditional revocation audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before existing/missing grant read"
+    },
+    {
+      "case": "DELETE flag revoked: rejects factor removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact conditional revocation audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before existing/missing grant read"
+    },
+    {
+      "case": "DELETE flag revoked: rejects family proof removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact conditional revocation audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before existing/missing grant read"
+    },
+    {
+      "case": "DELETE flag missing: rejects factor removal after real global authorization",
+      "actualStatus": 404,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline404: missing grant preserves account bindings grants and audit",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before existing/missing grant read"
+    },
+    {
+      "case": "DELETE flag missing: rejects family proof removal after real global authorization",
+      "actualStatus": 404,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline404: missing grant preserves account bindings grants and audit",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before existing/missing grant read"
+    },
+    {
+      "case": "DELETE binding open: rejects factor removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact conditional revocation audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before existing/missing grant read"
+    },
+    {
+      "case": "DELETE binding open: rejects family proof removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact conditional revocation audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before existing/missing grant read"
+    },
+    {
+      "case": "DELETE binding expired: rejects factor removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact conditional revocation audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before existing/missing grant read"
+    },
+    {
+      "case": "DELETE binding expired: rejects family proof removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact conditional revocation audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before existing/missing grant read"
+    },
+    {
+      "case": "DELETE binding revoked: rejects factor removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact conditional revocation audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before existing/missing grant read"
+    },
+    {
+      "case": "DELETE binding revoked: rejects family proof removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact conditional revocation audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before existing/missing grant read"
+    },
+    {
+      "case": "DELETE binding missing: rejects factor removal after real global authorization",
+      "actualStatus": 404,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline404: missing grant preserves account bindings grants and audit",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before existing/missing grant read"
+    },
+    {
+      "case": "DELETE binding missing: rejects family proof removal after real global authorization",
+      "actualStatus": 404,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline404: missing grant preserves account bindings grants and audit",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before existing/missing grant read"
+    },
+    {
+      "case": "POST flag first staff: rejects factor removal committed during actual row wait",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: actual row wait and exact grant effects verified",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "actual restricted PostgreSQL connection blocked by the exact owner row lock; refreshed statistics snapshot; factor/proof withdrawal committed with lock release"
+    },
+    {
+      "case": "POST flag first staff: rejects family proof removal committed during actual row wait",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: actual row wait and exact grant effects verified",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "actual restricted PostgreSQL connection blocked by the exact owner row lock; refreshed statistics snapshot; factor/proof withdrawal committed with lock release"
+    },
+    {
+      "case": "POST flag replace staff: rejects factor removal committed during actual row wait",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: actual row wait and exact grant effects verified",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "actual restricted PostgreSQL connection blocked by the exact owner row lock; refreshed statistics snapshot; factor/proof withdrawal committed with lock release"
+    },
+    {
+      "case": "POST flag replace staff: rejects family proof removal committed during actual row wait",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: actual row wait and exact grant effects verified",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "actual restricted PostgreSQL connection blocked by the exact owner row lock; refreshed statistics snapshot; factor/proof withdrawal committed with lock release"
+    },
+    {
+      "case": "POST binding first staff: rejects factor removal committed during actual row wait",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: actual row wait and exact grant effects verified",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "actual restricted PostgreSQL connection blocked by the exact owner row lock; refreshed statistics snapshot; factor/proof withdrawal committed with lock release"
+    },
+    {
+      "case": "POST binding first staff: rejects family proof removal committed during actual row wait",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: actual row wait and exact grant effects verified",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "actual restricted PostgreSQL connection blocked by the exact owner row lock; refreshed statistics snapshot; factor/proof withdrawal committed with lock release"
+    },
+    {
+      "case": "POST binding replace staff: rejects factor removal committed during actual row wait",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: actual row wait and exact grant effects verified",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "actual restricted PostgreSQL connection blocked by the exact owner row lock; refreshed statistics snapshot; factor/proof withdrawal committed with lock release"
+    },
+    {
+      "case": "POST binding replace staff: rejects family proof removal committed during actual row wait",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: actual row wait and exact grant effects verified",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "actual restricted PostgreSQL connection blocked by the exact owner row lock; refreshed statistics snapshot; factor/proof withdrawal committed with lock release"
+    },
+    {
+      "case": "POST flag replace grant: rejects factor removal committed during actual row wait",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: actual row wait and exact grant effects verified",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "actual restricted PostgreSQL connection blocked by the exact owner row lock; refreshed statistics snapshot; factor/proof withdrawal committed with lock release"
+    },
+    {
+      "case": "POST flag replace grant: rejects family proof removal committed during actual row wait",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: actual row wait and exact grant effects verified",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "actual restricted PostgreSQL connection blocked by the exact owner row lock; refreshed statistics snapshot; factor/proof withdrawal committed with lock release"
+    },
+    {
+      "case": "DELETE flag open grant: rejects factor removal committed during actual row wait",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: actual row wait and exact revocation effects verified",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "actual restricted PostgreSQL connection blocked by the exact owner row lock; refreshed statistics snapshot; factor/proof withdrawal committed with lock release"
+    },
+    {
+      "case": "DELETE flag open grant: rejects family proof removal committed during actual row wait",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: actual row wait and exact revocation effects verified",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "actual restricted PostgreSQL connection blocked by the exact owner row lock; refreshed statistics snapshot; factor/proof withdrawal committed with lock release"
+    },
+    {
+      "case": "DELETE binding open grant: rejects factor removal committed during actual row wait",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: actual row wait and exact revocation effects verified",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "actual restricted PostgreSQL connection blocked by the exact owner row lock; refreshed statistics snapshot; factor/proof withdrawal committed with lock release"
+    },
+    {
+      "case": "DELETE binding open grant: rejects family proof removal committed during actual row wait",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: actual row wait and exact revocation effects verified",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "actual restricted PostgreSQL connection blocked by the exact owner row lock; refreshed statistics snapshot; factor/proof withdrawal committed with lock release"
+    },
+    {
+      "case": "DELETE flag open concurrent: rejects factor removal committed during actual row wait",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: actual row wait and concurrent owner revocation verified; zero-row app update creates no audit",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "actual restricted PostgreSQL connection blocked by the exact owner row lock; refreshed statistics snapshot; factor/proof withdrawal committed with lock release"
+    },
+    {
+      "case": "DELETE flag open concurrent: rejects family proof removal committed during actual row wait",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: actual row wait and concurrent owner revocation verified; zero-row app update creates no audit",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "actual restricted PostgreSQL connection blocked by the exact owner row lock; refreshed statistics snapshot; factor/proof withdrawal committed with lock release"
+    },
+    {
+      "case": "POST first insert: rolls back the complete command after proof trigger",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: exact full command persisted and trigger removed the same family proof once",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "exact actor/session and target matched once during grant mutation or audit; transaction rollback must restore full rows and proof"
+    },
+    {
+      "case": "POST first created-audit: rolls back the complete command after proof trigger",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: exact full command persisted and trigger removed the same family proof once",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "exact actor/session and target matched once during grant mutation or audit; transaction rollback must restore full rows and proof"
+    },
+    {
+      "case": "POST replace insert: rolls back the complete command after proof trigger",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: exact full command persisted and trigger removed the same family proof once",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "exact actor/session and target matched once during grant mutation or audit; transaction rollback must restore full rows and proof"
+    },
+    {
+      "case": "POST replace update: rolls back the complete command after proof trigger",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: exact full command persisted and trigger removed the same family proof once",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "exact actor/session and target matched once during grant mutation or audit; transaction rollback must restore full rows and proof"
+    },
+    {
+      "case": "POST replace revoked-audit: rolls back the complete command after proof trigger",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: exact full command persisted and trigger removed the same family proof once",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "exact actor/session and target matched once during grant mutation or audit; transaction rollback must restore full rows and proof"
+    },
+    {
+      "case": "POST replace created-audit: rolls back the complete command after proof trigger",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: exact full command persisted and trigger removed the same family proof once",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "exact actor/session and target matched once during grant mutation or audit; transaction rollback must restore full rows and proof"
+    },
+    {
+      "case": "DELETE open update: rolls back the complete command after proof trigger",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact full command persisted and trigger removed the same family proof once",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "exact actor/session and target matched once during grant mutation or audit; transaction rollback must restore full rows and proof"
+    },
+    {
+      "case": "DELETE open revoked-audit: rolls back the complete command after proof trigger",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact full command persisted and trigger removed the same family proof once",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "exact actor/session and target matched once during grant mutation or audit; transaction rollback must restore full rows and proof"
+    }
+  ],
+  "fixtureFailure": {
+    "case": "creation requires recent password while revocation keeps its existing contract",
+    "actual": 400,
+    "expected": 204,
+    "line": 423,
+    "cause": "Strict /auth/verify schema expects currentPassword; fixture sent password. Real recovery code was present.",
+    "fix": "Rename only password field to currentPassword; retain real recovery code and all assertions/timeouts."
+  },
+  "v1TestSha256": "03e2dd191a52b04f31156b5d3c3b1b6935189928a6194c023ff4e5186c2edadb",
+  "v2TestSha256": "cdc586505a9984c940d838662f85f25c98ae6214d92cc7dd594231b184500043",
+  "productUnchanged": true,
+  "assertionsUnchanged": true,
+  "timeoutsUnchanged": true,
+  "actualRowWaitCasesVerified": 16,
+  "fixtureCleanupPassed": true,
+  "computerRestarted": false,
+  "v1FixedFunctionalExecuted": false,
+  "productionAccepted": false
+}
