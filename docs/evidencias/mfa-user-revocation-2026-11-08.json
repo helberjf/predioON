@@ -1,0 +1,1016 @@
+{
+  "schemaVersion": 1,
+  "status": "VERIFIED",
+  "configSha256": "fb66ae77cce8f42a94831682f98004efecb73c852825be2384c04c040125e708",
+  "recordedOn": "2026-11-08",
+  "recordedOnTimezone": "America/Sao_Paulo",
+  "reviewedOn": "2026-11-08",
+  "nativeExecutionTimestampsPreserved": true,
+  "verifierSha256": "0782c6f6e6a8a63a96848623c22a6b8f4bb3cb6d2d50a5e7e852a451362cbc89",
+  "reviewedByRoot": true,
+  "baselineRevocationFailuresReviewed": true,
+  "sourceFiles": 1041,
+  "typeFiles": 37,
+  "requiredResolvedSources": 14,
+  "sourceDifference": [
+    "apps/api/src/modules/users/routes.ts"
+  ],
+  "typeChecks": [
+    {
+      "variant": "baseline",
+      "phase": "resolve",
+      "result": {
+        "id": "mfa-user-revocation-baseline-qa-20261108/checks/resolve/result.json",
+        "sha256": "9da48abd966280f7d6f48955fccc3a98f0d30542c4c6f600f2e336951391b7d1",
+        "bytes": 1178
+      },
+      "startedUtc": "2026-11-09T01:03:18.142Z",
+      "childExitedUtc": "2026-11-09T01:03:19.426Z",
+      "durationMs": 1285
+    },
+    {
+      "variant": "baseline",
+      "phase": "types",
+      "result": {
+        "id": "mfa-user-revocation-baseline-qa-20261108/checks/types/result.json",
+        "sha256": "9a6514eb9fa047256cdcddcd3a81bac07ffc751a99f53efdd8c3f19fa33a052a",
+        "bytes": 1025
+      },
+      "startedUtc": "2026-11-09T01:03:28.139Z",
+      "childExitedUtc": "2026-11-09T01:03:38.458Z",
+      "durationMs": 10319
+    },
+    {
+      "variant": "fixed",
+      "phase": "resolve",
+      "result": {
+        "id": "mfa-user-revocation-fixed-qa-20261108/checks/resolve/result.json",
+        "sha256": "578bdcdd17014f9ab2157c4259d7c1aca1fd14aa8b36021332992aaeb25f781d",
+        "bytes": 1175
+      },
+      "startedUtc": "2026-11-09T01:04:18.810Z",
+      "childExitedUtc": "2026-11-09T01:04:20.082Z",
+      "durationMs": 1272
+    },
+    {
+      "variant": "fixed",
+      "phase": "types",
+      "result": {
+        "id": "mfa-user-revocation-fixed-qa-20261108/checks/types/result.json",
+        "sha256": "01cb32a82ba6873b68ee1f2bd733f4bd364b15ca4bbc94f0d849e41c672e31b9",
+        "bytes": 1022
+      },
+      "startedUtc": "2026-11-09T01:04:21.645Z",
+      "childExitedUtc": "2026-11-09T01:04:32.142Z",
+      "durationMs": 10498
+    }
+  ],
+  "preparation": {
+    "nativeResults": [
+      {
+        "variant": "baseline",
+        "nativeChildExitedUtc": "2026-11-09T01:03:02.4190334Z",
+        "durationMs": 5717.8605,
+        "nativeResult": {
+          "id": "mfa-user-revocation-harness-20261108/baseline-prepare-result.json",
+          "sha256": "329e630be26745093dafb7f2950a22630f9540f8bba528a6284a2e5c7126e731",
+          "bytes": 166
+        }
+      },
+      {
+        "variant": "fixed",
+        "nativeChildExitedUtc": "2026-11-09T01:03:16.8513747Z",
+        "durationMs": 4232.9178,
+        "nativeResult": {
+          "id": "mfa-user-revocation-harness-20261108/fixed-prepare-result.json",
+          "sha256": "5f36dd3389a6d514d66220363412f23b2b080075e04584b7e8939e6ec5e442e2",
+          "bytes": 166
+        }
+      }
+    ],
+    "isProductTestExecution": false
+  },
+  "acceptedCounts": {
+    "directedTap": 48,
+    "directedIndependent": 48,
+    "directedAggregateGroups": 0,
+    "directedSuites": 1,
+    "regressionFiles": 16,
+    "regressionTap": 268,
+    "regressionIndependent": 258,
+    "regressionAggregateGroups": 10,
+    "combinedTap": 316,
+    "combinedIndependent": 306,
+    "combinedAggregateGroups": 10
+  },
+  "environment": {
+    "attestation": {
+      "recordedOn": "2026-11-08",
+      "recordedUtc": "2026-11-08T23:00:37.6479565Z",
+      "container": "predioon-mfa-grants-20261108",
+      "containerId": "3c0f4e5e47d3d488766eb2679ba97fabf29b12d72f9b8df41bb504205a41b4c8",
+      "systemIdentifier": "7705939420428193833",
+      "port": 5468,
+      "loopbackOnly": true,
+      "memoryLimitMiB": 384,
+      "cpuLimit": 1,
+      "basePublicTables": 0,
+      "exclusiveUse": true,
+      "computerRestarted": false,
+      "imageId": "sha256:4e459e217f00cbb09920c34d245501e63427e6767a495de57ce76823ff280f12",
+      "volume": "predioon_mfa_grants_20261108",
+      "newCluster": true,
+      "previousClusterUnavailable": true,
+      "credentialsPublished": false
+    }
+  },
+  "scopeLimits": [
+    "Only DELETE /users/memberships/:membershipId changed, with guarded SELECT, UPDATE and final MFA decision. POSTs, other handlers, schemas, shared helpers, policies and migrations are unchanged.",
+    "Flag and global-binding administrators enroll via real HTTP/TOTP in the same session family; no positive factor/proof is fabricated by SQL. Optional-MFA local RBAC and legacy managers retain their contracts.",
+    "Baseline has twenty204 and four404 versus403 failures. Mutation paths verify exact persisted membership, audit and same-token eligibility. Empty lookup paths verify unchanged data, not an unauthorized write.",
+    "Twelve negative cases pause after the actual global authorization; eight pause after the actual feature lock before the initial lookup. These controlled interleavings do not prove an actual PostgreSQL lock wait.",
+    "Sixteen positive combinations cover flag/global-binding/local-binding/legacy authorities and current/inactive/expired/future memberships. ID, user, building, role, unit, createdAt and original startsAt are preserved; only active, endsAt and updatedAt change.",
+    "A sole legacy manager self-revokes successfully with one audit, no remaining role binding, same-token management loss, and no audit on a refused second request. Final MFA does not recheck a legitimately removed capability.",
+    "Four proof-removing triggers cover membership AFTER UPDATE and audit AFTER INSERT on current/inactive rows. Each fires once; rollback restores exact memberships, audit and original proof timestamp text/generation/presence.",
+    "Two narrow generic trigger exception cases and one BEFORE UPDATE skip case preserve rows, audit and proof. Generic errors remain opaque500; zero-row update retains409 and rolls back its prior audit. These are scoped fixtures, not every possible database exception.",
+    "Missing/invalid UUID, unauthenticated, resident and cross-building refusals, repeated-revocation auditing and global authority withdrawal retain the contracts exercised.",
+    "All guards remain1536MiB. Sixteen related regression files retain their own limits; historical runs and baseline are not added to corrected counts.",
+    "Support/features and remaining domains, generic promotion/concurrency, actual lock waits, cache policy, full API/browser/native Android/iOS, performance and production acceptance remain pending."
+  ],
+  "baselineFailureObservations": [
+    {
+      "case": "flag current: rejects factor removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: persisted revocation, unchanged identity and window start, exact audit and same-token denial verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after real global authorization before audit and membership revocation"
+    },
+    {
+      "case": "flag current: rejects family proof removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: persisted revocation, unchanged identity and window start, exact audit and same-token denial verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after real global authorization before audit and membership revocation"
+    },
+    {
+      "case": "flag inactive: rejects factor removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: persisted revocation, unchanged identity and window start, exact audit and same-token denial verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after real global authorization before audit and membership revocation"
+    },
+    {
+      "case": "flag inactive: rejects family proof removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: persisted revocation, unchanged identity and window start, exact audit and same-token denial verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after real global authorization before audit and membership revocation"
+    },
+    {
+      "case": "flag expired: rejects factor removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: persisted revocation, unchanged identity and window start, exact audit and same-token denial verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after real global authorization before audit and membership revocation"
+    },
+    {
+      "case": "flag expired: rejects family proof removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: persisted revocation, unchanged identity and window start, exact audit and same-token denial verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after real global authorization before audit and membership revocation"
+    },
+    {
+      "case": "binding current: rejects factor removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: persisted revocation, unchanged identity and window start, exact audit and same-token denial verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after real global authorization before audit and membership revocation"
+    },
+    {
+      "case": "binding current: rejects family proof removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: persisted revocation, unchanged identity and window start, exact audit and same-token denial verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after real global authorization before audit and membership revocation"
+    },
+    {
+      "case": "binding inactive: rejects factor removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: persisted revocation, unchanged identity and window start, exact audit and same-token denial verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after real global authorization before audit and membership revocation"
+    },
+    {
+      "case": "binding inactive: rejects family proof removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: persisted revocation, unchanged identity and window start, exact audit and same-token denial verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after real global authorization before audit and membership revocation"
+    },
+    {
+      "case": "binding expired: rejects factor removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: persisted revocation, unchanged identity and window start, exact audit and same-token denial verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after real global authorization before audit and membership revocation"
+    },
+    {
+      "case": "binding expired: rejects family proof removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: persisted revocation, unchanged identity and window start, exact audit and same-token denial verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after real global authorization before audit and membership revocation"
+    },
+    {
+      "case": "flag current: guards lookup after factor removal",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: guarded-lookup gap continued to persisted revocation, exact audit and same-token denial",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after real feature lock before visible membership lookup"
+    },
+    {
+      "case": "flag current: guards lookup after family proof removal",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: guarded-lookup gap continued to persisted revocation, exact audit and same-token denial",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after real feature lock before visible membership lookup"
+    },
+    {
+      "case": "flag absent: guards lookup after factor removal",
+      "actualStatus": 404,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline404: empty lookup kept memberships and audit unchanged before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after real feature lock before empty membership lookup"
+    },
+    {
+      "case": "flag absent: guards lookup after family proof removal",
+      "actualStatus": 404,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline404: empty lookup kept memberships and audit unchanged before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after real feature lock before empty membership lookup"
+    },
+    {
+      "case": "binding current: guards lookup after factor removal",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: guarded-lookup gap continued to persisted revocation, exact audit and same-token denial",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after real feature lock before visible membership lookup"
+    },
+    {
+      "case": "binding current: guards lookup after family proof removal",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: guarded-lookup gap continued to persisted revocation, exact audit and same-token denial",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after real feature lock before visible membership lookup"
+    },
+    {
+      "case": "binding absent: guards lookup after factor removal",
+      "actualStatus": 404,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline404: empty lookup kept memberships and audit unchanged before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after real feature lock before empty membership lookup"
+    },
+    {
+      "case": "binding absent: guards lookup after family proof removal",
+      "actualStatus": 404,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline404: empty lookup kept memberships and audit unchanged before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after real feature lock before empty membership lookup"
+    },
+    {
+      "case": "current: rolls revocation audit and proof back after memberships trigger",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: persisted revocation and audit verified; narrow trigger fired once and removed the same family proof",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "narrow membership AFTER UPDATE or audit AFTER INSERT trigger"
+    },
+    {
+      "case": "inactive: rolls revocation audit and proof back after memberships trigger",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: persisted revocation and audit verified; narrow trigger fired once and removed the same family proof",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "narrow membership AFTER UPDATE or audit AFTER INSERT trigger"
+    },
+    {
+      "case": "current: rolls revocation audit and proof back after audit_logs trigger",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: persisted revocation and audit verified; narrow trigger fired once and removed the same family proof",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "narrow membership AFTER UPDATE or audit AFTER INSERT trigger"
+    },
+    {
+      "case": "inactive: rolls revocation audit and proof back after audit_logs trigger",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: persisted revocation and audit verified; narrow trigger fired once and removed the same family proof",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "narrow membership AFTER UPDATE or audit AFTER INSERT trigger"
+    }
+  ],
+  "runs": [
+    {
+      "variant": "baseline",
+      "tests": [
+        {
+          "test": "platform-mfa-user-revocation",
+          "tests": 48,
+          "suites": 1,
+          "pass": 24,
+          "fail": 24,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 19756.3877,
+          "childDurationMs": 19910.6673,
+          "logSha256": "4e0e4b8a232f9bc6c083bf473a6a0616f00218bd52df315f8aec8895f8b71999"
+        }
+      ],
+      "cleanupPassed": true,
+      "sourceMatched": true,
+      "ownedChildrenExited": true,
+      "cleanupHeld": false,
+      "nativeStatus": "completed-awaiting-TAP-GREEN-classification",
+      "startedUtc": "2026-11-09T01:05:54.972Z",
+      "endedUtc": "2026-11-09T01:06:21.509Z",
+      "observedHeadBefore": "c8f990531819886f6181dd167bbe2bd6d8797587",
+      "observedHeadAfter": "c8f990531819886f6181dd167bbe2bd6d8797587"
+    },
+    {
+      "variant": "fixed",
+      "tests": [
+        {
+          "test": "platform-mfa-user-revocation",
+          "tests": 48,
+          "suites": 1,
+          "pass": 48,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 20357.6049,
+          "childDurationMs": 20509.3563,
+          "logSha256": "fc025969d0d596e8fa81f53b0571a1401cb242d45f9a84ac93dc02494c6a9feb"
+        }
+      ],
+      "cleanupPassed": true,
+      "sourceMatched": true,
+      "ownedChildrenExited": true,
+      "cleanupHeld": false,
+      "nativeStatus": "completed-awaiting-TAP-GREEN-classification",
+      "startedUtc": "2026-11-09T01:07:25.900Z",
+      "endedUtc": "2026-11-09T01:07:54.280Z",
+      "observedHeadBefore": "c8f990531819886f6181dd167bbe2bd6d8797587",
+      "observedHeadAfter": "c8f990531819886f6181dd167bbe2bd6d8797587"
+    },
+    {
+      "variant": "fixed-regression",
+      "tests": [
+        {
+          "test": "platform-mfa-tenancy-links",
+          "tests": 12,
+          "suites": 1,
+          "pass": 12,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 4809.1671,
+          "childDurationMs": 4975.449700000001,
+          "logSha256": "3e34881686794cbc83af2d1297ac927874a13d42d730895a1bde5814cbc8675c"
+        },
+        {
+          "test": "platform-mfa-tenancy-structure",
+          "tests": 12,
+          "suites": 1,
+          "pass": 12,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 3865.289,
+          "childDurationMs": 4024.6667000000016,
+          "logSha256": "a11bd2d5fa3bdd593df63d3f21d147cb08a213a351585314f9aaf4f92625ce7f"
+        },
+        {
+          "test": "tenancy-people",
+          "tests": 9,
+          "suites": 1,
+          "pass": 9,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 7710.7298,
+          "childDurationMs": 8354.1928,
+          "logSha256": "e2e52143ee280768edd8bceefd2a6ae4ffcd92488e1c561e02066325b803ee6b"
+        },
+        {
+          "test": "tenancy-http",
+          "tests": 9,
+          "suites": 1,
+          "pass": 9,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 5839.2106,
+          "childDurationMs": 5985.626199999999,
+          "logSha256": "25c2322ad8c290a64d63ee31c95fbf3cc7afe15c61641d006ab7c55d65b095f0"
+        },
+        {
+          "test": "tenancy-edit",
+          "tests": 11,
+          "suites": 1,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 6124.4792,
+          "childDurationMs": 6286.792099999999,
+          "logSha256": "bbe813d56ed72f3b9d289f0e02816f322644a91772fc041ee6601d41cf8794a4"
+        },
+        {
+          "test": "membership-lifecycle",
+          "tests": 4,
+          "suites": 1,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 3393.5939,
+          "childDurationMs": 3538.877800000002,
+          "logSha256": "5850d33fd155baa1a3e0cac2da23606295e31e05a5c934499ee8fea41aa9f2fd"
+        },
+        {
+          "test": "platform-mfa-tenancy-commands",
+          "tests": 35,
+          "suites": 1,
+          "pass": 35,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 7722.4205,
+          "childDurationMs": 7878.064099999996,
+          "logSha256": "c8047b4be3d1ee070f5c38d603f7f38e56483739cf3bac1a5f12cbffbfdf99a4"
+        },
+        {
+          "test": "platform-mfa-tenancy-revocations",
+          "tests": 21,
+          "suites": 1,
+          "pass": 21,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 22810.8813,
+          "childDurationMs": 22972.610400000005,
+          "logSha256": "c139d2c68d9b8c46699ba7fcbffb57e0b1408c936bac48273366cd8c0d6f9b83"
+        },
+        {
+          "test": "platform-mfa-tenancy-create",
+          "tests": 17,
+          "suites": 1,
+          "pass": 17,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 7640.1419,
+          "childDurationMs": 7792.753199999992,
+          "logSha256": "7293227e210019527d845aca543c67029b2dff23a5e341b3da36250861f1722c"
+        },
+        {
+          "test": "platform-mfa-tenancy-grants",
+          "tests": 17,
+          "suites": 1,
+          "pass": 17,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 13267.4775,
+          "childDurationMs": 13925.464899999992,
+          "logSha256": "5850a71cc85b621d474fe2ea282001ac14ad9b8d26f5f9930359ce8d5a47ff9c"
+        },
+        {
+          "test": "platform-mfa-team-renewal",
+          "tests": 21,
+          "suites": 1,
+          "pass": 21,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 7908.3528,
+          "childDurationMs": 8056.671399999992,
+          "logSha256": "4464e3f797745dfdd540aa8fbf62e5964aa778f97569427c21155f5b601cfca8"
+        },
+        {
+          "test": "invitations",
+          "tests": 9,
+          "suites": 1,
+          "pass": 9,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 6028.2705,
+          "childDurationMs": 6174.079200000007,
+          "logSha256": "a86710ba10ff0f63c0a4c39d3207870f12ba8142c721e6b3b875cb70980a0437"
+        },
+        {
+          "test": "platform-mfa-invitation-commands",
+          "tests": 31,
+          "suites": 1,
+          "pass": 31,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 14083.0302,
+          "childDurationMs": 14238.435900000011,
+          "logSha256": "864f2b77650ce022e881cd60dd01aab8f5d74143368d9ddfc4dd11f7549e190c"
+        },
+        {
+          "test": "users-capabilities",
+          "tests": 5,
+          "suites": 1,
+          "pass": 5,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 5865.5992,
+          "childDurationMs": 6019.415000000008,
+          "logSha256": "f827d601c7356e39a446f04c18e719f3663c5342c4c965ffcf105fe6c78d8c55"
+        },
+        {
+          "test": "platform-mfa-user-create",
+          "tests": 21,
+          "suites": 1,
+          "pass": 21,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 8274.1527,
+          "childDurationMs": 8421.39869999999,
+          "logSha256": "9d0986a5949b0b0e5108c51fccc046d5985e3a4927539fbff5b931c1d694f79c"
+        },
+        {
+          "test": "platform-mfa-user-memberships",
+          "tests": 34,
+          "suites": 1,
+          "pass": 34,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 16110.3781,
+          "childDurationMs": 16265.761599999998,
+          "logSha256": "edeef1501358c8d4aa64a2a0f68893b5538b952da1032af8bab8d78db34b24bb"
+        }
+      ],
+      "cleanupPassed": true,
+      "sourceMatched": true,
+      "ownedChildrenExited": true,
+      "cleanupHeld": false,
+      "nativeStatus": "completed-awaiting-TAP-GREEN-classification",
+      "startedUtc": "2026-11-09T01:09:08.330Z",
+      "endedUtc": "2026-11-09T01:11:59.982Z",
+      "observedHeadBefore": "c8f990531819886f6181dd167bbe2bd6d8797587",
+      "observedHeadAfter": "c8f990531819886f6181dd167bbe2bd6d8797587"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "mfa-user-revocation-root-config-20261108.json",
+      "sha256": "fb66ae77cce8f42a94831682f98004efecb73c852825be2384c04c040125e708",
+      "bytes": 4132
+    },
+    {
+      "id": "mfa-user-revocation-harness-20261108/PLAN.json",
+      "sha256": "7461064875c8777d31f5123799bff78793efac9ab6bf48983dd4f83f10082853",
+      "bytes": 6436
+    },
+    {
+      "id": "mfa-user-revocation-test-20261108/manifest.json",
+      "sha256": "c0aa0b52252e99699092c986a166068ef7de9aafc6f1964fc54d5954a09e5d3a",
+      "bytes": 9264
+    },
+    {
+      "id": "mfa-user-revocation-candidate-20261108/manifest.json",
+      "sha256": "ce4937fa6867de27c7b5dbc5d7decc931ac5b99bc0ff366d9309c256ef5960c9",
+      "bytes": 716
+    },
+    {
+      "id": "mfa-user-revocation-harness-20261108/AUTHORED-PINS.json",
+      "sha256": "a093f47427de45ef8234308a44cf8ffafacc674e0b46c9b690ecd44ff70d282f",
+      "bytes": 664
+    },
+    {
+      "id": "mfa-user-membership-v2-fixed-qa-20261108/prepared.json",
+      "sha256": "d598928b503f7b191e32ad562c19a2fceba38aa1aa4b9b58e2d1380b470b1332",
+      "bytes": 910335
+    },
+    {
+      "id": "mfa-user-revocation-baseline-qa-20261108/run-mfa-directed.mjs",
+      "sha256": "bcab52174395b326144a0be85da73e59e2a51b0f2073465c7b10eec0c31df5fd",
+      "bytes": 13820
+    },
+    {
+      "id": "mfa-user-revocation-baseline-qa-20261108/launch-mfa-directed.ps1",
+      "sha256": "68007f0e753a740ced40914a84fd95507d2a57a3ece999e834b9d728c5938239",
+      "bytes": 13045
+    },
+    {
+      "id": "mfa-user-revocation-fixed-qa-20261108/run-mfa-directed.mjs",
+      "sha256": "b26e3a30377c87a5c746b1ac7104e99fa06a84b8bd7f152620b7fe2d541ff456",
+      "bytes": 13805
+    },
+    {
+      "id": "mfa-user-revocation-fixed-qa-20261108/launch-mfa-directed.ps1",
+      "sha256": "39fe6751621305596ac057130c05cf7564117d495e007b7bd38cb27a273c0bf8",
+      "bytes": 13033
+    },
+    {
+      "id": "mfa-user-revocation-fixed-regression-qa-20261108/run-mfa-directed.mjs",
+      "sha256": "09312daa47d096d671d3fb1cfb38fa07013043d0e75110f5cae59b1022e7e818",
+      "bytes": 15758
+    },
+    {
+      "id": "mfa-user-revocation-fixed-regression-qa-20261108/launch-mfa-directed.ps1",
+      "sha256": "77addd097ed61d21352d75cc6e6fd1631085979936e9a2dd73fc6ec6b35100aa",
+      "bytes": 13034
+    },
+    {
+      "id": "mfa-user-revocation-harness-20261108/executors-handoff.json",
+      "sha256": "b59bfb3042bad3322233bac29a4400cf10b462c6329801302037590eca1f999f",
+      "bytes": 3040
+    },
+    {
+      "id": "mfa-grants-root-attestation-20261108.json",
+      "sha256": "9d43fe8e98ce5e11a26e7e943fb465a96f24a4c14368bbdab5712e5282cb426e",
+      "bytes": 664
+    },
+    {
+      "id": "mfa-user-revocation-harness-20261108/run-types.mjs",
+      "sha256": "622f2c1475923495db0aaf5a61afa469be8618b47c7b7bdb24cd6f9eee9ff128",
+      "bytes": 12783
+    },
+    {
+      "id": "mfa-user-revocation-harness-20261108/baseline-prepare-result.json",
+      "sha256": "329e630be26745093dafb7f2950a22630f9540f8bba528a6284a2e5c7126e731",
+      "bytes": 166
+    },
+    {
+      "id": "mfa-user-revocation-harness-20261108/baseline-prepare-guard.json",
+      "sha256": "0eaed0d6919acf4244a692e804869d28db1c30265536a8133fc01fdaf107b22d",
+      "bytes": 91
+    },
+    {
+      "id": "mfa-user-revocation-harness-20261108/baseline-prepare.stdout.txt",
+      "sha256": "4c48e92656aba8d176945778acb2369d91bf605028cd6da6011ba63082b771f8",
+      "bytes": 246
+    },
+    {
+      "id": "mfa-user-revocation-harness-20261108/baseline-prepare.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-user-revocation-harness-20261108/fixed-prepare-result.json",
+      "sha256": "5f36dd3389a6d514d66220363412f23b2b080075e04584b7e8939e6ec5e442e2",
+      "bytes": 166
+    },
+    {
+      "id": "mfa-user-revocation-harness-20261108/fixed-prepare-guard.json",
+      "sha256": "305c995160e132b2505661106561dbac399adaeff82b5f565f73c42ca8118cec",
+      "bytes": 91
+    },
+    {
+      "id": "mfa-user-revocation-harness-20261108/fixed-prepare.stdout.txt",
+      "sha256": "f2b8e1b3eab0b8480f8bf05a48b235e030d779806000fa20dd706cf25584b242",
+      "bytes": 243
+    },
+    {
+      "id": "mfa-user-revocation-harness-20261108/fixed-prepare.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-user-revocation-baseline-qa-20261108/prepared.json",
+      "sha256": "130a7042164fc721aab82daf58e3df6a994d26a70fc3e0ec1d9202e22ce40095",
+      "bytes": 910810
+    },
+    {
+      "id": "mfa-user-revocation-baseline-qa-20261108/tsconfig.test.json",
+      "sha256": "bae99a3a6e210dea9e94988f19fc5070bda9d0594f3054783f22ef0152edb99c",
+      "bytes": 2449
+    },
+    {
+      "id": "mfa-user-revocation-baseline-qa-20261108/checks/resolve/stdout.log",
+      "sha256": "dc018cebcad1e4f78ef14e56355e5603b448dbdb7a2ce2962a195559680850dc",
+      "bytes": 149660
+    },
+    {
+      "id": "mfa-user-revocation-baseline-qa-20261108/checks/resolve/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-user-revocation-baseline-qa-20261108/checks/resolve/result.json",
+      "sha256": "9da48abd966280f7d6f48955fccc3a98f0d30542c4c6f600f2e336951391b7d1",
+      "bytes": 1178
+    },
+    {
+      "id": "mfa-user-revocation-baseline-qa-20261108/checks/resolve/command.json",
+      "sha256": "0f0f42a9af115c67b7517e011be94bb8a4598469ed416c41ac10a178f03e184b",
+      "bytes": 945
+    },
+    {
+      "id": "mfa-user-revocation-baseline-qa-20261108/checks/resolve/guard.json",
+      "sha256": "33187f1f3c1559fe97bb257ab7575db3b95437bce58bb161780de794bc8d1b56",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-user-revocation-baseline-qa-20261108/checks/types/stdout.log",
+      "sha256": "8a43903fb377e139693c5a087a9fa1dfc05aa3d5d6a70673fff8ad8a40d9ffeb",
+      "bytes": 972
+    },
+    {
+      "id": "mfa-user-revocation-baseline-qa-20261108/checks/types/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-user-revocation-baseline-qa-20261108/checks/types/result.json",
+      "sha256": "9a6514eb9fa047256cdcddcd3a81bac07ffc751a99f53efdd8c3f19fa33a052a",
+      "bytes": 1025
+    },
+    {
+      "id": "mfa-user-revocation-baseline-qa-20261108/checks/types/command.json",
+      "sha256": "acc1e06c1401273978f257082cff3789e8d0b6916c2f30a24521586fb234f493",
+      "bytes": 950
+    },
+    {
+      "id": "mfa-user-revocation-baseline-qa-20261108/checks/types/guard.json",
+      "sha256": "7aa8536ce5e5526d9d4b72a901a1e5f031a67fdd3e0eccb3ff9bd0f0bf5345b6",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-user-revocation-fixed-qa-20261108/prepared.json",
+      "sha256": "93823355255fc582df588072800b4db99edfbc6187b7d449148b38924678634b",
+      "bytes": 910268
+    },
+    {
+      "id": "mfa-user-revocation-fixed-qa-20261108/tsconfig.test.json",
+      "sha256": "bae99a3a6e210dea9e94988f19fc5070bda9d0594f3054783f22ef0152edb99c",
+      "bytes": 2449
+    },
+    {
+      "id": "mfa-user-revocation-fixed-qa-20261108/checks/resolve/stdout.log",
+      "sha256": "9f1a2a9f524265d286ee016609fade4cb68540be452c1a054e4956e3118636fa",
+      "bytes": 149141
+    },
+    {
+      "id": "mfa-user-revocation-fixed-qa-20261108/checks/resolve/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-user-revocation-fixed-qa-20261108/checks/resolve/result.json",
+      "sha256": "578bdcdd17014f9ab2157c4259d7c1aca1fd14aa8b36021332992aaeb25f781d",
+      "bytes": 1175
+    },
+    {
+      "id": "mfa-user-revocation-fixed-qa-20261108/checks/resolve/command.json",
+      "sha256": "63690d918f1bca66aa138df31b80103a8056cea8e742b44d5dbefc69ca9b95f4",
+      "bytes": 933
+    },
+    {
+      "id": "mfa-user-revocation-fixed-qa-20261108/checks/resolve/guard.json",
+      "sha256": "9da359e74f34eafa98d51e7eb52b1dabd86933667f64fbc006f29faae3d6ccfd",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-user-revocation-fixed-qa-20261108/checks/types/stdout.log",
+      "sha256": "afc739c2bceacfec62fc82a6da41854228049244bfc1969ad9348765b5d8e373",
+      "bytes": 972
+    },
+    {
+      "id": "mfa-user-revocation-fixed-qa-20261108/checks/types/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-user-revocation-fixed-qa-20261108/checks/types/result.json",
+      "sha256": "01cb32a82ba6873b68ee1f2bd733f4bd364b15ca4bbc94f0d849e41c672e31b9",
+      "bytes": 1022
+    },
+    {
+      "id": "mfa-user-revocation-fixed-qa-20261108/checks/types/command.json",
+      "sha256": "d0e6a16191832d1e172cf7997827c915609d0e4913fa88ae2e21f0660c972a75",
+      "bytes": 938
+    },
+    {
+      "id": "mfa-user-revocation-fixed-qa-20261108/checks/types/guard.json",
+      "sha256": "7e08b436647729c953296fe920207af43fd9064db3118993a879c78dfb69af60",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-user-revocation-baseline-qa-20261108/owned-database.json",
+      "sha256": "6468c2d4e1135882b714bb469491ccc8d16cde61169d7ccac1cf07f992a7ce7b",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-user-revocation-baseline-qa-20261108/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-user-revocation-baseline-qa-20261108/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-user-revocation-baseline-qa-20261108/platform-mfa-user-revocation.log",
+      "sha256": "4e0e4b8a232f9bc6c083bf473a6a0616f00218bd52df315f8aec8895f8b71999",
+      "bytes": 51736
+    },
+    {
+      "id": "mfa-user-revocation-baseline-qa-20261108/mfa-directed-result.json",
+      "sha256": "16b97098ff0470eff97bd62b509544e3f57b32c1f433de353675dd3563519774",
+      "bytes": 314916
+    },
+    {
+      "id": "mfa-user-revocation-baseline-qa-20261108/mfa-directed-postchecks.json",
+      "sha256": "3323d12fd3ebc2a005e6ddf56371f3495c49f25d8533900913ea5d6ff66f1110",
+      "bytes": 390
+    },
+    {
+      "id": "mfa-user-revocation-fixed-qa-20261108/owned-database.json",
+      "sha256": "c5ee0d87d9ed5d01387a1862ad1ab7ca56c346cb9cce949b51aa3d8679574814",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-user-revocation-fixed-qa-20261108/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-user-revocation-fixed-qa-20261108/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-user-revocation-fixed-qa-20261108/platform-mfa-user-revocation.log",
+      "sha256": "fc025969d0d596e8fa81f53b0571a1401cb242d45f9a84ac93dc02494c6a9feb",
+      "bytes": 20211
+    },
+    {
+      "id": "mfa-user-revocation-fixed-qa-20261108/mfa-directed-result.json",
+      "sha256": "c7ad5e72b12f8cf298cfbaa3cff3c54cdbce57a2ad0d849d89c4b6156859d363",
+      "bytes": 314904
+    },
+    {
+      "id": "mfa-user-revocation-fixed-qa-20261108/mfa-directed-postchecks.json",
+      "sha256": "54fcb3510ad9a0899edd8b581d89d5b3d76bcdb042e058a1f1977a8cbad0b70a",
+      "bytes": 390
+    },
+    {
+      "id": "mfa-user-revocation-fixed-regression-qa-20261108/owned-database.json",
+      "sha256": "465d4b2059b531ad030a5aca3adbf2ad12224f0c79a543b84df771852c518d72",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-user-revocation-fixed-regression-qa-20261108/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-user-revocation-fixed-regression-qa-20261108/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-user-revocation-fixed-regression-qa-20261108/platform-mfa-tenancy-links.log",
+      "sha256": "3e34881686794cbc83af2d1297ac927874a13d42d730895a1bde5814cbc8675c",
+      "bytes": 2780
+    },
+    {
+      "id": "mfa-user-revocation-fixed-regression-qa-20261108/platform-mfa-tenancy-structure.log",
+      "sha256": "a11bd2d5fa3bdd593df63d3f21d147cb08a213a351585314f9aaf4f92625ce7f",
+      "bytes": 2623
+    },
+    {
+      "id": "mfa-user-revocation-fixed-regression-qa-20261108/tenancy-people.log",
+      "sha256": "e2e52143ee280768edd8bceefd2a6ae4ffcd92488e1c561e02066325b803ee6b",
+      "bytes": 2668
+    },
+    {
+      "id": "mfa-user-revocation-fixed-regression-qa-20261108/tenancy-http.log",
+      "sha256": "25c2322ad8c290a64d63ee31c95fbf3cc7afe15c61641d006ab7c55d65b095f0",
+      "bytes": 2541
+    },
+    {
+      "id": "mfa-user-revocation-fixed-regression-qa-20261108/tenancy-edit.log",
+      "sha256": "bbe813d56ed72f3b9d289f0e02816f322644a91772fc041ee6601d41cf8794a4",
+      "bytes": 3000
+    },
+    {
+      "id": "mfa-user-revocation-fixed-regression-qa-20261108/membership-lifecycle.log",
+      "sha256": "5850d33fd155baa1a3e0cac2da23606295e31e05a5c934499ee8fea41aa9f2fd",
+      "bytes": 1157
+    },
+    {
+      "id": "mfa-user-revocation-fixed-regression-qa-20261108/platform-mfa-tenancy-commands.log",
+      "sha256": "c8047b4be3d1ee070f5c38d603f7f38e56483739cf3bac1a5f12cbffbfdf99a4",
+      "bytes": 6946
+    },
+    {
+      "id": "mfa-user-revocation-fixed-regression-qa-20261108/platform-mfa-tenancy-revocations.log",
+      "sha256": "c139d2c68d9b8c46699ba7fcbffb57e0b1408c936bac48273366cd8c0d6f9b83",
+      "bytes": 5521
+    },
+    {
+      "id": "mfa-user-revocation-fixed-regression-qa-20261108/platform-mfa-tenancy-create.log",
+      "sha256": "7293227e210019527d845aca543c67029b2dff23a5e341b3da36250861f1722c",
+      "bytes": 4293
+    },
+    {
+      "id": "mfa-user-revocation-fixed-regression-qa-20261108/platform-mfa-tenancy-grants.log",
+      "sha256": "5850a71cc85b621d474fe2ea282001ac14ad9b8d26f5f9930359ce8d5a47ff9c",
+      "bytes": 4553
+    },
+    {
+      "id": "mfa-user-revocation-fixed-regression-qa-20261108/platform-mfa-team-renewal.log",
+      "sha256": "4464e3f797745dfdd540aa8fbf62e5964aa778f97569427c21155f5b601cfca8",
+      "bytes": 5058
+    },
+    {
+      "id": "mfa-user-revocation-fixed-regression-qa-20261108/invitations.log",
+      "sha256": "a86710ba10ff0f63c0a4c39d3207870f12ba8142c721e6b3b875cb70980a0437",
+      "bytes": 2500
+    },
+    {
+      "id": "mfa-user-revocation-fixed-regression-qa-20261108/platform-mfa-invitation-commands.log",
+      "sha256": "864f2b77650ce022e881cd60dd01aab8f5d74143368d9ddfc4dd11f7549e190c",
+      "bytes": 7879
+    },
+    {
+      "id": "mfa-user-revocation-fixed-regression-qa-20261108/users-capabilities.log",
+      "sha256": "f827d601c7356e39a446f04c18e719f3663c5342c4c965ffcf105fe6c78d8c55",
+      "bytes": 1541
+    },
+    {
+      "id": "mfa-user-revocation-fixed-regression-qa-20261108/platform-mfa-user-create.log",
+      "sha256": "9d0986a5949b0b0e5108c51fccc046d5985e3a4927539fbff5b931c1d694f79c",
+      "bytes": 5088
+    },
+    {
+      "id": "mfa-user-revocation-fixed-regression-qa-20261108/platform-mfa-user-memberships.log",
+      "sha256": "edeef1501358c8d4aa64a2a0f68893b5538b952da1032af8bab8d78db34b24bb",
+      "bytes": 8629
+    },
+    {
+      "id": "mfa-user-revocation-fixed-regression-qa-20261108/mfa-directed-result.json",
+      "sha256": "bf5292ed45fc989fc7544a353a30cdc285781ef273e328248f2cfb7e2cf33e9f",
+      "bytes": 324126
+    },
+    {
+      "id": "mfa-user-revocation-fixed-regression-qa-20261108/mfa-directed-postchecks.json",
+      "sha256": "364ad124ee0e9daf7e2828ca178991353587ee72e2261c16e6fba29366dcd00c",
+      "bytes": 390
+    }
+  ],
+  "performanceAssessed": false,
+  "productionAccepted": false
+}
