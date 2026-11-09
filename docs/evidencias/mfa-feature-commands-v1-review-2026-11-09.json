@@ -1,0 +1,333 @@
+{
+  "recordedOn": "2026-11-09",
+  "timeZone": "America/Sao_Paulo",
+  "status": "V1_BASELINE_REVIEWED_NOT_ACCEPTED",
+  "totals": {
+    "tests": 72,
+    "suites": 1,
+    "pass": 25,
+    "fail": 47,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "mfaFailures": 44,
+  "localZeroRowFalseSuccess": 1,
+  "fixtureIssues": [
+    {
+      "case": "global: missing features permission cannot be replaced by another global capability",
+      "onlyPermissionRestorationTimestampDiffered": true
+    },
+    {
+      "case": "local: missing features permission cannot be replaced by another global capability",
+      "onlyPermissionRestorationTimestampDiffered": true
+    }
+  ],
+  "baselineAlreadyFailClosed": [
+    "global: rejects a skipped settings insert without false audit or notification"
+  ],
+  "observations": [
+    {
+      "case": "global flag current: rejects factor loss after real authorization",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: exact settings transitions parking audit DTO and committed notification verified"
+    },
+    {
+      "case": "global flag current: rejects proof loss after real authorization",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: exact settings transitions parking audit DTO and committed notification verified"
+    },
+    {
+      "case": "global flag stale: rejects factor loss after real authorization",
+      "actualStatus": 409,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline409: stale conflict exposed after proof loss; exact effects unchanged"
+    },
+    {
+      "case": "global flag stale: rejects proof loss after real authorization",
+      "actualStatus": 409,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline409: stale conflict exposed after proof loss; exact effects unchanged"
+    },
+    {
+      "case": "global binding current: rejects factor loss after real authorization",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: exact settings transitions parking audit DTO and committed notification verified"
+    },
+    {
+      "case": "global binding current: rejects proof loss after real authorization",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: exact settings transitions parking audit DTO and committed notification verified"
+    },
+    {
+      "case": "global binding stale: rejects factor loss after real authorization",
+      "actualStatus": 409,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline409: stale conflict exposed after proof loss; exact effects unchanged"
+    },
+    {
+      "case": "global binding stale: rejects proof loss after real authorization",
+      "actualStatus": 409,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline409: stale conflict exposed after proof loss; exact effects unchanged"
+    },
+    {
+      "case": "local flag current: rejects factor loss after real authorization",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: exact settings transitions parking audit DTO and committed notification verified"
+    },
+    {
+      "case": "local flag current: rejects proof loss after real authorization",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: exact settings transitions parking audit DTO and committed notification verified"
+    },
+    {
+      "case": "local flag stale: rejects factor loss after real authorization",
+      "actualStatus": 409,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline409: stale conflict exposed after proof loss; exact effects unchanged"
+    },
+    {
+      "case": "local flag stale: rejects proof loss after real authorization",
+      "actualStatus": 409,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline409: stale conflict exposed after proof loss; exact effects unchanged"
+    },
+    {
+      "case": "local binding current: rejects factor loss after real authorization",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: exact settings transitions parking audit DTO and committed notification verified"
+    },
+    {
+      "case": "local binding current: rejects proof loss after real authorization",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: exact settings transitions parking audit DTO and committed notification verified"
+    },
+    {
+      "case": "local binding stale: rejects factor loss after real authorization",
+      "actualStatus": 409,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline409: stale conflict exposed after proof loss; exact effects unchanged"
+    },
+    {
+      "case": "local binding stale: rejects proof loss after real authorization",
+      "actualStatus": 409,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline409: stale conflict exposed after proof loss; exact effects unchanged"
+    },
+    {
+      "case": "global flag advisory: rejects factor loss during actual database wait",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: actual owner lock wait and exact committed effects verified"
+    },
+    {
+      "case": "global flag advisory: rejects proof loss during actual database wait",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: actual owner lock wait and exact committed effects verified"
+    },
+    {
+      "case": "global flag row: rejects factor loss during actual database wait",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: actual owner lock wait and exact committed effects verified"
+    },
+    {
+      "case": "global flag row: rejects proof loss during actual database wait",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: actual owner lock wait and exact committed effects verified"
+    },
+    {
+      "case": "global binding advisory: rejects factor loss during actual database wait",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: actual owner lock wait and exact committed effects verified"
+    },
+    {
+      "case": "global binding advisory: rejects proof loss during actual database wait",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: actual owner lock wait and exact committed effects verified"
+    },
+    {
+      "case": "global binding row: rejects factor loss during actual database wait",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: actual owner lock wait and exact committed effects verified"
+    },
+    {
+      "case": "global binding row: rejects proof loss during actual database wait",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: actual owner lock wait and exact committed effects verified"
+    },
+    {
+      "case": "local flag advisory: rejects factor loss during actual database wait",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: actual owner lock wait and exact committed effects verified"
+    },
+    {
+      "case": "local flag advisory: rejects proof loss during actual database wait",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: actual owner lock wait and exact committed effects verified"
+    },
+    {
+      "case": "local flag row: rejects factor loss during actual database wait",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: actual owner lock wait and exact committed effects verified"
+    },
+    {
+      "case": "local flag row: rejects proof loss during actual database wait",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: actual owner lock wait and exact committed effects verified"
+    },
+    {
+      "case": "local binding advisory: rejects factor loss during actual database wait",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: actual owner lock wait and exact committed effects verified"
+    },
+    {
+      "case": "local binding advisory: rejects proof loss during actual database wait",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: actual owner lock wait and exact committed effects verified"
+    },
+    {
+      "case": "local binding row: rejects factor loss during actual database wait",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: actual owner lock wait and exact committed effects verified"
+    },
+    {
+      "case": "local binding row: rejects proof loss during actual database wait",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: actual owner lock wait and exact committed effects verified"
+    },
+    {
+      "case": "global: rejects factor loss after real transactional NOTIFY",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: real NOTIFY queued then committed with exact command effects"
+    },
+    {
+      "case": "global: rejects proof loss after real transactional NOTIFY",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: real NOTIFY queued then committed with exact command effects"
+    },
+    {
+      "case": "local: rejects factor loss after real transactional NOTIFY",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: real NOTIFY queued then committed with exact command effects"
+    },
+    {
+      "case": "local: rejects proof loss after real transactional NOTIFY",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: real NOTIFY queued then committed with exact command effects"
+    },
+    {
+      "case": "global insert: rolls back complete effects after proof trigger",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: real trigger withdrew proof; command effects and notification committed"
+    },
+    {
+      "case": "global update: rolls back complete effects after proof trigger",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: real trigger withdrew proof; command effects and notification committed"
+    },
+    {
+      "case": "global runtime: rolls back complete effects after proof trigger",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: real trigger withdrew proof; command effects and notification committed"
+    },
+    {
+      "case": "global audit: rolls back complete effects after proof trigger",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: real trigger withdrew proof; command effects and notification committed"
+    },
+    {
+      "case": "local insert: rolls back complete effects after proof trigger",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: real trigger withdrew proof; command effects and notification committed"
+    },
+    {
+      "case": "local update: rolls back complete effects after proof trigger",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: real trigger withdrew proof; command effects and notification committed"
+    },
+    {
+      "case": "local runtime: rolls back complete effects after proof trigger",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: real trigger withdrew proof; command effects and notification committed"
+    },
+    {
+      "case": "local audit: rolls back complete effects after proof trigger",
+      "actualStatus": 200,
+      "expectedStatus": 403,
+      "precedingChecksDiagnostic": "Baseline200: real trigger withdrew proof; command effects and notification committed"
+    },
+    {
+      "case": "local: rejects a skipped settings insert without false audit or notification",
+      "actualStatus": 200,
+      "expectedStatus": 500,
+      "precedingChecksDiagnostic": "Baseline200: zero actual settings writes yet false audit and notification committed"
+    }
+  ],
+  "productUnchanged": true,
+  "httpAndEffectAssertionsUnchanged": true,
+  "timeoutsUnchanged": true,
+  "v1TestSha256": "f84d9f484796ef94bbfe2f40da42d79588a8fb31bb48584e776cf02e77744475",
+  "v2TestSha256": "db5cb5058fcb16be1b5f404c6db029c82c50f2600f50c45b1da4f5ee9f7a400c",
+  "v1ManifestSha256": "fe5ef2f6a4bedef8ecb45b0648e4a821acd38514cbdd6524e22462169decb424",
+  "v2ManifestSha256": "4b3faf8f79e37974afb34a4376049dd1bb19881f4e13922b3fa7eeca539fb2bb",
+  "nativeInputs": [
+    {
+      "id": "mfa-feature-commands-baseline-qa-20261109/platform-mfa-feature-commands.log",
+      "sha256": "f3334c1daf9f73ec762cc8d97af08ed0984529ca9ab3e30643a46b197a1daead",
+      "bytes": 128395
+    },
+    {
+      "id": "mfa-feature-commands-baseline-qa-20261109/mfa-directed-result.json",
+      "sha256": "dd9e35d6b0b6af843ea6d57a1f055f34662d2a4205e38bc683c31b74961f8172",
+      "bytes": 315580
+    },
+    {
+      "id": "mfa-feature-commands-baseline-qa-20261109/mfa-directed-postchecks.json",
+      "sha256": "b85b099a327f8dfdbc123afce6654d5f8855d35a08994a64cabb08fc4c944c87",
+      "bytes": 390
+    },
+    {
+      "id": "mfa-feature-commands-baseline-qa-20261109/awake-guard.json",
+      "sha256": "f970cd1b0e25717b5b083b60ef0dacfe9be784354c8411540a565bf94abc470d",
+      "bytes": 308
+    }
+  ],
+  "cleanupPassed": true,
+  "computerRestarted": false,
+  "productionAccepted": false
+}

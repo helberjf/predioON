@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "format": "delta-v1",
+  "status": "AUTHORED_NOT_EXECUTED",
+  "recordedOn": "2026-11-09",
+  "basePreparedSha256": "bc7fdd7f2cff325d14a5c7fc59ffcdd9fa97fd55cfd02144b049fa2b68d3ebc0",
+  "sourceCount": 1044,
+  "files": [
+    {
+      "path": "apps/api/src/modules/features/routes.ts",
+      "beforeSha256": "d37a9cc3caaab826cde759da83efd107e7de8a2c9343fc887526031fdb591141",
+      "beforeBytes": 8974,
+      "afterSha256": "fe7056b9ce50aa7891147ee8f47d5b63fe73308262f701c5af0340efeabae972",
+      "afterBytes": 12344
+    }
+  ],
+  "ownedCallers": [
+    "PUT /features/global/:key",
+    "PUT /features/buildings/:buildingId/:key"
+  ],
+  "otherSourceReconstructedExactly": true,
+  "buildingProjectionExtractedWithoutSQLChanges": true,
+  "schemasPoliciesMigrationsUnchanged": true,
+  "productionAccepted": false
+}

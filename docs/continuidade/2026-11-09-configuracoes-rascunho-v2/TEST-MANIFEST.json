@@ -1,0 +1,431 @@
+{
+  "version": 1,
+  "format": "new-test-v1",
+  "status": "AUTHORED_NOT_EXECUTED",
+  "recordedOn": "2026-11-09",
+  "baseExaminedPreparedSha256": "bc7fdd7f2cff325d14a5c7fc59ffcdd9fa97fd55cfd02144b049fa2b68d3ebc0",
+  "files": [
+    {
+      "path": "apps/api/test/platform-mfa-feature-commands.test.ts",
+      "sha256": "db5cb5058fcb16be1b5f404c6db029c82c50f2600f50c45b1da4f5ee9f7a400c",
+      "bytes": 38371,
+      "cases": 72
+    }
+  ],
+  "caseDispositions": [
+    {
+      "name": "global flag current: rejects factor loss after real authorization",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "global flag current: rejects proof loss after real authorization",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "global flag stale: rejects factor loss after real authorization",
+      "baseline": "FAIL_EXPECTED_409_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline409"
+    },
+    {
+      "name": "global flag stale: rejects proof loss after real authorization",
+      "baseline": "FAIL_EXPECTED_409_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline409"
+    },
+    {
+      "name": "global binding current: rejects factor loss after real authorization",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "global binding current: rejects proof loss after real authorization",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "global binding stale: rejects factor loss after real authorization",
+      "baseline": "FAIL_EXPECTED_409_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline409"
+    },
+    {
+      "name": "global binding stale: rejects proof loss after real authorization",
+      "baseline": "FAIL_EXPECTED_409_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline409"
+    },
+    {
+      "name": "local flag current: rejects factor loss after real authorization",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "local flag current: rejects proof loss after real authorization",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "local flag stale: rejects factor loss after real authorization",
+      "baseline": "FAIL_EXPECTED_409_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline409"
+    },
+    {
+      "name": "local flag stale: rejects proof loss after real authorization",
+      "baseline": "FAIL_EXPECTED_409_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline409"
+    },
+    {
+      "name": "local binding current: rejects factor loss after real authorization",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "local binding current: rejects proof loss after real authorization",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "local binding stale: rejects factor loss after real authorization",
+      "baseline": "FAIL_EXPECTED_409_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline409"
+    },
+    {
+      "name": "local binding stale: rejects proof loss after real authorization",
+      "baseline": "FAIL_EXPECTED_409_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline409"
+    },
+    {
+      "name": "global flag advisory: rejects factor loss during actual database wait",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "global flag advisory: rejects proof loss during actual database wait",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "global flag row: rejects factor loss during actual database wait",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "global flag row: rejects proof loss during actual database wait",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "global binding advisory: rejects factor loss during actual database wait",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "global binding advisory: rejects proof loss during actual database wait",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "global binding row: rejects factor loss during actual database wait",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "global binding row: rejects proof loss during actual database wait",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "local flag advisory: rejects factor loss during actual database wait",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "local flag advisory: rejects proof loss during actual database wait",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "local flag row: rejects factor loss during actual database wait",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "local flag row: rejects proof loss during actual database wait",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "local binding advisory: rejects factor loss during actual database wait",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "local binding advisory: rejects proof loss during actual database wait",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "local binding row: rejects factor loss during actual database wait",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "local binding row: rejects proof loss during actual database wait",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "global: rejects factor loss after real transactional NOTIFY",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "global: rejects proof loss after real transactional NOTIFY",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "local: rejects factor loss after real transactional NOTIFY",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "local: rejects proof loss after real transactional NOTIFY",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "global insert: rolls back complete effects after proof trigger",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "global insert: rolls back complete effects after exception trigger",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "global update: rolls back complete effects after proof trigger",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "global update: rolls back complete effects after exception trigger",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "global runtime: rolls back complete effects after proof trigger",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "global runtime: rolls back complete effects after exception trigger",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "global audit: rolls back complete effects after proof trigger",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "global audit: rolls back complete effects after exception trigger",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "local insert: rolls back complete effects after proof trigger",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "local insert: rolls back complete effects after exception trigger",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "local update: rolls back complete effects after proof trigger",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "local update: rolls back complete effects after exception trigger",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "local runtime: rolls back complete effects after proof trigger",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "local runtime: rolls back complete effects after exception trigger",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "local audit: rolls back complete effects after proof trigger",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "local audit: rolls back complete effects after exception trigger",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "global: rejects a skipped settings insert without false audit or notification",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "local: rejects a skipped settings insert without false audit or notification",
+      "baseline": "FAIL_EXPECTED_200_VERSUS_500",
+      "fixed": "PASS",
+      "diagnostic": "Baseline200"
+    },
+    {
+      "name": "global flag TICKETS: preserves create disable reenable inheritance and exact side effects",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "global flag CAR_PARKING: preserves create disable reenable inheritance and exact side effects",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "global binding TICKETS: preserves create disable reenable inheritance and exact side effects",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "global binding CAR_PARKING: preserves create disable reenable inheritance and exact side effects",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "local flag TICKETS: preserves create disable reenable inheritance and exact side effects",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "local flag CAR_PARKING: preserves create disable reenable inheritance and exact side effects",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "local binding TICKETS: preserves create disable reenable inheritance and exact side effects",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "local binding CAR_PARKING: preserves create disable reenable inheritance and exact side effects",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "global manager: never grants global configuration authority",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "global resident: never grants global configuration authority",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "local manager: never grants global configuration authority",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "local resident: never grants global configuration authority",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "global: preserves optimistic conflict and same-version concurrent writes",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "global: missing features permission cannot be replaced by another global capability",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "global: invalid body and unknown feature produce no writes",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "local: preserves optimistic conflict and same-version concurrent writes",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "local: missing features permission cannot be replaced by another global capability",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "local: invalid body and unknown feature produce no writes",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    }
+  ],
+  "baselineExpectedPass": 27,
+  "baselineExpectedFail": 45,
+  "fixedExpectedPass": 72,
+  "independentCases": 72,
+  "parentGroups": 0,
+  "runtimeExecuted": false,
+  "revision": 2,
+  "priorTestSha256": "f84d9f484796ef94bbfe2f40da42d79588a8fb31bb48584e776cf02e77744475",
+  "revisionReason": "Restore the exact permission row including created_at; global skipped insert already fails closed on baseline, so its manifest disposition is PASS. Product and HTTP/effect assertions unchanged."
+}

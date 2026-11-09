@@ -1,0 +1,402 @@
+import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
+import type { Server } from "node:http";
+import { after, before, describe, it } from "node:test";
+import { decodeJwt } from "jose";
+import { PgDialect } from "drizzle-orm/pg-core";
+import { sqlClient } from "@predioon/db";
+import { appDb, appSqlClient, closeAppDb, verifyRestrictedDatabaseRole, type AppTransaction } from "@predioon/db/runtime";
+import { app } from "../src/app.js";
+import { hashPassword } from "../src/auth/passwords.js";
+import { base32Decode, totpCode, totpStep } from "../src/auth/totp.js";
+import "./helpers.js";
+
+// Same test bytes on baseline/fixed. Positive proof comes only from real HTTP
+// enrollment/TOTP; the owner seeds fixtures and makes explicit negative changes.
+type Kind = "flag" | "binding" | "manager" | "resident";
+type Actor = { id: string; token: string; sid: string; binding: string | null; codes: string[] };
+type Row = Record<string, unknown>;
+type Scope = "global" | "local";
+type Relation = "global_feature_settings" | "building_feature_settings" | "feature_runtime" | "audit_logs";
+type Stage = "insert" | "update" | "runtime" | "audit";
+type Operation = {scope:Scope;key:string;version:number;saved:Row[][]};
+type HttpResult = { status: number; body: unknown; cache: string | null };
+function signal() { let resolve!: () => void; const promise = new Promise<void>(done => { resolve = done; }); return { promise, resolve }; }
+async function bounded<T>(promise: PromiseLike<T>, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try { return await Promise.race([Promise.resolve(promise), new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`Fixture deadline: ${label}`)), 5000);
+  })]); } finally { clearTimeout(timer); }
+}
+async function settleAll(transactions: Promise<unknown>[]) {
+  await bounded((async () => {
+    let completed = 0;
+    while (completed < transactions.length) {
+      const batch = transactions.slice(completed); completed += batch.length; await Promise.allSettled(batch);
+    }
+  })(), "all actual app transactions settled");
+}
+function trackAllTransactions() {
+  const original = appDb.transaction, run = original.bind(appDb), transactions: Promise<unknown>[] = [];
+  appDb.transaction = (callback, config) => { const pending = run(callback, config); transactions.push(pending); return pending; };
+  return { settle: () => settleAll(transactions), restore() { appDb.transaction = original; } };
+}
+function observeAuthorization(stage: "authorization" | "notify") {
+  const original = appDb.transaction, run = original.bind(appDb), dialect = new PgDialect();
+  const reached = signal(), release = signal(), transactions: Promise<unknown>[] = [];
+  let matched = false;
+  type Input = Parameters<AppTransaction["execute"]>[0];
+  appDb.transaction = (callback, config) => {
+    const pending = run(tx => callback(new Proxy(tx, { get(target, key) {
+      if (key === "execute") return async (query: Input) => {
+        const compiled = typeof query === "string" ? { sql: query, params: [] } : dialect.sqlToQuery(query.getSQL());
+        const rows = await target.execute(query);
+        // Pause AFTER the actual original global capability returned true.
+        if (!matched && (stage === "authorization"
+          ? compiled.sql.trim() === "select app_has_global_capability($1) as allowed" && compiled.params.length === 1 && compiled.params[0] === "features:manage"
+          : compiled.sql.includes("pg_notify(") && compiled.params[0] === "predioon_events" && String(compiled.params[1]).includes('"kind":"features-changed"'))) {
+          if (stage === "authorization") assert.equal((rows[0] as { allowed?: unknown } | undefined)?.allowed, true);
+          else assert.equal(rows.length, 1, "the actual NOTIFY SQL completed inside the command transaction");
+          matched = true; reached.resolve(); await bounded(release.promise, "real authorization release");
+        }
+        return rows;
+      };
+      const value = Reflect.get(target, key, target); return typeof value === "function" ? value.bind(target) : value;
+    }})), config);
+    transactions.push(pending); return pending;
+  };
+  return { reached, release, settle: () => settleAll(transactions), restore() { appDb.transaction = original; } };
+}
+
+describe("MFA feature commands with real enrollment transaction effects and waits", { concurrency: false }, () => {
+  const suffix = randomUUID(), prefix = `tfeaturecmd-${suffix}`, org = `${prefix}-org`, building = `${prefix}-a`, foreign = `${prefix}-b`;
+  const password = "feature-command-fictitious-password";
+  const triggers = new Map<string, Relation>();
+  let hash = "", serial = 0, server: Server | undefined, url = "";
+  let tracking: ReturnType<typeof trackAllTransactions> | undefined;
+  const emailPattern = `${prefix}-%@example.invalid`;
+  async function http(token: string | undefined, path: string, method = "GET", body?: Row, controller = new AbortController()): Promise<HttpResult> {
+    try {
+      const response = await bounded(fetch(url + path, { method, signal: controller.signal,
+        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        ...(body ? { body: JSON.stringify(body) } : {}) }), "HTTP");
+      const text = await bounded(response.text(), "HTTP body");
+      return { status: response.status, body: text ? JSON.parse(text) as unknown : null, cache: response.headers.get("cache-control") };
+    } finally { controller.abort(); }
+  }
+  async function user(label: string, admin = false) {
+    const id = `${prefix}-${++serial}-${label}`;
+    await sqlClient`insert into users(id,name,email,password_hash,is_platform_admin) values(${id},${label},${id + "@example.invalid"},${hash},${admin})`;
+    return id;
+  }
+  async function actor(kind: Kind): Promise<Actor> {
+    const id = await user(kind, kind === "flag"), required = kind === "flag" || kind === "binding";
+    const binding = kind === "binding" || kind === "manager" ? randomUUID() : null;
+    if (binding) await sqlClient`insert into role_bindings(id,user_id,building_id,role_key)
+      values(${binding},${id},${kind === "binding" ? null : building},${kind === "binding" ? "PLATFORM_ADMIN" : "BUILDING_ADMIN"})`;
+    if (kind === "resident") await sqlClient`insert into memberships(user_id,building_id,role) values(${id},${building},'RESIDENT')`;
+    const login = await http(undefined, "/auth/login", "POST", { email: id + "@example.invalid", password });
+    assert.equal(login.status, 200, "raw real login, no manufactured proof or admission helper");
+    const body = login.body as { accessToken: string; user: { id: string; mfaRequirement: string } };
+    assert.equal(body.user.id, id); assert.equal(body.user.mfaRequirement, required ? "enrollment-required" : "not-required");
+    const sid = decodeJwt(body.accessToken).sid; assert.equal(typeof sid, "string");
+    const result: Actor = { id, token: body.accessToken, sid: sid as string, binding, codes: [] };
+    if (required) {
+      const enrollment = await http(result.token, "/auth/mfa/enroll", "POST", { currentPassword: password });
+      assert.equal(enrollment.status, 200);
+      const secret = base32Decode((enrollment.body as { secret: string }).secret); assert.ok(secret);
+      const confirmation = await http(result.token, "/auth/mfa/confirm", "POST", { code: totpCode(secret, totpStep(Date.now())) });
+      assert.equal(confirmation.status, 200);
+      result.codes = (confirmation.body as { recoveryCodes: string[] }).recoveryCodes;
+      assert.equal(result.codes.length, 10); assert.equal(new Set(result.codes).size, 10);
+      const [row] = await sqlClient`select s.mfa_verified_at is not null as verified,s.mfa_factor_generation=f.generation as same_generation,
+        f.confirmed_at is not null as confirmed from sessions s join mfa_factors f on f.user_id=s.user_id where s.id=${result.sid}::uuid and s.user_id=${id}`;
+      assert.equal(row?.verified, true); assert.equal(row?.same_generation, true); assert.equal(row?.confirmed, true);
+    }
+    const me = await http(result.token, "/auth/me"); assert.equal(me.status, 200);
+    assert.equal((me.body as { id: string }).id, id);
+    assert.equal((me.body as { mfaRequirement: string }).mfaRequirement, required ? "satisfied" : "not-required");
+    assert.equal(decodeJwt(result.token).sid, result.sid, "same bearer and session family across enrollment");
+    return result;
+  }
+  const featureKeys = ["TICKETS", "TICKET_GROUPING", "TICKET_PRIORITY", "CAR_PARKING"];
+  const tables = ["global_feature_settings", "building_feature_settings", "feature_runtime", "parking_lots"] as const;
+  const filters = ["feature_key in ('TICKETS','TICKET_GROUPING','TICKET_PRIORITY','CAR_PARKING')", "feature_key in ('TICKETS','TICKET_GROUPING','TICKET_PRIORITY','CAR_PARKING')",
+    "feature_key in ('TICKETS','TICKET_GROUPING','TICKET_PRIORITY','CAR_PARKING')", "vehicle_type='CAR'"];
+  async function data(): Promise<Row[][]> {
+    const rows:Row[][]=[];
+    for(const [i,table] of tables.entries()) rows.push((await sqlClient.unsafe(`select to_jsonb(t) as row from public.${table} t where ${filters[i]} order by to_jsonb(t)::text`)).map(x=>x.row as Row));
+    return rows;
+  }
+  async function fixture(scope:Scope,key="TICKETS",existing=true):Promise<Operation> {
+    const saved=await data();
+    await sqlClient`insert into global_feature_settings(feature_key,enabled,version) values(${key},true,7)
+      on conflict(feature_key) do update set enabled=true,version=7`;
+    await sqlClient`insert into building_feature_settings(building_id,feature_key,enabled,version) values(${building},${key},true,3),(${foreign},${key},false,5)
+      on conflict(building_id,feature_key) do update set enabled=excluded.enabled,version=excluded.version`;
+    if(key==="TICKETS")for(const child of ["TICKET_GROUPING","TICKET_PRIORITY"]) {
+      await sqlClient`insert into global_feature_settings(feature_key,enabled,version) values(${child},true,2) on conflict(feature_key) do update set enabled=true,version=2`;
+      await sqlClient`insert into building_feature_settings(building_id,feature_key,enabled,version) values(${building},${child},true,2)
+        on conflict(building_id,feature_key) do update set enabled=true,version=2`;
+    }
+    for(const b of [building,foreign])for(const k of featureKeys)await sqlClient`insert into feature_runtime(building_id,feature_key,resumed_at,paused_at,generation)
+      values(${b},${k},'2026-01-01T00:00:00Z',null,4) on conflict(building_id,feature_key) do update set resumed_at=excluded.resumed_at,paused_at=null,generation=4`;
+    for(const b of [building,foreign])await sqlClient`insert into parking_lots(building_id,vehicle_type,capacity,occupied,source,observed_at,version)
+      values(${b},'CAR',20,8,'MANUAL','2026-01-02T00:00:00Z',9)
+      on conflict(building_id,vehicle_type) do update set occupied=8,source='MANUAL',observed_at=excluded.observed_at,version=9`;
+    if(!existing) {
+      if(scope==="global")await sqlClient`delete from global_feature_settings where feature_key=${key}`;
+      else await sqlClient`delete from building_feature_settings where building_id=${building} and feature_key=${key}`;
+    }
+    return {scope,key,version:existing?(scope==="global"?7:3):0,saved};
+  }
+  async function restore(op:Operation) {
+    await tracking?.settle();
+    await bounded(sqlClient.begin(async tx=>{
+      await tx`set local lock_timeout='2s'`;await tx`set local statement_timeout='3s'`;
+      for(const [i,table] of tables.entries()) {
+        await tx.unsafe(`delete from public.${table} where ${filters[i]}`);
+        if(op.saved[i]!.length)await tx.unsafe(`insert into public.${table} select * from jsonb_populate_recordset(null::public.${table},$1::jsonb)`,[JSON.stringify(op.saved[i])]);
+      }
+    }),"restore only snapshotted feature fixture rows");
+    assert.deepEqual(await data(),op.saved,"fixture rows restored exactly, including timestamps and generations");
+  }
+  async function using(scope:Scope,key:string,existing:boolean,run:(op:Operation)=>Promise<void>) {
+    const op=await fixture(scope,key,existing);try{await run(op);}finally{await restore(op);}
+  }
+  const payload=(op:Operation,enabled:boolean|null=false):Row=>({enabled,version:op.version,reason:"Feature command test"});
+  const request=(a:Actor,op:Operation,controller?:AbortController,body?:Row)=>http(a.token,
+    op.scope==="global"?"/features/global/"+op.key:"/features/buildings/"+building+"/"+op.key,"PUT",body??payload(op),controller);
+  async function audits(a:Actor) {
+    return (await sqlClient`select user_id,building_id,scope_kind,actor_type,action,resource_type,resource_id,metadata
+      from audit_logs where user_id=${a.id} and action='FEATURE_CONFIGURATION_CHANGED' order by created_at,id`).map(x=>({...x}));
+  }
+  async function snapshot(a:Actor){return {data:await data(),audit:await audits(a)};}
+  type Snapshot=Awaited<ReturnType<typeof snapshot>>;
+  let listener:Awaited<ReturnType<typeof sqlClient.listen>>|undefined;
+  const notifications:Row[]=[],barriers=new Map<string,ReturnType<typeof signal>>();
+  async function notificationBarrier(){
+    const id=randomUUID(),barrier=signal();barriers.set(id,barrier);
+    try {await sqlClient`select pg_notify('predioon_events',${JSON.stringify({kind:"qa-feature-barrier",id})})`;await bounded(barrier.promise,"committed notification barrier received");}
+    finally{barriers.delete(id);}
+  }
+  async function cursor(){await notificationBarrier();return notifications.length;}
+  async function notificationsSince(index:number,scope:Scope,expected:number){
+    await notificationBarrier();assert.deepEqual(notifications.slice(index),Array.from({length:expected},()=>({kind:"features-changed",buildingId:scope==="global"?"*":building})));
+  }
+  async function effects(a:Actor,op:Operation,response:HttpResult,before:Snapshot,index:number,enabled:boolean|null=false) {
+    assert.equal(response.status,200);assert.equal(response.cache,"no-store");assert.deepEqual(Object.keys(response.body as object),["items"]);
+    const items=(response.body as {items:Row[]}).items;assert.equal(items.length,24);assert.equal(new Set(items.map(x=>x.key)).size,24);
+    const keys=["key","enabled","globalEnabled","localEnabled","blockedBy","version","globalVersion","resumedAt"].sort();
+    for(const item of items){assert.deepEqual(Object.keys(item).sort(),keys);assert.equal(typeof item.enabled,"boolean");assert.ok(item.resumedAt===null||new Date(String(item.resumedAt)).toISOString()===item.resumedAt);}
+    const target=items.find(x=>x.key===op.key)!;assert.ok(target);assert.equal(target.version,op.version+1);
+    assert.equal(target.globalVersion,op.scope==="global"?op.version+1:7);assert.equal(target.globalEnabled,op.scope==="global"?enabled:true);
+    assert.equal(target.localEnabled,op.scope==="global"?null:enabled);assert.equal(target.enabled,enabled!==false);
+    assert.equal(target.blockedBy,enabled===false?(op.scope==="global"?"GLOBAL":"BUILDING"):null);
+    if(op.key==="TICKETS")for(const key of ["TICKET_GROUPING","TICKET_PRIORITY"]){const child=items.find(x=>x.key===key)!;assert.equal(child.enabled,enabled!==false);assert.equal(child.blockedBy,enabled===false?"TICKETS":null);}
+    const after=await snapshot(a),settings=after.data[op.scope==="global"?0:1]!,oldSettings=before.data[op.scope==="global"?0:1]!;
+    const matches=(x:Row)=>x.feature_key===op.key&&(op.scope==="global"||x.building_id===building);
+    const written=settings.filter(matches);assert.equal(written.length,1);const row=written[0]!;assert.equal(row.enabled,enabled);assert.equal(row.version,op.version+1);
+    assert.ok(Number.isFinite(Date.parse(String(row.updated_at))));assert.deepEqual(settings.filter(x=>!matches(x)),oldSettings.filter(x=>!matches(x)));
+    assert.deepEqual(after.data[op.scope==="global"?1:0],before.data[op.scope==="global"?1:0],"opposite scope preserves all local/global intent");
+    const changedRuntime=after.data[2]!.filter(x=>!before.data[2]!.some(y=>JSON.stringify(y)===JSON.stringify(x)));
+    const expectedFeatures=op.key==="TICKETS"?["TICKETS","TICKET_GROUPING","TICKET_PRIORITY"]:[op.key];
+    assert.equal(changedRuntime.some(x=>x.building_id===foreign),false,"foreign explicit false ceiling remains unchanged");
+    const candidateBuildings=op.scope==="local"?[building]:(await sqlClient`select id from buildings order by id`).map(x=>String(x.id));
+    const expectedChanges:string[]=[];
+    for(const id of candidateBuildings){
+      const intent=(k:string)=>before.data[1]!.find(x=>x.building_id===id&&x.feature_key===k)?.enabled;
+      if(op.scope==="global"&&intent(op.key)===false)continue;
+      for(const k of expectedFeatures)if(k===op.key||intent(k)!==false)expectedChanges.push(id+"/"+k);
+    }
+    assert.deepEqual(changedRuntime.map(x=>x.building_id+"/"+x.feature_key).sort(),expectedChanges.sort(),"every affected building and dependent feature transitions exactly once");
+    for(const changed of changedRuntime) {
+      assert.ok(expectedFeatures.includes(String(changed.feature_key)));const old=before.data[2]!.find(x=>x.building_id===changed.building_id&&x.feature_key===changed.feature_key);
+      assert.equal(changed.generation,Number(old?.generation??0)+1);
+      if(enabled===false){assert.ok(Number.isFinite(Date.parse(String(changed.paused_at))));assert.equal(changed.resumed_at,old?.resumed_at??null);}
+      else {assert.ok(Number.isFinite(Date.parse(String(changed.resumed_at))));assert.equal(changed.paused_at,old?.paused_at??null);}
+    }
+    for(const old of before.data[2]!)if(!changedRuntime.some(x=>x.building_id===old.building_id&&x.feature_key===old.feature_key))assert.ok(after.data[2]!.some(x=>JSON.stringify(x)===JSON.stringify(old)),"no old runtime silently removed");
+    const affected=new Set(changedRuntime.map(x=>x.building_id)).size;
+    assert.ok(affected>=1,"the command really transitioned at least one building");
+    if(op.key==="CAR_PARKING")for(const lot of after.data[3]!) {
+      const old=before.data[3]!.find(x=>x.id===lot.id)!;
+      if(changedRuntime.some(x=>x.building_id===lot.building_id))assert.deepEqual(lot,{...old,occupied:null,observed_at:null,source:"UNKNOWN",version:Number(old.version)+1,updated_at:lot.updated_at});
+      else assert.deepEqual(lot,old);
+    }else assert.deepEqual(after.data[3],before.data[3]);
+    const prior=oldSettings.find(matches);
+    assert.deepEqual(after.audit,[...before.audit,{user_id:a.id,building_id:op.scope==="global"?null:building,scope_kind:op.scope==="global"?"PLATFORM":"BUILDING",actor_type:"USER",action:"FEATURE_CONFIGURATION_CHANGED",resource_type:"feature",resource_id:op.key,
+      metadata:{scope:op.scope==="global"?"GLOBAL":"BUILDING",before:prior?.enabled??(op.scope==="global"?true:null),after:enabled,version:op.version+1,reason:"Feature command test",affectedBuildings:affected}}]);
+    await notificationsSince(index,op.scope,1);
+  }
+  const removeProof=(a:Actor)=>sqlClient`update sessions set mfa_verified_at=null,mfa_factor_generation=null where id=${a.sid}::uuid and user_id=${a.id}`;
+  async function proof(a:Actor){const [row]=await sqlClient`select mfa_verified_at::text as verified_at,mfa_factor_generation::text as generation from sessions where id=${a.sid}::uuid and user_id=${a.id}`;assert.ok(row);return {...row};}
+  function denied(response:HttpResult,reason:string){assert.equal(response.status,403);assert.equal(response.cache,"no-store");assert.equal((response.body as {details?:{reason?:string}}).details?.reason,reason);assert.equal("items" in (response.body as object),false);}
+  async function interleave(a:Actor,op:Operation,change:()=>PromiseLike<unknown>,stage:"authorization"|"notify"="authorization",body?:Row) {
+    const observation=observeAuthorization(stage),controller=new AbortController(),pending=request(a,op,controller,body);void pending.catch(()=>undefined);let failed=false;
+    try{assert.equal(await bounded(Promise.race([observation.reached.promise.then(()=>"boundary"),pending.then(()=>"response")]),"real SQL boundary reached"),"boundary");await bounded(change(),"negative change committed");observation.release.resolve();return await pending;}
+    catch(error){failed=true;throw error;}finally{observation.release.resolve();controller.abort();const results=await Promise.allSettled([bounded(pending,"HTTP settled"),observation.settle()]);observation.restore();if(!failed){const f=results.find(x=>x.status==="rejected");if(f?.status==="rejected")throw f.reason;}}
+  }
+  async function waitAndWithdraw(a:Actor,op:Operation,lock:"advisory"|"row",factor:boolean){
+    const controller=new AbortController();let pending:Promise<HttpResult>|undefined,failed=false;
+    try{await bounded(sqlClient.begin(async blocker=>{
+      await blocker`set local lock_timeout='2s'`;await blocker`set local statement_timeout='4s'`;
+      if(lock==="advisory")await blocker`select pg_advisory_xact_lock(814772,1)`;
+      else if(op.scope==="global")await blocker`select feature_key from global_feature_settings where feature_key=${op.key} for update`;
+      else await blocker`select feature_key from building_feature_settings where building_id=${building} and feature_key=${op.key} for update`;
+      const [self]=await blocker`select pg_backend_pid() as pid`;assert.equal(typeof self?.pid,"number");pending=request(a,op,controller);void pending.catch(()=>undefined);
+      const role=new URL(process.env.DATABASE_URL_APP!).username,deadline=Date.now()+3000;let waits=0;
+      while(Date.now()<deadline){await blocker`select pg_stat_clear_snapshot()`;const [row]=await blocker`select count(*)::int as n from pg_stat_activity where usename=${role} and datname=current_database()
+        and state='active' and ${self!.pid}=any(pg_blocking_pids(pid)) and query like ${lock==="advisory"?"%pg_advisory_xact_lock%":"%feature_settings%"}`;
+        waits=Number(row?.n);if(waits===1)break;await new Promise(resolve=>setTimeout(resolve,20));}
+      assert.equal(waits,1,"actual restricted connection waits on this exact owner lock");
+      if(factor)await blocker`delete from mfa_factors where user_id=${a.id}`;else await blocker`update sessions set mfa_verified_at=null,mfa_factor_generation=null where id=${a.sid}::uuid and user_id=${a.id}`;
+    }),"actual wait and proof withdrawal");assert.ok(pending);return await pending;}
+    catch(error){failed=true;throw error;}finally{controller.abort();const results=await Promise.allSettled([...(pending?[bounded(pending,"waited HTTP settled")]:[]),tracking?.settle()]);if(!failed){const f=results.find(x=>x.status==="rejected");if(f?.status==="rejected")throw f.reason;}}
+  }
+  async function installTrigger(name:string,stage:Stage,mode:"proof"|"exception"|"skip",a:Actor,op:Operation){
+    assert.match(name,/^tfeaturecmd_[0-9a-f]{32}$/);const relation:Relation=stage==="runtime"?"feature_runtime":stage==="audit"?"audit_logs":op.scope==="global"?"global_feature_settings":"building_feature_settings";triggers.set(name,relation);
+    const predicate=stage==="audit"?"new.user_id=TG_ARGV[0] and new.action='FEATURE_CONFIGURATION_CHANGED' and new.resource_id=TG_ARGV[2]":
+      stage==="runtime"?"new.building_id=TG_ARGV[3] and new.feature_key=TG_ARGV[2]":op.scope==="local"?"new.building_id=TG_ARGV[3] and new.feature_key=TG_ARGV[2]":"new.feature_key=TG_ARGV[2]";
+    const action=mode==="proof"?"update public.sessions set mfa_verified_at=null,mfa_factor_generation=null where id=TG_ARGV[1]::uuid and user_id=TG_ARGV[0];":mode==="exception"?"raise exception using errcode='P0001',message='private feature fixture detail';":"return null;";
+    await bounded(sqlClient.begin(async tx=>{
+      await tx`set local lock_timeout='2s'`;await tx`set local statement_timeout='3s'`;await tx.unsafe(`create sequence public.${name}_seq`);
+      await tx.unsafe(`create function public.${name}() returns trigger language plpgsql security definer set search_path=pg_catalog,pg_temp as $$ begin
+        if current_setting('app.user_id',true)=TG_ARGV[0] and current_setting('app.session_id',true)=TG_ARGV[1] and (${predicate}) then
+          perform pg_catalog.nextval('public.${name}_seq'::regclass); ${action}
+        end if; return new; end $$`);await tx.unsafe(`revoke all on function public.${name}() from public`);
+      const args=[a.id,a.sid,op.key,building];assert.ok(args.every(x=>/^[A-Za-z0-9_@. :\-]+$/.test(x)));
+      await tx.unsafe(`create trigger ${name} ${mode==="skip"?"before":"after"} ${stage==="update"||stage==="runtime"?"update":"insert"} on public.${relation}
+        for each row execute function public.${name}(${args.map(x=>"'"+x+"'").join(",")})`);
+    }),"narrow trigger installation");
+    const [meta]=await sqlClient`select p.prosecdef,p.proconfig,pg_get_userbyid(p.proowner)=current_user as owner,not exists(select 1 from aclexplode(p.proacl) a where a.grantee=0 and a.privilege_type='EXECUTE') as public_revoked from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname=${name}`;
+    assert.equal(meta?.prosecdef,true);assert.equal(meta?.owner,true);assert.equal(meta?.public_revoked,true);assert.deepEqual(meta?.proconfig,["search_path=pg_catalog, pg_temp"]);
+  }
+  async function witness(name:string){assert.match(name,/^tfeaturecmd_[0-9a-f]{32}$/);const [r]=await sqlClient.unsafe(`select is_called,last_value::int from public.${name}_seq`);assert.equal(r?.is_called,true);assert.equal(r?.last_value,1,"exactly one real trigger, even through rollback");}
+  async function dropTrigger(name:string){const relation=triggers.get(name);assert.ok(relation);assert.match(name,/^tfeaturecmd_[0-9a-f]{32}$/);
+    await bounded(sqlClient.begin(async tx=>{await tx`set local lock_timeout='2s'`;await tx`set local statement_timeout='3s'`;
+      await tx.unsafe(`drop trigger if exists ${name} on public.${relation}`);await tx.unsafe(`drop function if exists public.${name}()`);await tx.unsafe(`drop sequence if exists public.${name}_seq`);}),"trigger cleanup");
+    const [gone]=await sqlClient`select to_regprocedure(${"public."+name+"()"}) is null as fn,to_regclass(${"public."+name+"_seq"}) is null as seq`;assert.equal(gone?.fn,true);assert.equal(gone?.seq,true);triggers.delete(name);
+  }
+  async function triggerCatalog(){return (await sqlClient`select tgrelid::regclass::text as relation,tgname,tgenabled,tgisinternal,pg_get_triggerdef(oid) as definition from pg_trigger
+    where tgrelid in ('global_feature_settings'::regclass,'building_feature_settings'::regclass,'feature_runtime'::regclass,'audit_logs'::regclass) order by relation,tgname`).map(x=>({...x}));}
+
+  before(async () => {
+    assert.equal((await sqlClient`select count(*)::int as count from schema_migrations`)[0]?.count, 68, "candidate068 fixture required; no skip");
+    await bounded(verifyRestrictedDatabaseRole(appSqlClient, "predioon_app"), "actual restricted app role");
+    hash = await hashPassword(password);
+    await sqlClient`insert into organizations(id,name,slug) values(${org},'Feature command MFA',${org})`;
+    for(const id of [building,foreign]) await sqlClient`insert into buildings(id,organization_id,name,code) values(${id},${org},${id},${id})`;
+    listener = await sqlClient.listen("predioon_events", value => {
+      const event=JSON.parse(value) as Row;
+      if(event.kind === "qa-feature-barrier") barriers.get(String(event.id))?.resolve();
+      else if(event.kind === "features-changed") notifications.push(event);
+    });
+    tracking = trackAllTransactions();
+    server = await new Promise<Server>(resolve => { const instance = app.listen(0, "127.0.0.1", () => resolve(instance)); });
+    const address = server.address(); assert.ok(address && typeof address !== "string"); url = `http://127.0.0.1:${address.port}`;
+  });
+  after(async () => {
+    try {
+      await bounded(new Promise<void>((resolve, reject) => {
+        if (!server) { resolve(); return; } server.close(error => error ? reject(error) : resolve()); server.closeAllConnections();
+      }), "HTTP listener close");
+    } finally {
+      try {
+        await tracking?.settle(); for (const name of triggers.keys()) await dropTrigger(name);
+        await bounded(sqlClient.begin(async tx => {
+          await tx`set local lock_timeout='2s'`; await tx`set local statement_timeout='3s'`;
+          await tx`delete from audit_logs where user_id in(select id from users where email like ${emailPattern})`;
+          await tx`delete from buildings where organization_id=${org}`;
+          await tx`delete from users where email like ${emailPattern}`;
+          await tx`delete from organizations where id=${org}`;
+        }), "owned fixture cleanup");
+      } finally {
+        await listener?.unlisten(); tracking?.restore(); const results = await Promise.allSettled([bounded(closeAppDb(), "app pool close"), bounded(sqlClient.end({ timeout: 3 }), "owner pool close")]);
+        const failure = results.find(result => result.status === "rejected"); if (failure?.status === "rejected") throw failure.reason;
+      }
+    }
+  });
+  for(const scope of ["global","local"] as const)for(const kind of ["flag","binding"] as const)for(const stale of [false,true])for(const factor of [true,false]) {
+    it(`${scope} ${kind} ${stale?"stale":"current"}: rejects ${factor?"factor":"proof"} loss after real authorization`,async t=>using(scope,"TICKETS",true,async op=>{
+      const a=await actor(kind),before=await snapshot(a),index=await cursor(),body=payload(op);if(stale)body.version=999;
+      const response=await interleave(a,op,()=>factor?sqlClient`delete from mfa_factors where user_id=${a.id}`:removeProof(a),"authorization",body);
+      if(response.status===200){await effects(a,op,response,before,index);t.diagnostic("Baseline200: exact settings transitions parking audit DTO and committed notification verified");}
+      else {assert.deepEqual(await snapshot(a),before);await notificationsSince(index,scope,0);if(response.status===409){assert.equal((response.body as {details:{code:string}}).details.code,"FEATURE_VERSION_CONFLICT");t.diagnostic("Baseline409: stale conflict exposed after proof loss; exact effects unchanged");}}
+      denied(response,factor?"MFA_ENROLLMENT_REQUIRED":"MFA_VERIFICATION_REQUIRED");assert.deepEqual(await snapshot(a),before);
+    }));
+  }
+  for(const scope of ["global","local"] as const)for(const kind of ["flag","binding"] as const)for(const lock of ["advisory","row"] as const)for(const factor of [true,false]) {
+    it(`${scope} ${kind} ${lock}: rejects ${factor?"factor":"proof"} loss during actual database wait`,async t=>using(scope,"CAR_PARKING",true,async op=>{
+      const a=await actor(kind),before=await snapshot(a),index=await cursor(),response=await waitAndWithdraw(a,op,lock,factor);
+      if(response.status===200){await effects(a,op,response,before,index);t.diagnostic("Baseline200: actual owner lock wait and exact committed effects verified");}
+      else{assert.deepEqual(await snapshot(a),before);await notificationsSince(index,scope,0);}
+      denied(response,factor?"MFA_ENROLLMENT_REQUIRED":"MFA_VERIFICATION_REQUIRED");assert.deepEqual(await snapshot(a),before);
+    }));
+  }
+  for(const scope of ["global","local"] as const)for(const factor of [true,false]) {
+    it(`${scope}: rejects ${factor?"factor":"proof"} loss after real transactional NOTIFY`,async t=>using(scope,"CAR_PARKING",true,async op=>{
+      const a=await actor("binding"),before=await snapshot(a),index=await cursor();
+      const response=await interleave(a,op,()=>factor?sqlClient`delete from mfa_factors where user_id=${a.id}`:removeProof(a),"notify");
+      if(response.status===200){await effects(a,op,response,before,index);t.diagnostic("Baseline200: real NOTIFY queued then committed with exact command effects");}
+      else{assert.deepEqual(await snapshot(a),before);await notificationsSince(index,scope,0);}
+      denied(response,factor?"MFA_ENROLLMENT_REQUIRED":"MFA_VERIFICATION_REQUIRED");assert.deepEqual(await snapshot(a),before);
+    }));
+  }
+  for(const scope of ["global","local"] as const)for(const stage of ["insert","update","runtime","audit"] as const)for(const mode of ["proof","exception"] as const) {
+    it(`${scope} ${stage}: rolls back complete effects after ${mode} trigger`,async t=>using(scope,"CAR_PARKING",stage!=="insert",async op=>{
+      const a=await actor("flag"),before=await snapshot(a),priorProof=await proof(a),index=await cursor(),catalog=await triggerCatalog(),name="tfeaturecmd_"+randomUUID().replaceAll("-","");
+      await installTrigger(name,stage,mode,a,op);
+      try{
+        const response=await request(a,op);await tracking?.settle();await witness(name);
+        if(response.status===200){await effects(a,op,response,before,index);assert.equal((await proof(a)).verified_at,null);t.diagnostic("Baseline200: real trigger withdrew proof; command effects and notification committed");}
+        else{assert.deepEqual(await snapshot(a),before);assert.deepEqual(await proof(a),priorProof,"trigger identity withdrawal rolls back too");await notificationsSince(index,scope,0);}
+        if(mode==="proof")denied(response,"MFA_VERIFICATION_REQUIRED");else {assert.equal(response.status,500);assert.equal(JSON.stringify(response.body).includes("private feature fixture detail"),false);assert.equal("items" in (response.body as object),false);}
+        assert.deepEqual(await snapshot(a),before);assert.deepEqual(await proof(a),priorProof);
+      }finally{await dropTrigger(name);assert.deepEqual(await triggerCatalog(),catalog);}
+    }));
+  }
+  for(const scope of ["global","local"] as const) {
+    it(`${scope}: rejects a skipped settings insert without false audit or notification`,async t=>using(scope,"TICKETS",false,async op=>{
+      const a=await actor("flag"),before=await snapshot(a),index=await cursor(),name="tfeaturecmd_"+randomUUID().replaceAll("-",""),catalog=await triggerCatalog();
+      await installTrigger(name,"insert","skip",a,op);
+      try{const response=await request(a,op);await witness(name);
+        if(response.status===200){const after=await snapshot(a);assert.deepEqual(after.data,before.data);assert.equal(after.audit.length,before.audit.length+1);assert.equal((after.audit.at(-1)!.metadata as Row).affectedBuildings,0);await notificationsSince(index,scope,1);t.diagnostic("Baseline200: zero actual settings writes yet false audit and notification committed");}
+        assert.equal(response.status,500);assert.equal("items" in (response.body as object),false);assert.deepEqual(await snapshot(a),before);await notificationsSince(index,scope,0);
+      }finally{await dropTrigger(name);assert.deepEqual(await triggerCatalog(),catalog);}
+    }));
+  }
+  for(const scope of ["global","local"] as const)for(const kind of ["flag","binding"] as const)for(const key of ["TICKETS","CAR_PARKING"]) {
+    it(`${scope} ${kind} ${key}: preserves create disable reenable inheritance and exact side effects`,async()=>using(scope,key,false,async op=>{
+      const a=await actor(kind);let before=await snapshot(a),index=await cursor();await effects(a,op,await request(a,op),before,index);
+      op.version++;before=await snapshot(a);index=await cursor();const enabled=scope==="global"?true:null;
+      await effects(a,op,await request(a,op,undefined,payload(op,enabled)),before,index,enabled);
+      const settings=(await snapshot(a)).data[scope==="global"?0:1]!;assert.ok(settings.some(x=>x.feature_key===key&&x.enabled===enabled&&(scope==="global"||x.building_id===building)));
+    }));
+  }
+  for(const scope of ["global","local"] as const)for(const kind of ["manager","resident"] as const) {
+    it(`${scope} ${kind}: never grants global configuration authority`,async()=>using(scope,"TICKETS",true,async op=>{
+      const a=await actor(kind),before=await snapshot(a),index=await cursor(),response=await request(a,op);assert.equal(response.status,403);assert.equal("items" in (response.body as object),false);assert.deepEqual(await snapshot(a),before);await notificationsSince(index,scope,0);
+    }));
+  }
+  for(const scope of ["global","local"] as const) {
+    it(`${scope}: preserves optimistic conflict and same-version concurrent writes`,async()=>using(scope,"TICKETS",true,async op=>{
+      const a=await actor("flag"),before=await snapshot(a),index=await cursor(),responses=await Promise.all([request(a,op),request(a,op)]);
+      assert.deepEqual(responses.map(x=>x.status).sort(),[200,409]);assert.equal((responses.find(x=>x.status===409)!.body as {details:{code:string}}).details.code,"FEATURE_VERSION_CONFLICT");
+      await effects(a,op,responses.find(x=>x.status===200)!,before,index);
+    }));
+    it(`${scope}: missing features permission cannot be replaced by another global capability`,async()=>using(scope,"TICKETS",true,async op=>{
+      const a=await actor("binding"),before=await snapshot(a),index=await cursor(),permissions=(await sqlClient`select * from role_permissions where role_key='PLATFORM_ADMIN' order by permission_key`).map(x=>({...x}));
+      try{await sqlClient`delete from role_permissions where role_key='PLATFORM_ADMIN' and permission_key='features:manage'`;
+        assert.equal((await http(a.token,"/v1/support-access/staff")).status,200,"other real global capability survives catalog withdrawal");
+        const response=await request(a,op);assert.equal(response.status,403);assert.deepEqual(await snapshot(a),before);await notificationsSince(index,scope,0);
+      }finally{await sqlClient`insert into role_permissions select * from jsonb_populate_recordset(null::role_permissions,${JSON.stringify(permissions.filter(x=>x.permission_key==='features:manage'))}::jsonb)`;assert.deepEqual((await sqlClient`select * from role_permissions where role_key='PLATFORM_ADMIN' order by permission_key`).map(x=>({...x})),permissions);}
+    }));
+    it(`${scope}: invalid body and unknown feature produce no writes`,async()=>using(scope,"TICKETS",true,async op=>{
+      const a=await actor("flag"),before=await snapshot(a),index=await cursor();
+      for(const body of [{...payload(op),version:-1},{...payload(op),reason:"x"},{...payload(op),extra:true},...(scope==="global"?[payload(op,null)]:[])])assert.equal((await request(a,op,undefined,body)).status,400);
+      assert.equal((await request(a,{...op,key:"UNKNOWN_FEATURE"})).status,400);assert.deepEqual(await snapshot(a),before);await notificationsSince(index,scope,0);
+    }));
+  }
+
+});
