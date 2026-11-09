@@ -1,0 +1,161 @@
+{
+  "status": "V1_BASELINE_REVIEWED_TEST_FIXTURE_CORRECTION_REQUIRED",
+  "totals": {
+    "tests": 36,
+    "suites": 1,
+    "pass": 16,
+    "fail": 20,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "observations": [
+    {
+      "case": "flag new: rejects factor removal after real global authorization",
+      "classification": "EXPECTED_MFA_BASELINE_FAILURE",
+      "expected": 403,
+      "actual": 201,
+      "diagnostic": "Baseline201: exact support binding, unchanged account, platform audit and no building access verified before expected403 mismatch"
+    },
+    {
+      "case": "flag new: rejects family proof removal after real global authorization",
+      "classification": "EXPECTED_MFA_BASELINE_FAILURE",
+      "expected": 403,
+      "actual": 201,
+      "diagnostic": "Baseline201: exact support binding, unchanged account, platform audit and no building access verified before expected403 mismatch"
+    },
+    {
+      "case": "flag existing: rejects factor removal after real global authorization",
+      "classification": "EXPECTED_MFA_BASELINE_FAILURE",
+      "expected": 403,
+      "actual": 409,
+      "diagnostic": "Baseline409: staff refusal leaves accounts bindings grants and audits unchanged before expected403 mismatch"
+    },
+    {
+      "case": "flag existing: rejects family proof removal after real global authorization",
+      "classification": "EXPECTED_MFA_BASELINE_FAILURE",
+      "expected": 403,
+      "actual": 409,
+      "diagnostic": "Baseline409: staff refusal leaves accounts bindings grants and audits unchanged before expected403 mismatch"
+    },
+    {
+      "case": "flag inactive: rejects factor removal after real global authorization",
+      "classification": "EXPECTED_MFA_BASELINE_FAILURE",
+      "expected": 403,
+      "actual": 400,
+      "diagnostic": "Baseline400: staff refusal leaves accounts bindings grants and audits unchanged before expected403 mismatch"
+    },
+    {
+      "case": "flag inactive: rejects family proof removal after real global authorization",
+      "classification": "EXPECTED_MFA_BASELINE_FAILURE",
+      "expected": 403,
+      "actual": 400,
+      "diagnostic": "Baseline400: staff refusal leaves accounts bindings grants and audits unchanged before expected403 mismatch"
+    },
+    {
+      "case": "flag missing: rejects factor removal after real global authorization",
+      "classification": "EXPECTED_MFA_BASELINE_FAILURE",
+      "expected": 403,
+      "actual": 404,
+      "diagnostic": "Baseline404: staff refusal leaves accounts bindings grants and audits unchanged before expected403 mismatch"
+    },
+    {
+      "case": "flag missing: rejects family proof removal after real global authorization",
+      "classification": "EXPECTED_MFA_BASELINE_FAILURE",
+      "expected": 403,
+      "actual": 404,
+      "diagnostic": "Baseline404: staff refusal leaves accounts bindings grants and audits unchanged before expected403 mismatch"
+    },
+    {
+      "case": "binding new: rejects factor removal after real global authorization",
+      "classification": "EXPECTED_MFA_BASELINE_FAILURE",
+      "expected": 403,
+      "actual": 201,
+      "diagnostic": "Baseline201: exact support binding, unchanged account, platform audit and no building access verified before expected403 mismatch"
+    },
+    {
+      "case": "binding new: rejects family proof removal after real global authorization",
+      "classification": "EXPECTED_MFA_BASELINE_FAILURE",
+      "expected": 403,
+      "actual": 201,
+      "diagnostic": "Baseline201: exact support binding, unchanged account, platform audit and no building access verified before expected403 mismatch"
+    },
+    {
+      "case": "binding existing: rejects factor removal after real global authorization",
+      "classification": "EXPECTED_MFA_BASELINE_FAILURE",
+      "expected": 403,
+      "actual": 409,
+      "diagnostic": "Baseline409: staff refusal leaves accounts bindings grants and audits unchanged before expected403 mismatch"
+    },
+    {
+      "case": "binding existing: rejects family proof removal after real global authorization",
+      "classification": "EXPECTED_MFA_BASELINE_FAILURE",
+      "expected": 403,
+      "actual": 409,
+      "diagnostic": "Baseline409: staff refusal leaves accounts bindings grants and audits unchanged before expected403 mismatch"
+    },
+    {
+      "case": "binding inactive: rejects factor removal after real global authorization",
+      "classification": "EXPECTED_MFA_BASELINE_FAILURE",
+      "expected": 403,
+      "actual": 400,
+      "diagnostic": "Baseline400: staff refusal leaves accounts bindings grants and audits unchanged before expected403 mismatch"
+    },
+    {
+      "case": "binding inactive: rejects family proof removal after real global authorization",
+      "classification": "EXPECTED_MFA_BASELINE_FAILURE",
+      "expected": 403,
+      "actual": 400,
+      "diagnostic": "Baseline400: staff refusal leaves accounts bindings grants and audits unchanged before expected403 mismatch"
+    },
+    {
+      "case": "binding missing: rejects factor removal after real global authorization",
+      "classification": "EXPECTED_MFA_BASELINE_FAILURE",
+      "expected": 403,
+      "actual": 404,
+      "diagnostic": "Baseline404: staff refusal leaves accounts bindings grants and audits unchanged before expected403 mismatch"
+    },
+    {
+      "case": "binding missing: rejects family proof removal after real global authorization",
+      "classification": "EXPECTED_MFA_BASELINE_FAILURE",
+      "expected": 403,
+      "actual": 404,
+      "diagnostic": "Baseline404: staff refusal leaves accounts bindings grants and audits unchanged before expected403 mismatch"
+    },
+    {
+      "case": "flag: requires and recovers recent password verification before adding staff",
+      "classification": "TEST_FIXTURE_MISSING_REQUIRED_SECOND_FACTOR",
+      "expected": 204,
+      "actual": 400
+    },
+    {
+      "case": "binding: requires and recovers recent password verification before adding staff",
+      "classification": "TEST_FIXTURE_MISSING_REQUIRED_SECOND_FACTOR",
+      "expected": 204,
+      "actual": 400
+    },
+    {
+      "case": "role_bindings: rolls staff creation and audit back after proof trigger",
+      "classification": "EXPECTED_MFA_BASELINE_FAILURE",
+      "expected": 403,
+      "actual": 201,
+      "diagnostic": "Baseline201: staff binding and audit persisted; narrow trigger fired once and removed the same family proof"
+    },
+    {
+      "case": "audit_logs: rolls staff creation and audit back after proof trigger",
+      "classification": "EXPECTED_MFA_BASELINE_FAILURE",
+      "expected": 403,
+      "actual": 201,
+      "diagnostic": "Baseline201: staff binding and audit persisted; narrow trigger fired once and removed the same family proof"
+    }
+  ],
+  "oldTestSha256": "6f514ad837f9e56e7f95271a065b62ee5cfac52a00fa8af2c5dcc43a147825f1",
+  "newTestSha256": "97f1122469fefeb727b8795141d89a79557aec5e3db69ea7ab1e87ad490f83ce",
+  "change": "Only add a real enrollment recovery code to the real HTTP password-reverification request; no product, assertion, expected status or other fixture change.",
+  "productUnchangedSha256": "4d718ecad31a0c16573c099fb4c2a9073587c3ac26542d592686d995c52c7498",
+  "cleanupPassed": true,
+  "functionalAccepted": false,
+  "nativeResultSha256": "08775d090381737e138d0c4d28dbe611c110ed5dd111ef761eeff82b9400bbdb",
+  "nativeLogSha256": "edc6673d3f9793161633aa997527cd2dfa2c00c2d964f8b26e7299fafa6a897f",
+  "postchecksSha256": "fa12096c2399f2e2e696fb69ad78cc657410f77dfe4bfd01e94f724d86129e0f"
+}

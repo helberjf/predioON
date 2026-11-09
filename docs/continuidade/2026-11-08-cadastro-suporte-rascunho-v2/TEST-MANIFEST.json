@@ -1,0 +1,221 @@
+{
+  "version": 1,
+  "format": "new-test-v1",
+  "status": "AUTHORED_NOT_EXECUTED",
+  "recordedOn": "2026-11-08",
+  "baseExaminedPreparedSha256": "93823355255fc582df588072800b4db99edfbc6187b7d449148b38924678634b",
+  "files": [
+    {
+      "path": "apps/api/test/platform-mfa-support-staff-create.test.ts",
+      "sha256": "97f1122469fefeb727b8795141d89a79557aec5e3db69ea7ab1e87ad490f83ce",
+      "bytes": 28044,
+      "cases": 36
+    }
+  ],
+  "caseDispositions": [
+    {
+      "name": "flag new: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "flag new: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "flag existing: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_409_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline409"
+    },
+    {
+      "name": "flag existing: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_409_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline409"
+    },
+    {
+      "name": "flag inactive: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_400_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline400"
+    },
+    {
+      "name": "flag inactive: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_400_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline400"
+    },
+    {
+      "name": "flag missing: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_404_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline404"
+    },
+    {
+      "name": "flag missing: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_404_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline404"
+    },
+    {
+      "name": "binding new: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "binding new: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "binding existing: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_409_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline409"
+    },
+    {
+      "name": "binding existing: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_409_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline409"
+    },
+    {
+      "name": "binding inactive: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_400_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline400"
+    },
+    {
+      "name": "binding inactive: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_400_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline400"
+    },
+    {
+      "name": "binding missing: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_404_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline404"
+    },
+    {
+      "name": "binding missing: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_404_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline404"
+    },
+    {
+      "name": "flag: adds new staff with exact audit and no implicit building grant",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "flag: adds revoked staff with exact audit and no implicit building grant",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "flag: adds local staff with exact audit and no implicit building grant",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "flag: adds self staff with exact audit and no implicit building grant",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "binding: adds new staff with exact audit and no implicit building grant",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "binding: adds revoked staff with exact audit and no implicit building grant",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "binding: adds local staff with exact audit and no implicit building grant",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "binding: adds self staff with exact audit and no implicit building grant",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "preserves strict schema and trimmed input without unexpected bindings",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "preserves duplicate active expired inactive-account and missing-person refusals",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "refuses local managers and residents without creating platform staff",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "preserves hidden-person refusal after global binding withdrawal",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "requires authentication before staff designation",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "rejects zero-row staff insertion without account audit or proof changes",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "flag: requires and recovers recent password verification before adding staff",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "binding: requires and recovers recent password verification before adding staff",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "role_bindings: rolls staff creation and audit back after proof trigger",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "role_bindings: rolls staff creation and audit back after exception trigger",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "audit_logs: rolls staff creation and audit back after proof trigger",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "audit_logs: rolls staff creation and audit back after exception trigger",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    }
+  ],
+  "baselineExpectedPass": 18,
+  "baselineExpectedFail": 18,
+  "fixedExpectedPass": 36,
+  "independentCases": 36,
+  "parentGroups": 0,
+  "runtimeExecuted": false
+}
