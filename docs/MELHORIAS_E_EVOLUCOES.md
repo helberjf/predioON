@@ -1,5 +1,7 @@
 # Melhorias e novas implementações — Prédio ON
 
+**Atualização de 09/11 — promoção e alvo ausente conferidos:** [26 casos passaram](evidencias/mfa-feature-command-boundaries-2026-11-09.json), incluindo exigência imediata de MFA, recuperação pela mesma sessão, conflito de versão após MFA e condomínio inexistente. [Resultado e limites](continuidade/2026-11-09-limites-configuracoes/RESULTADO.md). Produto e testes anteriores preservados.
+
 **Atualização de 09/11 — revogação externa conferida:** [24 casos passaram durante bloqueios reais](evidencias/mfa-feature-transition-waits-2026-11-09.json), comprovando o PID bloqueador, rollback integral de negócio e persistência da retirada externa de acesso. [Resultado e limites](continuidade/2026-11-09-transicoes-concorrentes/RESULTADO.md). Produto e testes anteriores preservados.
 
 **Atualização de 09/11 — transições recusadas sem efeitos residuais:** [32/32 casos passaram](evidencias/mfa-feature-transition-2026-11-09.json), com retirada de prova/fator/vínculo ou exceção durante quatro efeitos reais, nos dois escopos. [Resultado e limites](continuidade/2026-11-09-transicoes/RESULTADO.md). O checkpoint abaixo foi superado por esta execução; produto e testes anteriores preservados.
@@ -10,7 +12,7 @@
 
 **Atualização de 09/11 — configurações protegidas no candidato:** [72 dirigidos e quatro regressões passaram](evidencias/mfa-feature-commands-2026-11-09.json), somando 117 casos independentes e três grupos. [Pacote de 1.045 fontes e limites](continuidade/2026-11-09-configuracoes/RESULTADO.md). Versões concorrentes, herança/dependências, vagas, auditoria e notificação transacional conferidas. Sem homologação completa de produção.
 
-**P1 — fechar configurações e integração:** revogação externa nas quatro linhas de efeito passou em 24 casos, além das rodadas anteriores de rollback e ciclo de vida. Acrescentar alvo ausente e promoção durante operação; seguir adjacentes de ingestão, demais domínios e integração completa. Não equivale a hardware/MQTT externo.
+**P1 — ampliar comandos e integração:** promoção/alvo ausente passaram em 26 casos de configurações; transições com retirada externa, rollback e ciclo de vida têm provas anteriores separadas. Seguir comandos de organizações/condomínios/equipamentos, demais domínios, cache privado e integração completa. Não equivale a aceite de hardware, navegador ou apps nativos.
 
 **Atualização de 09/11 — concessão, substituição e revogação de suporte validadas no candidato:** [99 casos dirigidos e seis regressões passaram](evidencias/mfa-support-grant-commands-2026-11-09.json), somando198 casos independentes e quatro grupos. [Composição restaurável de1.044 fontes e limites](continuidade/2026-11-09-acessos-suporte/RESULTADO.md). Dezesseis esperas reais, rollback de múltiplas capacidades/auditorias, prazos mínimo/máximo, isolamento, idempotência e autoridade parcial exercitados. Próximos: configurações, demais domínios/concorrências, cache, integração web/mobile e operação.
 

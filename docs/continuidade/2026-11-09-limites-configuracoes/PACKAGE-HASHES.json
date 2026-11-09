@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "recordedOn": "2026-11-09",
+  "status": "SOURCE_PACKAGE_NOT_RUNTIME_ACCEPTANCE",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+      "bytes": 8
+    },
+    {
+      "path": "apply-feature-command-boundaries.mjs",
+      "sha256": "ac5f7db5036c70c04fc758c739036247ce38ddc7e133354ae247e1b3d01eb2eb",
+      "bytes": 7390
+    },
+    {
+      "path": "MANIFEST.json",
+      "sha256": "4c47ed3cebd14bbef26c68fb0cc5607823e70228ceab7ce592cf947e61abbc87",
+      "bytes": 389185
+    },
+    {
+      "path": "payload/apps/api/test/platform-mfa-feature-command-boundaries.test.ts.txt",
+      "sha256": "cc6a7a72c1ff3570cde63b3df972142a4d06f6f38deb2895092df6c471ac71a7",
+      "bytes": 27320
+    },
+    {
+      "path": "README.md",
+      "sha256": "c228242c4191ed2789258d6f46f80822ecd7337038e40963f48104230a91eb08",
+      "bytes": 1457
+    }
+  ]
+}

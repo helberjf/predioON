@@ -1,0 +1,287 @@
+{
+  "recordedOn": "2026-11-09",
+  "timeZone": "America/Sao_Paulo",
+  "status": "VERIFIED",
+  "verifierSha256": "b459acb0b7c9c3c59fda4125797830899556c4acd6c25fd3f3fa882f950c8195",
+  "reviewedByRoot": true,
+  "sourceFiles": 1048,
+  "typeFiles": 45,
+  "requiredResolvedSources": 14,
+  "runtimeProductModified": false,
+  "existingTestsChanged": false,
+  "changedSources": [
+    "apps/api/test/platform-mfa-feature-command-boundaries.test.ts"
+  ],
+  "parentPreparedSha256": "ed84de87c330b2a4cb0ee1140bf52cddfde2a7352e9bf204d9a71920c71a8578",
+  "preparedSha256": "eb22fda8ef119f03feaccac22cb685eaecd569ae8b5e74fe4457c7c0b91c1964",
+  "observedHead": "9657db5626ad64198498503232ad942cb42c6864",
+  "acceptedCounts": {
+    "tap": 26,
+    "independentCases": 26,
+    "parentGroups": 0,
+    "suites": 1
+  },
+  "totals": {
+    "tests": 26,
+    "suites": 1,
+    "pass": 26,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "cases": [
+    "global flag no-factor current: requires MFA after ordinary admission and recovers on the same SID",
+    "global flag no-factor stale: requires MFA after ordinary admission and recovers on the same SID",
+    "global flag unproved-factor current: requires MFA after ordinary admission and recovers on the same SID",
+    "global flag unproved-factor stale: requires MFA after ordinary admission and recovers on the same SID",
+    "global binding no-factor current: requires MFA after ordinary admission and recovers on the same SID",
+    "global binding no-factor stale: requires MFA after ordinary admission and recovers on the same SID",
+    "global binding unproved-factor current: requires MFA after ordinary admission and recovers on the same SID",
+    "global binding unproved-factor stale: requires MFA after ordinary admission and recovers on the same SID",
+    "local flag no-factor current: requires MFA after ordinary admission and recovers on the same SID",
+    "local flag no-factor stale: requires MFA after ordinary admission and recovers on the same SID",
+    "local flag unproved-factor current: requires MFA after ordinary admission and recovers on the same SID",
+    "local flag unproved-factor stale: requires MFA after ordinary admission and recovers on the same SID",
+    "local binding no-factor current: requires MFA after ordinary admission and recovers on the same SID",
+    "local binding no-factor stale: requires MFA after ordinary admission and recovers on the same SID",
+    "local binding unproved-factor current: requires MFA after ordinary admission and recovers on the same SID",
+    "local binding unproved-factor stale: requires MFA after ordinary admission and recovers on the same SID",
+    "missing local flag capability: MFA proof withdrawal precedes404",
+    "missing local flag capability: MFA factor withdrawal precedes404",
+    "missing local flag discovery: MFA proof withdrawal precedes404",
+    "missing local flag discovery: MFA factor withdrawal precedes404",
+    "missing local binding capability: MFA proof withdrawal precedes404",
+    "missing local binding capability: MFA factor withdrawal precedes404",
+    "missing local binding discovery: MFA proof withdrawal precedes404",
+    "missing local binding discovery: MFA factor withdrawal precedes404",
+    "missing local flag: preserves404 for a satisfied globally authorized session",
+    "missing local binding: preserves404 for a satisfied globally authorized session"
+  ],
+  "typeChecks": [
+    {
+      "phase": "resolve",
+      "result": {
+        "id": "mfa-feature-command-boundaries-fixed-qa-20261109/checks/resolve/result.json",
+        "sha256": "a80e8f82727b325bce710cb060bc772eafbb7d410161d7ff50e6b2f03a2c1b2f",
+        "bytes": 1175
+      },
+      "startedUtc": "2026-11-09T12:19:44.940Z",
+      "childExitedUtc": "2026-11-09T12:19:49.678Z"
+    },
+    {
+      "phase": "types",
+      "result": {
+        "id": "mfa-feature-command-boundaries-fixed-qa-20261109/checks/types/result.json",
+        "sha256": "2590cfda10df821c1782369ad4b04ddeab7ff716f9faf624f283d53ade8153fe",
+        "bytes": 1022
+      },
+      "startedUtc": "2026-11-09T12:19:58.867Z",
+      "childExitedUtc": "2026-11-09T12:20:44.873Z"
+    }
+  ],
+  "startedUtc": "2026-11-09T12:21:45.611Z",
+  "endedUtc": "2026-11-09T12:23:06.966Z",
+  "freeMiBAtStart": 1920.0,
+  "cleanupPassed": true,
+  "temporarySystemActivityGuard": {
+    "startedUtc": "2026-11-09T12:21:26.1758836Z",
+    "endedUtc": "2026-11-09T12:23:09.1836947Z",
+    "exitCode": 0,
+    "systemRequiredSet": true,
+    "systemRequiredCleared": true,
+    "displayRequired": false,
+    "awayMode": false,
+    "permanentPowerSettingsChanged": false,
+    "computerRestarted": false
+  },
+  "inputs": [
+    {
+      "id": "mfa-feature-command-boundaries-harness-20261109/prepare-feature-command-boundaries.mjs",
+      "sha256": "61595b795eedf03d440495e3dd50c315a7dfb13ba2104d136b9ab6aa6d459cc9",
+      "bytes": 12654
+    },
+    {
+      "id": "mfa-feature-command-boundaries-harness-20261109/run-types.mjs",
+      "sha256": "611bbfdef844b8f6a5e077cf08cdce8f5b9da06377dfc99eb85088eb874229c3",
+      "bytes": 13651
+    },
+    {
+      "id": "mfa-feature-command-boundaries-harness-20261109/fixed-recipe.json",
+      "sha256": "01be900eb622bde9f2e3589cd574a9143ae044eee98ac703b7e99a139b206f6a",
+      "bytes": 12257
+    },
+    {
+      "id": "mfa-feature-command-boundaries-harness-20261109/fixed-prepare-result.json",
+      "sha256": "f3767e9a0e3c1a5d91d391ce82196448ae3c9a66c6bc856549503d9e47075964",
+      "bytes": 167
+    },
+    {
+      "id": "mfa-feature-command-boundaries-harness-20261109/fixed-prepare-guard.json",
+      "sha256": "8aba4a1dd4d0de4921f81e4c764a9418bdc9b715e8ee2486a142509758bbbf17",
+      "bytes": 91
+    },
+    {
+      "id": "mfa-feature-command-boundaries-harness-20261109/fixed-prepare.stdout.txt",
+      "sha256": "b454417e94b92a1ad018ef0fed59ca902fe199cdf6d699e4ab809330b37a64dd",
+      "bytes": 243
+    },
+    {
+      "id": "mfa-feature-command-boundaries-harness-20261109/fixed-prepare.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-feature-command-boundaries-fixed-qa-20261109/checks/resolve/stdout.log",
+      "sha256": "9659dc940de6d6cf3c2ec1480c8eea9e6a98d0be593a47c2a3d4453ca4e96675",
+      "bytes": 168550
+    },
+    {
+      "id": "mfa-feature-command-boundaries-fixed-qa-20261109/checks/resolve/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-feature-command-boundaries-fixed-qa-20261109/checks/resolve/result.json",
+      "sha256": "a80e8f82727b325bce710cb060bc772eafbb7d410161d7ff50e6b2f03a2c1b2f",
+      "bytes": 1175
+    },
+    {
+      "id": "mfa-feature-command-boundaries-fixed-qa-20261109/checks/resolve/command.json",
+      "sha256": "902fc487e786da72f14f0cddd6c8f8b19431cc6f9d27cc13716508b72c0a42d3",
+      "bytes": 966
+    },
+    {
+      "id": "mfa-feature-command-boundaries-fixed-qa-20261109/checks/resolve/guard.json",
+      "sha256": "68e8f83509e1b35aac6c589417cb0852bfef85f04b22420dd72386796bb6334a",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-feature-command-boundaries-fixed-qa-20261109/checks/types/stdout.log",
+      "sha256": "5fc2a9ba60222dcde64ca277735969f0835adf3f559ad782dd996279c45861bc",
+      "bytes": 972
+    },
+    {
+      "id": "mfa-feature-command-boundaries-fixed-qa-20261109/checks/types/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-feature-command-boundaries-fixed-qa-20261109/checks/types/result.json",
+      "sha256": "2590cfda10df821c1782369ad4b04ddeab7ff716f9faf624f283d53ade8153fe",
+      "bytes": 1022
+    },
+    {
+      "id": "mfa-feature-command-boundaries-fixed-qa-20261109/checks/types/command.json",
+      "sha256": "be99980910b9b4731e53da50d96bf95d572d6b323668c4a3a8ef2e0642e401de",
+      "bytes": 971
+    },
+    {
+      "id": "mfa-feature-command-boundaries-fixed-qa-20261109/checks/types/guard.json",
+      "sha256": "d741d0550a4e60c9b20a04db3e9cdfd845b36888d73192adccbda81b11af4731",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-feature-command-boundaries-fixed-qa-20261109/run-mfa-directed.mjs",
+      "sha256": "2d574bbf0ba15b4340717455438ad399d383c4a0b898a653a700ce6dfbf30cba",
+      "bytes": 13925
+    },
+    {
+      "id": "mfa-feature-command-boundaries-fixed-qa-20261109/launch-mfa-directed.ps1",
+      "sha256": "6a139bff03f1e87d93c5cead02c644cc37364e005be1341ec09d7bf986235c5c",
+      "bytes": 13045
+    },
+    {
+      "id": "run-feature-command-boundaries-awake-20261109.ps1",
+      "sha256": "89799a5e7db89993e64850fe7aaf3a1c4396426e72c307b182478e2fceff396b",
+      "bytes": 1673
+    },
+    {
+      "id": "mfa-grants-root-attestation-20261108.json",
+      "sha256": "9d43fe8e98ce5e11a26e7e943fb465a96f24a4c14368bbdab5712e5282cb426e",
+      "bytes": 664
+    },
+    {
+      "id": "mfa-feature-command-boundaries-fixed-qa-20261109/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-feature-command-boundaries-fixed-qa-20261109/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-feature-command-boundaries-fixed-qa-20261109/platform-mfa-feature-command-boundaries.log",
+      "sha256": "f6b01b60fd380e6c4caee3bee99c8eb27bfa683ec054faff8a47cf4aacfca7f1",
+      "bytes": 7366
+    },
+    {
+      "id": "mfa-feature-command-boundaries-harness-20261109/PLAN.json",
+      "sha256": "8b485aa6f3f526d35772b281775fe886685a74fd538efae0c6511270062f1a1c",
+      "bytes": 3996
+    },
+    {
+      "id": "mfa-feature-command-boundaries-harness-20261109/AUTHORED-PINS.json",
+      "sha256": "ccf760d33fefd3b8ce8f3d3d3eb662c62d0c083c011591930c40922abe9fcbbf",
+      "bytes": 479
+    },
+    {
+      "id": "mfa-feature-command-boundaries-harness-20261109/executors-handoff.json",
+      "sha256": "18e21cfca8ca7d78d67cf2ddf3bd946ce4df52346bbc3499cec454045d046741",
+      "bytes": 1830
+    },
+    {
+      "id": "mfa-feature-command-boundaries-test-20261109/manifest.json",
+      "sha256": "c6993be578de545995e46815dcdb1a00091d3391f6284d4494b6d87aef6f1019",
+      "bytes": 3239
+    },
+    {
+      "id": "mfa-feature-command-boundaries-fixed-qa-20261109/prepared.json",
+      "sha256": "eb22fda8ef119f03feaccac22cb685eaecd569ae8b5e74fe4457c7c0b91c1964",
+      "bytes": 916073
+    },
+    {
+      "id": "mfa-feature-transition-waits-fixed-qa-20261109/prepared.json",
+      "sha256": "ed84de87c330b2a4cb0ee1140bf52cddfde2a7352e9bf204d9a71920c71a8578",
+      "bytes": 915205
+    },
+    {
+      "id": "mfa-feature-command-boundaries-fixed-qa-20261109/tsconfig.test.json",
+      "sha256": "ac958e60a12bcaa0efb0c8255a2c80ab29e5522856c2bd24c41094ba21ec2bf4",
+      "bytes": 3025
+    },
+    {
+      "id": "mfa-feature-command-boundaries-fixed-qa-20261109/mfa-directed-result.json",
+      "sha256": "678dcebbebc38c2cf60beabde0f25b0e1cd0e003822f6fe82175dbe44e68bd50",
+      "bytes": 316246
+    },
+    {
+      "id": "mfa-feature-command-boundaries-fixed-qa-20261109/mfa-directed-postchecks.json",
+      "sha256": "df5647f2ee6d59b444c60b6985d315d04ad91f00f0a45989d07ccc3416c93411",
+      "bytes": 390
+    },
+    {
+      "id": "mfa-feature-command-boundaries-fixed-qa-20261109/owned-database.json",
+      "sha256": "704282336f8c169946377b1128692cf3fdbe0e204bda4a77d46f62e362e7789a",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-feature-command-boundaries-fixed-qa-20261109/awake-guard.json",
+      "sha256": "61240fb5b5a3b52e4bfd819f9a9f5a242a9bfbba711f99870dce1215cf0c5513",
+      "bytes": 308
+    }
+  ],
+  "scopeLimits": [
+    "One new 26-case file only; all 1047 parent sources, runtime product and existing tests are unchanged.",
+    "Sixteen ordinary local managers promoted after actual request context SQL, by legacy flag or global PLATFORM_ADMIN binding, with no factor or confirmed but unproved factor; current and stale versions in both scopes.",
+    "Real SQL executes exactly once and returns unmodified rows; the actual global capability query is required to return true. The newly mandatory MFA error must precede business changes and version conflict.",
+    "All sixteen sessions recover through real HTTP enrollment/TOTP or one-use recovery code, using the same bearer/SID. Stale versions then yield409 and a correct retry yields200; full24-item DTO, affected-building/dependency transitions, version increments, audit and notification contracts are checked.",
+    "Eight missing-local-target cases withdraw proof or factor after actual allowed capability/discovery and must yield403 before404; two satisfied controls preserve404 and the original response body. The nonexistent target stays absent.",
+    "No settings/runtime/parking changes or command audits and no success notification on denials/conflicts/404; cross-tenant snapshots and committed listener barriers. No fake SQL results, physical hardware, browser, app build or performance acceptance.",
+    "Earlier24 external waits,32 rollback,8 lifecycle and117 independent configuration cases retain separate evidence and are not added into this26-case run. MFA068 remains candidate; runtime main001-067 unchanged."
+  ],
+  "computerRestarted": false,
+  "performanceAssessed": false,
+  "productionAccepted": false
+}
