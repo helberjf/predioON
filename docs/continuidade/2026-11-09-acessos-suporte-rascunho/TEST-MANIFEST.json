@@ -1,0 +1,586 @@
+{
+  "version": 1,
+  "format": "new-test-v1",
+  "status": "AUTHORED_NOT_EXECUTED",
+  "recordedOn": "2026-11-09",
+  "baseExaminedPreparedSha256": "8f360fbe2b8c0620af3b87187842a5637aec932062f2963d80bef6e296f156c3",
+  "files": [
+    {
+      "path": "apps/api/test/platform-mfa-support-grant-commands.test.ts",
+      "sha256": "03e2dd191a52b04f31156b5d3c3b1b6935189928a6194c023ff4e5186c2edadb",
+      "bytes": 41338,
+      "cases": 99
+    }
+  ],
+  "caseDispositions": [
+    {
+      "name": "POST flag first: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "POST flag first: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "POST flag replace: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "POST flag replace: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "POST flag building-missing: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_404_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline404"
+    },
+    {
+      "name": "POST flag building-missing: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_404_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline404"
+    },
+    {
+      "name": "POST flag building-inactive: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_400_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline400"
+    },
+    {
+      "name": "POST flag building-inactive: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_400_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline400"
+    },
+    {
+      "name": "POST flag staff-missing: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_400_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline400"
+    },
+    {
+      "name": "POST flag staff-missing: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_400_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline400"
+    },
+    {
+      "name": "POST flag staff-inactive: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_400_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline400"
+    },
+    {
+      "name": "POST flag staff-inactive: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_400_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline400"
+    },
+    {
+      "name": "POST flag self: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_400_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline400"
+    },
+    {
+      "name": "POST flag self: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_400_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline400"
+    },
+    {
+      "name": "POST binding first: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "POST binding first: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "POST binding replace: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "POST binding replace: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "POST binding building-missing: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_404_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline404"
+    },
+    {
+      "name": "POST binding building-missing: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_404_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline404"
+    },
+    {
+      "name": "POST binding building-inactive: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_400_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline400"
+    },
+    {
+      "name": "POST binding building-inactive: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_400_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline400"
+    },
+    {
+      "name": "POST binding staff-missing: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_400_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline400"
+    },
+    {
+      "name": "POST binding staff-missing: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_400_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline400"
+    },
+    {
+      "name": "POST binding staff-inactive: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_400_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline400"
+    },
+    {
+      "name": "POST binding staff-inactive: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_400_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline400"
+    },
+    {
+      "name": "POST binding self: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_400_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline400"
+    },
+    {
+      "name": "POST binding self: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_400_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline400"
+    },
+    {
+      "name": "DELETE flag open: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "DELETE flag open: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "DELETE flag expired: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "DELETE flag expired: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "DELETE flag revoked: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "DELETE flag revoked: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "DELETE flag missing: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_404_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline404"
+    },
+    {
+      "name": "DELETE flag missing: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_404_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline404"
+    },
+    {
+      "name": "DELETE binding open: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "DELETE binding open: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "DELETE binding expired: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "DELETE binding expired: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "DELETE binding revoked: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "DELETE binding revoked: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "DELETE binding missing: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_404_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline404"
+    },
+    {
+      "name": "DELETE binding missing: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_404_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline404"
+    },
+    {
+      "name": "POST flag first staff: rejects factor removal committed during actual row wait",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "POST flag first staff: rejects family proof removal committed during actual row wait",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "POST flag replace staff: rejects factor removal committed during actual row wait",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "POST flag replace staff: rejects family proof removal committed during actual row wait",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "POST binding first staff: rejects factor removal committed during actual row wait",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "POST binding first staff: rejects family proof removal committed during actual row wait",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "POST binding replace staff: rejects factor removal committed during actual row wait",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "POST binding replace staff: rejects family proof removal committed during actual row wait",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "POST flag replace grant: rejects factor removal committed during actual row wait",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "POST flag replace grant: rejects family proof removal committed during actual row wait",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "DELETE flag open grant: rejects factor removal committed during actual row wait",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "DELETE flag open grant: rejects family proof removal committed during actual row wait",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "DELETE binding open grant: rejects factor removal committed during actual row wait",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "DELETE binding open grant: rejects family proof removal committed during actual row wait",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "DELETE flag open concurrent: rejects factor removal committed during actual row wait",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "DELETE flag open concurrent: rejects family proof removal committed during actual row wait",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "POST flag minimum: preserves bounded access exact DTO and append-only audit history",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "POST flag maximum: preserves bounded access exact DTO and append-only audit history",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "POST flag replace: preserves bounded access exact DTO and append-only audit history",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "POST flag duplicate: preserves bounded access exact DTO and append-only audit history",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "POST binding minimum: preserves bounded access exact DTO and append-only audit history",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "POST binding maximum: preserves bounded access exact DTO and append-only audit history",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "POST binding replace: preserves bounded access exact DTO and append-only audit history",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "POST binding duplicate: preserves bounded access exact DTO and append-only audit history",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "DELETE flag open: preserves revocation history and repeated-request idempotence",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "DELETE flag expired: preserves revocation history and repeated-request idempotence",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "DELETE flag revoked: preserves revocation history and repeated-request idempotence",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "DELETE binding open: preserves revocation history and repeated-request idempotence",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "DELETE binding expired: preserves revocation history and repeated-request idempotence",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "DELETE binding revoked: preserves revocation history and repeated-request idempotence",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "refuses local managers residents and support staff without grant mutations",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "refuses invalid grant schemas without writes",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "refuses ineligible staff and preserves self and inactive-building validation",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "preserves invalid missing and unauthenticated refusals",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "creation requires recent password while revocation keeps its existing contract",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "rbac authority without support permission removes staff without mutating legacy grants",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "POST first insert: rolls back the complete command after proof trigger",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "POST first insert: rolls back the complete command after exception trigger",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "POST first created-audit: rolls back the complete command after proof trigger",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "POST first created-audit: rolls back the complete command after exception trigger",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "POST replace insert: rolls back the complete command after proof trigger",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "POST replace insert: rolls back the complete command after exception trigger",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "POST replace update: rolls back the complete command after proof trigger",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "POST replace update: rolls back the complete command after exception trigger",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "POST replace revoked-audit: rolls back the complete command after proof trigger",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "POST replace revoked-audit: rolls back the complete command after exception trigger",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "POST replace created-audit: rolls back the complete command after proof trigger",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "POST replace created-audit: rolls back the complete command after exception trigger",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "DELETE open update: rolls back the complete command after proof trigger",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "DELETE open update: rolls back the complete command after exception trigger",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "DELETE open revoked-audit: rolls back the complete command after proof trigger",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "DELETE open revoked-audit: rolls back the complete command after exception trigger",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "first: preserves zero-row insert or revocation outcome without partial writes",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "replace: preserves zero-row insert or revocation outcome without partial writes",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "open: preserves zero-row insert or revocation outcome without partial writes",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    }
+  ],
+  "baselineExpectedPass": 31,
+  "baselineExpectedFail": 68,
+  "fixedExpectedPass": 99,
+  "independentCases": 99,
+  "parentGroups": 0,
+  "runtimeExecuted": false
+}

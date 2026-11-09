@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "format": "delta-v1",
+  "status": "AUTHORED_NOT_EXECUTED",
+  "recordedOn": "2026-11-09",
+  "basePreparedSha256": "8f360fbe2b8c0620af3b87187842a5637aec932062f2963d80bef6e296f156c3",
+  "sourceCount": 1043,
+  "files": [
+    {
+      "path": "apps/api/src/modules/support-access/routes.ts",
+      "beforeSha256": "229dcd76b89f3dbb38c653d7ad4bf324bd6b151785e6f0a3cdba45b1d5680622",
+      "beforeBytes": 17059,
+      "afterSha256": "d6182caa70e1066aaa43b0da4eec530538c321243747461e5a538fc711b4de9c",
+      "afterBytes": 19415
+    }
+  ],
+  "ownedCallers": [
+    "POST /v1/support-access/grants",
+    "DELETE /v1/support-access/grants/:id",
+    "private revokeGrant (also called by staff removal)"
+  ],
+  "otherSourceReconstructedExactly": true,
+  "staffHandlersReconstructedExactly": true,
+  "schemasPoliciesMigrationsUnchanged": true,
+  "productionAccepted": false
+}

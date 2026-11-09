@@ -1,0 +1,312 @@
+import { Router, type Request } from "express";
+import { and, eq, sql } from "drizzle-orm";
+import { z } from "zod";
+import { roleBindings, type AppTransaction } from "@predioon/db/runtime";
+import { SUPPORT_CAPABILITIES, type Capability } from "@predioon/shared";
+import { assertCapability, assertGlobalCapability, currentAuth, inTenantContext } from "../../auth/middleware.js";
+import { badRequest, conflict, forbidden, notFound, pgErrorCode } from "../../http/errors.js";
+import { param } from "../../http/params.js";
+import { query, validateBody, validateQuery } from "../../http/validate.js";
+import { isoTime } from "../../http/sql-time.js";
+import { recordAudit } from "../audit/repo.js";
+import { requireRecentVerification } from "../../auth/verification.js";
+import { readMfaRows } from "../../auth/mfa-read.js";
+
+/**
+ * Temporary platform support access (053). The platform admin keeps a support
+ * staff list and grants one building's read capability to a staff member for a
+ * bounded time; the database decides what a grant allows and keeps grants
+ * append-only. The building's managers can review its grants.
+ */
+export const supportAccessRouter = Router();
+supportAccessRouter.use((_req, res, next) => { res.setHeader("Cache-Control", "no-store"); next(); });
+
+const id = z.string().uuid();
+const userId = z.string().trim().min(1).max(128);
+const buildingId = z.string().trim().min(1).max(128);
+const reason = z.string().trim().min(3).max(500);
+const supportCapability = z.string().refine((value): value is Capability => SUPPORT_CAPABILITIES.includes(value as Capability), "Capacidade fora do suporte");
+const CreateStaff = z.object({ userId, reason }).strict();
+const GrantList = z.object({ buildingId }).strict();
+const CreateGrant = z.object({
+  buildingId, supportUserId: userId, reason,
+  capabilities: z.array(supportCapability).min(1).max(SUPPORT_CAPABILITIES.length).refine(values => new Set(values).size === values.length, "Capacidades repetidas"),
+  // Seven days is also the database limit for a single grant.
+  hours: z.number().int().min(1).max(168),
+}).strict();
+
+type StaffRow = { id: string; userId: string; name: string; email: string; reason: string; createdAt: string };
+const StaffReadRow = z.object({
+  id: z.string(), userId: z.string(), name: z.string(), email: z.string(),
+  reason: z.string(), createdAt: z.string(),
+}).strict();
+type GrantRow = {
+  id: string; buildingId: string; supportUserId: string; supportUserName: string | null; capability: string;
+  resourceType: string | null; resourceId: string | null; reason: string; createdAt: string; expiresAt: string;
+  revokedAt: string | null; grantedByName: string | null; status: "ACTIVE" | "EXPIRED" | "REVOKED";
+};
+const GrantReadRow = z.object({
+  id: z.string(), buildingId: z.string(), supportUserId: z.string(),
+  supportUserName: z.string().nullable(), capability: z.string(),
+  resourceType: z.string().nullable(), resourceId: z.string().nullable(), reason: z.string(),
+  createdAt: z.string(), expiresAt: z.string(), revokedAt: z.string().nullable(),
+  grantedByName: z.string().nullable(), status: z.enum(["ACTIVE", "EXPIRED", "REVOKED"]),
+}).strict();
+const MineReadRow = z.object({
+  id: z.string(), buildingId: z.string(), buildingName: z.string().nullable(),
+  capability: z.string(), reason: z.string(), expiresAt: z.string(),
+}).strict();
+// Aggregate ordering must use the full PostgreSQL timestamp, not the
+// millisecond ISO field exposed in the DTO. Internal keys are removed below.
+const GrantReadOrderRow = GrantReadRow.extend({ __mfaOrderCreatedAt: z.string() }).strict();
+const MineReadOrderRow = MineReadRow.extend({ __mfaOrderExpiresAt: z.string() }).strict();
+// People outside the reader's visibility (e.g. platform staff, for a manager) keep a null name.
+const grantView = sql`g.id, g.building_id as "buildingId", g.support_user_id as "supportUserId", su.name as "supportUserName",
+  g.capability, g.resource_type as "resourceType", g.resource_id as "resourceId", g.reason,
+  ${isoTime(sql`g.created_at`)} as "createdAt", ${isoTime(sql`g.expires_at`)} as "expiresAt",
+  case when g.revoked_at is null then null else ${isoTime(sql`g.revoked_at`)} end as "revokedAt", gb.name as "grantedByName",
+  case when g.revoked_at is not null then 'REVOKED' when g.expires_at<=clock_timestamp() then 'EXPIRED' else 'ACTIVE' end as status`;
+const grantFrom = sql`support_grants g left join users su on su.id=g.support_user_id left join users gb on gb.id=g.granted_by`;
+
+/** RLS runs on the restricted connection; database refusals never expose foreign records. */
+async function inSupport<T>(req: Request, run: (tx: AppTransaction) => Promise<T>): Promise<T> {
+  try { return await inTenantContext(req, run); }
+  catch (error) {
+    const code = pgErrorCode(error);
+    if (code === "23503" || code === "23514") throw badRequest("Concessão inválida para este condomínio");
+    if (code === "42501") throw forbidden();
+    throw error;
+  }
+}
+
+async function globalCapability(tx: AppTransaction, capability: Capability): Promise<boolean> {
+  const [row] = await tx.execute(sql`select app_has_global_capability(${capability}) as allowed`);
+  return row?.allowed === true;
+}
+
+async function requireSupportMfa(tx: AppTransaction): Promise<void> {
+  const [result] = await tx.execute<{ allowed: unknown }>(sql`select public.app_require_session_mfa() as allowed`);
+  if (result?.allowed !== true) throw new Error("Invalid guarded support outcome");
+}
+
+async function revokeGrant(tx: AppTransaction, req: Request, grant: { id: string; buildingId: string }, cause: string): Promise<boolean> {
+  const [result] = await tx.execute<{ rows: unknown }>(sql`
+    with grant_mfa as materialized (
+      select public.app_require_session_mfa() as allowed
+    ), revoked as (
+      update support_grants set revoked_at=clock_timestamp()
+      from grant_mfa where id=${grant.id}::uuid and revoked_at is null and grant_mfa.allowed
+      returning id
+    )
+    select case when grant_mfa.allowed then coalesce((
+      select jsonb_agg(to_jsonb(revoked)) from revoked
+    ), '[]'::jsonb) else null end as rows from grant_mfa
+  `);
+  if (!result || !Array.isArray(result.rows) || result.rows.length > 1) throw new Error("Invalid guarded support revocation");
+  for (const row of result.rows) z.object({ id: z.string().uuid() }).strict().parse(row);
+  // UPDATE can wait behind another revocation and then affect zero rows.
+  // Check in a fresh statement before returning the idempotent outcome.
+  await requireSupportMfa(tx);
+  if (!result.rows.length) return false;
+  // Audited after the update: the database proof requires the grant to be revoked.
+  await recordAudit(tx, req, { userId: currentAuth(req).userId, buildingId: grant.buildingId, action: "SUPPORT_GRANT_REVOKED",
+    resourceType: "support_grant", resourceId: grant.id, metadata: { cause } });
+  await requireSupportMfa(tx);
+  return true;
+}
+
+supportAccessRouter.get("/staff", async (req, res) => {
+  res.json(await inSupport(req, async tx => {
+    await assertGlobalCapability(tx, "rbac:manage");
+    const rows = await readMfaRows(tx, sql`select rb.id, rb.user_id as "userId", u.name, u.email, rb.reason, ${isoTime(sql`rb.created_at`)} as "createdAt"
+      from role_bindings rb join users u on u.id=rb.user_id
+      where rb.role_key='PLATFORM_SUPPORT' and rb.building_id is null and rb.team_id is null and rb.resource_type is null and rb.active
+      order by u.name, rb.id limit 200`, value => StaffReadRow.parse(value), ["name", "id"]);
+    return { items: rows };
+  }));
+});
+
+supportAccessRouter.post("/staff", validateBody(CreateStaff), async (req, res) => {
+  const input = req.body as z.infer<typeof CreateStaff>;
+  const actor = currentAuth(req).userId;
+  const created = await inSupport(req, async tx => {
+    await assertGlobalCapability(tx, "rbac:manage");
+    await requireRecentVerification(req);
+    const [person] = await readMfaRows(tx, sql`select id, active from users where id=${input.userId}`,
+      value => z.object({ id: z.string(), active: z.boolean() }).strict().parse(value), ["id"]);
+    if (!person) throw notFound("Pessoa não encontrada");
+    if (!person.active) throw badRequest("A conta está desativada");
+    const existing = await readMfaRows(tx, sql`select id from role_bindings where user_id=${input.userId} and role_key='PLATFORM_SUPPORT'
+      and building_id is null and team_id is null and resource_type is null and active limit 1`,
+      value => z.object({ id: z.string().uuid() }).strict().parse(value), ["id"]);
+    if (existing.length) throw conflict("Esta pessoa já está na equipe de suporte");
+    const [result] = await tx.execute<{ rows: unknown }>(sql`
+      with staff_mfa as materialized (
+        select public.app_require_session_mfa() as allowed
+      ), created as (
+        insert into role_bindings(user_id,role_key,reason,granted_by)
+        select ${input.userId},'PLATFORM_SUPPORT',${input.reason},${actor}
+        from staff_mfa where staff_mfa.allowed
+        returning id
+      )
+      select case when staff_mfa.allowed then coalesce((
+        select jsonb_agg(to_jsonb(created)) from created
+      ), '[]'::jsonb) else null end as rows from staff_mfa
+    `);
+    if (!result || !Array.isArray(result.rows) || result.rows.length !== 1) throw new Error("Invalid guarded support staff creation");
+    const binding = z.object({ id: z.string().uuid() }).strict().parse(result.rows[0]);
+    await recordAudit(tx, req, { userId: actor, action: "SUPPORT_STAFF_ADDED", resourceType: "platform_support", resourceId: binding.id, metadata: { userId: input.userId } });
+    const [outcome] = await tx.execute<{ allowed: unknown }>(sql`select public.app_require_session_mfa() as allowed`);
+    if (outcome?.allowed !== true) throw new Error("Invalid guarded support staff outcome");
+    return binding;
+  });
+  res.status(201).json(created);
+});
+
+supportAccessRouter.delete("/staff/:id", async (req, res) => {
+  const parsed = id.safeParse(param(req, "id"));
+  if (!parsed.success) throw notFound();
+  const actor = currentAuth(req).userId;
+  await inSupport(req, async tx => {
+    await assertGlobalCapability(tx, "rbac:manage");
+    const [binding] = await tx.select({ id: roleBindings.id, userId: roleBindings.userId, active: roleBindings.active }).from(roleBindings)
+      .where(and(eq(roleBindings.id, parsed.data), eq(roleBindings.roleKey, "PLATFORM_SUPPORT"), sql`${roleBindings.buildingId} is null`)).for("update");
+    // Recheck after the authoritative row lock: it may have waited while the
+    // session proof changed. Also guard missing/already-inactive outcomes.
+    const [lookup] = await tx.execute<{ allowed: unknown }>(sql`select public.app_require_session_mfa() as allowed`);
+    if (lookup?.allowed !== true) throw new Error("Invalid guarded support staff lookup");
+    if (!binding?.userId) throw notFound();
+    if (!binding.active) return;
+    const changedAt = new Date().toISOString();
+    const [result] = await tx.execute<{ rows: unknown }>(sql`
+      with staff_mfa as materialized (
+        select public.app_require_session_mfa() as allowed
+      ), changed as (
+        update role_bindings set active=false, updated_at=${changedAt}::timestamptz
+        from staff_mfa where id=${binding.id}::uuid and staff_mfa.allowed
+        returning id
+      )
+      select case when staff_mfa.allowed then coalesce((
+        select jsonb_agg(to_jsonb(changed)) from changed
+      ), '[]'::jsonb) else null end as rows from staff_mfa
+    `);
+    if (!result || !Array.isArray(result.rows) || result.rows.length > 1) throw new Error("Invalid guarded support staff removal");
+    for (const row of result.rows) z.object({ id: z.string().uuid() }).strict().parse(row);
+    // Preserve the audit policy's refusal if an UPDATE affects no row.
+    await recordAudit(tx, req, { userId: actor, action: "SUPPORT_STAFF_REMOVED", resourceType: "platform_support", resourceId: binding.id, metadata: { userId: binding.userId } });
+    // Without the platform role the grants already stop working; close them too, so no list shows them as active.
+    if (await globalCapability(tx, "support:grant")) {
+      const open = await tx.execute(sql`select id, building_id as "buildingId" from support_grants where support_user_id=${binding.userId} and revoked_at is null for update`);
+      for (const grant of open as unknown as Array<{ id: string; buildingId: string }>) await revokeGrant(tx, req, grant, "staff_removed");
+    }
+    // Staff and every automatic grant revocation belong to this transaction.
+    // A lost proof during either mutation/audit rolls the complete operation back.
+    const [outcome] = await tx.execute<{ allowed: unknown }>(sql`select public.app_require_session_mfa() as allowed`);
+    if (outcome?.allowed !== true) throw new Error("Invalid guarded support staff removal outcome");
+  });
+  res.status(204).end();
+});
+
+supportAccessRouter.get("/grants", validateQuery(GrantList), async (req, res) => {
+  const q = query<z.infer<typeof GrantList>>(req);
+  res.json(await inSupport(req, async tx => {
+    if (!await globalCapability(tx, "support:grant")) await assertCapability(tx, "support:read", q.buildingId);
+    const rows = await readMfaRows(tx, sql`select ${grantView}, g.created_at as "__mfaOrderCreatedAt"
+      from ${grantFrom} where g.building_id=${q.buildingId}
+      order by g.created_at desc, g.id desc limit 200`, value => GrantReadOrderRow.parse(value),
+      [{ key: "__mfaOrderCreatedAt", direction: "desc" }, { key: "id", direction: "desc" }]);
+    return { items: rows.map(({ __mfaOrderCreatedAt: _order, ...row }) => row) };
+  }));
+});
+
+supportAccessRouter.post("/grants", validateBody(CreateGrant), async (req, res) => {
+  const input = req.body as z.infer<typeof CreateGrant>;
+  const actor = currentAuth(req).userId;
+  const items = await inSupport(req, async tx => {
+    await assertGlobalCapability(tx, "support:grant");
+    await requireRecentVerification(req);
+    await requireSupportMfa(tx);
+    if (input.supportUserId === actor) throw badRequest("Ninguém concede acesso de suporte a si mesmo");
+    const [building] = await readMfaRows(tx, sql`select id, active from buildings where id=${input.buildingId}`,
+      value => z.object({ id: z.string(), active: z.boolean() }).strict().parse(value), ["id"]);
+    if (!building) throw notFound("Condomínio não encontrado");
+    if (!building.active) throw badRequest("Condomínio desativado");
+    // The first grant has no grant row to lock. Serialize replacements on the
+    // existing staff binding, also locked when removing this person from staff.
+    // Stable ordering chooses the same binding even with legacy duplicates.
+    const staff = await tx.execute(sql`select rb.id from role_bindings rb join users u on u.id=rb.user_id and u.active
+      where rb.user_id=${input.supportUserId} and rb.role_key='PLATFORM_SUPPORT' and rb.building_id is null and rb.active
+        and (rb.starts_at is null or rb.starts_at<=statement_timestamp()) and (rb.ends_at is null or rb.ends_at>statement_timestamp())
+      order by rb.id limit 1 for update of rb`);
+    await requireSupportMfa(tx);
+    if (!staff.length) throw badRequest("A pessoa precisa estar na equipe de suporte da plataforma");
+    const created: GrantRow[] = [];
+    for (const capability of input.capabilities) {
+      // A new grant for the same person and capability replaces the open one.
+      const open = await tx.execute(sql`select id, building_id as "buildingId" from support_grants where building_id=${input.buildingId}
+        and support_user_id=${input.supportUserId} and capability=${capability} and resource_type is null and revoked_at is null for update`);
+      await requireSupportMfa(tx);
+      for (const grant of open as unknown as Array<{ id: string; buildingId: string }>) await revokeGrant(tx, req, grant, "replaced");
+      // statement_timestamp() is the clock the database limit uses.
+      const [result] = await tx.execute<{ rows: unknown }>(sql`
+        with grant_mfa as materialized (
+          select public.app_require_session_mfa() as allowed
+        ), created as (
+          insert into support_grants(building_id,support_user_id,capability,reason,expires_at,granted_by)
+          select ${input.buildingId},${input.supportUserId},${capability},${input.reason},statement_timestamp()+make_interval(hours=>${input.hours}),${actor}
+          from grant_mfa where grant_mfa.allowed
+          returning id
+        )
+        select case when grant_mfa.allowed then coalesce((
+          select jsonb_agg(to_jsonb(created)) from created
+        ), '[]'::jsonb) else null end as rows from grant_mfa
+      `);
+      if (!result || !Array.isArray(result.rows) || result.rows.length !== 1) throw new Error("Invalid guarded support creation");
+      const row = z.object({ id: z.string().uuid() }).strict().parse(result.rows[0]);
+      await recordAudit(tx, req, { userId: actor, buildingId: input.buildingId, action: "SUPPORT_GRANT_CREATED", resourceType: "support_grant",
+        resourceId: row.id, metadata: { capability, supportUserId: input.supportUserId, hours: input.hours } });
+      // Keep the public projection's native clock_timestamp() status. A scalar
+      // CASE guards even an empty projection without changing that clock.
+      const [projected] = await tx.execute<{ row: unknown }>(sql`
+        with grant_mfa as materialized (
+          select public.app_require_session_mfa() as allowed
+        )
+        select case when grant_mfa.allowed then (
+          select to_jsonb(view) from (select ${grantView} from ${grantFrom} where g.id=${row.id}) view
+        ) else null end as row from grant_mfa
+      `);
+      created.push(GrantReadRow.parse(projected?.row));
+    }
+    await requireSupportMfa(tx);
+    return created;
+  });
+  res.status(201).json({ items });
+});
+
+supportAccessRouter.delete("/grants/:id", async (req, res) => {
+  const parsed = id.safeParse(param(req, "id"));
+  if (!parsed.success) throw notFound();
+  await inSupport(req, async tx => {
+    await assertGlobalCapability(tx, "support:grant");
+    // No FOR UPDATE: it would apply the revoke policy, which hides already revoked grants.
+    // The conditional UPDATE in revokeGrant settles a concurrent revocation.
+    const [grant] = await readMfaRows(tx, sql`select id, building_id as "buildingId" from support_grants where id=${parsed.data}`,
+      value => z.object({ id: z.string().uuid(), buildingId: z.string() }).strict().parse(value), ["id"]);
+    if (!grant) throw notFound();
+    await revokeGrant(tx, req, grant, "revoked");
+  });
+  res.status(204).end();
+});
+
+/** What a support staff member may currently look at, so they know where to go. */
+supportAccessRouter.get("/mine", async (req, res) => {
+  const user = currentAuth(req).userId;
+  res.json(await inSupport(req, async tx => {
+    const rows = await readMfaRows(tx, sql`select g.id, g.building_id as "buildingId", b.name as "buildingName", g.capability, g.reason,
+        ${isoTime(sql`g.expires_at`)} as "expiresAt", g.expires_at as "__mfaOrderExpiresAt"
+      from support_grants g left join buildings b on b.id=g.building_id
+      where g.support_user_id=${user} and g.revoked_at is null and g.expires_at>clock_timestamp()
+      order by g.expires_at, g.id limit 200`, value => MineReadOrderRow.parse(value), ["__mfaOrderExpiresAt", "id"]);
+    return { items: rows.map(({ __mfaOrderExpiresAt: _order, ...row }) => row) };
+  }));
+});
