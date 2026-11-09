@@ -1,0 +1,74 @@
+{
+  "recordedOn": "2026-11-09",
+  "status": "PRE_PROVISION_EXECUTOR_COUNT_MISMATCH",
+  "originalRunnerSha256": "6d8664ed531680045a701d1a6aafcfaaad48422e1c02ca9c420d97479b4426f0",
+  "expectedRequiredSources": 14,
+  "actualResolvedSources": 15,
+  "controllerExitCode": 1,
+  "originalStderrCaptured": false,
+  "diagnosis": "Preflight asserted14 against verified15 sources; identified from original runner and resolver evidence. No functional result, database ownership receipt or provision log was produced.",
+  "functionalCasesExecuted": 0,
+  "migrationsOrTestFixtureProvisioned": false,
+  "postchecks": {
+    "exitCode": 1,
+    "systemIdentifierMatches": true,
+    "basePublicTables": 0,
+    "temporaryDatabases": 0,
+    "otherDatabases": 0,
+    "rolesRestoredIncludingPrivateCredentials": true,
+    "settingsRestored": true,
+    "roles": 6,
+    "otherClients": 0,
+    "containerAttestationMatches": true,
+    "freeMiBAtStart": 2519.0,
+    "computerRestarted": false,
+    "credentialsPublished": false
+  },
+  "temporarySystemActivityGuard": {
+    "startedUtc": "2026-11-09T12:42:15.5253350Z",
+    "endedUtc": "2026-11-09T12:42:31.9599702Z",
+    "exitCode": 1,
+    "systemRequiredSet": true,
+    "systemRequiredCleared": true,
+    "displayRequired": false,
+    "awayMode": false,
+    "permanentPowerSettingsChanged": false,
+    "computerRestarted": false
+  },
+  "productAndTestBytesChanged": false,
+  "typesReexecuted": false,
+  "priorEvidencePreserved": true,
+  "correctedHandoffSha256": "756a21b68e8712a9a4f31de731bc8ccf774244cc271c2f7710329cb3221bcfee",
+  "inputs": [
+    {
+      "id": "mfa-organization-commands-v2-baseline-qa-20261109/controller-start.json",
+      "sha256": "41096b88f48aff57a262c867cf8515a6791c2ea0f6e7aa18010fd462f6986573",
+      "bytes": 284
+    },
+    {
+      "id": "mfa-organization-commands-v2-baseline-qa-20261109/mfa-directed-postchecks.json",
+      "sha256": "a87b58fd8d7d1a4b66592ca104b3096b88eb32535dbdc0bf8d13a6d65c217c93",
+      "bytes": 390
+    },
+    {
+      "id": "mfa-organization-commands-v2-baseline-qa-20261109/awake-guard.json",
+      "sha256": "2ad833cf3ca418f9b769f3259ef6599f71becea5727d011dd756554a129407b6",
+      "bytes": 308
+    },
+    {
+      "id": "mfa-organization-commands-v2-baseline-qa-20261109/run-mfa-directed.mjs",
+      "sha256": "6d8664ed531680045a701d1a6aafcfaaad48422e1c02ca9c420d97479b4426f0",
+      "bytes": 13855
+    },
+    {
+      "id": "mfa-organization-commands-v2-baseline-qa-20261109/checks/resolve/result.json",
+      "sha256": "b38c5cb625fa3b795b49b78bd44725eb02974d04aacdcdde8587b0df589be3b7",
+      "bytes": 1178
+    },
+    {
+      "id": "mfa-organization-commands-v2-harness-20261109/executors-handoff.json",
+      "sha256": "544eb8ed8d46e90c8b244617fe8f1739cc89a06fb4e690345a4af9b4ac685b29",
+      "bytes": 4065
+    }
+  ]
+}

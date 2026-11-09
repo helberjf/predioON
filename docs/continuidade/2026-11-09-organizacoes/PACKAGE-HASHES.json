@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "recordedOn": "2026-11-09",
+  "status": "SOURCE_PACKAGE_NOT_RUNTIME_ACCEPTANCE",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+      "bytes": 8
+    },
+    {
+      "path": "apply-organization-commands.mjs",
+      "sha256": "866ada95f41d542d6cf32c9521811fc5d4a62d7cdb92eb99c44a2bc81df3cfda",
+      "bytes": 7415
+    },
+    {
+      "path": "MANIFEST.json",
+      "sha256": "5e9fdb44c20bde9c317fe265f354baa3544c3aed9ed5787db72a0f90ccbe9b62",
+      "bytes": 390245
+    },
+    {
+      "path": "payload/apps/api/src/modules/organizations/routes.ts.txt",
+      "sha256": "0b7ffd335bf9f51ca05448850e86f11f2f0c4aa4b3933a61bc69eeb02487f400",
+      "bytes": 6626
+    },
+    {
+      "path": "payload/apps/api/test/platform-mfa-organization-commands.test.ts.txt",
+      "sha256": "950fb102f6a7841ac6ac90f6a61d7e944ad09ddb3cdffd890d88f5c57d0ae9ee",
+      "bytes": 17954
+    },
+    {
+      "path": "README.md",
+      "sha256": "cefcdb14a1d6c38aea5d88557708869e47a494e4c0f1cc9e67d77994e539d0f4",
+      "bytes": 1714
+    }
+  ]
+}

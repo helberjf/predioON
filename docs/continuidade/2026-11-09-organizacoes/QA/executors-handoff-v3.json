@@ -1,0 +1,81 @@
+{
+  "status": "AUTHORED_NOT_EXECUTED",
+  "preparedPins": {
+    "baseline": "d6d5ffb2487964f3cc7e78324812ac660d9b0f7d9536d111810b671bdd705bf8",
+    "fixed": "71173538f9ff80adbf79df5d856311b4e6deaf888e76bb3b92ccf0a13f7337da"
+  },
+  "configSha256": "e9f1b3d1404aa10a9dd7753667d2a5a2eb596d7074e43c01794347b24053111e",
+  "sourceFiles": 1049,
+  "typeTests": 47,
+  "requiredSources": 15,
+  "directedCases": 30,
+  "baselineClassificationPending": true,
+  "regressionTapPlanned": 17,
+  "regressionFiles": 2,
+  "executors": [
+    {
+      "path": "mfa-organization-commands-v3-baseline-evidence-20261109/run-mfa-directed.mjs",
+      "sha256": "ad41c7e360000ea86d9d43f819d35dd681679c43f029ffa6fdcbe33bdbc21599",
+      "modelPath": "mfa-organization-commands-v2-baseline-qa-20261109/run-mfa-directed.mjs",
+      "modelSha256": "6d8664ed531680045a701d1a6aafcfaaad48422e1c02ca9c420d97479b4426f0"
+    },
+    {
+      "path": "mfa-organization-commands-v3-baseline-evidence-20261109/launch-mfa-directed.ps1",
+      "sha256": "6a2cd013ac120366ce905ac2ffa530b4ba91d34c3a7d78f719cacf1597475fc7",
+      "modelPath": "mfa-organization-commands-v2-baseline-qa-20261109/launch-mfa-directed.ps1",
+      "modelSha256": "6a2cd013ac120366ce905ac2ffa530b4ba91d34c3a7d78f719cacf1597475fc7"
+    },
+    {
+      "path": "run-organization-v3-baseline-awake-20261109.ps1",
+      "sha256": "3564db302c9e2176d809c2c6c01004aa5e544295479323cbe87634f563d9ae6c",
+      "modelPath": "run-organization-v2-baseline-awake-20261109.ps1",
+      "modelSha256": "a77d3bb7a1f0df0098b411bbde943d131eed82250dfe88158a30d81c762949ea"
+    },
+    {
+      "path": "mfa-organization-commands-v3-fixed-evidence-20261109/run-mfa-directed.mjs",
+      "sha256": "f7ca244992840355885d1291611b01ccc58d8c7befc66bc46024ebf1868aa440",
+      "modelPath": "mfa-organization-commands-v2-fixed-qa-20261109/run-mfa-directed.mjs",
+      "modelSha256": "3c9557a891b9ecf35220cb66db52b145b64403bb479c9e72bdf4b9c08829383d"
+    },
+    {
+      "path": "mfa-organization-commands-v3-fixed-evidence-20261109/launch-mfa-directed.ps1",
+      "sha256": "aac8208eee9cb4010725eb82f08290430415c96b5221df4a911218a04b70215f",
+      "modelPath": "mfa-organization-commands-v2-fixed-qa-20261109/launch-mfa-directed.ps1",
+      "modelSha256": "aac8208eee9cb4010725eb82f08290430415c96b5221df4a911218a04b70215f"
+    },
+    {
+      "path": "run-organization-v3-fixed-awake-20261109.ps1",
+      "sha256": "3e1123b56d199c4459d84c5f7b1bba04b85b69fa0e9cd0dadfa418e220d87a84",
+      "modelPath": "run-organization-v2-fixed-awake-20261109.ps1",
+      "modelSha256": "88cf1c37f908a277cc3c68eaaf6996363300b6c76b588de30503a61888fa6251"
+    },
+    {
+      "path": "mfa-organization-commands-v3-fixed-regression-evidence-20261109/run-mfa-directed.mjs",
+      "sha256": "812aa790f3cbef5a0291ddbc8d34ba1c54fba1d9cb54b29b6878acfa7ffa520c",
+      "modelPath": "mfa-organization-commands-v2-fixed-regression-qa-20261109/run-mfa-directed.mjs",
+      "modelSha256": "b474f3d19306bc126386e0e28af6dd217028cb86810c65b865b6d2a823380710"
+    },
+    {
+      "path": "mfa-organization-commands-v3-fixed-regression-evidence-20261109/launch-mfa-directed.ps1",
+      "sha256": "2976d390dc208bfd86f42fba60482f21d356a8773bcab1ce5560c716a2b5a065",
+      "modelPath": "mfa-organization-commands-v2-fixed-regression-qa-20261109/launch-mfa-directed.ps1",
+      "modelSha256": "2976d390dc208bfd86f42fba60482f21d356a8773bcab1ce5560c716a2b5a065"
+    },
+    {
+      "path": "run-organization-v3-fixed-regression-awake-20261109.ps1",
+      "sha256": "07d5650ba108e78bfbb67578b6c043edcdbec55d0badcc56b01445e78bebda38",
+      "modelPath": "run-organization-v2-fixed-regression-awake-20261109.ps1",
+      "modelSha256": "2cd95a3559803337ca62f87123281c483268dfa31ada84df1b7234d5b35aa29a"
+    }
+  ],
+  "clusterAttestation": "mfa-grants-root-attestation-20261108.json",
+  "clusterAttestationSha256": "9d43fe8e98ce5e11a26e7e943fb465a96f24a4c14368bbdab5712e5282cb426e",
+  "processLifecycleModified": false,
+  "temporaryAwakeGuard": true,
+  "requiresAlreadyRunningAttestedCluster": true,
+  "minimumFreeMiB": 1536,
+  "clusterStartRestartCommandsAdded": false,
+  "computerRestarted": false,
+  "executorCorrection": "Node preflight requiredSourcesCount 14 -> 15, matching the already-passed resolver and launcher. Product, tests, prepared sources, type checks and process lifecycle unchanged.",
+  "priorHandoffSha256": "544eb8ed8d46e90c8b244617fe8f1739cc89a06fb4e690345a4af9b4ac685b29"
+}

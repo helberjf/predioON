@@ -1,0 +1,56 @@
+{
+  "recordedOn": "2026-11-09",
+  "reviewedByRoot": true,
+  "sourceProductModified": false,
+  "functionalCases": 30,
+  "tapSha256": "b0704dbfc9193421c62aaf0df70ed5fe9df2f1678bec27998d04cd6b6e6beea2",
+  "totals": {
+    "tests": 30,
+    "suites": 1,
+    "pass": 24,
+    "fail": 6,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failures": [
+    {
+      "name": "PATCH write: external proof loss rolls back organization and audit",
+      "expectedStatus": 403,
+      "actualStatus": 200
+    },
+    {
+      "name": "PATCH write: external factor loss rolls back organization and audit",
+      "expectedStatus": 403,
+      "actualStatus": 200
+    },
+    {
+      "name": "PATCH audit: external proof loss rolls back organization and audit",
+      "expectedStatus": 403,
+      "actualStatus": 200
+    },
+    {
+      "name": "PATCH audit: external factor loss rolls back organization and audit",
+      "expectedStatus": 403,
+      "actualStatus": 200
+    },
+    {
+      "name": "PATCH missing: external proof loss precedes404",
+      "expectedStatus": 403,
+      "actualStatus": 404
+    },
+    {
+      "name": "PATCH missing: external factor loss precedes404",
+      "expectedStatus": 403,
+      "actualStatus": 404
+    }
+  ],
+  "allOther24CasesPassed": true,
+  "noSkipsOrTimeouts": true,
+  "rawErrorClassification": "Six HTTP status assertions only: four200 versus403 and two404 versus403. No positive-fixture or cleanup failure.",
+  "baselineCommittedEffectsIndependentlyCompared": false,
+  "scopeLimit": "The denial assertions stop at unexpected HTTP status on baseline. Full before/after data and audit assertions are required on the corrected run; no claim that baseline mutation effects were independently compared.",
+  "resultSha256": "5f98582223654422118bcc6bd358268537b5f9681728ab00d4ca39c0d0c548b3",
+  "postchecksSha256": "adbe6cb32d2f91598ea362b3bc2836e62b1432cfb3d33f5c14e73d75ecf6f4a4",
+  "cleanupPassed": true
+}

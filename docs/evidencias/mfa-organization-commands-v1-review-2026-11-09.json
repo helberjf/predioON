@@ -1,0 +1,14 @@
+{
+  "recordedOn": "2026-11-09",
+  "status": "PRE_FUNCTIONAL_OBSERVER_CORRECTION",
+  "beforeTestSha256": "0574b34c36bb9ad6098575b8696969f3b66acfb38e3be7af22f7b07102d5b800",
+  "afterTestSha256": "950fb102f6a7841ac6ac90f6a61d7e944ad09ddb3cdffd890d88f5c57d0ae9ee",
+  "baselineResolutionPassed": true,
+  "baselineTypesPassed": true,
+  "functionalCasesExecuted": 0,
+  "productChangedByCorrection": false,
+  "assertionsAndTimeoutsChanged": false,
+  "onlyChange": "Forward a rejection from the real SQL post-result observer to the awaiting Drizzle caller; original SQL still executes once.",
+  "originalPreparedRetained": true,
+  "computerRestarted": false
+}

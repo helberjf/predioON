@@ -1,0 +1,623 @@
+{
+  "recordedOn": "2026-11-09",
+  "timeZone": "America/Sao_Paulo",
+  "status": "VERIFIED",
+  "reviewedByRoot": true,
+  "verifierSha256": "9e92779f8512beed4d9d989ce99b89ddfaf454a12756572dceed3de6315103d8",
+  "observedHead": "797ebb15ee3b54f226aedc61448e4ea72756533f",
+  "sourceFiles": 1049,
+  "typeFiles": 47,
+  "requiredResolvedSources": 15,
+  "parentPreparedSha256": "eb22fda8ef119f03feaccac22cb685eaecd569ae8b5e74fe4457c7c0b91c1964",
+  "preparedPins": {
+    "baseline": "d6d5ffb2487964f3cc7e78324812ac660d9b0f7d9536d111810b671bdd705bf8",
+    "fixed": "71173538f9ff80adbf79df5d856311b4e6deaf888e76bb3b92ccf0a13f7337da"
+  },
+  "runtimeProductModified": true,
+  "runtimeProductModifiedPaths": [
+    "apps/api/src/modules/organizations/routes.ts"
+  ],
+  "existingTestsChanged": false,
+  "newTests": [
+    "apps/api/test/platform-mfa-organization-commands.test.ts"
+  ],
+  "acceptedCounts": {
+    "directed": 30,
+    "regressionFiles": 2,
+    "regression": 17,
+    "combinedTap": 47,
+    "combinedIndependent": 47,
+    "parentGroups": 0,
+    "suites": 3
+  },
+  "baseline": {
+    "recordedOn": "2026-11-09",
+    "reviewedByRoot": true,
+    "sourceProductModified": false,
+    "functionalCases": 30,
+    "tapSha256": "b0704dbfc9193421c62aaf0df70ed5fe9df2f1678bec27998d04cd6b6e6beea2",
+    "totals": {
+      "tests": 30,
+      "suites": 1,
+      "pass": 24,
+      "fail": 6,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "failures": [
+      {
+        "name": "PATCH write: external proof loss rolls back organization and audit",
+        "expectedStatus": 403,
+        "actualStatus": 200
+      },
+      {
+        "name": "PATCH write: external factor loss rolls back organization and audit",
+        "expectedStatus": 403,
+        "actualStatus": 200
+      },
+      {
+        "name": "PATCH audit: external proof loss rolls back organization and audit",
+        "expectedStatus": 403,
+        "actualStatus": 200
+      },
+      {
+        "name": "PATCH audit: external factor loss rolls back organization and audit",
+        "expectedStatus": 403,
+        "actualStatus": 200
+      },
+      {
+        "name": "PATCH missing: external proof loss precedes404",
+        "expectedStatus": 403,
+        "actualStatus": 404
+      },
+      {
+        "name": "PATCH missing: external factor loss precedes404",
+        "expectedStatus": 403,
+        "actualStatus": 404
+      }
+    ],
+    "allOther24CasesPassed": true,
+    "noSkipsOrTimeouts": true,
+    "rawErrorClassification": "Six HTTP status assertions only: four200 versus403 and two404 versus403. No positive-fixture or cleanup failure.",
+    "baselineCommittedEffectsIndependentlyCompared": false,
+    "scopeLimit": "The denial assertions stop at unexpected HTTP status on baseline. Full before/after data and audit assertions are required on the corrected run; no claim that baseline mutation effects were independently compared.",
+    "resultSha256": "5f98582223654422118bcc6bd358268537b5f9681728ab00d4ca39c0d0c548b3",
+    "postchecksSha256": "adbe6cb32d2f91598ea362b3bc2836e62b1432cfb3d33f5c14e73d75ecf6f4a4",
+    "cleanupPassed": true
+  },
+  "typeChecks": [
+    {
+      "variant": "baseline",
+      "phase": "resolve",
+      "result": {
+        "id": "mfa-organization-commands-v2-baseline-qa-20261109/checks/resolve/result.json",
+        "sha256": "b38c5cb625fa3b795b49b78bd44725eb02974d04aacdcdde8587b0df589be3b7",
+        "bytes": 1178
+      }
+    },
+    {
+      "variant": "baseline",
+      "phase": "types",
+      "result": {
+        "id": "mfa-organization-commands-v2-baseline-qa-20261109/checks/types/result.json",
+        "sha256": "f2cf480cec734dcff1e85ccf435de3a4297b8e26623a11eb08d5478da8f2f80e",
+        "bytes": 1025
+      }
+    },
+    {
+      "variant": "fixed",
+      "phase": "resolve",
+      "result": {
+        "id": "mfa-organization-commands-v2-fixed-qa-20261109/checks/resolve/result.json",
+        "sha256": "299cde68054ddc8a421253cc2d13e08140eab7604571fd4f18deea48efc46f3f",
+        "bytes": 1175
+      }
+    },
+    {
+      "variant": "fixed",
+      "phase": "types",
+      "result": {
+        "id": "mfa-organization-commands-v2-fixed-qa-20261109/checks/types/result.json",
+        "sha256": "96a2b9a6edcb5a06f4730a8af5baee9aa377357c829b0be36e2a23297bf8e41a",
+        "bytes": 1022
+      }
+    }
+  ],
+  "runs": [
+    {
+      "variant": "baseline",
+      "startedUtc": "2026-11-09T12:46:06.624Z",
+      "endedUtc": "2026-11-09T12:46:28.141Z",
+      "totals": [
+        {
+          "label": "platform-mfa-organization-commands",
+          "tests": 30,
+          "suites": 1,
+          "pass": 24,
+          "fail": 6,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "freeMiBAtStart": 2530.0,
+      "cleanupPassed": true,
+      "temporarySystemActivityGuard": {
+        "startedUtc": "2026-11-09T12:45:59.3722545Z",
+        "endedUtc": "2026-11-09T12:46:28.9975071Z",
+        "exitCode": 0,
+        "systemRequiredSet": true,
+        "systemRequiredCleared": true,
+        "displayRequired": false,
+        "awayMode": false,
+        "permanentPowerSettingsChanged": false,
+        "computerRestarted": false
+      }
+    },
+    {
+      "variant": "fixed",
+      "startedUtc": "2026-11-09T12:47:30.040Z",
+      "endedUtc": "2026-11-09T12:47:51.794Z",
+      "totals": [
+        {
+          "label": "platform-mfa-organization-commands",
+          "tests": 30,
+          "suites": 1,
+          "pass": 30,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "freeMiBAtStart": 2564.0,
+      "cleanupPassed": true,
+      "temporarySystemActivityGuard": {
+        "startedUtc": "2026-11-09T12:47:23.4353272Z",
+        "endedUtc": "2026-11-09T12:47:52.6499842Z",
+        "exitCode": 0,
+        "systemRequiredSet": true,
+        "systemRequiredCleared": true,
+        "displayRequired": false,
+        "awayMode": false,
+        "permanentPowerSettingsChanged": false,
+        "computerRestarted": false
+      }
+    },
+    {
+      "variant": "fixed-regression",
+      "startedUtc": "2026-11-09T12:48:39.244Z",
+      "endedUtc": "2026-11-09T12:49:12.292Z",
+      "totals": [
+        {
+          "label": "platform-mfa-sql-envelopes",
+          "tests": 11,
+          "suites": 1,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        {
+          "label": "platform-mfa-required",
+          "tests": 6,
+          "suites": 1,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "freeMiBAtStart": 2265.0,
+      "cleanupPassed": true,
+      "temporarySystemActivityGuard": {
+        "startedUtc": "2026-11-09T12:48:28.0377868Z",
+        "endedUtc": "2026-11-09T12:49:13.2433727Z",
+        "exitCode": 0,
+        "systemRequiredSet": true,
+        "systemRequiredCleared": true,
+        "displayRequired": false,
+        "awayMode": false,
+        "permanentPowerSettingsChanged": false,
+        "computerRestarted": false
+      }
+    }
+  ],
+  "cleanupPassed": true,
+  "inputs": [
+    {
+      "id": "mfa-organization-commands-v2-harness-20261109/prepare-organization-commands.mjs",
+      "sha256": "dfa73166b2f54aa1d9fa88509f9d204ca04db6af62157f8ba4e10a12fb443a6e",
+      "bytes": 12870
+    },
+    {
+      "id": "mfa-organization-commands-v2-harness-20261109/run-types.mjs",
+      "sha256": "8f1406742ecfa1ea722c085d9424dfb530fc362a6bd9cc460c546f764a200fa8",
+      "bytes": 13865
+    },
+    {
+      "id": "mfa-organization-commands-v2-harness-20261109/baseline-recipe.json",
+      "sha256": "eae37cb9dc753e8354486e8044f4f6295c8cb3009d996c0320a39b336ee09ae3",
+      "bytes": 13338
+    },
+    {
+      "id": "mfa-organization-commands-v2-harness-20261109/baseline-prepare-result.json",
+      "sha256": "28bed691d686fa4166ca8844d3a218fa7e038aa7722d1d13dcef0a55b8533862",
+      "bytes": 166
+    },
+    {
+      "id": "mfa-organization-commands-v2-harness-20261109/baseline-prepare-guard.json",
+      "sha256": "8e81f8db71432f0bc29947cb11ce584a44323f51b4da878824f71b1ca2b284b9",
+      "bytes": 91
+    },
+    {
+      "id": "mfa-organization-commands-v2-harness-20261109/baseline-prepare.stdout.txt",
+      "sha256": "b4d84b1930628428d3f0ef275ba6a46f4e6b935a75a09a235015ce070fd063f9",
+      "bytes": 246
+    },
+    {
+      "id": "mfa-organization-commands-v2-harness-20261109/baseline-prepare.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-organization-commands-v2-baseline-qa-20261109/checks/resolve/stdout.log",
+      "sha256": "b06b388244ce4649124e168a579abe52be41c1b25be47f1ebd54be5305b0524c",
+      "bytes": 169159
+    },
+    {
+      "id": "mfa-organization-commands-v2-baseline-qa-20261109/checks/resolve/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-organization-commands-v2-baseline-qa-20261109/checks/resolve/result.json",
+      "sha256": "b38c5cb625fa3b795b49b78bd44725eb02974d04aacdcdde8587b0df589be3b7",
+      "bytes": 1178
+    },
+    {
+      "id": "mfa-organization-commands-v2-baseline-qa-20261109/checks/resolve/command.json",
+      "sha256": "e7e30167dd58b5dbdf83c55b4b9cb91488c82fe24ae1d8e6f58cf034030d19a6",
+      "bytes": 972
+    },
+    {
+      "id": "mfa-organization-commands-v2-baseline-qa-20261109/checks/resolve/guard.json",
+      "sha256": "d2d8a9d4274d5cd6442e5719c61b62b9e7ee0787cc069163c6f79b59785fb778",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-organization-commands-v2-baseline-qa-20261109/checks/types/stdout.log",
+      "sha256": "fe65ea465f6242d7e0e73708f173daecac9d373d4295d8ba10a297d84e3ce98b",
+      "bytes": 972
+    },
+    {
+      "id": "mfa-organization-commands-v2-baseline-qa-20261109/checks/types/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-organization-commands-v2-baseline-qa-20261109/checks/types/result.json",
+      "sha256": "f2cf480cec734dcff1e85ccf435de3a4297b8e26623a11eb08d5478da8f2f80e",
+      "bytes": 1025
+    },
+    {
+      "id": "mfa-organization-commands-v2-baseline-qa-20261109/checks/types/command.json",
+      "sha256": "4a613f38cd1de4f9a222bb23518b43a95fda7d3effd227d448bfe65a70d197e4",
+      "bytes": 977
+    },
+    {
+      "id": "mfa-organization-commands-v2-baseline-qa-20261109/checks/types/guard.json",
+      "sha256": "a2be738175952b98e411e8a40ead7d9c431bb4096d2f20ac807e1ee961705c30",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-organization-commands-v2-baseline-qa-20261109/prepared.json",
+      "sha256": "d6d5ffb2487964f3cc7e78324812ac660d9b0f7d9536d111810b671bdd705bf8",
+      "bytes": 916793
+    },
+    {
+      "id": "mfa-organization-commands-v2-baseline-qa-20261109/tsconfig.test.json",
+      "sha256": "e9f1b3d1404aa10a9dd7753667d2a5a2eb596d7074e43c01794347b24053111e",
+      "bytes": 3158
+    },
+    {
+      "id": "mfa-organization-commands-v2-harness-20261109/fixed-recipe.json",
+      "sha256": "7a5dbbf82ff57493cef57568d2dbfbbc8a5b809b3c2f2e89d11b20a3fe7f5ee9",
+      "bytes": 13332
+    },
+    {
+      "id": "mfa-organization-commands-v2-harness-20261109/fixed-prepare-result.json",
+      "sha256": "d26d54d77de67ae9464e53e25ead4bad529b8f7d94ad2a63d7b4bcb5acaaaf62",
+      "bytes": 167
+    },
+    {
+      "id": "mfa-organization-commands-v2-harness-20261109/fixed-prepare-guard.json",
+      "sha256": "39028c655d38173c37438b879095912d8688617c19855abd404d8e7184659699",
+      "bytes": 91
+    },
+    {
+      "id": "mfa-organization-commands-v2-harness-20261109/fixed-prepare.stdout.txt",
+      "sha256": "a4052316d43e151d426566a1e91b967b495feaa0aa298be22d5da54d1f792f6b",
+      "bytes": 243
+    },
+    {
+      "id": "mfa-organization-commands-v2-harness-20261109/fixed-prepare.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-organization-commands-v2-fixed-qa-20261109/checks/resolve/stdout.log",
+      "sha256": "abd0ddff2158216bdb3fbf53e01d6a02c2b9d460e101de0300383846e8295661",
+      "bytes": 168553
+    },
+    {
+      "id": "mfa-organization-commands-v2-fixed-qa-20261109/checks/resolve/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-organization-commands-v2-fixed-qa-20261109/checks/resolve/result.json",
+      "sha256": "299cde68054ddc8a421253cc2d13e08140eab7604571fd4f18deea48efc46f3f",
+      "bytes": 1175
+    },
+    {
+      "id": "mfa-organization-commands-v2-fixed-qa-20261109/checks/resolve/command.json",
+      "sha256": "316fc77ba409a2b20e8604f6c9b463f4dc71f098436e595b33237aa5759553f3",
+      "bytes": 960
+    },
+    {
+      "id": "mfa-organization-commands-v2-fixed-qa-20261109/checks/resolve/guard.json",
+      "sha256": "fa10d698d14cc5ebef29b8508b051182ee02bb6d16e2288a6d92c4a94b845306",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-organization-commands-v2-fixed-qa-20261109/checks/types/stdout.log",
+      "sha256": "129c3cded8aee6430aec5a5e683e4bfffe2f48088fe651f4b82dd898a8b8f738",
+      "bytes": 972
+    },
+    {
+      "id": "mfa-organization-commands-v2-fixed-qa-20261109/checks/types/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-organization-commands-v2-fixed-qa-20261109/checks/types/result.json",
+      "sha256": "96a2b9a6edcb5a06f4730a8af5baee9aa377357c829b0be36e2a23297bf8e41a",
+      "bytes": 1022
+    },
+    {
+      "id": "mfa-organization-commands-v2-fixed-qa-20261109/checks/types/command.json",
+      "sha256": "991d3a4f6f75a0ca7dcedca4f6111f0d6d184d3ab45286010eff05830a7bd94c",
+      "bytes": 965
+    },
+    {
+      "id": "mfa-organization-commands-v2-fixed-qa-20261109/checks/types/guard.json",
+      "sha256": "83fbcdee90b22275b9bc0ecadec764f87b41d9dffdd9cd05ed6dd356d75e32ac",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-organization-commands-v2-fixed-qa-20261109/prepared.json",
+      "sha256": "71173538f9ff80adbf79df5d856311b4e6deaf888e76bb3b92ccf0a13f7337da",
+      "bytes": 916041
+    },
+    {
+      "id": "mfa-organization-commands-v2-fixed-qa-20261109/tsconfig.test.json",
+      "sha256": "e9f1b3d1404aa10a9dd7753667d2a5a2eb596d7074e43c01794347b24053111e",
+      "bytes": 3158
+    },
+    {
+      "id": "mfa-organization-commands-v3-baseline-evidence-20261109/run-mfa-directed.mjs",
+      "sha256": "ad41c7e360000ea86d9d43f819d35dd681679c43f029ffa6fdcbe33bdbc21599",
+      "bytes": 13855
+    },
+    {
+      "id": "mfa-organization-commands-v3-baseline-evidence-20261109/launch-mfa-directed.ps1",
+      "sha256": "6a2cd013ac120366ce905ac2ffa530b4ba91d34c3a7d78f719cacf1597475fc7",
+      "bytes": 13060
+    },
+    {
+      "id": "run-organization-v3-baseline-awake-20261109.ps1",
+      "sha256": "3564db302c9e2176d809c2c6c01004aa5e544295479323cbe87634f563d9ae6c",
+      "bytes": 1680
+    },
+    {
+      "id": "mfa-organization-commands-v3-fixed-evidence-20261109/run-mfa-directed.mjs",
+      "sha256": "f7ca244992840355885d1291611b01ccc58d8c7befc66bc46024ebf1868aa440",
+      "bytes": 13840
+    },
+    {
+      "id": "mfa-organization-commands-v3-fixed-evidence-20261109/launch-mfa-directed.ps1",
+      "sha256": "aac8208eee9cb4010725eb82f08290430415c96b5221df4a911218a04b70215f",
+      "bytes": 13048
+    },
+    {
+      "id": "run-organization-v3-fixed-awake-20261109.ps1",
+      "sha256": "3e1123b56d199c4459d84c5f7b1bba04b85b69fa0e9cd0dadfa418e220d87a84",
+      "bytes": 1677
+    },
+    {
+      "id": "mfa-organization-commands-v3-fixed-regression-evidence-20261109/run-mfa-directed.mjs",
+      "sha256": "812aa790f3cbef5a0291ddbc8d34ba1c54fba1d9cb54b29b6878acfa7ffa520c",
+      "bytes": 13970
+    },
+    {
+      "id": "mfa-organization-commands-v3-fixed-regression-evidence-20261109/launch-mfa-directed.ps1",
+      "sha256": "2976d390dc208bfd86f42fba60482f21d356a8773bcab1ce5560c716a2b5a065",
+      "bytes": 13048
+    },
+    {
+      "id": "run-organization-v3-fixed-regression-awake-20261109.ps1",
+      "sha256": "07d5650ba108e78bfbb67578b6c043edcdbec55d0badcc56b01445e78bebda38",
+      "bytes": 1688
+    },
+    {
+      "id": "mfa-grants-root-attestation-20261108.json",
+      "sha256": "9d43fe8e98ce5e11a26e7e943fb465a96f24a4c14368bbdab5712e5282cb426e",
+      "bytes": 664
+    },
+    {
+      "id": "mfa-organization-commands-v3-baseline-evidence-20261109/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-organization-commands-v3-baseline-evidence-20261109/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-organization-commands-v3-baseline-evidence-20261109/platform-mfa-organization-commands.log",
+      "sha256": "b0704dbfc9193421c62aaf0df70ed5fe9df2f1678bec27998d04cd6b6e6beea2",
+      "bytes": 16013
+    },
+    {
+      "id": "mfa-organization-commands-v3-baseline-evidence-20261109/mfa-directed-result.json",
+      "sha256": "5f98582223654422118bcc6bd358268537b5f9681728ab00d4ca39c0d0c548b3",
+      "bytes": 316315
+    },
+    {
+      "id": "mfa-organization-commands-v3-baseline-evidence-20261109/mfa-directed-postchecks.json",
+      "sha256": "adbe6cb32d2f91598ea362b3bc2836e62b1432cfb3d33f5c14e73d75ecf6f4a4",
+      "bytes": 390
+    },
+    {
+      "id": "mfa-organization-commands-v3-baseline-evidence-20261109/owned-database.json",
+      "sha256": "14c2462d767174c96131274e32158609ebf726cdb1db848e695e8b7cf56fb257",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-organization-commands-v3-baseline-evidence-20261109/awake-guard.json",
+      "sha256": "fa96a8b894fd8d91e8351cb9d8766d2541eb049d587fba0c91771327f0393937",
+      "bytes": 308
+    },
+    {
+      "id": "mfa-organization-commands-v3-fixed-evidence-20261109/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-organization-commands-v3-fixed-evidence-20261109/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-organization-commands-v3-fixed-evidence-20261109/platform-mfa-organization-commands.log",
+      "sha256": "341fa4d95c026ee49172dcff87311980206259f91c0a6a1bebb753257b2d6cb9",
+      "bytes": 6855
+    },
+    {
+      "id": "mfa-organization-commands-v3-fixed-evidence-20261109/mfa-directed-result.json",
+      "sha256": "92f68f9f5aee4fc41a24056dc5f0fdd53344e88169334d4b20aa2533dcb15a12",
+      "bytes": 316301
+    },
+    {
+      "id": "mfa-organization-commands-v3-fixed-evidence-20261109/mfa-directed-postchecks.json",
+      "sha256": "033c6b1ae95a20a9b193519604950766ad4f74b0f4a63622b3d6dcc835a33388",
+      "bytes": 390
+    },
+    {
+      "id": "mfa-organization-commands-v3-fixed-evidence-20261109/owned-database.json",
+      "sha256": "913ab185c8c0039392913db0cf06d13ddeeda45008a308fbe08af90dd3552989",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-organization-commands-v3-fixed-evidence-20261109/awake-guard.json",
+      "sha256": "985adc574da94a75aefdf87180f9c600412a5d8894eb510107112e749f3eff70",
+      "bytes": 308
+    },
+    {
+      "id": "mfa-organization-commands-v3-fixed-regression-evidence-20261109/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-organization-commands-v3-fixed-regression-evidence-20261109/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-organization-commands-v3-fixed-regression-evidence-20261109/platform-mfa-sql-envelopes.log",
+      "sha256": "1d0d3bd6788eb4d09755685df1b41ec91c9c196d1cf838168af49adffe32c9b5",
+      "bytes": 3176
+    },
+    {
+      "id": "mfa-organization-commands-v3-fixed-regression-evidence-20261109/platform-mfa-required.log",
+      "sha256": "8b78eb5af2a03ec10a455aaaa5c0ba5e371e918bf035ac6ae7f7fd65813864d0",
+      "bytes": 1925
+    },
+    {
+      "id": "mfa-organization-commands-v3-fixed-regression-evidence-20261109/mfa-directed-result.json",
+      "sha256": "0294dfa896653cebd1ecf366bcbd0031949c3d5841a78a1ee3af8d724d6262c7",
+      "bytes": 316902
+    },
+    {
+      "id": "mfa-organization-commands-v3-fixed-regression-evidence-20261109/mfa-directed-postchecks.json",
+      "sha256": "ed3c24b70fe7b07f482f31c49ddc08f569b762a86310061a66fd71e4c121b774",
+      "bytes": 390
+    },
+    {
+      "id": "mfa-organization-commands-v3-fixed-regression-evidence-20261109/owned-database.json",
+      "sha256": "7685c66db6339d0cea1afd1e81c9da0734c0165255eb2c79681f87c1b9c6e438",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-organization-commands-v3-fixed-regression-evidence-20261109/awake-guard.json",
+      "sha256": "7d279e52f32d8db02a9f941a7a95ccb9a10d81637c1de098533f5b923425ab4b",
+      "bytes": 308
+    },
+    {
+      "id": "mfa-organization-commands-v2-harness-20261109/PLAN.json",
+      "sha256": "ff4c70c47b45a3c887ec53782e5d5021f285d17b8f03bea1f02473db0d6b1a3d",
+      "bytes": 4800
+    },
+    {
+      "id": "mfa-organization-commands-v2-harness-20261109/AUTHORED-PINS.json",
+      "sha256": "f8b6d634044ac4f60470de84ba4a144732b943f602fab39efd842325f1e4360b",
+      "bytes": 664
+    },
+    {
+      "id": "mfa-organization-commands-v2-harness-20261109/executors-handoff-v3.json",
+      "sha256": "756a21b68e8712a9a4f31de731bc8ccf774244cc271c2f7710329cb3221bcfee",
+      "bytes": 4441
+    },
+    {
+      "id": "mfa-organization-commands-v2-executor-review-20261109.json",
+      "sha256": "e0f7a07143bfc5c5b26d660bfdeddd05b576094ed9e0461e008bb30db830116e",
+      "bytes": 2799
+    },
+    {
+      "id": "mfa-organization-commands-v2-test-20261109/manifest.json",
+      "sha256": "0006080cf65c33efa10c106fafaebc23ac0ecedc3d5b02aa88b6b4e28e6284f5",
+      "bytes": 2908
+    },
+    {
+      "id": "mfa-organization-commands-candidate-20261109/manifest.json",
+      "sha256": "d20c732e52cfce9502b76801bc6750d1994d3a24f8d42a439819b71221b0909e",
+      "bytes": 837
+    },
+    {
+      "id": "mfa-organization-baseline-review-20261109.json",
+      "sha256": "5d838697a57349ce3bb35600a5cdea55d0c1cbbd299b559ea053f33edb284e28",
+      "bytes": 1930
+    },
+    {
+      "id": "mfa-organization-commands-v1-review-20261109.json",
+      "sha256": "bc60b4b1ee62a24dbd79e7a80ca38ca5a67f81c3e492f1223e2448ccfcf45709",
+      "bytes": 651
+    }
+  ],
+  "scopeLimits": [
+    "Organization POST/PATCH only; actual DML, NO KEY UPDATE lock, GET, schemas, policies and migrations unchanged. Explicit MFA/capability checks cover empty results and fresh post-mutation/audit/response decisions.",
+    "Same 30-case test bytes on baseline and fixed; raw HTTP login/enrollment/TOTP and original SQL results. All organization rows and organization audit rows are compared after denied outcomes; four positive cases verify DTO, storage, unrelated organizations and exact audit semantics.",
+    "Controlled post-SQL interleavings; no actual external MFA row-wait, promotion, trigger fault injection, hardware, browser, mobile build or performance acceptance in this batch.",
+    "Two unchanged existing regression files: 11 SQL envelopes and six mandatory-MFA-family cases. These include existing synthetic SQL fixtures; real ceremony acceptance is established by the new directed suite. Legacy organizations-capabilities and full API/ingest regression still require integration work.",
+    "V1 types passed before fixing observer rejection forwarding. No V1 functional run; assertions, timeouts and product were unchanged by that test correction. Earlier batches remain separate and are not summed.",
+    "MFA068 remains candidate; canonical runtime main001-067 unchanged; not production acceptance."
+  ],
+  "computerRestarted": false,
+  "performanceAssessed": false,
+  "productionAccepted": false
+}
