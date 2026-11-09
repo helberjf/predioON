@@ -1,0 +1,217 @@
+{
+  "version": 1,
+  "format": "new-test-v1",
+  "status": "AUTHORED_NOT_EXECUTED",
+  "recordedOn": "2026-11-08",
+  "baseExaminedPreparedSha256": "6564e80a556b124458a9a783c2c5a754a4c175f869571dda88ad076b04d9e3ec",
+  "files": [
+    {
+      "path": "apps/api/test/platform-mfa-support-staff-remove.test.ts",
+      "sha256": "d024e7e39b794f180b238ec7dcf8c00c5c1ded3cc52e3c9f17f7710b6cdc8919",
+      "bytes": 29073,
+      "cases": 35
+    }
+  ],
+  "caseDispositions": [
+    {
+      "name": "flag active: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "flag active: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "flag inactive: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "flag inactive: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "flag missing: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_404_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline404"
+    },
+    {
+      "name": "flag missing: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_404_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline404"
+    },
+    {
+      "name": "binding active: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "binding active: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "binding inactive: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "binding inactive: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "binding missing: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_404_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline404"
+    },
+    {
+      "name": "binding missing: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_404_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline404"
+    },
+    {
+      "name": "active: rejects factor removal committed during actual staff row lock wait",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "active: rejects family proof removal committed during actual staff row lock wait",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "inactive: rejects factor removal committed during actual staff row lock wait",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "inactive: rejects family proof removal committed during actual staff row lock wait",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "flag: removes active staff preserving identity history and grant audit contracts",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "flag: removes inactive staff preserving identity history and grant audit contracts",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "flag: removes expired staff preserving identity history and grant audit contracts",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "flag: removes duplicate staff preserving identity history and grant audit contracts",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "binding: removes active staff preserving identity history and grant audit contracts",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "binding: removes inactive staff preserving identity history and grant audit contracts",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "binding: removes expired staff preserving identity history and grant audit contracts",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "binding: removes duplicate staff preserving identity history and grant audit contracts",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "refuses local managers and residents without staff or grant changes",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "preserves missing invalid wrong-role and unauthenticated refusals",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "repeated removal creates no additional staff or grant audit",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "removal does not require recent password verification",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "audit policy refuses zero-row staff update without closing grants",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "role_bindings: rolls staff and all grant removals back after proof trigger",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "role_bindings: rolls staff and all grant removals back after exception trigger",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "support_grants: rolls staff and all grant removals back after proof trigger",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "support_grants: rolls staff and all grant removals back after exception trigger",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "audit_logs: rolls staff and all grant removals back after proof trigger",
+      "baseline": "FAIL_EXPECTED_204_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline204"
+    },
+    {
+      "name": "audit_logs: rolls staff and all grant removals back after exception trigger",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    }
+  ],
+  "baselineExpectedPass": 16,
+  "baselineExpectedFail": 19,
+  "fixedExpectedPass": 35,
+  "independentCases": 35,
+  "parentGroups": 0,
+  "runtimeExecuted": false
+}
