@@ -1,0 +1,80 @@
+{
+  "status": "AUTHORED_NOT_EXECUTED",
+  "preparedPins": {
+    "baseline": "5418912891f5c649335f120e13f7c669162131416b96160f2fc35c51221daecd",
+    "fixed": "c0d7479ab81c04667e1ed75e79275fab05e849a9d5c252e989514f713edec7be"
+  },
+  "configSha256": "a0401431b2020d9349b1458a2ce10fa304e2db258c73d96983b2ebcf8886e8a6",
+  "sourceFiles": 1045,
+  "typeTests": 41,
+  "requiredSources": 14,
+  "directedCases": 72,
+  "baselineExpectedPass": 27,
+  "baselineExpectedFail": 45,
+  "regressionTapPlanned": 48,
+  "regressionFiles": 4,
+  "executors": [
+    {
+      "path": "mfa-feature-commands-v2-baseline-qa-20261109/run-mfa-directed.mjs",
+      "sha256": "9b46151c40f7987682d65faa52f33a78f4eb99efc0fb99714ad62b002dca9773",
+      "modelPath": "mfa-support-grant-commands-v2-baseline-qa-20261109/run-mfa-directed.mjs",
+      "modelSha256": "3321f417841762df830d24a631fc6061d2a45c767e38fa8342963ddf2f9d4c51"
+    },
+    {
+      "path": "mfa-feature-commands-v2-baseline-qa-20261109/launch-mfa-directed.ps1",
+      "sha256": "c4171ef1b9dbeb5a0dd4cdcc49f0fe85284a8caa0777653385464d0448642dce",
+      "modelPath": "mfa-support-grant-commands-v2-baseline-qa-20261109/launch-mfa-directed.ps1",
+      "modelSha256": "866c98571b867e43dea0af93a17326f8c2367f01a601baf359ac998b9a14291c"
+    },
+    {
+      "path": "run-feature-v2-baseline-awake-20261109.ps1",
+      "sha256": "3885c054a366a7ec53261e077e7ce00eb8f903c0e418dcc59e449eb88354e696",
+      "modelPath": "run-grant-regression-awake-20261109.ps1",
+      "modelSha256": "3e121bcbe48e3d0bc87a607a6349f292bf9c4034406579d42774744f0a72a926"
+    },
+    {
+      "path": "mfa-feature-commands-v2-fixed-qa-20261109/run-mfa-directed.mjs",
+      "sha256": "c27b7b425ace4d7fc9cc907c34d4689099470b735183dd70de59167843a88c13",
+      "modelPath": "mfa-support-grant-commands-v2-fixed-qa-20261109/run-mfa-directed.mjs",
+      "modelSha256": "bb01c514c45a8dbe58fbcc41f9dc2d8e0a9a5fe1d8d46d83c15cb2ff541899ab"
+    },
+    {
+      "path": "mfa-feature-commands-v2-fixed-qa-20261109/launch-mfa-directed.ps1",
+      "sha256": "20c3d2b2ce30151475a2664355ee4ee080d4d37bdffb402c5f4eebe15b0f130f",
+      "modelPath": "mfa-support-grant-commands-v2-fixed-qa-20261109/launch-mfa-directed.ps1",
+      "modelSha256": "d7101da177fb4f98b0dfeb3182a32b5174b032f51505751bae8fd79bcc38d405"
+    },
+    {
+      "path": "run-feature-v2-fixed-awake-20261109.ps1",
+      "sha256": "50945a7f31bc3bf7d39fd9ae5f7637407d3e3cb64e7ba70c6ad43f5ab039e741",
+      "modelPath": "run-grant-regression-awake-20261109.ps1",
+      "modelSha256": "3e121bcbe48e3d0bc87a607a6349f292bf9c4034406579d42774744f0a72a926"
+    },
+    {
+      "path": "mfa-feature-commands-v2-fixed-regression-qa-20261109/run-mfa-directed.mjs",
+      "sha256": "cb0a26f1884cb8764b52605f8d1c583963199938f4377cc4a80c6d8590f06181",
+      "modelPath": "mfa-support-grant-commands-v2-fixed-regression-qa-20261109/run-mfa-directed.mjs",
+      "modelSha256": "16d5bd7ca58ed9a7425bb068992f66b91ba33aab31bb10199ef5bed313925d7d"
+    },
+    {
+      "path": "mfa-feature-commands-v2-fixed-regression-qa-20261109/launch-mfa-directed.ps1",
+      "sha256": "d28bb99a0076c1ff8543630f5cbbef86ed0c197cb6756d4ee881c0c7846a1b55",
+      "modelPath": "mfa-support-grant-commands-v2-fixed-regression-qa-20261109/launch-mfa-directed.ps1",
+      "modelSha256": "f40aaa8eb2fca64440ca26176826806980c98aec1bc447259a0ef7cdc8c0f020"
+    },
+    {
+      "path": "run-feature-v2-fixed-regression-awake-20261109.ps1",
+      "sha256": "ad58dcfdb1a8118286a35e97582f0803ee3df7c700e0056d462d969a5fdf4f0a",
+      "modelPath": "run-grant-regression-awake-20261109.ps1",
+      "modelSha256": "3e121bcbe48e3d0bc87a607a6349f292bf9c4034406579d42774744f0a72a926"
+    }
+  ],
+  "clusterAttestation": "mfa-grants-root-attestation-20261108.json",
+  "clusterAttestationSha256": "9d43fe8e98ce5e11a26e7e943fb465a96f24a4c14368bbdab5712e5282cb426e",
+  "processLifecycleModified": false,
+  "temporaryAwakeGuard": true,
+  "requiresAlreadyRunningAttestedCluster": true,
+  "minimumFreeMiB": 1536,
+  "clusterStartRestartCommandsAdded": false,
+  "computerRestarted": false
+}

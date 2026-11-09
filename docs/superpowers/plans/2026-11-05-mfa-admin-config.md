@@ -1,5 +1,7 @@
 # ADMIN/CONFIG: três ações comuns, sem 174 guards individuais
 
+**Atualização de 09/11 — ação 3 validada no recorte global/local:** [72 casos dirigidos e 48 TAP de regressão](../../evidencias/mfa-feature-commands-2026-11-09.json), com 117 casos independentes e três grupos; [fontes restauráveis e limites](../../continuidade/2026-11-09-configuracoes/RESULTADO.md). Guarda vinculada ao upsert, checagens após esperas/transições e reversão conjunta de estados, auditoria e NOTIFY. Mantidos lock, versões e herança. Alvo ausente/promoção, consumo/portão/entrega durável e regressão integrada continuam pendentes; isso não encerra toda a ação 3 nem os demais domínios. Os parágrafos seguintes conservam o plano e os resultados históricos.
+
 **Sexto lote, 07/11:** concessões de suporte e lista pessoal passaram nos oito cenários de concorrência, quatro controles e 23 arquivos de regressão. [Prova](../../evidencias/mfa-support-read-2026-11-07.json). Próximo: [funcionalidades](2026-11-07-mfa-features-read.md).
 
 
