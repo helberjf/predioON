@@ -1,0 +1,1323 @@
+{
+  "schemaVersion": 1,
+  "status": "VERIFIED",
+  "configSha256": "8fb99a5e8a94b1e970a283e954d785d750a16fc52788d09d7af45590f4a09956",
+  "recordedOn": "2026-11-09",
+  "recordedOnTimezone": "America/Sao_Paulo",
+  "reviewedOn": "2026-11-09",
+  "nativeExecutionTimestampsPreserved": true,
+  "verifierSha256": "d48db09c06910f6c1ae2c08b50465ac010e982436ae8c5ff6c011c251a857a48",
+  "reviewedByRoot": true,
+  "baselineGrantCommandFailuresReviewed": true,
+  "sourceFiles": 1044,
+  "typeFiles": 40,
+  "requiredResolvedSources": 14,
+  "sourceDifference": [
+    "apps/api/src/modules/support-access/routes.ts"
+  ],
+  "typeChecks": [
+    {
+      "variant": "baseline",
+      "phase": "resolve",
+      "result": {
+        "id": "mfa-support-grant-commands-v2-baseline-qa-20261109/checks/resolve/result.json",
+        "sha256": "7cd6cc7bbe60d1151b55c315d4197d061ba67e63ea604fca03bdff0a19fcf8a9",
+        "bytes": 1178
+      },
+      "startedUtc": "2026-11-09T03:18:14.350Z",
+      "childExitedUtc": "2026-11-09T03:18:17.743Z",
+      "durationMs": 3393
+    },
+    {
+      "variant": "baseline",
+      "phase": "types",
+      "result": {
+        "id": "mfa-support-grant-commands-v2-baseline-qa-20261109/checks/types/result.json",
+        "sha256": "05eb632ed3229e14dbf699db7a089f23b285d358a152103fcf1ecad2acfd2b09",
+        "bytes": 1025
+      },
+      "startedUtc": "2026-11-09T03:18:20.475Z",
+      "childExitedUtc": "2026-11-09T03:18:50.987Z",
+      "durationMs": 30511
+    },
+    {
+      "variant": "fixed",
+      "phase": "resolve",
+      "result": {
+        "id": "mfa-support-grant-commands-v2-fixed-qa-20261109/checks/resolve/result.json",
+        "sha256": "e1d79044322496c71b93bea122625e001aed5d8eddf3216d65d69ace3e86b5df",
+        "bytes": 1175
+      },
+      "startedUtc": "2026-11-09T03:18:53.558Z",
+      "childExitedUtc": "2026-11-09T03:18:57.144Z",
+      "durationMs": 3586
+    },
+    {
+      "variant": "fixed",
+      "phase": "types",
+      "result": {
+        "id": "mfa-support-grant-commands-v2-fixed-qa-20261109/checks/types/result.json",
+        "sha256": "78d37380a168810596e1636b732449e9fa42b13565eadd08bef8aa889adc2bb5",
+        "bytes": 1022
+      },
+      "startedUtc": "2026-11-09T03:19:00.235Z",
+      "childExitedUtc": "2026-11-09T03:19:30.365Z",
+      "durationMs": 30130
+    }
+  ],
+  "preparation": {
+    "nativeResults": [
+      {
+        "variant": "baseline",
+        "nativeChildExitedUtc": "2026-11-09T03:17:19.9482686Z",
+        "durationMs": 12494.2686,
+        "nativeResult": {
+          "id": "mfa-support-grant-commands-v2-harness-20261109/baseline-prepare-result.json",
+          "sha256": "ba624007926e3f053473324e0dc920be4524eb0085ddc7222094f7f2bcf5a16e",
+          "bytes": 167
+        }
+      },
+      {
+        "variant": "fixed",
+        "nativeChildExitedUtc": "2026-11-09T03:17:35.3526681Z",
+        "durationMs": 13162.5302,
+        "nativeResult": {
+          "id": "mfa-support-grant-commands-v2-harness-20261109/fixed-prepare-result.json",
+          "sha256": "798599f8dc4002f635cc8584a8e4efcfccc4a62a2f40ed5812e6aba26a86ebb7",
+          "bytes": 167
+        }
+      }
+    ],
+    "isProductTestExecution": false
+  },
+  "acceptedCounts": {
+    "directedTap": 99,
+    "directedIndependent": 99,
+    "directedAggregateGroups": 0,
+    "directedSuites": 1,
+    "regressionFiles": 6,
+    "regressionTap": 103,
+    "regressionIndependent": 99,
+    "regressionAggregateGroups": 4,
+    "combinedTap": 202,
+    "combinedIndependent": 198,
+    "combinedAggregateGroups": 4
+  },
+  "environment": {
+    "attestation": {
+      "recordedOn": "2026-11-08",
+      "recordedUtc": "2026-11-08T23:00:37.6479565Z",
+      "container": "predioon-mfa-grants-20261108",
+      "containerId": "3c0f4e5e47d3d488766eb2679ba97fabf29b12d72f9b8df41bb504205a41b4c8",
+      "systemIdentifier": "7705939420428193833",
+      "port": 5468,
+      "loopbackOnly": true,
+      "memoryLimitMiB": 384,
+      "cpuLimit": 1,
+      "basePublicTables": 0,
+      "exclusiveUse": true,
+      "computerRestarted": false,
+      "imageId": "sha256:4e459e217f00cbb09920c34d245501e63427e6767a495de57ce76823ff280f12",
+      "volume": "predioon_mfa_grants_20261108",
+      "newCluster": true,
+      "previousClusterUnavailable": true,
+      "credentialsPublished": false
+    }
+  },
+  "scopeLimits": [
+    "Only POST grants, DELETE grant and their private revokeGrant helper change. Staff handlers, schemas, policies and migrations retain exact bytes; staff removal calls the upgraded helper and is rerun in full.",
+    "Existing staff/grant row locks, deterministic staff ordering, 1-168h statement_timestamp expiry, clock_timestamp status/revocation, public13-field DTO, append-only history and audit causes remain unchanged.",
+    "New materialized guards protect writes; fresh statements recheck MFA after row waits, updates including zero-row/idempotent outcomes and audits, plus the whole grant transaction. No universal race-freedom claim beyond the observed boundaries.",
+    "All99 new independent cases use real HTTP login/enrollment/TOTP in the same bearer/session family. SQL only seeds explicit historical fixtures and negative factor/proof/catalog changes, never positive proof.",
+    "Baseline68 divergences:24 statuses201,20 statuses204,16 statuses400 and8 statuses404 versus403. Exact preceding data/DTO/audit/access checks are required for every baseline diagnostic.",
+    "44 interleavings follow actual support:grant authorization.16 further cases observe a real restricted app connection blocked by the owner on staff or grant rows. Each poll clears its statistics snapshot; proof/factor withdrawal and lock release commit together. Two cases also commit a concurrent owner revocation; no app audit or row change is expected for that zero-row outcome.",
+    "14 positive cases cover flag/global-binding authority, minimum/maximum hours, all five allowed capabilities, multicap replacements and duplicate staff, open/expired/already-revoked grants and repeat idempotence. Same bearer gains/loses telemetry; foreign building access remains denied.",
+    "Eight narrow proof-removing triggers and eight generic exceptions cover INSERT, UPDATE, created/revoked audits. Multicap replacement fails on the second capability to prove prior changes roll back. Exact account/bindings/grants/audit and original proof timestamp/generation are checked; sequence witnesses survive rollback.",
+    "Three zero-row trigger cases preserve INSERT500 rollback and DELETE204 without audit/mutation. Schema bounds, eligibility/windows/local scope, self/missing/inactive building, unauthenticated/local/resident/staff refusals and password-recency contract are tested.",
+    "Partial authority is an explicit negative catalog fixture: remove PLATFORM_ADMIN support:grant permission, preserve rbac:manage, refuse direct grant commands and remove staff without touching legacy grants; same bearer loses telemetry; restore exact permission row. This is not support for arbitrary custom global roles.",
+    "Six unchanged regression files yield103 TAP/99 independent cases/four aggregate groups, including actual simultaneous first grants, all36 staff creation and35 staff removal cases. Historical read cases retain direct-SQL proof limitations; earlier runs are not added.",
+    "The first regression attempt is preserved as an infrastructure failure after Windows Idle Timeout standby. Its partial passes are not counted. Owned controller/database recovery restored documented initial NOLOGIN/no-password roles with identical role OIDs. All six unchanged files were rerun with identical executor bytes and deadlines in a fresh database; temporary system activity request was cleared afterward.",
+    "MFA policy068 remains candidate; runtime main001-067 is unchanged. Other domains, historical inactive-staff grant reconciliation, private cache, full API/ingest/browser/native Android/iOS, performance, operations and final demonstrations remain pending."
+  ],
+  "baselineFailureObservations": [
+    {
+      "case": "POST flag first: rejects factor removal after real global authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: exact grants history audit DTO and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST flag first: rejects family proof removal after real global authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: exact grants history audit DTO and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST flag replace: rejects factor removal after real global authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: exact grants history audit DTO and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST flag replace: rejects family proof removal after real global authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: exact grants history audit DTO and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST flag building-missing: rejects factor removal after real global authorization",
+      "actualStatus": 404,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline404: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST flag building-missing: rejects family proof removal after real global authorization",
+      "actualStatus": 404,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline404: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST flag building-inactive: rejects factor removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST flag building-inactive: rejects family proof removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST flag staff-missing: rejects factor removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST flag staff-missing: rejects family proof removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST flag staff-inactive: rejects factor removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST flag staff-inactive: rejects family proof removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST flag self: rejects factor removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST flag self: rejects family proof removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST binding first: rejects factor removal after real global authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: exact grants history audit DTO and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST binding first: rejects family proof removal after real global authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: exact grants history audit DTO and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST binding replace: rejects factor removal after real global authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: exact grants history audit DTO and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST binding replace: rejects family proof removal after real global authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: exact grants history audit DTO and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST binding building-missing: rejects factor removal after real global authorization",
+      "actualStatus": 404,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline404: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST binding building-missing: rejects family proof removal after real global authorization",
+      "actualStatus": 404,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline404: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST binding building-inactive: rejects factor removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST binding building-inactive: rejects family proof removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST binding staff-missing: rejects factor removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST binding staff-missing: rejects family proof removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST binding staff-inactive: rejects factor removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST binding staff-inactive: rejects family proof removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST binding self: rejects factor removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "POST binding self: rejects family proof removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: guarded outcome missing; exact account binding grants and audit unchanged",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before grant command validation/read/mutation"
+    },
+    {
+      "case": "DELETE flag open: rejects factor removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact conditional revocation audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before existing/missing grant read"
+    },
+    {
+      "case": "DELETE flag open: rejects family proof removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact conditional revocation audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before existing/missing grant read"
+    },
+    {
+      "case": "DELETE flag expired: rejects factor removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact conditional revocation audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before existing/missing grant read"
+    },
+    {
+      "case": "DELETE flag expired: rejects family proof removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact conditional revocation audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before existing/missing grant read"
+    },
+    {
+      "case": "DELETE flag revoked: rejects factor removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact conditional revocation audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before existing/missing grant read"
+    },
+    {
+      "case": "DELETE flag revoked: rejects family proof removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact conditional revocation audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before existing/missing grant read"
+    },
+    {
+      "case": "DELETE flag missing: rejects factor removal after real global authorization",
+      "actualStatus": 404,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline404: missing grant preserves account bindings grants and audit",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before existing/missing grant read"
+    },
+    {
+      "case": "DELETE flag missing: rejects family proof removal after real global authorization",
+      "actualStatus": 404,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline404: missing grant preserves account bindings grants and audit",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before existing/missing grant read"
+    },
+    {
+      "case": "DELETE binding open: rejects factor removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact conditional revocation audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before existing/missing grant read"
+    },
+    {
+      "case": "DELETE binding open: rejects family proof removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact conditional revocation audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before existing/missing grant read"
+    },
+    {
+      "case": "DELETE binding expired: rejects factor removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact conditional revocation audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before existing/missing grant read"
+    },
+    {
+      "case": "DELETE binding expired: rejects family proof removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact conditional revocation audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before existing/missing grant read"
+    },
+    {
+      "case": "DELETE binding revoked: rejects factor removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact conditional revocation audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before existing/missing grant read"
+    },
+    {
+      "case": "DELETE binding revoked: rejects family proof removal after real global authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact conditional revocation audit and same-token access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before existing/missing grant read"
+    },
+    {
+      "case": "DELETE binding missing: rejects factor removal after real global authorization",
+      "actualStatus": 404,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline404: missing grant preserves account bindings grants and audit",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after actual support:grant authorization, before existing/missing grant read"
+    },
+    {
+      "case": "DELETE binding missing: rejects family proof removal after real global authorization",
+      "actualStatus": 404,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline404: missing grant preserves account bindings grants and audit",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after actual support:grant authorization, before existing/missing grant read"
+    },
+    {
+      "case": "POST flag first staff: rejects factor removal committed during actual row wait",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: actual row wait and exact grant effects verified",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "actual restricted PostgreSQL connection blocked by the exact owner row lock; refreshed statistics snapshot; factor/proof withdrawal committed with lock release"
+    },
+    {
+      "case": "POST flag first staff: rejects family proof removal committed during actual row wait",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: actual row wait and exact grant effects verified",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "actual restricted PostgreSQL connection blocked by the exact owner row lock; refreshed statistics snapshot; factor/proof withdrawal committed with lock release"
+    },
+    {
+      "case": "POST flag replace staff: rejects factor removal committed during actual row wait",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: actual row wait and exact grant effects verified",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "actual restricted PostgreSQL connection blocked by the exact owner row lock; refreshed statistics snapshot; factor/proof withdrawal committed with lock release"
+    },
+    {
+      "case": "POST flag replace staff: rejects family proof removal committed during actual row wait",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: actual row wait and exact grant effects verified",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "actual restricted PostgreSQL connection blocked by the exact owner row lock; refreshed statistics snapshot; factor/proof withdrawal committed with lock release"
+    },
+    {
+      "case": "POST binding first staff: rejects factor removal committed during actual row wait",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: actual row wait and exact grant effects verified",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "actual restricted PostgreSQL connection blocked by the exact owner row lock; refreshed statistics snapshot; factor/proof withdrawal committed with lock release"
+    },
+    {
+      "case": "POST binding first staff: rejects family proof removal committed during actual row wait",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: actual row wait and exact grant effects verified",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "actual restricted PostgreSQL connection blocked by the exact owner row lock; refreshed statistics snapshot; factor/proof withdrawal committed with lock release"
+    },
+    {
+      "case": "POST binding replace staff: rejects factor removal committed during actual row wait",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: actual row wait and exact grant effects verified",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "actual restricted PostgreSQL connection blocked by the exact owner row lock; refreshed statistics snapshot; factor/proof withdrawal committed with lock release"
+    },
+    {
+      "case": "POST binding replace staff: rejects family proof removal committed during actual row wait",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: actual row wait and exact grant effects verified",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "actual restricted PostgreSQL connection blocked by the exact owner row lock; refreshed statistics snapshot; factor/proof withdrawal committed with lock release"
+    },
+    {
+      "case": "POST flag replace grant: rejects factor removal committed during actual row wait",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: actual row wait and exact grant effects verified",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "actual restricted PostgreSQL connection blocked by the exact owner row lock; refreshed statistics snapshot; factor/proof withdrawal committed with lock release"
+    },
+    {
+      "case": "POST flag replace grant: rejects family proof removal committed during actual row wait",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: actual row wait and exact grant effects verified",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "actual restricted PostgreSQL connection blocked by the exact owner row lock; refreshed statistics snapshot; factor/proof withdrawal committed with lock release"
+    },
+    {
+      "case": "DELETE flag open grant: rejects factor removal committed during actual row wait",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: actual row wait and exact revocation effects verified",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "actual restricted PostgreSQL connection blocked by the exact owner row lock; refreshed statistics snapshot; factor/proof withdrawal committed with lock release"
+    },
+    {
+      "case": "DELETE flag open grant: rejects family proof removal committed during actual row wait",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: actual row wait and exact revocation effects verified",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "actual restricted PostgreSQL connection blocked by the exact owner row lock; refreshed statistics snapshot; factor/proof withdrawal committed with lock release"
+    },
+    {
+      "case": "DELETE binding open grant: rejects factor removal committed during actual row wait",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: actual row wait and exact revocation effects verified",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "actual restricted PostgreSQL connection blocked by the exact owner row lock; refreshed statistics snapshot; factor/proof withdrawal committed with lock release"
+    },
+    {
+      "case": "DELETE binding open grant: rejects family proof removal committed during actual row wait",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: actual row wait and exact revocation effects verified",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "actual restricted PostgreSQL connection blocked by the exact owner row lock; refreshed statistics snapshot; factor/proof withdrawal committed with lock release"
+    },
+    {
+      "case": "DELETE flag open concurrent: rejects factor removal committed during actual row wait",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: actual row wait and concurrent owner revocation verified; zero-row app update creates no audit",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "actual restricted PostgreSQL connection blocked by the exact owner row lock; refreshed statistics snapshot; factor/proof withdrawal committed with lock release"
+    },
+    {
+      "case": "DELETE flag open concurrent: rejects family proof removal committed during actual row wait",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: actual row wait and concurrent owner revocation verified; zero-row app update creates no audit",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "actual restricted PostgreSQL connection blocked by the exact owner row lock; refreshed statistics snapshot; factor/proof withdrawal committed with lock release"
+    },
+    {
+      "case": "POST first insert: rolls back the complete command after proof trigger",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: exact full command persisted and trigger removed the same family proof once",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "exact actor/session and target matched once during grant mutation or audit; transaction rollback must restore full rows and proof"
+    },
+    {
+      "case": "POST first created-audit: rolls back the complete command after proof trigger",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: exact full command persisted and trigger removed the same family proof once",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "exact actor/session and target matched once during grant mutation or audit; transaction rollback must restore full rows and proof"
+    },
+    {
+      "case": "POST replace insert: rolls back the complete command after proof trigger",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: exact full command persisted and trigger removed the same family proof once",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "exact actor/session and target matched once during grant mutation or audit; transaction rollback must restore full rows and proof"
+    },
+    {
+      "case": "POST replace update: rolls back the complete command after proof trigger",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: exact full command persisted and trigger removed the same family proof once",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "exact actor/session and target matched once during grant mutation or audit; transaction rollback must restore full rows and proof"
+    },
+    {
+      "case": "POST replace revoked-audit: rolls back the complete command after proof trigger",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: exact full command persisted and trigger removed the same family proof once",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "exact actor/session and target matched once during grant mutation or audit; transaction rollback must restore full rows and proof"
+    },
+    {
+      "case": "POST replace created-audit: rolls back the complete command after proof trigger",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: exact full command persisted and trigger removed the same family proof once",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "exact actor/session and target matched once during grant mutation or audit; transaction rollback must restore full rows and proof"
+    },
+    {
+      "case": "DELETE open update: rolls back the complete command after proof trigger",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact full command persisted and trigger removed the same family proof once",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "exact actor/session and target matched once during grant mutation or audit; transaction rollback must restore full rows and proof"
+    },
+    {
+      "case": "DELETE open revoked-audit: rolls back the complete command after proof trigger",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: exact full command persisted and trigger removed the same family proof once",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "exact actor/session and target matched once during grant mutation or audit; transaction rollback must restore full rows and proof"
+    }
+  ],
+  "runs": [
+    {
+      "variant": "baseline",
+      "tests": [
+        {
+          "test": "platform-mfa-support-grant-commands",
+          "tests": 99,
+          "suites": 1,
+          "pass": 31,
+          "fail": 68,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 73942.9514,
+          "childDurationMs": 74684.5807,
+          "logSha256": "4e7625ba509f21f46450087498562f50adf063668c42a403c80111a4b75da83f"
+        }
+      ],
+      "cleanupPassed": true,
+      "sourceMatched": true,
+      "ownedChildrenExited": true,
+      "cleanupHeld": false,
+      "nativeStatus": "completed-awaiting-TAP-GREEN-classification",
+      "startedUtc": "2026-11-09T03:20:29.918Z",
+      "endedUtc": "2026-11-09T03:22:01.184Z",
+      "observedHeadBefore": "01f82211dd33066fb6cd8b729f8b34a9fdf83e30",
+      "observedHeadAfter": "01f82211dd33066fb6cd8b729f8b34a9fdf83e30"
+    },
+    {
+      "variant": "fixed",
+      "tests": [
+        {
+          "test": "platform-mfa-support-grant-commands",
+          "tests": 99,
+          "suites": 1,
+          "pass": 99,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 86002.941,
+          "childDurationMs": 86752.7526,
+          "logSha256": "3ac1afafc0a8fb9e826c9f70b6d1559c2976347392434321f5241beb81fb3156"
+        }
+      ],
+      "cleanupPassed": true,
+      "sourceMatched": true,
+      "ownedChildrenExited": true,
+      "cleanupHeld": false,
+      "nativeStatus": "completed-awaiting-TAP-GREEN-classification",
+      "startedUtc": "2026-11-09T03:22:39.385Z",
+      "endedUtc": "2026-11-09T03:24:17.995Z",
+      "observedHeadBefore": "01f82211dd33066fb6cd8b729f8b34a9fdf83e30",
+      "observedHeadAfter": "01f82211dd33066fb6cd8b729f8b34a9fdf83e30"
+    },
+    {
+      "variant": "fixed-regression",
+      "tests": [
+        {
+          "test": "support-access",
+          "tests": 4,
+          "suites": 1,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 17208.2098,
+          "childDurationMs": 18076.829400000002,
+          "logSha256": "a6305b50fd55c96bcbc1bc61d2a5f7ec1fe8b9f8bdfa0786e1521339b38b9599"
+        },
+        {
+          "test": "platform-mfa-support-read",
+          "tests": 14,
+          "suites": 1,
+          "pass": 14,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 25221.3136,
+          "childDurationMs": 25632.3206,
+          "logSha256": "1ffe002a4fd7753a4bc15258f2f130cb2bb8d335aaa107fa32137aa6d928f2e3"
+        },
+        {
+          "test": "platform-mfa-support-timestamp-order",
+          "tests": 2,
+          "suites": 1,
+          "pass": 2,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 7717.7795,
+          "childDurationMs": 8013.841499999995,
+          "logSha256": "b24db334abe609652060218aab51c7ea518d5719863b12ed14ca886c124d394c"
+        },
+        {
+          "test": "platform-mfa-admin-directory-read",
+          "tests": 12,
+          "suites": 1,
+          "pass": 12,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 16515.9075,
+          "childDurationMs": 16897.73019999999,
+          "logSha256": "4530d67609d81783dd3493ac8c371e6b6366665f28bc899407a1326503b1d693"
+        },
+        {
+          "test": "platform-mfa-support-staff-create",
+          "tests": 36,
+          "suites": 1,
+          "pass": 36,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 41048.386,
+          "childDurationMs": 41540.128899999996,
+          "logSha256": "3be571bff99fc5c09d0fa513573b0fc2ef6d9dc03f0be19105c585f74e25beaa"
+        },
+        {
+          "test": "platform-mfa-support-staff-remove",
+          "tests": 35,
+          "suites": 1,
+          "pass": 35,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 47844.0417,
+          "childDurationMs": 48109.0159,
+          "logSha256": "26f649217b56b3eedf587d9ba49671db81344e500d44d573c99271878e47d782"
+        }
+      ],
+      "cleanupPassed": true,
+      "sourceMatched": true,
+      "ownedChildrenExited": true,
+      "cleanupHeld": false,
+      "nativeStatus": "completed-awaiting-TAP-GREEN-classification",
+      "startedUtc": "2026-11-09T03:44:25.546Z",
+      "endedUtc": "2026-11-09T03:47:35.936Z",
+      "observedHeadBefore": "01f82211dd33066fb6cd8b729f8b34a9fdf83e30",
+      "observedHeadAfter": "01f82211dd33066fb6cd8b729f8b34a9fdf83e30"
+    }
+  ],
+  "regressionInterruption": {
+    "recordedOn": "2026-11-09",
+    "status": "REGRESSION_ATTEMPT1_INTERRUPTED_BY_WINDOWS_IDLE_STANDBY_NOT_ACCEPTED",
+    "observedHead": "01f82211dd33066fb6cd8b729f8b34a9fdf83e30",
+    "firstFourTapPass": 32,
+    "staffCreationCompleteTapAvailable": false,
+    "staffRemovalStarted": false,
+    "deadlineMs": 300000,
+    "actualMaxHeartbeatGapMs": 627998.2996,
+    "deadlineLateByMs": 333035.3961,
+    "lateChildExitUtc": "2026-11-09T03:37:45.163Z",
+    "windowsEvents": {
+      "provider": "Microsoft-Windows-Kernel-Power",
+      "enterEventId": 506,
+      "enterUtc": "2026-11-09T03:26:37.4200449Z",
+      "enterReason": "Idle Timeout",
+      "resumeEventId": 507,
+      "resumeUtc": "2026-11-09T03:37:11.1467469Z",
+      "resumeReason": "Input Touchpad",
+      "sameBootId": 51
+    },
+    "recovery": {
+      "testChildExited": true,
+      "onlyReviewedLingeringControllerStopped": 48468,
+      "ownedDatabaseRemoved": "ingest_runtime_4c922e270e724a6ba2a2a5a8bc65b299",
+      "roleOidsPreserved": true,
+      "sixRolesRestoredToDocumentedBootstrapDefaults": true,
+      "originalPasswordsNullByBootstrap": true,
+      "settingsUnchanged": true,
+      "otherDatabasesChanged": false,
+      "clientsRemaining": 0,
+      "firstRecoveryAttempt": "Temporary database removed; role restoration DO statement rejected an ambiguous record alias before any role mutation. Second scoped attempt fixed the alias and restored all six role identities/defaults."
+    },
+    "retry": {
+      "allSixFilesRepeated": true,
+      "sameSourceAndTestBytes": true,
+      "sameExecutorBytes": true,
+      "sameTimeoutsAndMemoryGuards": true,
+      "newDatabaseRequired": true,
+      "temporaryExecutionStateRequest": "ES_CONTINUOUS|ES_SYSTEM_REQUIRED only while the retry runs; restore ES_CONTINUOUS in finally; no permanent power setting changes"
+    },
+    "computerRestarted": false,
+    "containerRestarted": false,
+    "productionAccepted": false,
+    "inputs": [
+      {
+        "path": "mfa-support-grant-commands-v2-fixed-regression-qa-20261109/mfa-directed-result.json",
+        "sha256": "9fe5d728ca3ccf82c44681ac2b3cd9af933d5144406490869d32adf3a57024ea",
+        "bytes": 318203
+      },
+      {
+        "path": "mfa-support-grant-commands-v2-fixed-regression-qa-20261109/mfa-directed-postchecks.json",
+        "sha256": "e5a1788771350863d90bcc6aaa671d0bdf612abcb390f09835e003f77e9e90bc",
+        "bytes": 392
+      },
+      {
+        "path": "mfa-support-grant-commands-v2-fixed-regression-qa-20261109/root-recovery.json",
+        "sha256": "7d4125040f9a3671c1af44cd249c069ff2a1f0ce7f214d3f8022b60d69020a36",
+        "bytes": 5490
+      },
+      {
+        "path": "mfa-support-grant-commands-v2-fixed-regression-qa-20261109/controller-recovery.json",
+        "sha256": "dbe9eea166fa3267c335a9317ef0510b57bf03448c70f33cada8fa616a03c867",
+        "bytes": 429
+      },
+      {
+        "path": "mfa-support-grant-commands-v2-fixed-regression-qa-20261109/platform-mfa-support-staff-create.events.jsonl",
+        "sha256": "80169aebd600c758aee10e4f36427623ef3a8c87d4e80fbe70659ce66c259aa4",
+        "bytes": 9758
+      }
+    ]
+  },
+  "temporarySystemActivityGuard": {
+    "startedUtc": "2026-11-09T03:44:12.2639194Z",
+    "endedUtc": "2026-11-09T03:47:37.6717969Z",
+    "exitCode": 0,
+    "systemRequiredSet": true,
+    "systemRequiredCleared": true,
+    "displayRequired": false,
+    "awayMode": false,
+    "permanentPowerSettingsChanged": false,
+    "computerRestarted": false
+  },
+  "inputs": [
+    {
+      "id": "mfa-support-grant-commands-v2-root-config-20261109.json",
+      "sha256": "8fb99a5e8a94b1e970a283e954d785d750a16fc52788d09d7af45590f4a09956",
+      "bytes": 4226
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-harness-20261109/PLAN.json",
+      "sha256": "2c8a18decd7302bc1a0fa5d2b3fcf8cbe7386e0161ea845c1556f9969ec94abf",
+      "bytes": 5031
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-test-20261109/manifest.json",
+      "sha256": "3d796c54f6d2a14ba81559e45414b6eba9b1106f4c0e82d7fb59b5945aaacde5",
+      "bytes": 20448
+    },
+    {
+      "id": "mfa-support-grant-commands-candidate-20261109/manifest.json",
+      "sha256": "f9a1744246dd573b20c28d468d25a89c795114873096efe41a14b4de52b84c2e",
+      "bytes": 880
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-harness-20261109/AUTHORED-PINS.json",
+      "sha256": "8b7c28672f524a74890757d237bb035eb10cef74e0208467482350998bfcb78f",
+      "bytes": 664
+    },
+    {
+      "id": "mfa-support-staff-remove-v2-fixed-qa-20261108/prepared.json",
+      "sha256": "8f360fbe2b8c0620af3b87187842a5637aec932062f2963d80bef6e296f156c3",
+      "bytes": 912689
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-baseline-qa-20261109/run-mfa-directed.mjs",
+      "sha256": "3321f417841762df830d24a631fc6061d2a45c767e38fa8342963ddf2f9d4c51",
+      "bytes": 13833
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-baseline-qa-20261109/launch-mfa-directed.ps1",
+      "sha256": "866c98571b867e43dea0af93a17326f8c2367f01a601baf359ac998b9a14291c",
+      "bytes": 13062
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-qa-20261109/run-mfa-directed.mjs",
+      "sha256": "bb01c514c45a8dbe58fbcc41f9dc2d8e0a9a5fe1d8d46d83c15cb2ff541899ab",
+      "bytes": 13818
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-qa-20261109/launch-mfa-directed.ps1",
+      "sha256": "d7101da177fb4f98b0dfeb3182a32b5174b032f51505751bae8fd79bcc38d405",
+      "bytes": 13050
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-regression-qa-20261109/run-mfa-directed.mjs",
+      "sha256": "16d5bd7ca58ed9a7425bb068992f66b91ba33aab31bb10199ef5bed313925d7d",
+      "bytes": 14502
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-regression-qa-20261109/launch-mfa-directed.ps1",
+      "sha256": "f40aaa8eb2fca64440ca26176826806980c98aec1bc447259a0ef7cdc8c0f020",
+      "bytes": 13050
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-harness-20261109/executors-handoff.json",
+      "sha256": "207c210b978810dddc3483faf0a26b43d385161494d0714a9652ac07d323d38e",
+      "bytes": 3129
+    },
+    {
+      "id": "mfa-grants-root-attestation-20261108.json",
+      "sha256": "9d43fe8e98ce5e11a26e7e943fb465a96f24a4c14368bbdab5712e5282cb426e",
+      "bytes": 664
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-harness-20261109/run-types.mjs",
+      "sha256": "4cbdeaa108a25f7e2e0c12c7565e35a329a600f2345ac4eb808677136c28490d",
+      "bytes": 13132
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-regression-retry-qa-20261109/run-mfa-directed.mjs",
+      "sha256": "16d5bd7ca58ed9a7425bb068992f66b91ba33aab31bb10199ef5bed313925d7d",
+      "bytes": 14502
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-regression-retry-qa-20261109/launch-mfa-directed.ps1",
+      "sha256": "f40aaa8eb2fca64440ca26176826806980c98aec1bc447259a0ef7cdc8c0f020",
+      "bytes": 13050
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-regression-qa-20261109/mfa-directed-result.json",
+      "sha256": "9fe5d728ca3ccf82c44681ac2b3cd9af933d5144406490869d32adf3a57024ea",
+      "bytes": 318203
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-regression-qa-20261109/mfa-directed-postchecks.json",
+      "sha256": "e5a1788771350863d90bcc6aaa671d0bdf612abcb390f09835e003f77e9e90bc",
+      "bytes": 392
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-regression-qa-20261109/root-recovery.json",
+      "sha256": "7d4125040f9a3671c1af44cd249c069ff2a1f0ce7f214d3f8022b60d69020a36",
+      "bytes": 5490
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-regression-qa-20261109/controller-recovery.json",
+      "sha256": "dbe9eea166fa3267c335a9317ef0510b57bf03448c70f33cada8fa616a03c867",
+      "bytes": 429
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-regression-qa-20261109/platform-mfa-support-staff-create.events.jsonl",
+      "sha256": "80169aebd600c758aee10e4f36427623ef3a8c87d4e80fbe70659ce66c259aa4",
+      "bytes": 9758
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-harness-20261109/regression-retry-handoff.json",
+      "sha256": "e42e1f3eb073031919e1c216f1dc5116bf8f5ef4db5c49bb0dabdfc409ab86b0",
+      "bytes": 1372
+    },
+    {
+      "id": "mfa-support-grant-regression-interruption-20261109.json",
+      "sha256": "54355e8d553ad6da4c6e3b57f32c201fbd0c5cc400f7a096edaff04f7c0e982f",
+      "bytes": 2979
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-regression-retry-qa-20261109/awake-guard.json",
+      "sha256": "998c4ed596f95c9f82bc661cb181e8ff8571824c6af5a6c90a50ea1048c34374",
+      "bytes": 308
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-harness-20261109/baseline-prepare-result.json",
+      "sha256": "ba624007926e3f053473324e0dc920be4524eb0085ddc7222094f7f2bcf5a16e",
+      "bytes": 167
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-harness-20261109/baseline-prepare-guard.json",
+      "sha256": "e85206aa517b7337c8e894e91440348f4ef7ed92c6055f83d3af9ee816ab65df",
+      "bytes": 91
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-harness-20261109/baseline-prepare.stdout.txt",
+      "sha256": "c36396e2066eee0ca7754f9f00e8909c405f7b3454a5c29ae0150c992654ccd0",
+      "bytes": 246
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-harness-20261109/baseline-prepare.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-harness-20261109/fixed-prepare-result.json",
+      "sha256": "798599f8dc4002f635cc8584a8e4efcfccc4a62a2f40ed5812e6aba26a86ebb7",
+      "bytes": 167
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-harness-20261109/fixed-prepare-guard.json",
+      "sha256": "3efe5d08f7669c86d0d05d38c9ddf277514eb44846131c9c0bc49646a7fcfbbc",
+      "bytes": 91
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-harness-20261109/fixed-prepare.stdout.txt",
+      "sha256": "02481733e53137eabb1a877517116365742ebd4b6c581f62790d30b9b45f43c5",
+      "bytes": 243
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-harness-20261109/fixed-prepare.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-baseline-qa-20261109/prepared.json",
+      "sha256": "3876173887eba7f871d20ff57cd5ecbb0e4aefc5269454cca60aae71b385a196",
+      "bytes": 914088
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-baseline-qa-20261109/tsconfig.test.json",
+      "sha256": "380f35b925dbfec9016a21cb6aae38eee09403312317039b0e6beb96e37529d9",
+      "bytes": 2667
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-baseline-qa-20261109/checks/resolve/stdout.log",
+      "sha256": "4eeaf5879a8b2a57ee73d944136e114b7e2429e2b1bc6e3642bffd157c96c9e7",
+      "bytes": 152025
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-baseline-qa-20261109/checks/resolve/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-baseline-qa-20261109/checks/resolve/result.json",
+      "sha256": "7cd6cc7bbe60d1151b55c315d4197d061ba67e63ea604fca03bdff0a19fcf8a9",
+      "bytes": 1178
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-baseline-qa-20261109/checks/resolve/command.json",
+      "sha256": "8b3533d10baf87ec1cf94998534b5dc634170328f222f80dd83e8ed31f2a79a6",
+      "bytes": 975
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-baseline-qa-20261109/checks/resolve/guard.json",
+      "sha256": "11459405743f0770155fec060f65d6b12ea3e1df5600d8f668eac77a898f6bdf",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-baseline-qa-20261109/checks/types/stdout.log",
+      "sha256": "82c1037d74dab6a65178dc73771eac44e48acba37cc4e752f2bb72455fc4c6b5",
+      "bytes": 972
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-baseline-qa-20261109/checks/types/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-baseline-qa-20261109/checks/types/result.json",
+      "sha256": "05eb632ed3229e14dbf699db7a089f23b285d358a152103fcf1ecad2acfd2b09",
+      "bytes": 1025
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-baseline-qa-20261109/checks/types/command.json",
+      "sha256": "63f74d7a7612fa6cb0a5c38614ade4626af2e255d57efc7e72299f75342f3a22",
+      "bytes": 980
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-baseline-qa-20261109/checks/types/guard.json",
+      "sha256": "650ae348960933d518a1e509791178bc0efd30b05bc3294b64e5fe845f8697a1",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-qa-20261109/prepared.json",
+      "sha256": "bc7fdd7f2cff325d14a5c7fc59ffcdd9fa97fd55cfd02144b049fa2b68d3ebc0",
+      "bytes": 913545
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-qa-20261109/tsconfig.test.json",
+      "sha256": "380f35b925dbfec9016a21cb6aae38eee09403312317039b0e6beb96e37529d9",
+      "bytes": 2667
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-qa-20261109/checks/resolve/stdout.log",
+      "sha256": "663187f73c1fd9e36dc820944fa77b2df157179b634f177bf8fcbe6323c98666",
+      "bytes": 151497
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-qa-20261109/checks/resolve/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-qa-20261109/checks/resolve/result.json",
+      "sha256": "e1d79044322496c71b93bea122625e001aed5d8eddf3216d65d69ace3e86b5df",
+      "bytes": 1175
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-qa-20261109/checks/resolve/command.json",
+      "sha256": "cff91455d2a72b30276e3fb75ede0bfca53765ccea8b538d1143d85c09e370bb",
+      "bytes": 963
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-qa-20261109/checks/resolve/guard.json",
+      "sha256": "8e7458bc33e2e18863b612644cb92a97f9f04334244e039d07fb2553c80d4d71",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-qa-20261109/checks/types/stdout.log",
+      "sha256": "b31be00dc99beba6562c4d7ad7474b76f256518c61181b646508188d700a7334",
+      "bytes": 972
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-qa-20261109/checks/types/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-qa-20261109/checks/types/result.json",
+      "sha256": "78d37380a168810596e1636b732449e9fa42b13565eadd08bef8aa889adc2bb5",
+      "bytes": 1022
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-qa-20261109/checks/types/command.json",
+      "sha256": "e3d67413ef7a09a44ed495af019731c3b18e5965d35d69a3d957f6e8372e1941",
+      "bytes": 968
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-qa-20261109/checks/types/guard.json",
+      "sha256": "a14c13fd39553582dc888c448589806454f1338d085c632e31888d3c47bfe12b",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-baseline-qa-20261109/owned-database.json",
+      "sha256": "ee330b6c92129a20162d8d89cc6129ba62830a38ab4890be5f9fba692450b348",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-baseline-qa-20261109/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-baseline-qa-20261109/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-baseline-qa-20261109/platform-mfa-support-grant-commands.log",
+      "sha256": "4e7625ba509f21f46450087498562f50adf063668c42a403c80111a4b75da83f",
+      "bytes": 152404
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-baseline-qa-20261109/mfa-directed-result.json",
+      "sha256": "7e7144bb9baf80cea0d655fc376729e9bb72d42fc27a46bdce49371677dd83fd",
+      "bytes": 315434
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-baseline-qa-20261109/mfa-directed-postchecks.json",
+      "sha256": "3ff4d1ddebd20fb1503de819fd66576b24deb08a1ae180f0972d504329e1f6ba",
+      "bytes": 390
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-qa-20261109/owned-database.json",
+      "sha256": "aee510589ae360bc34dc47c250fc31e34189f82c870045f5c4611a0edb932f2a",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-qa-20261109/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-qa-20261109/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-qa-20261109/platform-mfa-support-grant-commands.log",
+      "sha256": "3ac1afafc0a8fb9e826c9f70b6d1559c2976347392434321f5241beb81fb3156",
+      "bytes": 64026
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-qa-20261109/mfa-directed-result.json",
+      "sha256": "809148853f2ddb944321d938678cc32098f3eaa11cff46751c63f903df42268b",
+      "bytes": 315422
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-qa-20261109/mfa-directed-postchecks.json",
+      "sha256": "84f5e2a3f2f58c62fa38293841af557a67935a946e5e8a5158bcf7f379b7c02e",
+      "bytes": 390
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-regression-retry-qa-20261109/owned-database.json",
+      "sha256": "046a46558c3ca33da4f1f009efbc08f3c4cd90bed890207b8b29fb04167f480d",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-regression-retry-qa-20261109/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-regression-retry-qa-20261109/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-regression-retry-qa-20261109/support-access.log",
+      "sha256": "a6305b50fd55c96bcbc1bc61d2a5f7ec1fe8b9f8bdfa0786e1521339b38b9599",
+      "bytes": 1422
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-regression-retry-qa-20261109/platform-mfa-support-read.log",
+      "sha256": "1ffe002a4fd7753a4bc15258f2f130cb2bb8d335aaa107fa32137aa6d928f2e3",
+      "bytes": 3519
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-regression-retry-qa-20261109/platform-mfa-support-timestamp-order.log",
+      "sha256": "b24db334abe609652060218aab51c7ea518d5719863b12ed14ca886c124d394c",
+      "bytes": 814
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-regression-retry-qa-20261109/platform-mfa-admin-directory-read.log",
+      "sha256": "4530d67609d81783dd3493ac8c371e6b6366665f28bc899407a1326503b1d693",
+      "bytes": 3192
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-regression-retry-qa-20261109/platform-mfa-support-staff-create.log",
+      "sha256": "3be571bff99fc5c09d0fa513573b0fc2ef6d9dc03f0be19105c585f74e25beaa",
+      "bytes": 18772
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-regression-retry-qa-20261109/platform-mfa-support-staff-remove.log",
+      "sha256": "26f649217b56b3eedf587d9ba49671db81344e500d44d573c99271878e47d782",
+      "bytes": 21588
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-regression-retry-qa-20261109/mfa-directed-result.json",
+      "sha256": "42d3186e9dee9c46317c9a7ec64ef1a81280b9ea0d1871d47d9abb51b8910237",
+      "bytes": 318557
+    },
+    {
+      "id": "mfa-support-grant-commands-v2-fixed-regression-retry-qa-20261109/mfa-directed-postchecks.json",
+      "sha256": "5b08694719e02497cb2048986a2c75faabded6c3146df77b0913afe755f42719",
+      "bytes": 390
+    }
+  ],
+  "performanceAssessed": false,
+  "productionAccepted": false
+}

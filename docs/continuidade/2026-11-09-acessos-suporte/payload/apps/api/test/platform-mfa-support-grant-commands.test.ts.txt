@@ -1,0 +1,474 @@
+import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
+import type { Server } from "node:http";
+import { after, before, describe, it } from "node:test";
+import { decodeJwt } from "jose";
+import { PgDialect } from "drizzle-orm/pg-core";
+import { sqlClient } from "@predioon/db";
+import { appDb, appSqlClient, closeAppDb, verifyRestrictedDatabaseRole, type AppTransaction } from "@predioon/db/runtime";
+import { app } from "../src/app.js";
+import { hashPassword } from "../src/auth/passwords.js";
+import { base32Decode, totpCode, totpStep } from "../src/auth/totp.js";
+import "./helpers.js";
+
+// Same test bytes on baseline/fixed. Positive proof comes only from real HTTP
+// enrollment/TOTP; the owner seeds fixtures and makes explicit negative changes.
+type Kind = "flag" | "binding" | "manager" | "resident";
+type Actor = { id: string; token: string; sid: string; binding: string | null; codes: string[] };
+type Row = Record<string, unknown>;
+type State = "first" | "replace" | "building-missing" | "building-inactive" | "staff-missing" | "staff-inactive" | "self" | "duplicate" | "open" | "expired" | "revoked" | "missing";
+type Relation = "support_grants" | "audit_logs";
+type Method = "POST" | "DELETE";
+type Stage = "insert" | "update" | "created-audit" | "revoked-audit";
+type Operation = {state:State;staffId:string;grantId:string;buildingId:string;userId:string;token:string;grants:string[];before:{account:Row;bindings:Row[];grants:Row[]}};
+type HttpResult = { status: number; body: unknown; cache: string | null };
+function signal() { let resolve!: () => void; const promise = new Promise<void>(done => { resolve = done; }); return { promise, resolve }; }
+async function bounded<T>(promise: PromiseLike<T>, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try { return await Promise.race([Promise.resolve(promise), new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`Fixture deadline: ${label}`)), 5000);
+  })]); } finally { clearTimeout(timer); }
+}
+async function settleAll(transactions: Promise<unknown>[]) {
+  await bounded((async () => {
+    let completed = 0;
+    while (completed < transactions.length) {
+      const batch = transactions.slice(completed); completed += batch.length; await Promise.allSettled(batch);
+    }
+  })(), "all actual app transactions settled");
+}
+function trackAllTransactions() {
+  const original = appDb.transaction, run = original.bind(appDb), transactions: Promise<unknown>[] = [];
+  appDb.transaction = (callback, config) => { const pending = run(callback, config); transactions.push(pending); return pending; };
+  return { settle: () => settleAll(transactions), restore() { appDb.transaction = original; } };
+}
+function observeAuthorization() {
+  const original = appDb.transaction, run = original.bind(appDb), dialect = new PgDialect();
+  const reached = signal(), release = signal(), transactions: Promise<unknown>[] = [];
+  let matched = false;
+  type Input = Parameters<AppTransaction["execute"]>[0];
+  appDb.transaction = (callback, config) => {
+    const pending = run(tx => callback(new Proxy(tx, { get(target, key) {
+      if (key === "execute") return async (query: Input) => {
+        const compiled = typeof query === "string" ? { sql: query, params: [] } : dialect.sqlToQuery(query.getSQL());
+        const rows = await target.execute(query);
+        // Pause AFTER the actual original global capability returned true.
+        if (!matched && compiled.sql.trim() === "select app_has_global_capability($1) as allowed" && compiled.params.length === 1 && compiled.params[0] === "support:grant") {
+          assert.equal((rows[0] as { allowed?: unknown } | undefined)?.allowed, true);
+          matched = true; reached.resolve(); await bounded(release.promise, "real authorization release");
+        }
+        return rows;
+      };
+      const value = Reflect.get(target, key, target); return typeof value === "function" ? value.bind(target) : value;
+    }})), config);
+    transactions.push(pending); return pending;
+  };
+  return { reached, release, settle: () => settleAll(transactions), restore() { appDb.transaction = original; } };
+}
+
+describe("MFA support grant commands with real enrollment and row waits", { concurrency: false }, () => {
+  const suffix = randomUUID(), prefix = `tgrantcmd-${suffix}`, org = `${prefix}-org`, building = `${prefix}-a`, foreign = `${prefix}-b`;
+  const password = "grant-command-fictitious-password";
+  const triggers = new Map<string, Relation>();
+  let hash = "", serial = 0, server: Server | undefined, url = "";
+  let tracking: ReturnType<typeof trackAllTransactions> | undefined;
+  const emailPattern = `${prefix}-%@example.invalid`;
+  async function http(token: string | undefined, path: string, method = "GET", body?: Row, controller = new AbortController()): Promise<HttpResult> {
+    try {
+      const response = await bounded(fetch(url + path, { method, signal: controller.signal,
+        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        ...(body ? { body: JSON.stringify(body) } : {}) }), "HTTP");
+      const text = await bounded(response.text(), "HTTP body");
+      return { status: response.status, body: text ? JSON.parse(text) as unknown : null, cache: response.headers.get("cache-control") };
+    } finally { controller.abort(); }
+  }
+  async function user(label: string, admin = false) {
+    const id = `${prefix}-${++serial}-${label}`;
+    await sqlClient`insert into users(id,name,email,password_hash,is_platform_admin) values(${id},${label},${id + "@example.invalid"},${hash},${admin})`;
+    return id;
+  }
+  async function actor(kind: Kind): Promise<Actor> {
+    const id = await user(kind, kind === "flag"), required = kind === "flag" || kind === "binding";
+    const binding = kind === "binding" || kind === "manager" ? randomUUID() : null;
+    if (binding) await sqlClient`insert into role_bindings(id,user_id,building_id,role_key)
+      values(${binding},${id},${kind === "binding" ? null : building},${kind === "binding" ? "PLATFORM_ADMIN" : "BUILDING_ADMIN"})`;
+    if (kind === "resident") await sqlClient`insert into memberships(user_id,building_id,role) values(${id},${building},'RESIDENT')`;
+    const login = await http(undefined, "/auth/login", "POST", { email: id + "@example.invalid", password });
+    assert.equal(login.status, 200, "raw real login, no manufactured proof or admission helper");
+    const body = login.body as { accessToken: string; user: { id: string; mfaRequirement: string } };
+    assert.equal(body.user.id, id); assert.equal(body.user.mfaRequirement, required ? "enrollment-required" : "not-required");
+    const sid = decodeJwt(body.accessToken).sid; assert.equal(typeof sid, "string");
+    const result: Actor = { id, token: body.accessToken, sid: sid as string, binding, codes: [] };
+    if (required) {
+      const enrollment = await http(result.token, "/auth/mfa/enroll", "POST", { currentPassword: password });
+      assert.equal(enrollment.status, 200);
+      const secret = base32Decode((enrollment.body as { secret: string }).secret); assert.ok(secret);
+      const confirmation = await http(result.token, "/auth/mfa/confirm", "POST", { code: totpCode(secret, totpStep(Date.now())) });
+      assert.equal(confirmation.status, 200);
+      result.codes = (confirmation.body as { recoveryCodes: string[] }).recoveryCodes;
+      assert.equal(result.codes.length, 10); assert.equal(new Set(result.codes).size, 10);
+      const [row] = await sqlClient`select s.mfa_verified_at is not null as verified,s.mfa_factor_generation=f.generation as same_generation,
+        f.confirmed_at is not null as confirmed from sessions s join mfa_factors f on f.user_id=s.user_id where s.id=${result.sid}::uuid and s.user_id=${id}`;
+      assert.equal(row?.verified, true); assert.equal(row?.same_generation, true); assert.equal(row?.confirmed, true);
+    }
+    const me = await http(result.token, "/auth/me"); assert.equal(me.status, 200);
+    assert.equal((me.body as { id: string }).id, id);
+    assert.equal((me.body as { mfaRequirement: string }).mfaRequirement, required ? "satisfied" : "not-required");
+    assert.equal(decodeJwt(result.token).sid, result.sid, "same bearer and session family across enrollment");
+    return result;
+  }
+  async function operation(state:State):Promise<Operation> {
+    const userId=await user("target"),grantor=await user("grantor",true),staffId=randomUUID(),grantId=randomUUID();
+    let buildingId=building;
+    if(state==="building-missing")buildingId=prefix+"-missing-"+serial;
+    if(state==="building-inactive") {buildingId=prefix+"-inactive-"+serial;await sqlClient`insert into buildings(id,organization_id,name,code,active) values(${buildingId},${org},${buildingId},${buildingId},false)`;}
+    if(state!=="staff-missing")await sqlClient`insert into role_bindings(id,user_id,role_key,active,starts_at,ends_at,reason)
+      values(${staffId},${userId},'PLATFORM_SUPPORT',${state!=="staff-inactive"},clock_timestamp()-interval '3 days',null,'Staff history')`;
+    if(state==="duplicate")await sqlClient`insert into role_bindings(user_id,role_key,reason) values(${userId},'PLATFORM_SUPPORT','Other binding')`;
+    const grants:string[]=[];
+    const seeds=state==="replace" ? [[building,"telemetry:read",false,false,null],[building,"alerts:read",false,false,null],
+      [building,"telemetry:read",true,false,null],[building,"alerts:read",false,true,null],
+      [building,"telemetry:read",false,false,"device"],[foreign,"alerts:read",false,false,null]] as const :
+      ["open","expired","revoked"].includes(state) ? [[building,"telemetry:read",state==="expired",state==="revoked",null]] as const : [];
+    for(const [b,cap,expired,revoked,resource] of seeds) {
+      const gid=grants.length===0?grantId:randomUUID();grants.push(gid);
+      await sqlClient`insert into support_grants(id,building_id,support_user_id,capability,reason,created_at,expires_at,revoked_at,granted_by,resource_type,resource_id)
+        values(${gid},${b},${userId},${cap},'Existing access',clock_timestamp()-interval '2 days',clock_timestamp()+make_interval(hours=>${expired?-1:1}),
+          ${revoked?new Date(Date.now()-60000).toISOString():null}::timestamptz,${grantor},${resource},${resource?randomUUID():null})`;
+    }
+    const login=await http(undefined,"/auth/login","POST",{email:userId+"@example.invalid",password});assert.equal(login.status,200);
+    const token=(login.body as {accessToken:string}).accessToken;
+    const op={state,userId,staffId,grantId,buildingId,token,grants,before:await targetSnapshot(userId)};
+    assert.equal((await http(token,"/telemetry/latest?buildingId="+building)).status,["replace","open"].includes(state)?200:403,"same target bearer before command");
+    return op;
+  }
+  async function targetSnapshot(userId:string) {
+    return {
+      account:(await sqlClient`select to_jsonb(u) as row from users u where id=${userId}`)[0]!.row as Row,
+      bindings:(await sqlClient`select to_jsonb(rb) as row from role_bindings rb where user_id=${userId} order by id`).map(x=>x.row as Row),
+      grants:(await sqlClient`select to_jsonb(g) as row from support_grants g where support_user_id=${userId} order by id`).map(x=>x.row as Row),
+    };
+  }
+  async function audits(a:Actor) {
+    return (await sqlClient`select user_id,building_id,scope_kind,actor_type,action,resource_type,resource_id,metadata from audit_logs
+      where user_id=${a.id} and action like 'SUPPORT_%' order by resource_id`).map(x=>({...x}));
+  }
+  async function snapshot(a:Actor,op:Operation) {return {...await targetSnapshot(op.userId),audit:await audits(a)};}
+  function audit(a:Actor,buildingId:string,id:string,action:string,metadata:Row):Row {
+    return {user_id:a.id,building_id:buildingId,scope_kind:"BUILDING",actor_type:"USER",action,resource_type:"support_grant",resource_id:id,metadata};
+  }
+  const payload=(op:Operation,capabilities:string[]=["telemetry:read"],hours=1):Row=>({buildingId:op.buildingId,supportUserId:op.userId,capabilities,hours,reason:"Temporary support test"});
+  const request=(a:Actor,op:Operation,method:Method,controller?:AbortController,body?:Row)=>http(a.token,
+    "/v1/support-access/grants"+(method==="DELETE"?"/"+op.grantId:""),method,method==="POST"?(body??payload(op)):undefined,controller);
+  async function grantEffects(a:Actor,op:Operation,response:HttpResult,capabilities:string[]=["telemetry:read"],hours=1,priorAudit:Row[]=[]) {
+    assert.equal(response.status,201);assert.equal(response.cache,"no-store");assert.deepEqual(Object.keys(response.body as object),["items"]);
+    const items=(response.body as {items:Row[]}).items;assert.equal(items.length,capabilities.length);assert.equal(new Set(items.map(x=>x.id)).size,items.length);
+    const after=await targetSnapshot(op.userId),expected:Row[]=[...priorAudit];assert.deepEqual(after.account,op.before.account);assert.deepEqual(after.bindings,op.before.bindings);
+    for(const prior of op.before.grants) {
+      const row=after.grants.find(x=>x.id===prior.id)!;assert.ok(row);
+      if(prior.building_id===op.buildingId&&capabilities.includes(String(prior.capability))&&prior.resource_type===null&&prior.revoked_at===null) {
+        assert.equal(typeof row.revoked_at,"string");assert.ok(Number.isFinite(Date.parse(String(row.revoked_at))));assert.deepEqual<Row>(row,{...prior,revoked_at:row.revoked_at});
+        expected.push(audit(a,op.buildingId,String(row.id),"SUPPORT_GRANT_REVOKED",{cause:"replaced"}));
+      }else assert.deepEqual(row,prior);
+    }
+    assert.equal(after.grants.length,op.before.grants.length+capabilities.length);
+    const keys=["id","buildingId","supportUserId","supportUserName","capability","resourceType","resourceId","reason","createdAt","expiresAt","revokedAt","grantedByName","status"].sort();
+    for(const [index,item] of items.entries()) {
+      assert.deepEqual(Object.keys(item).sort(),keys);assert.match(String(item.id),/^[a-f0-9-]{36}$/);assert.equal(item.capability,capabilities[index]);
+      assert.deepEqual(item,{id:item.id,buildingId:op.buildingId,supportUserId:op.userId,supportUserName:"target",capability:capabilities[index],resourceType:null,resourceId:null,
+        reason:"Temporary support test",createdAt:item.createdAt,expiresAt:item.expiresAt,revokedAt:null,grantedByName:(await sqlClient`select name from users where id=${a.id}`)[0]!.name,status:"ACTIVE"});
+      const elapsed=Date.parse(String(item.expiresAt))-Date.parse(String(item.createdAt));assert.ok(elapsed>=hours*3600000&&elapsed<hours*3600000+5000,"unchanged statement clock and bounded transaction elapsed time");
+      const row=after.grants.find(x=>x.id===item.id)!;assert.ok(row);assert.equal(row.granted_by,a.id);assert.equal(row.revoked_at,null);
+      expected.push(audit(a,op.buildingId,String(item.id),"SUPPORT_GRANT_CREATED",{capability:capabilities[index],supportUserId:op.userId,hours}));
+    }
+    expected.sort((a,b)=>String(a.resource_id).localeCompare(String(b.resource_id)));assert.deepEqual(await audits(a),expected);
+    assert.equal((await http(op.token,"/telemetry/latest?buildingId="+op.buildingId)).status,200,"same bearer gains building read access");
+    assert.equal((await http(op.token,"/telemetry/latest?buildingId="+foreign)).status,403,"grant does not cross building boundary");
+  }
+  async function revokeEffects(a:Actor,op:Operation,response:HttpResult,priorAudit:Row[]=[]) {
+    assert.equal(response.status,204);assert.equal(response.body,null);assert.equal(response.cache,"no-store");
+    const after=await targetSnapshot(op.userId);assert.deepEqual(after.account,op.before.account);assert.deepEqual(after.bindings,op.before.bindings);
+    const expected=[...priorAudit];
+    for(const prior of op.before.grants) {
+      const row=after.grants.find(x=>x.id===prior.id)!;assert.ok(row);
+      if(prior.id===op.grantId&&prior.revoked_at===null) {
+        assert.equal(typeof row.revoked_at,"string");assert.ok(Number.isFinite(Date.parse(String(row.revoked_at))));assert.deepEqual<Row>(row,{...prior,revoked_at:row.revoked_at});
+        expected.push(audit(a,op.buildingId,String(row.id),"SUPPORT_GRANT_REVOKED",{cause:"revoked"}));
+      }else assert.deepEqual(row,prior);
+    }
+    assert.equal(after.grants.length,op.before.grants.length);expected.sort((a,b)=>String(a.resource_id).localeCompare(String(b.resource_id)));assert.deepEqual(await audits(a),expected);
+    assert.equal((await http(op.token,"/telemetry/latest?buildingId="+building)).status,403,"same bearer loses building read access");
+  }
+  async function installTrigger(name:string,stage:Stage,a:Actor,op:Operation,mode:"proof"|"exception"|"skip") {
+    assert.match(name,/^tgrantcmd_[0-9a-f]{32}$/);const relation=stage.endsWith("audit")?"audit_logs":"support_grants";triggers.set(name,relation);
+    await bounded(sqlClient.begin(async owner=>{
+      await owner`set local lock_timeout='2s'`;await owner`set local statement_timeout='3s'`;await owner.unsafe(`create sequence public.${name}_seq`);
+      const cap=op.state==="replace"?"alerts:read":"telemetry:read";
+      const target=op.state==="replace"?op.grants[1]!:op.grantId;
+      const match=stage==="insert"?"new.support_user_id=TG_ARGV[2] and new.building_id=TG_ARGV[3] and new.capability=TG_ARGV[4]":
+        stage==="update"?"new.id=TG_ARGV[5]::uuid and old.revoked_at is null and new.revoked_at is not null":
+        stage==="created-audit"?"new.user_id=TG_ARGV[0] and new.building_id=TG_ARGV[3] and new.action='SUPPORT_GRANT_CREATED' and new.metadata->>'capability'=TG_ARGV[4]":
+        "new.user_id=TG_ARGV[0] and new.action='SUPPORT_GRANT_REVOKED' and new.resource_id=TG_ARGV[5]";
+      const action=mode==="proof"?"update public.sessions set mfa_verified_at=null,mfa_factor_generation=null where id=TG_ARGV[1]::uuid and user_id=TG_ARGV[0];":
+        mode==="exception"?"raise exception using errcode='P0001',message='private grant command fixture detail';":"return null;";
+      await owner.unsafe(`create function public.${name}() returns trigger language plpgsql security definer set search_path=pg_catalog,pg_temp as $$ begin
+        if current_setting('app.user_id',true)=TG_ARGV[0] and current_setting('app.session_id',true)=TG_ARGV[1] and (${match}) then
+          perform pg_catalog.nextval('public.${name}_seq'::regclass); ${action}
+        end if; return new; end $$`);
+      await owner.unsafe(`revoke all on function public.${name}() from public`);
+      const args=[a.id,a.sid,op.userId,op.buildingId,cap,target];assert.ok(args.every(x=>/^[A-Za-z0-9_@. :\-]+$/.test(x)));
+      await owner.unsafe(`create trigger ${name} ${mode==="skip"?"before":"after"} ${stage==="update"?"update":"insert"} on public.${relation}
+        for each row execute function public.${name}(${args.map(x=>"'"+x+"'").join(",")})`);
+    }),"narrow trigger setup");
+    const [metadata]=await sqlClient`select p.prosecdef,p.proconfig,pg_get_userbyid(p.proowner)=current_user as owner,
+      not exists(select 1 from aclexplode(p.proacl) a where a.grantee=0 and a.privilege_type='EXECUTE') as public_revoked
+      from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname=${name}`;
+    assert.equal(metadata?.prosecdef,true);assert.equal(metadata?.owner,true);assert.equal(metadata?.public_revoked,true);assert.deepEqual(metadata?.proconfig,["search_path=pg_catalog, pg_temp"]);
+  }
+  async function witness(name:string) {
+    assert.match(name,/^tgrantcmd_[0-9a-f]{32}$/);const [row]=await sqlClient.unsafe(`select last_value::int,is_called from public.${name}_seq`);
+    assert.equal(row?.is_called,true);assert.equal(row?.last_value,1,"exactly one trigger fired even when rolled back");
+  }
+  async function waitAndWithdraw(a:Actor,op:Operation,method:Method,lock:"staff"|"grant"|"concurrent",factor:boolean) {
+    const controller=new AbortController();let pending:Promise<HttpResult>|undefined,failed=false;
+    try {
+      await bounded(sqlClient.begin(async blocker=>{
+        await blocker`set local lock_timeout='2s'`;await blocker`set local statement_timeout='4s'`;
+        if(lock==="staff")await blocker`select id from role_bindings where id=${op.staffId}::uuid for update`;
+        else await blocker`select id from support_grants where id=${op.grantId}::uuid for update`;
+        const [self]=await blocker`select pg_backend_pid() as pid`;assert.equal(typeof self?.pid,"number");
+        pending=request(a,op,method,controller);void pending.catch(()=>undefined);
+        const role=new URL(process.env.DATABASE_URL_APP!).username,deadline=Date.now()+3000;let waits=0;
+        while(Date.now()<deadline) {
+          await blocker`select pg_stat_clear_snapshot()`;
+          const [row]=await blocker`select count(*)::int as n from pg_stat_activity where usename=${role} and datname=current_database()
+            and state='active' and ${self!.pid}=any(pg_blocking_pids(pid)) and query like ${lock==="staff"?"%role_bindings%":"%support_grants%"}`;
+          waits=Number(row?.n);if(waits===1)break;await new Promise(resolve=>setTimeout(resolve,20));
+        }
+        assert.equal(waits,1,"the actual restricted app connection waits on this exact owner row lock");
+        if(factor)await blocker`delete from mfa_factors where user_id=${a.id}`;
+        else await blocker`update sessions set mfa_verified_at=null,mfa_factor_generation=null where id=${a.sid}::uuid and user_id=${a.id}`;
+        if(lock==="concurrent")await blocker`update support_grants set revoked_at=clock_timestamp() where id=${op.grantId}::uuid`;
+      }),"owned row lock and committed proof withdrawal");
+      assert.ok(pending);return await pending;
+    }catch(error){failed=true;throw error;}
+    finally{controller.abort();const results=await Promise.allSettled([...(pending?[bounded(pending,"waited HTTP settled")]:[]),tracking?.settle()]);
+      if(!failed){const failure=results.find(x=>x.status==="rejected");if(failure?.status==="rejected")throw failure.reason;}}
+  }
+
+  const removeProof = (a: Actor) => sqlClient`update sessions set mfa_verified_at=null,mfa_factor_generation=null where id=${a.sid}::uuid and user_id=${a.id}`;
+  async function proof(a: Actor) {
+    const [row] = await sqlClient`select mfa_verified_at is not null as verified,mfa_verified_at::text as verified_at,mfa_factor_generation::text as generation
+      from sessions where id=${a.sid}::uuid and user_id=${a.id}`;
+    assert.ok(row); return { ...row };
+  }
+  function denied(response: HttpResult, reason: string) {
+    assert.equal(response.status, 403); assert.equal(response.cache, "no-store");
+    assert.equal((response.body as { details?: { reason?: string } }).details?.reason, reason);
+    for (const field of ["id", "name", "email", "phone", "isPlatformAdmin", "password", "passwordHash", "accessToken"]) assert.equal(field in (response.body as object), false);
+  }
+  async function interleave(a: Actor, op: Operation, method: Method, change: () => PromiseLike<unknown>, body?: Row) {
+    const observation = observeAuthorization(), controller = new AbortController();
+    const pending = request(a, op, method, controller, body); void pending.catch(() => undefined); let failed = false;
+    try {
+      assert.equal(await bounded(Promise.race([observation.reached.promise.then(() => "boundary"), pending.then(() => "response")]), "real authorization reached"), "boundary");
+      await bounded(change(), "negative identity change committed"); observation.release.resolve(); return await pending;
+    } catch (error) { failed = true; throw error; }
+    finally {
+      observation.release.resolve(); controller.abort();
+      const results = await Promise.allSettled([bounded(pending, "HTTP settled"), observation.settle()]); observation.restore();
+      if (!failed) { const failure = results.find(result => result.status === "rejected"); if (failure?.status === "rejected") throw failure.reason; }
+    }
+  }
+  async function dropTrigger(name: string) {
+    assert.match(name, /^tgrantcmd_[0-9a-f]{32}$/); const relation = triggers.get(name); assert.ok(relation);
+    await bounded(sqlClient.begin(async owner => {
+      await owner`set local lock_timeout='2s'`; await owner`set local statement_timeout='3s'`;
+      await owner.unsafe(`drop trigger if exists ${name} on public.${relation}`);
+      await owner.unsafe(`drop function if exists public.${name}()`);
+      await owner.unsafe(`drop sequence if exists public.${name}_seq`);
+    }), "narrow trigger cleanup");
+    const [gone] = await sqlClient`select to_regprocedure(${"public." + name + "()"}) is null as function_gone,
+      to_regclass(${"public." + name + "_seq"}) is null as sequence_gone`;
+    assert.equal(gone?.function_gone, true); assert.equal(gone?.sequence_gone, true); triggers.delete(name);
+  }
+  async function triggerCatalog() {
+    return (await sqlClient`select tgrelid::regclass::text as relation,tgname,tgenabled,tgisinternal,pg_get_triggerdef(oid) as definition
+      from pg_trigger where tgrelid in ('public.role_bindings'::regclass,'public.support_grants'::regclass,'public.audit_logs'::regclass) order by relation,tgname`).map(row => ({ ...row }));
+  }
+  before(async () => {
+    assert.equal((await sqlClient`select count(*)::int as count from schema_migrations`)[0]?.count, 68, "candidate068 fixture required; no skip");
+    await bounded(verifyRestrictedDatabaseRole(appSqlClient, "predioon_app"), "actual restricted app role");
+    hash = await hashPassword(password);
+    await sqlClient`insert into organizations(id,name,slug) values(${org},'Support grant command MFA',${org})`;
+    for(const id of [building,foreign]) await sqlClient`insert into buildings(id,organization_id,name,code) values(${id},${org},${id},${id})`;
+    tracking = trackAllTransactions();
+    server = await new Promise<Server>(resolve => { const instance = app.listen(0, "127.0.0.1", () => resolve(instance)); });
+    const address = server.address(); assert.ok(address && typeof address !== "string"); url = `http://127.0.0.1:${address.port}`;
+  });
+  after(async () => {
+    try {
+      await bounded(new Promise<void>((resolve, reject) => {
+        if (!server) { resolve(); return; } server.close(error => error ? reject(error) : resolve()); server.closeAllConnections();
+      }), "HTTP listener close");
+    } finally {
+      try {
+        await tracking?.settle(); for (const name of triggers.keys()) await dropTrigger(name);
+        await bounded(sqlClient.begin(async tx => {
+          await tx`set local lock_timeout='2s'`; await tx`set local statement_timeout='3s'`;
+          await tx`delete from audit_logs where user_id in(select id from users where email like ${emailPattern})`;
+          await tx`delete from buildings where organization_id=${org}`;
+          await tx`delete from users where email like ${emailPattern}`;
+          await tx`delete from organizations where id=${org}`;
+        }), "owned fixture cleanup");
+      } finally {
+        tracking?.restore(); const results = await Promise.allSettled([bounded(closeAppDb(), "app pool close"), bounded(sqlClient.end({ timeout: 3 }), "owner pool close")]);
+        const failure = results.find(result => result.status === "rejected"); if (failure?.status === "rejected") throw failure.reason;
+      }
+    }
+  });
+  for(const kind of ["flag","binding"] as const)for(const state of ["first","replace","building-missing","building-inactive","staff-missing","staff-inactive","self"] as const)for(const factor of [true,false]) {
+    it(`POST ${kind} ${state}: rejects ${factor?"factor removal":"family proof removal"} after real global authorization`,async t=>{
+      const a=await actor(kind),op=await operation(state),before=await snapshot(a,op),body=payload(op);
+      if(state==="self")body.supportUserId=a.id;
+      const response=await interleave(a,op,"POST",()=>factor?sqlClient`delete from mfa_factors where user_id=${a.id}`:removeProof(a),body);
+      if(response.status===201){await grantEffects(a,op,response);t.diagnostic("Baseline201: exact grants history audit DTO and same-token access verified before expected403 mismatch");}
+      else {assert.deepEqual(await snapshot(a,op),before);if(response.status===400||response.status===404)t.diagnostic(`Baseline${response.status}: guarded outcome missing; exact account binding grants and audit unchanged`);}
+      denied(response,factor?"MFA_ENROLLMENT_REQUIRED":"MFA_VERIFICATION_REQUIRED");assert.deepEqual(await snapshot(a,op),before);
+    });
+  }
+  for(const kind of ["flag","binding"] as const)for(const state of ["open","expired","revoked","missing"] as const)for(const factor of [true,false]) {
+    it(`DELETE ${kind} ${state}: rejects ${factor?"factor removal":"family proof removal"} after real global authorization`,async t=>{
+      const a=await actor(kind),op=await operation(state),before=await snapshot(a,op);
+      const response=await interleave(a,op,"DELETE",()=>factor?sqlClient`delete from mfa_factors where user_id=${a.id}`:removeProof(a));
+      if(response.status===204){await revokeEffects(a,op,response);t.diagnostic("Baseline204: exact conditional revocation audit and same-token access verified before expected403 mismatch");}
+      else{assert.deepEqual(await snapshot(a,op),before);if(response.status===404)t.diagnostic("Baseline404: missing grant preserves account bindings grants and audit");}
+      denied(response,factor?"MFA_ENROLLMENT_REQUIRED":"MFA_VERIFICATION_REQUIRED");assert.deepEqual(await snapshot(a,op),before);
+    });
+  }
+  const waits:Array<{kind:"flag"|"binding";state:State;method:Method;lock:"staff"|"grant"|"concurrent"}>=[];
+  for(const kind of ["flag","binding"] as const)for(const state of ["first","replace"] as const)waits.push({kind,state,method:"POST",lock:"staff"});
+  waits.push({kind:"flag",state:"replace",method:"POST",lock:"grant"});
+  for(const kind of ["flag","binding"] as const)waits.push({kind,state:"open",method:"DELETE",lock:"grant"});
+  waits.push({kind:"flag",state:"open",method:"DELETE",lock:"concurrent"});
+  for(const {kind,state,method,lock} of waits)for(const factor of [true,false]) {
+    it(`${method} ${kind} ${state} ${lock}: rejects ${factor?"factor removal":"family proof removal"} committed during actual row wait`,async t=>{
+      const a=await actor(kind),op=await operation(state),before=await snapshot(a,op),response=await waitAndWithdraw(a,op,method,lock,factor);
+      if(lock==="concurrent") {
+        const after=await snapshot(a,op),row=after.grants.find(x=>x.id===op.grantId)!;assert.equal(typeof row.revoked_at,"string");
+        assert.deepEqual(after,{...before,grants:before.grants.map(x=>x.id===op.grantId?{...x,revoked_at:row.revoked_at}:x)});
+        if(response.status===204)t.diagnostic("Baseline204: actual row wait and concurrent owner revocation verified; zero-row app update creates no audit");
+      }else if(response.status===201){await grantEffects(a,op,response);t.diagnostic("Baseline201: actual row wait and exact grant effects verified");}
+      else if(response.status===204){await revokeEffects(a,op,response);t.diagnostic("Baseline204: actual row wait and exact revocation effects verified");}
+      else assert.deepEqual(await snapshot(a,op),before);
+      denied(response,factor?"MFA_ENROLLMENT_REQUIRED":"MFA_VERIFICATION_REQUIRED");if(lock!=="concurrent")assert.deepEqual(await snapshot(a,op),before);
+    });
+  }
+  for(const kind of ["flag","binding"] as const)for(const mode of ["minimum","maximum","replace","duplicate"] as const) {
+    it(`POST ${kind} ${mode}: preserves bounded access exact DTO and append-only audit history`,async()=>{
+      const a=await actor(kind),op=await operation(mode==="replace"?"replace":mode==="duplicate"?"duplicate":"first"),hours=mode==="maximum"?168:1;
+      const caps=mode==="replace"?["telemetry:read","alerts:read","devices:read","work-orders:read-assigned","support:read"]:["telemetry:read"];
+      await grantEffects(a,op,await request(a,op,"POST",undefined,payload(op,caps,hours)),caps,hours);
+    });
+  }
+  for(const kind of ["flag","binding"] as const)for(const state of ["open","expired","revoked"] as const) {
+    it(`DELETE ${kind} ${state}: preserves revocation history and repeated-request idempotence`,async()=>{
+      const a=await actor(kind),op=await operation(state);await revokeEffects(a,op,await request(a,op,"DELETE"));
+      const before=await snapshot(a,op);const response=await request(a,op,"DELETE");assert.equal(response.status,204);assert.equal(response.body,null);assert.deepEqual(await snapshot(a,op),before);
+    });
+  }
+  it("refuses local managers residents and support staff without grant mutations",async()=>{
+    for(const kind of ["manager","resident"] as const) {
+      const a=await actor(kind),op=await operation("open"),before=await snapshot(a,op);
+      for(const method of ["POST","DELETE"] as const)assert.equal((await request(a,op,method)).status,403);
+      assert.deepEqual(await snapshot(a,op),before);
+      for(const method of ["POST","DELETE"] as const)assert.equal((await http(op.token,"/v1/support-access/grants"+(method==="DELETE"?"/"+op.grantId:""),method,method==="POST"?payload(op):undefined)).status,403);
+      assert.deepEqual(await snapshot(a,op),before);
+    }
+  });
+  it("refuses invalid grant schemas without writes",async()=>{
+    const a=await actor("flag"),op=await operation("first"),before=await snapshot(a,op);
+    for(const changed of [{hours:0},{hours:169},{hours:1.5},{capabilities:[]},{capabilities:["telemetry:read","telemetry:read"]},
+      {capabilities:["rbac:manage"]},{reason:"x"},{buildingId:" "},{supportUserId:" "},{extra:true}]) {
+      assert.equal((await request(a,op,"POST",undefined,{...payload(op),...changed})).status,400);assert.deepEqual(await snapshot(a,op),before);
+    }
+  });
+  it("refuses ineligible staff and preserves self and inactive-building validation",async()=>{
+    const a=await actor("binding");
+    for(const state of ["staff-missing","staff-inactive","building-inactive","self"] as const) {
+      const op=await operation(state),before=await snapshot(a,op),body=payload(op);if(state==="self")body.supportUserId=a.id;
+      assert.equal((await request(a,op,"POST",undefined,body)).status,400);assert.deepEqual(await snapshot(a,op),before);
+    }
+    for(const kind of ["inactive-user","future-staff","expired-staff","local-binding"] as const) {
+      const op=await operation("first");
+      if(kind==="inactive-user")await sqlClient`update users set active=false where id=${op.userId}`;
+      else if(kind==="future-staff")await sqlClient`update role_bindings set starts_at=clock_timestamp()+interval '1 hour' where id=${op.staffId}::uuid`;
+      else if(kind==="expired-staff")await sqlClient`update role_bindings set ends_at=clock_timestamp()-interval '1 hour' where id=${op.staffId}::uuid`;
+      else await sqlClient`update role_bindings set building_id=${building},role_key='BUILDING_ADMIN' where id=${op.staffId}::uuid`;
+      const before=await snapshot(a,op);assert.equal((await request(a,op,"POST")).status,400);assert.deepEqual(await snapshot(a,op),before);
+    }
+  });
+  it("preserves invalid missing and unauthenticated refusals",async()=>{
+    const a=await actor("flag"),op=await operation("building-missing"),before=await snapshot(a,op);
+    assert.equal((await request(a,op,"POST")).status,404);
+    for(const id of ["not-a-uuid",randomUUID()])assert.equal((await http(a.token,"/v1/support-access/grants/"+id,"DELETE")).status,404);
+    for(const method of ["POST","DELETE"] as const)assert.equal((await http(undefined,"/v1/support-access/grants"+(method==="DELETE"?"/"+op.grantId:""),method,method==="POST"?payload(op):undefined)).status,401);
+    assert.deepEqual(await snapshot(a,op),before);
+  });
+  it("creation requires recent password while revocation keeps its existing contract",async()=>{
+    const a=await actor("binding"),op=await operation("first"),before=await snapshot(a,op);
+    await sqlClient`update sessions set verified_at=clock_timestamp()-interval '11 minutes' where id=${a.sid}::uuid`;
+    assert.equal((await request(a,op,"POST")).status,403);assert.deepEqual(await snapshot(a,op),before);
+    const revoked=await operation("open");await revokeEffects(a,revoked,await request(a,revoked,"DELETE"));
+    const verification=await http(a.token,"/auth/verify","POST",{currentPassword:password,code:a.codes[0]});assert.equal(verification.status,204);
+    const prior=await audits(a);await grantEffects(a,op,await request(a,op,"POST"),["telemetry:read"],1,prior);
+  });
+  it("rbac authority without support permission removes staff without mutating legacy grants",async()=>{
+    const a=await actor("binding"),op=await operation("open"),before=await snapshot(a,op);
+    const catalog=await sqlClient`select * from role_permissions where role_key='PLATFORM_ADMIN' and permission_key='support:grant'`;assert.equal(catalog.length,1);
+    try {
+      await sqlClient`delete from role_permissions where role_key='PLATFORM_ADMIN' and permission_key='support:grant'`;
+      for(const method of ["POST","DELETE"] as const)assert.equal((await request(a,op,method)).status,403);assert.deepEqual(await snapshot(a,op),before);
+      assert.equal((await http(a.token,"/v1/support-access/staff/"+op.staffId,"DELETE")).status,204);
+      const after=await targetSnapshot(op.userId);assert.deepEqual(after.account,before.account);assert.deepEqual(after.grants,before.grants);
+      assert.equal(after.bindings.length,before.bindings.length);for(const row of after.bindings)assert.deepEqual<Row>(row,{...before.bindings.find(x=>x.id===row.id)!,active:false,updated_at:row.updated_at});
+      assert.deepEqual(await audits(a),[{user_id:a.id,building_id:null,scope_kind:"PLATFORM",actor_type:"USER",action:"SUPPORT_STAFF_REMOVED",resource_type:"platform_support",resource_id:op.staffId,metadata:{userId:op.userId}}]);
+      assert.equal((await http(op.token,"/telemetry/latest?buildingId="+building)).status,403);
+    }finally {
+      await sqlClient`insert into role_permissions ${sqlClient(catalog)}`;
+      assert.deepEqual(await sqlClient`select * from role_permissions where role_key='PLATFORM_ADMIN' and permission_key='support:grant'`,catalog);
+    }
+  });
+  for(const state of ["first","replace","open"] as const)for(const stage of (state==="first"?["insert","created-audit"]:state==="replace"?["insert","update","revoked-audit","created-audit"]:["update","revoked-audit"]) as Stage[])for(const mode of ["proof","exception"] as const) {
+    const method=state==="open"?"DELETE":"POST";
+    it(`${method} ${state} ${stage}: rolls back the complete command after ${mode} trigger`,async t=>{
+      const a=await actor("flag"),control=await operation("first");await grantEffects(a,control,await request(a,control,"POST"));
+      const op=await operation(state),before=await snapshot(a,op),originalProof=await proof(a),catalog=await triggerCatalog(),name="tgrantcmd_"+randomUUID().replaceAll("-","");
+      const caps=state==="replace"?["telemetry:read","alerts:read"]:["telemetry:read"];
+      assert.equal(originalProof.verified,true);assert.equal(typeof originalProof.verified_at,"string");assert.equal(typeof originalProof.generation,"string");
+      try {
+        await installTrigger(name,stage,a,op,mode);const response=await request(a,op,method,undefined,payload(op,caps));await witness(name);
+        if(mode==="proof") {
+          if(response.status===201||response.status===204) {
+            if(method==="POST")await grantEffects(a,op,response,caps,1,before.audit);else await revokeEffects(a,op,response,before.audit);
+            assert.deepEqual(await proof(a),{verified:false,verified_at:null,generation:null});t.diagnostic(`Baseline${response.status}: exact full command persisted and trigger removed the same family proof once`);
+          }else{assert.deepEqual(await snapshot(a,op),before);assert.deepEqual(await proof(a),originalProof);}
+          denied(response,"MFA_VERIFICATION_REQUIRED");
+        }else{assert.equal(response.status,500);assert.equal(JSON.stringify(response.body).includes("private grant command fixture detail"),false);}
+        assert.deepEqual(await snapshot(a,op),before);assert.deepEqual(await proof(a),originalProof);
+      }finally{await tracking?.settle();await dropTrigger(name);assert.deepEqual(await triggerCatalog(),catalog);}
+    });
+  }
+  for(const state of ["first","replace","open"] as const) {
+    it(`${state}: preserves zero-row insert or revocation outcome without partial writes`,async()=>{
+      const a=await actor("flag"),op=await operation(state),before=await snapshot(a,op),originalProof=await proof(a),catalog=await triggerCatalog(),name="tgrantcmd_"+randomUUID().replaceAll("-","");
+      const caps=state==="replace"?["telemetry:read","alerts:read"]:["telemetry:read"];
+      try {
+        await installTrigger(name,state==="open"?"update":"insert",a,op,"skip");const response=await request(a,op,state==="open"?"DELETE":"POST",undefined,payload(op,caps));await witness(name);
+        assert.equal(response.status,state==="open"?204:500);assert.deepEqual(await snapshot(a,op),before);assert.deepEqual(await proof(a),originalProof);
+        if(state==="open")assert.equal((await http(op.token,"/telemetry/latest?buildingId="+building)).status,200);
+      }finally{await tracking?.settle();await dropTrigger(name);assert.deepEqual(await triggerCatalog(),catalog);}
+    });
+  }
+
+});

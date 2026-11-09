@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "status": "RETRY_AUTHORED_NOT_EXECUTED",
+  "sourcePreparedSha256": "bc7fdd7f2cff325d14a5c7fc59ffcdd9fa97fd55cfd02144b049fa2b68d3ebc0",
+  "originalHandoffSha256": "207c210b978810dddc3483faf0a26b43d385161494d0714a9652ac07d323d38e",
+  "historySha256": "54355e8d553ad6da4c6e3b57f32c201fbd0c5cc400f7a096edaff04f7c0e982f",
+  "sourceFiles": 1044,
+  "regressionTap": 103,
+  "regressionIndependent": 99,
+  "regressionGroups": 4,
+  "executors": [
+    {
+      "path": "mfa-support-grant-commands-v2-fixed-regression-retry-qa-20261109/run-mfa-directed.mjs",
+      "sha256": "16d5bd7ca58ed9a7425bb068992f66b91ba33aab31bb10199ef5bed313925d7d",
+      "modelPath": "mfa-support-grant-commands-v2-fixed-regression-qa-20261109/run-mfa-directed.mjs",
+      "modelSha256": "16d5bd7ca58ed9a7425bb068992f66b91ba33aab31bb10199ef5bed313925d7d"
+    },
+    {
+      "path": "mfa-support-grant-commands-v2-fixed-regression-retry-qa-20261109/launch-mfa-directed.ps1",
+      "sha256": "f40aaa8eb2fca64440ca26176826806980c98aec1bc447259a0ef7cdc8c0f020",
+      "modelPath": "mfa-support-grant-commands-v2-fixed-regression-qa-20261109/launch-mfa-directed.ps1",
+      "modelSha256": "f40aaa8eb2fca64440ca26176826806980c98aec1bc447259a0ef7cdc8c0f020"
+    }
+  ],
+  "sameExecutorBytes": true,
+  "processLifecycleModified": false,
+  "memoryMinimumMiB": 1536,
+  "computerRestarted": false
+}

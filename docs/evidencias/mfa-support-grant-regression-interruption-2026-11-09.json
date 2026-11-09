@@ -1,0 +1,72 @@
+{
+  "recordedOn": "2026-11-09",
+  "status": "REGRESSION_ATTEMPT1_INTERRUPTED_BY_WINDOWS_IDLE_STANDBY_NOT_ACCEPTED",
+  "observedHead": "01f82211dd33066fb6cd8b729f8b34a9fdf83e30",
+  "firstFourTapPass": 32,
+  "staffCreationCompleteTapAvailable": false,
+  "staffRemovalStarted": false,
+  "deadlineMs": 300000,
+  "actualMaxHeartbeatGapMs": 627998.2996,
+  "deadlineLateByMs": 333035.3961,
+  "lateChildExitUtc": "2026-11-09T03:37:45.163Z",
+  "windowsEvents": {
+    "provider": "Microsoft-Windows-Kernel-Power",
+    "enterEventId": 506,
+    "enterUtc": "2026-11-09T03:26:37.4200449Z",
+    "enterReason": "Idle Timeout",
+    "resumeEventId": 507,
+    "resumeUtc": "2026-11-09T03:37:11.1467469Z",
+    "resumeReason": "Input Touchpad",
+    "sameBootId": 51
+  },
+  "recovery": {
+    "testChildExited": true,
+    "onlyReviewedLingeringControllerStopped": 48468,
+    "ownedDatabaseRemoved": "ingest_runtime_4c922e270e724a6ba2a2a5a8bc65b299",
+    "roleOidsPreserved": true,
+    "sixRolesRestoredToDocumentedBootstrapDefaults": true,
+    "originalPasswordsNullByBootstrap": true,
+    "settingsUnchanged": true,
+    "otherDatabasesChanged": false,
+    "clientsRemaining": 0,
+    "firstRecoveryAttempt": "Temporary database removed; role restoration DO statement rejected an ambiguous record alias before any role mutation. Second scoped attempt fixed the alias and restored all six role identities/defaults."
+  },
+  "retry": {
+    "allSixFilesRepeated": true,
+    "sameSourceAndTestBytes": true,
+    "sameExecutorBytes": true,
+    "sameTimeoutsAndMemoryGuards": true,
+    "newDatabaseRequired": true,
+    "temporaryExecutionStateRequest": "ES_CONTINUOUS|ES_SYSTEM_REQUIRED only while the retry runs; restore ES_CONTINUOUS in finally; no permanent power setting changes"
+  },
+  "computerRestarted": false,
+  "containerRestarted": false,
+  "productionAccepted": false,
+  "inputs": [
+    {
+      "path": "mfa-support-grant-commands-v2-fixed-regression-qa-20261109/mfa-directed-result.json",
+      "sha256": "9fe5d728ca3ccf82c44681ac2b3cd9af933d5144406490869d32adf3a57024ea",
+      "bytes": 318203
+    },
+    {
+      "path": "mfa-support-grant-commands-v2-fixed-regression-qa-20261109/mfa-directed-postchecks.json",
+      "sha256": "e5a1788771350863d90bcc6aaa671d0bdf612abcb390f09835e003f77e9e90bc",
+      "bytes": 392
+    },
+    {
+      "path": "mfa-support-grant-commands-v2-fixed-regression-qa-20261109/root-recovery.json",
+      "sha256": "7d4125040f9a3671c1af44cd249c069ff2a1f0ce7f214d3f8022b60d69020a36",
+      "bytes": 5490
+    },
+    {
+      "path": "mfa-support-grant-commands-v2-fixed-regression-qa-20261109/controller-recovery.json",
+      "sha256": "dbe9eea166fa3267c335a9317ef0510b57bf03448c70f33cada8fa616a03c867",
+      "bytes": 429
+    },
+    {
+      "path": "mfa-support-grant-commands-v2-fixed-regression-qa-20261109/platform-mfa-support-staff-create.events.jsonl",
+      "sha256": "80169aebd600c758aee10e4f36427623ef3a8c87d4e80fbe70659ce66c259aa4",
+      "bytes": 9758
+    }
+  ]
+}
