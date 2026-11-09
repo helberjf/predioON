@@ -1,0 +1,154 @@
+{
+  "status": "V1_BASELINE_REVIEWED_WAIT_OBSERVER_CORRECTION_REQUIRED",
+  "totals": {
+    "tests": 35,
+    "suites": 1,
+    "pass": 16,
+    "fail": 19,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "observations": [
+    {
+      "case": "flag active: rejects factor removal after real global authorization",
+      "classification": "EXPECTED_MFA_BASELINE_FAILURE",
+      "expected": 403,
+      "actual": 204,
+      "diagnostic": "Baseline204: active staff outcome, exact bindings grants audit and same-token access verified before expected403 mismatch"
+    },
+    {
+      "case": "flag active: rejects family proof removal after real global authorization",
+      "classification": "EXPECTED_MFA_BASELINE_FAILURE",
+      "expected": 403,
+      "actual": 204,
+      "diagnostic": "Baseline204: active staff outcome, exact bindings grants audit and same-token access verified before expected403 mismatch"
+    },
+    {
+      "case": "flag inactive: rejects factor removal after real global authorization",
+      "classification": "EXPECTED_MFA_BASELINE_FAILURE",
+      "expected": 403,
+      "actual": 204,
+      "diagnostic": "Baseline204: inactive staff outcome, exact bindings grants audit and same-token access verified before expected403 mismatch"
+    },
+    {
+      "case": "flag inactive: rejects family proof removal after real global authorization",
+      "classification": "EXPECTED_MFA_BASELINE_FAILURE",
+      "expected": 403,
+      "actual": 204,
+      "diagnostic": "Baseline204: inactive staff outcome, exact bindings grants audit and same-token access verified before expected403 mismatch"
+    },
+    {
+      "case": "flag missing: rejects factor removal after real global authorization",
+      "classification": "EXPECTED_MFA_BASELINE_FAILURE",
+      "expected": 403,
+      "actual": 404,
+      "diagnostic": "Baseline404: missing staff preserves accounts bindings grants and audit before expected403 mismatch"
+    },
+    {
+      "case": "flag missing: rejects family proof removal after real global authorization",
+      "classification": "EXPECTED_MFA_BASELINE_FAILURE",
+      "expected": 403,
+      "actual": 404,
+      "diagnostic": "Baseline404: missing staff preserves accounts bindings grants and audit before expected403 mismatch"
+    },
+    {
+      "case": "binding active: rejects factor removal after real global authorization",
+      "classification": "EXPECTED_MFA_BASELINE_FAILURE",
+      "expected": 403,
+      "actual": 204,
+      "diagnostic": "Baseline204: active staff outcome, exact bindings grants audit and same-token access verified before expected403 mismatch"
+    },
+    {
+      "case": "binding active: rejects family proof removal after real global authorization",
+      "classification": "EXPECTED_MFA_BASELINE_FAILURE",
+      "expected": 403,
+      "actual": 204,
+      "diagnostic": "Baseline204: active staff outcome, exact bindings grants audit and same-token access verified before expected403 mismatch"
+    },
+    {
+      "case": "binding inactive: rejects factor removal after real global authorization",
+      "classification": "EXPECTED_MFA_BASELINE_FAILURE",
+      "expected": 403,
+      "actual": 204,
+      "diagnostic": "Baseline204: inactive staff outcome, exact bindings grants audit and same-token access verified before expected403 mismatch"
+    },
+    {
+      "case": "binding inactive: rejects family proof removal after real global authorization",
+      "classification": "EXPECTED_MFA_BASELINE_FAILURE",
+      "expected": 403,
+      "actual": 204,
+      "diagnostic": "Baseline204: inactive staff outcome, exact bindings grants audit and same-token access verified before expected403 mismatch"
+    },
+    {
+      "case": "binding missing: rejects factor removal after real global authorization",
+      "classification": "EXPECTED_MFA_BASELINE_FAILURE",
+      "expected": 403,
+      "actual": 404,
+      "diagnostic": "Baseline404: missing staff preserves accounts bindings grants and audit before expected403 mismatch"
+    },
+    {
+      "case": "binding missing: rejects family proof removal after real global authorization",
+      "classification": "EXPECTED_MFA_BASELINE_FAILURE",
+      "expected": 403,
+      "actual": 404,
+      "diagnostic": "Baseline404: missing staff preserves accounts bindings grants and audit before expected403 mismatch"
+    },
+    {
+      "case": "active: rejects factor removal committed during actual staff row lock wait",
+      "classification": "TEST_OBSERVER_DID_NOT_CONFIRM_REAL_WAIT",
+      "expected": 1,
+      "actual": 0
+    },
+    {
+      "case": "active: rejects family proof removal committed during actual staff row lock wait",
+      "classification": "TEST_OBSERVER_DID_NOT_CONFIRM_REAL_WAIT",
+      "expected": 1,
+      "actual": 0
+    },
+    {
+      "case": "inactive: rejects factor removal committed during actual staff row lock wait",
+      "classification": "TEST_OBSERVER_DID_NOT_CONFIRM_REAL_WAIT",
+      "expected": 1,
+      "actual": 0
+    },
+    {
+      "case": "inactive: rejects family proof removal committed during actual staff row lock wait",
+      "classification": "TEST_OBSERVER_DID_NOT_CONFIRM_REAL_WAIT",
+      "expected": 1,
+      "actual": 0
+    },
+    {
+      "case": "role_bindings: rolls staff and all grant removals back after proof trigger",
+      "classification": "EXPECTED_MFA_BASELINE_FAILURE",
+      "expected": 403,
+      "actual": 204,
+      "diagnostic": "Baseline204: staff and grant mutations and audits persisted; narrow trigger fired once and removed the same family proof"
+    },
+    {
+      "case": "support_grants: rolls staff and all grant removals back after proof trigger",
+      "classification": "EXPECTED_MFA_BASELINE_FAILURE",
+      "expected": 403,
+      "actual": 204,
+      "diagnostic": "Baseline204: staff and grant mutations and audits persisted; narrow trigger fired once and removed the same family proof"
+    },
+    {
+      "case": "audit_logs: rolls staff and all grant removals back after proof trigger",
+      "classification": "EXPECTED_MFA_BASELINE_FAILURE",
+      "expected": 403,
+      "actual": 204,
+      "diagnostic": "Baseline204: staff and grant mutations and audits persisted; narrow trigger fired once and removed the same family proof"
+    }
+  ],
+  "oldTestSha256": "d024e7e39b794f180b238ec7dcf8c00c5c1ded3cc52e3c9f17f7710b6cdc8919",
+  "newTestSha256": "e29d03d96a61c28eb414ef3853c9b82bb696004f402b58eb882eb37c80d9ee1a",
+  "change": "Only clear PostgreSQL current-transaction statistics snapshot before every existing pg_stat_activity poll. Product, assertions, deadlines, lock and proof-withdrawal sequence remain unchanged.",
+  "reference": "https://www.postgresql.org/docs/16/monitoring-stats.html#MONITORING-STATS-VIEWS",
+  "v1WaitProved": false,
+  "productUnchangedSha256": "229dcd76b89f3dbb38c653d7ad4bf324bd6b151785e6f0a3cdba45b1d5680622",
+  "cleanupPassed": true,
+  "functionalAccepted": false,
+  "nativeResultSha256": "dff1c448c56e9c180261398169abd36f4af7ce9850fc744096b0f156ecbce556",
+  "nativeLogSha256": "6e26fba7cc639ab9e99dc74dfe78f87c82e157904e260535b89fe1e054a6e652",
+  "postchecksSha256": "5bf21e6edd1c869e775daa89cc784a8da62555fc60dc57da10fbbf31e3ddef3e"
+}

@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "format": "delta-v1",
+  "status": "AUTHORED_NOT_EXECUTED",
+  "basePreparedSha256": "6564e80a556b124458a9a783c2c5a754a4c175f869571dda88ad076b04d9e3ec",
+  "sourceCount": 1042,
+  "files": [
+    {
+      "path": "apps/api/src/modules/support-access/routes.ts",
+      "beforeSha256": "4d718ecad31a0c16573c099fb4c2a9073587c3ac26542d592686d995c52c7498",
+      "beforeBytes": 15540,
+      "afterSha256": "229dcd76b89f3dbb38c653d7ad4bf324bd6b151785e6f0a3cdba45b1d5680622",
+      "afterBytes": 17059
+    }
+  ],
+  "ownedCallers": [
+    "DELETE /v1/support-access/staff/:id"
+  ],
+  "otherSourceReconstructedExactly": true,
+  "sharedHelpersSchemasPoliciesMigrationsUnchanged": true,
+  "productionAccepted": false
+}
