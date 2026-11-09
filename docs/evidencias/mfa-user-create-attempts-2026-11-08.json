@@ -1,0 +1,225 @@
+{
+  "recordedOn": "2026-11-08",
+  "timeZone": "America/Sao_Paulo",
+  "status": "V1_HEADER_ASSERTION_ERROR_V2_TYPED_PENDING_FUNCTIONAL",
+  "initialPreparationRefusal": {
+    "sha256": "e91c63845e880b9394ea382558c7aec5b197e7b3559f357509ca465be5b5e660",
+    "freeMiB": 740,
+    "minimumMiB": 1536
+  },
+  "v1": {
+    "testSha256": "badeac9eba5ad2715b8690b1b12432b8106ee2d12d18c218063aa4facfb13006",
+    "types": [
+      {
+        "variant": "baseline",
+        "phase": "resolve",
+        "resultPath": "mfa-user-create-baseline-qa-20261108/checks/resolve/result.json",
+        "sha256": "762a2712ad4028d0c570e02e3acbb71a018d2af60c74c13d53abce70b7848a87",
+        "startedUtc": "2026-11-09T00:21:14.417Z",
+        "childExitedUtc": "2026-11-09T00:21:15.801Z",
+        "durationMs": 1384
+      },
+      {
+        "variant": "baseline",
+        "phase": "types",
+        "resultPath": "mfa-user-create-baseline-qa-20261108/checks/types/result.json",
+        "sha256": "25f402b90733c60efc9c637f4950b039e5e9d9af026bb473310508f8bd730fde",
+        "startedUtc": "2026-11-09T00:21:23.401Z",
+        "childExitedUtc": "2026-11-09T00:21:33.050Z",
+        "durationMs": 9649
+      },
+      {
+        "variant": "fixed",
+        "phase": "resolve",
+        "resultPath": "mfa-user-create-fixed-qa-20261108/checks/resolve/result.json",
+        "sha256": "2455a7003777698d69450ffd9927b19d5bc5f869eb2b022275376e42836c0410",
+        "startedUtc": "2026-11-09T00:21:46.520Z",
+        "childExitedUtc": "2026-11-09T00:21:47.609Z",
+        "durationMs": 1090
+      },
+      {
+        "variant": "fixed",
+        "phase": "types",
+        "resultPath": "mfa-user-create-fixed-qa-20261108/checks/types/result.json",
+        "sha256": "b8050bdb758bebdd2f63a5cccf65786393d3eb595625698b98cbc3102ad3d7f9",
+        "startedUtc": "2026-11-09T00:21:48.412Z",
+        "childExitedUtc": "2026-11-09T00:21:59.320Z",
+        "durationMs": 10909
+      }
+    ],
+    "baselineTotals": {
+      "tests": 21,
+      "suites": 1,
+      "pass": 4,
+      "fail": 17,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "caseObservations": [
+      {
+        "case": "flag new: rejects factor removal after real global authorization",
+        "result": "not ok",
+        "classification": "INCORRECT_TEST_HEADER_EXPECTATION"
+      },
+      {
+        "case": "flag new: rejects family proof removal after real global authorization",
+        "result": "not ok",
+        "classification": "INCORRECT_TEST_HEADER_EXPECTATION"
+      },
+      {
+        "case": "flag duplicate: rejects factor removal after real global authorization",
+        "result": "not ok",
+        "classification": "EXPECTED_409_VERSUS_403"
+      },
+      {
+        "case": "flag duplicate: rejects family proof removal after real global authorization",
+        "result": "not ok",
+        "classification": "EXPECTED_409_VERSUS_403"
+      },
+      {
+        "case": "flag: creates ordinary account with exact public fields",
+        "result": "not ok",
+        "classification": "INCORRECT_TEST_HEADER_EXPECTATION"
+      },
+      {
+        "case": "flag: creates administrator with exact public fields",
+        "result": "not ok",
+        "classification": "INCORRECT_TEST_HEADER_EXPECTATION"
+      },
+      {
+        "case": "flag: preserves case insensitive duplicate409 including inactive accounts",
+        "result": "not ok",
+        "classification": "INCORRECT_TEST_HEADER_EXPECTATION"
+      },
+      {
+        "case": "binding new: rejects factor removal after real global authorization",
+        "result": "not ok",
+        "classification": "INCORRECT_TEST_HEADER_EXPECTATION"
+      },
+      {
+        "case": "binding new: rejects family proof removal after real global authorization",
+        "result": "not ok",
+        "classification": "INCORRECT_TEST_HEADER_EXPECTATION"
+      },
+      {
+        "case": "binding duplicate: rejects factor removal after real global authorization",
+        "result": "not ok",
+        "classification": "EXPECTED_409_VERSUS_403"
+      },
+      {
+        "case": "binding duplicate: rejects family proof removal after real global authorization",
+        "result": "not ok",
+        "classification": "EXPECTED_409_VERSUS_403"
+      },
+      {
+        "case": "binding: creates ordinary account with exact public fields",
+        "result": "not ok",
+        "classification": "INCORRECT_TEST_HEADER_EXPECTATION"
+      },
+      {
+        "case": "binding: creates administrator with exact public fields",
+        "result": "not ok",
+        "classification": "INCORRECT_TEST_HEADER_EXPECTATION"
+      },
+      {
+        "case": "binding: preserves case insensitive duplicate409 including inactive accounts",
+        "result": "not ok",
+        "classification": "INCORRECT_TEST_HEADER_EXPECTATION"
+      },
+      {
+        "case": "keeps local managers and residents without global authority out",
+        "result": "ok",
+        "classification": "PASS"
+      },
+      {
+        "case": "requires an authenticated account before creation",
+        "result": "ok",
+        "classification": "PASS"
+      },
+      {
+        "case": "preserves creation validation without changing users or audit",
+        "result": "ok",
+        "classification": "PASS"
+      },
+      {
+        "case": "still requires recent password verification and accepts real recovery reauthentication",
+        "result": "not ok",
+        "classification": "INCORRECT_TEST_HEADER_EXPECTATION"
+      },
+      {
+        "case": "retains database authority checks when a global binding is withdrawn after authorization",
+        "result": "ok",
+        "classification": "PASS"
+      },
+      {
+        "case": "rolls account audit and proof back after users trigger",
+        "result": "not ok",
+        "classification": "INCORRECT_TEST_HEADER_EXPECTATION"
+      },
+      {
+        "case": "rolls account audit and proof back after audit_logs trigger",
+        "result": "not ok",
+        "classification": "INCORRECT_TEST_HEADER_EXPECTATION"
+      }
+    ],
+    "logSha256": "4f00261c1ef0203894b6f05cae58eac9194b1b3db7836c3655b31e93611b0fe4",
+    "nativeResultSha256": "247a4e0668da6bf1365d828e99cbfa35dd99ccb5a5c003451b5e06b86142a91f",
+    "postchecksSha256": "3d0a12ff06f55666421505261d34d96734c86285d7f31ec8d65ac4d9f3e6831f",
+    "startedUtc": "2026-11-09T00:23:00.063Z",
+    "endedUtc": "2026-11-09T00:23:13.444Z",
+    "observedHead": "2242d19426f661e8f3ada575667b30141624dbaf",
+    "cleanupPassed": true,
+    "fixedFunctionalExecuted": false,
+    "triggerCasesStoppedBeforeSetup": true
+  },
+  "v2": {
+    "testSha256": "aaf69c584434555ef55537a440e85ab8fc8736b825e074fbdfbda9ba01d1227a",
+    "productSha256": "2ea5a0fb12de27dd9c7a7083c98c34d35f59305e37b7d619ff6d37a71e198c3a",
+    "productUnchanged": true,
+    "types": [
+      {
+        "variant": "baseline",
+        "phase": "resolve",
+        "resultPath": "mfa-user-create-v2-baseline-qa-20261108/checks/resolve/result.json",
+        "sha256": "3d7811ad74bc0087f22fbd711fcb271e9d357b795a0217758751fbc7cad0a174",
+        "startedUtc": "2026-11-09T00:25:15.360Z",
+        "childExitedUtc": "2026-11-09T00:25:16.478Z",
+        "durationMs": 1118
+      },
+      {
+        "variant": "baseline",
+        "phase": "types",
+        "resultPath": "mfa-user-create-v2-baseline-qa-20261108/checks/types/result.json",
+        "sha256": "7562aed7c7af506446a3b66065170512024939212b7765f4f6be806dc8c955ee",
+        "startedUtc": "2026-11-09T00:25:17.354Z",
+        "childExitedUtc": "2026-11-09T00:25:28.009Z",
+        "durationMs": 10655
+      },
+      {
+        "variant": "fixed",
+        "phase": "resolve",
+        "resultPath": "mfa-user-create-v2-fixed-qa-20261108/checks/resolve/result.json",
+        "sha256": "df5a55b9ac95563934184ec688b5f2faed7cbad6156b3988e70d16e83b486ac4",
+        "startedUtc": "2026-11-09T00:26:03.852Z",
+        "childExitedUtc": "2026-11-09T00:26:05.018Z",
+        "durationMs": 1166
+      },
+      {
+        "variant": "fixed",
+        "phase": "types",
+        "resultPath": "mfa-user-create-v2-fixed-qa-20261108/checks/types/result.json",
+        "sha256": "c663ec59141f833b86f2b4e05298ea8c2fa791e103003b5528993daf83951b71",
+        "startedUtc": "2026-11-09T00:26:05.903Z",
+        "childExitedUtc": "2026-11-09T00:26:22.438Z",
+        "durationMs": 16535
+      }
+    ],
+    "removedIncorrectHeaderAssertions": 3,
+    "casesRemoved": 0,
+    "statusReasonDataAuditAndRollbackAssertionsPreserved": true,
+    "functionalExecuted": false
+  },
+  "productionAccepted": false,
+  "computerRestarted": false
+}
