@@ -1,0 +1,209 @@
+{
+  "version": 1,
+  "format": "new-test-v1",
+  "status": "AUTHORED_NOT_EXECUTED",
+  "recordedOn": "2026-11-08",
+  "baseExaminedPreparedSha256": "f60aa40af6d261b638c6544890e2ad93884a73098599532ab2af0dc748cafd52",
+  "files": [
+    {
+      "path": "apps/api/test/platform-mfa-user-memberships.test.ts",
+      "sha256": "6d8b5567f5d9e9a6a755ef302cb0576e6d245413f0388f4290b8a0550426a28c",
+      "bytes": 24800,
+      "cases": 34
+    }
+  ],
+  "caseDispositions": [
+    {
+      "name": "flag none: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "flag none: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "flag inactive: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "flag inactive: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "flag expired: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "flag expired: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "binding none: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "binding none: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "binding inactive: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "binding inactive: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "binding expired: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "binding expired: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "flag: preserves none membership identity window and same-token eligibility",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "flag: preserves inactive membership identity window and same-token eligibility",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "flag: preserves expired membership identity window and same-token eligibility",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "flag: preserves current membership identity window and same-token eligibility",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "flag: preserves future membership identity window and same-token eligibility",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "binding: preserves none membership identity window and same-token eligibility",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "binding: preserves inactive membership identity window and same-token eligibility",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "binding: preserves expired membership identity window and same-token eligibility",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "binding: preserves current membership identity window and same-token eligibility",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "binding: preserves future membership identity window and same-token eligibility",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "manager: preserves none membership identity window and same-token eligibility",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "manager: preserves inactive membership identity window and same-token eligibility",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "manager: preserves expired membership identity window and same-token eligibility",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "manager: preserves current membership identity window and same-token eligibility",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "manager: preserves future membership identity window and same-token eligibility",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "requires recent verification for manager grants while routine resident admission remains available",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "preserves local scope and denies resident readmission",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "preserves schema and foreign-key refusals without a grant or audit",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "none: rolls membership audit and proof back after memberships trigger",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "inactive: rolls membership audit and proof back after memberships trigger",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "none: rolls membership audit and proof back after audit_logs trigger",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "inactive: rolls membership audit and proof back after audit_logs trigger",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    }
+  ],
+  "baselineExpectedPass": 18,
+  "baselineExpectedFail": 16,
+  "fixedExpectedPass": 34,
+  "independentCases": 34,
+  "parentGroups": 0,
+  "runtimeExecuted": false
+}

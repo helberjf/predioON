@@ -1,0 +1,104 @@
+{
+  "recordedOn": "2026-11-08",
+  "status": "V2_TYPES_PASSED_FUNCTIONAL_PENDING",
+  "sourceFiles": 1040,
+  "typeFiles": 36,
+  "requiredSources": 14,
+  "v1": {
+    "testSha256": "de7beda96ad02b987bf91598f9553f3b48775ab5cf6dbccdc539787a6dd78b4e",
+    "phases": [
+      {
+        "variant": "baseline",
+        "phase": "resolve",
+        "path": "mfa-user-membership-baseline-qa-20261108/checks/resolve/result.json",
+        "sha256": "474e2e2616f2ebd27ed6a85efd363d46a35d55c171c4fdf4c71e7af95a1835cc",
+        "stdoutSha256": "c313d1f5616a1d57c29e1c0ea890221fee877eaf23c7060a338826eaec3e8644",
+        "diagnostics": [],
+        "exitCode": 0
+      },
+      {
+        "variant": "baseline",
+        "phase": "types",
+        "path": "mfa-user-membership-baseline-qa-20261108/checks/types/result.json",
+        "sha256": "5294fa8ca60a21a57fddd8dcdb9a8640354aaebe920a9589b270f9d6eef3a672",
+        "stdoutSha256": "5a815ec62ebf63a8e8217685674a03683b0a9ab3580204c0c28ffcdafd5b696f",
+        "diagnostics": [
+          "test/platform-mfa-user-memberships.test.ts(162,85): error TS2339: Property 'id' does not exist on type 'Row | { role: unknown; unit: {} | null; active: boolean; starts_at: unknown; ends_at: unknown; updated_at: unknown; }'.",
+          "test/platform-mfa-user-memberships.test.ts(164,50): error TS2339: Property 'id' does not exist on type 'Row | { role: unknown; unit: {} | null; active: boolean; starts_at: unknown; ends_at: unknown; updated_at: unknown; }'."
+        ],
+        "exitCode": 2
+      },
+      {
+        "variant": "fixed",
+        "phase": "resolve",
+        "path": "mfa-user-membership-fixed-qa-20261108/checks/resolve/result.json",
+        "sha256": "cd90177cffd2003507996c8c3a492e83eeaffebe2c15b53520bfcb4f80e5c8e3",
+        "stdoutSha256": "00c43a613c98ffa6dfa28e6ba72256997dd935724528031a7e3dabeece04291a",
+        "diagnostics": [],
+        "exitCode": 0
+      },
+      {
+        "variant": "fixed",
+        "phase": "types",
+        "path": "mfa-user-membership-fixed-qa-20261108/checks/types/result.json",
+        "sha256": "dc1df3058d083c83163d098003cbf7538c16a31413f0e4d519b1f05ee44e2c2e",
+        "stdoutSha256": "7c9af75b930843aa303dbdfb0bb10a601c17c3d638989d707316c86bdabbbf23",
+        "diagnostics": [
+          "test/platform-mfa-user-memberships.test.ts(162,85): error TS2339: Property 'id' does not exist on type 'Row | { role: unknown; unit: {} | null; active: boolean; starts_at: unknown; ends_at: unknown; updated_at: unknown; }'.",
+          "test/platform-mfa-user-memberships.test.ts(164,50): error TS2339: Property 'id' does not exist on type 'Row | { role: unknown; unit: {} | null; active: boolean; starts_at: unknown; ends_at: unknown; updated_at: unknown; }'."
+        ],
+        "exitCode": 2
+      }
+    ],
+    "functionalExecuted": false
+  },
+  "v2": {
+    "testSha256": "6d8b5567f5d9e9a6a755ef302cb0576e6d245413f0388f4290b8a0550426a28c",
+    "phases": [
+      {
+        "variant": "baseline",
+        "phase": "resolve",
+        "path": "mfa-user-membership-v2-baseline-qa-20261108/checks/resolve/result.json",
+        "sha256": "2d5324039249318adf30a980f5de1d7656c01a8441e123ddb10a3818a264d1c6",
+        "startedUtc": "2026-11-09T00:44:11.919Z",
+        "endedUtc": "2026-11-09T00:44:12.974Z",
+        "durationMs": 1055
+      },
+      {
+        "variant": "baseline",
+        "phase": "types",
+        "path": "mfa-user-membership-v2-baseline-qa-20261108/checks/types/result.json",
+        "sha256": "0db4288eb9b9b7f27b9aeb2a5c447ac0b1f542ded91934632f791e8fe814f427",
+        "startedUtc": "2026-11-09T00:44:13.786Z",
+        "endedUtc": "2026-11-09T00:44:23.168Z",
+        "durationMs": 9382
+      },
+      {
+        "variant": "fixed",
+        "phase": "resolve",
+        "path": "mfa-user-membership-v2-fixed-qa-20261108/checks/resolve/result.json",
+        "sha256": "76b5c6ce94153851490e262fe729348d2169d3e877a938b8ae295d3dbe6814d2",
+        "startedUtc": "2026-11-09T00:45:02.146Z",
+        "endedUtc": "2026-11-09T00:45:03.161Z",
+        "durationMs": 1015
+      },
+      {
+        "variant": "fixed",
+        "phase": "types",
+        "path": "mfa-user-membership-v2-fixed-qa-20261108/checks/types/result.json",
+        "sha256": "cc65b8cb0851ecdf06186d92fdd265bea7cc07164a1e3075baf9435b7a80d224",
+        "startedUtc": "2026-11-09T00:45:03.946Z",
+        "endedUtc": "2026-11-09T00:45:13.163Z",
+        "durationMs": 9216
+      }
+    ],
+    "typeAnnotationOnly": true,
+    "runtimeAssertionsUnchanged": true,
+    "casesRemoved": 0,
+    "functionalExecuted": false
+  },
+  "productSha256": "8d0658986670db8d9b206b33a1a0ffff0f4342080da38e563ee211c5cbdde241",
+  "productUnchangedBetweenVersions": true,
+  "productionAccepted": false,
+  "computerRestarted": false
+}
