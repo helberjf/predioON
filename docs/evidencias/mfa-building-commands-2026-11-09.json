@@ -1,0 +1,881 @@
+{
+  "recordedOn": "2026-11-09",
+  "timeZone": "America/Sao_Paulo",
+  "status": "VERIFIED",
+  "reviewedByRoot": true,
+  "verifierSha256": "27a74e3b41e5a45aae9061e64c83ee7dbc14132b3c358df4b2bf61280dcfbcac",
+  "observedHead": "d4e309ad67a19e0b71610cde6eec361ae031b35e",
+  "sourceFiles": 1052,
+  "typeFiles": 51,
+  "requiredResolvedSources": 15,
+  "parentPreparedSha256": "962cace5f3801a98a9dcc8f1eb968d0d4424ff1f3ecffe1b6e11bca8329f3688",
+  "preparedPins": {
+    "baseline": "c0e3eeed179e9e517a8e04a3bf53d2fbf9f984da9a3b24024327fa598644ce71",
+    "fixed": "3edd8f97175d0b219e4d3fe9ced27afc937739c7ec170cb49f25384f4a4744d9"
+  },
+  "runtimeProductModified": true,
+  "runtimeProductModifiedPaths": [
+    "apps/api/src/modules/buildings/routes.ts"
+  ],
+  "existingTestsChanged": false,
+  "newTests": [
+    "apps/api/test/platform-mfa-building-commands.test.ts"
+  ],
+  "acceptedCounts": {
+    "directed": 32,
+    "regressionFiles": 3,
+    "regression": 30,
+    "combinedTap": 62,
+    "combinedIndependent": 62,
+    "parentGroups": 0,
+    "suites": 4
+  },
+  "baseline": {
+    "recordedOn": "2026-11-09",
+    "reviewedByRoot": true,
+    "sourceProductModified": false,
+    "functionalCases": 32,
+    "tapSha256": "994e4cd2db82330ee515f6c00ad35a6a26d704d12a75913d2e75d336f693fa1f",
+    "totals": {
+      "tests": 32,
+      "suites": 1,
+      "pass": 16,
+      "fail": 16,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "failures": [
+      {
+        "name": "POST capability: external proof loss rolls back building and audit",
+        "expectedStatus": 403,
+        "actualStatus": 201
+      },
+      {
+        "name": "POST capability: external factor loss rolls back building and audit",
+        "expectedStatus": 403,
+        "actualStatus": 201
+      },
+      {
+        "name": "POST write: external proof loss rolls back building and audit",
+        "expectedStatus": 403,
+        "actualStatus": 201
+      },
+      {
+        "name": "POST write: external factor loss rolls back building and audit",
+        "expectedStatus": 403,
+        "actualStatus": 201
+      },
+      {
+        "name": "POST audit: external proof loss rolls back building and audit",
+        "expectedStatus": 403,
+        "actualStatus": 201
+      },
+      {
+        "name": "POST audit: external factor loss rolls back building and audit",
+        "expectedStatus": 403,
+        "actualStatus": 201
+      },
+      {
+        "name": "PATCH capability: external proof loss rolls back building and audit",
+        "expectedStatus": 403,
+        "actualStatus": 200
+      },
+      {
+        "name": "PATCH capability: external factor loss rolls back building and audit",
+        "expectedStatus": 403,
+        "actualStatus": 200
+      },
+      {
+        "name": "PATCH write: external proof loss rolls back building and audit",
+        "expectedStatus": 403,
+        "actualStatus": 200
+      },
+      {
+        "name": "PATCH write: external factor loss rolls back building and audit",
+        "expectedStatus": 403,
+        "actualStatus": 200
+      },
+      {
+        "name": "PATCH audit: external proof loss rolls back building and audit",
+        "expectedStatus": 403,
+        "actualStatus": 200
+      },
+      {
+        "name": "PATCH audit: external factor loss rolls back building and audit",
+        "expectedStatus": 403,
+        "actualStatus": 200
+      },
+      {
+        "name": "PATCH locked: external proof loss precedes update",
+        "expectedStatus": 403,
+        "actualStatus": 200
+      },
+      {
+        "name": "PATCH locked: external factor loss precedes update",
+        "expectedStatus": 403,
+        "actualStatus": 200
+      },
+      {
+        "name": "PATCH missing: external proof loss precedes404",
+        "expectedStatus": 403,
+        "actualStatus": 404
+      },
+      {
+        "name": "PATCH missing: external factor loss precedes404",
+        "expectedStatus": 403,
+        "actualStatus": 404
+      }
+    ],
+    "allOther16CasesPassed": true,
+    "noSkipsOrTimeouts": true,
+    "rawErrorClassification": "Six201, eight200 and two404 responses instead of403 after external proof/factor withdrawal. All sixteen controls passed.",
+    "baselineCommittedEffectsIndependentlyCompared": false,
+    "scopeLimit": "Denial checks stop at the unexpected baseline status. Full before/after building/organization/audit comparisons are required on fixed; no independent baseline mutation-effect claim.",
+    "resultSha256": "c9a7ef690d6f641fb36fa8753f2e65992550e60e85ec750933175b4a7c2cb5a5",
+    "postchecksSha256": "cc8889fbc6ff253798dc694520b1a8a7da72b9199e83b9ac7d8ab0b20580c37d",
+    "cleanupPassed": true
+  },
+  "typeChecks": [
+    {
+      "variant": "baseline",
+      "phase": "resolve",
+      "result": {
+        "id": "mfa-building-commands-v3-baseline-qa-20261109/checks/resolve/result.json",
+        "sha256": "31b3b180dcbf009b5ca01ab0a964e37a9d9f8aeec94c8e13ea8a3e118a6212f2",
+        "bytes": 1178
+      }
+    },
+    {
+      "variant": "baseline",
+      "phase": "types",
+      "result": {
+        "id": "mfa-building-commands-v3-baseline-qa-20261109/checks/types/result.json",
+        "sha256": "c7c8e674e143f8199bdf0b60fc4b74e11f617a41962febc90b6ec726af006854",
+        "bytes": 1025
+      }
+    },
+    {
+      "variant": "fixed",
+      "phase": "resolve",
+      "result": {
+        "id": "mfa-building-commands-v3-fixed-qa-20261109/checks/resolve/result.json",
+        "sha256": "498a4160510c7408566af5b9d6bb5fae3ed6b87d3c3ecfc6418b2c4bcc74c835",
+        "bytes": 1175
+      }
+    },
+    {
+      "variant": "fixed",
+      "phase": "types",
+      "result": {
+        "id": "mfa-building-commands-v3-fixed-qa-20261109/checks/types/result.json",
+        "sha256": "b4b44db27e5210a399d436d211e198e6fb9a6bf74e27064a6de4c116745227ab",
+        "bytes": 1022
+      }
+    }
+  ],
+  "runs": [
+    {
+      "variant": "baseline",
+      "startedUtc": "2026-11-09T14:18:55.369Z",
+      "endedUtc": "2026-11-09T14:19:14.701Z",
+      "totals": [
+        {
+          "label": "platform-mfa-building-commands",
+          "tests": 32,
+          "suites": 1,
+          "pass": 16,
+          "fail": 16,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "freeMiBAtStart": 2735.0,
+      "cleanupPassed": true,
+      "temporarySystemActivityGuard": {
+        "startedUtc": "2026-11-09T14:18:46.7271874Z",
+        "endedUtc": "2026-11-09T14:19:15.4584262Z",
+        "exitCode": 0,
+        "systemRequiredSet": true,
+        "systemRequiredCleared": true,
+        "displayRequired": false,
+        "awayMode": false,
+        "permanentPowerSettingsChanged": false,
+        "computerRestarted": false
+      }
+    },
+    {
+      "variant": "fixed",
+      "startedUtc": "2026-11-09T14:20:22.641Z",
+      "endedUtc": "2026-11-09T14:20:42.439Z",
+      "totals": [
+        {
+          "label": "platform-mfa-building-commands",
+          "tests": 32,
+          "suites": 1,
+          "pass": 32,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "freeMiBAtStart": 2741.0,
+      "cleanupPassed": true,
+      "temporarySystemActivityGuard": {
+        "startedUtc": "2026-11-09T14:20:15.2807429Z",
+        "endedUtc": "2026-11-09T14:20:44.2805472Z",
+        "exitCode": 0,
+        "systemRequiredSet": true,
+        "systemRequiredCleared": true,
+        "displayRequired": false,
+        "awayMode": false,
+        "permanentPowerSettingsChanged": false,
+        "computerRestarted": false
+      }
+    },
+    {
+      "variant": "fixed-regression",
+      "startedUtc": "2026-11-09T14:21:44.286Z",
+      "endedUtc": "2026-11-09T14:22:14.887Z",
+      "totals": [
+        {
+          "label": "building-feature-capabilities",
+          "tests": 13,
+          "suites": 1,
+          "pass": 13,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        {
+          "label": "platform-mfa-sql-envelopes",
+          "tests": 11,
+          "suites": 1,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        {
+          "label": "platform-mfa-required",
+          "tests": 6,
+          "suites": 1,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ],
+      "freeMiBAtStart": 2750.0,
+      "cleanupPassed": true,
+      "temporarySystemActivityGuard": {
+        "startedUtc": "2026-11-09T14:21:38.7643031Z",
+        "endedUtc": "2026-11-09T14:22:15.6366047Z",
+        "exitCode": 0,
+        "systemRequiredSet": true,
+        "systemRequiredCleared": true,
+        "displayRequired": false,
+        "awayMode": false,
+        "permanentPowerSettingsChanged": false,
+        "computerRestarted": false
+      }
+    }
+  ],
+  "cleanupPassed": true,
+  "attemptHistory": [
+    {
+      "recordedOn": "2026-11-09",
+      "reviewedByRoot": true,
+      "functionalCasesExecuted": 0,
+      "baselineResolveAndTypesRejected": true,
+      "fixedTypesExecuted": false,
+      "error": "TS1005 at line185: one missing closing array bracket in a test-case matrix.",
+      "correctionBytesAdded": 1,
+      "assertionsCasesTimeoutsAndProductUnchanged": true,
+      "testBeforeSha256": "248fa2dd54c853aca23d129abc269d93d7a961eb5a9022f948879e4974af25b1",
+      "testAfterSha256": "81b41643e563e4d4de2cc83f6ff2c2720189ea5e9fb968d58d17f0d44a2cd64c",
+      "baselinePreparedSha256": "0d4745ca9a1ad97756d0c62c43fc5c65be409bf40abd7b30b8e02ce27bc33373",
+      "fixedPreparedSha256": "5e439051efc5d0a38a3f4877251d2bc4959b7b049036284229bd02fbc0b6f7b2",
+      "inputs": [
+        {
+          "path": "mfa-building-commands-baseline-qa-20261109/checks/resolve/result.json",
+          "sha256": "71510b4f0a92ee801e0e2fe44854b26d79b0323c20acb8522af5097cf6d6b5e8"
+        },
+        {
+          "path": "mfa-building-commands-baseline-qa-20261109/checks/resolve/stdout.log",
+          "sha256": "04261eca2b146c17148e991996c63627308bedcfe2e92a636628cc4a74a1ea7c"
+        },
+        {
+          "path": "mfa-building-commands-baseline-qa-20261109/checks/resolve/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "mfa-building-commands-baseline-qa-20261109/checks/types/result.json",
+          "sha256": "9b4d87f03eb6ffec79c326e7cf203b1297db36ef9cca641f38baac146fcbecc5"
+        },
+        {
+          "path": "mfa-building-commands-baseline-qa-20261109/checks/types/stdout.log",
+          "sha256": "9a538a2456d392b3ec88580429a56682e121ddebe994a0094dee3cf6c25d6ad2"
+        },
+        {
+          "path": "mfa-building-commands-baseline-qa-20261109/checks/types/stderr.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "productionAccepted": false
+    },
+    {
+      "recordedOn": "2026-11-09",
+      "reviewedByRoot": true,
+      "functionalCasesExecuted": 32,
+      "fixedFunctionalCasesExecuted": 0,
+      "totals": {
+        "tests": 32,
+        "suites": 1,
+        "pass": 13,
+        "fail": 19,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "failures": [
+        {
+          "name": "POST capability: external proof loss rolls back building and audit",
+          "kind": "MFA_STATUS",
+          "expected": 403,
+          "actual": 201
+        },
+        {
+          "name": "POST capability: external factor loss rolls back building and audit",
+          "kind": "MFA_STATUS",
+          "expected": 403,
+          "actual": 201
+        },
+        {
+          "name": "POST write: external proof loss rolls back building and audit",
+          "kind": "MFA_STATUS",
+          "expected": 403,
+          "actual": 201
+        },
+        {
+          "name": "POST write: external factor loss rolls back building and audit",
+          "kind": "MFA_STATUS",
+          "expected": 403,
+          "actual": 201
+        },
+        {
+          "name": "POST audit: external proof loss rolls back building and audit",
+          "kind": "MFA_STATUS",
+          "expected": 403,
+          "actual": 201
+        },
+        {
+          "name": "POST audit: external factor loss rolls back building and audit",
+          "kind": "MFA_STATUS",
+          "expected": 403,
+          "actual": 201
+        },
+        {
+          "name": "PATCH capability: external proof loss rolls back building and audit",
+          "kind": "MFA_STATUS",
+          "expected": 403,
+          "actual": 200
+        },
+        {
+          "name": "PATCH capability: external factor loss rolls back building and audit",
+          "kind": "MFA_STATUS",
+          "expected": 403,
+          "actual": 200
+        },
+        {
+          "name": "PATCH write: external proof loss rolls back building and audit",
+          "kind": "MFA_STATUS",
+          "expected": 403,
+          "actual": 200
+        },
+        {
+          "name": "PATCH write: external factor loss rolls back building and audit",
+          "kind": "MFA_STATUS",
+          "expected": 403,
+          "actual": 200
+        },
+        {
+          "name": "PATCH audit: external proof loss rolls back building and audit",
+          "kind": "MFA_STATUS",
+          "expected": 403,
+          "actual": 200
+        },
+        {
+          "name": "PATCH audit: external factor loss rolls back building and audit",
+          "kind": "MFA_STATUS",
+          "expected": 403,
+          "actual": 200
+        },
+        {
+          "name": "PATCH locked: external proof loss precedes update",
+          "kind": "MFA_STATUS",
+          "expected": 403,
+          "actual": 200
+        },
+        {
+          "name": "PATCH locked: external factor loss precedes update",
+          "kind": "MFA_STATUS",
+          "expected": 403,
+          "actual": 200
+        },
+        {
+          "name": "PATCH missing: external proof loss precedes404",
+          "kind": "MFA_STATUS",
+          "expected": 403,
+          "actual": 404
+        },
+        {
+          "name": "PATCH missing: external factor loss precedes404",
+          "kind": "MFA_STATUS",
+          "expected": 403,
+          "actual": 404
+        },
+        {
+          "name": "POST flag: real MFA preserves DTO storage and audit",
+          "kind": "FIXTURE_AUDIT_SCOPE",
+          "expected": "BUILDING",
+          "actual": "PLATFORM"
+        },
+        {
+          "name": "POST binding: real MFA preserves DTO storage and audit",
+          "kind": "FIXTURE_AUDIT_SCOPE",
+          "expected": "BUILDING",
+          "actual": "PLATFORM"
+        },
+        {
+          "name": "POST real MFA: original property timezone and address defaults remain",
+          "kind": "FIXTURE_AUDIT_SCOPE",
+          "expected": "BUILDING",
+          "actual": "PLATFORM"
+        }
+      ],
+      "mfaStatusFailures": 16,
+      "fixtureScopeFailures": 3,
+      "allOther13Passed": true,
+      "tapSha256": "43b5855a0daf630f9ff4ec057b84f67daa5e06bdbe5f5884515e64a419d6986c",
+      "testBeforeSha256": "81b41643e563e4d4de2cc83f6ff2c2720189ea5e9fb968d58d17f0d44a2cd64c",
+      "testAfterSha256": "5bf8ceb3f33c1f56b698aee02d5018a80b398dac7bf72e9f79a0b4120ffff60e",
+      "contractSource": "mfa-organization-boundaries-fixed-qa-20261109/source/infrastructure/036-audit-capabilities.sql",
+      "contractSourceSha256": "085e57f736c32ced3b778fbb1df4b62bcfff5056bb9a2bf67a16bf542264118d",
+      "productChangedByCorrection": false,
+      "timeoutsAndCaseMatrixChanged": false,
+      "allOtherAssertionsPreserved": true,
+      "cleanupPassed": true,
+      "productionAccepted": false
+    }
+  ],
+  "inputs": [
+    {
+      "id": "mfa-building-commands-v3-harness-20261109/prepare-building-commands.mjs",
+      "sha256": "85e7e1651a8e31f11de542c1fe29faa3e45cfcff831edf49b29db6f7f9f5ae02",
+      "bytes": 12855
+    },
+    {
+      "id": "mfa-building-commands-v3-harness-20261109/run-types.mjs",
+      "sha256": "33b846d72efd5e092628942aafbf1bba0e4158aaf4ec53048ff285dcda2949bd",
+      "bytes": 14247
+    },
+    {
+      "id": "mfa-building-commands-v3-harness-20261109/baseline-recipe.json",
+      "sha256": "fb58b6aa40cbf3d3335061f0e352a4f4ce81c223e91bb6a0bb568105f4d4a118",
+      "bytes": 14305
+    },
+    {
+      "id": "mfa-building-commands-v3-harness-20261109/baseline-prepare-result.json",
+      "sha256": "e80e0b44cf91377687d98890909d348228477f79af4b7995a8c132db5f36229e",
+      "bytes": 166
+    },
+    {
+      "id": "mfa-building-commands-v3-harness-20261109/baseline-prepare-guard.json",
+      "sha256": "9d8721c9a9e89dd28206a5a8aa52b099c91f5cc79bcba2a446249ed7efa7691d",
+      "bytes": 91
+    },
+    {
+      "id": "mfa-building-commands-v3-harness-20261109/baseline-prepare.stdout.txt",
+      "sha256": "db6a48a2de3c22015db881f11d5e2a8fbd7fd4cf10bbbf6d4fd28befefb34a9b",
+      "bytes": 246
+    },
+    {
+      "id": "mfa-building-commands-v3-harness-20261109/baseline-prepare.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-building-commands-v3-baseline-qa-20261109/checks/resolve/stdout.log",
+      "sha256": "f030794f50741bef6a61d8a6c9f814417bd5581db694a9dd0af9197cec7b72a7",
+      "bytes": 169166
+    },
+    {
+      "id": "mfa-building-commands-v3-baseline-qa-20261109/checks/resolve/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-building-commands-v3-baseline-qa-20261109/checks/resolve/result.json",
+      "sha256": "31b3b180dcbf009b5ca01ab0a964e37a9d9f8aeec94c8e13ea8a3e118a6212f2",
+      "bytes": 1178
+    },
+    {
+      "id": "mfa-building-commands-v3-baseline-qa-20261109/checks/resolve/command.json",
+      "sha256": "8f2893671b4c0a79e32c923a59df05f8da6e28667cf2b77bd1cb587634a1506e",
+      "bytes": 960
+    },
+    {
+      "id": "mfa-building-commands-v3-baseline-qa-20261109/checks/resolve/guard.json",
+      "sha256": "37a47064364e6d365f8e5a90d8d86ab7ffa2bfe5758efea9721d981564fda449",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-building-commands-v3-baseline-qa-20261109/checks/types/stdout.log",
+      "sha256": "08ad035903759252dc3301726d4e54bc33e6dcdf5e97c4c51c95a7717770faca",
+      "bytes": 972
+    },
+    {
+      "id": "mfa-building-commands-v3-baseline-qa-20261109/checks/types/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-building-commands-v3-baseline-qa-20261109/checks/types/result.json",
+      "sha256": "c7c8e674e143f8199bdf0b60fc4b74e11f617a41962febc90b6ec726af006854",
+      "bytes": 1025
+    },
+    {
+      "id": "mfa-building-commands-v3-baseline-qa-20261109/checks/types/command.json",
+      "sha256": "e6adf6a9f509c2a044f1147030346578b9985a794d35efc31cf947e2df9c02a7",
+      "bytes": 965
+    },
+    {
+      "id": "mfa-building-commands-v3-baseline-qa-20261109/checks/types/guard.json",
+      "sha256": "1137f7a07e87b7c860cb8e085782188fffaf506c67af375176ce5194ebaf945d",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-building-commands-v3-baseline-qa-20261109/prepared.json",
+      "sha256": "c0e3eeed179e9e517a8e04a3bf53d2fbf9f984da9a3b24024327fa598644ce71",
+      "bytes": 917686
+    },
+    {
+      "id": "mfa-building-commands-v3-baseline-qa-20261109/tsconfig.test.json",
+      "sha256": "6bb9a2ae91d2965c5a41b8661ccf107ffccdae6ea714cc8ab37453ee17dcc967",
+      "bytes": 3437
+    },
+    {
+      "id": "mfa-building-commands-v3-harness-20261109/fixed-recipe.json",
+      "sha256": "90f93d841b603f9f611a2d63491509ef11ce10e94e0a9e1d7f09b2ee7bcad0f2",
+      "bytes": 14299
+    },
+    {
+      "id": "mfa-building-commands-v3-harness-20261109/fixed-prepare-result.json",
+      "sha256": "1003a430af82c155334674f32afa0ff8597b847bc009fba6a7b64bf64bfc66de",
+      "bytes": 166
+    },
+    {
+      "id": "mfa-building-commands-v3-harness-20261109/fixed-prepare-guard.json",
+      "sha256": "a23376bfed825f2a9781223c2a91d2742ad46a3726631ede2eb9c9c0000bc1c6",
+      "bytes": 91
+    },
+    {
+      "id": "mfa-building-commands-v3-harness-20261109/fixed-prepare.stdout.txt",
+      "sha256": "7ad99eacf3d4d7ffeb033db8a92d5aa815ddab7f6d708c60eb5766fc92c07f28",
+      "bytes": 243
+    },
+    {
+      "id": "mfa-building-commands-v3-harness-20261109/fixed-prepare.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-building-commands-v3-fixed-qa-20261109/checks/resolve/stdout.log",
+      "sha256": "8e4c5a4d2b04d17b87267dd2b6b2587f2f1c1b268f1ca9cc3c54ddef871591ca",
+      "bytes": 168548
+    },
+    {
+      "id": "mfa-building-commands-v3-fixed-qa-20261109/checks/resolve/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-building-commands-v3-fixed-qa-20261109/checks/resolve/result.json",
+      "sha256": "498a4160510c7408566af5b9d6bb5fae3ed6b87d3c3ecfc6418b2c4bcc74c835",
+      "bytes": 1175
+    },
+    {
+      "id": "mfa-building-commands-v3-fixed-qa-20261109/checks/resolve/command.json",
+      "sha256": "6901ef824bb97b1c3281b967f8b3010479c6aec0189c33f4c6fa00a11c18d550",
+      "bytes": 948
+    },
+    {
+      "id": "mfa-building-commands-v3-fixed-qa-20261109/checks/resolve/guard.json",
+      "sha256": "c8e70d2a3d154467b0d085bb4bdb666baeffe892a4024c9a020ebab98128f8e1",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-building-commands-v3-fixed-qa-20261109/checks/types/stdout.log",
+      "sha256": "e87bbf06ac295ed7e981a8458312c85ba697e5c0ae868312d67387050c1a6628",
+      "bytes": 972
+    },
+    {
+      "id": "mfa-building-commands-v3-fixed-qa-20261109/checks/types/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-building-commands-v3-fixed-qa-20261109/checks/types/result.json",
+      "sha256": "b4b44db27e5210a399d436d211e198e6fb9a6bf74e27064a6de4c116745227ab",
+      "bytes": 1022
+    },
+    {
+      "id": "mfa-building-commands-v3-fixed-qa-20261109/checks/types/command.json",
+      "sha256": "52f211b91bddd69b97fb93956f7ca48827819721fcb40fbe4b7b11803d82c17f",
+      "bytes": 953
+    },
+    {
+      "id": "mfa-building-commands-v3-fixed-qa-20261109/checks/types/guard.json",
+      "sha256": "e7268a6201f568bd73f31f6d565c9c8fbf82fcbcfa9de0d395e27ea19ed03b22",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-building-commands-v3-fixed-qa-20261109/prepared.json",
+      "sha256": "3edd8f97175d0b219e4d3fe9ced27afc937739c7ec170cb49f25384f4a4744d9",
+      "bytes": 917143
+    },
+    {
+      "id": "mfa-building-commands-v3-fixed-qa-20261109/tsconfig.test.json",
+      "sha256": "6bb9a2ae91d2965c5a41b8661ccf107ffccdae6ea714cc8ab37453ee17dcc967",
+      "bytes": 3437
+    },
+    {
+      "id": "mfa-building-commands-v3-baseline-evidence-20261109/run-mfa-directed.mjs",
+      "sha256": "699999cfd0d328fce223b36a732cc10525f70c61679a8e1e5ef5f9765ffff30e",
+      "bytes": 13886
+    },
+    {
+      "id": "mfa-building-commands-v3-baseline-evidence-20261109/launch-mfa-directed.ps1",
+      "sha256": "63b17e208ed55ed2e11672e49e41baed0153f325f6f0a9062ba6c35a5fee2c16",
+      "bytes": 13052
+    },
+    {
+      "id": "run-building-commands-v3-baseline-awake-20261109.ps1",
+      "sha256": "00e4d11d4f2638271b39796aea2abd6e04f2b4eaa88b0545a1d7746ccb1abdde",
+      "bytes": 1676
+    },
+    {
+      "id": "mfa-building-commands-v3-fixed-evidence-20261109/run-mfa-directed.mjs",
+      "sha256": "2b17f8882034eeeb16491f39561fa0cb585b663000146a9f203610ffc8c4e1f1",
+      "bytes": 13871
+    },
+    {
+      "id": "mfa-building-commands-v3-fixed-evidence-20261109/launch-mfa-directed.ps1",
+      "sha256": "782158165b1f2f8c86aed6bddcfffee6034d156264e8951186c5501f962ec30d",
+      "bytes": 13040
+    },
+    {
+      "id": "run-building-commands-v3-fixed-awake-20261109.ps1",
+      "sha256": "d814d56a8b10e54362904e185f12350b4c57939718574b8be3c3d777d4262e0f",
+      "bytes": 1673
+    },
+    {
+      "id": "mfa-building-commands-v3-fixed-regression-evidence-20261109/run-mfa-directed.mjs",
+      "sha256": "5e961d7580596875227d52932365a6ac5f899e4e031a0da6c88d88f8a54a6e52",
+      "bytes": 14141
+    },
+    {
+      "id": "mfa-building-commands-v3-fixed-regression-evidence-20261109/launch-mfa-directed.ps1",
+      "sha256": "2263644723dba5db3910627b2ca36d6eb6c7da6bc39b719bad3ac7fc72de0bf7",
+      "bytes": 13040
+    },
+    {
+      "id": "run-building-commands-v3-fixed-regression-awake-20261109.ps1",
+      "sha256": "6a5d6e205571b65eb829459fdbfd3fe9c740dc43dacfc12b692da63d91fc78cf",
+      "bytes": 1684
+    },
+    {
+      "id": "mfa-grants-root-attestation-20261108.json",
+      "sha256": "9d43fe8e98ce5e11a26e7e943fb465a96f24a4c14368bbdab5712e5282cb426e",
+      "bytes": 664
+    },
+    {
+      "id": "mfa-building-commands-v3-baseline-evidence-20261109/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-building-commands-v3-baseline-evidence-20261109/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-building-commands-v3-baseline-evidence-20261109/platform-mfa-building-commands.log",
+      "sha256": "994e4cd2db82330ee515f6c00ad35a6a26d704d12a75913d2e75d336f693fa1f",
+      "bytes": 30764
+    },
+    {
+      "id": "mfa-building-commands-v3-baseline-evidence-20261109/mfa-directed-result.json",
+      "sha256": "c9a7ef690d6f641fb36fa8753f2e65992550e60e85ec750933175b4a7c2cb5a5",
+      "bytes": 316850
+    },
+    {
+      "id": "mfa-building-commands-v3-baseline-evidence-20261109/mfa-directed-postchecks.json",
+      "sha256": "cc8889fbc6ff253798dc694520b1a8a7da72b9199e83b9ac7d8ab0b20580c37d",
+      "bytes": 390
+    },
+    {
+      "id": "mfa-building-commands-v3-baseline-evidence-20261109/owned-database.json",
+      "sha256": "cea7aacf6be1bb74d0303181c36b6496812eb3eb73052ec950ce7c5d6beb7241",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-building-commands-v3-baseline-evidence-20261109/awake-guard.json",
+      "sha256": "cd8f533208bb5f1ca20c528ce6efdba13206f9467a6f2a25cf5c57a33b08b6c4",
+      "bytes": 308
+    },
+    {
+      "id": "mfa-building-commands-v3-fixed-evidence-20261109/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-building-commands-v3-fixed-evidence-20261109/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-building-commands-v3-fixed-evidence-20261109/platform-mfa-building-commands.log",
+      "sha256": "ca31e07a4b80dbcb8c7278dfbeb47abd7c66ed6f71036812b68901517e949952",
+      "bytes": 7328
+    },
+    {
+      "id": "mfa-building-commands-v3-fixed-evidence-20261109/mfa-directed-result.json",
+      "sha256": "707a333280797f0a03a7f176a91e920c9f3336ff420bd27538e4d7f7658a565c",
+      "bytes": 316847
+    },
+    {
+      "id": "mfa-building-commands-v3-fixed-evidence-20261109/mfa-directed-postchecks.json",
+      "sha256": "5c8a7307dcf777253e2e2f5b2eed6a789c3d42030618a7cd0923699b5dcc73ba",
+      "bytes": 390
+    },
+    {
+      "id": "mfa-building-commands-v3-fixed-evidence-20261109/owned-database.json",
+      "sha256": "43afaa0c1690a949d3f7a7241a021cace519d7343e2b687fda42043111f3c197",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-building-commands-v3-fixed-evidence-20261109/awake-guard.json",
+      "sha256": "ab84b6d55e677de7bf8afa8f9f1b2ddda3836757b7adaa4c3aa8b0545bf3b7f7",
+      "bytes": 308
+    },
+    {
+      "id": "mfa-building-commands-v3-fixed-regression-evidence-20261109/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-building-commands-v3-fixed-regression-evidence-20261109/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-building-commands-v3-fixed-regression-evidence-20261109/building-feature-capabilities.log",
+      "sha256": "be8099f38929f059e82fe6d8a612048475a7033aca41bc24ec01d4730459f6ea",
+      "bytes": 3499
+    },
+    {
+      "id": "mfa-building-commands-v3-fixed-regression-evidence-20261109/platform-mfa-sql-envelopes.log",
+      "sha256": "c1d9cb28c1ae0ece32abb161b2af74cd24b9f7f8b7ba7103c100305957b300e9",
+      "bytes": 3175
+    },
+    {
+      "id": "mfa-building-commands-v3-fixed-regression-evidence-20261109/platform-mfa-required.log",
+      "sha256": "3034055ffdabcc1c918f830866d04f19c27addf6f17c57834a4b370524d52f64",
+      "bytes": 1920
+    },
+    {
+      "id": "mfa-building-commands-v3-fixed-regression-evidence-20261109/mfa-directed-result.json",
+      "sha256": "01b969815fa307ab4780bc0179b639a3eb5d0bba51010de63c7ae319ec76300e",
+      "bytes": 318072
+    },
+    {
+      "id": "mfa-building-commands-v3-fixed-regression-evidence-20261109/mfa-directed-postchecks.json",
+      "sha256": "1007b00cb703dabce35620a22d46f747efda83874e86874aac952a6f85402e86",
+      "bytes": 390
+    },
+    {
+      "id": "mfa-building-commands-v3-fixed-regression-evidence-20261109/owned-database.json",
+      "sha256": "bc04ddd687d2c21654e0a4c94788adb3370cbaf4229f887fd2a25f0f33b94170",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-building-commands-v3-fixed-regression-evidence-20261109/awake-guard.json",
+      "sha256": "f6497425e55d654731cb40ed60474f121714d759baf0aa88bea25af36aac218e",
+      "bytes": 308
+    },
+    {
+      "id": "mfa-building-commands-v3-harness-20261109/PLAN.json",
+      "sha256": "0b0b1262243260c215af9b55bbe18ee06895b0de3962a378c578a8ff16f71ac8",
+      "bytes": 5209
+    },
+    {
+      "id": "mfa-building-commands-v3-harness-20261109/AUTHORED-PINS.json",
+      "sha256": "570fa31851ecfd39ef8cd0f291bfd020d29912f953d4eab1f7e95a62dd40dc65",
+      "bytes": 664
+    },
+    {
+      "id": "mfa-building-commands-v3-harness-20261109/executors-handoff.json",
+      "sha256": "b02e7a832da2e035b921fcc6bd797427e3f1288817f1185971373dffbed7d8f7",
+      "bytes": 4146
+    },
+    {
+      "id": "mfa-building-commands-v3-test-20261109/manifest.json",
+      "sha256": "0077fde34363d2667e33e914b7908ecc019aebda140eae2872cba0ae2b8da38e",
+      "bytes": 3048
+    },
+    {
+      "id": "mfa-building-commands-candidate-20261109/manifest.json",
+      "sha256": "d4a9f5645c2cd3aed58cd1a9b2db66b7b7d7b62c0afe5bf1ebba4d0dae0fe43c",
+      "bytes": 821
+    },
+    {
+      "id": "mfa-building-commands-baseline-review-20261109.json",
+      "sha256": "33a582117a7047a1ccfc74893d1605c332023845b6de9772aab4981fb88c991b",
+      "bytes": 3364
+    },
+    {
+      "id": "mfa-building-commands-v1-review-20261109.json",
+      "sha256": "c94148ba461860805f0faddd918d8e33e2e06bc23414ce7327befcf709c98852",
+      "bytes": 1843
+    },
+    {
+      "id": "mfa-building-commands-v2-review-20261109.json",
+      "sha256": "f8b835fbc5b98e0c3bb0c8697b585107e444d77d79172ee121e67cc514ff23f0",
+      "bytes": 4156
+    },
+    {
+      "id": "mfa-building-commands-v2-baseline-evidence-20261109/platform-mfa-building-commands.log",
+      "sha256": "43b5855a0daf630f9ff4ec057b84f67daa5e06bdbe5f5884515e64a419d6986c",
+      "bytes": 34590
+    }
+  ],
+  "scopeLimits": [
+    "Building POST/PATCH gain seven explicit current-MFA checks. Original DML, FOR UPDATE lock, global/local capability rules, audit-before-deactivation, GET, schemas/policies/migrations and optional MFA for ordinary users preserved.",
+    "Identical32-case V3 test bytes on baseline/fixed; raw real HTTP login/enrollment/TOTP. Observers pause after original SQL capability/write/audit/row-lock query and never fabricate SQL results. Not actual external database waits in this batch.",
+    "Sixteen negative outcomes require403 and unchanged full building/organization/domain-audit snapshots. Sixteen controls check ten-field DTO/storage, global flag/binding, ordinary local manager updates/deactivation/name-only preservation, cross-organization isolation, local unauthorized roles, defaults and valid404.",
+    "Three unchanged regressions: building/feature capabilities13, SQL envelopes11, mandatory MFA6. Some historical SQL contexts remain synthetic; real ceremony proven by directed32 and the existing HTTP administrator fixtures.",
+    "V1 syntax failed before functional runs; V2 baseline had16 MFA divergences and three incorrect expected audit scopes. V3 preserves036 PLATFORM scope for creation and BUILDING for edits; other assertions, matrix, timeouts and product unchanged by fixture corrections.",
+    "Private response cache, external waits, promotion/triggers, remaining equipment/domain commands and complete API/ingest/browser/native/hardware/operations acceptance pending. Earlier batches are separate and not summed. MFA068 candidate; canonical main001-067 unchanged."
+  ],
+  "computerRestarted": false,
+  "performanceAssessed": false,
+  "privateCacheAccepted": false,
+  "productionAccepted": false
+}

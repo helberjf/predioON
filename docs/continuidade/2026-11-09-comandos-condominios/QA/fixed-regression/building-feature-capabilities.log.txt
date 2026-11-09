@@ -1,0 +1,95 @@
+TAP version 13
+# Subtest: capacidades de seleção de condomínios e funcionalidades
+    # Subtest: mantém catálogo aditivo SQL e runtime iguais
+    ok 1 - mantém catálogo aditivo SQL e runtime iguais
+      ---
+      duration_ms: 34.5108
+      type: 'test'
+      ...
+    # Subtest: manutenção por equipe seleciona apenas seu condomínio e lê estado, sem editar
+    ok 2 - manutenção por equipe seleciona apenas seu condomínio e lê estado, sem editar
+      ---
+      duration_ms: 1079.1142
+      type: 'test'
+      ...
+    # Subtest: binding de recurso descobre cadastro e features sem ampliar capacidade operacional
+    ok 3 - binding de recurso descobre cadastro e features sem ampliar capacidade operacional
+      ---
+      duration_ms: 1040.058
+      type: 'test'
+      ...
+    # Subtest: revogação, vigência e equipe inativa retiram acesso no mesmo JWT
+    ok 4 - revogação, vigência e equipe inativa retiram acesso no mesmo JWT
+      ---
+      duration_ms: 1200.0679
+      type: 'test'
+      ...
+    # Subtest: suporte descobre somente condomínio concedido com grant válido e papel vigente
+    ok 5 - suporte descobre somente condomínio concedido com grant válido e papel vigente
+      ---
+      duration_ms: 1103.704
+      type: 'test'
+      ...
+    # Subtest: síndico por binding edita A, morador em B não edita B e revogação é imediata
+    ok 6 - síndico por binding edita A, morador em B não edita B e revogação é imediata
+      ---
+      duration_ms: 954.8854
+      type: 'test'
+      ...
+    # Subtest: desativação local audita antes da perda de acesso e global reativa
+    ok 7 - desativação local audita antes da perda de acesso e global reativa
+      ---
+      duration_ms: 914.9537
+      type: 'test'
+      ...
+    # Subtest: admin global explícito e compatibilidade legada provisionam e configuram com ator real
+    ok 8 - admin global explícito e compatibilidade legada provisionam e configuram com ator real
+      ---
+      duration_ms: 1472.3108
+      type: 'test'
+      ...
+    # Subtest: conta e organização inativas retiram permissões e contexto forjado não concede acesso
+    ok 9 - conta e organização inativas retiram permissões e contexto forjado não concede acesso
+      ---
+      duration_ms: 887.3033
+      type: 'test'
+      ...
+    # Subtest: RLS de leitura não autoriza UPDATE/INSERT/DELETE de condomínio
+    ok 10 - RLS de leitura não autoriza UPDATE/INSERT/DELETE de condomínio
+      ---
+      duration_ms: 774.3881
+      type: 'test'
+      ...
+    # Subtest: helper de descoberta mantém proprietário administrativo e execução restrita
+    ok 11 - helper de descoberta mantém proprietário administrativo e execução restrita
+      ---
+      duration_ms: 5.8364
+      type: 'test'
+      ...
+    # Subtest: admin global explícito configura o padrão global com versão e audit
+    ok 12 - admin global explícito configura o padrão global com versão e audit
+      ---
+      duration_ms: 1138.5625
+      type: 'test'
+      ...
+    # Subtest: políticas identity e broker continuam lendo cadastro com seus privilégios
+    ok 13 - políticas identity e broker continuam lendo cadastro com seus privilégios
+      ---
+      duration_ms: 784.7849
+      type: 'test'
+      ...
+    1..13
+ok 1 - capacidades de seleção de condomínios e funcionalidades
+  ---
+  duration_ms: 11432.4412
+  type: 'suite'
+  ...
+1..1
+# tests 13
+# suites 1
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 13230.8965

@@ -1,0 +1,134 @@
+import { Router } from "express";
+import { asc, eq, sql } from "drizzle-orm";
+import { z } from "zod";
+import { buildings, type AppTransaction } from "@predioon/db/runtime";
+import { CreatePropertySchema, UpdatePropertySchema } from "@predioon/shared";
+import { assertBuildingDiscovery, assertCapability, assertGlobalCapability, currentAuth, inTenantContext } from "../../auth/middleware.js";
+import { notFound } from "../../http/errors.js";
+import { generateId } from "../../http/ids.js";
+import { validateBody } from "../../http/validate.js";
+import { recordAudit } from "../audit/repo.js";
+import { param } from "../../http/params.js";
+import { decodeMfaReadDate, readMfaRows } from "../../auth/mfa-read.js";
+
+export const buildingsRouter = Router();
+
+const CreateSchema = CreatePropertySchema;
+const UpdateSchema = UpdatePropertySchema;
+
+// Observe current mandatory MFA at command boundaries, including empty targets
+// and post-write/audit responses. Existing capability and tenant rules stay intact.
+async function assertBuildingMfa(tx: AppTransaction): Promise<void> {
+  const [row] = await tx.execute<{ allowed: unknown }>(sql`select public.app_require_session_mfa() as allowed`);
+  if (row?.allowed !== true) throw new Error("Invalid guarded building MFA state");
+}
+
+// Alias every selected column to its existing DTO key before JSON aggregation.
+// address is kept as its JSON value, including nested nulls; no new validation
+// is imposed on legacy address content by this transport decoder.
+const BuildingReadRow = z.object({
+  id: z.string(), organizationId: z.string(), name: z.string(), code: z.string(),
+  timezone: z.string(), propertyType: z.string(), address: z.unknown(),
+  active: z.boolean(), createdAt: z.string().transform(decodeMfaReadDate),
+  updatedAt: z.string().transform(decodeMfaReadDate),
+}).strict();
+
+/** PostgreSQL discovers current scopes from bindings, teams and diagnostic grants. */
+buildingsRouter.get("/", async (req, res) => {
+  const rows = await inTenantContext(req, tx => readMfaRows(tx,
+    tx.select({
+      id: sql`${buildings.id}`.as("id"),
+      organizationId: sql`${buildings.organizationId}`.as("organizationId"),
+      name: sql`${buildings.name}`.as("name"), code: sql`${buildings.code}`.as("code"),
+      timezone: sql`${buildings.timezone}`.as("timezone"),
+      propertyType: sql`${buildings.propertyType}`.as("propertyType"),
+      address: sql`${buildings.address}`.as("address"), active: sql`${buildings.active}`.as("active"),
+      createdAt: sql`${buildings.createdAt}`.as("createdAt"),
+      updatedAt: sql`${buildings.updatedAt}`.as("updatedAt"),
+    }).from(buildings).orderBy(asc(buildings.name)).getSQL(),
+    value => BuildingReadRow.parse(value), ["name"],
+  ));
+  res.json({ items: rows });
+});
+
+buildingsRouter.get("/:buildingId", async (req, res) => {
+  const buildingId = param(req, "buildingId");
+  const row = await inTenantContext(req, async tx => {
+    await assertBuildingDiscovery(tx, buildingId);
+    const [found] = await readMfaRows(tx,
+      tx.select({
+        id: sql`${buildings.id}`.as("id"),
+        organizationId: sql`${buildings.organizationId}`.as("organizationId"),
+        name: sql`${buildings.name}`.as("name"), code: sql`${buildings.code}`.as("code"),
+        timezone: sql`${buildings.timezone}`.as("timezone"),
+        propertyType: sql`${buildings.propertyType}`.as("propertyType"),
+        address: sql`${buildings.address}`.as("address"), active: sql`${buildings.active}`.as("active"),
+        createdAt: sql`${buildings.createdAt}`.as("createdAt"),
+        updatedAt: sql`${buildings.updatedAt}`.as("updatedAt"),
+      }).from(buildings).where(eq(buildings.id, buildingId)).limit(1).getSQL(),
+      value => BuildingReadRow.parse(value), ["id"],
+    );
+    if (!found) throw notFound("Prédio não encontrado");
+    return found;
+  });
+  res.json(row);
+});
+
+buildingsRouter.post("/", validateBody(CreateSchema), async (req, res) => {
+  const input = req.body as z.infer<typeof CreateSchema>;
+  const auth = currentAuth(req);
+
+  const row = await inTenantContext(req, async (tx) => {
+    await assertGlobalCapability(tx, "buildings:provision");
+    await assertBuildingMfa(tx);
+    const [created] = await tx
+      .insert(buildings)
+      .values({ id: generateId("bld"), ...input, address: input.address ?? {} })
+      .returning();
+    await assertBuildingMfa(tx);
+    await recordAudit(tx, req, {
+      buildingId: created!.id,
+      userId: auth.userId,
+      action: "BUILDING_CREATED",
+      resourceType: "building",
+      resourceId: created!.id,
+    });
+    await assertBuildingMfa(tx);
+    return created!;
+  });
+
+  res.status(201).json(row);
+});
+
+buildingsRouter.patch("/:buildingId", validateBody(UpdateSchema), async (req, res) => {
+  const auth = currentAuth(req);
+  const buildingId = param(req, "buildingId");
+  const input = req.body as z.infer<typeof UpdateSchema>;
+
+  const row = await inTenantContext(req, async (tx) => {
+    const [global] = await tx.execute(sql`select app_has_global_capability('buildings:manage') as allowed`);
+    if (!global?.allowed) await assertCapability(tx, "buildings:manage", buildingId, { type: "building", id: buildingId });
+    await assertBuildingMfa(tx);
+    const [existing] = await tx.select().from(buildings).where(eq(buildings.id, buildingId)).for("update").limit(1);
+    await assertBuildingMfa(tx);
+    if (!existing) throw notFound("Prédio não encontrado");
+    // Auditing before deactivation preserves the current tenant grant; rollback
+    // keeps the audit and mutation atomic if the update subsequently fails.
+    await recordAudit(tx, req, {
+      buildingId,
+      userId: auth.userId,
+      action: "BUILDING_UPDATED",
+      resourceType: "building",
+      resourceId: buildingId,
+      metadata: input,
+    });
+    await assertBuildingMfa(tx);
+    const [updated] = await tx.update(buildings).set({ ...input, updatedAt: new Date() })
+      .where(eq(buildings.id, buildingId)).returning();
+    await assertBuildingMfa(tx);
+    if (!updated) throw notFound("Prédio não encontrado");
+    return updated;
+  });
+
+  res.json(row);
+});

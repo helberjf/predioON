@@ -1,0 +1,41 @@
+{
+  "recordedOn": "2026-11-09",
+  "reviewedByRoot": true,
+  "functionalCasesExecuted": 0,
+  "baselineResolveAndTypesRejected": true,
+  "fixedTypesExecuted": false,
+  "error": "TS1005 at line185: one missing closing array bracket in a test-case matrix.",
+  "correctionBytesAdded": 1,
+  "assertionsCasesTimeoutsAndProductUnchanged": true,
+  "testBeforeSha256": "248fa2dd54c853aca23d129abc269d93d7a961eb5a9022f948879e4974af25b1",
+  "testAfterSha256": "81b41643e563e4d4de2cc83f6ff2c2720189ea5e9fb968d58d17f0d44a2cd64c",
+  "baselinePreparedSha256": "0d4745ca9a1ad97756d0c62c43fc5c65be409bf40abd7b30b8e02ce27bc33373",
+  "fixedPreparedSha256": "5e439051efc5d0a38a3f4877251d2bc4959b7b049036284229bd02fbc0b6f7b2",
+  "inputs": [
+    {
+      "path": "mfa-building-commands-baseline-qa-20261109/checks/resolve/result.json",
+      "sha256": "71510b4f0a92ee801e0e2fe44854b26d79b0323c20acb8522af5097cf6d6b5e8"
+    },
+    {
+      "path": "mfa-building-commands-baseline-qa-20261109/checks/resolve/stdout.log",
+      "sha256": "04261eca2b146c17148e991996c63627308bedcfe2e92a636628cc4a74a1ea7c"
+    },
+    {
+      "path": "mfa-building-commands-baseline-qa-20261109/checks/resolve/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "mfa-building-commands-baseline-qa-20261109/checks/types/result.json",
+      "sha256": "9b4d87f03eb6ffec79c326e7cf203b1297db36ef9cca641f38baac146fcbecc5"
+    },
+    {
+      "path": "mfa-building-commands-baseline-qa-20261109/checks/types/stdout.log",
+      "sha256": "9a538a2456d392b3ec88580429a56682e121ddebe994a0094dee3cf6c25d6ad2"
+    },
+    {
+      "path": "mfa-building-commands-baseline-qa-20261109/checks/types/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "productionAccepted": false
+}

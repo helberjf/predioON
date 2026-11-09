@@ -1,0 +1,79 @@
+{
+  "status": "AUTHORED_NOT_EXECUTED",
+  "preparedPins": {
+    "baseline": "c0e3eeed179e9e517a8e04a3bf53d2fbf9f984da9a3b24024327fa598644ce71",
+    "fixed": "3edd8f97175d0b219e4d3fe9ced27afc937739c7ec170cb49f25384f4a4744d9"
+  },
+  "configSha256": "6bb9a2ae91d2965c5a41b8661ccf107ffccdae6ea714cc8ab37453ee17dcc967",
+  "sourceFiles": 1052,
+  "typeTests": 51,
+  "requiredSources": 15,
+  "directedCases": 32,
+  "baselineClassificationPending": true,
+  "regressionTapPlanned": 30,
+  "regressionFiles": 3,
+  "executors": [
+    {
+      "path": "mfa-building-commands-v3-baseline-evidence-20261109/run-mfa-directed.mjs",
+      "sha256": "699999cfd0d328fce223b36a732cc10525f70c61679a8e1e5ef5f9765ffff30e",
+      "modelPath": "mfa-organization-waits-baseline-evidence-20261109/run-mfa-directed.mjs",
+      "modelSha256": "0820993253e81c51a29b4c7bc156a74e2c7d986fdf26992786b55340019586aa"
+    },
+    {
+      "path": "mfa-building-commands-v3-baseline-evidence-20261109/launch-mfa-directed.ps1",
+      "sha256": "63b17e208ed55ed2e11672e49e41baed0153f325f6f0a9062ba6c35a5fee2c16",
+      "modelPath": "mfa-organization-waits-baseline-evidence-20261109/launch-mfa-directed.ps1",
+      "modelSha256": "5de044e14f1cf2e0d80632bdf8e0615cac4f45e46e27aeb300b5a4e2eb0d5532"
+    },
+    {
+      "path": "run-building-commands-v3-baseline-awake-20261109.ps1",
+      "sha256": "00e4d11d4f2638271b39796aea2abd6e04f2b4eaa88b0545a1d7746ccb1abdde",
+      "modelPath": "run-organization-waits-baseline-awake-20261109.ps1",
+      "modelSha256": "86398575414e2ac097eb3d562ce754e2860a7f1afee24d2768cfd3826f89ae2c"
+    },
+    {
+      "path": "mfa-building-commands-v3-fixed-evidence-20261109/run-mfa-directed.mjs",
+      "sha256": "2b17f8882034eeeb16491f39561fa0cb585b663000146a9f203610ffc8c4e1f1",
+      "modelPath": "mfa-organization-waits-fixed-evidence-20261109/run-mfa-directed.mjs",
+      "modelSha256": "b81c1989587507578d952ffc12dff4c8e4965d265f639833ff4e10461f66b8ee"
+    },
+    {
+      "path": "mfa-building-commands-v3-fixed-evidence-20261109/launch-mfa-directed.ps1",
+      "sha256": "782158165b1f2f8c86aed6bddcfffee6034d156264e8951186c5501f962ec30d",
+      "modelPath": "mfa-organization-waits-fixed-evidence-20261109/launch-mfa-directed.ps1",
+      "modelSha256": "1e45570a449742761be9a177e6c6020ba9dc0132a83d9980c5d075b7b3dc31a0"
+    },
+    {
+      "path": "run-building-commands-v3-fixed-awake-20261109.ps1",
+      "sha256": "d814d56a8b10e54362904e185f12350b4c57939718574b8be3c3d777d4262e0f",
+      "modelPath": "run-organization-waits-fixed-awake-20261109.ps1",
+      "modelSha256": "f26f4767042dae152947b3b6b9020dd4e89708e5c345af26fff4b12e1b0c42a3"
+    },
+    {
+      "path": "mfa-building-commands-v3-fixed-regression-evidence-20261109/run-mfa-directed.mjs",
+      "sha256": "5e961d7580596875227d52932365a6ac5f899e4e031a0da6c88d88f8a54a6e52",
+      "modelPath": "mfa-organization-waits-fixed-regression-evidence-20261109/run-mfa-directed.mjs",
+      "modelSha256": "7cb1852d727004201ecc272d88f368b0219303e08ca267a4a9cdef26a1da823e"
+    },
+    {
+      "path": "mfa-building-commands-v3-fixed-regression-evidence-20261109/launch-mfa-directed.ps1",
+      "sha256": "2263644723dba5db3910627b2ca36d6eb6c7da6bc39b719bad3ac7fc72de0bf7",
+      "modelPath": "mfa-organization-waits-fixed-regression-evidence-20261109/launch-mfa-directed.ps1",
+      "modelSha256": "bb6850890ee5b9648ff6fd0d1fc80a4bfbb3965523efb666355ac1e13acae85f"
+    },
+    {
+      "path": "run-building-commands-v3-fixed-regression-awake-20261109.ps1",
+      "sha256": "6a5d6e205571b65eb829459fdbfd3fe9c740dc43dacfc12b692da63d91fc78cf",
+      "modelPath": "run-organization-waits-fixed-regression-awake-20261109.ps1",
+      "modelSha256": "7d53743daca26152ecbebf53f31bfe84bc83e21757b2c009c81b6f6c56e7596e"
+    }
+  ],
+  "clusterAttestation": "mfa-grants-root-attestation-20261108.json",
+  "clusterAttestationSha256": "9d43fe8e98ce5e11a26e7e943fb465a96f24a4c14368bbdab5712e5282cb426e",
+  "processLifecycleModified": false,
+  "temporaryAwakeGuard": true,
+  "requiresAlreadyRunningAttestedCluster": true,
+  "minimumFreeMiB": 1536,
+  "clusterStartRestartCommandsAdded": false,
+  "computerRestarted": false
+}

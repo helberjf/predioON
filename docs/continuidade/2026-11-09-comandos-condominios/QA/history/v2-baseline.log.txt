@@ -1,0 +1,579 @@
+TAP version 13
+# Subtest: MFA building commands retain authorization and original contracts
+    # Subtest: POST capability: external proof loss rolls back building and audit
+    not ok 1 - POST capability: external proof loss rolls back building and audit
+      ---
+      duration_ms: 460.2668
+      type: 'test'
+      location: 'C:\\Users\\Mai Tonheim\\Documents\\Codex\\2026-10-01\\https-github-com-helberjf-predioon-https-2\\work\\mfa-building-commands-v2-baseline-qa-20261109\\source\\apps\\api\\test\\platform-mfa-building-commands.test.ts:3:7526'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+        
+        201 !== 403
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 403
+      actual: 201
+      operator: 'strictEqual'
+      stack: |-
+        denied (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:140:62)
+        <anonymous> (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:171:58)
+        process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+        async using (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:127:9)
+        async Test.run (node:internal/test_runner/test:1389:7)
+        async Promise.all (index 0)
+        async Suite.run (node:internal/test_runner/test:1869:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+      ...
+    # Subtest: POST capability: external factor loss rolls back building and audit
+    not ok 2 - POST capability: external factor loss rolls back building and audit
+      ---
+      duration_ms: 228.9181
+      type: 'test'
+      location: 'C:\\Users\\Mai Tonheim\\Documents\\Codex\\2026-10-01\\https-github-com-helberjf-predioon-https-2\\work\\mfa-building-commands-v2-baseline-qa-20261109\\source\\apps\\api\\test\\platform-mfa-building-commands.test.ts:3:7526'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+        
+        201 !== 403
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 403
+      actual: 201
+      operator: 'strictEqual'
+      stack: |-
+        denied (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:140:62)
+        <anonymous> (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:171:58)
+        process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+        async using (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:127:9)
+        async Test.run (node:internal/test_runner/test:1389:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:960:7)
+      ...
+    # Subtest: POST write: external proof loss rolls back building and audit
+    not ok 3 - POST write: external proof loss rolls back building and audit
+      ---
+      duration_ms: 205.7246
+      type: 'test'
+      location: 'C:\\Users\\Mai Tonheim\\Documents\\Codex\\2026-10-01\\https-github-com-helberjf-predioon-https-2\\work\\mfa-building-commands-v2-baseline-qa-20261109\\source\\apps\\api\\test\\platform-mfa-building-commands.test.ts:3:7526'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+        
+        201 !== 403
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 403
+      actual: 201
+      operator: 'strictEqual'
+      stack: |-
+        denied (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:140:62)
+        <anonymous> (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:171:58)
+        process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+        async using (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:127:9)
+        async Test.run (node:internal/test_runner/test:1389:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:960:7)
+      ...
+    # Subtest: POST write: external factor loss rolls back building and audit
+    not ok 4 - POST write: external factor loss rolls back building and audit
+      ---
+      duration_ms: 218.7593
+      type: 'test'
+      location: 'C:\\Users\\Mai Tonheim\\Documents\\Codex\\2026-10-01\\https-github-com-helberjf-predioon-https-2\\work\\mfa-building-commands-v2-baseline-qa-20261109\\source\\apps\\api\\test\\platform-mfa-building-commands.test.ts:3:7526'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+        
+        201 !== 403
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 403
+      actual: 201
+      operator: 'strictEqual'
+      stack: |-
+        denied (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:140:62)
+        <anonymous> (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:171:58)
+        process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+        async using (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:127:9)
+        async Test.run (node:internal/test_runner/test:1389:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:960:7)
+      ...
+    # Subtest: POST audit: external proof loss rolls back building and audit
+    not ok 5 - POST audit: external proof loss rolls back building and audit
+      ---
+      duration_ms: 264.0025
+      type: 'test'
+      location: 'C:\\Users\\Mai Tonheim\\Documents\\Codex\\2026-10-01\\https-github-com-helberjf-predioon-https-2\\work\\mfa-building-commands-v2-baseline-qa-20261109\\source\\apps\\api\\test\\platform-mfa-building-commands.test.ts:3:7526'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+        
+        201 !== 403
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 403
+      actual: 201
+      operator: 'strictEqual'
+      stack: |-
+        denied (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:140:62)
+        <anonymous> (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:171:58)
+        process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+        async using (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:127:9)
+        async Test.run (node:internal/test_runner/test:1389:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:960:7)
+      ...
+    # Subtest: POST audit: external factor loss rolls back building and audit
+    not ok 6 - POST audit: external factor loss rolls back building and audit
+      ---
+      duration_ms: 264.4155
+      type: 'test'
+      location: 'C:\\Users\\Mai Tonheim\\Documents\\Codex\\2026-10-01\\https-github-com-helberjf-predioon-https-2\\work\\mfa-building-commands-v2-baseline-qa-20261109\\source\\apps\\api\\test\\platform-mfa-building-commands.test.ts:3:7526'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+        
+        201 !== 403
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 403
+      actual: 201
+      operator: 'strictEqual'
+      stack: |-
+        denied (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:140:62)
+        <anonymous> (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:171:58)
+        process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+        async using (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:127:9)
+        async Test.run (node:internal/test_runner/test:1389:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:960:7)
+      ...
+    # Subtest: PATCH capability: external proof loss rolls back building and audit
+    not ok 7 - PATCH capability: external proof loss rolls back building and audit
+      ---
+      duration_ms: 251.5797
+      type: 'test'
+      location: 'C:\\Users\\Mai Tonheim\\Documents\\Codex\\2026-10-01\\https-github-com-helberjf-predioon-https-2\\work\\mfa-building-commands-v2-baseline-qa-20261109\\source\\apps\\api\\test\\platform-mfa-building-commands.test.ts:3:7526'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+        
+        200 !== 403
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 403
+      actual: 200
+      operator: 'strictEqual'
+      stack: |-
+        denied (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:140:62)
+        <anonymous> (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:171:58)
+        process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+        async using (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:127:9)
+        async Test.run (node:internal/test_runner/test:1389:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:960:7)
+      ...
+    # Subtest: PATCH capability: external factor loss rolls back building and audit
+    not ok 8 - PATCH capability: external factor loss rolls back building and audit
+      ---
+      duration_ms: 257.1872
+      type: 'test'
+      location: 'C:\\Users\\Mai Tonheim\\Documents\\Codex\\2026-10-01\\https-github-com-helberjf-predioon-https-2\\work\\mfa-building-commands-v2-baseline-qa-20261109\\source\\apps\\api\\test\\platform-mfa-building-commands.test.ts:3:7526'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+        
+        200 !== 403
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 403
+      actual: 200
+      operator: 'strictEqual'
+      stack: |-
+        denied (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:140:62)
+        <anonymous> (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:171:58)
+        process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+        async using (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:127:9)
+        async Test.run (node:internal/test_runner/test:1389:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:960:7)
+      ...
+    # Subtest: PATCH write: external proof loss rolls back building and audit
+    not ok 9 - PATCH write: external proof loss rolls back building and audit
+      ---
+      duration_ms: 261.9494
+      type: 'test'
+      location: 'C:\\Users\\Mai Tonheim\\Documents\\Codex\\2026-10-01\\https-github-com-helberjf-predioon-https-2\\work\\mfa-building-commands-v2-baseline-qa-20261109\\source\\apps\\api\\test\\platform-mfa-building-commands.test.ts:3:7526'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+        
+        200 !== 403
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 403
+      actual: 200
+      operator: 'strictEqual'
+      stack: |-
+        denied (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:140:62)
+        <anonymous> (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:171:58)
+        process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+        async using (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:127:9)
+        async Test.run (node:internal/test_runner/test:1389:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:960:7)
+      ...
+    # Subtest: PATCH write: external factor loss rolls back building and audit
+    not ok 10 - PATCH write: external factor loss rolls back building and audit
+      ---
+      duration_ms: 262.2141
+      type: 'test'
+      location: 'C:\\Users\\Mai Tonheim\\Documents\\Codex\\2026-10-01\\https-github-com-helberjf-predioon-https-2\\work\\mfa-building-commands-v2-baseline-qa-20261109\\source\\apps\\api\\test\\platform-mfa-building-commands.test.ts:3:7526'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+        
+        200 !== 403
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 403
+      actual: 200
+      operator: 'strictEqual'
+      stack: |-
+        denied (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:140:62)
+        <anonymous> (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:171:58)
+        process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+        async using (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:127:9)
+        async Test.run (node:internal/test_runner/test:1389:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:960:7)
+      ...
+    # Subtest: PATCH audit: external proof loss rolls back building and audit
+    not ok 11 - PATCH audit: external proof loss rolls back building and audit
+      ---
+      duration_ms: 261.6161
+      type: 'test'
+      location: 'C:\\Users\\Mai Tonheim\\Documents\\Codex\\2026-10-01\\https-github-com-helberjf-predioon-https-2\\work\\mfa-building-commands-v2-baseline-qa-20261109\\source\\apps\\api\\test\\platform-mfa-building-commands.test.ts:3:7526'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+        
+        200 !== 403
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 403
+      actual: 200
+      operator: 'strictEqual'
+      stack: |-
+        denied (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:140:62)
+        <anonymous> (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:171:58)
+        process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+        async using (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:127:9)
+        async Test.run (node:internal/test_runner/test:1389:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:960:7)
+      ...
+    # Subtest: PATCH audit: external factor loss rolls back building and audit
+    not ok 12 - PATCH audit: external factor loss rolls back building and audit
+      ---
+      duration_ms: 247.0111
+      type: 'test'
+      location: 'C:\\Users\\Mai Tonheim\\Documents\\Codex\\2026-10-01\\https-github-com-helberjf-predioon-https-2\\work\\mfa-building-commands-v2-baseline-qa-20261109\\source\\apps\\api\\test\\platform-mfa-building-commands.test.ts:3:7526'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+        
+        200 !== 403
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 403
+      actual: 200
+      operator: 'strictEqual'
+      stack: |-
+        denied (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:140:62)
+        <anonymous> (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:171:58)
+        process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+        async using (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:127:9)
+        async Test.run (node:internal/test_runner/test:1389:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:960:7)
+      ...
+    # Subtest: PATCH locked: external proof loss precedes update
+    not ok 13 - PATCH locked: external proof loss precedes update
+      ---
+      duration_ms: 245.5886
+      type: 'test'
+      location: 'C:\\Users\\Mai Tonheim\\Documents\\Codex\\2026-10-01\\https-github-com-helberjf-predioon-https-2\\work\\mfa-building-commands-v2-baseline-qa-20261109\\source\\apps\\api\\test\\platform-mfa-building-commands.test.ts:3:7846'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+        
+        200 !== 403
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 403
+      actual: 200
+      operator: 'strictEqual'
+      stack: |-
+        denied (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:140:62)
+        <anonymous> (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:175:56)
+        process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+        async using (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:127:9)
+        async Test.run (node:internal/test_runner/test:1389:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:960:7)
+      ...
+    # Subtest: PATCH locked: external factor loss precedes update
+    not ok 14 - PATCH locked: external factor loss precedes update
+      ---
+      duration_ms: 264.1119
+      type: 'test'
+      location: 'C:\\Users\\Mai Tonheim\\Documents\\Codex\\2026-10-01\\https-github-com-helberjf-predioon-https-2\\work\\mfa-building-commands-v2-baseline-qa-20261109\\source\\apps\\api\\test\\platform-mfa-building-commands.test.ts:3:7846'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+        
+        200 !== 403
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 403
+      actual: 200
+      operator: 'strictEqual'
+      stack: |-
+        denied (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:140:62)
+        <anonymous> (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:175:56)
+        process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+        async using (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:127:9)
+        async Test.run (node:internal/test_runner/test:1389:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:960:7)
+      ...
+    # Subtest: PATCH missing: external proof loss precedes404
+    not ok 15 - PATCH missing: external proof loss precedes404
+      ---
+      duration_ms: 258.3622
+      type: 'test'
+      location: 'C:\\Users\\Mai Tonheim\\Documents\\Codex\\2026-10-01\\https-github-com-helberjf-predioon-https-2\\work\\mfa-building-commands-v2-baseline-qa-20261109\\source\\apps\\api\\test\\platform-mfa-building-commands.test.ts:3:8150'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+        
+        404 !== 403
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 403
+      actual: 404
+      operator: 'strictEqual'
+      stack: |-
+        denied (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:140:62)
+        <anonymous> (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:178:56)
+        process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+        async using (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:127:9)
+        async Test.run (node:internal/test_runner/test:1389:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:960:7)
+      ...
+    # Subtest: PATCH missing: external factor loss precedes404
+    not ok 16 - PATCH missing: external factor loss precedes404
+      ---
+      duration_ms: 231.8379
+      type: 'test'
+      location: 'C:\\Users\\Mai Tonheim\\Documents\\Codex\\2026-10-01\\https-github-com-helberjf-predioon-https-2\\work\\mfa-building-commands-v2-baseline-qa-20261109\\source\\apps\\api\\test\\platform-mfa-building-commands.test.ts:3:8150'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+        
+        404 !== 403
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 403
+      actual: 404
+      operator: 'strictEqual'
+      stack: |-
+        denied (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:140:62)
+        <anonymous> (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:178:56)
+        process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+        async using (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:127:9)
+        async Test.run (node:internal/test_runner/test:1389:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:960:7)
+      ...
+    # Subtest: POST flag: real MFA preserves DTO storage and audit
+    not ok 17 - POST flag: real MFA preserves DTO storage and audit
+      ---
+      duration_ms: 265.0819
+      type: 'test'
+      location: 'C:\\Users\\Mai Tonheim\\Documents\\Codex\\2026-10-01\\https-github-com-helberjf-predioon-https-2\\work\\mfa-building-commands-v2-baseline-qa-20261109\\source\\apps\\api\\test\\platform-mfa-building-commands.test.ts:3:8527'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+        + actual - expected
+        
+        + 'PLATFORM'
+        - 'BUILDING'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 'BUILDING'
+      actual: 'PLATFORM'
+      operator: 'strictEqual'
+      stack: |-
+        positive (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:154:102)
+        process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+        async using (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:127:9)
+        async Test.run (node:internal/test_runner/test:1389:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:960:7)
+      ...
+    # Subtest: POST binding: real MFA preserves DTO storage and audit
+    not ok 18 - POST binding: real MFA preserves DTO storage and audit
+      ---
+      duration_ms: 260.4954
+      type: 'test'
+      location: 'C:\\Users\\Mai Tonheim\\Documents\\Codex\\2026-10-01\\https-github-com-helberjf-predioon-https-2\\work\\mfa-building-commands-v2-baseline-qa-20261109\\source\\apps\\api\\test\\platform-mfa-building-commands.test.ts:3:8527'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+        + actual - expected
+        
+        + 'PLATFORM'
+        - 'BUILDING'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 'BUILDING'
+      actual: 'PLATFORM'
+      operator: 'strictEqual'
+      stack: |-
+        positive (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:154:102)
+        process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+        async using (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:127:9)
+        async Test.run (node:internal/test_runner/test:1389:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:960:7)
+      ...
+    # Subtest: PATCH flag: real MFA preserves DTO storage and audit
+    ok 19 - PATCH flag: real MFA preserves DTO storage and audit
+      ---
+      duration_ms: 250.7206
+      type: 'test'
+      ...
+    # Subtest: PATCH binding: real MFA preserves DTO storage and audit
+    ok 20 - PATCH binding: real MFA preserves DTO storage and audit
+      ---
+      duration_ms: 259.3026
+      type: 'test'
+      ...
+    # Subtest: PATCH flag: real MFA preserves deactivation and its audit
+    ok 21 - PATCH flag: real MFA preserves deactivation and its audit
+      ---
+      duration_ms: 243.8968
+      type: 'test'
+      ...
+    # Subtest: PATCH binding: real MFA preserves deactivation and its audit
+    ok 22 - PATCH binding: real MFA preserves deactivation and its audit
+      ---
+      duration_ms: 263.2899
+      type: 'test'
+      ...
+    # Subtest: PATCH ordinary local manager full: optional MFA preserves business contract
+    ok 23 - PATCH ordinary local manager full: optional MFA preserves business contract
+      ---
+      duration_ms: 158.9283
+      type: 'test'
+      ...
+    # Subtest: PATCH ordinary local manager name-only: optional MFA preserves business contract
+    ok 24 - PATCH ordinary local manager name-only: optional MFA preserves business contract
+      ---
+      duration_ms: 132.9156
+      type: 'test'
+      ...
+    # Subtest: PATCH ordinary local manager deactivate: optional MFA preserves business contract
+    ok 25 - PATCH ordinary local manager deactivate: optional MFA preserves business contract
+      ---
+      duration_ms: 154.4203
+      type: 'test'
+      ...
+    # Subtest: POST ordinary manager: local identity cannot gain unauthorized management
+    ok 26 - POST ordinary manager: local identity cannot gain unauthorized management
+      ---
+      duration_ms: 122.9389
+      type: 'test'
+      ...
+    # Subtest: POST ordinary resident: local identity cannot gain unauthorized management
+    ok 27 - POST ordinary resident: local identity cannot gain unauthorized management
+      ---
+      duration_ms: 106.5696
+      type: 'test'
+      ...
+    # Subtest: PATCH ordinary resident: local identity cannot gain unauthorized management
+    ok 28 - PATCH ordinary resident: local identity cannot gain unauthorized management
+      ---
+      duration_ms: 129.0174
+      type: 'test'
+      ...
+    # Subtest: PATCH ordinary manager: another organization stays isolated
+    ok 29 - PATCH ordinary manager: another organization stays isolated
+      ---
+      duration_ms: 125.4769
+      type: 'test'
+      ...
+    # Subtest: PATCH missing flag: satisfied MFA preserves404
+    ok 30 - PATCH missing flag: satisfied MFA preserves404
+      ---
+      duration_ms: 227.7783
+      type: 'test'
+      ...
+    # Subtest: PATCH missing binding: satisfied MFA preserves404
+    ok 31 - PATCH missing binding: satisfied MFA preserves404
+      ---
+      duration_ms: 234.7766
+      type: 'test'
+      ...
+    # Subtest: POST real MFA: original property timezone and address defaults remain
+    not ok 32 - POST real MFA: original property timezone and address defaults remain
+      ---
+      duration_ms: 262.8739
+      type: 'test'
+      location: 'C:\\Users\\Mai Tonheim\\Documents\\Codex\\2026-10-01\\https-github-com-helberjf-predioon-https-2\\work\\mfa-building-commands-v2-baseline-qa-20261109\\source\\apps\\api\\test\\platform-mfa-building-commands.test.ts:3:10195'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+        + actual - expected
+        
+        + 'PLATFORM'
+        - 'BUILDING'
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 'BUILDING'
+      actual: 'PLATFORM'
+      operator: 'strictEqual'
+      stack: |-
+        positive (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:154:102)
+        process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+        async using (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-building-commands-v2-baseline-qa-20261109\source\apps\api\test\platform-mfa-building-commands.test.ts:127:9)
+        async Test.run (node:internal/test_runner/test:1389:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:960:7)
+      ...
+    1..32
+not ok 1 - MFA building commands retain authorization and original contracts
+  ---
+  duration_ms: 7612.9013
+  type: 'suite'
+  location: 'C:\\Users\\Mai Tonheim\\Documents\\Codex\\2026-10-01\\https-github-com-helberjf-predioon-https-2\\work\\mfa-building-commands-v2-baseline-qa-20261109\\source\\apps\\api\\test\\platform-mfa-building-commands.test.ts:1:3503'
+  failureType: 'subtestsFailed'
+  error: '19 subtests failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..1
+# tests 32
+# suites 1
+# pass 13
+# fail 19
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 9491.3771

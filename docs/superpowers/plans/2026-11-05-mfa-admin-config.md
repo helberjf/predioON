@@ -1,5 +1,7 @@
 # ADMIN/CONFIG: três ações comuns, sem 174 guards individuais
 
+**Atualização de 09/11 — comandos de condomínios:** [32 dirigidos + 30 regressões aprovados](../../evidencias/mfa-building-commands-2026-11-09.json). Sete limites verificam MFA sem alterar regras de capacidade, auditoria/desativação ou GET. [Resultado e histórico](../../continuidade/2026-11-09-comandos-condominios/RESULTADO.md). Seguir esperas externas, promoção/triggers, equipamentos e cache privado.
+
 **Atualização de 09/11 — limites de organizações:** [36 verificações aprovadas](../../evidencias/mfa-organization-boundaries-2026-11-09.json), sem mudar o produto. [Resultado](../../continuidade/2026-11-09-limites-organizacoes/RESULTADO.md). Promoção, revogação durante conflito e reversão após falhas cobertas; seguir condomínios/equipamentos.
 
 **Atualização de 09/11 — organizações concorrentes:** [15 dirigidos + 66 regressões aprovados](../../evidencias/mfa-organization-waits-2026-11-09.json); conflito após espera agora exige MFA/capacidades atuais. [Resultado](../../continuidade/2026-11-09-organizacoes-concorrentes/RESULTADO.md). Seguir promoção/triggers e demais domínios.

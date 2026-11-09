@@ -1,0 +1,144 @@
+{
+  "recordedOn": "2026-11-09",
+  "reviewedByRoot": true,
+  "functionalCasesExecuted": 32,
+  "fixedFunctionalCasesExecuted": 0,
+  "totals": {
+    "tests": 32,
+    "suites": 1,
+    "pass": 13,
+    "fail": 19,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failures": [
+    {
+      "name": "POST capability: external proof loss rolls back building and audit",
+      "kind": "MFA_STATUS",
+      "expected": 403,
+      "actual": 201
+    },
+    {
+      "name": "POST capability: external factor loss rolls back building and audit",
+      "kind": "MFA_STATUS",
+      "expected": 403,
+      "actual": 201
+    },
+    {
+      "name": "POST write: external proof loss rolls back building and audit",
+      "kind": "MFA_STATUS",
+      "expected": 403,
+      "actual": 201
+    },
+    {
+      "name": "POST write: external factor loss rolls back building and audit",
+      "kind": "MFA_STATUS",
+      "expected": 403,
+      "actual": 201
+    },
+    {
+      "name": "POST audit: external proof loss rolls back building and audit",
+      "kind": "MFA_STATUS",
+      "expected": 403,
+      "actual": 201
+    },
+    {
+      "name": "POST audit: external factor loss rolls back building and audit",
+      "kind": "MFA_STATUS",
+      "expected": 403,
+      "actual": 201
+    },
+    {
+      "name": "PATCH capability: external proof loss rolls back building and audit",
+      "kind": "MFA_STATUS",
+      "expected": 403,
+      "actual": 200
+    },
+    {
+      "name": "PATCH capability: external factor loss rolls back building and audit",
+      "kind": "MFA_STATUS",
+      "expected": 403,
+      "actual": 200
+    },
+    {
+      "name": "PATCH write: external proof loss rolls back building and audit",
+      "kind": "MFA_STATUS",
+      "expected": 403,
+      "actual": 200
+    },
+    {
+      "name": "PATCH write: external factor loss rolls back building and audit",
+      "kind": "MFA_STATUS",
+      "expected": 403,
+      "actual": 200
+    },
+    {
+      "name": "PATCH audit: external proof loss rolls back building and audit",
+      "kind": "MFA_STATUS",
+      "expected": 403,
+      "actual": 200
+    },
+    {
+      "name": "PATCH audit: external factor loss rolls back building and audit",
+      "kind": "MFA_STATUS",
+      "expected": 403,
+      "actual": 200
+    },
+    {
+      "name": "PATCH locked: external proof loss precedes update",
+      "kind": "MFA_STATUS",
+      "expected": 403,
+      "actual": 200
+    },
+    {
+      "name": "PATCH locked: external factor loss precedes update",
+      "kind": "MFA_STATUS",
+      "expected": 403,
+      "actual": 200
+    },
+    {
+      "name": "PATCH missing: external proof loss precedes404",
+      "kind": "MFA_STATUS",
+      "expected": 403,
+      "actual": 404
+    },
+    {
+      "name": "PATCH missing: external factor loss precedes404",
+      "kind": "MFA_STATUS",
+      "expected": 403,
+      "actual": 404
+    },
+    {
+      "name": "POST flag: real MFA preserves DTO storage and audit",
+      "kind": "FIXTURE_AUDIT_SCOPE",
+      "expected": "BUILDING",
+      "actual": "PLATFORM"
+    },
+    {
+      "name": "POST binding: real MFA preserves DTO storage and audit",
+      "kind": "FIXTURE_AUDIT_SCOPE",
+      "expected": "BUILDING",
+      "actual": "PLATFORM"
+    },
+    {
+      "name": "POST real MFA: original property timezone and address defaults remain",
+      "kind": "FIXTURE_AUDIT_SCOPE",
+      "expected": "BUILDING",
+      "actual": "PLATFORM"
+    }
+  ],
+  "mfaStatusFailures": 16,
+  "fixtureScopeFailures": 3,
+  "allOther13Passed": true,
+  "tapSha256": "43b5855a0daf630f9ff4ec057b84f67daa5e06bdbe5f5884515e64a419d6986c",
+  "testBeforeSha256": "81b41643e563e4d4de2cc83f6ff2c2720189ea5e9fb968d58d17f0d44a2cd64c",
+  "testAfterSha256": "5bf8ceb3f33c1f56b698aee02d5018a80b398dac7bf72e9f79a0b4120ffff60e",
+  "contractSource": "mfa-organization-boundaries-fixed-qa-20261109/source/infrastructure/036-audit-capabilities.sql",
+  "contractSourceSha256": "085e57f736c32ced3b778fbb1df4b62bcfff5056bb9a2bf67a16bf542264118d",
+  "productChangedByCorrection": false,
+  "timeoutsAndCaseMatrixChanged": false,
+  "allOtherAssertionsPreserved": true,
+  "cleanupPassed": true,
+  "productionAccepted": false
+}

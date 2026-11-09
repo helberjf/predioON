@@ -1,5 +1,7 @@
 # Melhorias e novas implementações — Prédio ON
 
+**Atualização de 09/11 — comandos de condomínios:** [32 dirigidos + 30 regressões passaram](evidencias/mfa-building-commands-2026-11-09.json). Verificações de MFA vigente preservam administração local, edição parcial e desativação. [Resultado e histórico](continuidade/2026-11-09-comandos-condominios/RESULTADO.md).
+
 **Atualização de 09/11 — limites de organizações:** [36 casos passaram](evidencias/mfa-organization-boundaries-2026-11-09.json), cobrindo promoção/MFA na mesma sessão, perda de autoridade no conflito e reversão após falhas. [Resultado](continuidade/2026-11-09-limites-organizacoes/RESULTADO.md). Produto preservado; seguir demais domínios.
 
 **Atualização de 09/11 — conflitos concorrentes de organizações:** [15 dirigidos e 66 regressões passaram](evidencias/mfa-organization-waits-2026-11-09.json). Antes de informar conflito, a API confere autorização novamente após a espera. [Resultado e limites](continuidade/2026-11-09-organizacoes-concorrentes/RESULTADO.md).
@@ -20,7 +22,7 @@
 
 **Atualização de 09/11 — configurações protegidas no candidato:** [72 dirigidos e quatro regressões passaram](evidencias/mfa-feature-commands-2026-11-09.json), somando 117 casos independentes e três grupos. [Pacote de 1.045 fontes e limites](continuidade/2026-11-09-configuracoes/RESULTADO.md). Versões concorrentes, herança/dependências, vagas, auditoria e notificação transacional conferidas. Sem homologação completa de produção.
 
-**P1 — ampliar comandos e integração:** limites de organizações concluídos em 36 casos, com 81 casos anteriores em prova separada. Seguir condomínios/equipamentos, demais domínios, cache privado e integração API/ingest. Aceites completos de portais, hardware e apps nativos continuam pendentes.
+**P1 — ampliar comandos e integração:** comandos de condomínios passaram em 32 dirigidos e 30 regressões. Seguir esperas externas, promoção/triggers e retirada de autoridade nos limites, equipamentos/gateways e demais domínios, cache privado e integração API/ingest. Organizações conservam provas separadas. Aceites completos de portais, hardware e apps nativos continuam pendentes.
 
 **Atualização de 09/11 — concessão, substituição e revogação de suporte validadas no candidato:** [99 casos dirigidos e seis regressões passaram](evidencias/mfa-support-grant-commands-2026-11-09.json), somando198 casos independentes e quatro grupos. [Composição restaurável de1.044 fontes e limites](continuidade/2026-11-09-acessos-suporte/RESULTADO.md). Dezesseis esperas reais, rollback de múltiplas capacidades/auditorias, prazos mínimo/máximo, isolamento, idempotência e autoridade parcial exercitados. Próximos: configurações, demais domínios/concorrências, cache, integração web/mobile e operação.
 

@@ -1,0 +1,209 @@
+TAP version 13
+# Subtest: MFA building commands retain authorization and original contracts
+    # Subtest: POST capability: external proof loss rolls back building and audit
+    ok 1 - POST capability: external proof loss rolls back building and audit
+      ---
+      duration_ms: 415.2859
+      type: 'test'
+      ...
+    # Subtest: POST capability: external factor loss rolls back building and audit
+    ok 2 - POST capability: external factor loss rolls back building and audit
+      ---
+      duration_ms: 233.9267
+      type: 'test'
+      ...
+    # Subtest: POST write: external proof loss rolls back building and audit
+    ok 3 - POST write: external proof loss rolls back building and audit
+      ---
+      duration_ms: 229.6698
+      type: 'test'
+      ...
+    # Subtest: POST write: external factor loss rolls back building and audit
+    ok 4 - POST write: external factor loss rolls back building and audit
+      ---
+      duration_ms: 207.2756
+      type: 'test'
+      ...
+    # Subtest: POST audit: external proof loss rolls back building and audit
+    ok 5 - POST audit: external proof loss rolls back building and audit
+      ---
+      duration_ms: 277.8126
+      type: 'test'
+      ...
+    # Subtest: POST audit: external factor loss rolls back building and audit
+    ok 6 - POST audit: external factor loss rolls back building and audit
+      ---
+      duration_ms: 270.0276
+      type: 'test'
+      ...
+    # Subtest: PATCH capability: external proof loss rolls back building and audit
+    ok 7 - PATCH capability: external proof loss rolls back building and audit
+      ---
+      duration_ms: 257.0843
+      type: 'test'
+      ...
+    # Subtest: PATCH capability: external factor loss rolls back building and audit
+    ok 8 - PATCH capability: external factor loss rolls back building and audit
+      ---
+      duration_ms: 244.0437
+      type: 'test'
+      ...
+    # Subtest: PATCH write: external proof loss rolls back building and audit
+    ok 9 - PATCH write: external proof loss rolls back building and audit
+      ---
+      duration_ms: 282.0614
+      type: 'test'
+      ...
+    # Subtest: PATCH write: external factor loss rolls back building and audit
+    ok 10 - PATCH write: external factor loss rolls back building and audit
+      ---
+      duration_ms: 270.0222
+      type: 'test'
+      ...
+    # Subtest: PATCH audit: external proof loss rolls back building and audit
+    ok 11 - PATCH audit: external proof loss rolls back building and audit
+      ---
+      duration_ms: 270.8898
+      type: 'test'
+      ...
+    # Subtest: PATCH audit: external factor loss rolls back building and audit
+    ok 12 - PATCH audit: external factor loss rolls back building and audit
+      ---
+      duration_ms: 259.3689
+      type: 'test'
+      ...
+    # Subtest: PATCH locked: external proof loss precedes update
+    ok 13 - PATCH locked: external proof loss precedes update
+      ---
+      duration_ms: 255.0222
+      type: 'test'
+      ...
+    # Subtest: PATCH locked: external factor loss precedes update
+    ok 14 - PATCH locked: external factor loss precedes update
+      ---
+      duration_ms: 295.2401
+      type: 'test'
+      ...
+    # Subtest: PATCH missing: external proof loss precedes404
+    ok 15 - PATCH missing: external proof loss precedes404
+      ---
+      duration_ms: 225.7755
+      type: 'test'
+      ...
+    # Subtest: PATCH missing: external factor loss precedes404
+    ok 16 - PATCH missing: external factor loss precedes404
+      ---
+      duration_ms: 245.7456
+      type: 'test'
+      ...
+    # Subtest: POST flag: real MFA preserves DTO storage and audit
+    ok 17 - POST flag: real MFA preserves DTO storage and audit
+      ---
+      duration_ms: 264.3568
+      type: 'test'
+      ...
+    # Subtest: POST binding: real MFA preserves DTO storage and audit
+    ok 18 - POST binding: real MFA preserves DTO storage and audit
+      ---
+      duration_ms: 260.7058
+      type: 'test'
+      ...
+    # Subtest: PATCH flag: real MFA preserves DTO storage and audit
+    ok 19 - PATCH flag: real MFA preserves DTO storage and audit
+      ---
+      duration_ms: 257.6342
+      type: 'test'
+      ...
+    # Subtest: PATCH binding: real MFA preserves DTO storage and audit
+    ok 20 - PATCH binding: real MFA preserves DTO storage and audit
+      ---
+      duration_ms: 275.2761
+      type: 'test'
+      ...
+    # Subtest: PATCH flag: real MFA preserves deactivation and its audit
+    ok 21 - PATCH flag: real MFA preserves deactivation and its audit
+      ---
+      duration_ms: 250.8174
+      type: 'test'
+      ...
+    # Subtest: PATCH binding: real MFA preserves deactivation and its audit
+    ok 22 - PATCH binding: real MFA preserves deactivation and its audit
+      ---
+      duration_ms: 271.3618
+      type: 'test'
+      ...
+    # Subtest: PATCH ordinary local manager full: optional MFA preserves business contract
+    ok 23 - PATCH ordinary local manager full: optional MFA preserves business contract
+      ---
+      duration_ms: 168.2483
+      type: 'test'
+      ...
+    # Subtest: PATCH ordinary local manager name-only: optional MFA preserves business contract
+    ok 24 - PATCH ordinary local manager name-only: optional MFA preserves business contract
+      ---
+      duration_ms: 170.7342
+      type: 'test'
+      ...
+    # Subtest: PATCH ordinary local manager deactivate: optional MFA preserves business contract
+    ok 25 - PATCH ordinary local manager deactivate: optional MFA preserves business contract
+      ---
+      duration_ms: 167.5625
+      type: 'test'
+      ...
+    # Subtest: POST ordinary manager: local identity cannot gain unauthorized management
+    ok 26 - POST ordinary manager: local identity cannot gain unauthorized management
+      ---
+      duration_ms: 123.7609
+      type: 'test'
+      ...
+    # Subtest: POST ordinary resident: local identity cannot gain unauthorized management
+    ok 27 - POST ordinary resident: local identity cannot gain unauthorized management
+      ---
+      duration_ms: 122.1106
+      type: 'test'
+      ...
+    # Subtest: PATCH ordinary resident: local identity cannot gain unauthorized management
+    ok 28 - PATCH ordinary resident: local identity cannot gain unauthorized management
+      ---
+      duration_ms: 130.0974
+      type: 'test'
+      ...
+    # Subtest: PATCH ordinary manager: another organization stays isolated
+    ok 29 - PATCH ordinary manager: another organization stays isolated
+      ---
+      duration_ms: 118.9828
+      type: 'test'
+      ...
+    # Subtest: PATCH missing flag: satisfied MFA preserves404
+    ok 30 - PATCH missing flag: satisfied MFA preserves404
+      ---
+      duration_ms: 245.3663
+      type: 'test'
+      ...
+    # Subtest: PATCH missing binding: satisfied MFA preserves404
+    ok 31 - PATCH missing binding: satisfied MFA preserves404
+      ---
+      duration_ms: 259.9823
+      type: 'test'
+      ...
+    # Subtest: POST real MFA: original property timezone and address defaults remain
+    ok 32 - POST real MFA: original property timezone and address defaults remain
+      ---
+      duration_ms: 279.4257
+      type: 'test'
+      ...
+    1..32
+ok 1 - MFA building commands retain authorization and original contracts
+  ---
+  duration_ms: 7814.7432
+  type: 'suite'
+  ...
+1..1
+# tests 32
+# suites 1
+# pass 32
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 9730.4793

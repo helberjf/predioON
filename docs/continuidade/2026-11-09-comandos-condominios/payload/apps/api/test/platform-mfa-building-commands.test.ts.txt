@@ -1,0 +1,195 @@
+import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
+import type { Server } from "node:http";
+import { after, before, describe, it } from "node:test";
+import { decodeJwt } from "jose";
+import { PgDialect } from "drizzle-orm/pg-core";
+import { sqlClient } from "@predioon/db";
+import { appDb, appSqlClient, closeAppDb, verifyRestrictedDatabaseRole, type AppTransaction } from "@predioon/db/runtime";
+import { app } from "../src/app.js";
+import { hashPassword } from "../src/auth/passwords.js";
+import { base32Decode, totpCode, totpStep } from "../src/auth/totp.js";
+import "./helpers.js";
+
+// Identical tests for baseline and fixed product. Proof uses real HTTP MFA;
+// observers execute the original SQL exactly once and never manufacture rows.
+type Kind = "flag" | "binding" | "manager" | "resident";
+type Actor = { id: string; token: string; sid: string; binding: string | null; codes: string[] };
+type Row = Record<string, unknown>;
+type HttpResult = { status: number; body: unknown; cache: string | null };
+function signal() { let resolve!: () => void; const promise = new Promise<void>(done => { resolve = done; }); return { promise, resolve }; }
+async function bounded<T>(promise: PromiseLike<T>, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try { return await Promise.race([Promise.resolve(promise), new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`Fixture deadline: ${label}`)), 5000);
+  })]); } finally { clearTimeout(timer); }
+}
+async function settleAll(transactions: Promise<unknown>[]) {
+  await bounded((async () => {
+    let completed = 0;
+    while (completed < transactions.length) {
+      const batch = transactions.slice(completed); completed += batch.length; await Promise.allSettled(batch);
+    }
+  })(), "all actual app transactions settled");
+}
+function trackAllTransactions() {
+  const original = appDb.transaction, run = original.bind(appDb), transactions: Promise<unknown>[] = [];
+  appDb.transaction = (callback, config) => { const pending = run(callback, config); transactions.push(pending); return pending; };
+  return { settle: () => settleAll(transactions), restore() { appDb.transaction = original; } };
+}
+type Method="POST"|"PATCH";
+type Boundary="capability"|"write"|"audit"|"locked";
+function observeBoundary(stage:Boundary,method:Method){
+  const original=appDb.transaction,run=original.bind(appDb),dialect=new PgDialect(),reached=signal(),release=signal(),transactions:Promise<unknown>[]=[];
+  let matched=false;
+  const afterQuery=async(query:string,rows:unknown)=>{
+    const at=stage==="capability"?query.includes("select app_has_global_capability(")
+      :stage==="audit"?/insert into "?audit_logs"?/i.test(query)
+      :stage==="locked"?query.includes("for update")
+      :method==="POST"?/insert into (?:public\.)?"?buildings"?\s*\(/i.test(query):/update (?:public\.)?"?buildings"?\s+(?:as [a-z]+ )?set/i.test(query);
+    if(!matched&&at){matched=true;reached.resolve();await bounded(release.promise,"organization boundary release");}
+    return rows;
+  };
+  function builder(object:any):any{return new Proxy(object,{get(target,key){
+    if(key==="then")return(resolve:any,reject:any)=>target.then((rows:unknown)=>afterQuery(target.toSQL().sql,rows)).then(resolve,reject);
+    const value=Reflect.get(target,key,target);
+    return typeof value==="function"?(...args:any[])=>{const result=value.apply(target,args);return result&&typeof result==="object"&&("toSQL" in result||"from" in result)?builder(result):result;}:value;
+  }});}
+  appDb.transaction=(callback,config)=>{
+    const pending=run(tx=>callback(new Proxy(tx,{get(target,key){
+      if(key==="execute")return async(query:Parameters<AppTransaction["execute"]>[0])=>{
+        const compiled=typeof query==="string"?{sql:query}:dialect.sqlToQuery(query.getSQL());
+        return afterQuery(compiled.sql,await target.execute(query));
+      };
+      if(key==="select"||key==="insert"||key==="update")return(...args:any[])=>builder((target[key] as (...x:any[])=>unknown).apply(target,args));
+      const value=Reflect.get(target,key,target);return typeof value==="function"?value.bind(target):value;
+    }})),config);transactions.push(pending);return pending;
+  };
+  return{reached,release,settle:()=>settleAll(transactions),restore(){appDb.transaction=original;}};
+}
+describe("MFA building commands retain authorization and original contracts",{concurrency:false},()=>{
+  const prefix=`bldmfa-${randomUUID()}`,org=`${prefix}-base`,building=`${prefix}-building`,foreignOrg=`${prefix}-foreign-org`,password="organization-fictitious-password";
+  let hash="",serial=0,server:Server|undefined,url="";
+  let tracking:ReturnType<typeof trackAllTransactions>|undefined;
+  const emailPattern=`${prefix}-%@example.invalid`;
+  async function http(token: string | undefined, path: string, method = "GET", body?: Row, controller = new AbortController()): Promise<HttpResult> {
+    try {
+      const response = await bounded(fetch(url + path, { method, signal: controller.signal,
+        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        ...(body ? { body: JSON.stringify(body) } : {}) }), "HTTP");
+      const text = await bounded(response.text(), "HTTP body");
+      return { status: response.status, body: text ? JSON.parse(text) as unknown : null, cache: response.headers.get("cache-control") };
+    } finally { controller.abort(); }
+  }
+  async function user(label: string, admin = false) {
+    const id = `${prefix}-${++serial}-${label}`;
+    await sqlClient`insert into users(id,name,email,password_hash,is_platform_admin) values(${id},${label},${id + "@example.invalid"},${hash},${admin})`;
+    return id;
+  }
+  async function actor(kind: Kind,localBuilding=building): Promise<Actor> {
+    const id = await user(kind, kind === "flag"), required = kind === "flag" || kind === "binding";
+    const binding = kind === "binding" || kind === "manager" ? randomUUID() : null;
+    if (binding) await sqlClient`insert into role_bindings(id,user_id,building_id,role_key)
+      values(${binding},${id},${kind === "binding" ? null : localBuilding},${kind === "binding" ? "PLATFORM_ADMIN" : "BUILDING_ADMIN"})`;
+    if (kind === "resident") await sqlClient`insert into memberships(user_id,building_id,role) values(${id},${localBuilding},'RESIDENT')`;
+    const login = await http(undefined, "/auth/login", "POST", { email: id + "@example.invalid", password });
+    assert.equal(login.status, 200, "raw real login, no manufactured proof or admission helper");
+    const body = login.body as { accessToken: string; user: { id: string; mfaRequirement: string } };
+    assert.equal(body.user.id, id); assert.equal(body.user.mfaRequirement, required ? "enrollment-required" : "not-required");
+    const sid = decodeJwt(body.accessToken).sid; assert.equal(typeof sid, "string");
+    const result: Actor = { id, token: body.accessToken, sid: sid as string, binding, codes: [] };
+    if (required) {
+      const enrollment = await http(result.token, "/auth/mfa/enroll", "POST", { currentPassword: password });
+      assert.equal(enrollment.status, 200);
+      const secret = base32Decode((enrollment.body as { secret: string }).secret); assert.ok(secret);
+      const confirmation = await http(result.token, "/auth/mfa/confirm", "POST", { code: totpCode(secret, totpStep(Date.now())) });
+      assert.equal(confirmation.status, 200);
+      result.codes = (confirmation.body as { recoveryCodes: string[] }).recoveryCodes;
+      assert.equal(result.codes.length, 10); assert.equal(new Set(result.codes).size, 10);
+      const [row] = await sqlClient`select s.mfa_verified_at is not null as verified,s.mfa_factor_generation=f.generation as same_generation,
+        f.confirmed_at is not null as confirmed from sessions s join mfa_factors f on f.user_id=s.user_id where s.id=${result.sid}::uuid and s.user_id=${id}`;
+      assert.equal(row?.verified, true); assert.equal(row?.same_generation, true); assert.equal(row?.confirmed, true);
+    }
+    const me = await http(result.token, "/auth/me"); assert.equal(me.status, 200);
+    assert.equal((me.body as { id: string }).id, id);
+    assert.equal((me.body as { mfaRequirement: string }).mfaRequirement, required ? "satisfied" : "not-required");
+    assert.equal(decodeJwt(result.token).sid, result.sid, "same bearer and session family across enrollment");
+    return result;
+  }
+  type Fixture={id:string;foreign:string;code:string;input:Row;method:Method};
+  const send=(a:Actor,f:Fixture)=>http(a.token,f.method==="POST"?"/buildings":"/buildings/"+f.id,f.method,f.input);
+  const data=async()=>({buildings:(await sqlClient`select to_jsonb(b) row from buildings b order by id`).map(x=>x.row),
+    organizations:(await sqlClient`select to_jsonb(o) row from organizations o order by id`).map(x=>x.row),
+    audits:(await sqlClient`select to_jsonb(a) row from audit_logs a where action in ('BUILDING_CREATED','BUILDING_UPDATED') order by id`).map(x=>x.row)});
+  async function using(method:Method,fn:(f:Fixture)=>Promise<void>){
+    const n=++serial,id=`${prefix}-${n}`,foreign=`${prefix}-f${n}`,code=`b-${prefix.slice(7,15)}-${n}`;
+    await sqlClient`insert into buildings(id,organization_id,name,code,property_type,timezone,address) values(${id},${org},'Original property',${"original-"+n},'COMMERCIAL','America/Manaus','{"street":"original","nested":{"preserved":null}}'),(${foreign},${foreignOrg},'Foreign property',${"foreign-"+n},'HOUSE','America/Sao_Paulo','{"street":"foreign"}')`;
+    try{await fn({id,foreign,code,method,input:{...(method==="POST"?{organizationId:org}:{}),name:"Changed property",code,propertyType:"HOUSE",timezone:"Europe/Oslo",address:{street:"fixture-only",nested:{preserved:null}}}});}
+    finally{await tracking?.settle();await sqlClient`delete from audit_logs where resource_type='building' and resource_id in(select id from buildings where id in(${id},${foreign}) or code=${code})`;
+      await sqlClient`delete from buildings where id in(${id},${foreign}) or code=${code}`;}
+  }
+  async function interleave(a:Actor,f:Fixture,stage:Boundary,change:()=>PromiseLike<unknown>){
+    const observer=observeBoundary(stage,f.method),pending=send(a,f);void pending.catch(()=>undefined);let failed=false;
+    try{assert.equal(await bounded(Promise.race([observer.reached.promise.then(()=>"boundary"),pending.then(()=>"response")]),"organization boundary reached"),"boundary");
+      await bounded(change(),"identity loss committed");observer.release.resolve();return await pending;
+    }catch(error){failed=true;throw error;}
+    finally{observer.release.resolve();const results=await Promise.allSettled([bounded(pending,"organization request settled"),observer.settle()]);observer.restore();
+      if(!failed){const bad=results.find(x=>x.status==="rejected");if(bad?.status==="rejected")throw bad.reason;}}
+  }
+  const withdraw=(a:Actor,factor:boolean)=>factor?sqlClient`delete from mfa_factors where user_id=${a.id}`:sqlClient`update sessions set mfa_verified_at=null,mfa_factor_generation=null where id=${a.sid}::uuid and user_id=${a.id}`;
+  function denied(response:HttpResult,factor:boolean){assert.equal(response.status,403);assert.equal((response.body as {details?:{reason?:string}}).details?.reason,factor?"MFA_ENROLLMENT_REQUIRED":"MFA_VERIFICATION_REQUIRED");assert.equal("metadata" in (response.body as object),false);}
+  async function positive(a:Actor,f:Fixture){
+    const before=await data(),old=before.buildings.find(x=>x.id===f.id),response=await send(a,f);assert.equal(response.status,f.method==="POST"?201:200);
+    const row=response.body as Row;assert.deepEqual(Object.keys(row).sort(),["active","address","code","createdAt","id","name","organizationId","propertyType","timezone","updatedAt"]);
+    const expected={organizationId:org,name:f.input.name??old?.name,code:f.input.code??old?.code,
+      propertyType:f.input.propertyType??(f.method==="POST"?"CONDOMINIUM":old?.property_type),timezone:f.input.timezone??(f.method==="POST"?"America/Sao_Paulo":old?.timezone),
+      address:f.input.address??(f.method==="POST"?{}:old?.address),active:f.input.active??true};
+    for(const [key,value]of Object.entries(expected))assert.deepEqual(row[key],value,key);
+    assert.equal(new Date(String(row.createdAt)).toISOString(),row.createdAt);assert.equal(new Date(String(row.updatedAt)).toISOString(),row.updatedAt);
+    const after=await data(),id=String(row.id),saved=after.buildings.find(x=>x.id===id);assert.ok(saved);
+    for(const [dto,column]of [["organizationId","organization_id"],["name","name"],["code","code"],["propertyType","property_type"],["timezone","timezone"],["address","address"],["active","active"]])assert.deepEqual(saved[column!],row[dto!]);
+    assert.deepEqual(after.buildings.filter(x=>x.id!==id),before.buildings.filter(x=>x.id!==id),"unrelated and foreign organization buildings unchanged");assert.deepEqual(after.organizations,before.organizations);
+    if(f.method==="PATCH"){assert.equal(id,f.id);assert.equal(saved.created_at,old?.created_at);}else{assert.ok(id.startsWith("bld_"));assert.equal(before.buildings.some(x=>x.id===id),false);}
+    const oldIds=new Set(before.audits.map(x=>x.id)),added=after.audits.filter(x=>!oldIds.has(x.id));assert.equal(added.length,1);assert.equal(after.audits.length,before.audits.length+1);
+    const audit=added[0]!;assert.equal(audit.user_id,a.id);assert.equal(audit.building_id,id);assert.equal(audit.scope_kind,f.method==="POST"?"PLATFORM":"BUILDING");assert.equal(audit.actor_type,"USER");assert.equal(audit.action,f.method==="POST"?"BUILDING_CREATED":"BUILDING_UPDATED");assert.equal(audit.resource_type,"building");assert.equal(audit.resource_id,id);assert.deepEqual(audit.metadata,f.method==="POST"?{}:f.input);
+    assert.deepEqual(after.audits.filter(x=>oldIds.has(x.id)),before.audits);assert.equal(decodeJwt(a.token).sid,a.sid);
+  }
+  before(async()=>{
+    assert.equal((await sqlClient`select count(*)::int count from schema_migrations`)[0]?.count,68);await bounded(verifyRestrictedDatabaseRole(appSqlClient,"predioon_app"),"restricted API role");hash=await hashPassword(password);
+    await sqlClient`insert into organizations(id,name,slug) values(${org},'Building MFA fixture',${org}),(${foreignOrg},'Foreign organization',${foreignOrg})`;
+    await sqlClient`insert into buildings(id,organization_id,name,code) values(${building},${org},'Local only',${building})`;
+    tracking=trackAllTransactions();server=await new Promise<Server>(resolve=>{const instance=app.listen(0,"127.0.0.1",()=>resolve(instance));});const address=server.address();assert.ok(address&&typeof address!=="string");url=`http://127.0.0.1:${address.port}`;
+  });
+  after(async()=>{
+    try{await bounded(new Promise<void>((resolve,reject)=>{if(!server){resolve();return;}server.close(error=>error?reject(error):resolve());server.closeAllConnections();}),"HTTP close");}
+    finally{try{await tracking?.settle();await bounded(sqlClient.begin(async tx=>{await tx`set local lock_timeout='2s'`;await tx`set local statement_timeout='3s'`;
+      await tx`delete from audit_logs where user_id in(select id from users where email like ${emailPattern})`;await tx`delete from buildings where id=${building}`;await tx`delete from organizations where slug like ${prefix+"%"}`;await tx`delete from users where email like ${emailPattern}`;}),"fixture cleanup");}
+      finally{tracking?.restore();const closed=await Promise.allSettled([bounded(closeAppDb(),"API pool close"),bounded(sqlClient.end({timeout:3}),"owner pool close")]);const bad=closed.find(x=>x.status==="rejected");if(bad?.status==="rejected")throw bad.reason;}}
+  });
+  for(const method of ["POST","PATCH"] as const)for(const stage of ["capability","write","audit"] as const)for(const factor of [false,true]){
+    it(`${method} ${stage}: external ${factor?"factor":"proof"} loss rolls back building and audit`,async()=>using(method,async f=>{
+      const a=await actor("binding"),before=await data();denied(await interleave(a,f,stage,()=>withdraw(a,factor)),factor);assert.deepEqual(await data(),before);
+    }));
+  }
+  for(const factor of [false,true])it(`PATCH locked: external ${factor?"factor":"proof"} loss precedes update`,async()=>using("PATCH",async f=>{
+    const a=await actor("binding"),before=await data();denied(await interleave(a,f,"locked",()=>withdraw(a,factor)),factor);assert.deepEqual(await data(),before);
+  }));
+  for(const factor of [false,true])it(`PATCH missing: external ${factor?"factor":"proof"} loss precedes404`,async()=>using("PATCH",async f=>{
+    const a=await actor("binding"),before=await data();denied(await interleave(a,{...f,id:"missing-"+randomUUID()},"capability",()=>withdraw(a,factor)),factor);assert.deepEqual(await data(),before);
+  }));
+  for(const method of ["POST","PATCH"] as const)for(const kind of ["flag","binding"] as const)it(`${method} ${kind}: real MFA preserves DTO storage and audit`,async()=>using(method,async f=>positive(await actor(kind),f)));
+  for(const kind of ["flag","binding"] as const)it(`PATCH ${kind}: real MFA preserves deactivation and its audit`,async()=>using("PATCH",async f=>positive(await actor(kind),{...f,input:{...f.input,active:false}})));
+  for(const intent of ["full","name-only","deactivate"] as const)it(`PATCH ordinary local manager ${intent}: optional MFA preserves business contract`,async()=>using("PATCH",async f=>{
+    const a=await actor("manager",f.id);await positive(a,{...f,input:intent==="name-only"?{name:"Edited name only"}:intent==="deactivate"?{active:false}:f.input});
+  }));
+  for(const [method,kind]of [["POST","manager"],["POST","resident"],["PATCH","resident"]] as const)it(`${method} ordinary ${kind}: local identity cannot gain unauthorized management`,async()=>using(method,async f=>{
+    const a=await actor(kind,f.id),before=await data(),response=await send(a,f);assert.equal(response.status,403);assert.deepEqual(await data(),before);
+  }));
+  it("PATCH ordinary manager: another organization stays isolated",async()=>using("PATCH",async f=>{
+    const a=await actor("manager",f.id),before=await data(),response=await send(a,{...f,id:f.foreign});assert.equal(response.status,403);assert.deepEqual(await data(),before);
+  }));
+  for(const kind of ["flag","binding"] as const)it(`PATCH missing ${kind}: satisfied MFA preserves404`,async()=>using("PATCH",async f=>{
+    const a=await actor(kind),before=await data(),response=await send(a,{...f,id:"missing-"+randomUUID()});assert.equal(response.status,404);assert.deepEqual(response.body,{error:"Prédio não encontrado"});assert.deepEqual(await data(),before);
+  }));
+  it("POST real MFA: original property timezone and address defaults remain",async()=>using("POST",async f=>positive(await actor("flag"),{...f,input:{organizationId:org,name:"Default property",code:f.code}})));
+});

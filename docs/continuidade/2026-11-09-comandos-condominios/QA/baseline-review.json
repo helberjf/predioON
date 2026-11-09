@@ -1,0 +1,106 @@
+{
+  "recordedOn": "2026-11-09",
+  "reviewedByRoot": true,
+  "sourceProductModified": false,
+  "functionalCases": 32,
+  "tapSha256": "994e4cd2db82330ee515f6c00ad35a6a26d704d12a75913d2e75d336f693fa1f",
+  "totals": {
+    "tests": 32,
+    "suites": 1,
+    "pass": 16,
+    "fail": 16,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failures": [
+    {
+      "name": "POST capability: external proof loss rolls back building and audit",
+      "expectedStatus": 403,
+      "actualStatus": 201
+    },
+    {
+      "name": "POST capability: external factor loss rolls back building and audit",
+      "expectedStatus": 403,
+      "actualStatus": 201
+    },
+    {
+      "name": "POST write: external proof loss rolls back building and audit",
+      "expectedStatus": 403,
+      "actualStatus": 201
+    },
+    {
+      "name": "POST write: external factor loss rolls back building and audit",
+      "expectedStatus": 403,
+      "actualStatus": 201
+    },
+    {
+      "name": "POST audit: external proof loss rolls back building and audit",
+      "expectedStatus": 403,
+      "actualStatus": 201
+    },
+    {
+      "name": "POST audit: external factor loss rolls back building and audit",
+      "expectedStatus": 403,
+      "actualStatus": 201
+    },
+    {
+      "name": "PATCH capability: external proof loss rolls back building and audit",
+      "expectedStatus": 403,
+      "actualStatus": 200
+    },
+    {
+      "name": "PATCH capability: external factor loss rolls back building and audit",
+      "expectedStatus": 403,
+      "actualStatus": 200
+    },
+    {
+      "name": "PATCH write: external proof loss rolls back building and audit",
+      "expectedStatus": 403,
+      "actualStatus": 200
+    },
+    {
+      "name": "PATCH write: external factor loss rolls back building and audit",
+      "expectedStatus": 403,
+      "actualStatus": 200
+    },
+    {
+      "name": "PATCH audit: external proof loss rolls back building and audit",
+      "expectedStatus": 403,
+      "actualStatus": 200
+    },
+    {
+      "name": "PATCH audit: external factor loss rolls back building and audit",
+      "expectedStatus": 403,
+      "actualStatus": 200
+    },
+    {
+      "name": "PATCH locked: external proof loss precedes update",
+      "expectedStatus": 403,
+      "actualStatus": 200
+    },
+    {
+      "name": "PATCH locked: external factor loss precedes update",
+      "expectedStatus": 403,
+      "actualStatus": 200
+    },
+    {
+      "name": "PATCH missing: external proof loss precedes404",
+      "expectedStatus": 403,
+      "actualStatus": 404
+    },
+    {
+      "name": "PATCH missing: external factor loss precedes404",
+      "expectedStatus": 403,
+      "actualStatus": 404
+    }
+  ],
+  "allOther16CasesPassed": true,
+  "noSkipsOrTimeouts": true,
+  "rawErrorClassification": "Six201, eight200 and two404 responses instead of403 after external proof/factor withdrawal. All sixteen controls passed.",
+  "baselineCommittedEffectsIndependentlyCompared": false,
+  "scopeLimit": "Denial checks stop at the unexpected baseline status. Full before/after building/organization/audit comparisons are required on fixed; no independent baseline mutation-effect claim.",
+  "resultSha256": "c9a7ef690d6f641fb36fa8753f2e65992550e60e85ec750933175b4a7c2cb5a5",
+  "postchecksSha256": "cc8889fbc6ff253798dc694520b1a8a7da72b9199e83b9ac7d8ab0b20580c37d",
+  "cleanupPassed": true
+}
