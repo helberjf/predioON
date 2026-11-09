@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "format": "delta-v1",
+  "status": "AUTHORED_NOT_EXECUTED",
+  "recordedOn": "2026-11-09",
+  "basePreparedSha256": "c0d7479ab81c04667e1ed75e79275fab05e849a9d5c252e989514f713edec7be",
+  "sourceCount": 1045,
+  "files": [
+    {
+      "path": "apps/api/test/features-lifecycle.test.ts",
+      "beforeSha256": "cf4ca311db931ad88fa0c38c301a694acb694717508a356ffced9a7a57609ae5",
+      "beforeBytes": 17465,
+      "afterSha256": "320476a55183cd18b319758ea5fe716eeed55a52ef920dc57e393ccce66edc93",
+      "afterBytes": 19434
+    }
+  ],
+  "cases": [
+    "discards only paused metrics and preserves hardware liveness",
+    "resets the meter baseline, keeps old totals and marks the resumed day incomplete",
+    "pausing AI allows tariff changes without resetting the configured analysis preference",
+    "invalidates parking observations and waits for a fresh sample after reactivation",
+    "feature pause cancels queued gate commands and reactivation never resends them",
+    "pause waits for an in-flight publish and still accepts its acknowledgement",
+    "alert delivery serializes with pause and old alerts are not delivered afterwards",
+    "support blocks new launches and keeps the result of an existing request recordable"
+  ],
+  "independentCases": 8,
+  "parentGroups": 0,
+  "runtimeProductModified": false,
+  "existingBusinessAssertionsAndTimeoutsUnchanged": true,
+  "onlyExistingBodyChange": "requestedBy fixture uses the new isolated MFA actor instead of platform_admin",
+  "seedAdministratorIdentityUntouched": true,
+  "positiveMfaProof": "real login/enrollment/confirmation HTTP and same bearer/SID",
+  "productionAccepted": false
+}

@@ -1,0 +1,27 @@
+[
+  {
+    "path": ".gitattributes",
+    "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+    "bytes": 8
+  },
+  {
+    "path": "payload/apps/api/test/features-lifecycle.test.ts.txt",
+    "sha256": "320476a55183cd18b319758ea5fe716eeed55a52ef920dc57e393ccce66edc93",
+    "bytes": 19434
+  },
+  {
+    "path": "QA-PLAN.json",
+    "sha256": "f233dbe446cd8650a214edf635887e9aae02e28a83e817122b85ff92d517175a",
+    "bytes": 3824
+  },
+  {
+    "path": "README.md",
+    "sha256": "c7493c3f1eb6ffed67bceac91b6a19b8eb2a79d78d24a4f59b0e56b97e1ac19d",
+    "bytes": 1714
+  },
+  {
+    "path": "TEST-MANIFEST.json",
+    "sha256": "a2884e00c2bc43a5c8ae4b5012addd09ea2622269c0cd80153e5bccbef5caf19",
+    "bytes": 1656
+  }
+]
