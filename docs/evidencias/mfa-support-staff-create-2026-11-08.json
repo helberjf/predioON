@@ -1,0 +1,751 @@
+{
+  "schemaVersion": 1,
+  "status": "VERIFIED",
+  "configSha256": "6b7b63cde492213a4b0e0214ce0ac60a198fadce2ef91586947cffbda1a191d6",
+  "recordedOn": "2026-11-08",
+  "recordedOnTimezone": "America/Sao_Paulo",
+  "reviewedOn": "2026-11-08",
+  "nativeExecutionTimestampsPreserved": true,
+  "verifierSha256": "c32c6488a1c0bd41b4535e7ff82bdf516634790547b6b6134c5d1bc23828b7ba",
+  "reviewedByRoot": true,
+  "baselineStaffCreationFailuresReviewed": true,
+  "sourceFiles": 1042,
+  "typeFiles": 38,
+  "requiredResolvedSources": 14,
+  "sourceDifference": [
+    "apps/api/src/modules/support-access/routes.ts"
+  ],
+  "typeChecks": [
+    {
+      "variant": "baseline",
+      "phase": "resolve",
+      "result": {
+        "id": "mfa-support-staff-create-v2-baseline-qa-20261108/checks/resolve/result.json",
+        "sha256": "5af9dcf7dfbdcbb6f23ce5fa0bf6886e357b18ec51982e65fa158e9679659e6f",
+        "bytes": 1178
+      },
+      "startedUtc": "2026-11-09T01:39:14.365Z",
+      "childExitedUtc": "2026-11-09T01:39:15.433Z",
+      "durationMs": 1068
+    },
+    {
+      "variant": "baseline",
+      "phase": "types",
+      "result": {
+        "id": "mfa-support-staff-create-v2-baseline-qa-20261108/checks/types/result.json",
+        "sha256": "d9209145c5c5a101ec1003e1fb101aa68764ec5c1357b4fa78eb82a63bedb2a9",
+        "bytes": 1024
+      },
+      "startedUtc": "2026-11-09T01:39:16.671Z",
+      "childExitedUtc": "2026-11-09T01:39:26.159Z",
+      "durationMs": 9488
+    },
+    {
+      "variant": "fixed",
+      "phase": "resolve",
+      "result": {
+        "id": "mfa-support-staff-create-v2-fixed-qa-20261108/checks/resolve/result.json",
+        "sha256": "91f661eb71d47a4b03d42eaa7a8dc870385f831d6281e0b0392a98935f0767a8",
+        "bytes": 1175
+      },
+      "startedUtc": "2026-11-09T01:40:08.424Z",
+      "childExitedUtc": "2026-11-09T01:40:09.452Z",
+      "durationMs": 1029
+    },
+    {
+      "variant": "fixed",
+      "phase": "types",
+      "result": {
+        "id": "mfa-support-staff-create-v2-fixed-qa-20261108/checks/types/result.json",
+        "sha256": "5d856ad5b6d8b7def1fa0237e45761aec9f8ec9c13716abc63038fd8c65b3580",
+        "bytes": 1021
+      },
+      "startedUtc": "2026-11-09T01:40:18.846Z",
+      "childExitedUtc": "2026-11-09T01:40:28.596Z",
+      "durationMs": 9750
+    }
+  ],
+  "preparation": {
+    "nativeResults": [
+      {
+        "variant": "baseline",
+        "nativeChildExitedUtc": "2026-11-09T01:38:58.3390836Z",
+        "durationMs": 3841.6513,
+        "nativeResult": {
+          "id": "mfa-support-staff-create-v2-harness-20261108/baseline-prepare-result.json",
+          "sha256": "34fbc86cf8390ea66d7b06fb165e5197488202315f0a8586927115f12eeae7f0",
+          "bytes": 166
+        }
+      },
+      {
+        "variant": "fixed",
+        "nativeChildExitedUtc": "2026-11-09T01:39:13.3472586Z",
+        "durationMs": 3784.1637,
+        "nativeResult": {
+          "id": "mfa-support-staff-create-v2-harness-20261108/fixed-prepare-result.json",
+          "sha256": "9cc369689989aabe3c9f0a763d663a76f4a2dd1b32efb01084e9672c74ef6d86",
+          "bytes": 166
+        }
+      }
+    ],
+    "isProductTestExecution": false
+  },
+  "acceptedCounts": {
+    "directedTap": 36,
+    "directedIndependent": 36,
+    "directedAggregateGroups": 0,
+    "directedSuites": 1,
+    "regressionFiles": 4,
+    "regressionTap": 32,
+    "regressionIndependent": 28,
+    "regressionAggregateGroups": 4,
+    "combinedTap": 68,
+    "combinedIndependent": 64,
+    "combinedAggregateGroups": 4
+  },
+  "environment": {
+    "attestation": {
+      "recordedOn": "2026-11-08",
+      "recordedUtc": "2026-11-08T23:00:37.6479565Z",
+      "container": "predioon-mfa-grants-20261108",
+      "containerId": "3c0f4e5e47d3d488766eb2679ba97fabf29b12d72f9b8df41bb504205a41b4c8",
+      "systemIdentifier": "7705939420428193833",
+      "port": 5468,
+      "loopbackOnly": true,
+      "memoryLimitMiB": 384,
+      "cpuLimit": 1,
+      "basePublicTables": 0,
+      "exclusiveUse": true,
+      "computerRestarted": false,
+      "imageId": "sha256:4e459e217f00cbb09920c34d245501e63427e6767a495de57ce76823ff280f12",
+      "volume": "predioon_mfa_grants_20261108",
+      "newCluster": true,
+      "previousClusterUnavailable": true,
+      "credentialsPublished": false
+    }
+  },
+  "scopeLimits": [
+    "Only POST /v1/support-access/staff changes: person and duplicate reads, INSERT and final MFA decision after audit. DELETE staff, grants, shared revoke helper, schemas, policies and migrations remain unchanged.",
+    "Direct cases enroll flag/global-binding administrators via real HTTP/TOTP in the same session family. No positive factor/proof in these36 cases is fabricated by SQL.",
+    "Baseline expects six201, four409, four400 and four404 versus403. Successful writes verify exact binding, unchanged target account, platform audit and absence of building access. Refusal paths verify unchanged data, not an unauthorized write.",
+    "Sixteen cases pause after the actual parameterized global rbac:manage capability returned true. These controlled interleavings do not prove an actual PostgreSQL lock wait or simultaneous first staff insert safety.",
+    "Eight positive combinations cover flag/global-binding authorities and new/revoked/local/self staff; identity and any historical binding are preserved. Staff designation alone adds no building grant.",
+    "Recent-password expiration/refusal and real HTTP recovery, strict schema, duplicate active/expired binding, inactive/missing account, local/resident refusal, authentication and hidden-person404 after global binding withdrawal preserve the exercised contracts.",
+    "Two proof-removing AFTER INSERT triggers on role_bindings and audit_logs fire once; fixed rollback restores exact accounts/bindings/grants/audit and original proof timestamp text/generation/presence.",
+    "Two narrow generic exception triggers and one BEFORE INSERT skip preserve data and proof; opaque500 remains. These scoped fixtures do not cover every possible database exception.",
+    "All guards remain1536MiB. Four related regression files total32 TAP with28 independent cases and4 aggregate groups. Historical read fixtures using direct SQL factor/proof retain that limitation; new36 direct cases use real TOTP.",
+    "Staff removal, grant replacement/revocation, features and remaining domains, promotions/concurrency, cache policy, full API/browser/native Android/iOS, performance and production acceptance remain pending."
+  ],
+  "baselineFailureObservations": [
+    {
+      "case": "flag new: rejects factor removal after real global authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: exact support binding, unchanged account, platform audit and no building access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after real global rbac:manage authorization before staff creation"
+    },
+    {
+      "case": "flag new: rejects family proof removal after real global authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: exact support binding, unchanged account, platform audit and no building access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after real global rbac:manage authorization before staff creation"
+    },
+    {
+      "case": "flag existing: rejects factor removal after real global authorization",
+      "actualStatus": 409,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline409: staff refusal leaves accounts bindings grants and audits unchanged before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after real global rbac:manage authorization before person/duplicate lookup"
+    },
+    {
+      "case": "flag existing: rejects family proof removal after real global authorization",
+      "actualStatus": 409,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline409: staff refusal leaves accounts bindings grants and audits unchanged before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after real global rbac:manage authorization before person/duplicate lookup"
+    },
+    {
+      "case": "flag inactive: rejects factor removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: staff refusal leaves accounts bindings grants and audits unchanged before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after real global rbac:manage authorization before person/duplicate lookup"
+    },
+    {
+      "case": "flag inactive: rejects family proof removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: staff refusal leaves accounts bindings grants and audits unchanged before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after real global rbac:manage authorization before person/duplicate lookup"
+    },
+    {
+      "case": "flag missing: rejects factor removal after real global authorization",
+      "actualStatus": 404,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline404: staff refusal leaves accounts bindings grants and audits unchanged before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after real global rbac:manage authorization before person/duplicate lookup"
+    },
+    {
+      "case": "flag missing: rejects family proof removal after real global authorization",
+      "actualStatus": 404,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline404: staff refusal leaves accounts bindings grants and audits unchanged before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after real global rbac:manage authorization before person/duplicate lookup"
+    },
+    {
+      "case": "binding new: rejects factor removal after real global authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: exact support binding, unchanged account, platform audit and no building access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after real global rbac:manage authorization before staff creation"
+    },
+    {
+      "case": "binding new: rejects family proof removal after real global authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: exact support binding, unchanged account, platform audit and no building access verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after real global rbac:manage authorization before staff creation"
+    },
+    {
+      "case": "binding existing: rejects factor removal after real global authorization",
+      "actualStatus": 409,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline409: staff refusal leaves accounts bindings grants and audits unchanged before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after real global rbac:manage authorization before person/duplicate lookup"
+    },
+    {
+      "case": "binding existing: rejects family proof removal after real global authorization",
+      "actualStatus": 409,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline409: staff refusal leaves accounts bindings grants and audits unchanged before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after real global rbac:manage authorization before person/duplicate lookup"
+    },
+    {
+      "case": "binding inactive: rejects factor removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: staff refusal leaves accounts bindings grants and audits unchanged before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after real global rbac:manage authorization before person/duplicate lookup"
+    },
+    {
+      "case": "binding inactive: rejects family proof removal after real global authorization",
+      "actualStatus": 400,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline400: staff refusal leaves accounts bindings grants and audits unchanged before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after real global rbac:manage authorization before person/duplicate lookup"
+    },
+    {
+      "case": "binding missing: rejects factor removal after real global authorization",
+      "actualStatus": 404,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline404: staff refusal leaves accounts bindings grants and audits unchanged before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "after real global rbac:manage authorization before person/duplicate lookup"
+    },
+    {
+      "case": "binding missing: rejects family proof removal after real global authorization",
+      "actualStatus": 404,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline404: staff refusal leaves accounts bindings grants and audits unchanged before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "after real global rbac:manage authorization before person/duplicate lookup"
+    },
+    {
+      "case": "role_bindings: rolls staff creation and audit back after proof trigger",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: staff binding and audit persisted; narrow trigger fired once and removed the same family proof",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "narrow role_binding AFTER INSERT or audit AFTER INSERT trigger"
+    },
+    {
+      "case": "audit_logs: rolls staff creation and audit back after proof trigger",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: staff binding and audit persisted; narrow trigger fired once and removed the same family proof",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "narrow role_binding AFTER INSERT or audit AFTER INSERT trigger"
+    }
+  ],
+  "runs": [
+    {
+      "variant": "baseline",
+      "tests": [
+        {
+          "test": "platform-mfa-support-staff-create",
+          "tests": 36,
+          "suites": 1,
+          "pass": 18,
+          "fail": 18,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 12895.4091,
+          "childDurationMs": 13029.2807,
+          "logSha256": "0b69210b4836f761c7f37993c58f4a3c31956a617177525bb6e93452ab629658"
+        }
+      ],
+      "cleanupPassed": true,
+      "sourceMatched": true,
+      "ownedChildrenExited": true,
+      "cleanupHeld": false,
+      "nativeStatus": "completed-awaiting-TAP-GREEN-classification",
+      "startedUtc": "2026-11-09T01:41:22.240Z",
+      "endedUtc": "2026-11-09T01:41:41.248Z",
+      "observedHeadBefore": "5e9d92d1329baec726f0686ab0f75386a54d00a1",
+      "observedHeadAfter": "5e9d92d1329baec726f0686ab0f75386a54d00a1"
+    },
+    {
+      "variant": "fixed",
+      "tests": [
+        {
+          "test": "platform-mfa-support-staff-create",
+          "tests": 36,
+          "suites": 1,
+          "pass": 36,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 12929.8436,
+          "childDurationMs": 13589.3541,
+          "logSha256": "0cb4604cc40710ade71e5e92206447068698a00ab0f04d8e446e9d61ecb02597"
+        }
+      ],
+      "cleanupPassed": true,
+      "sourceMatched": true,
+      "ownedChildrenExited": true,
+      "cleanupHeld": false,
+      "nativeStatus": "completed-awaiting-TAP-GREEN-classification",
+      "startedUtc": "2026-11-09T01:42:34.351Z",
+      "endedUtc": "2026-11-09T01:42:55.320Z",
+      "observedHeadBefore": "5e9d92d1329baec726f0686ab0f75386a54d00a1",
+      "observedHeadAfter": "5e9d92d1329baec726f0686ab0f75386a54d00a1"
+    },
+    {
+      "variant": "fixed-regression",
+      "tests": [
+        {
+          "test": "support-access",
+          "tests": 4,
+          "suites": 1,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 5372.2563,
+          "childDurationMs": 5509.227900000002,
+          "logSha256": "7948640c70df3da4362e32e939ecf94722c536798d2af9b67283af768356c2f8"
+        },
+        {
+          "test": "platform-mfa-support-read",
+          "tests": 14,
+          "suites": 1,
+          "pass": 14,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 6989.8551,
+          "childDurationMs": 7123.783399999998,
+          "logSha256": "2b1700da02e00453c2c9eac9b8fb6021b0d67c413c7c45bf2090976e79106a8b"
+        },
+        {
+          "test": "platform-mfa-support-timestamp-order",
+          "tests": 2,
+          "suites": 1,
+          "pass": 2,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 2310.7402,
+          "childDurationMs": 2445.2835000000014,
+          "logSha256": "73783aa8cfeb60d746333be6e77a7c985f31c3005e3c8cb325f2c906b1ff6e1d"
+        },
+        {
+          "test": "platform-mfa-admin-directory-read",
+          "tests": 12,
+          "suites": 1,
+          "pass": 12,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 5511.059,
+          "childDurationMs": 5648.1806,
+          "logSha256": "6c1fff74a54ee007d93227c4084c0883c31a4d2d7bb4a8fff1e0ec90ce44ffd4"
+        }
+      ],
+      "cleanupPassed": true,
+      "sourceMatched": true,
+      "ownedChildrenExited": true,
+      "cleanupHeld": false,
+      "nativeStatus": "completed-awaiting-TAP-GREEN-classification",
+      "startedUtc": "2026-11-09T01:43:09.273Z",
+      "endedUtc": "2026-11-09T01:43:39.407Z",
+      "observedHeadBefore": "5e9d92d1329baec726f0686ab0f75386a54d00a1",
+      "observedHeadAfter": "5e9d92d1329baec726f0686ab0f75386a54d00a1"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "mfa-support-staff-create-v2-root-config-20261108.json",
+      "sha256": "6b7b63cde492213a4b0e0214ce0ac60a198fadce2ef91586947cffbda1a191d6",
+      "bytes": 3891
+    },
+    {
+      "id": "mfa-support-staff-create-v2-harness-20261108/PLAN.json",
+      "sha256": "a58b0b35c0617a4a29764164ce371a24699a1dd3cb43f6c75f0aab5d64983514",
+      "bytes": 4552
+    },
+    {
+      "id": "mfa-support-staff-create-v2-test-20261108/manifest.json",
+      "sha256": "34c49d8bfcf7241826ca7fd8dfc2f5ae62e0452922998b8d81cae0f9f3de9879",
+      "bytes": 7093
+    },
+    {
+      "id": "mfa-support-staff-create-candidate-20261108/manifest.json",
+      "sha256": "3e6835a662b67fc6f0e2c7a163b620cda9729f23983c9b80344e7a0b492ad79b",
+      "bytes": 715
+    },
+    {
+      "id": "mfa-support-staff-create-v2-harness-20261108/AUTHORED-PINS.json",
+      "sha256": "c9f05aadb64575d2bc412b5d3ea2f132fe01495863343f7796c6ee3674c4f35e",
+      "bytes": 664
+    },
+    {
+      "id": "mfa-user-revocation-fixed-qa-20261108/prepared.json",
+      "sha256": "93823355255fc582df588072800b4db99edfbc6187b7d449148b38924678634b",
+      "bytes": 910268
+    },
+    {
+      "id": "mfa-support-staff-create-v2-baseline-qa-20261108/run-mfa-directed.mjs",
+      "sha256": "dbccf644185a9019f2861cfb504c2e025430604822ced28eae5f97d863d81c00",
+      "bytes": 13829
+    },
+    {
+      "id": "mfa-support-staff-create-v2-baseline-qa-20261108/launch-mfa-directed.ps1",
+      "sha256": "1b0a697fcb91149defe27fef277e63d4dc11b96ed3f8b0873c0aa98f734debf8",
+      "bytes": 13058
+    },
+    {
+      "id": "mfa-support-staff-create-v2-fixed-qa-20261108/run-mfa-directed.mjs",
+      "sha256": "525eaf8e1c2d821a6aed078bf43d97f4963ab159b64b9f92ea273e52d457fc74",
+      "bytes": 13814
+    },
+    {
+      "id": "mfa-support-staff-create-v2-fixed-qa-20261108/launch-mfa-directed.ps1",
+      "sha256": "ed6b70b13bbb290e7169ad948ff5efc0e0f93306119376a11cf94e376626c8c1",
+      "bytes": 13046
+    },
+    {
+      "id": "mfa-support-staff-create-v2-fixed-regression-qa-20261108/run-mfa-directed.mjs",
+      "sha256": "b3e0ad53bce4753416f34548a2113aa2c9caecc15663b89ac1e85759769d93fd",
+      "bytes": 14219
+    },
+    {
+      "id": "mfa-support-staff-create-v2-fixed-regression-qa-20261108/launch-mfa-directed.ps1",
+      "sha256": "6f2d6a14a15efa7be8ca7d4af6049ae52b7118e868d4a66aa411698868354dda",
+      "bytes": 13046
+    },
+    {
+      "id": "mfa-support-staff-create-v2-harness-20261108/executors-handoff.json",
+      "sha256": "e3273c4c5458f1dea45171695d8216a5258c080621356a06e36c48b76c2da376",
+      "bytes": 3068
+    },
+    {
+      "id": "mfa-grants-root-attestation-20261108.json",
+      "sha256": "9d43fe8e98ce5e11a26e7e943fb465a96f24a4c14368bbdab5712e5282cb426e",
+      "bytes": 664
+    },
+    {
+      "id": "mfa-support-staff-create-v2-harness-20261108/run-types.mjs",
+      "sha256": "03415f1a25062b751c45c0257492cc18030d24e7f54cfc9a163254467a75bb10",
+      "bytes": 12914
+    },
+    {
+      "id": "mfa-support-staff-create-v2-harness-20261108/baseline-prepare-result.json",
+      "sha256": "34fbc86cf8390ea66d7b06fb165e5197488202315f0a8586927115f12eeae7f0",
+      "bytes": 166
+    },
+    {
+      "id": "mfa-support-staff-create-v2-harness-20261108/baseline-prepare-guard.json",
+      "sha256": "80d4657aa7e1afc2789001a1e26151391b62709256f2d51b8c153c5356d31620",
+      "bytes": 91
+    },
+    {
+      "id": "mfa-support-staff-create-v2-harness-20261108/baseline-prepare.stdout.txt",
+      "sha256": "6dcbfd6e27b3d05cffa9d7b1289d51c3b5ff5c21a345d7c1a1ba288a37fd3478",
+      "bytes": 246
+    },
+    {
+      "id": "mfa-support-staff-create-v2-harness-20261108/baseline-prepare.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-support-staff-create-v2-harness-20261108/fixed-prepare-result.json",
+      "sha256": "9cc369689989aabe3c9f0a763d663a76f4a2dd1b32efb01084e9672c74ef6d86",
+      "bytes": 166
+    },
+    {
+      "id": "mfa-support-staff-create-v2-harness-20261108/fixed-prepare-guard.json",
+      "sha256": "46ca47c44645527b60df3779182e090281fdc4c959425ef2d83253940c3d0dd5",
+      "bytes": 91
+    },
+    {
+      "id": "mfa-support-staff-create-v2-harness-20261108/fixed-prepare.stdout.txt",
+      "sha256": "982a78407b921f66f407c0b1c8f217246d356a10257da49b721f78d9b00c3af4",
+      "bytes": 243
+    },
+    {
+      "id": "mfa-support-staff-create-v2-harness-20261108/fixed-prepare.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-support-staff-create-v2-baseline-qa-20261108/prepared.json",
+      "sha256": "2b864841b09d2655e3b2c3c0e6da8026095c1f47846bd9ae88a103006de729a1",
+      "bytes": 912744
+    },
+    {
+      "id": "mfa-support-staff-create-v2-baseline-qa-20261108/tsconfig.test.json",
+      "sha256": "f420bcd71cfd3aa7dac6d0bfff17bd023e130983e5b47ef9c0d2c4f5c2151d60",
+      "bytes": 2521
+    },
+    {
+      "id": "mfa-support-staff-create-v2-baseline-qa-20261108/checks/resolve/stdout.log",
+      "sha256": "2fed8161a9454d6a425e21fea3d584980fd023af42d144cbc7009122c8dd66c3",
+      "bytes": 151253
+    },
+    {
+      "id": "mfa-support-staff-create-v2-baseline-qa-20261108/checks/resolve/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-support-staff-create-v2-baseline-qa-20261108/checks/resolve/result.json",
+      "sha256": "5af9dcf7dfbdcbb6f23ce5fa0bf6886e357b18ec51982e65fa158e9679659e6f",
+      "bytes": 1178
+    },
+    {
+      "id": "mfa-support-staff-create-v2-baseline-qa-20261108/checks/resolve/command.json",
+      "sha256": "99db68f806595f433b62614a6983e182fb13824b1231c91126931ec6339685e3",
+      "bytes": 969
+    },
+    {
+      "id": "mfa-support-staff-create-v2-baseline-qa-20261108/checks/resolve/guard.json",
+      "sha256": "a2c6915cbef671445a22f9626964fda2eca1d2acf102aa27c0e23c46db0345c0",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-support-staff-create-v2-baseline-qa-20261108/checks/types/stdout.log",
+      "sha256": "e92e9d2e883614d9fd6510041a81e66cb6c5d1d0ddee13d7dae399450c305ea1",
+      "bytes": 972
+    },
+    {
+      "id": "mfa-support-staff-create-v2-baseline-qa-20261108/checks/types/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-support-staff-create-v2-baseline-qa-20261108/checks/types/result.json",
+      "sha256": "d9209145c5c5a101ec1003e1fb101aa68764ec5c1357b4fa78eb82a63bedb2a9",
+      "bytes": 1024
+    },
+    {
+      "id": "mfa-support-staff-create-v2-baseline-qa-20261108/checks/types/command.json",
+      "sha256": "ec4686dea7cb9ce1f3a5910c0027e9449569cf0fd374c07aa72e668d4ca6f4fb",
+      "bytes": 974
+    },
+    {
+      "id": "mfa-support-staff-create-v2-baseline-qa-20261108/checks/types/guard.json",
+      "sha256": "1506b68f326037f1d29af210c83b02e481f9d39ca1178b0d746082d89e2a9f6c",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-support-staff-create-v2-fixed-qa-20261108/prepared.json",
+      "sha256": "6564e80a556b124458a9a783c2c5a754a4c175f869571dda88ad076b04d9e3ec",
+      "bytes": 912201
+    },
+    {
+      "id": "mfa-support-staff-create-v2-fixed-qa-20261108/tsconfig.test.json",
+      "sha256": "f420bcd71cfd3aa7dac6d0bfff17bd023e130983e5b47ef9c0d2c4f5c2151d60",
+      "bytes": 2521
+    },
+    {
+      "id": "mfa-support-staff-create-v2-fixed-qa-20261108/checks/resolve/stdout.log",
+      "sha256": "011d36fda5ae945ce115ec9e828d74485a4fe763eb796ee1b0086bbfaf06014b",
+      "bytes": 150731
+    },
+    {
+      "id": "mfa-support-staff-create-v2-fixed-qa-20261108/checks/resolve/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-support-staff-create-v2-fixed-qa-20261108/checks/resolve/result.json",
+      "sha256": "91f661eb71d47a4b03d42eaa7a8dc870385f831d6281e0b0392a98935f0767a8",
+      "bytes": 1175
+    },
+    {
+      "id": "mfa-support-staff-create-v2-fixed-qa-20261108/checks/resolve/command.json",
+      "sha256": "e46919a3de7189f8ed2f21e995259417a22deb42f4f37d9834f992a2759cf6a5",
+      "bytes": 957
+    },
+    {
+      "id": "mfa-support-staff-create-v2-fixed-qa-20261108/checks/resolve/guard.json",
+      "sha256": "4b309d70c60e3926d846622c49c17521b4d526879b9f0b121124fe083f6e4b97",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-support-staff-create-v2-fixed-qa-20261108/checks/types/stdout.log",
+      "sha256": "7195a47e71f44c4ca293543f86055bbeea4d04e0b2e9cc6d749ae96c3a39d4a1",
+      "bytes": 972
+    },
+    {
+      "id": "mfa-support-staff-create-v2-fixed-qa-20261108/checks/types/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-support-staff-create-v2-fixed-qa-20261108/checks/types/result.json",
+      "sha256": "5d856ad5b6d8b7def1fa0237e45761aec9f8ec9c13716abc63038fd8c65b3580",
+      "bytes": 1021
+    },
+    {
+      "id": "mfa-support-staff-create-v2-fixed-qa-20261108/checks/types/command.json",
+      "sha256": "35cc1d4e70868834188bf1c666fa549f3072aa82d19125f3abc74f0939ff4a64",
+      "bytes": 962
+    },
+    {
+      "id": "mfa-support-staff-create-v2-fixed-qa-20261108/checks/types/guard.json",
+      "sha256": "d2ca14aec783da9fb130b1452d22598513f8bbd001d8048ac729a1eb7c24d1d3",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-support-staff-create-v2-baseline-qa-20261108/owned-database.json",
+      "sha256": "732cb2a6478a42bac7bf009bef062bf1df06eb4ec1b11c363349cd901235810c",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-support-staff-create-v2-baseline-qa-20261108/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-support-staff-create-v2-baseline-qa-20261108/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-support-staff-create-v2-baseline-qa-20261108/platform-mfa-support-staff-create.log",
+      "sha256": "0b69210b4836f761c7f37993c58f4a3c31956a617177525bb6e93452ab629658",
+      "bytes": 43440
+    },
+    {
+      "id": "mfa-support-staff-create-v2-baseline-qa-20261108/mfa-directed-result.json",
+      "sha256": "bfea25619ebb2192a1bb2f7fb9f1121e3a10ba210afb1390818dcc14352c741f",
+      "bytes": 315082
+    },
+    {
+      "id": "mfa-support-staff-create-v2-baseline-qa-20261108/mfa-directed-postchecks.json",
+      "sha256": "5702ff0bb07db9cfab66ff8365e9d123eecd72171a8feaa6e405b8449edb5644",
+      "bytes": 390
+    },
+    {
+      "id": "mfa-support-staff-create-v2-fixed-qa-20261108/owned-database.json",
+      "sha256": "8c41b01acf07cc1c044b43fc7c8258f0cac37ef6f8c2519a728cdd3791e614e7",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-support-staff-create-v2-fixed-qa-20261108/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-support-staff-create-v2-fixed-qa-20261108/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-support-staff-create-v2-fixed-qa-20261108/platform-mfa-support-staff-create.log",
+      "sha256": "0cb4604cc40710ade71e5e92206447068698a00ab0f04d8e446e9d61ecb02597",
+      "bytes": 18738
+    },
+    {
+      "id": "mfa-support-staff-create-v2-fixed-qa-20261108/mfa-directed-result.json",
+      "sha256": "807d810cd2c45d72e926f999def5b3471e235963e82162cfe1d888a4a0da53c4",
+      "bytes": 315070
+    },
+    {
+      "id": "mfa-support-staff-create-v2-fixed-qa-20261108/mfa-directed-postchecks.json",
+      "sha256": "7386a6d3006fc3cebb5dbcceef310372a77a8274b2e5db1cd9c1101054c3721e",
+      "bytes": 390
+    },
+    {
+      "id": "mfa-support-staff-create-v2-fixed-regression-qa-20261108/owned-database.json",
+      "sha256": "8bdef0fec1d5f692cd7f576c11f64bcbdfae958c1576eac7890785ab42352300",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-support-staff-create-v2-fixed-regression-qa-20261108/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-support-staff-create-v2-fixed-regression-qa-20261108/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-support-staff-create-v2-fixed-regression-qa-20261108/support-access.log",
+      "sha256": "7948640c70df3da4362e32e939ecf94722c536798d2af9b67283af768356c2f8",
+      "bytes": 1417
+    },
+    {
+      "id": "mfa-support-staff-create-v2-fixed-regression-qa-20261108/platform-mfa-support-read.log",
+      "sha256": "2b1700da02e00453c2c9eac9b8fb6021b0d67c413c7c45bf2090976e79106a8b",
+      "bytes": 3511
+    },
+    {
+      "id": "mfa-support-staff-create-v2-fixed-regression-qa-20261108/platform-mfa-support-timestamp-order.log",
+      "sha256": "73783aa8cfeb60d746333be6e77a7c985f31c3005e3c8cb325f2c906b1ff6e1d",
+      "bytes": 811
+    },
+    {
+      "id": "mfa-support-staff-create-v2-fixed-regression-qa-20261108/platform-mfa-admin-directory-read.log",
+      "sha256": "6c1fff74a54ee007d93227c4084c0883c31a4d2d7bb4a8fff1e0ec90ce44ffd4",
+      "bytes": 3181
+    },
+    {
+      "id": "mfa-support-staff-create-v2-fixed-regression-qa-20261108/mfa-directed-result.json",
+      "sha256": "d9733e73366bc2d0deaf53792517a6e7601beeb5f2f8460121f0d83507a35704",
+      "bytes": 316940
+    },
+    {
+      "id": "mfa-support-staff-create-v2-fixed-regression-qa-20261108/mfa-directed-postchecks.json",
+      "sha256": "2f92c5d1dafc7e3f29ec051048ef2e0fca8a1890282666dc32305fa584b30ccc",
+      "bytes": 390
+    }
+  ],
+  "performanceAssessed": false,
+  "productionAccepted": false
+}

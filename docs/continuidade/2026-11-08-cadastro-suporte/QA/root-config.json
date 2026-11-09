@@ -1,0 +1,73 @@
+{
+  "status": "ROOT_REVIEWED_STATIC_PINS_AND_ACTUAL_BASELINE",
+  "recordedOn": "2026-11-08",
+  "reviewedOn": "2026-11-08",
+  "timeZone": "America/Sao_Paulo",
+  "reviewedByRoot": true,
+  "finalPinsReviewedByRoot": true,
+  "baselineStaffCreationFailuresReviewed": true,
+  "head": "5e9d92d1329baec726f0686ab0f75386a54d00a1",
+  "qaDirectories": {
+    "baseline": "mfa-support-staff-create-v2-baseline-qa-20261108",
+    "fixed": "mfa-support-staff-create-v2-fixed-qa-20261108",
+    "fixed-regression": "mfa-support-staff-create-v2-fixed-regression-qa-20261108"
+  },
+  "sourceDirectories": {
+    "baseline": "mfa-support-staff-create-v2-baseline-qa-20261108",
+    "fixed": "mfa-support-staff-create-v2-fixed-qa-20261108"
+  },
+  "regressionLabels": [
+    "support-access",
+    "platform-mfa-support-read",
+    "platform-mfa-support-timestamp-order",
+    "platform-mfa-admin-directory-read"
+  ],
+  "typeFiles": [
+    "./source/apps/api/test/platform-mfa-support-staff-create.test.ts",
+    "./source/apps/api/test/platform-mfa-user-revocation.test.ts",
+    "./source/apps/api/test/platform-mfa-user-memberships.test.ts",
+    "./source/apps/api/test/platform-mfa-user-create.test.ts",
+    "./source/apps/api/test/platform-mfa-invitation-commands.test.ts",
+    "./source/apps/api/test/platform-mfa-team-renewal.test.ts",
+    "./source/apps/api/test/platform-mfa-tenancy-grants.test.ts",
+    "./source/apps/api/test/platform-mfa-tenancy-create.test.ts",
+    "./source/apps/api/test/platform-mfa-tenancy-revocations.test.ts",
+    "./source/apps/api/test/platform-mfa-tenancy-commands.test.ts",
+    "./source/apps/api/test/platform-mfa-support-timestamp-order.test.ts",
+    "./source/apps/api/test/platform-mfa-features-read.test.ts",
+    "./source/apps/api/test/features-config.test.ts",
+    "./source/apps/api/test/building-feature-capabilities.test.ts",
+    "./source/apps/api/test/platform-mfa-support-read.test.ts",
+    "./source/apps/api/test/platform-mfa-admin-directory-read.test.ts",
+    "./source/apps/api/test/platform-mfa-invitation-read.test.ts",
+    "./source/apps/api/test/platform-mfa-tenancy-links.test.ts",
+    "./source/apps/api/test/platform-mfa-tenancy-structure.test.ts",
+    "./source/apps/api/test/platform-mfa-guarded-read.test.ts",
+    "./source/apps/api/test/platform-mfa-gateway-events.test.ts",
+    "./source/apps/api/test/platform-mfa-heartbeat.test.ts",
+    "./source/apps/api/test/platform-mfa-device-events.test.ts",
+    "./source/apps/api/test/platform-mfa-telemetry-events.test.ts",
+    "./source/apps/api/test/platform-mfa-feature-events.test.ts",
+    "./source/apps/api/test/platform-mfa-disable-snapshot.test.ts",
+    "./source/apps/api/test/platform-mfa-sql-envelopes.test.ts",
+    "./source/apps/api/test/telemetry-events-capabilities.test.ts",
+    "./source/apps/api/test/alert-events-capabilities.test.ts",
+    "./source/apps/api/test/platform-mfa-alert-events.test.ts",
+    "./source/apps/api/test/equipment-events-capabilities.test.ts",
+    "./source/apps/api/test/tenancy-people.test.ts",
+    "./source/apps/api/test/tenancy-http.test.ts",
+    "./source/apps/api/test/tenancy-edit.test.ts",
+    "./source/apps/api/test/membership-lifecycle.test.ts",
+    "./source/apps/api/test/invitations.test.ts",
+    "./source/apps/api/test/users-capabilities.test.ts",
+    "./source/apps/api/test/support-access.test.ts"
+  ],
+  "preparedPins": {
+    "baseline": "2b864841b09d2655e3b2c3c0e6da8026095c1f47846bd9ae88a103006de729a1",
+    "fixed": "6564e80a556b124458a9a783c2c5a754a4c175f869571dda88ad076b04d9e3ec"
+  },
+  "configSha256": "f420bcd71cfd3aa7dac6d0bfff17bd023e130983e5b47ef9c0d2c4f5c2151d60",
+  "typeRunnerSha256": "03415f1a25062b751c45c0257492cc18030d24e7f54cfc9a163254467a75bb10",
+  "executorsHandoffSha256": "e3273c4c5458f1dea45171695d8216a5258c080621356a06e36c48b76c2da376",
+  "planSha256": "a58b0b35c0617a4a29764164ce371a24699a1dd3cb43f6c75f0aab5d64983514"
+}
