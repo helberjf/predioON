@@ -1,0 +1,277 @@
+{
+  "recordedOn": "2026-11-09",
+  "timeZone": "America/Sao_Paulo",
+  "status": "VERIFIED",
+  "verifierSha256": "3dc0563f481d77cd99f0ff76171be214e8e25254dce000830170b5b350d817a8",
+  "reviewedByRoot": true,
+  "sourceFiles": 1049,
+  "typeFiles": 48,
+  "requiredResolvedSources": 15,
+  "runtimeProductModified": false,
+  "changedSources": [
+    "apps/api/test/organizations-capabilities.test.ts"
+  ],
+  "parentPreparedSha256": "71173538f9ff80adbf79df5d856311b4e6deaf888e76bb3b92ccf0a13f7337da",
+  "preparedSha256": "7559859bd179368df66333803b28c294dc7a839dfeeee569c3a13cd2c37a9004",
+  "observedHead": "70fcba0f932ad2b9ef085a59a142bb9fa413fc0d",
+  "acceptedCounts": {
+    "tap": 19,
+    "independentCases": 19,
+    "parentGroups": 0,
+    "suites": 1
+  },
+  "totals": {
+    "tests": 19,
+    "suites": 1,
+    "pass": 19,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "cases": [
+    "permits RBAC-only global readers and writers, including inactive organizations",
+    "does not let a real legacy flag bypass a disabled platform role",
+    "RLS denies forged app.role and commercial reading inherited from a local membership",
+    "enforces organizations:read independently after permission revocation on the same token",
+    "enforces organizations:read independently after grant revocation on the same token",
+    "enforces organizations:manage independently after permission revocation on the same token",
+    "enforces organizations:manage independently after grant revocation on the same token",
+    "revokes pure RBAC bindings while preserving the explicit legacy flag compatibility",
+    "does not grant DELETE or identity-column updates even to an authorized administrator",
+    "keeps commercial authority separate from local data and account activity",
+    "requires current authority and a real platform organization for both audit proofs",
+    "preserves response fields and uniqueness without publishing database errors",
+    "revalidates current authority after a real organization lock (revoke)",
+    "revalidates current authority after a real organization lock (expire)",
+    "rolls back POST and audit when authority expires while audit waits",
+    "rolls back PATCH and audit when authority expires while audit waits",
+    "audit rejection rolls back mutations without exposing private database details",
+    "discards already-read commercial rows if authorization is revoked before the DTO",
+    "migration reapplication preserves revocations, other policies, helpers and runtime roles"
+  ],
+  "typeChecks": [
+    {
+      "phase": "resolve",
+      "result": {
+        "id": "mfa-organization-legacy-fixed-qa-20261109/checks/resolve/result.json",
+        "sha256": "cdbab995b8f71fbf0d5bbdbaf8a17fe485c002fc6d724a1e23c9e9fe3a519f60",
+        "bytes": 1175
+      },
+      "startedUtc": "2026-11-09T12:55:35.249Z",
+      "childExitedUtc": "2026-11-09T12:55:36.846Z"
+    },
+    {
+      "phase": "types",
+      "result": {
+        "id": "mfa-organization-legacy-fixed-qa-20261109/checks/types/result.json",
+        "sha256": "a887ed1086119b5d920824a60763cda9957eb03904f0132c31cda8c46ce363fa",
+        "bytes": 1022
+      },
+      "startedUtc": "2026-11-09T12:55:37.838Z",
+      "childExitedUtc": "2026-11-09T12:55:57.665Z"
+    }
+  ],
+  "startedUtc": "2026-11-09T13:03:55.869Z",
+  "endedUtc": "2026-11-09T13:04:28.265Z",
+  "freeMiBAtStart": 3195.0,
+  "cleanupPassed": true,
+  "temporarySystemActivityGuard": {
+    "startedUtc": "2026-11-09T13:03:44.6390822Z",
+    "endedUtc": "2026-11-09T13:04:29.3642888Z",
+    "exitCode": 0,
+    "systemRequiredSet": true,
+    "systemRequiredCleared": true,
+    "displayRequired": false,
+    "awayMode": false,
+    "permanentPowerSettingsChanged": false,
+    "computerRestarted": false
+  },
+  "inputs": [
+    {
+      "id": "mfa-organization-legacy-harness-20261109/prepare-organization-legacy.mjs",
+      "sha256": "62748f7983edbb7475d7149fefd387f7b8066500c2a6c88ebcc91be271ec6e74",
+      "bytes": 12831
+    },
+    {
+      "id": "mfa-organization-legacy-harness-20261109/run-types.mjs",
+      "sha256": "927e1f8aef123a0829610c94f7ced4892c7014280ba7213a83b3f81c545b8ce5",
+      "bytes": 13929
+    },
+    {
+      "id": "mfa-organization-legacy-harness-20261109/fixed-recipe.json",
+      "sha256": "800a7a5d2c96d4127bb5d5300be70f28dba03a8cb7322c95e103625f2a5794e4",
+      "bytes": 12925
+    },
+    {
+      "id": "mfa-organization-legacy-harness-20261109/fixed-prepare-result.json",
+      "sha256": "631994afdcd2a18987bf259c4c09e92a5195e9cb713fe346508973c5055136a0",
+      "bytes": 166
+    },
+    {
+      "id": "mfa-organization-legacy-harness-20261109/fixed-prepare-guard.json",
+      "sha256": "3f26b72afd5030b1c897726c6084c816f8c19e9925d9359f68b7ae6650815e0d",
+      "bytes": 91
+    },
+    {
+      "id": "mfa-organization-legacy-harness-20261109/fixed-prepare.stdout.txt",
+      "sha256": "ef31734bae73ef379352bf10461e3be7d0fa2dbc9f93b1ba11731239a55676b2",
+      "bytes": 243
+    },
+    {
+      "id": "mfa-organization-legacy-harness-20261109/fixed-prepare.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-organization-legacy-fixed-qa-20261109/checks/resolve/stdout.log",
+      "sha256": "80838971ac5812306ba9b42ea4994baaebfb51dc806e333ae56497c6e69165f6",
+      "bytes": 167738
+    },
+    {
+      "id": "mfa-organization-legacy-fixed-qa-20261109/checks/resolve/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-organization-legacy-fixed-qa-20261109/checks/resolve/result.json",
+      "sha256": "cdbab995b8f71fbf0d5bbdbaf8a17fe485c002fc6d724a1e23c9e9fe3a519f60",
+      "bytes": 1175
+    },
+    {
+      "id": "mfa-organization-legacy-fixed-qa-20261109/checks/resolve/command.json",
+      "sha256": "d3127437562c81e77fc2f73c16bd421f397d44744d66784cc1965fedb8acb4fa",
+      "bytes": 945
+    },
+    {
+      "id": "mfa-organization-legacy-fixed-qa-20261109/checks/resolve/guard.json",
+      "sha256": "d68b35f7afa41e7c0a11c4de7412fc58771182b89f7af4365d6708812c3271cd",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-organization-legacy-fixed-qa-20261109/checks/types/stdout.log",
+      "sha256": "6b0762f35df84d6a2a083668975fdc05a2d30302ad7ee4e622766aeeb8fc7542",
+      "bytes": 972
+    },
+    {
+      "id": "mfa-organization-legacy-fixed-qa-20261109/checks/types/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-organization-legacy-fixed-qa-20261109/checks/types/result.json",
+      "sha256": "a887ed1086119b5d920824a60763cda9957eb03904f0132c31cda8c46ce363fa",
+      "bytes": 1022
+    },
+    {
+      "id": "mfa-organization-legacy-fixed-qa-20261109/checks/types/command.json",
+      "sha256": "d2a0f3ce94d61a2eccb33e65ca6819349f944bd4a41c8bc823bae950ab5fb848",
+      "bytes": 950
+    },
+    {
+      "id": "mfa-organization-legacy-fixed-qa-20261109/checks/types/guard.json",
+      "sha256": "05bc0ef833f240c72ba8224add0267f0d35ed847c4cb8b69d26baf493a667ff3",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-organization-legacy-fixed-qa-20261109/run-mfa-directed.mjs",
+      "sha256": "d70e21cb0b57a7d137ae3e0b73548711625475b67a75f2adc491539adf48dda3",
+      "bytes": 13913
+    },
+    {
+      "id": "mfa-organization-legacy-fixed-qa-20261109/launch-mfa-directed.ps1",
+      "sha256": "b93d767e1efbbafa8d42b949965b469acd2e3946f7a61cb60f1803d43a2c50d7",
+      "bytes": 13043
+    },
+    {
+      "id": "run-organization-legacy-awake-20261109.ps1",
+      "sha256": "425f63168677406a136fc4ceea8816e6bfae3f3662df2e57c0feafe71c6f6f92",
+      "bytes": 1666
+    },
+    {
+      "id": "mfa-grants-root-attestation-20261108.json",
+      "sha256": "9d43fe8e98ce5e11a26e7e943fb465a96f24a4c14368bbdab5712e5282cb426e",
+      "bytes": 664
+    },
+    {
+      "id": "mfa-organization-legacy-fixed-qa-20261109/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-organization-legacy-fixed-qa-20261109/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-organization-legacy-fixed-qa-20261109/organizations-capabilities.log",
+      "sha256": "17affc9f9631076059c9b83e4bb561da76a341334ee30aa277adda1815abd19c",
+      "bytes": 5876
+    },
+    {
+      "id": "mfa-organization-legacy-harness-20261109/PLAN.json",
+      "sha256": "03d89b9be9d3061bab1cd6f25d5ebcfccd71451674cf1f524b456ffe05b41089",
+      "bytes": 4263
+    },
+    {
+      "id": "mfa-organization-legacy-harness-20261109/AUTHORED-PINS.json",
+      "sha256": "d41e4c5731ce0af4a0115959cc5c4c54da17d030af2704d2610f5c1215c3a5c5",
+      "bytes": 563
+    },
+    {
+      "id": "mfa-organization-legacy-harness-20261109/executors-handoff.json",
+      "sha256": "4683957bb12f53ea3d3bc1295f3e0fb5e83a59eec67bc127cf19e2f1ef25babf",
+      "bytes": 1785
+    },
+    {
+      "id": "mfa-organization-legacy-test-20261109/manifest.json",
+      "sha256": "c09ab8de664c75803311b21427a93bfe4c6f000df3bcbfb3557fb11f5824666d",
+      "bytes": 2517
+    },
+    {
+      "id": "mfa-organization-legacy-fixed-qa-20261109/prepared.json",
+      "sha256": "7559859bd179368df66333803b28c294dc7a839dfeeee569c3a13cd2c37a9004",
+      "bytes": 915501
+    },
+    {
+      "id": "mfa-organization-commands-v2-fixed-qa-20261109/prepared.json",
+      "sha256": "71173538f9ff80adbf79df5d856311b4e6deaf888e76bb3b92ccf0a13f7337da",
+      "bytes": 916041
+    },
+    {
+      "id": "mfa-organization-legacy-fixed-qa-20261109/tsconfig.test.json",
+      "sha256": "f77274fc2ccd3a8a096cebd93d7f941d30001a14c5a68fc218ca68a92be43b56",
+      "bytes": 3223
+    },
+    {
+      "id": "mfa-organization-legacy-fixed-qa-20261109/mfa-directed-result.json",
+      "sha256": "12b1589a18df95c473a4776edae45b1f1f57709ef41bbe20cf04af7659b59564",
+      "bytes": 316373
+    },
+    {
+      "id": "mfa-organization-legacy-fixed-qa-20261109/mfa-directed-postchecks.json",
+      "sha256": "95f05ab37b7e375e973d16d0ce637dd61c67cf33c9194f7fedb06e2e32e7aa15",
+      "bytes": 390
+    },
+    {
+      "id": "mfa-organization-legacy-fixed-qa-20261109/owned-database.json",
+      "sha256": "64d61a62ea142f230fafd1040803b27d4e0eff36c72d59e5b86cd14b6df065ad",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-organization-legacy-fixed-qa-20261109/awake-guard.json",
+      "sha256": "56dc43050989f745f87ce513831aaa1ceae03606cc5c638ce75c0f64daadc3af",
+      "bytes": 308
+    }
+  ],
+  "scopeLimits": [
+    "Only the existing organizations-capabilities fixture changes. All text from the first business test to EOF is identical, including all nineteen tests, original SQL, assertions, timeouts, catalog restoration, trigger helpers and real lock waits.",
+    "Real HTTP login/enrollment/TOTP using each fixture actor; same bearer/SID reused in HTTP and restricted withUserContext SQL. No synthetic factor or positive session-proof SQL. Product and all other sources unchanged.",
+    "Original capability/role/grant revocations, inactive organizations, global/local isolation, field privileges, audit integrity, DTOs, uniqueness, current-authority row waits, audit waits, rollback, private-error redaction, post-read revocation and idempotent migration behavior are exercised.",
+    "One19-case existing suite only. Earlier30 directed plus17 regression cases retain their separate source and run evidence and are not added into this run.",
+    "Current-authority waits in the original tests are preserved; new MFA-specific external waits, promotion/triggers, remaining domains/full API/ingest, browsers/mobile/hardware and operations are still pending. MFA068 remains candidate; runtime main001-067 unchanged."
+  ],
+  "computerRestarted": false,
+  "performanceAssessed": false,
+  "productionAccepted": false
+}

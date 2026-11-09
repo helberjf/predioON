@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "recordedOn": "2026-11-09",
+  "status": "SOURCE_PACKAGE_NOT_RUNTIME_ACCEPTANCE",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+      "bytes": 8
+    },
+    {
+      "path": "apply-organization-legacy.mjs",
+      "sha256": "498c6ee29e35473629a8f576f4af32a52aeaf59e9421dd8694e1f9e7e511bdfc",
+      "bytes": 7349
+    },
+    {
+      "path": "MANIFEST.json",
+      "sha256": "d28f4bcb3f33a04ebdbbe009397cf6c6c40f5ec450be8ebec268c2a72b2111b2",
+      "bytes": 389885
+    },
+    {
+      "path": "payload/apps/api/test/organizations-capabilities.test.ts.txt",
+      "sha256": "a2b3d9e67e772d7f43a7b5a6642e8a03f6f75bb7f61c50e637c391f57eb4361c",
+      "bytes": 26917
+    },
+    {
+      "path": "README.md",
+      "sha256": "3480ae48bd3bd669a3f6e590621699cfca731b60f803cdb7868355f173e2a555",
+      "bytes": 1208
+    }
+  ]
+}
