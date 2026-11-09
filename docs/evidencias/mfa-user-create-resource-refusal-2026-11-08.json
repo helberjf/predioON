@@ -1,0 +1,24 @@
+{
+  "recordedOn": "2026-11-08",
+  "status": "PREPARATION_REFUSED_LOW_MEMORY",
+  "guard": {
+    "freeMiB": 740.0,
+    "minimumMiB": 1536,
+    "at": "2026-11-09T00:17:45.5256562Z"
+  },
+  "guardSha256": "e91c63845e880b9394ea382558c7aec5b197e7b3559f357509ca465be5b5e660",
+  "guardPath": "mfa-user-create-harness-20261108/baseline-prepare-guard.json",
+  "candidateAuthored": true,
+  "directedCasesAuthored": 21,
+  "expectedBaselinePass": 11,
+  "expectedBaselineFail": 10,
+  "preparationChildStarted": false,
+  "preparedTreesCreated": false,
+  "typesExecuted": false,
+  "functionalTestsExecuted": false,
+  "temporaryDatabaseCreated": false,
+  "thresholdChanged": false,
+  "otherProjectsStopped": false,
+  "computerRestarted": false,
+  "productionAccepted": false
+}

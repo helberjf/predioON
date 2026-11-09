@@ -1,0 +1,138 @@
+{
+  "version": 1,
+  "format": "new-test-v1",
+  "status": "AUTHORED_NOT_EXECUTED",
+  "recordedOn": "2026-11-08",
+  "baseExaminedPreparedSha256": "01551b135260dc4b7adfdda4f20ace7b9dd5e1cc468a2086c0fb773a0bb83172",
+  "files": [
+    {
+      "path": "apps/api/test/platform-mfa-user-create.test.ts",
+      "sha256": "badeac9eba5ad2715b8690b1b12432b8106ee2d12d18c218063aa4facfb13006",
+      "bytes": 24310,
+      "cases": 21
+    }
+  ],
+  "caseDispositions": [
+    {
+      "name": "flag new: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "flag new: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "flag duplicate: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_409_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline409"
+    },
+    {
+      "name": "flag duplicate: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_409_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline409"
+    },
+    {
+      "name": "flag: creates ordinary account with exact public fields",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "flag: creates administrator with exact public fields",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "flag: preserves case insensitive duplicate409 including inactive accounts",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "binding new: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "binding new: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "binding duplicate: rejects factor removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_409_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline409"
+    },
+    {
+      "name": "binding duplicate: rejects family proof removal after real global authorization",
+      "baseline": "FAIL_EXPECTED_409_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline409"
+    },
+    {
+      "name": "binding: creates ordinary account with exact public fields",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "binding: creates administrator with exact public fields",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "binding: preserves case insensitive duplicate409 including inactive accounts",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "keeps local managers and residents without global authority out",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "requires an authenticated account before creation",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "preserves creation validation without changing users or audit",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "still requires recent password verification and accepts real recovery reauthentication",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "retains database authority checks when a global binding is withdrawn after authorization",
+      "baseline": "PASS",
+      "fixed": "PASS"
+    },
+    {
+      "name": "rolls account audit and proof back after users trigger",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    },
+    {
+      "name": "rolls account audit and proof back after audit_logs trigger",
+      "baseline": "FAIL_EXPECTED_201_VERSUS_403",
+      "fixed": "PASS",
+      "diagnostic": "Baseline201"
+    }
+  ],
+  "baselineExpectedPass": 11,
+  "baselineExpectedFail": 10,
+  "fixedExpectedPass": 21,
+  "independentCases": 21,
+  "parentGroups": 0,
+  "runtimeExecuted": false
+}
