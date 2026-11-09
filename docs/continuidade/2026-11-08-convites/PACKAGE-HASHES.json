@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "recordedOn": "2026-11-08",
+  "status": "SOURCE_PACKAGE_NOT_RUNTIME_ACCEPTANCE",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+      "bytes": 8
+    },
+    {
+      "path": "apply-invitation-commands.mjs",
+      "sha256": "fcd99fa65274f81736a9b1361cee53e1bc021abe61f64cbd8e2b6753f2cb9d44",
+      "bytes": 7401
+    },
+    {
+      "path": "MANIFEST.json",
+      "sha256": "d1b51c42bc1791870a0910c7af4778d6935af1b108eb2ac80529c827f4f92ded",
+      "bytes": 385573
+    },
+    {
+      "path": "payload/apps/api/src/modules/tenancy/routes.ts.txt",
+      "sha256": "e9c9909630cee7a9fcfe5c46a9f1a805529cbfc107b7beadbfcfeaf8ba057963",
+      "bytes": 50790
+    },
+    {
+      "path": "payload/apps/api/test/platform-mfa-invitation-commands.test.ts.txt",
+      "sha256": "ad15fb185ec267cf557299186821ae314ba2ed8e1eabfb47f2ea27753b878827",
+      "bytes": 34051
+    },
+    {
+      "path": "README.md",
+      "sha256": "a7698499eecf1e58a0ddd0b8bb7bf0f3b2cf1394f23b34c5b24b8dd98c84ec57",
+      "bytes": 2288
+    }
+  ]
+}

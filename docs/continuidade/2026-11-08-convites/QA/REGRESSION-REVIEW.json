@@ -1,0 +1,102 @@
+{
+  "recordedUtc": "2026-11-08T23:59:02.335836+00:00",
+  "reviewedBeforeRegressionExecution": true,
+  "status": "SOURCE_RECOUNT_ONLY_NO_PRODUCT_OR_TEST_CHANGE",
+  "reason": "Authored plan counted the describe suite as an additional TAP test. This file has nine it cases, no nested test groups; keep suites separate.",
+  "originalPlanSha256": "87c1396f908a4719a3038ae79e96a3363fe2134fd463536bb67a597a22737bca",
+  "testSha256": "c5126ede3b912ffc06671a30c8f98b07180fe95048669d27f5ae136e2fb27d87",
+  "originalPlannedTap": 178,
+  "originalPlannedGroups": 11,
+  "regressionFiles": [
+    {
+      "name": "platform-mfa-tenancy-links.test.ts",
+      "cases": 12,
+      "sha256": "99367be53a980a27a28dfee0049b9760234da9ee3afc66939327a5ac66f6f5ee"
+    },
+    {
+      "name": "platform-mfa-tenancy-structure.test.ts",
+      "cases": 12,
+      "sha256": "5fcf975688d297d52af9b3f9f460b2badb744b21b417090f037e5a5e8f24c3f5"
+    },
+    {
+      "name": "tenancy-people.test.ts",
+      "cases": 9,
+      "sha256": "f802c095b76adc426062ea9a6c3f151b09f703ade1fa459bcc8ff8d4e08231e5"
+    },
+    {
+      "name": "tenancy-http.test.ts",
+      "cases": 9,
+      "sha256": "16dd4e1cc684c9053c10438ebb4843ce89a193b5b192aa53d318f134a61ee286"
+    },
+    {
+      "name": "tenancy-edit.test.ts",
+      "cases": 11,
+      "sha256": "763e7d099f3e39213142b2a83233c6e5e693ff320afbcda5625fa9cda3df9c49"
+    },
+    {
+      "name": "membership-lifecycle.test.ts",
+      "cases": 4,
+      "sha256": "f81fe588eaf4e9686b56c62bb3ad791e51893fdd7d60241737e3b9a78f2be177"
+    },
+    {
+      "name": "platform-mfa-tenancy-commands.test.ts",
+      "cases": 35,
+      "sha256": "d9ae0f7e1264dc29ae06dc9146b58839f1b21030936d9c34df6a14c1618e7ff0"
+    },
+    {
+      "name": "platform-mfa-tenancy-revocations.test.ts",
+      "cases": 21,
+      "sha256": "62f4d7b81bf9c97f78a08fe1694f0d5c47c8f243d98d411212713f465551bfed"
+    },
+    {
+      "name": "platform-mfa-tenancy-create.test.ts",
+      "cases": 17,
+      "sha256": "d36843c3459083a096ffffe1d9ac323b9e13efe3151ec2bdb36d4709d03d29ab"
+    },
+    {
+      "name": "platform-mfa-tenancy-grants.test.ts",
+      "cases": 17,
+      "sha256": "137788364b48047a2ddcb46747e06564ba05873df14e97b00435b4936326c543"
+    },
+    {
+      "name": "platform-mfa-team-renewal.test.ts",
+      "cases": 21,
+      "sha256": "24d79a0b20be994ffabc5f95c1aac013e626582585eb54364c49c4f04f4f4f4d"
+    },
+    {
+      "name": "invitations.test.ts",
+      "cases": 9,
+      "sha256": "c5126ede3b912ffc06671a30c8f98b07180fe95048669d27f5ae136e2fb27d87"
+    }
+  ],
+  "regressionTapPlanned": 177,
+  "regressionIndependentCases": 167,
+  "regressionParentGroups": 10,
+  "originalInvitationCaseNames": [
+    "stores only the hash, lists without secrets and audits the inviter",
+    "also e-mails the link only when the resident portal and a provider are configured",
+    "previews a valid secret and treats every other value alike",
+    "creates the account with the invited identity, grants only RESIDENT and is single-use",
+    "links an existing account only after its own password and never replaces that credential",
+    "replaces an open invitation on reissue and revokes on request",
+    "rejects invitations outside the manager's authority and malformed requests",
+    "refuses acceptance when the invitation expired, the unit is inactive or the inviter lost authority",
+    "keeps the secret, the outcome and both helpers behind the database boundary"
+  ],
+  "preparedSourceUnchanged": true,
+  "oldExecutorUnexecuted": true,
+  "executors": [
+    {
+      "path": "mfa-invitation-commands-v3-fixed-regression-reviewed-qa-20261108/run-mfa-directed.mjs",
+      "sha256": "bd249a236600ec888f836becbcae29421df8642832e9052bdbef589626ed3446",
+      "modelPath": "mfa-invitation-commands-v3-fixed-regression-qa-20261108/run-mfa-directed.mjs",
+      "modelSha256": "db20eaa31b215116f398095bb07b4bdcc6a62d3f6ed62c5720216f6ea90a59d0"
+    },
+    {
+      "path": "mfa-invitation-commands-v3-fixed-regression-reviewed-qa-20261108/launch-mfa-directed.ps1",
+      "sha256": "9698538a13552c779a56e0139536b2c21e95722534860daacbe97df1c7c05f41",
+      "modelPath": "mfa-invitation-commands-v3-fixed-regression-qa-20261108/launch-mfa-directed.ps1",
+      "modelSha256": "9698538a13552c779a56e0139536b2c21e95722534860daacbe97df1c7c05f41"
+    }
+  ]
+}

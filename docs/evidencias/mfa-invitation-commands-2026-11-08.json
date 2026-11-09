@@ -1,0 +1,914 @@
+{
+  "schemaVersion": 1,
+  "status": "VERIFIED",
+  "configSha256": "b70a7482849ee959adf820e4c13b47dcba69ec0d8de0179d4f898dea8b6ec8ad",
+  "recordedOn": "2026-11-08",
+  "recordedOnTimezone": "America/Sao_Paulo",
+  "reviewedOn": "2026-11-08",
+  "nativeExecutionTimestampsPreserved": true,
+  "verifierSha256": "72cc85f7b758692e5f0dbb882f00cabbd5334da8fdc2e2b1e5a090a4cd5eed2d",
+  "reviewedByRoot": true,
+  "baselineInvitationFailuresReviewed": true,
+  "sourceFiles": 1038,
+  "typeFiles": 34,
+  "requiredResolvedSources": 14,
+  "sourceDifference": [
+    "apps/api/src/modules/tenancy/routes.ts"
+  ],
+  "typeChecks": [
+    {
+      "variant": "baseline",
+      "phase": "resolve",
+      "result": {
+        "id": "mfa-invitation-commands-v3-baseline-qa-20261108/checks/resolve/result.json",
+        "sha256": "5b07a8eeffc61c1bc80eda0085469ca5e542c4926e602a36ff3c938c4e62526a",
+        "bytes": 1178
+      },
+      "startedUtc": "2026-11-08T23:53:40.988Z",
+      "childExitedUtc": "2026-11-08T23:53:42.027Z",
+      "durationMs": 1039
+    },
+    {
+      "variant": "baseline",
+      "phase": "types",
+      "result": {
+        "id": "mfa-invitation-commands-v3-baseline-qa-20261108/checks/types/result.json",
+        "sha256": "217a0bce2bd53af544545aedc9be9dd4a68524f4df4fd7a9495d22cd6f1df774",
+        "bytes": 1024
+      },
+      "startedUtc": "2026-11-08T23:53:43.858Z",
+      "childExitedUtc": "2026-11-08T23:53:53.020Z",
+      "durationMs": 9162
+    },
+    {
+      "variant": "fixed",
+      "phase": "resolve",
+      "result": {
+        "id": "mfa-invitation-commands-v3-fixed-qa-20261108/checks/resolve/result.json",
+        "sha256": "7fe027f2d3c9cd2da03d2067348b65e84045bb5bb5278c576e6e410b57abc527",
+        "bytes": 1175
+      },
+      "startedUtc": "2026-11-08T23:54:02.095Z",
+      "childExitedUtc": "2026-11-08T23:54:03.120Z",
+      "durationMs": 1025
+    },
+    {
+      "variant": "fixed",
+      "phase": "types",
+      "result": {
+        "id": "mfa-invitation-commands-v3-fixed-qa-20261108/checks/types/result.json",
+        "sha256": "dff8705857028f9a7430c3ca99019eddc37b2d6dca68810b189152c6184db800",
+        "bytes": 1021
+      },
+      "startedUtc": "2026-11-08T23:54:04.402Z",
+      "childExitedUtc": "2026-11-08T23:54:13.637Z",
+      "durationMs": 9235
+    }
+  ],
+  "preparation": {
+    "nativeResults": [
+      {
+        "variant": "baseline",
+        "nativeChildExitedUtc": "2026-11-08T23:53:24.7805819Z",
+        "durationMs": 4484.9342,
+        "nativeResult": {
+          "id": "mfa-invitation-commands-v3-harness-20261108/baseline-prepare-result.json",
+          "sha256": "bace68a26e2b085d53f1554d8d9481cde47f5c199379fdfe30ca174905b2a56f",
+          "bytes": 166
+        }
+      },
+      {
+        "variant": "fixed",
+        "nativeChildExitedUtc": "2026-11-08T23:53:30.0485563Z",
+        "durationMs": 3973.1999,
+        "nativeResult": {
+          "id": "mfa-invitation-commands-v3-harness-20261108/fixed-prepare-result.json",
+          "sha256": "366e9bc8f70e8487f55c3feda73dbae617097904bffe0f9f3b14b116ad59350a",
+          "bytes": 166
+        }
+      }
+    ],
+    "isProductTestExecution": false
+  },
+  "acceptedCounts": {
+    "directedTap": 31,
+    "directedIndependent": 31,
+    "directedAggregateGroups": 0,
+    "directedSuites": 1,
+    "regressionFiles": 12,
+    "regressionTap": 177,
+    "regressionIndependent": 167,
+    "regressionAggregateGroups": 10,
+    "combinedTap": 208,
+    "combinedIndependent": 198,
+    "combinedAggregateGroups": 10
+  },
+  "environment": {
+    "attestation": {
+      "recordedOn": "2026-11-08",
+      "recordedUtc": "2026-11-08T23:00:37.6479565Z",
+      "container": "predioon-mfa-grants-20261108",
+      "containerId": "3c0f4e5e47d3d488766eb2679ba97fabf29b12d72f9b8df41bb504205a41b4c8",
+      "systemIdentifier": "7705939420428193833",
+      "port": 5468,
+      "loopbackOnly": true,
+      "memoryLimitMiB": 384,
+      "cpuLimit": 1,
+      "basePublicTables": 0,
+      "exclusiveUse": true,
+      "computerRestarted": false,
+      "imageId": "sha256:4e459e217f00cbb09920c34d245501e63427e6767a495de57ce76823ff280f12",
+      "volume": "predioon_mfa_grants_20261108",
+      "newCluster": true,
+      "previousClusterUnavailable": true,
+      "credentialsPublished": false
+    }
+  },
+  "scopeLimits": [
+    "Only POST/DELETE invitations and private invitation decoders/helper changed. Other handlers, schemas, shared helpers, policies and migrations are unchanged.",
+    "Required actors enroll through real HTTP/TOTP in the same family. Owner SQL removes factor/proof, seeds fixtures or simulates concurrent invitation acceptance; no positive MFA proof is fabricated.",
+    "Baseline has seven201, eight204 and four404 versus403 failures with exact preceding data/audit/mail diagnostics; closed/missing outcomes do not demonstrate an unauthorized write.",
+    "Four narrow audit triggers execute once each. Fixed rollback restores invitation rows, audits, and exact original family proof timestamp text/generation/presence; local captured mail remains unchanged.",
+    "Positive cases preserve full nine-field DTO, token hash, normalization, time window, replacement history, closed204, tenant scope, strict input/FKs and mail only after committed visibility. No external e-mail is sent.",
+    "A fixture owner writer accepts between actual read/capability and UPDATE. This is not the public acceptance endpoint nor an observed row-lock-wait proof.",
+    "V1 had an additional fixture23505; V2 was prepared only and rejected for encoding before types/tests; V3 corrects the seed only. The product is identical across these attempts.",
+    "Twelve related regression files retain their own limits. Historical results and baseline are not added to corrected counts.",
+    "Before regression execution, source recount corrected invitations.test.ts from10 to9 TAP: its describe suite is separate, not an aggregate test. Original plan and amendment are preserved.",
+    "Other domains, generic trigger exceptions, capability changes/promotion during waits and universal commit-boundary guarantees remain outside this acceptance.",
+    "No browser, native Android/iOS, full API, performance or production acceptance is asserted."
+  ],
+  "baselineFailureObservations": [
+    {
+      "case": "create: rejects factor removal after real invitation authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: full invitation DTO, persisted rows, exact audits and committed local mail verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "real authorization before creation/replacement"
+    },
+    {
+      "case": "create: rejects family proof removal after real invitation authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: full invitation DTO, persisted rows, exact audits and committed local mail verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "real authorization before creation/replacement"
+    },
+    {
+      "case": "replace: rejects factor removal after real invitation authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: full invitation DTO, persisted rows, exact audits and committed local mail verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "real authorization before creation/replacement"
+    },
+    {
+      "case": "replace: rejects family proof removal after real invitation authorization",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: full invitation DTO, persisted rows, exact audits and committed local mail verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "real authorization before creation/replacement"
+    },
+    {
+      "case": "revoke open: rejects factor removal after real invitation authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: persisted revocation and exact audit verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "real authorization before open revocation"
+    },
+    {
+      "case": "revoke open: rejects family proof removal after real invitation authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: persisted revocation and exact audit verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "real authorization before open revocation"
+    },
+    {
+      "case": "revoke revoked: rejects factor removal after real invitation authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: closed invitation and audit unchanged verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "real authorization before closed204"
+    },
+    {
+      "case": "revoke revoked: rejects family proof removal after real invitation authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: closed invitation and audit unchanged verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "real authorization before closed204"
+    },
+    {
+      "case": "revoke accepted: rejects factor removal after real invitation authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: closed invitation and audit unchanged verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "real authorization before closed204"
+    },
+    {
+      "case": "revoke accepted: rejects family proof removal after real invitation authorization",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: closed invitation and audit unchanged verified before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "real authorization before closed204"
+    },
+    {
+      "case": "revoke missing: rejects factor removal after real transaction context",
+      "actualStatus": 404,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline404: missing or hidden invitation and audit unchanged before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "real transaction context before missing/hidden read"
+    },
+    {
+      "case": "revoke missing: rejects family proof removal after real transaction context",
+      "actualStatus": 404,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline404: missing or hidden invitation and audit unchanged before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "real transaction context before missing/hidden read"
+    },
+    {
+      "case": "revoke hidden: rejects factor removal after real transaction context",
+      "actualStatus": 404,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline404: missing or hidden invitation and audit unchanged before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_ENROLLMENT_REQUIRED",
+      "boundary": "real transaction context before missing/hidden read"
+    },
+    {
+      "case": "revoke hidden: rejects family proof removal after real transaction context",
+      "actualStatus": 404,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline404: missing or hidden invitation and audit unchanged before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "real transaction context before missing/hidden read"
+    },
+    {
+      "case": "accepted between read and update: rejects lost family proof",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: concurrent acceptance preserved without revocation or audit before expected403 mismatch",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "concurrent acceptance after real authorization"
+    },
+    {
+      "case": "create: rolls rows audits proof and mail back after INVITATION_CREATED trigger",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: invitation effects verified; narrow audit trigger executed once and removed the same family proof",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "narrow audit trigger"
+    },
+    {
+      "case": "replace: rolls rows audits proof and mail back after INVITATION_REVOKED trigger",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: invitation effects verified; narrow audit trigger executed once and removed the same family proof",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "narrow audit trigger"
+    },
+    {
+      "case": "replace: rolls rows audits proof and mail back after INVITATION_CREATED trigger",
+      "actualStatus": 201,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline201: invitation effects verified; narrow audit trigger executed once and removed the same family proof",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "narrow audit trigger"
+    },
+    {
+      "case": "revoke: rolls rows audits proof and mail back after INVITATION_REVOKED trigger",
+      "actualStatus": 204,
+      "expectedStatus": 403,
+      "exactPrecedingChecksDiagnostic": "Baseline204: invitation effects verified; narrow audit trigger executed once and removed the same family proof",
+      "expectedReasonAfterFix": "MFA_VERIFICATION_REQUIRED",
+      "boundary": "narrow audit trigger"
+    }
+  ],
+  "runs": [
+    {
+      "variant": "baseline",
+      "tests": [
+        {
+          "test": "platform-mfa-invitation-commands",
+          "tests": 31,
+          "suites": 1,
+          "pass": 12,
+          "fail": 19,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 13888.1186,
+          "childDurationMs": 14039.9847,
+          "logSha256": "6a64d3f8f2b2a521f4911136e0b9ef347fedc1fdc4d30a1611a7b2a918a1a4ec"
+        }
+      ],
+      "cleanupPassed": true,
+      "sourceMatched": true,
+      "ownedChildrenExited": true,
+      "cleanupHeld": false,
+      "nativeStatus": "completed-awaiting-TAP-GREEN-classification",
+      "startedUtc": "2026-11-08T23:55:55.227Z",
+      "endedUtc": "2026-11-08T23:56:16.042Z",
+      "observedHeadBefore": "cb88fd9d293a6ddb18078cce62ea1523539931e6",
+      "observedHeadAfter": "cb88fd9d293a6ddb18078cce62ea1523539931e6"
+    },
+    {
+      "variant": "fixed",
+      "tests": [
+        {
+          "test": "platform-mfa-invitation-commands",
+          "tests": 31,
+          "suites": 1,
+          "pass": 31,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 13242.4979,
+          "childDurationMs": 13388.789700000001,
+          "logSha256": "3084f9e02fe351b5bc9663f92c418d02de3790a6e23194a42ff296691575ed9c"
+        }
+      ],
+      "cleanupPassed": true,
+      "sourceMatched": true,
+      "ownedChildrenExited": true,
+      "cleanupHeld": false,
+      "nativeStatus": "completed-awaiting-TAP-GREEN-classification",
+      "startedUtc": "2026-11-08T23:57:41.981Z",
+      "endedUtc": "2026-11-08T23:58:02.363Z",
+      "observedHeadBefore": "cb88fd9d293a6ddb18078cce62ea1523539931e6",
+      "observedHeadAfter": "cb88fd9d293a6ddb18078cce62ea1523539931e6"
+    },
+    {
+      "variant": "fixed-regression",
+      "tests": [
+        {
+          "test": "platform-mfa-tenancy-links",
+          "tests": 12,
+          "suites": 1,
+          "pass": 12,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 4297.6794,
+          "childDurationMs": 4439.181600000001,
+          "logSha256": "bbe44a5c1ddd4f78a0ed9fb3855154632125aadd2fc18f34f422d16b8d2d0aee"
+        },
+        {
+          "test": "platform-mfa-tenancy-structure",
+          "tests": 12,
+          "suites": 1,
+          "pass": 12,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 3656.6577,
+          "childDurationMs": 4317.947699999999,
+          "logSha256": "b610fc5adf463fb24fcdedeef7fabbb3e103a259a1506d4a098c820f184aa5f1"
+        },
+        {
+          "test": "tenancy-people",
+          "tests": 9,
+          "suites": 1,
+          "pass": 9,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 6990.0714,
+          "childDurationMs": 7123.587299999999,
+          "logSha256": "4d968d013f1fb5b13b7869e61b9d9d895968572859a56f9ce0fa2344c221a7b0"
+        },
+        {
+          "test": "tenancy-http",
+          "tests": 9,
+          "suites": 1,
+          "pass": 9,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 5408.514,
+          "childDurationMs": 5547.6911999999975,
+          "logSha256": "648984ef97fb9e091facd19c55e42754823b93b2077f5b267cc7c4fd2e69febc"
+        },
+        {
+          "test": "tenancy-edit",
+          "tests": 11,
+          "suites": 1,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 5476.6018,
+          "childDurationMs": 5617.313999999995,
+          "logSha256": "8b8a55f85d8f4843a7440dec26c88f46c109b09a2b909b25d18aa51bfc8448ba"
+        },
+        {
+          "test": "membership-lifecycle",
+          "tests": 4,
+          "suites": 1,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 3349.2539,
+          "childDurationMs": 3481.1198000000004,
+          "logSha256": "a7dc02463eb7dfee34ebf43ef48d1d24ab99ec6de39ea12a5166abb747a50bb3"
+        },
+        {
+          "test": "platform-mfa-tenancy-commands",
+          "tests": 35,
+          "suites": 1,
+          "pass": 35,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 7166.2825,
+          "childDurationMs": 7307.9035,
+          "logSha256": "f79946f804b778335c91636e49238d8692a7317ccbaf37293c72c0248d130252"
+        },
+        {
+          "test": "platform-mfa-tenancy-revocations",
+          "tests": 21,
+          "suites": 1,
+          "pass": 21,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 20901.7247,
+          "childDurationMs": 21044.126399999994,
+          "logSha256": "8ef897ac236e82df8d5bcdac661c4278db06cc9fb7d3175cfabf77c105881dd2"
+        },
+        {
+          "test": "platform-mfa-tenancy-create",
+          "tests": 17,
+          "suites": 1,
+          "pass": 17,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 7315.0991,
+          "childDurationMs": 7471.522200000007,
+          "logSha256": "d91297f3ac41bca6dd6605f089407de610332644b6c9e52a65d78f756a848862"
+        },
+        {
+          "test": "platform-mfa-tenancy-grants",
+          "tests": 17,
+          "suites": 1,
+          "pass": 17,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 13089.9438,
+          "childDurationMs": 13749.068400000004,
+          "logSha256": "7d20816096689d7549a1bbc9cde7f56d39bf0df99231802a997a11231eeb12ed"
+        },
+        {
+          "test": "platform-mfa-team-renewal",
+          "tests": 21,
+          "suites": 1,
+          "pass": 21,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 7391.7182,
+          "childDurationMs": 7562.126799999998,
+          "logSha256": "3cdeb8f0cbf4c99d9741bb223910a822d106fb7785c0ab38c89fb08721ceff88"
+        },
+        {
+          "test": "invitations",
+          "tests": 9,
+          "suites": 1,
+          "pass": 9,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "tapDurationMs": 5754.9681,
+          "childDurationMs": 6415.6014,
+          "logSha256": "8b1a1c67cbdfd5b0a0073e1a0bb0cdeb24a5b3440e72c3c38e8de217b62c2e7a"
+        }
+      ],
+      "cleanupPassed": true,
+      "sourceMatched": true,
+      "ownedChildrenExited": true,
+      "cleanupHeld": false,
+      "nativeStatus": "completed-awaiting-TAP-GREEN-classification",
+      "startedUtc": "2026-11-08T23:59:08.562Z",
+      "endedUtc": "2026-11-09T00:00:59.597Z",
+      "observedHeadBefore": "cb88fd9d293a6ddb18078cce62ea1523539931e6",
+      "observedHeadAfter": "cb88fd9d293a6ddb18078cce62ea1523539931e6"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "mfa-invitation-commands-root-config-20261108.json",
+      "sha256": "b70a7482849ee959adf820e4c13b47dcba69ec0d8de0179d4f898dea8b6ec8ad",
+      "bytes": 3939
+    },
+    {
+      "id": "mfa-invitation-commands-v3-harness-20261108/PLAN.json",
+      "sha256": "87c1396f908a4719a3038ae79e96a3363fe2134fd463536bb67a597a22737bca",
+      "bytes": 5604
+    },
+    {
+      "id": "mfa-invitation-commands-v3-harness-20261108/REGRESSION-REVIEW.json",
+      "sha256": "f7ce2bed3d43da5cbb48fb9054c384399c1a9aa5a45acd6aea871cd03b21a337",
+      "bytes": 4301
+    },
+    {
+      "id": "mfa-invitation-commands-v3-test-20261108/manifest.json",
+      "sha256": "20f7d45df9e509512f6919c520f34855306fd35683952c8413994c0aca8e53a8",
+      "bytes": 6502
+    },
+    {
+      "id": "mfa-invitation-commands-v3-candidate-20261108/manifest.json",
+      "sha256": "478e9bd57bae1888f781bf2a165d04db635bc3e286cd457226f144c5e6130bdc",
+      "bytes": 749
+    },
+    {
+      "id": "mfa-invitation-commands-v3-harness-20261108/AUTHORED-PINS.json",
+      "sha256": "cd4b9e2855312eaae5c1d15525b7d86bcd3d25c67d7619f57bca7f91c72c712f",
+      "bytes": 664
+    },
+    {
+      "id": "mfa-team-renewal-fixed-qa-20261108/prepared.json",
+      "sha256": "4dadcdc045378366e0fdec233e698f6f8fe8cae78bf0920c0899638829194e7b",
+      "bytes": 907828
+    },
+    {
+      "id": "mfa-invitation-commands-v3-harness-20261108/executors-handoff.json",
+      "sha256": "185de02a9e1287fbe7d8375bc68f222700a1f89fde53ed0aa1532573987e1442",
+      "bytes": 3046
+    },
+    {
+      "id": "mfa-invitation-commands-v3-baseline-qa-20261108/run-mfa-directed.mjs",
+      "sha256": "70e24ea2eb0292de2cf5ede25933e34b0ecb90ac8af672e5d20950e24dc520f2",
+      "bytes": 13824
+    },
+    {
+      "id": "mfa-invitation-commands-v3-baseline-qa-20261108/launch-mfa-directed.ps1",
+      "sha256": "57cab5189733e8cfdaa8084b0c7f8642c3924cf60a1c209e10d8b98170b26eb5",
+      "bytes": 13056
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-qa-20261108/run-mfa-directed.mjs",
+      "sha256": "49db79159c96965245fc2ccb557770f7b1d9f2766710e5c2125aa2b34f5a308f",
+      "bytes": 13809
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-qa-20261108/launch-mfa-directed.ps1",
+      "sha256": "459f27e0bc833049edb6c391b7542ef6a8743f19b758a8b00744b0d0fb51b101",
+      "bytes": 13044
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-regression-reviewed-qa-20261108/run-mfa-directed.mjs",
+      "sha256": "bd249a236600ec888f836becbcae29421df8642832e9052bdbef589626ed3446",
+      "bytes": 15228
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-regression-reviewed-qa-20261108/launch-mfa-directed.ps1",
+      "sha256": "9698538a13552c779a56e0139536b2c21e95722534860daacbe97df1c7c05f41",
+      "bytes": 13045
+    },
+    {
+      "id": "mfa-invitation-commands-v3-harness-20261108/executors-reviewed-handoff.json",
+      "sha256": "9cdf31ad59de4a0ee70b10bbf95750ea2d7442f865d131106a3900e42f92ec62",
+      "bytes": 3275
+    },
+    {
+      "id": "mfa-grants-root-attestation-20261108.json",
+      "sha256": "9d43fe8e98ce5e11a26e7e943fb465a96f24a4c14368bbdab5712e5282cb426e",
+      "bytes": 664
+    },
+    {
+      "id": "mfa-invitation-commands-v3-harness-20261108/run-types.mjs",
+      "sha256": "db2a00ec9ef881651ea8e9e1dda094ee6b42aeb9e498c8568f2fecd816aad2f3",
+      "bytes": 12524
+    },
+    {
+      "id": "mfa-invitation-commands-v3-harness-20261108/baseline-prepare-result.json",
+      "sha256": "bace68a26e2b085d53f1554d8d9481cde47f5c199379fdfe30ca174905b2a56f",
+      "bytes": 166
+    },
+    {
+      "id": "mfa-invitation-commands-v3-harness-20261108/baseline-prepare-guard.json",
+      "sha256": "ba4f01c90aef053a6f320e5ea6b35aa1cb09a9cc0851dc5a101957022e021823",
+      "bytes": 91
+    },
+    {
+      "id": "mfa-invitation-commands-v3-harness-20261108/baseline-prepare.stdout.txt",
+      "sha256": "624b2035cf44e6a1d6afe83bbc37efd1b742c62e5cf3889c643a8d440a855852",
+      "bytes": 246
+    },
+    {
+      "id": "mfa-invitation-commands-v3-harness-20261108/baseline-prepare.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-invitation-commands-v3-harness-20261108/fixed-prepare-result.json",
+      "sha256": "366e9bc8f70e8487f55c3feda73dbae617097904bffe0f9f3b14b116ad59350a",
+      "bytes": 166
+    },
+    {
+      "id": "mfa-invitation-commands-v3-harness-20261108/fixed-prepare-guard.json",
+      "sha256": "d2b04ea07050159f1bc8f967aef046bb0e05f594f1dff034f51b1c061511ff1d",
+      "bytes": 91
+    },
+    {
+      "id": "mfa-invitation-commands-v3-harness-20261108/fixed-prepare.stdout.txt",
+      "sha256": "1728f35044a43b0e4413d2200140d62291f0cee7709fe9c9471cc38573060316",
+      "bytes": 243
+    },
+    {
+      "id": "mfa-invitation-commands-v3-harness-20261108/fixed-prepare.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-invitation-commands-v3-baseline-qa-20261108/prepared.json",
+      "sha256": "3b3d9e3892c6cb940665810800ec642da55978acbbec52fef212575abcda3485",
+      "bytes": 910663
+    },
+    {
+      "id": "mfa-invitation-commands-v3-baseline-qa-20261108/tsconfig.test.json",
+      "sha256": "e19ae859c7e6f168ed1bd0d76ff18ef595bf018d9e5283ac419f248148b98016",
+      "bytes": 2251
+    },
+    {
+      "id": "mfa-invitation-commands-v3-baseline-qa-20261108/checks/resolve/stdout.log",
+      "sha256": "1b6d242953cfe8d80744358627c218bcf850c35ae30a044f377cd5a41f565b37",
+      "bytes": 150265
+    },
+    {
+      "id": "mfa-invitation-commands-v3-baseline-qa-20261108/checks/resolve/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-invitation-commands-v3-baseline-qa-20261108/checks/resolve/result.json",
+      "sha256": "5b07a8eeffc61c1bc80eda0085469ca5e542c4926e602a36ff3c938c4e62526a",
+      "bytes": 1178
+    },
+    {
+      "id": "mfa-invitation-commands-v3-baseline-qa-20261108/checks/resolve/command.json",
+      "sha256": "69ab0c4e543f2b53b3ef155b6b6acddbb69012788ae71f7761e67d2a89f9a486",
+      "bytes": 966
+    },
+    {
+      "id": "mfa-invitation-commands-v3-baseline-qa-20261108/checks/resolve/guard.json",
+      "sha256": "28df47a6f58ace5f7d71ecf750192acf823a9452c44d902f0aa325cd3d3e2d62",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-invitation-commands-v3-baseline-qa-20261108/checks/types/stdout.log",
+      "sha256": "887c5793d5dafde2dd0f05a547540907fe0df7625cd7d13ec927a1f02b498c55",
+      "bytes": 972
+    },
+    {
+      "id": "mfa-invitation-commands-v3-baseline-qa-20261108/checks/types/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-invitation-commands-v3-baseline-qa-20261108/checks/types/result.json",
+      "sha256": "217a0bce2bd53af544545aedc9be9dd4a68524f4df4fd7a9495d22cd6f1df774",
+      "bytes": 1024
+    },
+    {
+      "id": "mfa-invitation-commands-v3-baseline-qa-20261108/checks/types/command.json",
+      "sha256": "7012cb2106852ed2538b72708a6fb68486f01f702dc7bcff349814f3df9fa79f",
+      "bytes": 971
+    },
+    {
+      "id": "mfa-invitation-commands-v3-baseline-qa-20261108/checks/types/guard.json",
+      "sha256": "ad03971edc101172d160abc92cc7a13bc8ade19416a7f00ad80e7bbcb004ca52",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-qa-20261108/prepared.json",
+      "sha256": "01551b135260dc4b7adfdda4f20ace7b9dd5e1cc468a2086c0fb773a0bb83172",
+      "bytes": 910120
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-qa-20261108/tsconfig.test.json",
+      "sha256": "e19ae859c7e6f168ed1bd0d76ff18ef595bf018d9e5283ac419f248148b98016",
+      "bytes": 2251
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-qa-20261108/checks/resolve/stdout.log",
+      "sha256": "8685175507475223ec3bd7d5f52409840f343301157c06ceeb1650c86d91c5fa",
+      "bytes": 149755
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-qa-20261108/checks/resolve/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-qa-20261108/checks/resolve/result.json",
+      "sha256": "7fe027f2d3c9cd2da03d2067348b65e84045bb5bb5278c576e6e410b57abc527",
+      "bytes": 1175
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-qa-20261108/checks/resolve/command.json",
+      "sha256": "b2234cbf9f779eb35afa458e504353ddb09074b7c7ecce09ef46667984354bcf",
+      "bytes": 954
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-qa-20261108/checks/resolve/guard.json",
+      "sha256": "eb265115c333a06b9a6036289cfc9fc9d58f5698e884ec303fa96e9c7e26723b",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-qa-20261108/checks/types/stdout.log",
+      "sha256": "422fe232ba71b92cb6a5aac17641725b06ba188256251d3b6a385354568acdcb",
+      "bytes": 972
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-qa-20261108/checks/types/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-qa-20261108/checks/types/result.json",
+      "sha256": "dff8705857028f9a7430c3ca99019eddc37b2d6dca68810b189152c6184db800",
+      "bytes": 1021
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-qa-20261108/checks/types/command.json",
+      "sha256": "703ceefe05eae9c846b34782577a0789a0c694cdc23212383371c9b6dcc27244",
+      "bytes": 959
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-qa-20261108/checks/types/guard.json",
+      "sha256": "0fa20a1a33cf66c746158059bfcf3d34d4b8d53d5a76a43b452a4c6917fa424e",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-invitation-commands-v3-baseline-qa-20261108/owned-database.json",
+      "sha256": "99e01607ad06aa5bbde4d17915f4bd655cd64897efad1cd362e61233542816eb",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-invitation-commands-v3-baseline-qa-20261108/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-invitation-commands-v3-baseline-qa-20261108/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-invitation-commands-v3-baseline-qa-20261108/platform-mfa-invitation-commands.log",
+      "sha256": "6a64d3f8f2b2a521f4911136e0b9ef347fedc1fdc4d30a1611a7b2a918a1a4ec",
+      "bytes": 33775
+    },
+    {
+      "id": "mfa-invitation-commands-v3-baseline-qa-20261108/mfa-directed-result.json",
+      "sha256": "4ff06f6ef39294b3d65e49a4c24e852793314f4462e49f6621305103250a54fb",
+      "bytes": 314418
+    },
+    {
+      "id": "mfa-invitation-commands-v3-baseline-qa-20261108/mfa-directed-postchecks.json",
+      "sha256": "d56ada01c31ce974aa834017fc8e1ffed0d1ea25571a1e64f28d5dac9ff8e442",
+      "bytes": 390
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-qa-20261108/owned-database.json",
+      "sha256": "c5290deb92690f1cc070378d0fe231729c76f2c0bad5242a0414ef6fd6a5e946",
+      "bytes": 88
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-qa-20261108/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-qa-20261108/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-qa-20261108/platform-mfa-invitation-commands.log",
+      "sha256": "3084f9e02fe351b5bc9663f92c418d02de3790a6e23194a42ff296691575ed9c",
+      "bytes": 7878
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-qa-20261108/mfa-directed-result.json",
+      "sha256": "b3c70b5582861588138170797f3fa45a44af636334c54c9dc183b8ce6b616e02",
+      "bytes": 314422
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-qa-20261108/mfa-directed-postchecks.json",
+      "sha256": "cf71b0cbed6c28b4b88b6dc7626a9c67ce3284a36fd067a8d2883882140ca337",
+      "bytes": 390
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-regression-reviewed-qa-20261108/owned-database.json",
+      "sha256": "461fa78ae87a20bc9925c88362b4d6f8514c7e3cecea89b2cd3d55bff8be4970",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-regression-reviewed-qa-20261108/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-regression-reviewed-qa-20261108/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-regression-reviewed-qa-20261108/platform-mfa-tenancy-links.log",
+      "sha256": "bbe44a5c1ddd4f78a0ed9fb3855154632125aadd2fc18f34f422d16b8d2d0aee",
+      "bytes": 2780
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-regression-reviewed-qa-20261108/platform-mfa-tenancy-structure.log",
+      "sha256": "b610fc5adf463fb24fcdedeef7fabbb3e103a259a1506d4a098c820f184aa5f1",
+      "bytes": 2620
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-regression-reviewed-qa-20261108/tenancy-people.log",
+      "sha256": "4d968d013f1fb5b13b7869e61b9d9d895968572859a56f9ce0fa2344c221a7b0",
+      "bytes": 2666
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-regression-reviewed-qa-20261108/tenancy-http.log",
+      "sha256": "648984ef97fb9e091facd19c55e42754823b93b2077f5b267cc7c4fd2e69febc",
+      "bytes": 2538
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-regression-reviewed-qa-20261108/tenancy-edit.log",
+      "sha256": "8b8a55f85d8f4843a7440dec26c88f46c109b09a2b909b25d18aa51bfc8448ba",
+      "bytes": 2999
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-regression-reviewed-qa-20261108/membership-lifecycle.log",
+      "sha256": "a7dc02463eb7dfee34ebf43ef48d1d24ab99ec6de39ea12a5166abb747a50bb3",
+      "bytes": 1157
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-regression-reviewed-qa-20261108/platform-mfa-tenancy-commands.log",
+      "sha256": "f79946f804b778335c91636e49238d8692a7317ccbaf37293c72c0248d130252",
+      "bytes": 6943
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-regression-reviewed-qa-20261108/platform-mfa-tenancy-revocations.log",
+      "sha256": "8ef897ac236e82df8d5bcdac661c4278db06cc9fb7d3175cfabf77c105881dd2",
+      "bytes": 5521
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-regression-reviewed-qa-20261108/platform-mfa-tenancy-create.log",
+      "sha256": "d91297f3ac41bca6dd6605f089407de610332644b6c9e52a65d78f756a848862",
+      "bytes": 4293
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-regression-reviewed-qa-20261108/platform-mfa-tenancy-grants.log",
+      "sha256": "7d20816096689d7549a1bbc9cde7f56d39bf0df99231802a997a11231eeb12ed",
+      "bytes": 4554
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-regression-reviewed-qa-20261108/platform-mfa-team-renewal.log",
+      "sha256": "3cdeb8f0cbf4c99d9741bb223910a822d106fb7785c0ab38c89fb08721ceff88",
+      "bytes": 5062
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-regression-reviewed-qa-20261108/invitations.log",
+      "sha256": "8b1a1c67cbdfd5b0a0073e1a0bb0cdeb24a5b3440e72c3c38e8de217b62c2e7a",
+      "bytes": 2500
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-regression-reviewed-qa-20261108/mfa-directed-result.json",
+      "sha256": "c0f3f54bd9ce3b2be10068c01a4cd989f5c399ef6b0aff83f80c8e82c78bee02",
+      "bytes": 321112
+    },
+    {
+      "id": "mfa-invitation-commands-v3-fixed-regression-reviewed-qa-20261108/mfa-directed-postchecks.json",
+      "sha256": "1021aa77dbc317547663a4c26b6940ecf6d6f53b6ced856d80091be544c12d52",
+      "bytes": 390
+    }
+  ],
+  "performanceAssessed": false,
+  "productionAccepted": false
+}

@@ -1,0 +1,137 @@
+{
+  "recordedOn": "2026-11-08",
+  "status": "AUTHORED_NOT_EXECUTED",
+  "sourceBase": "53c4c70dcd24f1045fad420fbce36757fd3753a2",
+  "priorPreparedSha256": "4dadcdc045378366e0fdec233e698f6f8fe8cae78bf0920c0899638829194e7b",
+  "sourceFiles": 1038,
+  "rootSourceFiles": 994,
+  "typeTests": [
+    "apps/api/test/platform-mfa-invitation-commands.test.ts",
+    "apps/api/test/platform-mfa-team-renewal.test.ts",
+    "apps/api/test/platform-mfa-tenancy-grants.test.ts",
+    "apps/api/test/platform-mfa-tenancy-create.test.ts",
+    "apps/api/test/platform-mfa-tenancy-revocations.test.ts",
+    "apps/api/test/platform-mfa-tenancy-commands.test.ts",
+    "apps/api/test/platform-mfa-support-timestamp-order.test.ts",
+    "apps/api/test/platform-mfa-features-read.test.ts",
+    "apps/api/test/features-config.test.ts",
+    "apps/api/test/building-feature-capabilities.test.ts",
+    "apps/api/test/platform-mfa-support-read.test.ts",
+    "apps/api/test/platform-mfa-admin-directory-read.test.ts",
+    "apps/api/test/platform-mfa-invitation-read.test.ts",
+    "apps/api/test/platform-mfa-tenancy-links.test.ts",
+    "apps/api/test/platform-mfa-tenancy-structure.test.ts",
+    "apps/api/test/platform-mfa-guarded-read.test.ts",
+    "apps/api/test/platform-mfa-gateway-events.test.ts",
+    "apps/api/test/platform-mfa-heartbeat.test.ts",
+    "apps/api/test/platform-mfa-device-events.test.ts",
+    "apps/api/test/platform-mfa-telemetry-events.test.ts",
+    "apps/api/test/platform-mfa-feature-events.test.ts",
+    "apps/api/test/platform-mfa-disable-snapshot.test.ts",
+    "apps/api/test/platform-mfa-sql-envelopes.test.ts",
+    "apps/api/test/telemetry-events-capabilities.test.ts",
+    "apps/api/test/alert-events-capabilities.test.ts",
+    "apps/api/test/platform-mfa-alert-events.test.ts",
+    "apps/api/test/equipment-events-capabilities.test.ts",
+    "apps/api/test/tenancy-people.test.ts",
+    "apps/api/test/tenancy-http.test.ts",
+    "apps/api/test/tenancy-edit.test.ts",
+    "apps/api/test/membership-lifecycle.test.ts",
+    "apps/api/test/invitations.test.ts",
+    "apps/api/test/users-capabilities.test.ts",
+    "apps/api/test/support-access.test.ts"
+  ],
+  "requiredResolvedSources": [
+    "apps/api/src/auth/mfa.ts",
+    "apps/api/src/auth/mfa-policy.ts",
+    "apps/api/src/modules/events/routes.ts",
+    "apps/api/src/modules/events/features.ts",
+    "apps/api/src/modules/events/telemetry.ts",
+    "apps/api/src/modules/events/alerts.ts",
+    "apps/api/src/modules/events/equipment.ts",
+    "apps/api/src/modules/buildings/routes.ts",
+    "apps/api/src/modules/tenancy/routes.ts",
+    "apps/api/src/auth/mfa-read.ts",
+    "apps/api/src/modules/users/routes.ts",
+    "apps/api/src/modules/support-access/routes.ts",
+    "apps/api/src/modules/features/routes.ts",
+    "apps/api/src/auth/verification.ts"
+  ],
+  "testFile": "apps/api/test/platform-mfa-invitation-commands.test.ts",
+  "testSha256": "ad15fb185ec267cf557299186821ae314ba2ed8e1eabfb47f2ea27753b878827",
+  "testManifestSha256": "20f7d45df9e509512f6919c520f34855306fd35683952c8413994c0aca8e53a8",
+  "productManifestSha256": "478e9bd57bae1888f781bf2a165d04db635bc3e286cd457226f144c5e6130bdc",
+  "productBeforeSha256": "172183eea44ba093e88b1d68553a634c2cc1ed09f1f18966db6bea42d9a4fff6",
+  "productAfterSha256": "e9c9909630cee7a9fcfe5c46a9f1a805529cbfc107b7beadbfcfeaf8ba057963",
+  "directedTapPlanned": 31,
+  "baselineExpectedPass": 12,
+  "baselineExpectedFail": 19,
+  "regressionFiles": [
+    {
+      "name": "platform-mfa-tenancy-links.test.ts",
+      "cases": 12,
+      "sha256": "99367be53a980a27a28dfee0049b9760234da9ee3afc66939327a5ac66f6f5ee"
+    },
+    {
+      "name": "platform-mfa-tenancy-structure.test.ts",
+      "cases": 12,
+      "sha256": "5fcf975688d297d52af9b3f9f460b2badb744b21b417090f037e5a5e8f24c3f5"
+    },
+    {
+      "name": "tenancy-people.test.ts",
+      "cases": 9,
+      "sha256": "f802c095b76adc426062ea9a6c3f151b09f703ade1fa459bcc8ff8d4e08231e5"
+    },
+    {
+      "name": "tenancy-http.test.ts",
+      "cases": 9,
+      "sha256": "16dd4e1cc684c9053c10438ebb4843ce89a193b5b192aa53d318f134a61ee286"
+    },
+    {
+      "name": "tenancy-edit.test.ts",
+      "cases": 11,
+      "sha256": "763e7d099f3e39213142b2a83233c6e5e693ff320afbcda5625fa9cda3df9c49"
+    },
+    {
+      "name": "membership-lifecycle.test.ts",
+      "cases": 4,
+      "sha256": "f81fe588eaf4e9686b56c62bb3ad791e51893fdd7d60241737e3b9a78f2be177"
+    },
+    {
+      "name": "platform-mfa-tenancy-commands.test.ts",
+      "cases": 35,
+      "sha256": "d9ae0f7e1264dc29ae06dc9146b58839f1b21030936d9c34df6a14c1618e7ff0"
+    },
+    {
+      "name": "platform-mfa-tenancy-revocations.test.ts",
+      "cases": 21,
+      "sha256": "62f4d7b81bf9c97f78a08fe1694f0d5c47c8f243d98d411212713f465551bfed"
+    },
+    {
+      "name": "platform-mfa-tenancy-create.test.ts",
+      "cases": 17,
+      "sha256": "d36843c3459083a096ffffe1d9ac323b9e13efe3151ec2bdb36d4709d03d29ab"
+    },
+    {
+      "name": "platform-mfa-tenancy-grants.test.ts",
+      "cases": 17,
+      "sha256": "137788364b48047a2ddcb46747e06564ba05873df14e97b00435b4936326c543"
+    },
+    {
+      "name": "platform-mfa-team-renewal.test.ts",
+      "cases": 21,
+      "sha256": "24d79a0b20be994ffabc5f95c1aac013e626582585eb54364c49c4f04f4f4f4d"
+    },
+    {
+      "name": "invitations.test.ts",
+      "cases": 10,
+      "sha256": "c5126ede3b912ffc06671a30c8f98b07180fe95048669d27f5ae136e2fb27d87"
+    }
+  ],
+  "regressionTapPlanned": 178,
+  "regressionIndependentCases": 167,
+  "regressionParentGroups": 11,
+  "productionAccepted": false,
+  "requiresAlreadyRunningOwnedCluster": true,
+  "minimumMiB": 1536
+}
