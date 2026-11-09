@@ -1,0 +1,38 @@
+{
+  "status": "AUTHORED_NOT_EXECUTED",
+  "preparedSha256": "3a5f530aadbea9a098f9c27f841d8f67773b0184941fc72430809f8aabb5e786",
+  "configSha256": "9a86002fe3cc23f26faedea7334118a0b9642a12e2a2b12dfa3871f823afe277",
+  "sourceFiles": 1045,
+  "typeTests": 42,
+  "requiredSources": 14,
+  "directedCases": 8,
+  "runtimeProductModified": false,
+  "executors": [
+    {
+      "path": "mfa-feature-lifecycle-fixed-qa-20261109/run-mfa-directed.mjs",
+      "sha256": "42e742f2c2b489b5bcaab83fff5b15393102457f31207e2a3eb133c0df3bc4aa",
+      "modelPath": "mfa-feature-commands-v2-fixed-qa-20261109/run-mfa-directed.mjs",
+      "modelSha256": "c27b7b425ace4d7fc9cc907c34d4689099470b735183dd70de59167843a88c13"
+    },
+    {
+      "path": "mfa-feature-lifecycle-fixed-qa-20261109/launch-mfa-directed.ps1",
+      "sha256": "b53ac991da19fec77399ddafe57096eabc0aab8eb0391610b7fc263aabf08955",
+      "modelPath": "mfa-feature-commands-v2-fixed-qa-20261109/launch-mfa-directed.ps1",
+      "modelSha256": "20c3d2b2ce30151475a2664355ee4ee080d4d37bdffb402c5f4eebe15b0f130f"
+    },
+    {
+      "path": "run-feature-lifecycle-awake-20261109.ps1",
+      "sha256": "d3665efe1a110dc8d16fb3c28c58bf44f5461c43ea64164859fc1677c5923a06",
+      "modelPath": "run-feature-v2-fixed-awake-20261109.ps1",
+      "modelSha256": "50945a7f31bc3bf7d39fd9ae5f7637407d3e3cb64e7ba70c6ad43f5ab039e741"
+    }
+  ],
+  "processLifecycleModified": false,
+  "requiresAlreadyRunningAttestedCluster": true,
+  "minimumFreeMiB": 1536,
+  "clusterAttestation": "mfa-grants-root-attestation-20261108.json",
+  "clusterAttestationSha256": "9d43fe8e98ce5e11a26e7e943fb465a96f24a4c14368bbdab5712e5282cb426e",
+  "temporaryAwakeGuard": true,
+  "clusterStartRestartCommandsAdded": false,
+  "computerRestarted": false
+}

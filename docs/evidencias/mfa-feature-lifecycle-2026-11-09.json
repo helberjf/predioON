@@ -1,0 +1,267 @@
+{
+  "recordedOn": "2026-11-09",
+  "timeZone": "America/Sao_Paulo",
+  "status": "VERIFIED",
+  "verifierSha256": "f382629968479f8c5b8f5d6f1c034e44d10db4aa1491ea0543fd96df8c30c677",
+  "reviewedByRoot": true,
+  "sourceFiles": 1045,
+  "typeFiles": 42,
+  "requiredResolvedSources": 14,
+  "runtimeProductModified": false,
+  "changedSources": [
+    "apps/api/test/features-lifecycle.test.ts"
+  ],
+  "parentPreparedSha256": "c0d7479ab81c04667e1ed75e79275fab05e849a9d5c252e989514f713edec7be",
+  "preparedSha256": "3a5f530aadbea9a098f9c27f841d8f67773b0184941fc72430809f8aabb5e786",
+  "observedHead": "6dd1b898d9e03733c7fa59078fea95443f676332",
+  "acceptedCounts": {
+    "tap": 8,
+    "independentCases": 8,
+    "parentGroups": 0,
+    "suites": 1
+  },
+  "totals": {
+    "tests": 8,
+    "suites": 1,
+    "pass": 8,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "cases": [
+    "discards only paused metrics and preserves hardware liveness",
+    "resets the meter baseline, keeps old totals and marks the resumed day incomplete",
+    "pausing AI allows tariff changes without resetting the configured analysis preference",
+    "invalidates parking observations and waits for a fresh sample after reactivation",
+    "feature pause cancels queued gate commands and reactivation never resends them",
+    "pause waits for an in-flight publish and still accepts its acknowledgement",
+    "alert delivery serializes with pause and old alerts are not delivered afterwards",
+    "support blocks new launches and keeps the result of an existing request recordable"
+  ],
+  "typeChecks": [
+    {
+      "phase": "resolve",
+      "result": {
+        "id": "mfa-feature-lifecycle-fixed-qa-20261109/checks/resolve/result.json",
+        "sha256": "155233ea59a14a54d897fb149022921adc3b82730f61fce3a2ed2479a4d1a101",
+        "bytes": 1175
+      },
+      "startedUtc": "2026-11-09T04:48:58.187Z",
+      "childExitedUtc": "2026-11-09T04:49:02.886Z"
+    },
+    {
+      "phase": "types",
+      "result": {
+        "id": "mfa-feature-lifecycle-fixed-qa-20261109/checks/types/result.json",
+        "sha256": "e985c36640a0f23f14031b0a940303e893c713b0ed1159aeb891c077e3b464b5",
+        "bytes": 1022
+      },
+      "startedUtc": "2026-11-09T04:49:12.272Z",
+      "childExitedUtc": "2026-11-09T04:49:46.056Z"
+    }
+  ],
+  "startedUtc": "2026-11-09T04:51:43.807Z",
+  "endedUtc": "2026-11-09T04:52:26.891Z",
+  "freeMiBAtStart": 4171.0,
+  "cleanupPassed": true,
+  "temporarySystemActivityGuard": {
+    "startedUtc": "2026-11-09T04:51:29.5588670Z",
+    "endedUtc": "2026-11-09T04:52:28.2859764Z",
+    "exitCode": 0,
+    "systemRequiredSet": true,
+    "systemRequiredCleared": true,
+    "displayRequired": false,
+    "awayMode": false,
+    "permanentPowerSettingsChanged": false,
+    "computerRestarted": false
+  },
+  "inputs": [
+    {
+      "id": "mfa-feature-lifecycle-harness-20261109/prepare-feature-lifecycle.mjs",
+      "sha256": "f029206da35896c276e4521c124eb4f8aa8dbacb50a03abe4f7f655c21edfb4f",
+      "bytes": 12808
+    },
+    {
+      "id": "mfa-feature-lifecycle-harness-20261109/run-types.mjs",
+      "sha256": "0f370e38296382149dc382c990844daf71a4621f1b52af0575244aee6e3964cd",
+      "bytes": 13254
+    },
+    {
+      "id": "mfa-feature-lifecycle-harness-20261109/fixed-recipe.json",
+      "sha256": "28cbc8c50e294856a1a01b706a47f9e9993a5078a0aee5a3b0e1568787cb6d6a",
+      "bytes": 11384
+    },
+    {
+      "id": "mfa-feature-lifecycle-harness-20261109/fixed-prepare-result.json",
+      "sha256": "27c44a395a6a4537bdcc643d7464d9b7c8cacf4c478db4d093d0445518dcb1e8",
+      "bytes": 167
+    },
+    {
+      "id": "mfa-feature-lifecycle-harness-20261109/fixed-prepare-guard.json",
+      "sha256": "8ae56800c098c65d156a56d1a57294d6d1ba159e83fdb18ffd862fafcaf1af78",
+      "bytes": 91
+    },
+    {
+      "id": "mfa-feature-lifecycle-harness-20261109/fixed-prepare.stdout.txt",
+      "sha256": "6627710171d82603a862ff4e3f9ea9d01b67e8e21db48ccadbd0413ab0514863",
+      "bytes": 243
+    },
+    {
+      "id": "mfa-feature-lifecycle-harness-20261109/fixed-prepare.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-feature-lifecycle-fixed-qa-20261109/checks/resolve/stdout.log",
+      "sha256": "ce565b69639ae1e193c3b3e9a33b75bfe78d92ffdef706785c9f1081a6e5b9e9",
+      "bytes": 166133
+    },
+    {
+      "id": "mfa-feature-lifecycle-fixed-qa-20261109/checks/resolve/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-feature-lifecycle-fixed-qa-20261109/checks/resolve/result.json",
+      "sha256": "155233ea59a14a54d897fb149022921adc3b82730f61fce3a2ed2479a4d1a101",
+      "bytes": 1175
+    },
+    {
+      "id": "mfa-feature-lifecycle-fixed-qa-20261109/checks/resolve/command.json",
+      "sha256": "a66f2eb99183db7e6808436356a1150a4ca88599d05d01ce7fc2360def39a21b",
+      "bytes": 939
+    },
+    {
+      "id": "mfa-feature-lifecycle-fixed-qa-20261109/checks/resolve/guard.json",
+      "sha256": "1eed6d3c2345af3a76f6787610282c13d6e1adf039ad0efaba877dcdd268306a",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-feature-lifecycle-fixed-qa-20261109/checks/types/stdout.log",
+      "sha256": "5948063070488490e3faf41ff34d7cb7297dc2539274455cf5c642b63cd994d7",
+      "bytes": 972
+    },
+    {
+      "id": "mfa-feature-lifecycle-fixed-qa-20261109/checks/types/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "id": "mfa-feature-lifecycle-fixed-qa-20261109/checks/types/result.json",
+      "sha256": "e985c36640a0f23f14031b0a940303e893c713b0ed1159aeb891c077e3b464b5",
+      "bytes": 1022
+    },
+    {
+      "id": "mfa-feature-lifecycle-fixed-qa-20261109/checks/types/command.json",
+      "sha256": "af5f5c019f9a569083408cdc1f588c0216e3f04b23efeecbe3fa4b63c396791e",
+      "bytes": 944
+    },
+    {
+      "id": "mfa-feature-lifecycle-fixed-qa-20261109/checks/types/guard.json",
+      "sha256": "e93cdac37d81d82ec80b12bd5e25dff2ef77a61b0b15d7fd0d42527f2590b46b",
+      "bytes": 163
+    },
+    {
+      "id": "mfa-feature-lifecycle-fixed-qa-20261109/run-mfa-directed.mjs",
+      "sha256": "42e742f2c2b489b5bcaab83fff5b15393102457f31207e2a3eb133c0df3bc4aa",
+      "bytes": 13822
+    },
+    {
+      "id": "mfa-feature-lifecycle-fixed-qa-20261109/launch-mfa-directed.ps1",
+      "sha256": "b53ac991da19fec77399ddafe57096eabc0aab8eb0391610b7fc263aabf08955",
+      "bytes": 13036
+    },
+    {
+      "id": "run-feature-lifecycle-awake-20261109.ps1",
+      "sha256": "d3665efe1a110dc8d16fb3c28c58bf44f5461c43ea64164859fc1677c5923a06",
+      "bytes": 1664
+    },
+    {
+      "id": "mfa-grants-root-attestation-20261108.json",
+      "sha256": "9d43fe8e98ce5e11a26e7e943fb465a96f24a4c14368bbdab5712e5282cb426e",
+      "bytes": 664
+    },
+    {
+      "id": "mfa-feature-lifecycle-fixed-qa-20261109/provision.log",
+      "sha256": "172dc57f8c1a7ce085baddd981b77bab539c7e611ff0c0489fd7ac62aac6f7c9",
+      "bytes": 148
+    },
+    {
+      "id": "mfa-feature-lifecycle-fixed-qa-20261109/seed.log",
+      "sha256": "8e765ce8fb90c5517c81f35b6f21a43edac58e191886b5e825b88fb922ed4ddf",
+      "bytes": 339
+    },
+    {
+      "id": "mfa-feature-lifecycle-fixed-qa-20261109/features-lifecycle.log",
+      "sha256": "857a807978f14a717201cd0e86aed2a5dbc91d1a7141c2efde4e995e29bb1532",
+      "bytes": 2327
+    },
+    {
+      "id": "mfa-feature-lifecycle-harness-20261109/PLAN.json",
+      "sha256": "f233dbe446cd8650a214edf635887e9aae02e28a83e817122b85ff92d517175a",
+      "bytes": 3824
+    },
+    {
+      "id": "mfa-feature-lifecycle-harness-20261109/AUTHORED-PINS.json",
+      "sha256": "1e53986db1db4bfab4672f054aa596af669e71fc1f1132d1fc01e11676f2bb43",
+      "bytes": 563
+    },
+    {
+      "id": "mfa-feature-lifecycle-harness-20261109/executors-handoff.json",
+      "sha256": "bec504543787510182ecbebed9fb98f71af064ddc9d77ad66c0fd7170e2501a8",
+      "bytes": 1751
+    },
+    {
+      "id": "mfa-feature-lifecycle-test-20261109/manifest.json",
+      "sha256": "a2884e00c2bc43a5c8ae4b5012addd09ea2622269c0cd80153e5bccbef5caf19",
+      "bytes": 1656
+    },
+    {
+      "id": "mfa-feature-lifecycle-fixed-qa-20261109/prepared.json",
+      "sha256": "3a5f530aadbea9a098f9c27f841d8f67773b0184941fc72430809f8aabb5e786",
+      "bytes": 912917
+    },
+    {
+      "id": "mfa-feature-commands-v2-fixed-qa-20261109/prepared.json",
+      "sha256": "c0d7479ab81c04667e1ed75e79275fab05e849a9d5c252e989514f713edec7be",
+      "bytes": 912936
+    },
+    {
+      "id": "mfa-feature-lifecycle-fixed-qa-20261109/tsconfig.test.json",
+      "sha256": "9a86002fe3cc23f26faedea7334118a0b9642a12e2a2b12dfa3871f823afe277",
+      "bytes": 2792
+    },
+    {
+      "id": "mfa-feature-lifecycle-fixed-qa-20261109/mfa-directed-result.json",
+      "sha256": "2299c1fd9b60f9770e4a63d244ac7aa768a35c25200ca53489e05e8362487120",
+      "bytes": 315599
+    },
+    {
+      "id": "mfa-feature-lifecycle-fixed-qa-20261109/mfa-directed-postchecks.json",
+      "sha256": "96a20ea364a77cdb59df8623d0995c3c43430313741304229d2c5c2ae3974729",
+      "bytes": 390
+    },
+    {
+      "id": "mfa-feature-lifecycle-fixed-qa-20261109/owned-database.json",
+      "sha256": "a1529b404bb8afe4d48d90b6aac82e77296c069c84e9a8b7a3459a3f5480395e",
+      "bytes": 89
+    },
+    {
+      "id": "mfa-feature-lifecycle-fixed-qa-20261109/awake-guard.json",
+      "sha256": "f6570d72eaead8c8685b1e4f00d2fb0bd1690cab013d3f70371eebf85f65d2bd",
+      "bytes": 308
+    }
+  ],
+  "scopeLimits": [
+    "Only the existing lifecycle test fixture changes; eight business assertions and deadlines unchanged, with requestedBy fixture changed to the isolated actor. Parent product bytes unchanged.",
+    "Real login/enrollment/TOTP, same bearer/SID, own platform actor and local binding; no seed administrator MFA or credential changes.",
+    "Real API/PostgreSQL/ingestion handlers/access dispatcher/notification protocol with a simulated device publisher and local HTTP webhook. This is not external MQTT/hardware, a browser, an app build or performance acceptance.",
+    "Metrics/liveness, meter cursor/daily totals/incomplete day, AI preference, parking reactivation, queued gate cancellation/no replay, concurrent publish acknowledgement, concurrent alert delivery/cancellation and remote support outcome all passed.",
+    "One eight-case suite only. Previous 72 directed and48 TAP regression results retain their own source/run evidence and are not added to this run.",
+    "MFA068 remains candidate; runtime main001-067 unchanged. Additional authority races, other domains, full API/ingest, web/Android/iOS, operations and final presentation remain pending."
+  ],
+  "computerRestarted": false,
+  "performanceAssessed": false,
+  "productionAccepted": false
+}
