@@ -1,0 +1,158 @@
+TAP version 13
+# Subtest: organizations require current global capabilities
+    # Subtest: permits RBAC-only global readers and writers, including inactive organizations
+    ok 1 - permits RBAC-only global readers and writers, including inactive organizations
+      ---
+      duration_ms: 1028.1321
+      type: 'test'
+      ...
+    # Subtest: does not let a real legacy flag bypass a disabled platform role
+    ok 2 - does not let a real legacy flag bypass a disabled platform role
+      ---
+      duration_ms: 483.8202
+      type: 'test'
+      ...
+    # Subtest: RLS denies forged app.role and commercial reading inherited from a local membership
+    ok 3 - RLS denies forged app.role and commercial reading inherited from a local membership
+      ---
+      duration_ms: 695.4424
+      type: 'test'
+      ...
+    # Subtest: enforces organizations:read independently after permission revocation on the same token
+    ok 4 - enforces organizations:read independently after permission revocation on the same token
+      ---
+      duration_ms: 557.492
+      type: 'test'
+      ...
+    # Subtest: enforces organizations:read independently after grant revocation on the same token
+    ok 5 - enforces organizations:read independently after grant revocation on the same token
+      ---
+      duration_ms: 543.5757
+      type: 'test'
+      ...
+    # Subtest: enforces organizations:manage independently after permission revocation on the same token
+    ok 6 - enforces organizations:manage independently after permission revocation on the same token
+      ---
+      duration_ms: 572.9712
+      type: 'test'
+      ...
+    # Subtest: enforces organizations:manage independently after grant revocation on the same token
+    ok 7 - enforces organizations:manage independently after grant revocation on the same token
+      ---
+      duration_ms: 564.531
+      type: 'test'
+      ...
+    # Subtest: revokes pure RBAC bindings while preserving the explicit legacy flag compatibility
+    ok 8 - revokes pure RBAC bindings while preserving the explicit legacy flag compatibility
+      ---
+      duration_ms: 902.1639
+      type: 'test'
+      ...
+    # Subtest: does not grant DELETE or identity-column updates even to an authorized administrator
+    ok 9 - does not grant DELETE or identity-column updates even to an authorized administrator
+      ---
+      duration_ms: 741.2564
+      type: 'test'
+      ...
+    # Subtest: keeps commercial authority separate from local data and account activity
+    ok 10 - keeps commercial authority separate from local data and account activity
+      ---
+      duration_ms: 1002.4196
+      type: 'test'
+      ...
+    # Subtest: requires current authority and a real platform organization for both audit proofs
+    ok 11 - requires current authority and a real platform organization for both audit proofs
+      ---
+      duration_ms: 790.7392
+      type: 'test'
+      ...
+    # Subtest: preserves response fields and uniqueness without publishing database errors
+    ok 12 - preserves response fields and uniqueness without publishing database errors
+      ---
+      duration_ms: 540.2116
+      type: 'test'
+      ...
+    # Subtest: revalidates current authority after a real organization lock (revoke)
+    ok 13 - revalidates current authority after a real organization lock (revoke)
+      ---
+      duration_ms: 580.187
+      type: 'test'
+      ...
+    # Subtest: revalidates current authority after a real organization lock (expire)
+    ok 14 - revalidates current authority after a real organization lock (expire)
+      ---
+      duration_ms: 705.9251
+      type: 'test'
+      ...
+    # Subtest: rolls back POST and audit when authority expires while audit waits
+    ok 15 - rolls back POST and audit when authority expires while audit waits
+      ---
+      duration_ms: 796.8937
+      type: 'test'
+      ...
+    # Subtest: rolls back PATCH and audit when authority expires while audit waits
+    ok 16 - rolls back PATCH and audit when authority expires while audit waits
+      ---
+      duration_ms: 848.1441
+      type: 'test'
+      ...
+    # Subtest: audit rejection rolls back mutations without exposing private database details
+    ok 17 - audit rejection rolls back mutations without exposing private database details
+      ---
+      duration_ms: 554.6805
+      type: 'test'
+      ...
+    # Subtest: discards already-read commercial rows if authorization is revoked before the DTO
+    ok 18 - discards already-read commercial rows if authorization is revoked before the DTO
+      ---
+      duration_ms: 445.5219
+      type: 'test'
+      ...
+# {
+#   severity_local: 'NOTICE',
+#   severity: 'NOTICE',
+#   code: '00000',
+#   message: 'policy "organizations_scope_policy" for relation "organizations" does not exist, skipping',
+#   file: 'dropcmds.c',
+#   line: '528',
+#   routine: 'does_not_exist_skipping'
+# }
+# {
+#   severity_local: 'NOTICE',
+#   severity: 'NOTICE',
+#   code: '00000',
+#   message: 'policy "organizations_scope_policy" for relation "organizations" does not exist, skipping',
+#   file: 'dropcmds.c',
+#   line: '528',
+#   routine: 'does_not_exist_skipping'
+# }
+# {
+#   severity_local: 'NOTICE',
+#   severity: 'NOTICE',
+#   code: '00000',
+#   message: 'policy "organizations_scope_policy" for relation "organizations" does not exist, skipping',
+#   file: 'dropcmds.c',
+#   line: '528',
+#   routine: 'does_not_exist_skipping'
+# }
+    # Subtest: migration reapplication preserves revocations, other policies, helpers and runtime roles
+    ok 19 - migration reapplication preserves revocations, other policies, helpers and runtime roles
+      ---
+      duration_ms: 181.7075
+      type: 'test'
+      ...
+    1..19
+ok 1 - organizations require current global capabilities
+  ---
+  duration_ms: 12636.9883
+  type: 'suite'
+  ...
+1..1
+# tests 19
+# suites 1
+# pass 19
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 15391.9806

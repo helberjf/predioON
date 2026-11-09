@@ -1,5 +1,7 @@
 # Melhorias e novas implementações — Prédio ON
 
+**Atualização de 09/11 — conflitos concorrentes de organizações:** [15 dirigidos e 66 regressões passaram](evidencias/mfa-organization-waits-2026-11-09.json). Antes de informar conflito, a API confere autorização novamente após a espera. [Resultado e limites](continuidade/2026-11-09-organizacoes-concorrentes/RESULTADO.md).
+
 **Atualização de 09/11 — organizações legadas integradas:** [19 casos existentes passaram com MFA real](evidencias/mfa-organization-legacy-2026-11-09.json), mantendo asserções e prazos. [Resultado e limites](continuidade/2026-11-09-organizacoes-legado/RESULTADO.md). Produto preservado; seguir concorrências adicionais e integração geral.
 
 **Atualização de 09/11 — comandos de organizações:** [30 dirigidos e 17 regressões passaram](evidencias/mfa-organization-commands-2026-11-09.json) após reproduzir seis falhas de MFA na resposta final/alvo ausente. [Resultado e limites](continuidade/2026-11-09-organizacoes/RESULTADO.md). SQL de gravação, GET e políticas preservados; faltam integração legada e concorrências adicionais.
@@ -16,7 +18,7 @@
 
 **Atualização de 09/11 — configurações protegidas no candidato:** [72 dirigidos e quatro regressões passaram](evidencias/mfa-feature-commands-2026-11-09.json), somando 117 casos independentes e três grupos. [Pacote de 1.045 fontes e limites](continuidade/2026-11-09-configuracoes/RESULTADO.md). Versões concorrentes, herança/dependências, vagas, auditoria e notificação transacional conferidas. Sem homologação completa de produção.
 
-**P1 — ampliar comandos e integração:** legado de organizações passou em 19 casos com cerimônia real. Acrescentar retirada MFA durante espera externa, conflito de unicidade após bloqueio, promoção/triggers; seguir condomínios/equipamentos, cache privado e regressão completa. Os 47 casos da etapa anterior e as provas de configurações permanecem separados. Aceites de hardware, navegadores e apps nativos ainda pendentes.
+**P1 — ampliar comandos e integração:** retirada MFA durante esperas de organizações e conflito de unicidade concluída em 15 cenários, com 66 regressões atuais. Completar promoção/triggers e retirada de capacidade no conflito; seguir condomínios/equipamentos, cache privado e integração API/ingest. Portais, hardware e apps nativos continuam pendentes.
 
 **Atualização de 09/11 — concessão, substituição e revogação de suporte validadas no candidato:** [99 casos dirigidos e seis regressões passaram](evidencias/mfa-support-grant-commands-2026-11-09.json), somando198 casos independentes e quatro grupos. [Composição restaurável de1.044 fontes e limites](continuidade/2026-11-09-acessos-suporte/RESULTADO.md). Dezesseis esperas reais, rollback de múltiplas capacidades/auditorias, prazos mínimo/máximo, isolamento, idempotência e autoridade parcial exercitados. Próximos: configurações, demais domínios/concorrências, cache, integração web/mobile e operação.
 

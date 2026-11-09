@@ -1,0 +1,46 @@
+{
+  "recordedOn": "2026-11-09",
+  "reviewedByRoot": true,
+  "sourceProductModified": false,
+  "functionalCases": 15,
+  "tapSha256": "91d28a24d953d1c0b0f07379a2b630577fe55d37e72311c43bbabdc45d0f18bd",
+  "totals": {
+    "tests": 15,
+    "suites": 1,
+    "pass": 11,
+    "fail": 4,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failures": [
+    {
+      "name": "POST unique: proof during the actual database wait",
+      "expectedStatus": 403,
+      "actualStatus": 409
+    },
+    {
+      "name": "POST unique: factor during the actual database wait",
+      "expectedStatus": 403,
+      "actualStatus": 409
+    },
+    {
+      "name": "PATCH unique: proof during the actual database wait",
+      "expectedStatus": 403,
+      "actualStatus": 409
+    },
+    {
+      "name": "PATCH unique: factor during the actual database wait",
+      "expectedStatus": 403,
+      "actualStatus": 409
+    }
+  ],
+  "allOther11CasesPassed": true,
+  "noSkipsOrTimeouts": true,
+  "rawErrorClassification": "Four HTTP status assertions: unique-index POST/PATCH waits return409 instead of403 after external proof/factor withdrawal. No positive fixture, wait observation or cleanup failures.",
+  "baselineCommittedEffectsIndependentlyCompared": false,
+  "scopeLimit": "Identity and exact blocker assertions executed before failed HTTP status assertions. Business snapshots after those assertions were not independently compared on the four failing baseline cases; full assertions are required on fixed.",
+  "resultSha256": "300a4f68052a65185eb38aae59a562fcbbfc016951baa5140ca6611786157775",
+  "postchecksSha256": "ee32bc9b9b7404ad8154fa942a1cf4aa1fe1b6d0fd221811f8a139e19bf4536a",
+  "cleanupPassed": true
+}

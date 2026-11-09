@@ -1,0 +1,53 @@
+TAP version 13
+# Subtest: platform administration requires MFA in the current session family
+    # Subtest: RED 1: password-only flag administrator receives enrollment-required despite recent verification
+    ok 1 - RED 1: password-only flag administrator receives enrollment-required despite recent verification
+      ---
+      duration_ms: 239.5849
+      type: 'test'
+      ...
+    # Subtest: RED 2: current global binding requires enrollment even without the legacy admin flag
+    ok 2 - RED 2: current global binding requires enrollment even without the legacy admin flag
+      ---
+      duration_ms: 114.4058
+      type: 'test'
+      ...
+    # Subtest: RED 3: restricted admin cannot read domains but can start setup and log out
+    ok 3 - RED 3: restricted admin cannot read domains but can start setup and log out
+      ---
+      duration_ms: 283.8714
+      type: 'test'
+      ...
+    # Subtest: RED 4: confirmation in A never approves B, including after B refreshes
+    ok 4 - RED 4: confirmation in A never approves B, including after B refreshes
+      ---
+      duration_ms: 544.2931
+      type: 'test'
+      ...
+    # Subtest: RED 5: optional disable succeeds, but a verified administrator cannot remove factor or codes
+    ok 5 - RED 5: optional disable succeeds, but a verified administrator cannot remove factor or codes
+      ---
+      duration_ms: 656.5272
+      type: 'test'
+      ...
+    # Subtest: controls: inactive bindings/catalog without flag are optional; legacy flag still requires MFA
+    ok 6 - controls: inactive bindings/catalog without flag are optional; legacy flag still requires MFA
+      ---
+      duration_ms: 201.9123
+      type: 'test'
+      ...
+    1..6
+ok 1 - platform administration requires MFA in the current session family
+  ---
+  duration_ms: 2161.526
+  type: 'suite'
+  ...
+1..1
+# tests 6
+# suites 1
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4619.9388

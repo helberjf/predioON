@@ -1,0 +1,83 @@
+TAP version 13
+# Subtest: MFA SQL envelopes, role ACLs and mapped DTOs
+    # Subtest: all seven entrypoints reject enrollment before empty/null projections
+    ok 1 - all seven entrypoints reject enrollment before empty/null projections
+      ---
+      duration_ms: 112.3098
+      type: 'test'
+      ...
+    # Subtest: all seven entrypoints reject a confirmed factor without family proof
+    ok 2 - all seven entrypoints reject a confirmed factor without family proof
+      ---
+      duration_ms: 57.5844
+      type: 'test'
+      ...
+    # Subtest: promotion committed after a successful context guard is observed by each next projection
+    ok 3 - promotion committed after a successful context guard is observed by each next projection
+      ---
+      duration_ms: 169.6247
+      type: 'test'
+      ...
+    # Subtest: current family proof permits seven projections but preserves empty and unknown capabilities
+    ok 4 - current family proof permits seven projections but preserves empty and unknown capabilities
+      ---
+      duration_ms: 220.7601
+      type: 'test'
+      ...
+    # Subtest: foreign, absent and malformed family IDs cannot borrow current proof
+    ok 5 - foreign, absent and malformed family IDs cannot borrow current proof
+      ---
+      duration_ms: 25.2241
+      type: 'test'
+      ...
+    # Subtest: a verified local family still cannot read another building or gain a global capability
+    ok 6 - a verified local family still cannot read another building or gain a global capability
+      ---
+      duration_ms: 32.7985
+      type: 'test'
+      ...
+    # Subtest: SQL envelope mapping preserves camelCase keys and timestamp decoders
+    ok 7 - SQL envelope mapping preserves camelCase keys and timestamp decoders
+      ---
+      duration_ms: 30.4032
+      type: 'test'
+      ...
+    # Subtest: real gateway HTTP response redacts both MQTT metadata keys and preserves public DTO
+    ok 8 - real gateway HTTP response redacts both MQTT metadata keys and preserves public DTO
+      ---
+      duration_ms: 29.9479
+      type: 'test'
+      ...
+    # Subtest: ten signatures expose exactly identity2/app8 to six effective roles, with no grant option or PUBLIC
+    ok 9 - ten signatures expose exactly identity2/app8 to six effective roles, with no grant option or PUBLIC
+      ---
+      duration_ms: 99.1792
+      type: 'test'
+      ...
+    # Subtest: business app cannot read or mutate factor secrets, and service roles cannot call human envelopes
+    ok 10 - business app cannot read or mutate factor secrets, and service roles cannot call human envelopes
+      ---
+      duration_ms: 14.8929
+      type: 'test'
+      ...
+    # Subtest: equipment restrictive policies apply only to app; ingest heartbeat works without SID even with an admin GUC
+    ok 11 - equipment restrictive policies apply only to app; ingest heartbeat works without SID even with an admin GUC
+      ---
+      duration_ms: 19.484
+      type: 'test'
+      ...
+    1..11
+ok 1 - MFA SQL envelopes, role ACLs and mapped DTOs
+  ---
+  duration_ms: 1513.9534
+  type: 'suite'
+  ...
+1..1
+# tests 11
+# suites 1
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3605.3234

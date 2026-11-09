@@ -1,0 +1,197 @@
+TAP version 13
+# Subtest: MFA organization commands use real ceremony and transactional outcomes
+    # Subtest: POST capability: external proof loss rolls back organization and audit
+    ok 1 - POST capability: external proof loss rolls back organization and audit
+      ---
+      duration_ms: 464.7958
+      type: 'test'
+      ...
+    # Subtest: POST capability: external factor loss rolls back organization and audit
+    ok 2 - POST capability: external factor loss rolls back organization and audit
+      ---
+      duration_ms: 249.0026
+      type: 'test'
+      ...
+    # Subtest: POST write: external proof loss rolls back organization and audit
+    ok 3 - POST write: external proof loss rolls back organization and audit
+      ---
+      duration_ms: 278.3285
+      type: 'test'
+      ...
+    # Subtest: POST write: external factor loss rolls back organization and audit
+    ok 4 - POST write: external factor loss rolls back organization and audit
+      ---
+      duration_ms: 370.2959
+      type: 'test'
+      ...
+    # Subtest: POST audit: external proof loss rolls back organization and audit
+    ok 5 - POST audit: external proof loss rolls back organization and audit
+      ---
+      duration_ms: 442.0912
+      type: 'test'
+      ...
+    # Subtest: POST audit: external factor loss rolls back organization and audit
+    ok 6 - POST audit: external factor loss rolls back organization and audit
+      ---
+      duration_ms: 422.0992
+      type: 'test'
+      ...
+    # Subtest: PATCH capability: external proof loss rolls back organization and audit
+    ok 7 - PATCH capability: external proof loss rolls back organization and audit
+      ---
+      duration_ms: 351.7205
+      type: 'test'
+      ...
+    # Subtest: PATCH capability: external factor loss rolls back organization and audit
+    ok 8 - PATCH capability: external factor loss rolls back organization and audit
+      ---
+      duration_ms: 311.6197
+      type: 'test'
+      ...
+    # Subtest: PATCH write: external proof loss rolls back organization and audit
+    ok 9 - PATCH write: external proof loss rolls back organization and audit
+      ---
+      duration_ms: 432.1879
+      type: 'test'
+      ...
+    # Subtest: PATCH write: external factor loss rolls back organization and audit
+    ok 10 - PATCH write: external factor loss rolls back organization and audit
+      ---
+      duration_ms: 419.8374
+      type: 'test'
+      ...
+    # Subtest: PATCH audit: external proof loss rolls back organization and audit
+    ok 11 - PATCH audit: external proof loss rolls back organization and audit
+      ---
+      duration_ms: 443.8992
+      type: 'test'
+      ...
+    # Subtest: PATCH audit: external factor loss rolls back organization and audit
+    ok 12 - PATCH audit: external factor loss rolls back organization and audit
+      ---
+      duration_ms: 454.7923
+      type: 'test'
+      ...
+    # Subtest: PATCH locked: external proof loss precedes the update
+    ok 13 - PATCH locked: external proof loss precedes the update
+      ---
+      duration_ms: 354.6567
+      type: 'test'
+      ...
+    # Subtest: PATCH locked: external factor loss precedes the update
+    ok 14 - PATCH locked: external factor loss precedes the update
+      ---
+      duration_ms: 361.4452
+      type: 'test'
+      ...
+    # Subtest: PATCH missing: external proof loss precedes404
+    ok 15 - PATCH missing: external proof loss precedes404
+      ---
+      duration_ms: 355.1675
+      type: 'test'
+      ...
+    # Subtest: PATCH missing: external factor loss precedes404
+    ok 16 - PATCH missing: external factor loss precedes404
+      ---
+      duration_ms: 402.485
+      type: 'test'
+      ...
+    # Subtest: POST flag: real MFA preserves response storage and audit
+    ok 17 - POST flag: real MFA preserves response storage and audit
+      ---
+      duration_ms: 401.6665
+      type: 'test'
+      ...
+    # Subtest: POST binding: real MFA preserves response storage and audit
+    ok 18 - POST binding: real MFA preserves response storage and audit
+      ---
+      duration_ms: 436.563
+      type: 'test'
+      ...
+    # Subtest: PATCH flag: real MFA preserves response storage and audit
+    ok 19 - PATCH flag: real MFA preserves response storage and audit
+      ---
+      duration_ms: 414.0565
+      type: 'test'
+      ...
+    # Subtest: PATCH binding: real MFA preserves response storage and audit
+    ok 20 - PATCH binding: real MFA preserves response storage and audit
+      ---
+      duration_ms: 438.1227
+      type: 'test'
+      ...
+    # Subtest: POST manager: ordinary local access does not grant commercial authority
+    ok 21 - POST manager: ordinary local access does not grant commercial authority
+      ---
+      duration_ms: 167.9808
+      type: 'test'
+      ...
+    # Subtest: POST resident: ordinary local access does not grant commercial authority
+    ok 22 - POST resident: ordinary local access does not grant commercial authority
+      ---
+      duration_ms: 169.0819
+      type: 'test'
+      ...
+    # Subtest: PATCH manager: ordinary local access does not grant commercial authority
+    ok 23 - PATCH manager: ordinary local access does not grant commercial authority
+      ---
+      duration_ms: 168.1853
+      type: 'test'
+      ...
+    # Subtest: PATCH resident: ordinary local access does not grant commercial authority
+    ok 24 - PATCH resident: ordinary local access does not grant commercial authority
+      ---
+      duration_ms: 170.478
+      type: 'test'
+      ...
+    # Subtest: POST: satisfied MFA preserves unique slug conflict
+    ok 25 - POST: satisfied MFA preserves unique slug conflict
+      ---
+      duration_ms: 366.3461
+      type: 'test'
+      ...
+    # Subtest: PATCH: satisfied MFA preserves unique slug conflict
+    ok 26 - PATCH: satisfied MFA preserves unique slug conflict
+      ---
+      duration_ms: 394.6245
+      type: 'test'
+      ...
+    # Subtest: POST: proof loss precedes unique slug conflict
+    ok 27 - POST: proof loss precedes unique slug conflict
+      ---
+      duration_ms: 359.7159
+      type: 'test'
+      ...
+    # Subtest: PATCH: proof loss precedes unique slug conflict
+    ok 28 - PATCH: proof loss precedes unique slug conflict
+      ---
+      duration_ms: 448.6472
+      type: 'test'
+      ...
+    # Subtest: PATCH missing flag: satisfied MFA preserves404
+    ok 29 - PATCH missing flag: satisfied MFA preserves404
+      ---
+      duration_ms: 350.8179
+      type: 'test'
+      ...
+    # Subtest: PATCH missing binding: satisfied MFA preserves404
+    ok 30 - PATCH missing binding: satisfied MFA preserves404
+      ---
+      duration_ms: 349.1092
+      type: 'test'
+      ...
+    1..30
+ok 1 - MFA organization commands use real ceremony and transactional outcomes
+  ---
+  duration_ms: 11124.2384
+  type: 'suite'
+  ...
+1..1
+# tests 30
+# suites 1
+# pass 30
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 13249.2991

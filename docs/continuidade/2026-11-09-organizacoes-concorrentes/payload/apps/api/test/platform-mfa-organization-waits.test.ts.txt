@@ -1,0 +1,207 @@
+import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
+import type { Server } from "node:http";
+import { after, before, describe, it } from "node:test";
+import { decodeJwt } from "jose";
+import { sqlClient } from "@predioon/db";
+import { appDb, appSqlClient, closeAppDb, verifyRestrictedDatabaseRole } from "@predioon/db/runtime";
+import { app } from "../src/app.js";
+import { hashPassword } from "../src/auth/passwords.js";
+import { base32Decode, totpCode, totpStep } from "../src/auth/totp.js";
+import "./helpers.js";
+
+// Real restricted SQL waits on the exact owner backend. Positive MFA uses HTTP
+// enrollment/TOTP; only negative identity changes use the fixture owner.
+type Kind = "flag" | "binding" | "manager" | "resident";
+type Actor = { id: string; token: string; sid: string; binding: string | null; codes: string[] };
+type Row = Record<string, unknown>;
+type HttpResult = { status: number; body: unknown; cache: string | null };
+function signal() { let resolve!: () => void; const promise = new Promise<void>(done => { resolve = done; }); return { promise, resolve }; }
+async function bounded<T>(promise: PromiseLike<T>, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try { return await Promise.race([Promise.resolve(promise), new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`Fixture deadline: ${label}`)), 5000);
+  })]); } finally { clearTimeout(timer); }
+}
+async function settleAll(transactions: Promise<unknown>[]) {
+  await bounded((async () => {
+    let completed = 0;
+    while (completed < transactions.length) {
+      const batch = transactions.slice(completed); completed += batch.length; await Promise.allSettled(batch);
+    }
+  })(), "all actual app transactions settled");
+}
+function trackAllTransactions() {
+  const original = appDb.transaction, run = original.bind(appDb), transactions: Promise<unknown>[] = [];
+  appDb.transaction = (callback, config) => { const pending = run(callback, config); transactions.push(pending); return pending; };
+  return { settle: () => settleAll(transactions), restore() { appDb.transaction = original; } };
+}
+type Method="POST"|"PATCH";
+type Stage="row"|"audit"|"unique";
+type Mode="proof"|"factor"|"control";
+describe("MFA organization commands survive external database waits",{concurrency:false},()=>{
+  const prefix=`orgwait-${randomUUID()}`,org=`${prefix}-base`,building=`${prefix}-building`,password="organization-fictitious-password";
+  let hash="",serial=0,server:Server|undefined,url="";
+  let tracking:ReturnType<typeof trackAllTransactions>|undefined;
+  const emailPattern=`${prefix}-%@example.invalid`;
+  async function http(token: string | undefined, path: string, method = "GET", body?: Row, controller = new AbortController()): Promise<HttpResult> {
+    try {
+      const response = await bounded(fetch(url + path, { method, signal: controller.signal,
+        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        ...(body ? { body: JSON.stringify(body) } : {}) }), "HTTP");
+      const text = await bounded(response.text(), "HTTP body");
+      return { status: response.status, body: text ? JSON.parse(text) as unknown : null, cache: response.headers.get("cache-control") };
+    } finally { controller.abort(); }
+  }
+  async function user(label: string, admin = false) {
+    const id = `${prefix}-${++serial}-${label}`;
+    await sqlClient`insert into users(id,name,email,password_hash,is_platform_admin) values(${id},${label},${id + "@example.invalid"},${hash},${admin})`;
+    return id;
+  }
+  async function actor(kind: Kind): Promise<Actor> {
+    const id = await user(kind, kind === "flag"), required = kind === "flag" || kind === "binding";
+    const binding = kind === "binding" || kind === "manager" ? randomUUID() : null;
+    if (binding) await sqlClient`insert into role_bindings(id,user_id,building_id,role_key)
+      values(${binding},${id},${kind === "binding" ? null : building},${kind === "binding" ? "PLATFORM_ADMIN" : "BUILDING_ADMIN"})`;
+    if (kind === "resident") await sqlClient`insert into memberships(user_id,building_id,role) values(${id},${building},'RESIDENT')`;
+    const login = await http(undefined, "/auth/login", "POST", { email: id + "@example.invalid", password });
+    assert.equal(login.status, 200, "raw real login, no manufactured proof or admission helper");
+    const body = login.body as { accessToken: string; user: { id: string; mfaRequirement: string } };
+    assert.equal(body.user.id, id); assert.equal(body.user.mfaRequirement, required ? "enrollment-required" : "not-required");
+    const sid = decodeJwt(body.accessToken).sid; assert.equal(typeof sid, "string");
+    const result: Actor = { id, token: body.accessToken, sid: sid as string, binding, codes: [] };
+    if (required) {
+      const enrollment = await http(result.token, "/auth/mfa/enroll", "POST", { currentPassword: password });
+      assert.equal(enrollment.status, 200);
+      const secret = base32Decode((enrollment.body as { secret: string }).secret); assert.ok(secret);
+      const confirmation = await http(result.token, "/auth/mfa/confirm", "POST", { code: totpCode(secret, totpStep(Date.now())) });
+      assert.equal(confirmation.status, 200);
+      result.codes = (confirmation.body as { recoveryCodes: string[] }).recoveryCodes;
+      assert.equal(result.codes.length, 10); assert.equal(new Set(result.codes).size, 10);
+      const [row] = await sqlClient`select s.mfa_verified_at is not null as verified,s.mfa_factor_generation=f.generation as same_generation,
+        f.confirmed_at is not null as confirmed from sessions s join mfa_factors f on f.user_id=s.user_id where s.id=${result.sid}::uuid and s.user_id=${id}`;
+      assert.equal(row?.verified, true); assert.equal(row?.same_generation, true); assert.equal(row?.confirmed, true);
+    }
+    const me = await http(result.token, "/auth/me"); assert.equal(me.status, 200);
+    assert.equal((me.body as { id: string }).id, id);
+    assert.equal((me.body as { mfaRequirement: string }).mfaRequirement, required ? "satisfied" : "not-required");
+    assert.equal(decodeJwt(result.token).sid, result.sid, "same bearer and session family across enrollment");
+    return result;
+  }
+  type Fixture={id:string;foreign:string;slug:string;input:Row;method:Method};
+  const send=(a:Actor,f:Fixture)=>http(a.token,f.method==="POST"?"/organizations":"/organizations/"+f.id,f.method,f.input);
+  const data=async()=>({organizations:(await sqlClient`select to_jsonb(o) row from organizations o order by id`).map(x=>x.row),
+    audits:(await sqlClient`select to_jsonb(a) row from audit_logs a where action in ('ORGANIZATION_CREATED','ORGANIZATION_UPDATED') order by id`).map(x=>x.row)});
+  async function using(method:Method,fn:(f:Fixture)=>Promise<void>){
+    const n=++serial,id=`${prefix}-${n}`,foreign=`${prefix}-f${n}`,slug=`${prefix}-n${n}`;
+    await sqlClient`insert into organizations(id,name,slug,metadata) values(${id},'Original organization',${id},'{"billing":"original"}'),(${foreign},'Foreign organization',${foreign},'{"billing":"foreign"}')`;
+    try{await fn({id,foreign,slug,method,input:{name:"Changed commercial name",slug,metadata:{billing:"fixture-only",nested:{preserved:true}},...(method==="PATCH"?{active:false}:{})}});}
+    finally{await tracking?.settle();await sqlClient`delete from audit_logs where resource_type='organization' and resource_id in(select id from organizations where id in(${id},${foreign}) or slug=${slug})`;
+      await sqlClient`delete from organizations where id in(${id},${foreign}) or slug=${slug}`;}
+  }
+  async function identity(a:Actor){
+    const [row]=await sqlClient`select s.mfa_verified_at is not null as verified,s.mfa_factor_generation as generation,
+      (select count(*)::int from mfa_factors where user_id=${a.id}) as factors,
+      (select count(*)::int from mfa_recovery_codes where user_id=${a.id}) as codes
+      from sessions s where s.id=${a.sid}::uuid and s.user_id=${a.id}`;
+    assert.ok(row);return row;
+  }
+  async function waited(a:Actor,f:Fixture,stage:Stage,mode:Mode){
+    const trigger="qa_org_wait_"+randomUUID().replaceAll("-",""),key=++serial;
+    const action=f.method==="POST"?"ORGANIZATION_CREATED":"ORGANIZATION_UPDATED";
+    assert.match(trigger,/^[a-z0-9_]+$/);assert.match(a.id,/^[a-z0-9-]+$/);
+    const catalog=async()=>({triggers:await sqlClient`select oid,tgname,pg_get_triggerdef(oid) def from pg_trigger where tgrelid='public.audit_logs'::regclass order by oid`,
+      functions:await sqlClient`select oid,proname,pg_get_functiondef(oid) def from pg_proc where pronamespace='public'::regnamespace and proname like 'qa_org_wait_%' order by oid`});
+    const beforeCatalog=await catalog();let installed=false,pending:Promise<HttpResult>|undefined,failed=false,ownerRow:Row|undefined;
+    try{
+      if(stage==="audit"){
+        await sqlClient.unsafe(`create function public.${trigger}() returns trigger language plpgsql as $body$
+          begin if new.user_id='${a.id}' and new.action='${action}' then perform pg_advisory_xact_lock(824978,${key}); end if; return new; end $body$`);
+        installed=true;
+        await sqlClient.unsafe(`create trigger ${trigger} before insert on public.audit_logs for each row execute function public.${trigger}()`);
+      }
+      await bounded(sqlClient.begin(async blocker=>{
+        await blocker`set local lock_timeout='2s'`;await blocker`set local statement_timeout='4s'`;
+        if(stage==="row"){
+          assert.equal(f.method,"PATCH");const locked=await blocker`select id from organizations where id=${f.id} for update`;assert.equal(locked.length,1);
+        }else if(stage==="audit")await blocker`select pg_advisory_xact_lock(824978,${key})`;
+        else{
+          const [inserted]=await blocker`insert into organizations(id,name,slug,metadata) values(${f.id+"-blocker"},'Committed competing organization',${f.slug},'{"fixture":"external-conflict"}') returning to_jsonb(organizations) row`;
+          assert.ok(inserted);ownerRow=inserted.row;
+        }
+        const [self]=await blocker`select pg_backend_pid() pid`;assert.equal(typeof self?.pid,"number");
+        pending=send(a,f);void pending.catch(()=>undefined);
+        const role=new URL(process.env.DATABASE_URL_APP!).username,deadline=Date.now()+3000;
+        const pattern=stage==="row"?'%for no key update%':stage==="audit"?'%insert into "audit_logs"%':f.method==="POST"?'%insert into organizations%':'%update "organizations"%';
+        let waiting=0;
+        while(Date.now()<deadline){
+          await blocker`select pg_stat_clear_snapshot()`;
+          const [row]=await blocker`select count(*)::int n from pg_stat_activity where usename=${role} and datname=current_database()
+            and state='active' and wait_event_type='Lock' and ${self!.pid}=any(pg_blocking_pids(pid)) and query like ${pattern}`;
+          waiting=Number(row?.n);if(waiting===1)break;await new Promise(resolve=>setTimeout(resolve,20));
+        }
+        assert.equal(waiting,1,"the actual restricted organization query waits on this exact owner backend");
+        if(mode!=="control"){
+          const changed=mode==="proof"?await blocker`update sessions set mfa_verified_at=null,mfa_factor_generation=null where id=${a.sid}::uuid and user_id=${a.id} returning id`
+            :await blocker`delete from mfa_factors where user_id=${a.id} returning user_id`;
+          assert.equal(changed.length,1,"one real negative identity change committed atomically with lock release");
+        }
+      }),"real organization lock and external identity withdrawal");
+      assert.ok(pending);return{response:await pending,ownerRow};
+    }catch(error){failed=true;throw error;}
+    finally{
+      try{
+        const settled=await Promise.allSettled([...(pending?[bounded(pending,"waited request settled")]:[]),tracking?.settle()]);
+        if(!failed){const bad=settled.find(x=>x.status==="rejected");if(bad?.status==="rejected")throw bad.reason;}
+      }finally{
+        if(installed){await sqlClient.unsafe(`drop trigger if exists ${trigger} on public.audit_logs`);await sqlClient.unsafe(`drop function public.${trigger}()`);}
+        assert.deepEqual(await catalog(),beforeCatalog,"temporary wait trigger and function fully removed; original catalog unchanged");
+      }
+    }
+  }
+  function denied(response:HttpResult,factor:boolean){assert.equal(response.status,403);assert.equal(response.cache,"no-store");assert.equal((response.body as {details?:{reason?:string}}).details?.reason,factor?"MFA_ENROLLMENT_REQUIRED":"MFA_VERIFICATION_REQUIRED");assert.equal("metadata" in (response.body as object),false);}
+  async function positive(a:Actor,f:Fixture,before:Awaited<ReturnType<typeof data>>,response:HttpResult){
+    assert.equal(response.status,f.method==="POST"?201:200);assert.equal(response.cache,"no-store");
+    const row=response.body as Row;assert.deepEqual(Object.keys(row).sort(),["active","createdAt","id","metadata","name","slug","updatedAt"]);
+    assert.equal(row.name,f.input.name);assert.equal(row.slug,f.slug);assert.deepEqual(row.metadata,f.input.metadata);assert.equal(row.active,f.method==="POST");
+    assert.equal(new Date(String(row.createdAt)).toISOString(),row.createdAt);assert.equal(new Date(String(row.updatedAt)).toISOString(),row.updatedAt);
+    const after=await data(),id=String(row.id),saved=after.organizations.find(x=>x.id===id);assert.ok(saved);assert.equal(saved.name,row.name);assert.equal(saved.slug,row.slug);assert.equal(saved.active,row.active);assert.deepEqual(saved.metadata,row.metadata);
+    assert.deepEqual(after.organizations.filter(x=>x.id!==id),before.organizations.filter(x=>x.id!==id),"all unrelated organizations unchanged");
+    if(f.method==="PATCH"){assert.equal(id,f.id);assert.equal(saved.created_at,before.organizations.find(x=>x.id===id)!.created_at);}
+    else{assert.ok(id.startsWith("org_"));assert.equal(before.organizations.some(x=>x.id===id),false);}
+    assert.equal(after.audits.length,before.audits.length+1);const oldIds=new Set(before.audits.map(x=>x.id));const added=after.audits.filter(x=>!oldIds.has(x.id));assert.equal(added.length,1);
+    const audit=added[0]!;assert.equal(audit.user_id,a.id);assert.equal(audit.building_id,null);assert.equal(audit.scope_kind,"PLATFORM");assert.equal(audit.actor_type,"USER");assert.equal(audit.action,f.method==="POST"?"ORGANIZATION_CREATED":"ORGANIZATION_UPDATED");assert.equal(audit.resource_type,"organization");assert.equal(audit.resource_id,id);assert.deepEqual(audit.metadata,f.method==="POST"?{}:f.input);
+    assert.deepEqual(after.audits.filter(x=>oldIds.has(x.id)),before.audits);assert.equal(decodeJwt(a.token).sid,a.sid);
+  }
+  before(async()=>{
+    assert.equal((await sqlClient`select count(*)::int count from schema_migrations`)[0]?.count,68);await bounded(verifyRestrictedDatabaseRole(appSqlClient,"predioon_app"),"restricted API role");hash=await hashPassword(password);
+    await sqlClient`insert into organizations(id,name,slug) values(${org},'Organization MFA fixture',${org})`;
+    await sqlClient`insert into buildings(id,organization_id,name,code) values(${building},${org},'Local only',${building})`;
+    tracking=trackAllTransactions();server=await new Promise<Server>(resolve=>{const instance=app.listen(0,"127.0.0.1",()=>resolve(instance));});const address=server.address();assert.ok(address&&typeof address!=="string");url=`http://127.0.0.1:${address.port}`;
+  });
+  after(async()=>{
+    try{await bounded(new Promise<void>((resolve,reject)=>{if(!server){resolve();return;}server.close(error=>error?reject(error):resolve());server.closeAllConnections();}),"HTTP close");}
+    finally{try{await tracking?.settle();await bounded(sqlClient.begin(async tx=>{await tx`set local lock_timeout='2s'`;await tx`set local statement_timeout='3s'`;
+      await tx`delete from audit_logs where user_id in(select id from users where email like ${emailPattern})`;await tx`delete from buildings where id=${building}`;await tx`delete from organizations where slug like ${prefix+"%"}`;await tx`delete from users where email like ${emailPattern}`;}),"fixture cleanup");}
+      finally{tracking?.restore();const closed=await Promise.allSettled([bounded(closeAppDb(),"API pool close"),bounded(sqlClient.end({timeout:3}),"owner pool close")]);const bad=closed.find(x=>x.status==="rejected");if(bad?.status==="rejected")throw bad.reason;}}
+  });
+  const sites=[{method:"PATCH",stage:"row"},{method:"POST",stage:"audit"},{method:"PATCH",stage:"audit"},{method:"POST",stage:"unique"},{method:"PATCH",stage:"unique"}] as const;
+  for(const {method,stage} of sites)for(const mode of ["proof","factor","control"] as const){
+    it(`${method} ${stage}: ${mode} during the actual database wait`,async()=>using(method,async f=>{
+      const a=await actor("binding"),before=await data(),prior=await identity(a),{response,ownerRow}=await waited(a,f,stage,mode);
+      assert.equal(response.cache,"no-store");assert.equal(decodeJwt(a.token).sid,a.sid);
+      const now=await identity(a);
+      if(mode==="proof"){assert.deepEqual({...now,verified:prior.verified,generation:prior.generation},prior);assert.equal(now.verified,false);assert.equal(now.generation,null);}
+      else if(mode==="factor"){assert.equal(now.factors,0);assert.equal(now.codes,0);assert.deepEqual({...now,factors:prior.factors,codes:prior.codes},prior);}
+      else assert.deepEqual(now,prior,"positive control keeps the original real MFA proof");
+      if(mode!=="control")denied(response,mode==="factor");
+      else if(stage==="unique"){assert.equal(response.status,409);assert.deepEqual(response.body,{error:"Já existe uma organização com este slug"});}
+      else await positive(a,f,before,response);
+      if(mode!=="control"||stage==="unique"){
+        const after=await data();
+        if(stage==="unique"){assert.ok(ownerRow);assert.deepEqual(after.organizations.find(x=>x.id===ownerRow!.id),ownerRow);assert.deepEqual({...after,organizations:after.organizations.filter(x=>x.id!==ownerRow!.id)},before,"only the external competitor commits; command and audit are unchanged");}
+        else assert.deepEqual(after,before,"command and audit fully roll back after external identity loss");
+      }
+    }));
+  }
+});

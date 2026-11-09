@@ -1,0 +1,187 @@
+TAP version 13
+# Subtest: MFA organization commands survive external database waits
+    # Subtest: PATCH row: proof during the actual database wait
+    ok 1 - PATCH row: proof during the actual database wait
+      ---
+      duration_ms: 784.0592
+      type: 'test'
+      ...
+    # Subtest: PATCH row: factor during the actual database wait
+    ok 2 - PATCH row: factor during the actual database wait
+      ---
+      duration_ms: 728.2021
+      type: 'test'
+      ...
+    # Subtest: PATCH row: control during the actual database wait
+    ok 3 - PATCH row: control during the actual database wait
+      ---
+      duration_ms: 458.0573
+      type: 'test'
+      ...
+    # Subtest: POST audit: proof during the actual database wait
+    ok 4 - POST audit: proof during the actual database wait
+      ---
+      duration_ms: 572.3661
+      type: 'test'
+      ...
+    # Subtest: POST audit: factor during the actual database wait
+    ok 5 - POST audit: factor during the actual database wait
+      ---
+      duration_ms: 447.4425
+      type: 'test'
+      ...
+    # Subtest: POST audit: control during the actual database wait
+    ok 6 - POST audit: control during the actual database wait
+      ---
+      duration_ms: 725.6048
+      type: 'test'
+      ...
+    # Subtest: PATCH audit: proof during the actual database wait
+    ok 7 - PATCH audit: proof during the actual database wait
+      ---
+      duration_ms: 1135.2467
+      type: 'test'
+      ...
+    # Subtest: PATCH audit: factor during the actual database wait
+    ok 8 - PATCH audit: factor during the actual database wait
+      ---
+      duration_ms: 416.6707
+      type: 'test'
+      ...
+    # Subtest: PATCH audit: control during the actual database wait
+    ok 9 - PATCH audit: control during the actual database wait
+      ---
+      duration_ms: 781.131
+      type: 'test'
+      ...
+    # Subtest: POST unique: proof during the actual database wait
+    not ok 10 - POST unique: proof during the actual database wait
+      ---
+      duration_ms: 431.3218
+      type: 'test'
+      location: 'C:\\Users\\Mai Tonheim\\Documents\\Codex\\2026-10-01\\https-github-com-helberjf-predioon-https-2\\work\\mfa-organization-waits-baseline-qa-20261109\\source\\apps\\api\\test\\platform-mfa-organization-waits.test.ts:8:5530'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+        
+        409 !== 403
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 403
+      actual: 409
+      operator: 'strictEqual'
+      stack: |-
+        denied (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-organization-waits-baseline-qa-20261109\source\apps\api\test\platform-mfa-organization-waits.test.ts:162:62)
+        <anonymous> (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-organization-waits-baseline-qa-20261109\source\apps\api\test\platform-mfa-organization-waits.test.ts:197:27)
+        process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+        async using (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-organization-waits-baseline-qa-20261109\source\apps\api\test\platform-mfa-organization-waits.test.ts:98:9)
+        async Test.run (node:internal/test_runner/test:1389:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:960:7)
+      ...
+    # Subtest: POST unique: factor during the actual database wait
+    not ok 11 - POST unique: factor during the actual database wait
+      ---
+      duration_ms: 397.5177
+      type: 'test'
+      location: 'C:\\Users\\Mai Tonheim\\Documents\\Codex\\2026-10-01\\https-github-com-helberjf-predioon-https-2\\work\\mfa-organization-waits-baseline-qa-20261109\\source\\apps\\api\\test\\platform-mfa-organization-waits.test.ts:8:5530'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+        
+        409 !== 403
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 403
+      actual: 409
+      operator: 'strictEqual'
+      stack: |-
+        denied (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-organization-waits-baseline-qa-20261109\source\apps\api\test\platform-mfa-organization-waits.test.ts:162:62)
+        <anonymous> (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-organization-waits-baseline-qa-20261109\source\apps\api\test\platform-mfa-organization-waits.test.ts:197:27)
+        process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+        async using (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-organization-waits-baseline-qa-20261109\source\apps\api\test\platform-mfa-organization-waits.test.ts:98:9)
+        async Test.run (node:internal/test_runner/test:1389:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:960:7)
+      ...
+    # Subtest: POST unique: control during the actual database wait
+    ok 12 - POST unique: control during the actual database wait
+      ---
+      duration_ms: 681.6244
+      type: 'test'
+      ...
+    # Subtest: PATCH unique: proof during the actual database wait
+    not ok 13 - PATCH unique: proof during the actual database wait
+      ---
+      duration_ms: 674.7109
+      type: 'test'
+      location: 'C:\\Users\\Mai Tonheim\\Documents\\Codex\\2026-10-01\\https-github-com-helberjf-predioon-https-2\\work\\mfa-organization-waits-baseline-qa-20261109\\source\\apps\\api\\test\\platform-mfa-organization-waits.test.ts:8:5530'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+        
+        409 !== 403
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 403
+      actual: 409
+      operator: 'strictEqual'
+      stack: |-
+        denied (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-organization-waits-baseline-qa-20261109\source\apps\api\test\platform-mfa-organization-waits.test.ts:162:62)
+        <anonymous> (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-organization-waits-baseline-qa-20261109\source\apps\api\test\platform-mfa-organization-waits.test.ts:197:27)
+        process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+        async using (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-organization-waits-baseline-qa-20261109\source\apps\api\test\platform-mfa-organization-waits.test.ts:98:9)
+        async Test.run (node:internal/test_runner/test:1389:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:960:7)
+      ...
+    # Subtest: PATCH unique: factor during the actual database wait
+    not ok 14 - PATCH unique: factor during the actual database wait
+      ---
+      duration_ms: 436.5082
+      type: 'test'
+      location: 'C:\\Users\\Mai Tonheim\\Documents\\Codex\\2026-10-01\\https-github-com-helberjf-predioon-https-2\\work\\mfa-organization-waits-baseline-qa-20261109\\source\\apps\\api\\test\\platform-mfa-organization-waits.test.ts:8:5530'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+        
+        409 !== 403
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 403
+      actual: 409
+      operator: 'strictEqual'
+      stack: |-
+        denied (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-organization-waits-baseline-qa-20261109\source\apps\api\test\platform-mfa-organization-waits.test.ts:162:62)
+        <anonymous> (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-organization-waits-baseline-qa-20261109\source\apps\api\test\platform-mfa-organization-waits.test.ts:197:27)
+        process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+        async using (C:\Users\Mai Tonheim\Documents\Codex\2026-10-01\https-github-com-helberjf-predioon-https-2\work\mfa-organization-waits-baseline-qa-20261109\source\apps\api\test\platform-mfa-organization-waits.test.ts:98:9)
+        async Test.run (node:internal/test_runner/test:1389:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:960:7)
+      ...
+    # Subtest: PATCH unique: control during the actual database wait
+    ok 15 - PATCH unique: control during the actual database wait
+      ---
+      duration_ms: 444.3381
+      type: 'test'
+      ...
+    1..15
+not ok 1 - MFA organization commands survive external database waits
+  ---
+  duration_ms: 9730.9573
+  type: 'suite'
+  location: 'C:\\Users\\Mai Tonheim\\Documents\\Codex\\2026-10-01\\https-github-com-helberjf-predioon-https-2\\work\\mfa-organization-waits-baseline-qa-20261109\\source\\apps\\api\\test\\platform-mfa-organization-waits.test.ts:1:1611'
+  failureType: 'subtestsFailed'
+  error: '4 subtests failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..1
+# tests 15
+# suites 1
+# pass 11
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 14053.2172

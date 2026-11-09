@@ -1,0 +1,11 @@
+{
+  "startedUtc": "2026-11-09T13:29:15.5525739Z",
+  "endedUtc": "2026-11-09T13:29:50.8110306Z",
+  "exitCode": 0,
+  "systemRequiredSet": true,
+  "systemRequiredCleared": true,
+  "displayRequired": false,
+  "awayMode": false,
+  "permanentPowerSettingsChanged": false,
+  "computerRestarted": false
+}
