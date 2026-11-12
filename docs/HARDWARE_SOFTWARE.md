@@ -12,17 +12,20 @@ e pedestres está em [ACESSOS.md](ACESSOS.md). O software não instala nem valid
 o controlador precisa cumprir o protocolo e ser comissionado no local.
 
 ```text
-Sensores → RS485/Modbus RTU ou entrada digital → Gateway → MQTTS → EMQX
+Sensores → 4–20 mA, contato seco, pulsos ou RS485/Modbus RTU → Gateway → MQTTS → EMQX
         → Node ingest → TimescaleDB → API → Painéis
 ```
+
+Detalhe de cada meio físico, plano do barramento, cadências, mapa dos pontos do piloto e
+camadas de automação: [ESTUDO_HARDWARE.md, seção 3](ESTUDO_HARDWARE.md#3-comunicação-dos-sensores-e-automação).
 
 ## 2. Sensores previstos
 
 | Grandeza | Interface típica | Observação |
 |---|---|---|
-| Nível/volume da caixa d'água | RS485 Modbus | Ultrassônico ou transmissor de pressão |
+| Nível/volume da caixa d'água | 4–20 mA na entrada analógica do gateway (piloto) ou RS485 Modbus | Transmissor de pressão submersível ou ultrassônico |
 | Tensão por fase e falta de fase | RS485 Modbus | Multimedidor; a proteção continua sendo relé físico |
-| Vazamento | Entrada digital | Cabo sensor ou sonda de eletrodos |
+| Vazamento | Contato seco; no piloto, lido pelo TDI340 no RS485 | Sensor de piso com contato NF; ver diagnóstico de 12 V no estudo |
 | Estado da bomba | Contato auxiliar; corrente opcional | Contato informa estado do contator, corrente ajuda a diagnosticar carga; confirmar entrega de água exige medição de vazão/pressão |
 | Temperatura de sala técnica | RS485 Modbus | SHT20 ou equivalente |
 | Fumaça / incêndio | Entrada digital | ⚠️ Ver seção 7 |

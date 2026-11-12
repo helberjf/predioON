@@ -13,11 +13,16 @@ fisicamente por este estudo. Documentação de fabricante, preço anunciado e te
 software não substituem o teste com o equipamento e o firmware que serão instalados.
 
 **Abrangência da pesquisa:** a seleção anterior não esgotava o mercado brasileiro.
-A seção 5 foi ampliada com HI Tecnologia, Contemp, Seneca, ICP DAS, FieldLogger e WEG.
+A seção 6 foi ampliada com HI Tecnologia, Contemp, Seneca, ICP DAS, FieldLogger e WEG.
 O PUSR é uma referência econômica orçada, não um vencedor comprovado de custo ou
 confiabilidade no Brasil. Os valores da lista de compras permanecem os pesquisados
 em **04/11/2026**; esta ampliação não substitui seus itens por produtos ainda sem
 proposta completa equivalente.
+
+**Comunicação e automação (12/11/2026):** a [seção 3](#3-comunicação-dos-sensores-e-automação)
+descreve como cada sensor fala com o gateway, o plano do barramento RS485, a cadência de
+publicação, o caminho até a plataforma, o mapa dos pontos, o que a automação faz hoje e
+o que falta implementar. As seções seguintes foram renumeradas.
 
 ## 1. Decisão recomendada
 
@@ -59,7 +64,7 @@ O maior retorno do orçamento está em alimentação, sensores, proteção e rec
 dos dados. Um CLP mais caro não resolve sozinho esses requisitos. **Altus XP315**
 permanece candidato industrial quando ambiente, manutenção ou integração justificarem
 o adicional; não há ensaio comparativo para declarar qual conjunto tem menor taxa
-de falhas. A compra em escala depende dos testes da seção 7.
+de falhas. A compra em escala depende dos testes da seção 8.
 
 Sem conexão alternativa, não há alerta remoto durante a queda da internet. A
 plataforma atual também não converte automaticamente todos os eventos antigos em
@@ -75,7 +80,8 @@ do prédio com um único sensor de cada tipo.
 
 Contratos da plataforma: [SENSORES.md](SENSORES.md) e
 [HARDWARE_SOFTWARE.md](HARDWARE_SOFTWARE.md). A bomba é monitorada; as
-[automações](AUTOMACOES.md) geram ordens de serviço, sem comando de equipamento.
+[automações](AUTOMACOES.md) geram ordens de serviço, sem comando de equipamento. O
+caminho de cada sinal e as camadas de automação estão na seção 3.
 
 | Função | Equipamento/interface do kit | Condição para cumprir a função |
 |---|---|---|
@@ -128,14 +134,255 @@ de 24 V**. As DI de diagnóstico verificam os ramais de 12 V no quadro, sem comp
 alimentação no sensor. Testar falhas de campo e contratar supervisão adicional se
 necessária. Não afirmar imunidade a curto, cabo de alimentação rompido ou sensor travado.
 
-## 3. Orçamento comparável e rastreável
+## 3. Comunicação dos sensores e automação
+
+Revisão de **12/11/2026**, conferida com o código em `22f7245e`. Descreve a arquitetura
+proposta para o piloto e o que a plataforma já faz. Itens marcados **a implementar** não
+existem hoje; nomes de dispositivos, endereços e cadências são **propostas** a confirmar
+com os manuais e o firmware entregues.
+
+**Resumo.** Os sensores não conversam entre si. Cada um fala apenas com o gateway, por um
+de quatro meios físicos: laço 4–20 mA, contato seco, pulsos registrados por um contador
+ou barramento RS485 Modbus RTU. O gateway é o único mestre: lê todos os pontos, converte
+em leituras com unidade e horário e publica por MQTT sobre TLS. A relação entre as
+medições, como comparar boia e nível, acontece na plataforma, que gera alertas e, por
+automação, ordens de serviço. **Nenhum equipamento é comandado pela plataforma.** Bomba,
+detector de gás e central de incêndio mantêm seus comandos e alarmes locais.
+
+### 3.1 Caminho de uma leitura
+
+```text
+CAMPO                                QUADRO DO GATEWAY (após o nobreak)
+Sonda da caixa     4–20 mA ────────► AI1 ─┐
+Sonda da cisterna  4–20 mA ────────► AI2 ─┤
+Bomba, gás, incêndio, 4 boias,            │
+falta de rede      contato seco ──► DI  ──┤
+Ramais 12 V RISCO  presença de tensão ► DI┤   USR-M100 (+ IO8000)
+                                          ├── mestre único do RS485
+Hidrômetro (pulsos) ─► TDI340 canal 1 ┐   │
+RISCO água/esgoto (NF) ► canais 2 e 3 ├─ RS485 Modbus RTU (barramento em linha)
+Multimedidor de energia ──────────────┤
+Transmissor de temperatura ───────────┘
+                │
+                │ MQTT sobre TLS, porta 8883 — Ethernet; 4G no HM-GL
+                ▼
+NUVEM PRÉDIO ON
+EMQX ─► ingestão ─► TimescaleDB ─► API ─► painéis em tempo real (SSE)
+ │          │
+ │          └─► regras, consumo e supervisão ─► alerta + evento (mesma transação)
+ │                                                  ├─► webhook HTTPS (HIGH/CRITICAL)
+ │                                                  └─► automação ─► ordem de serviço
+ └─ autenticação e autorização por gateway consultadas na API
+```
+
+### 3.2 Camada física: como cada sensor fala com o gateway
+
+| Meio | Pontos do piloto | Como funciona | Regras de instalação | Como uma falha deve aparecer |
+|---|---|---|---|---|
+| **Laço 4–20 mA** | Caixa e cisterna | O transmissor, alimentado pela fonte de 24 V, ajusta a corrente conforme a coluna d'água: 4 mA no início da faixa, 20 mA no fim. A AI do M100 mede a corrente | Par trançado blindado, blindagem aterrada só no quadro; proteger o tubo de respiro do cabo da sonda; sem emendas dentro do reservatório | Corrente abaixo de ~3,8 mA ou acima de ~20,5 mA indica laço aberto, curto ou sonda defeituosa (NAMUR NE 43 como referência; confirmar no transmissor). Publicar qualidade `BAD`, **nunca 0%** |
+| **Contato seco → DI** | Bomba, gás, incêndio, quatro boias, falta de rede e dois diagnósticos de 12 V | O gateway lê aberto/fechado e converte para `true`/`false` conforme o mapa do ponto | Contato livre de tensão ou interface compatível com a faixa da DI; não misturar tensões do quadro de comando; registrar se cada contato é NA ou NF | Contato simples não detecta cabo rompido. Preferir NF nos alarmes, para que cabo cortado apareça como alarme. As DI orçadas não documentam supervisão de linha; tratar como limitação |
+| **Pulsos → contador** | Hidrômetro | O emissor fecha um contato a cada volume fixo; o TDI340 conta em memória não volátil e o gateway lê o total | Cabo curto e blindado, longe de cabos de força; filtro de rebote configurado; litros/pulso anotados | Total parado não prova defeito. Falha do contador aparece como timeout Modbus, que invalida a leitura |
+| **RS485 Modbus RTU** | TDI340, multimedidor de energia e temperatura | Barramento de dois fios mais referência. O gateway pergunta a cada escravo (função 03) e só ele responde; ninguém fala sem ser perguntado | Topologia em linha, sem estrela nem derivações longas; 120 Ω nas duas pontas; polarização em um único ponto; par trançado blindado; mesmo baud e paridade em todos; endereço único. O padrão admite até 1.200 m e 32 cargas, sem garantir isso para qualquer cabo | Timeout ou CRC inválido marca **só aquele escravo** como `BAD`; os demais continuam sendo lidos |
+
+**Plano proposto do barramento RS485**, partindo de 9600 bit/s, 8 bits, sem paridade e
+1 stop (8N1) se todos os equipamentos entregues aceitarem:
+
+| Endereço | Equipamento | O que o gateway lê | Cadência de leitura |
+|---:|---|---|---|
+| 1 | TDI340 | Contador do canal 1 (uint32 em PDU 210–211) e estados dos canais 2 e 3 (PDU 202 e 203) | 5 s, por causa dos vazamentos |
+| 2 | Multimedidor de energia | kWh acumulado, tensões L1–L3 e, se contratadas, correntes e frequência | 60 s |
+| 3 | Transmissor de temperatura | °C | 60 s |
+
+Em 9600 bit/s, cada pergunta e resposta curta leva poucas dezenas de milissegundos; essa
+cadência ocupa uma fração pequena do barramento e deixa margem para novos escravos.
+
+### 3.3 Cadência de publicação e por que ela importa
+
+| Grupo | Leitura no gateway | Publicação | Motivo |
+|---|---|---|---|
+| Alarmes (vazamento, gás, incêndio, boias, falta de rede, 12 V) | 1 s nas DI; 5 s no TDI340 | Na mudança, se o firmware permitir, **e** a cada 60 s | Alerta rápido. O reenvio periódico é obrigatório: dispositivo sem leitura há 300 s vira `OFFLINE` com alerta de comunicação |
+| Nível da caixa e da cisterna | 10 s | 60 s | Nível muda devagar; 60 s basta para alertas e gráficos |
+| Hidrômetro e energia | 60 s | 60 s | Consumo só é contado entre leituras com intervalo de até 300 s (`max_gap_seconds` padrão) |
+| Bomba | 1 s | Na mudança e a cada 60 s | O tempo contínuo de funcionamento é calculado entre leituras |
+| Temperatura | 60 s | 60 s | Grandeza lenta |
+| Status do gateway | — | `ONLINE` retido na conexão; Last Will `OFFLINE` retido; keepalive MQTT de 30 a 60 s | A plataforma marca o gateway `OFFLINE` após 120 s sem mensagem; a varredura roda a cada 30 s |
+
+**Volume de dados, ordem de grandeza a medir no piloto:** cerca de 25 métricas por minuto
+resultam em ~36 mil mensagens por dia. Com uma mensagem por métrica, de ~0,5 kB com
+cabeçalhos de MQTT, TLS e TCP, são ~18 MB por dia, ~540 MB por mês. Um relatório agrupado
+por minuto, com todas as métricas, fica perto de ~3 MB por dia. A diferença pesa no plano
+4G quando a conexão celular é a principal ou fica ativa por muito tempo.
+
+### 3.4 Gateway → plataforma
+
+**Conexão.** MQTT sobre TLS na porta 8883, com o gateway validando o certificado do
+broker. Usuário e senha são exclusivos do gateway, emitidos em **Gateways → Gerar
+credencial**. O EMQX consulta a API (`/internal/mqtt/authn` e `/internal/mqtt/authz`)
+e só deixa o gateway publicar nos tópicos do próprio prédio, do próprio gateway e dos
+dispositivos vinculados a ele. O relógio do gateway deve ser sincronizado por NTP:
+amostra com horário mais de 60 s no futuro é recusada.
+
+**Tópicos aceitos hoje:**
+
+```text
+predio/{buildingId}/device/{deviceId}/telemetry      envelope genérico, uma métrica por mensagem
+predio/{buildingId}/caixa_agua/{deviceId}/telemetria contrato compacto da caixa
+predio/{buildingId}/gateway/{gatewayId}/status       ONLINE/OFFLINE, retido
+```
+
+**Regras de publicação.** Telemetria em QoS 1, sem retenção. `eventId` estável para a mesma
+leitura, inclusive no reenvio. `timestamp` é o horário da amostra em UTC. Booleanos vão
+como `true`/`false` JSON; `0`, `1` e texto são recusados. Qualidade é `GOOD`,
+`UNCERTAIN` ou `BAD`.
+
+**O que a ingestão faz com cada mensagem:**
+
+1. Valida o schema e confere se `buildingId`/`deviceId` do corpo são os do tópico.
+2. Confere se o dispositivo está cadastrado e habilitado naquele prédio e se o gateway
+   dele está habilitado. Fora disso, descarta e conta a rejeição.
+3. Grava o recibo do `eventId` e a leitura na mesma transação. O mesmo `eventId` com o
+   mesmo conteúdo não grava de novo; com conteúdo diferente, conta conflito e não tem efeito.
+4. Na mesma transação, calcula consumo, avalia regras e atualiza o "último sinal" do
+   dispositivo e do gateway.
+5. Só depois do commit confirma o recebimento (PUBACK) ao broker. Se o banco falhar, a
+   mensagem não é confirmada e o broker entrega de novo. A sessão é durável: leituras
+   publicadas com a ingestão parada são entregues quando ela volta.
+6. Publica a leitura e os alertas novos para os painéis em tempo real.
+
+Mensagem retida reenviada pelo broker entra só como histórico: não gera alerta, consumo
+nem sinal de vida.
+
+**Formato do M100: decisão pendente.** A ingestão não aceita o relatório agrupado do M100.
+Há dois caminhos:
+
+| Caminho | Como | Quando serve |
+|---|---|---|
+| **A — configurar o M100** | Publicar uma mensagem por métrica, já no envelope genérico | Só se o firmware gerar `eventId` estável por leitura, horário UTC da amostra e um tópico por dispositivo |
+| **B — adaptador na ingestão** (recomendado) | Novo tópico `predio/{buildingId}/gateway/{gatewayId}/report`; a ingestão divide o relatório em leituras usando o mapa de cada ponto em `devices.metadata` | Mantém o firmware simples, centraliza escalas e conversões na plataforma e reduz o tráfego 4G |
+
+A recomendação de B depende de capturar o JSON real do equipamento. Ela exige atualizar
+contrato, autorização no broker/API, assinatura MQTT e normalização (seção 7).
+
+### 3.5 Mapa dos pontos do piloto
+
+Os `deviceId` são sugestões. Os tipos que já existem na plataforma têm painel e regras
+padrão. Os marcados **a implementar** são aceitos como tipo e métrica personalizados, sem
+tela nem regra pronta.
+
+| Ponto | Entrada física | `deviceId` sugerido | Tipo | Métrica | Conversão até a métrica |
+|---|---|---|---|---|---|
+| Nível da caixa | AI1 | `caixa_01` | `WATER_LEVEL_SENSOR` | `water_level_percent`, `volume_liters` | mA → coluna d'água → % da altura útil; volume pela geometria. Fora de 4–20 mA → `BAD` |
+| Nível da cisterna | AI2 | `cisterna_01` | `WATER_LEVEL_SENSOR` | idem | Calibração própria |
+| Consumo de água | TDI340 canal 1 | `hidrometro_01` | `WATER_METER` | `water_total_m3` | uint32 × litros/pulso ÷ 1000 + referência do mostrador |
+| Vazamento de água | TDI340 canal 2 | `vaz_agua_01` | `LEAK_SENSOR` | `water_leak_detected` | 1 (aberto) → `true`; 0 → `false` só se o ramal de 12 V estiver presente |
+| Vazamento de esgoto | TDI340 canal 3 | `vaz_esgoto_01` | `SEWAGE_LEAK_SENSOR` | `sewage_leak_detected` | idem |
+| Energia | Modbus, endereço 2 | `energia_01` | `ENERGY_METER` | `energy_total_kwh` | Escala do mapa do medidor |
+| Fases | mesmo medidor | `fases_01` | `PHASE_MONITOR` | `voltage_l1..l3`; opcionais `current_l1..l3`, `frequency_hz` | Um medidor físico vira dois dispositivos lógicos, como no seed, porque painéis e funcionalidades seguem o tipo |
+| Temperatura | Modbus, endereço 3 | `temp_01` | `TEMPERATURE_SENSOR` | `temperature_c` | Escala do mapa |
+| Bomba | DI | `bomba_01` | `PUMP_MONITOR` | `pump_running` | Contato do contator fechado → `true` |
+| Gás | DI | `gas_01` | `GAS_SENSOR` | `gas_detected` | Relé de alarme do detector |
+| Incêndio | DI | `incendio_01` | `SMOKE_PANEL_RELAY` | `smoke_detected` | Relé de alarme da central |
+| Quatro boias | DI | `boia_caixa_alta`, `boia_caixa_baixa`, `boia_cisterna_alta`, `boia_cisterna_baixa` | `FLOAT_SWITCH` — a implementar | `float_active` | Boia acionada → `true` |
+| Falta de rede | DI | `rede_01` | `MAINS_MONITOR` — a implementar | `mains_power_ok` | Rede presente → `true` |
+| Ramais de 12 V | DI | `ramal12v_agua`, `ramal12v_esgoto` | `SUPPLY_MONITOR` — a implementar | `supply_ok` | Tensão presente → `true` |
+
+Cada dispositivo guarda em `devices.metadata` o mapa do seu ponto, por exemplo endereço
+Modbus, registrador, escala, faixa em mA ou NA/NF. O cadastro na plataforma não programa
+o gateway: o mesmo mapa precisa ser configurado no M100 ou no adaptador.
+
+### 3.6 Automação: o que acontece depois que a leitura chega
+
+| Camada | Onde roda | O que faz | Estado |
+|---|---|---|---|
+| **0. Proteção e comando local** | Quadro da bomba, detector de gás, central de incêndio | Liga e desliga a bomba pela boia ou comando próprio; alarme sonoro local; válvula de gás, se existir | Já existe no prédio. O Prédio ON não interfere |
+| **1. Regras de alerta** | Ingestão, na transação da leitura | Limite por métrica (`LT`, `LTE`, `GT`, `GTE`, `EQ`, `NEQ`), no prédio ou num dispositivo; severidade; pausa contra oscilação. Booleano vira 1/0, por exemplo `water_leak_detected EQ 1` | Pronto. As 16 regras padrão da 066 nascem desativadas; revisar limites antes de ativar |
+| **2. Consumo e bomba** | Ingestão, por perfil de monitoramento | Limite diário de m³ ou kWh, custo diário pela tarifa, tempo contínuo da bomba e desvio contra até 28 dias de histórico (anomalia exige `AI_ANALYSIS`) | Pronto; depende de leituras com até 5 min de intervalo |
+| **3. Supervisão de comunicação** | Ingestão: varredura a cada 30 s e Last Will | Gateway sem mensagem há 120 s, ou Last Will recebido, vira `OFFLINE` com alerta `COMMUNICATION_LOST` (HIGH). Dispositivo sem leitura há 300 s, idem | Pronto |
+| **4. Entrega do alerta** | Outbox no banco + serviço `notifications` | Alerta e evento gravados juntos. Painel em tempo real. HIGH/CRITICAL vão para o webhook HTTPS, com novas tentativas | Pronto. Não há e-mail de alerta: o Resend é usado só em recuperação de acesso e convites. Push não será feito |
+| **5. Automações** | Gatilho no banco, na transação do alerta | Alerta novo abre ordem de serviço com título, prioridade, equipe e ativo; pausa, versões e simulação nos últimos 30 dias. Ou, a cada N dias, abre ordem preventiva (tarefa do TimescaleDB a cada 5 min) | Pronto, com uma única ação: abrir ordem de serviço |
+| **6. Comando de equipamento** | — | Não existe, por decisão. Automação não liga bomba nem fecha válvula. O único comando físico do sistema é abrir portão, pedido por pessoa autorizada no módulo de acessos | Fora do escopo desta compra |
+
+**Frescor.** Regras de telemetria e alertas de consumo ignoram leituras com mais de 5 min:
+o histórico reenviado depois de uma queda não dispara uma rajada de alertas antigos. O
+painel de sensores mostra leitura com mais de 15 min como "estado atual desconhecido" e
+qualidade diferente de `GOOD` como "leitura não validada". Leitura `BAD` é gravada, mas
+não dispara regra nem conta consumo.
+
+**Por que não comandar equipamentos pela nuvem.** Se um dia for necessário, por exemplo,
+fechar uma válvula solenoide ao detectar vazamento ou desligar a bomba sem água na
+cisterna, essa lógica deve ficar **no local**: no gateway, num CLP ou num relé com
+intertravamento e comando manual de emergência. A nuvem depende da internet, só age
+sobre leituras recentes e não tem caminho de comando para esses equipamentos. Ela
+continua supervisionando, registrando e avisando.
+
+### 3.7 Exemplos ponta a ponta
+
+**Vazamento de água.** A água chega ao piso e, após pelo menos 10 s, o RISCO abre o
+contato. Na leitura seguinte, em até 5 s, o registrador 202 do TDI340 passa a 1. O
+gateway publica `water_leak_detected: true` em
+`predio/{buildingId}/device/vaz_agua_01/telemetry`. A ingestão grava e a regra de
+vazamento cria o alerta. O painel atualiza em segundos, o webhook é chamado e a
+automação "vazamento → manutenção" abre a ordem de serviço. Tempo total esperado: ~10 s
+do sensor + até 5 s de leitura + segundos de rede, **a medir** no teste "Alarmes e
+estados" da seção 8. Se o ramal de 12 V cair junto, o correto é indicar "circuito aberto
+ou sem alimentação", não "vazamento confirmado": isso depende de regra composta **a
+implementar**.
+
+**Caixa baixando.** A sonda informa a coluna d'água; o gateway converte para % e publica
+a cada 60 s. As regras padrão de nível baixo e crítico geram alertas com severidades
+diferentes, e a pausa evita repetição enquanto o nível oscila perto do limite.
+
+**Bomba ligada demais.** `pump_running` permanece `true`; quando o ciclo contínuo passa
+do limite do perfil, nasce `PUMP_CONTINUOUS_LIMIT`. "Bomba ligada com boia alta
+acionada" exige regra composta **a implementar**.
+
+**Queda da internet.** No HM-GL, o gateway passa para o 4G e continua publicando. No
+HM-ETH, ou sem 4G, as leituras ficam no cartão SD; o broker percebe a desconexão pelo
+keepalive, publica o Last Will e a plataforma abre `COMMUNICATION_LOST`. Na volta, o
+histórico é reenviado com os horários originais e gravado, sem alertas para leituras
+antigas. Um vazamento que continua ativo gera alerta na primeira leitura atual. Um evento
+que começou e terminou durante a queda fica apenas no histórico. O consumo de leituras
+reenviadas fora de ordem ainda não é recomposto (seção 7).
+
+**Falta de energia no prédio.** O nobreak mantém gateway, sensores e rede. A DI de falta
+de rede publica `mains_power_ok: false`, que precisa de regra **a implementar**, e a
+bomba aparece desligada. Esgotada a bateria, o gateway cai e o Last Will indica perda de
+comunicação, sem identificar sozinho a causa.
+
+### 3.8 Ordem de configuração no piloto
+
+1. Na plataforma: cadastrar o gateway e gerar a credencial MQTT.
+2. Cadastrar os dispositivos da seção 3.5, vinculados ao gateway, com o mapa de cada
+   ponto em `devices.metadata`.
+3. No M100: broker com TLS e CA, credencial, `ONLINE` retido, Last Will `OFFLINE` retido,
+   keepalive, NTP, cache em SD **habilitado** (vem desativado), leituras Modbus e
+   cadências da seção 3.3.
+4. Conferir cada ponto: valor físico conhecido → leitura no gateway → leitura no painel.
+5. Revisar os limites e ativar as regras padrão; configurar os perfis de consumo de água,
+   energia e bomba.
+6. Criar as automações de alerta → ordem de serviço e as preventivas.
+7. Executar os testes da seção 8, incluindo latência dos alarmes e tráfego 4G medido.
+
+### 3.9 O que falta para fechar comunicação e automação
+
+| # | Entrega | Por quê |
+|---:|---|---|
+| 1 | Capturar o JSON real do M100 e decidir entre A e B; implementar o adaptador se for B | Sem isso, nenhuma leitura do equipamento real entra na plataforma |
+| 2 | Traduzir timeout Modbus, CRC inválido, corrente fora de 4–20 mA e falta de 12 V em qualidade `BAD`/`UNCERTAIN` | Falha nunca pode virar zero, "seco" ou "normal" |
+| 3 | Tipos, métricas, telas e regras de boias, falta de rede e ramais de 12 V | Hoje são aceitos como dados personalizados, sem painel nem alerta pronto |
+| 4 | Regras compostas e com duração | Cada regra olha uma métrica isolada. Faltam "A e B", "persistir por N s" e divergência boia × nível |
+| 5 | Recompor consumo com reenvio fora de ordem | Leituras anteriores à última processada são ignoradas no cálculo |
+| 6 | Alerta por e-mail via Resend, se o síndico precisar de canal sem webhook | Hoje o alerta chega ao painel e ao webhook |
+| 7 | Medir latência dos alarmes e tráfego 4G no piloto | As cadências e volumes desta seção são estimativas |
+
+## 4. Orçamento comparável e rastreável
 
 A [lista de compras](COMPRAS_PILOTO.md) é a referência comercial desta revisão.
 Ela distingue **A — anúncio consultado**, **R — referência sem oferta disponível**,
 **C — cotação pendente** e **P — provisão estimada**. Preços anunciados não equivalem
 a reserva de estoque, adequação da versão ao local ou proposta de instalação.
 
-### 3.1 Composição do cenário com 4G
+### 4.1 Composição do cenário com 4G
 
 | Parcela | Valor em reais | Condição |
 |---|---:|---|
@@ -157,7 +404,7 @@ Conexões hidráulicas, instalação e manutenção podem mudar a economia final
 itens conservaram as referências da revisão desta data; esta rodada priorizou água
 e vazamentos.
 
-### 3.2 Continuidade, diagnóstico e alternativas
+### 4.2 Continuidade, diagnóstico e alternativas
 
 O HM-GL anunciado a R$ 1.845,45 custa R$ 681,03 a mais que o HM-ETH a R$ 1.164,42.
 É a alternativa celular a verificar antes de somar um roteador 4G separado. Comparar
@@ -180,7 +427,7 @@ o nobreak, com ramais protegidos e diagnóstico de presença de tensão. Ela nã
 a fonte de 24 V. O quadro deve acomodar os equipamentos e dissipar seu calor. Não se
 presume que o nobreak ou a bateria caibam no quadro fechado.
 
-### 3.3 Custo total em três anos
+### 4.3 Custo total em três anos
 
 Para cada proposta tecnicamente aprovada, preencher:
 
@@ -195,7 +442,7 @@ nem tratado como gratuito no piloto. Não estimar taxas de falha sem dados.
 **Escolher o menor custo total entre os conjuntos que cumpram os requisitos.**
 O quadro de preenchimento do custo instalado está na seção 4 da lista de compras.
 
-## 4. Onde reduzir custo sem retirar funções
+## 5. Onde reduzir custo sem retirar funções
 
 1. **Reaproveitar equipamentos existentes compatíveis.** Levantar medidor Modbus,
    hidrômetro com saída utilizável, contato auxiliar, central de incêndio, nobreak com
@@ -226,7 +473,7 @@ O quadro de preenchimento do custo instalado está na seção 4 da lista de comp
    firmware fixado, backup e instruções de troca reduzem custo operacional. Material
    usado sem procedência e sensores sem modelo definido não são referência para um kit robusto.
 
-## 5. Comparação técnica sem notas artificiais
+## 6. Comparação técnica sem notas artificiais
 
 | Alternativa | Evidência disponível | Pendência decisiva | Papel na decisão |
 |---|---|---|---|
@@ -250,7 +497,7 @@ sem somar canais remotos/eventos. Não comprova 72 h de histórico para este pil
 As interfaces não isoladas e a cadência alternativa de registro também precisam
 entrar na avaliação. A [lista de compras](COMPRAS_PILOTO.md) detalha as condições.
 
-### 5.1 Outras opções comercializadas no Brasil
+### 6.1 Outras opções comercializadas no Brasil
 
 **Há alternativas nacionais e importadas com canal de venda brasileiro.** Isso não
 significa estoque imediato nem que todas tenham o melhor custo para este prédio.
@@ -293,7 +540,7 @@ qualidade. A existência de um CLP da marca não comprova MQTT/TLS, histórico o
 conjunto de entradas necessário na versão ofertada. Esta lista ampliada também não
 pretende enumerar todo o mercado.
 
-### 5.2 Como essas opções podem superar a referência atual
+### 6.2 Como essas opções podem superar a referência atual
 
 A comparação deve usar **o conjunto de aquisição e comunicação**, não apenas o
 preço da CPU. Pelas referências de 04/11/2026:
@@ -326,10 +573,10 @@ adequação ao piloto, não um ranking de taxa de falhas.
 Separar três evidências na decisão: **robustez elétrica/ambiental documentada**,
 **funcionamento completo demonstrado** e **custo de manter/repor**. Para confiabilidade
 comparativa, faltam dados de campo equivalentes. Exigir garantia, prazo real de
-reposição e resultados dos mesmos testes da seção 7; prestígio da marca e quantidade
+reposição e resultados dos mesmos testes da seção 8; prestígio da marca e quantidade
 de protocolos não substituem essas evidências.
 
-## 6. Trabalho de integração ainda necessário
+## 7. Trabalho de integração ainda necessário
 
 O código inspecionado em 04/11/2026 recebe os contratos genérico e compacto da caixa,
 mas não o relatório agrupado M100 proposto anteriormente. A revisão deste documento
@@ -371,7 +618,7 @@ Definir essa diferença entre histórico e incidente atual na operação. O Last
 de o broker detectar a desconexão, inclusive pelo keepalive; não é detecção instantânea
 de falta de energia nem identifica sozinho sua causa.
 
-## 7. Critérios de aceitação antes de comprar em volume
+## 8. Critérios de aceitação antes de comprar em volume
 
 Metas abaixo são **requisitos propostos de projeto**, não desempenhos já demonstrados.
 Configurar a cadência conforme evento e janela de supervisão; falhas intermitentes menores
@@ -404,7 +651,7 @@ Guardar relatório com firmware, configuração, topologia, carga elétrica, fre
 amostragem, mensagens reais e resultados. Simuladores e testes automatizados da plataforma
 complementam essa evidência, mas não comprovam robustez elétrica ou durabilidade do hardware.
 
-## 8. Sequência de compra e implantação
+## 9. Sequência de compra e implantação
 
 1. Levantar pontos, distâncias, ambiente, rede elétrica, internet e equipamentos existentes.
    Fixar se é aceitável perder notificações remotas temporariamente por queda de link.
@@ -426,7 +673,7 @@ complementam essa evidência, mas não comprovam robustez elétrica ou durabilid
 A compra em escala fica condicionada à homologação. **O objetivo é o menor custo do
 monitoramento que funciona e pode ser mantido, e não o menor preço isolado do controlador.**
 
-## 9. Fontes e limites da revisão
+## 10. Fontes e limites da revisão
 
 Documentação da base consultada em 04/11/2026 e ampliação de mercado em 05/11/2026;
 conferir a revisão correspondente ao equipamento efetivamente entregue:
