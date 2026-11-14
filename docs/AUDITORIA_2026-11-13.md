@@ -429,6 +429,24 @@ Lacunas:
 - **Impacto:** quem testa localmente vê perdas que não existem em produção, e o contrário também vale: nada do que se mede em desenvolvimento sobre o broker vale para a produção.
 - **Correção:** fixar `emqx/emqx:6.3.1` e ligar as sessões duráveis também no Compose de desenvolvimento.
 
+**PON-34 · P2 · Qualidade · [comprovado] — Dois testes E2E não acompanharam mudanças de regra.**
+
+Os dois falham de forma reproduzível em banco novo, no Chromium e no WebKit. É o efeito direto do CI parado (PON-04): o produto mudou e ninguém viu os testes ficarem vermelhos.
+
+- **`e2e/specs/tenancy/platform.spec.ts:49`:** tenta pôr "Morador Demo" numa equipe. O produto agora proíbe ("Moradores não podem integrar equipes do condomínio", migration `060-team-member-eligibility`), e a lista "Pessoa" só oferece síndicos. **O produto está certo; o teste está velho.**
+- **`e2e/specs/platform/organizations.spec.ts:166`:** exige que a conta comercial, nas rotas legadas, só chame autenticação e `/v1/authorization/platform`. O painel também chama `/v1/demo` a cada página (`apps/admin-web/src/pages/Demo.tsx:9`, funcionalidade da migration 062): 14 chamadas no trace. Inofensivo, mas contraria a intenção registrada no teste, que é não montar nada além do necessário.
+- **Correção:** atualizar o primeiro teste para usar um integrante elegível. No segundo, ou consultar `/v1/demo` só para administrador de plataforma, ou aceitar a chamada no teste.
+- **Uma terceira falha** (`permissions/building-portal-by-role.spec.ts`: menu sem "Avisos") só ocorre na suíte completa e passa isolada. Depende do estado deixado por testes anteriores, como o PON-31.
+
+**PON-35 · P2 · UX/Compatibilidade · [indeterminado] — Comportamento no Safari não verificado.**
+
+No WebKit do Playwright no Windows:
+
+- 10 das 50 páginas do smoke registraram uma exceção do tipo "Fetch API cannot load …/buildings due to access control checks";
+- o menu móvel não recebeu o foco esperado.
+
+O WebKit para Windows não equivale ao Safari, e essa mensagem também aparece quando uma requisição é cancelada pela troca de página. Mesmo assim, síndicos e moradores usam iPhone. **Validar no Safari (iOS e macOS) ou no WebKit em Linux antes do piloto.**
+
 ### F.8 UX — ver seção J
 
 ### F.9 Funcionalidades — ver seção D
@@ -533,7 +551,9 @@ Classificação: msg/s e leituras/dia são **cálculo teórico**; armazenamento 
 | Teste de carga da ingestão (topologia de produção) | MEDIDO | Teto ~22 msg/s; latência abaixo do teto p50 28 ms, p95 37 ms; 12.200 mensagens, 0 perdas | PON-08 |
 | Teste de carga no Compose de desenvolvimento | FALHA CONFIRMADA (só dev) | Rajada de 3.000: o EMQX descartou 1.965 (`delivery.dropped.queue_full`) | PON-33 |
 | Primeira tentativa de regressão completa | FALHOU (ambiente) | O Docker Desktop caiu por falta de memória; 3 falhas, todas explicadas e reexecutadas com sucesso | PON-31 |
-| E2E completo (186 testes × Chromium, Firefox, WebKit) | NÃO EXECUTADO | Ficou para depois do teste de carga; navegadores já instalados | — |
+| E2E completo, Chromium (186 testes, banco novo) | 183 PASSARAM, 3 FALHARAM | Isolados em banco novo: 1 passou (dependia do estado deixado por testes anteriores) e 2 falharam de forma reproduzível, ambos testes desatualizados | PON-34 |
+| E2E completo, WebKit (186 testes) | 172 PASSARAM, 14 FALHARAM | 2 são os mesmos testes desatualizados. 12 são do WebKit no Windows: o cookie `SameSite` aparece como `None` (limitação conhecida do WebKit do Playwright no Windows); 10 páginas com erro "due to access control checks"; foco do menu móvel. Indeterminado até rodar no WebKit em Linux ou no Safari real | PON-35 |
+| E2E completo, Firefox | NÃO EXECUTÁVEL AQUI | O Firefox 155 do Playwright não abre neste Windows (o Windows não carrega o componente `mozglue`), mesmo após instalar o runtime do Visual C++ e reinstalar o navegador. Validar em runner Linux | — |
 | Cenários de concorrência B–G em execução dirigida | NÃO EXECUTADO | Cobertos pelos testes do projeto que passaram (limite de reserva simultâneo, orçamento de login concorrente, pausa × entrega de alerta) | ver seção H |
 | Revisão estática: autenticação e sessão | CONCLUÍDA | seção F.2 | PON-10, 15, 25 |
 | Revisão estática: RLS e isolamento | CONCLUÍDA | seção F.2 | PON-26 |
@@ -546,11 +566,11 @@ Classificação: msg/s e leituras/dia são **cálculo teórico**; armazenamento 
 | Apps móveis | PARCIAL | Typecheck, 236 testes do pacote e os 2 contratos contra a API real passaram. Instalar e abrir os apps exige Android SDK/emulador e um Mac para iOS, ausentes nesta máquina | — |
 | Equipamento real | NÃO EXECUTÁVEL AQUI | Não há gateway, sensor nem broker TLS disponíveis | PON-03 |
 
-**Total executado:** todos os jobs do CI (`platform`, `backup`, `notifications` e `ingest-runtime`) foram reproduzidos localmente, com a correção do PON-01, no TimescaleDB 2.30.1 da produção. Resultado: 2.203 testes passaram, 0 falhas definitivas, 1 teste intermitente (PON-32). Somam-se 50 páginas no smoke E2E e os testes de carga.
+**Total executado:** todos os jobs do CI (`platform`, `backup`, `notifications` e `ingest-runtime`) foram reproduzidos localmente, com a correção do PON-01, no TimescaleDB 2.30.1 da produção. Resultado: 2.203 testes passaram, 0 falhas definitivas, 1 teste intermitente (PON-32). Somam-se os testes de carga e o E2E: Chromium 183/186 e WebKit 172/186, com cada falha explicada (PON-34, PON-35). O Firefox não abriu nesta máquina.
 
 **O que falta validar, e como:**
 
-- Suíte E2E completa nos três navegadores (186 testes cada): máquina com 16 GB ou runner Linux de CI (`pnpm test:e2e`).
+- E2E no Firefox e no WebKit em runner Linux (`pnpm test:e2e`), e um roteiro manual no Safari do iPhone (PON-35).
 - Carga em VPS do porte da produção, com o autorizador HTTP do broker ligado (PON-07), que este ensaio não incluiu.
 - Hardware real: um gateway físico em bancada, com broker TLS, antes do piloto. Roteiro: cadastrar o gateway, conectar pela porta 8883, publicar leitura, derrubar a energia (Last Will), religar e conferir que nada se perdeu nem duplicou.
 - Apps: build Android em emulador (`scripts/android-smoke`) e iOS em Mac (`scripts/ios-smoke`).
