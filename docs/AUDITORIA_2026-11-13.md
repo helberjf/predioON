@@ -13,7 +13,7 @@ O que **continua sem execução**: teste de carga, cenários de concorrência B�
 
 Marcações: **[comprovado]** foi reproduzido em execução por mim. **[rastreado]** foi seguido linha a linha no código, sem reprodução. **[relatado]** vem dos documentos do projeto. **[estimativa]** é cálculo meu com premissas explícitas.
 
-Arquivos criados pela execução, todos locais e fora do versionamento do projeto: `.env` (cópia de `.env.example`), `services/ingest/.env.runtime`, `.local/`, `node_modules/` e as pastas `dist/`. Nenhum arquivo de código foi alterado.
+Arquivos criados pela execução, todos locais e fora do versionamento do projeto: `.env` (cópia de `.env.example`), `services/ingest/.env.runtime`, `.local/`, `node_modules/` e as pastas `dist/`. Código alterado apenas na correção do PON-01, depois de autorizada (commit `db1977b5` na `main`).
 
 ---
 
@@ -34,10 +34,10 @@ O PrédioON é bem mais do que a descrição inicial sugere: um monorepo com API
 3. **A esteira de CI não executa** (`startup_failure` em todas as consultas registradas) [relatado]. Localmente as suítes passam (1.874 testes, nenhuma falha — seção G), mas nada impede uma regressão de entrar na `main`.
 4. **Backup é um procedimento manual documentado**, sem agendamento, sem RPO/RTO definidos.
 5. **Capacidade nunca medida.** A ingestão processa uma mensagem por vez com dezenas de idas ao banco; não há compressão, agregação nem retenção ativa.
-6. **Uma mensagem malformada de um único gateway trava a ingestão de todos os condomínios** [comprovado — PON-01, agora P0]. Reiniciar o serviço não resolve.
+6. **Uma mensagem malformada de um único gateway trava a ingestão de todos os condomínios** [comprovado — PON-01, P0]. Reiniciar o serviço não resolvia. **Corrigido e publicado nesta auditoria.**
 7. **Sete vulnerabilidades de severidade alta em dependências de produção** (`pnpm audit --prod`), todas com versão corrigida disponível (PON-30).
 
-**Nota ponderada: 6,5 / 10 (Regular).** Não encontrei vazamento de dados entre condomínios, e as suítes de isolamento do projeto passaram em execução. Há **um P0 comprovado (PON-01)**: o sistema **NÃO ESTÁ APTO PARA PRODUÇÃO**, independentemente da média.
+**Nota ponderada: 6,5 / 10 (Regular).** Não encontrei vazamento de dados entre condomínios, e as suítes de isolamento do projeto passaram em execução. O único P0 comprovado (PON-01) foi corrigido e publicado. Mesmo assim, pelos P1 abertos, o sistema **NÃO ESTÁ APTO PARA PRODUÇÃO**, independentemente da média.
 
 ---
 
@@ -48,7 +48,7 @@ O PrédioON é bem mais do que a descrição inicial sugere: um monorepo com API
 | Segurança | 15% | 7,0 | Estática + execução | Autenticação e sessões muito bem feitas; suítes de autenticação passaram. Faltam CSP/anti-framing, MFA obrigatória de admin ainda fora da `main`, webhook sem assinatura. `pnpm audit --prod`: 7 altas, 7 moderadas, 3 baixas. |
 | Isolamento multi-tenant | 10% | 8,0 | Estática + execução | RLS + capacidades no banco + logins restritos; as suítes de RBAC/RLS do banco e da API passaram. Acoplamento de disponibilidade entre clientes (PON-01). |
 | Banco de dados | 10% | 6,5 | Estática + execução | As 67 migrations aplicam em banco limpo e a suíte do banco passou (301/311, 10 pulados). Sem compressão/agregados, retenção desligada, `ingest_events` sem expurgo, 7 índices na hypertable. |
-| Concorrência e consistência | 10% | 6,0 | Estática + execução | Idempotência, locks e outbox corretos e cobertos por testes que passaram. **Mensagem-veneno comprovada (P0)**, edição last-write-wins, status retido de gateway. |
+| Concorrência e consistência | 10% | 6,0 | Estática + execução | Idempotência, locks e outbox corretos e cobertos por testes que passaram. **Mensagem-veneno comprovada (P0, corrigida)**, edição last-write-wins, status retido de gateway. |
 | Arquitetura | 10% | 7,5 | Estática + execução | Monólito modular bem separado, contratos compartilhados; `check:boundaries` passou. Escopo largo demais para o estágio. |
 | Testes e qualidade | 10% | 7,5 | Execução | 1.874 testes passaram localmente, 0 falhas, 11 pulados; typecheck e build limpos. **CI não roda; zero teste de carga; zero hardware; suítes de backup e de cluster isolado não executadas.** |
 | Funcionalidades | 8% | 7,0 | Estática | Cobertura ampla. Falta o essencial comercial (canal de alerta, cobrança) e sobra módulo não essencial. |
@@ -61,7 +61,7 @@ O PrédioON é bem mais do que a descrição inicial sugere: um monorepo com API
 
 Cálculo: 1,05 + 0,80 + 0,65 + 0,60 + 0,75 + 0,75 + 0,56 + 0,42 + 0,20 + 0,25 + 0,30 + 0,175 = **6,51**.
 
-> **Há um P0 comprovado (PON-01). NÃO ESTÁ APTO PARA PRODUÇÃO, independentemente da média.** A nota subiu em testes (agora executados) e caiu em segurança e concorrência (achados confirmados); o total ficou praticamente igual.
+> **O P0 comprovado (PON-01) foi corrigido; restam P1 abertos. NÃO ESTÁ APTO PARA PRODUÇÃO.** A nota subiu em testes (agora executados) e caiu em segurança e concorrência (achados confirmados); o total ficou praticamente igual.
 
 ---
 
@@ -70,7 +70,7 @@ Cálculo: 1,05 + 0,80 + 0,65 + 0,60 + 0,75 + 0,75 + 0,56 + 0,42 + 0,20 + 0,25 + 
 | Estágio | Veredito | O que impede |
 |---|---|---|
 | Demonstração | **APTO COM RESTRIÇÕES** | Ambiente local sobe do zero, as 67 migrations aplicam e o smoke E2E abriu as 50 páginas sem erro. Deixar explícito que os dados são simulados; não demonstrar com gateway de terceiros por causa do PON-01. |
-| Piloto supervisionado | **NÃO APTO** | **PON-01 (P0) comprovado**; dependências com avisos altos (PON-30); hardware real, broker TLS e VPS nunca validados; alerta sem canal de entrega; backup manual; CI parado; PON-06 aberto. |
+| Piloto supervisionado | **NÃO APTO** | PON-01 corrigido (acompanhar `ingest_rejections`); dependências com avisos altos (PON-30); hardware real, broker TLS e VPS nunca validados; alerta sem canal de entrega; backup manual; CI parado; PON-06 aberto. |
 | Produção | **NÃO APTO** | Tudo do piloto + observabilidade, RPO/RTO, capacidade medida, MFA obrigatória de admin, LGPD. |
 | Comercialização e escala | **NÃO APTO** | Sem cobrança, contrato, SLA, onboarding padronizado; ingestão e armazenamento não escalam além de dezenas de condomínios sem mudanças. |
 
@@ -121,9 +121,9 @@ Legenda de estado: **IV** implementada e validada por mim · **IS** implementada
 
 ## E. Problemas P0 e P1
 
-**P0: um comprovado — PON-01.**
+**P0: um comprovado — PON-01, já corrigido e publicado.**
 
-### PON-01 — Mensagem-veneno trava a ingestão de todos os condomínios · P0 · Concorrência/Disponibilidade · [comprovado]
+### PON-01 — Mensagem-veneno trava a ingestão de todos os condomínios · P0 · Concorrência/Disponibilidade · [comprovado] · **CORRIGIDO**
 
 - **Reprodução executada em 13/11/2026** (serviço de ingestão real, EMQX e TimescaleDB em container local, dados do seed):
   1. Leitura válida de `temp_01` → gravada em menos de 4 s.
@@ -219,11 +219,24 @@ Legenda de estado: **IV** implementada e validada por mim · **IS** implementada
 - **Teste de aceite:** parar a API por 60 s com um gateway publicando QoS 1; zero leituras perdidas após a volta.
 - **Esforço:** baixo.
 
-### PON-08 — Ingestão serial e tempo real com custo N×M · P1 em escala · Performance · [estimativa]
+### PON-08 — Ingestão serial e tempo real com custo N×M · P1 em escala · Performance · [ingestão medida; SSE estimado]
+
+- **Medição (13/11/2026):**
+  - **Topologia:** imagem de produção da ingestão (`NODE_ENV=production`, logins restritos) e EMQX 6.3.1 com sessões duráveis, na mesma rede Docker do TimescaleDB.
+  - **Máquina:** notebook de 8 GB e 12 CPUs lógicas, com outros containers ligados.
+  - **Teto: 22–24 mensagens/s, constante** com 50, 100 ou 200 msg/s oferecidas.
+  - **Abaixo do teto** (10 msg/s): latência mediana de 28 ms, p95 de 37 ms e máximo de 62 ms.
+  - **Saturado:** a ingestão usou 42% de um núcleo e o banco 49%. O limite é a fila serial (cerca de 40 ms de idas ao banco por mensagem), não a CPU. Uma VPS mais rápida melhora pouco; só o processamento em paralelo muda a ordem de grandeza.
+  - **Perda:** nenhuma. 12.200 mensagens gravadas no total, 0 descartes, 0 erros. Acima do teto a fila cresce e a latência chegou a 2 min.
 
 - **Arquivos:** `services/ingest/src/mqtt.ts:41-53`, `services/ingest/src/pipeline/telemetry.ts:47-146`, `services/ingest/src/realtime.ts:11-30`, `apps/api/src/modules/events/routes.ts:38-79`, `packages/db/src/context.ts:11` (pool de 10).
 - **Evidência:** uma mensagem por vez, cada uma com ~25 idas ao banco na transação principal (cada escrita é relida duas a três vezes por `assertPersisted`) e mais ~7 na publicação em tempo real. No lado da API, **cada evento, para cada painel aberto**, refaz a identidade (2 consultas) e abre uma transação de projeção.
-- **Impacto estimado:** teto na ordem de **50–100 mensagens/s** em uma VPS pequena — suficiente para o piloto, insuficiente para 100 condomínios a 5 s (400 msg/s). Com 100 painéis abertos e 60 eventos/s, a API precisaria de milhares de transações/s em um pool de 10 conexões; a fila por assinante passa de 100 e a conexão é encerrada (`routes.ts:41`), gerando laço de reconexão.
+- **Impacto:** a estimativa estática (50–100 msg/s) era otimista; o medido é **~22 msg/s**. Com 20 sensores por condomínio e uma reserva de 50%:
+  - leitura a cada 60 s: cerca de 30 condomínios;
+  - a cada 30 s: cerca de 15;
+  - a cada 5 s: 2 a 3.
+
+  Basta para o piloto; não basta para 100 condomínios em nenhum intervalo. Com 100 painéis abertos e 60 eventos/s, a API precisaria de milhares de transações/s em um pool de 10 conexões; a fila por assinante passa de 100 e a conexão é encerrada (`routes.ts:41`), gerando laço de reconexão.
 - **Correção (só quando a medição pedir):** paralelizar por dispositivo (N filas por hash de `deviceId`); reduzir releituras a uma verificação no fim da transação; no SSE, cachear a autorização por assinante por alguns segundos e filtrar por `buildingId` antes de consultar o banco.
 - **Teste de aceite:** teste de carga com publicador sintético a 100, 400 e 1.000 msg/s medindo atraso fim-a-fim.
 - **Esforço:** médio.
@@ -409,6 +422,13 @@ Lacunas:
 - **Impacto no CI:** uma falha aleatória ocasional, que acostuma o time a ignorar o vermelho.
 - **Correção:** esperar até alguns segundos pelo fim do processo (`pg_stat_activity` sem aquele pid) antes de verificar `pg_locks`.
 
+**PON-33 · P3 · DevOps · [comprovado] — O ambiente de desenvolvimento descarta mensagens que a produção guardaria.**
+
+- **Configuração:** `infrastructure/docker-compose.yml` usa `emqx/emqx:latest` (sem versão fixa, hoje 6.3.3) e **não** liga as sessões duráveis. Produção e demonstração de campo usam 6.3.1 com `EMQX_DURABLE_SESSIONS__ENABLE: "true"`.
+- **Evidência:** numa rajada de 3.000 leituras, o broker de desenvolvimento descartou 1.965 (`delivery.dropped.queue_full`, fila padrão de 1.000 por sessão). A mesma rajada na configuração de produção: 3.000 de 3.000 gravadas.
+- **Impacto:** quem testa localmente vê perdas que não existem em produção, e o contrário também vale: nada do que se mede em desenvolvimento sobre o broker vale para a produção.
+- **Correção:** fixar `emqx/emqx:6.3.1` e ligar as sessões duráveis também no Compose de desenvolvimento.
+
 ### F.8 UX — ver seção J
 
 ### F.9 Funcionalidades — ver seção D
@@ -432,11 +452,19 @@ Lacunas:
 | | 30 s | 667 | 57,6 mi | 10,2 TiB |
 | | 5 s | 4.000 | 345,6 mi | 61 TiB |
 
-Classificação: msg/s e leituras/dia são **cálculo teórico**; armazenamento é **estimativa** sobre medição de terceiros; não há **medição real** minha.
+Classificação: msg/s e leituras/dia são **cálculo teórico**; armazenamento é **estimativa** sobre medição de terceiros. A vazão da ingestão foi **medida** (PON-08): **~22 msg/s de teto** nesta máquina.
 
-**Gargalos esperados, em ordem:**
+| Cenário | Cabe no teto medido (~22 msg/s, com 50% de reserva)? |
+|---|---|
+| 1 condomínio, qualquer intervalo | Sim |
+| 10 condomínios a 60 s ou 30 s | Sim |
+| 10 condomínios a 5 s (40 msg/s) | **Não** |
+| 100 condomínios, qualquer intervalo | **Não** (33–400 msg/s) |
+| 1.000 condomínios | **Não** |
 
-1. Ingestão serial (PON-08): confortável até ~10 condomínios a 30 s; no limite em 100 a 30 s; inviável em 100 a 5 s.
+**Gargalos, em ordem:**
+
+1. Ingestão serial (PON-08, medido): ~22 msg/s, cerca de 15 condomínios de 20 sensores a 30 s.
 2. Autorização HTTP por publicação (PON-07): dobra a carga.
 3. SSE N×M (PON-08).
 4. Disco (PON-09): a 30 s, 10 condomínios já passam de 100 GiB/ano.
@@ -496,11 +524,17 @@ Classificação: msg/s e leituras/dia são **cálculo teórico**; armazenamento 
 | Auditoria de dependências (`pnpm audit --prod`) | FALHOU | 17 vulnerabilidades: 7 altas, 7 moderadas, 3 baixas | PON-30 |
 | Reprodução do PON-01 de ponta a ponta | FALHA CONFIRMADA | Ver PON-01 | PON-01 |
 | E2E Playwright `@smoke` (Chromium) | PASSOU | 50 / 50 páginas dos três portais abriram sem erro, 4,2 min, banco descartável na porta 5446 | — |
-| E2E completo, Firefox e WebKit, acessibilidade axe | NÃO EXECUTADO | A máquina tem 8 GB de RAM e cerca de 800 MB livres; o projeto pede 4–5 GB livres para a suíte completa | — |
-| Suítes de backup/restauração, SQL038 e SQL052 em cluster isolado | NÃO EXECUTADO | Exigem clusters próprios; ficaram fora | PON-05 |
-| Imagens de produção e teste do proxy | NÃO EXECUTADO | Fora do alcance desta sessão | PON-19 |
-| Cenários de concorrência B–G em execução dirigida | NÃO EXECUTADO | Cobertos só pelos testes do projeto que passaram (ex.: limite de reserva simultâneo, orçamento de login concorrente) | ver seção H |
-| Teste de carga | NÃO EXECUTADO | Máquina de 8 GB não serve de referência | PON-08 |
+| **Correção do PON-01** (11 testes novos; regressão; ensaio de ponta a ponta) | PASSOU | Ver PON-01 | PON-01 |
+| **Job `platform` do CI reproduzido em cluster novo, TimescaleDB 2.30.1 (versão de produção), com a correção** | PASSOU | Banco 301/311 (10 pulados); API 872/872; ingestão 231/231; mobile 236; api-client 143; UI 130; contratos nativos de reserva e de portão contra a API real 2/2. Nenhuma falha. | PON-17 |
+| Job `backup`: restauração no mesmo cluster e em cluster independente | PASSOU | 2 / 2 | PON-05 |
+| Job `notifications`: contratos SQL038 + worker | PASSOU com 1 intermitência | SQL038 54/54 em 3 de 4 execuções (1 falha de tempo); worker 35/35, 1 pulado | PON-32 |
+| Job `ingest-runtime`: SQL052 + 11 suítes só com logins restritos | PASSOU | 73/73 e 124/124, um banco novo por suíte | — |
+| Build das 4 imagens de produção + isolamento do proxy | PASSOU | API/ingestão/notificações 525 MB, usuário `node`, partida via `tsx`; web 103 MB (Caddy como root); proxy troca cabeçalhos forjados, bloqueia rotas internas, API sem porta pública | PON-19 |
+| Teste de carga da ingestão (topologia de produção) | MEDIDO | Teto ~22 msg/s; latência abaixo do teto p50 28 ms, p95 37 ms; 12.200 mensagens, 0 perdas | PON-08 |
+| Teste de carga no Compose de desenvolvimento | FALHA CONFIRMADA (só dev) | Rajada de 3.000: o EMQX descartou 1.965 (`delivery.dropped.queue_full`) | PON-33 |
+| Primeira tentativa de regressão completa | FALHOU (ambiente) | O Docker Desktop caiu por falta de memória; 3 falhas, todas explicadas e reexecutadas com sucesso | PON-31 |
+| E2E completo (186 testes × Chromium, Firefox, WebKit) | NÃO EXECUTADO | Ficou para depois do teste de carga; navegadores já instalados | — |
+| Cenários de concorrência B–G em execução dirigida | NÃO EXECUTADO | Cobertos pelos testes do projeto que passaram (limite de reserva simultâneo, orçamento de login concorrente, pausa × entrega de alerta) | ver seção H |
 | Revisão estática: autenticação e sessão | CONCLUÍDA | seção F.2 | PON-10, 15, 25 |
 | Revisão estática: RLS e isolamento | CONCLUÍDA | seção F.2 | PON-26 |
 | Revisão estática: pipeline de ingestão | CONCLUÍDA | seções E, H | PON-01, 06, 08, 11 |
@@ -509,16 +543,17 @@ Classificação: msg/s e leituras/dia são **cálculo teórico**; armazenamento 
 | Revisão estática: painéis web (dashboard e alertas do síndico) | PARCIAL | seção J | PON-21, 22 |
 | Busca por segredos reais no repositório | PASSOU | Só exemplos vazios e chaves "local-only" explícitas | — |
 | Busca por SQL dinâmico / XSS | PASSOU | Nenhuma ocorrência em código de runtime | — |
-| Apps móveis | NÃO EXECUTADO | Fora do alcance desta sessão | — |
+| Apps móveis | PARCIAL | Typecheck, 236 testes do pacote e os 2 contratos contra a API real passaram. Instalar e abrir os apps exige Android SDK/emulador e um Mac para iOS, ausentes nesta máquina | — |
+| Equipamento real | NÃO EXECUTÁVEL AQUI | Não há gateway, sensor nem broker TLS disponíveis | PON-03 |
 
-**Total executado:** 1.874 testes automatizados passaram (API 842, ingestão 199, banco 301, mobile 236, api-client 143, UI 130, notificações 23), 0 falhas, 11 pulados por exigirem cluster isolado; mais 50 páginas no smoke E2E.
+**Total executado:** todos os jobs do CI (`platform`, `backup`, `notifications` e `ingest-runtime`) foram reproduzidos localmente, com a correção do PON-01, no TimescaleDB 2.30.1 da produção. Resultado: 2.203 testes passaram, 0 falhas definitivas, 1 teste intermitente (PON-32). Somam-se 50 páginas no smoke E2E e os testes de carga.
 
 **O que falta validar, e como:**
 
-- Suíte E2E completa nos três navegadores: máquina com 16 GB ou runner Linux de CI (`pnpm test:e2e`).
-- Backup/restauração e suítes SQL038/SQL052: os jobs `backup`, `notifications` e `ingest-runtime` de `.github/workflows/ci.yml`, depois que o CI voltar a rodar (PON-04).
-- Carga: um ensaio de 30 min com 100 gateways simulados em VPS do mesmo porte da produção, medindo latência de ingestão e uso do pool.
-- Hardware real: um gateway físico em bancada, com broker TLS, antes do piloto.
+- Suíte E2E completa nos três navegadores (186 testes cada): máquina com 16 GB ou runner Linux de CI (`pnpm test:e2e`).
+- Carga em VPS do porte da produção, com o autorizador HTTP do broker ligado (PON-07), que este ensaio não incluiu.
+- Hardware real: um gateway físico em bancada, com broker TLS, antes do piloto. Roteiro: cadastrar o gateway, conectar pela porta 8883, publicar leitura, derrubar a energia (Last Will), religar e conferir que nada se perdeu nem duplicou.
+- Apps: build Android em emulador (`scripts/android-smoke`) e iOS em Mac (`scripts/ios-smoke`).
 
 ---
 
@@ -702,7 +737,7 @@ Acessibilidade: há atributos ARIA em 57 arquivos e specs de foco com axe; contr
 
 | # | ID | Melhoria | Sev. | Impacto | Esforço |
 |---:|---|---|---|---|---|
-| 1 | PON-01 | Tratar mensagem-veneno (schema + classificação de erro) | P0 | Alto | Baixo |
+| 1 | PON-01 | Tratar mensagem-veneno (schema + classificação de erro) | P0 (feito) | Alto | Baixo |
 | 2 | PON-04 | Fazer o CI rodar e bloquear merge | P1 | Alto | Baixo |
 | 3 | PON-05 | Backup diário externo + ensaio de restauração | P1 | Alto | Baixo |
 | 4 | PON-06 | Detectar desvio de relógio do gateway | P1 | Alto | Baixo |
