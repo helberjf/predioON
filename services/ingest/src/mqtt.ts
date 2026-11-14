@@ -2,6 +2,7 @@ import mqtt from "mqtt";
 import { readFileSync } from "node:fs";
 import { ACCESS_ACK_TOPIC, GATEWAY_STATUS_TOPIC, TELEMETRY_TOPIC, WATER_TELEMETRY_TOPIC } from "@predioon/shared";
 import { config } from "./config.js";
+import { permanentDataErrorCode } from "./permanent-error.js";
 
 /** Delivery facts from the received packet, not a publisher identity or event key. */
 export type MessageMetadata = Readonly<{ qos: 0 | 1 | 2; retain: boolean; dup: boolean }>;
@@ -55,7 +56,15 @@ export function connectIngest(onMessage: MessageHandler): mqtt.MqttClient {
       // Late callbacks belong to their original connection, even when message
       // IDs have been reused by a replacement connection. Never ACK that stream.
       done(current ? undefined : new Error("Conexão MQTT encerrada antes da confirmação"));
-    }, () => {
+    }, error => {
+      // Content the database refuses fails identically on every redelivery and
+      // would block this single ordered session for every condominium: drop it.
+      const code = permanentDataErrorCode(error);
+      if (code && isCurrent()) {
+        console.error(`Mensagem MQTT recusada pelo banco (SQLSTATE ${code}); confirmada sem gravar:`, packet.topic);
+        done();
+        return;
+      }
       // Keep the persistent broker session and withhold PUBACK. MQTT.js reconnects
       // after the transport closes; the broker then redelivers the unacked input.
       // This path never retries an outbound physical command.

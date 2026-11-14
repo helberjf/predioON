@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { after, describe, it } from "node:test";
 import { and, eq, sql } from "drizzle-orm";
-import { db, sqlClient, telemetry } from "./fixtures/observation-admin.js";
+import { db, ingestEvents, sqlClient, telemetry } from "./fixtures/observation-admin.js";
 import { parseTelemetryTopic, telemetryTopic } from "@predioon/shared";
 import { matches } from "../src/rules/evaluate.js";
 import { handleTelemetry } from "../src/pipeline/telemetry.js";
@@ -101,5 +101,24 @@ describe("ingestão", () => {
       .where(and(eq(telemetry.eventId, eventId), eq(telemetry.buildingId, BUILDING)));
 
     assert.equal(rows.length, 1, "QoS 1 é at-least-once: o eventId precisa deduplicar");
+  });
+
+  it("recusa e conta um valor que o banco não aceita, sem travar a leitura seguinte (PON-01)", async () => {
+    const topic = telemetryTopic(BUILDING, DEVICE);
+    const invalid = async () => Number((await sqlClient`select coalesce(sum(total),0) as total from ingest_rejections where category='INVALID_ENVELOPE' and building_id=''`)[0]!.total);
+    const before = await invalid();
+    const poisoned = randomUUID();
+    fixtureEvents.push(poisoned);
+    // A lone UTF-16 surrogate passes the envelope schema, but PostgreSQL JSONB refuses it (SQLSTATE 22P02).
+    const body = { schemaVersion: 1, eventId: poisoned, buildingId: BUILDING, deviceId: DEVICE, metric: "vendor_note",
+      value: "\uD800", unit: "txt", quality: "GOOD", timestamp: new Date().toISOString() };
+    await assert.doesNotReject(handleTelemetry(topic, Buffer.from(JSON.stringify(body))));
+    assert.equal((await db.select().from(telemetry).where(eq(telemetry.eventId, poisoned))).length, 0);
+    assert.equal((await db.select().from(ingestEvents).where(eq(ingestEvents.eventId, poisoned))).length, 0, "the receipt rolls back with the refused sample");
+    assert.equal(await invalid(), before + 1, "the refusal is counted, never silent");
+
+    const next = randomUUID();
+    await handleTelemetry(topic, payload(next, 55));
+    assert.equal((await db.select().from(telemetry).where(eq(telemetry.eventId, next))).length, 1);
   });
 });

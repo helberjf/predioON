@@ -9,6 +9,7 @@ import { normalizeTelemetry } from "./normalize.js";
 import { accountUsage } from "../analytics/usage.js";
 import { applyParkingTelemetry } from "../parking/index.js";
 import { permitsReading } from "../features.js";
+import { permanentDataErrorCode } from "../permanent-error.js";
 
 // postgres.js already decodes JSONB scalars; the generic JSONB column mapper
 // parses strings a second time (e.g. "10" -> 10). Decode the text encoding once
@@ -44,7 +45,30 @@ export async function handleTelemetry(topic: string, raw: Buffer, delivery: { re
   if (!identity) return countIngestRejection(ingestDb, "INVALID_ENVELOPE");
   if (readings.some(reading => Date.parse(reading.timestamp) > Date.now() + 60_000)) return countIngestRejection(ingestDb, "FUTURE_TIMESTAMP");
 
-  const result = await ingestDb.transaction(async (tx) => {
+  const result = await persistReadings(readings, identity, retained).catch(async (error: unknown) => {
+    // Content PostgreSQL refuses is rejected for good: counted and acknowledged,
+    // never redelivered in a loop that would stall every other source.
+    const code = permanentDataErrorCode(error);
+    if (!code) throw error;
+    console.error(`Telemetria recusada pelo banco (SQLSTATE ${code}); descartada e contada:`, topic);
+    await countIngestRejection(ingestDb, "INVALID_ENVELOPE");
+    return null;
+  });
+  if (!result) return;
+  if (result.unknown) await countIngestRejection(ingestDb, "UNKNOWN_SOURCE");
+
+  for (const data of result.accepted) {
+    await publishRealtime({ kind: "telemetry", buildingId: data.buildingId, deviceId: data.deviceId,
+      metric: data.metric, value: data.value, unit: data.unit ?? null, quality: data.quality, time: new Date(data.timestamp).toISOString() });
+  }
+  for (const alert of result.createdAlerts) {
+    await publishRealtime({ kind: "alert", buildingId: alert.buildingId, alertId: alert.alertId,
+      deviceId: alert.deviceId, severity: alert.severity, type: alert.type, message: alert.message, status: "OPEN" });
+  }
+}
+
+function persistReadings(readings: Telemetry[], identity: Telemetry, retained: boolean) {
+  return ingestDb.transaction(async (tx) => {
     await lockFeatures(tx);
     const accepted: Telemetry[] = [];
     const createdAlerts: AlertNotification[] = [];
@@ -144,14 +168,4 @@ export async function handleTelemetry(topic: string, raw: Buffer, delivery: { re
     await checks.verify();
     return { accepted, createdAlerts, unknown: false };
   });
-  if (result.unknown) await countIngestRejection(ingestDb, "UNKNOWN_SOURCE");
-
-  for (const data of result.accepted) {
-    await publishRealtime({ kind: "telemetry", buildingId: data.buildingId, deviceId: data.deviceId,
-      metric: data.metric, value: data.value, unit: data.unit ?? null, quality: data.quality, time: new Date(data.timestamp).toISOString() });
-  }
-  for (const alert of result.createdAlerts) {
-    await publishRealtime({ kind: "alert", buildingId: alert.buildingId, alertId: alert.alertId,
-      deviceId: alert.deviceId, severity: alert.severity, type: alert.type, message: alert.message, status: "OPEN" });
-  }
 }

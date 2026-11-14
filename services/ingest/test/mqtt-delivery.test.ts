@@ -155,6 +155,38 @@ it("redelivers after a processing failure without acknowledging the failed attem
   assert.equal(attempts, 2);
 });
 
+it("acknowledges content the database refuses and continues with the next message (PON-01)", { timeout: 10_000 }, async t => {
+  const f = await fixture(t);
+  let reconnects = 0;
+  const received: string[] = [];
+  const client = await f.connect(async (_topic, payload) => {
+    const value = payload.toString(); received.push(value);
+    if (value === "poison") {
+      // Shape of a Drizzle query error wrapping the PostgreSQL refusal.
+      throw Object.assign(new Error("Failed query"), { cause: Object.assign(new Error("unsupported Unicode escape sequence"), { code: "22P05" }) });
+    }
+  });
+  client.on("connect", () => { reconnects++; });
+  await f.publish("poison");
+  await f.publish("next-condominium");
+  await until(() => f.acknowledged.length === 2, "both acknowledgements");
+  assert.deepEqual(f.acknowledged, ["poison", "next-condominium"]);
+  assert.deepEqual(received, ["poison", "next-condominium"], "the refused message is processed once, never redelivered");
+  assert.equal(reconnects, 0, "a content refusal must not drop the session");
+});
+
+it("keeps redelivering a retryable database failure", { timeout: 10_000 }, async t => {
+  const f = await fixture(t);
+  let attempts = 0;
+  await f.connect(async () => {
+    attempts++;
+    if (attempts === 1) throw Object.assign(new Error("Failed query"), { cause: Object.assign(new Error("deadlock detected"), { code: "40P01" }) });
+  });
+  await f.publish("retry-after-deadlock");
+  await until(() => f.acknowledged.length === 1, "acknowledgement after redelivery");
+  assert.equal(attempts, 2);
+});
+
 it("does not let a late completion acknowledge a packet on a replacement connection", { timeout: 10_000 }, async t => {
   const f = await fixture(t), old = deferred(), replacement = deferred();
   let attempts = 0, reconnects = 0;
